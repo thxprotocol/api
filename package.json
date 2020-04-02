@@ -1,0 +1,17 @@
+{
+    "name": "thx_api",
+    "version": "0.1.0",
+    "private": true,
+    "engines": {
+        "node": "10"
+    },
+    "scripts": {
+        "firebase": "firebase",
+        "contracts:compile": "solc --overwrite ./contracts/RewardPool.sol -o ./functions/lib/contracts --metadata",
+        "deploy:dev": "firebase use thx-wallet-dev; firebase deploy --only functions:api",
+        "deploy:prod": "firebase use thx-wallet-prod; firebase deploy --only functions:api"
+    },
+    "devDependencies": {
+        "firebase": "^6.2.4"
+    }
+}

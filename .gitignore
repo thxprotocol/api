@@ -1,0 +1,30 @@
+# local env files
+.env
+.env.local
+.env.*.local
+
+# Log files
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+firebase-debug.log
+
+# Editor directories and files
+.idea
+.vscode
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+.DS_Store
+.firebase
+./contracts
+
+## Compiled JavaScript files
+lib/**/*.js
+lib/**/*.js.map
+
+# Typescript v1 declaration files
+typings/
+
+node_modules
