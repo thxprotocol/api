@@ -7,7 +7,7 @@
     },
     "scripts": {
         "firebase": "firebase",
-        "contracts:compile": "solc --overwrite ./contracts/RewardPool.sol -o ./functions/lib/contracts --metadata",
+        "contracts:compile": "solc --overwrite --optimize ./contracts/RewardPool.sol -o ./functions/lib/contracts --metadata",
         "deploy:dev": "firebase use thx-wallet-dev; firebase deploy --only functions:api",
         "deploy:prod": "firebase use thx-wallet-prod; firebase deploy --only functions:api"
     },
