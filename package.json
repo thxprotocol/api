@@ -1,12 +1,12 @@
 {
-    "name": "express-typescript-starter",
+    "name": "thx-api",
     "version": "0.1.0",
-    "description": "A starting point for Node.js express apps with TypeScript",
+    "description": "Public API for THX project",
     "repository": {
         "type": "git",
-        "url": "https://github.com/Microsoft/TypeScript-Node-Starter"
+        "url": "https://github.com/peterpolman/thx-api"
     },
-    "author": "Bowden Kelly",
+    "author": "Peter Polman",
     "license": "MIT",
     "scripts": {
         "start": "npm run serve",

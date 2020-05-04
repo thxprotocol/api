@@ -48,9 +48,9 @@ app.get("/api", apiController.getApi);
 /**
  * Slack Proxy routes.
  */
-app.get("/slack", slackController.getSlackApp);
-app.get("/slack/connect", slackController.connectAccount);
-app.get("/slack/rules", slackController.getRewardRules);
-app.get("/slack/reward", slackController.sendReward);
+app.post("/slack", slackController.getSlackApp);
+app.post("/slack/connect", slackController.connectAccount);
+app.post("/slack/rules", slackController.getRewardRules);
+app.post("/slack/reward", slackController.sendReward);
 
 export default app;
