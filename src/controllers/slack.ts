@@ -8,6 +8,7 @@ import { LocalAddress, CryptoUtils, LoomProvider, Client } from 'loom-js';
 
 const API_ROOT = 'https://us-central1-thx-wallet-dev.cloudfunctions.net/api';
 const APP_ROOT = 'https://thx-wallet-dev.firebaseapp.com';
+const DB_ROOT = 'https://thx-wallet-dev.firebaseio.com';
 const EXTDEV_CHAIN_ID = 'extdev-plasma-us1';
 const PRIVATE_KEY_ARRAY = CryptoUtils.generatePrivateKey();
 const PUBLIC_KEY = CryptoUtils.publicKeyFromPrivateKey(PRIVATE_KEY_ARRAY);
@@ -37,8 +38,8 @@ function sendMessage(url: string, message: any) {
 };
 
 async function RewardRule(id: number, poolAddress: string) {
-    const r: any = getRewardRule(id, poolAddress);
-    
+    const r: any = await getRewardRule(id, poolAddress);
+
     return (r)
         ? {
             id,
@@ -64,36 +65,46 @@ async function getRewardRuleBlocks(length: number, poolContract: any) {
 }
 
 async function getRewardRule(id: number, poolAddress: string) {
+    console.log('GetRewardRule');
     const r = await axios({
         method: 'GET',
-        url: `https://thx-client.firebaseio.com/pools/${poolAddress}/rules/${id}.json`,
+        url: `${DB_ROOT}/pools/${poolAddress}/rules/${id}.json`,
     });
     
     return r.data;
 }
 
 async function getRewardPoolAddress(id: string) {
+    console.log('GetRewardPoolAddress');
     const r = await axios({
         method: 'GET',
-        url: `https://thx-client.firebaseio.com/slack/${id}/rewardPool.json`,
+        url: `${DB_ROOT}/slack/${id}/rewardPool.json`,
     });
     
     return r.data;
 }
 
 async function getUID(id: string) {
-    const r = await axios({
-        method: 'GET',
-        url: `https://thx-client.firebaseio.com/slack/${id}/uid.json`,
-    });
-    
-    return r.data;
+    console.log('GetUID');
+    try {
+        const r = await axios({
+            method: 'GET',
+            url: `${DB_ROOT}/slack/${id}/uid.json`,
+        });
+        
+        return r.data;
+    }
+    catch (e) {
+        console.error(e);
+    }
 }
 
 async function getMember(uid: string) {
+    console.log('GetMember');
+
     const r = await axios({
         method: 'GET',
-        url: `https://thx-client.firebaseio.com/users/${uid}.json`,
+        url: `${DB_ROOT}/users/${uid}.json`,
     });
     
     return r.data;
@@ -103,7 +114,7 @@ async function getMember(uid: string) {
  * GET /slack/connect
  * Connect Slack account to Reward Pool
  */
- export const connectAccount = (req: any, res: any) => {
+ export const connectAccount = (req: Request, res: Response) => {
      const query = req.body.text.split(' ');
      
      res.send({
@@ -140,7 +151,7 @@ async function getMember(uid: string) {
 * POST /slack/reward
 * Send Reward address mapped to connected Slack account
 */
-export const sendReward = async (req: any, res: any) => {
+export const sendReward = async (req: Request, res: Response) => {
     const message = { 
         response_type: "ephemeral",
         text: ":hourglass_flowing_sand: Working on it..."
@@ -263,13 +274,17 @@ export const sendReward = async (req: any, res: any) => {
 * GET /slack/rules
 * List Reward Rules for connected Reward Pool
 */
-export const getRewardRules = async (req: any, res: any) => {
+export const getRewardRules = async (req: Request, res: Response) => {
     const query = req.body.text.split(' ');
     
     if (query[0] === 'list') {
+        console.log('LIST REWARD RULES');
         const poolAddress = await getRewardPoolAddress(req.body.user_id);
         const poolContract = new web3.eth.Contract(RewardPoolABI, poolAddress);
+        console.log(poolContract);
+
         const length = parseInt(await poolContract.methods.countRules().call({ from: API_ADDRESS }), 10);
+        console.log(length);
         const poolName = await poolContract.methods.name().call({ from: API_ADDRESS });
 
         if (length > 0) {
