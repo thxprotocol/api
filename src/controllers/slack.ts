@@ -37,12 +37,8 @@ function sendMessage(url: string, message: any) {
 };
 
 async function RewardRule(id: number, poolAddress: string) {
-    // const snap = await admin.database().ref(`/pools/${poolAddress}/rules/${id}`).once('value');
-    // const r = snap.val();
-    const r = {
-        title: 'This is a reward rule',
-        description: 'Lorem ipsum dolor sit.'
-    }
+    const r: any = getRewardRule(id, poolAddress);
+    
     return (r)
         ? {
             id,
@@ -67,34 +63,33 @@ async function getRewardRuleBlocks(length: number, poolContract: any) {
     return blocks;
 }
 
+async function getRewardRule(id: number, poolAddress: string) {
+    return await axios({
+        method: 'GET',
+        url: `https://thx-client.firebaseio.com/pools/${poolAddress}/rules/${id}.json`,
+    });
+}
+
 async function getRewardPoolAddress(id: string) {
-    return "0xABC4DA93438C8D63590E8adaF8E4257CCB85f9e6";
-    // const snap = await admin.database().ref(`/slack/${id}/rewardPool`).once('value');
-    // return snap.val();
+    return await axios({
+        method: 'GET',
+        url: `https://thx-client.firebaseio.com/slack/${id}/rewardPool.json`,
+    });
 }
 
 async function getUID(id: string) {
-    return "O5s5D5trEPdb4f6ISJ4t2auPMYX2";
-    // const snap = await admin.database().ref(`/slack/${id}/uid`).once('value');
-    // return snap.val();
+    return await axios({
+        method: 'GET',
+        url: `https://thx-client.firebaseio.com/slack/${id}/uid.json`,
+    });
 }
 
 async function getMember(uid: string) {
-    // const snap = await admin.database().ref(`/users/${uid}`).once('value');
-    // return snap.val();
-    return {
-        firstName: 'Peter',
-        lastName: 'Polman',
-    }
+    return await axios({
+        method: 'GET',
+        url: `https://thx-client.firebaseio.com/users/${uid}.json`,
+    });
 }
-
-/**
- * GET /slack
- * List of API examples.
- */
-export const getSlackApp = (req: Request, res: Response) => {
-    res.send("Hello world");
-};
 
 /**
  * GET /slack/connect
@@ -147,17 +142,32 @@ export const sendReward = async (req: any, res: any) => {
     
     const query = req.body.text.split(' ');
     const poolAddress = await getRewardPoolAddress(req.body.user_id);
-    const uid = await getUID(req.body.user_id);
-    const member = await getMember(uid);
-
+    const uid: any = await getUID(req.body.user_id);
+    console.log(uid);
+    
+    const member: any = await getMember(uid);
+    console.log(member);
+    
     if (query[0].startsWith('<@')) {
         const channel = query[0].split('@')[1].split('|')[0];
         const rule = query[1];
-        // const snap = await admin.database().ref(`pools/${poolAddress}/rewards`).push();        
-        const snap = {
-            key: 'wagawgawgwag',
-        };
         
+        const r: any = await axios({
+            method: 'POST',
+            url: `https://thx-client.firebaseio.com/pools/${poolAddress}/rewards.json`,
+        });
+        console.log(r);
+            
+        await axios({
+            method: 'POST',
+            url: `https://thx-client.firebaseio.com/pools/${poolAddress}/rewards/${r.name}.json`,
+            data: JSON.stringify({
+                pool: poolAddress,
+                rule: rule,
+                key: r.name,
+            }),
+        })
+            
         // await admin.database().ref(`/pools/${poolAddress}/rewards/${snap.key}`).set({
         //     pool: poolAddress,
         //     rule: rule,
@@ -179,7 +189,7 @@ export const sendReward = async (req: any, res: any) => {
                             },
                             accessory: {
                                 type: 'image',
-                                image_url: API_ROOT + `/qr/claim/${poolAddress}/${rule}/${snap.key}`,
+                                image_url: API_ROOT + `/qr/claim/${poolAddress}/${rule}/${r.name}`,
                                 alt_text: 'qr code for reward verification',
                             },
                         },
@@ -245,12 +255,6 @@ export const sendReward = async (req: any, res: any) => {
 */
 export const getRewardRules = async (req: any, res: any) => {
     const query = req.body.text.split(' ');
-    const message = { 
-        response_type: "ephemeral",
-        text: ":hourglass_flowing_sand: Working on it..."
-    };
-    
-    res.status(200).send(message);
     
     if (query[0] === 'list') {
         const poolAddress = await getRewardPoolAddress(req.body.user_id);
