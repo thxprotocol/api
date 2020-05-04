@@ -21,6 +21,7 @@ const client: any = new Client(
 const provider = new LoomProvider(client, PRIVATE_KEY_ARRAY);
 const web3 = new Web3(provider);
 const utils = new Web3().utils;
+const PoolContract = new web3.eth.Contract(RewardPoolABI);
 
 async function getRewardRule(id: number, poolAddress: string) {
     try {
@@ -74,33 +75,6 @@ async function getMember(uid: string) {
     }
 }
 
-async function RewardRule(id: number, poolAddress: string) {
-    const r: any = await getRewardRule(id, poolAddress);
-
-    return r
-        ? {
-              id,
-              title: r.title,
-              description: r.description,
-              amount: 0,
-          }
-        : null;
-}
-
-async function getRewardRuleBlocks(length: number, poolContract: any) {
-    const blocks: string[] = [];
-
-    for (let id = 0; id < length; id++) {
-        const rule = await RewardRule(id, poolContract.options.address);
-        const r = await poolContract.methods.rules(id).call({ from: API_ADDRESS });
-
-        if (rule) {
-            blocks.push("\n• `#" + rule.id + "` *" + utils.fromWei(r.amount, "ether") + " THX* - " + rule.title);
-        }
-    }
-    return blocks;
-}
-
 /**
  * POST /slack/connect
  * Connect Slack account to Reward Pool
@@ -147,17 +121,18 @@ export const sendReward = async (req: Request, res: Response) => {
     const poolAddress = await getRewardPoolAddress(req.body.user_id);
     const uid: any = await getUID(req.body.user_id);
     const member: any = await getMember(uid);
-
+    let message = "";
+    
     if (query[0].startsWith("<@")) {
         const channel = query[0].split("@")[1].split("|")[0];
-        const rule = query[1];
-
+        const id = query[1];
+        const rule = await PoolContract.methods.rules(id).call({ from: API_ADDRESS });
         const r: any = await axios({
             method: "POST",
             url: `${DB_ROOT}/pools/${poolAddress}/rewards.json`,
             data: JSON.stringify({
                 pool: poolAddress,
-                rule: rule,
+                rule: id,
             }),
         });
 
@@ -171,10 +146,10 @@ export const sendReward = async (req: Request, res: Response) => {
             }),
         });
 
-        const message = {
+        const payload = {
             as_user: true,
             channel,
-            text: `:moneybag: *Congratulations! ${member.firstName} ${member.lastName}* has given you a reward.`,
+            text: `:moneybag: *Congratulations! ${member.firstName} ${member.lastName}* has rewarded you ${rule.amount} THX.`,
             attachments: [
                 {
                     blocks: [
@@ -218,27 +193,23 @@ export const sendReward = async (req: Request, res: Response) => {
             ],
         };
 
-        axios({
-            method: "POST",
-            url: "https://slack.com/api/chat.postMessage",
-            headers: {
-                "Authorization": "Bearer xoxb-874849905696-951441147569-jiqzfWErHKgPlDvBNzE40Jwh",
-                "Content-Type": "application/json;charset=utf-8",
-            },
-            data: JSON.stringify(message),
-        })
-            .then(() => {
-                res.send({
-                    text: "Your reward is sent!:money_with_wings: Make sure your reward is claimed by the beneficiary.",
-                });
-            })
-            .catch((e: string) => {
-                console.error(e);
+        try {
+            await axios({
+                method: "POST",
+                url: "https://slack.com/api/chat.postMessage",
+                headers: {
+                    "Authorization": "Bearer xoxb-874849905696-951441147569-jiqzfWErHKgPlDvBNzE40Jwh",
+                    "Content-Type": "application/json;charset=utf-8",
+                },
+                data: JSON.stringify(payload),
             });
+            
+            message = "Your reward is sent!:money_with_wings: Make sure your reward is claimed by the beneficiary.";
+        } catch(e) {
+            console.error(e);    
+        };
     } else {
-        res.send({
-            text: "Make sure to mention a pool member.",
-        });
+        message = "Make sure to mention a pool member and provide the rule ID.";
     }
 };
 
@@ -248,31 +219,36 @@ export const sendReward = async (req: Request, res: Response) => {
  */
 export const getRewardRules = async (req: Request, res: Response) => {
     const query = req.body.text.split(" ");
+    const poolAddress = req.body.user_id;
+    let message = "";
+    
+    PoolContract.options.address = await getRewardPoolAddress(poolAddress);
 
     if (query[0] === "list") {
-        const poolAddress = await getRewardPoolAddress(req.body.user_id);
-        const poolContract = new web3.eth.Contract(RewardPoolABI, poolAddress);
-        const length = parseInt(await poolContract.methods.countRules().call({ from: API_ADDRESS }), 10);
-        const poolName = await poolContract.methods.name().call({ from: API_ADDRESS });
+        const poolName = await PoolContract.methods.name().call({ from: API_ADDRESS });
+        const amountOfRules = parseInt(await PoolContract.methods.countRules().call({ from: API_ADDRESS }), 10);
+        
+        if (amountOfRules > 0) {
+            message = `*${poolName}* has ${amountOfRules} reward rules available: `;
 
-        if (length > 0) {
-            const blocks: string[] = await getRewardRuleBlocks(length, poolContract);
-            const message = {
-                text: `*${poolName}* has ${blocks.length} reward rules available: `,
-            };
-            for (const b of blocks) {
-                message.text += b;
+            for (let id = 0; id < amountOfRules; id++) {
+                const ruleMetaData: any = await getRewardRule(id, poolAddress);
+                const ruleContractData = await PoolContract.methods.rules(id).call({ from: API_ADDRESS });
+
+                message += "\n• `#" + id + "` *" + utils.fromWei(ruleContractData.amount, "ether") + " THX* - " + ruleMetaData.title;
             }
+        } else if (!isNaN(query[0])) {
+            const id = parseInt(query[0]);
+            const rule: any = await getRewardRule(id, poolAddress);
+            const r = await PoolContract.methods.rules(id).call({ from: API_ADDRESS });
 
-            res.send(message);
+            message += "`#" + id + "` *" + utils.fromWei(r.amount, "ether") + " THX* - " + rule.title + ": " + rule.description;
         } else {
-            res.send({
-                text: `Pool *${poolName}* has no rules available.`,
-            });
+            message = `*${poolName}* has 0 rules available.`;
         }
     } else {
-        res.send({
-            text: "Send a query with your command. \n Example: `/rules list`",
-        });
+        message = "Send a query with your command. \n Example: `/rules list` or `/rules 0`";
     }
+    
+    res.send(message);
 };
