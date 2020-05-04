@@ -65,27 +65,32 @@ async function getRewardRuleBlocks(length: number, poolContract: any) {
 }
 
 async function getRewardRule(id: number, poolAddress: string) {
-    console.log('GetRewardRule');
-    const r = await axios({
-        method: 'GET',
-        url: `${DB_ROOT}/pools/${poolAddress}/rules/${id}.json`,
-    });
-    
-    return r.data;
+    try {
+        const r = await axios({
+            method: 'GET',
+            url: `${DB_ROOT}/pools/${poolAddress}/rules/${id}.json`,
+        });
+        
+        return r.data;
+    } catch (e) {
+        console.error(e);
+    }
 }
 
 async function getRewardPoolAddress(id: string) {
-    console.log('GetRewardPoolAddress');
-    const r = await axios({
-        method: 'GET',
-        url: `${DB_ROOT}/slack/${id}/rewardPool.json`,
-    });
-    
-    return r.data;
+    try {
+        const r = await axios({
+            method: 'GET',
+            url: `${DB_ROOT}/slack/${id}/rewardPool.json`,
+        });
+        
+        return r.data;
+    } catch(e) {
+        console.error(e);
+    }
 }
 
 async function getUID(id: string) {
-    console.log('GetUID');
     try {
         const r = await axios({
             method: 'GET',
@@ -100,14 +105,16 @@ async function getUID(id: string) {
 }
 
 async function getMember(uid: string) {
-    console.log('GetMember');
-
-    const r = await axios({
-        method: 'GET',
-        url: `${DB_ROOT}/users/${uid}.json`,
-    });
-    
-    return r.data;
+    try {
+        const r = await axios({
+            method: 'GET',
+            url: `${DB_ROOT}/users/${uid}.json`,
+        });
+        
+        return r.data;    
+    } catch (e) {
+        console.error(e);
+    }
 }
 
 /**
@@ -160,14 +167,9 @@ export const sendReward = async (req: Request, res: Response) => {
     res.status(200).send(message);
     
     const query = req.body.text.split(' ');
-    console.log(req.body.user_id);
     const poolAddress = await getRewardPoolAddress(req.body.user_id);
-    console.log(poolAddress);
     const uid: any = await getUID(req.body.user_id);
-    console.log(uid);
-    
     const member: any = await getMember(uid);
-    console.log(member);
     
     if (query[0].startsWith('<@')) {
         const channel = query[0].split('@')[1].split('|')[0];
@@ -175,30 +177,28 @@ export const sendReward = async (req: Request, res: Response) => {
         
         const r: any = await axios({
             method: 'POST',
-            url: `https://thx-client.firebaseio.com/pools/${poolAddress}/rewards.json`,
+            url: `${DB_ROOT}/pools/${poolAddress}/rewards.json`,
+            data: JSON.stringify({
+                pool: poolAddress,
+                rule: rule,
+            }),
         });
         console.log(r);
             
         await axios({
             method: 'POST',
-            url: `https://thx-client.firebaseio.com/pools/${poolAddress}/rewards/${r.name}.json`,
+            url: `${DB_ROOT}/pools/${poolAddress}/rewards/${r.name}.json`,
             data: JSON.stringify({
                 pool: poolAddress,
                 rule: rule,
                 key: r.name,
             }),
         })
-            
-        // await admin.database().ref(`/pools/${poolAddress}/rewards/${snap.key}`).set({
-        //     pool: poolAddress,
-        //     rule: rule,
-        //     key: snap.key,
-        // });
         
         const message = {
             as_user: true,
             channel,
-            text: "Congratulations! You have received a reward. :moneybag:",
+            text: `Congratulations!:moneybag: *${member.firstName} ${member.lastName}* has given you a reward.`,
             attachments: [
                 {
                     blocks: [
@@ -210,7 +210,7 @@ export const sendReward = async (req: Request, res: Response) => {
                             },
                             accessory: {
                                 type: 'image',
-                                image_url: API_ROOT + `/qr/claim/${poolAddress}/${rule}/${r.name}`,
+                                image_url: `${API_ROOT}/qr/claim/${poolAddress}/${rule}/${r.name}`,
                                 alt_text: 'qr code for reward verification',
                             },
                         },
@@ -253,7 +253,7 @@ export const sendReward = async (req: Request, res: Response) => {
             .then(() => {
                 const message = { 
                     replace_original: true,
-                    text: `Your reward is sent to *${member.firstName} ${member.lastName}* :money_with_wings: Make sure your reward is claimed!`,
+                    text: `Your reward is sent!:money_with_wings: Make sure your reward is claimed by the beneficiary.`,
                 };
                 sendMessage(req.body.response_url, message);
             })
@@ -278,13 +278,9 @@ export const getRewardRules = async (req: Request, res: Response) => {
     const query = req.body.text.split(' ');
     
     if (query[0] === 'list') {
-        console.log('LIST REWARD RULES');
         const poolAddress = await getRewardPoolAddress(req.body.user_id);
         const poolContract = new web3.eth.Contract(RewardPoolABI, poolAddress);
-        console.log(poolContract);
-
         const length = parseInt(await poolContract.methods.countRules().call({ from: API_ADDRESS }), 10);
-        console.log(length);
         const poolName = await poolContract.methods.name().call({ from: API_ADDRESS });
 
         if (length > 0) {
