@@ -8,8 +8,6 @@ import path from "path";
 import { SESSION_SECRET } from "./util/secrets";
 
 // Controllers (route handlers)
-import * as homeController from "./controllers/home";
-import * as apiController from "./controllers/api";
 import * as slackController from "./controllers/slack";
 
 // Create Express server
@@ -34,16 +32,6 @@ app.use(lusca.xssProtection(true));
 app.use(
     express.static(path.join(__dirname, "public"), { maxAge: 31557600000 })
 );
-
-/**
- * Primary app routes.
- */
-app.get("/", homeController.index);
-
-/**
- * API routes.
- */
-app.get("/api", apiController.getApi);
 
 /**
  * Slack Proxy routes.

@@ -64,31 +64,39 @@ async function getRewardRuleBlocks(length: number, poolContract: any) {
 }
 
 async function getRewardRule(id: number, poolAddress: string) {
-    return await axios({
+    const r = await axios({
         method: 'GET',
         url: `https://thx-client.firebaseio.com/pools/${poolAddress}/rules/${id}.json`,
     });
+    
+    return r.data;
 }
 
 async function getRewardPoolAddress(id: string) {
-    return await axios({
+    const r = await axios({
         method: 'GET',
         url: `https://thx-client.firebaseio.com/slack/${id}/rewardPool.json`,
     });
+    
+    return r.data;
 }
 
 async function getUID(id: string) {
-    return await axios({
+    const r = await axios({
         method: 'GET',
         url: `https://thx-client.firebaseio.com/slack/${id}/uid.json`,
     });
+    
+    return r.data;
 }
 
 async function getMember(uid: string) {
-    return await axios({
+    const r = await axios({
         method: 'GET',
         url: `https://thx-client.firebaseio.com/users/${uid}.json`,
     });
+    
+    return r.data;
 }
 
 /**
@@ -141,7 +149,9 @@ export const sendReward = async (req: any, res: any) => {
     res.status(200).send(message);
     
     const query = req.body.text.split(' ');
+    console.log(req.body.user_id);
     const poolAddress = await getRewardPoolAddress(req.body.user_id);
+    console.log(poolAddress);
     const uid: any = await getUID(req.body.user_id);
     console.log(uid);
     
