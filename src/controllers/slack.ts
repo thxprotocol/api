@@ -1,52 +1,89 @@
 "use strict";
 
 import { Response, Request, NextFunction } from "express";
-import axios from 'axios';
-import { LocalAddress, CryptoUtils, LoomProvider, Client } from 'loom-js';
+import axios from "axios";
+import { LocalAddress, CryptoUtils, LoomProvider, Client } from "loom-js";
 
 const RewardPoolABI = [{"inputs":[{"internalType":"string","name":"_name","type":"string"},{"internalType":"address","name":"_tokenAddress","type":"address"}],"stateMutability":"nonpayable","type":"constructor"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"sender","type":"address"},{"indexed":false,"internalType":"uint256","name":"amount","type":"uint256"}],"name":"Deposited","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"account","type":"address"}],"name":"ManagerAdded","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"account","type":"address"}],"name":"ManagerRemoved","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"account","type":"address"}],"name":"MemberAdded","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"account","type":"address"}],"name":"MemberRemoved","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"internalType":"uint256","name":"id","type":"uint256"},{"indexed":false,"internalType":"address","name":"reward","type":"address"}],"name":"RewardPollCreated","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"internalType":"uint256","name":"id","type":"uint256"},{"indexed":false,"internalType":"address","name":"reward","type":"address"},{"indexed":false,"internalType":"bool","name":"approved","type":"bool"}],"name":"RewardPollFinished","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"internalType":"uint256","name":"id","type":"uint256"},{"indexed":false,"internalType":"uint256","name":"proposedAmount","type":"uint256"},{"indexed":false,"internalType":"address","name":"sender","type":"address"}],"name":"RulePollCreated","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"internalType":"uint256","name":"id","type":"uint256"},{"indexed":false,"internalType":"bool","name":"approved","type":"bool"},{"indexed":false,"internalType":"address","name":"sender","type":"address"}],"name":"RulePollFinished","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"internalType":"uint256","name":"id","type":"uint256"},{"indexed":false,"internalType":"enum RewardPool.RuleState","name":"state","type":"uint8"},{"indexed":false,"internalType":"address","name":"sender","type":"address"}],"name":"RuleStateChanged","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"beneficiary","type":"address"},{"indexed":false,"internalType":"uint256","name":"reward","type":"uint256"}],"name":"Withdrawn","type":"event"},{"inputs":[],"name":"MAX_VOTED_TOKEN_PERC","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"RULE_POLL_DURATION","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"account","type":"address"}],"name":"addManager","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"account","type":"address"}],"name":"addMember","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"sender","type":"address"}],"name":"countDeposits","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"countRewards","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"beneficiary","type":"address"}],"name":"countRewardsOf","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"countRules","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"receiver","type":"address"}],"name":"countWithdrawels","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"rule","type":"uint256"},{"internalType":"address","name":"account","type":"address"}],"name":"createReward","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"createRule","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"creator","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"amount","type":"uint256"}],"name":"deposit","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"","type":"address"},{"internalType":"uint256","name":"","type":"uint256"}],"name":"deposits","outputs":[{"internalType":"uint256","name":"amount","type":"uint256"},{"internalType":"address","name":"sender","type":"address"},{"internalType":"uint256","name":"created","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"account","type":"address"}],"name":"isManager","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"account","type":"address"}],"name":"isMember","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"","type":"uint256"}],"name":"managers","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"","type":"uint256"}],"name":"members","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"minVotedTokensPerc","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"name","outputs":[{"internalType":"string","name":"","type":"string"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"id","type":"uint256"},{"internalType":"bool","name":"agree","type":"bool"}],"name":"onRewardPollFinish","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"id","type":"uint256"},{"internalType":"bool","name":"agree","type":"bool"},{"internalType":"uint256","name":"proposedAmount","type":"uint256"}],"name":"onRulePollFinish","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"receiver","type":"address"},{"internalType":"uint256","name":"amount","type":"uint256"},{"internalType":"uint256","name":"created","type":"uint256"}],"name":"onWithdrawel","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"renounceManager","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"renounceMember","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"id","type":"uint256"}],"name":"revokeVoteForReward","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"id","type":"uint256"}],"name":"revokeVoteForRule","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"","type":"uint256"}],"name":"rewards","outputs":[{"internalType":"contract Reward","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"","type":"address"},{"internalType":"uint256","name":"","type":"uint256"}],"name":"rewardsOf","outputs":[{"internalType":"contract Reward","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"","type":"uint256"}],"name":"rules","outputs":[{"internalType":"uint256","name":"id","type":"uint256"},{"internalType":"uint256","name":"amount","type":"uint256"},{"internalType":"enum RewardPool.RuleState","name":"state","type":"uint8"},{"internalType":"contract RulePoll","name":"poll","type":"address"},{"internalType":"address","name":"creator","type":"address"},{"internalType":"uint256","name":"created","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"id","type":"uint256"},{"internalType":"uint256","name":"proposedAmount","type":"uint256"}],"name":"startRulePoll","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"token","outputs":[{"internalType":"contract THXToken","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"string","name":"value","type":"string"}],"name":"updatePoolName","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"id","type":"uint256"},{"internalType":"bool","name":"agree","type":"bool"}],"name":"voteForReward","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"id","type":"uint256"},{"internalType":"bool","name":"agree","type":"bool"}],"name":"voteForRule","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"","type":"address"},{"internalType":"uint256","name":"","type":"uint256"}],"name":"withdrawels","outputs":[{"internalType":"uint256","name":"amount","type":"uint256"},{"internalType":"address","name":"receiver","type":"address"},{"internalType":"uint256","name":"created","type":"uint256"}],"stateMutability":"view","type":"function"}];
-const API_ROOT = 'https://us-central1-thx-wallet-dev.cloudfunctions.net/api';
-const APP_ROOT = 'https://thx-wallet-dev.firebaseapp.com';
-const DB_ROOT = 'https://thx-wallet-dev.firebaseio.com';
-const EXTDEV_CHAIN_ID = 'extdev-plasma-us1';
+const API_ROOT = "https://us-central1-thx-wallet-dev.cloudfunctions.net/api";
+const APP_ROOT = "https://thx-wallet-dev.firebaseapp.com";
+const DB_ROOT = "https://thx-wallet-dev.firebaseio.com";
+const EXTDEV_CHAIN_ID = "extdev-plasma-us1";
 const PRIVATE_KEY_ARRAY = CryptoUtils.generatePrivateKey();
 const PUBLIC_KEY = CryptoUtils.publicKeyFromPrivateKey(PRIVATE_KEY_ARRAY);
 const API_ADDRESS = LocalAddress.fromPublicKey(PUBLIC_KEY).toString();
-const Web3 = require('web3');
+const Web3 = require("web3");
 const client: any = new Client(
     EXTDEV_CHAIN_ID,
-    'wss://extdev-plasma-us1.dappchains.com/websocket',
-    'wss://extdev-plasma-us1.dappchains.com/queryws',
+    "wss://extdev-plasma-us1.dappchains.com/websocket",
+    "wss://extdev-plasma-us1.dappchains.com/queryws",
 );
 const provider = new LoomProvider(client, PRIVATE_KEY_ARRAY);
 const web3 = new Web3(provider);
 const utils = new Web3().utils;
 
-async function sendMessage(url: string, message: any) {
+async function getRewardRule(id: number, poolAddress: string) {
     try {
-        return await axios({
-            method: 'POST',
-            url,
-            headers: {
-                'Content-Type': 'application/json;charset=utf-8',
-            },
-            data: JSON.stringify(message),
-        })
+        const r = await axios({
+            method: "GET",
+            url: `${DB_ROOT}/pools/${poolAddress}/rules/${id}.json`,
+        });
+
+        return r.data;
     } catch (e) {
-        console.error('SendMessage Failed', e);
+        console.error(e);
     }
-};
+}
+
+async function getRewardPoolAddress(id: string) {
+    try {
+        const r = await axios({
+            method: "GET",
+            url: `${DB_ROOT}/slack/${id}/rewardPool.json`,
+        });
+
+        return r.data;
+    } catch (e) {
+        console.error(e);
+    }
+}
+
+async function getUID(id: string) {
+    try {
+        const r = await axios({
+            method: "GET",
+            url: `${DB_ROOT}/slack/${id}/uid.json`,
+        });
+
+        return r.data;
+    } catch (e) {
+        console.error(e);
+    }
+}
+
+async function getMember(uid: string) {
+    try {
+        const r = await axios({
+            method: "GET",
+            url: `${DB_ROOT}/users/${uid}.json`,
+        });
+
+        return r.data;
+    } catch (e) {
+        console.error(e);
+    }
+}
 
 async function RewardRule(id: number, poolAddress: string) {
     const r: any = await getRewardRule(id, poolAddress);
 
-    return (r)
+    return r
         ? {
-            id,
-            title: r.title,
-            description: r.description,
-            amount: 0,
-        }
+              id,
+              title: r.title,
+              description: r.description,
+              amount: 0,
+          }
         : null;
 }
 
@@ -58,135 +95,82 @@ async function getRewardRuleBlocks(length: number, poolContract: any) {
         const r = await poolContract.methods.rules(id).call({ from: API_ADDRESS });
 
         if (rule) {
-            blocks.push('\n• `#' + rule.id + '` *' + utils.fromWei(r.amount, 'ether') + ' THX* - ' + rule.title);
+            blocks.push("\n• `#" + rule.id + "` *" + utils.fromWei(r.amount, "ether") + " THX* - " + rule.title);
         }
     }
     return blocks;
-}
-
-async function getRewardRule(id: number, poolAddress: string) {
-    try {
-        const r = await axios({
-            method: 'GET',
-            url: `${DB_ROOT}/pools/${poolAddress}/rules/${id}.json`,
-        });
-        
-        return r.data;
-    } catch (e) {
-        console.error(e);
-    }
-}
-
-async function getRewardPoolAddress(id: string) {
-    try {
-        const r = await axios({
-            method: 'GET',
-            url: `${DB_ROOT}/slack/${id}/rewardPool.json`,
-        });
-        
-        return r.data;
-    } catch(e) {
-        console.error(e);
-    }
-}
-
-async function getUID(id: string) {
-    try {
-        const r = await axios({
-            method: 'GET',
-            url: `${DB_ROOT}/slack/${id}/uid.json`,
-        });
-        
-        return r.data;
-    }
-    catch (e) {
-        console.error(e);
-    }
-}
-
-async function getMember(uid: string) {
-    try {
-        const r = await axios({
-            method: 'GET',
-            url: `${DB_ROOT}/users/${uid}.json`,
-        });
-        
-        return r.data;    
-    } catch (e) {
-        console.error(e);
-    }
 }
 
 /**
  * POST /slack/connect
  * Connect Slack account to Reward Pool
  */
- export const connectAccount = (req: Request, res: Response) => {
-     const query = req.body.text.split(' ');
-     
-     res.send({
-         as_user: true,
-         attachments: [
-             {
-                 blocks: [
-                     {
-                         type: 'section',
-                         text: {
-                             type: 'mrkdwn',
-                             text: `*Connect your Slack account a Reward Pool!*`,
-                         },
-                     },
-                     {
-                         type: 'section',
-                         text: {
-                             type: 'mrkdwn',
-                             text: `Scan this QR code with your THX wallet. \n Reward pool: *${query[0]}* \n Slack ID: *${req.body.user_id}*`,
-                         },
-                         accessory: {
-                             type: 'image',
-                             image_url: API_ROOT + `/qr/connect/${query[0]}/${req.body.user_id}`,
-                             alt_text: 'qr code for connecting your account to a pool',
-                         },
-                     },
-                 ],
-             },
-         ],
-     });
+export const connectAccount = (req: Request, res: Response) => {
+    const query = req.body.text.split(" ");
+
+    res.send({
+        as_user: true,
+        attachments: [
+            {
+                blocks: [
+                    {
+                        type: "section",
+                        text: {
+                            type: "mrkdwn",
+                            text: "*Connect your Slack account a Reward Pool!*",
+                        },
+                    },
+                    {
+                        type: "section",
+                        text: {
+                            type: "mrkdwn",
+                            text: `Scan this QR code with your THX wallet. \n Reward pool: *${query[0]}* \n Slack ID: *${req.body.user_id}*`,
+                        },
+                        accessory: {
+                            type: "image",
+                            image_url: API_ROOT + `/qr/connect/${query[0]}/${req.body.user_id}`,
+                            alt_text: "qr code for connecting your account to a pool",
+                        },
+                    },
+                ],
+            },
+        ],
+    });
 };
 
 /**
-* POST /slack/reward
-* Send Reward address mapped to connected Slack account
-*/
+ * POST /slack/reward
+ * Send Reward address mapped to connected Slack account
+ */
 export const sendReward = async (req: Request, res: Response) => {
-    const query = req.body.text.split(' ');
+    const query = req.body.text.split(" ");
     const poolAddress = await getRewardPoolAddress(req.body.user_id);
     const uid: any = await getUID(req.body.user_id);
     const member: any = await getMember(uid);
-    
-    if (query[0].startsWith('<@')) {
-        const channel = query[0].split('@')[1].split('|')[0];
+
+    if (query[0].startsWith("<@")) {
+        const channel = query[0].split("@")[1].split("|")[0];
         const rule = query[1];
-        
+
         const r: any = await axios({
-            method: 'POST',
+            method: "POST",
             url: `${DB_ROOT}/pools/${poolAddress}/rewards.json`,
             data: JSON.stringify({
                 pool: poolAddress,
                 rule: rule,
             }),
         });
-            
+
         await axios({
-            method: 'POST',
+            method: "POST",
             url: `${DB_ROOT}/pools/${poolAddress}/rewards/${r.name}.json`,
             data: JSON.stringify({
                 pool: poolAddress,
                 rule: rule,
                 key: r.name,
             }),
-        })
-        
+        });
+
         const message = {
             as_user: true,
             channel,
@@ -195,36 +179,37 @@ export const sendReward = async (req: Request, res: Response) => {
                 {
                     blocks: [
                         {
-                            type: 'section',
+                            type: "section",
                             text: {
-                                type: 'mrkdwn',
-                                text: "Scan the QR code with your THX wallet and claim this reward. \n You don't have a wallet? No harm done, register a fresh one!",
+                                type: "mrkdwn",
+                                text:
+                                    "Scan the QR code with your THX wallet and claim this reward. \n You don't have a wallet? No harm done, register a fresh one!",
                             },
                             accessory: {
-                                type: 'image',
+                                type: "image",
                                 image_url: `${API_ROOT}/qr/claim/${poolAddress}/${rule}/${r.name}`,
-                                alt_text: 'qr code for reward verification',
+                                alt_text: "qr code for reward verification",
                             },
                         },
                         {
-                            type: 'actions',
+                            type: "actions",
                             elements: [
                                 {
-                                    type: 'button',
+                                    type: "button",
                                     url: `${APP_ROOT}/register`,
                                     text: {
-                                        type: 'plain_text',
-                                        text: 'Register Wallet',
+                                        type: "plain_text",
+                                        text: "Register Wallet",
                                     },
                                 },
                                 {
-                                    type: 'button',
+                                    type: "button",
                                     url: `${APP_ROOT}/claim/${poolAddress}/${rule}`,
                                     text: {
-                                        type: 'plain_text',
-                                        text: 'Claim on this device',
+                                        type: "plain_text",
+                                        text: "Claim on this device",
                                     },
-                                    style: 'primary',
+                                    style: "primary",
                                 },
                             ],
                         },
@@ -234,42 +219,37 @@ export const sendReward = async (req: Request, res: Response) => {
         };
 
         axios({
-                method: 'POST',
-                url: 'https://slack.com/api/chat.postMessage',
-                headers: {
-                    'Authorization': 'Bearer xoxb-874849905696-951441147569-jiqzfWErHKgPlDvBNzE40Jwh',
-                    'Content-Type': 'application/json;charset=utf-8',
-                },
-                data: JSON.stringify(message),
-            })
+            method: "POST",
+            url: "https://slack.com/api/chat.postMessage",
+            headers: {
+                "Authorization": "Bearer xoxb-874849905696-951441147569-jiqzfWErHKgPlDvBNzE40Jwh",
+                "Content-Type": "application/json;charset=utf-8",
+            },
+            data: JSON.stringify(message),
+        })
             .then(() => {
-                const message = { 
-                    replace_original: true,
-                    text: `Your reward is sent!:money_with_wings: Make sure your reward is claimed by the beneficiary.`,
-                };
-                sendMessage(req.body.response_url, message);
+                res.send({
+                    text: "Your reward is sent!:money_with_wings: Make sure your reward is claimed by the beneficiary.",
+                });
             })
             .catch((e: string) => {
                 console.error(e);
             });
     } else {
-        const message = { 
-            replace_original: true,
-            text: 'Make sure to mention a pool member.',
-        };
-        sendMessage(req.body.response_url, message);
+        res.send({
+            text: "Make sure to mention a pool member.",
+        });
     }
 };
 
-
 /**
-* POST /slack/rules
-* List Reward Rules for connected Reward Pool
-*/
+ * POST /slack/rules
+ * List Reward Rules for connected Reward Pool
+ */
 export const getRewardRules = async (req: Request, res: Response) => {
-    const query = req.body.text.split(' ');
-    
-    if (query[0] === 'list') {
+    const query = req.body.text.split(" ");
+
+    if (query[0] === "list") {
         const poolAddress = await getRewardPoolAddress(req.body.user_id);
         const poolContract = new web3.eth.Contract(RewardPoolABI, poolAddress);
         const length = parseInt(await poolContract.methods.countRules().call({ from: API_ADDRESS }), 10);
@@ -278,27 +258,21 @@ export const getRewardRules = async (req: Request, res: Response) => {
         if (length > 0) {
             const blocks: string[] = await getRewardRuleBlocks(length, poolContract);
             const message = {
-                replace_original: true,
                 text: `*${poolName}* has ${blocks.length} reward rules available: `,
             };
             for (const b of blocks) {
                 message.text += b;
             }
 
-            sendMessage(req.body.response_url, message);
+            res.send(message);
         } else {
-            const message = {
-                replace_original: true,
+            res.send({
                 text: `Pool *${poolName}* has no rules available.`,
-            };
-
-            sendMessage(req.body.response_url, message);
+            });
         }
     } else {
-        const message = {
-            replace_original: true,
-            text: 'Send a query with your command. \n Example: `/rules list`',
-        };
-        sendMessage(req.body.response_url, message);
+        res.send({
+            text: "Send a query with your command. \n Example: `/rules list`",
+        });
     }
 };
