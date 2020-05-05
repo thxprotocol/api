@@ -165,11 +165,7 @@ async function proposeReward(channel: string, member: any, id: any, poolAddress:
                 },
             ],
         };
-        
-        console.log(payload.attachments[0]);
-        console.log(payload.attachments[0].blocks[0]);
-        console.log(payload.attachments[0].blocks[1]);
-
+    
         const r = await axios({
             method: "POST",
             url: "https://slack.com/api/chat.postMessage",
@@ -247,7 +243,7 @@ export const sendReward = async (req: Request, res: Response) => {
         const data = await pushReward(poolAddress, id);
         
         await setReward(poolAddress, id, data.name); 
-        await proposeReward(channel, member, rule, poolAddress, data.name, rule.amount);
+        await proposeReward(channel, member, id, poolAddress, data.name, rule.amount);
 
         res.send({
             text: "*Your reward is sent!* :money_with_wings: Make sure your reward is claimed by the beneficiary.",
