@@ -30,9 +30,9 @@ This repository holds the source for the THX API and the Slack Proxy that is use
 1. `nvm install 10`
 2. `nvm use 10`
 3. `npm install`
-4. `git submodule init`
-5. `git submodule update`
-6. `npm run contracts:compile`
+4. `git submodule init` (deprecated)
+5. `git submodule update` (deprecated)
+6. `npm run contracts:compile` (deprecated)
 
 ## 4. Running
 
