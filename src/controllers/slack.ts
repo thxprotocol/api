@@ -1,7 +1,7 @@
-"use strict";
+'use strict';
 
-import { Response, Request } from "express";
-import Network, { RewardRule } from "../util/network";
+import { Response, Request } from 'express';
+import Network, { RewardRule } from '../util/network';
 
 const network = new Network();
 
@@ -11,7 +11,7 @@ const network = new Network();
  */
 export const getSlack = (req: Request, res: Response) => {
     res.send({
-        message: "THX Slack Proxy v0.1.0",
+        message: 'THX Slack Proxy v0.1.0',
     });
 };
 
@@ -20,29 +20,29 @@ export const getSlack = (req: Request, res: Response) => {
  * Connect Slack account to Reward Pool
  */
 export const connectAccount = (req: Request, res: Response) => {
-    const query = req.body.text.split(" ");
+    const query = req.body.text.split(' ');
     res.send({
         as_user: true,
         attachments: [
             {
                 blocks: [
                     {
-                        type: "section",
+                        type: 'section',
                         text: {
-                            type: "mrkdwn",
-                            text: "*Connect your Slack account a Reward Pool!*",
+                            type: 'mrkdwn',
+                            text: '*Connect your Slack account a Reward Pool!*',
                         },
                     },
                     {
-                        type: "section",
+                        type: 'section',
                         text: {
-                            type: "mrkdwn",
+                            type: 'mrkdwn',
                             text: `Scan this QR code with your THX wallet. \n Reward pool: *${query[0]}* \n Slack ID: *${req.body.user_id}*`,
                         },
                         accessory: {
-                            type: "image",
+                            type: 'image',
                             image_url: network.apiURL + `/qr/connect/${query[0]}/${req.body.user_id}`,
-                            alt_text: "qr code for connecting your account to a pool",
+                            alt_text: 'qr code for connecting your account to a pool',
                         },
                     },
                 ],
@@ -56,28 +56,28 @@ export const connectAccount = (req: Request, res: Response) => {
  * Send Reward address mapped to connected Slack account
  */
 export const sendReward = async (req: Request, res: Response) => {
-    const query = req.body.text.split(" ");
+    const query = req.body.text.split(' ');
     const poolAddress = await network.getRewardPoolAddress(req.body.user_id);
     const uid: any = await network.getUID(req.body.user_id);
     const member: any = await network.getMember(uid);
 
     network.rewardPool.options.address = poolAddress;
 
-    if (query[0].startsWith("<@")) {
-        const channel = query[0].split("@")[1].split("|")[0];
+    if (query[0].startsWith('<@')) {
+        const channel = query[0].split('@')[1].split('|')[0];
         const id = query[1];
         const rule = await network.getRewardRule(id, poolAddress);
         const data = await network.pushReward(poolAddress, id);
 
         res.send({
-            text: "*Your reward is sent!* :money_with_wings: Make sure your reward is claimed by the beneficiary.",
+            text: '*Your reward is sent!* :money_with_wings: Make sure your reward is claimed by the beneficiary.',
         });
 
         await network.setReward(poolAddress, id, data.name);
         await network.proposeReward(channel, member, id, poolAddress, data.name, rule);
     } else {
         res.send({
-            text: "Make sure to mention a pool member and provide the rule ID.",
+            text: 'Make sure to mention a pool member and provide the rule ID.',
         });
     }
 };
@@ -87,12 +87,12 @@ export const sendReward = async (req: Request, res: Response) => {
  * List Reward Rules for connected Reward Pool
  */
 export const getRewardRules = async (req: Request, res: Response) => {
-    const query = req.body.text.split(" ");
+    const query = req.body.text.split(' ');
     const poolAddress = await network.getRewardPoolAddress(req.body.user_id);
 
     network.rewardPool.options.address = poolAddress;
 
-    if (query[0] === "list") {
+    if (query[0] === 'list') {
         const poolName = await network.rewardPool.methods.name().call({ from: network.account });
         const amountOfRules = parseInt(
             await network.rewardPool.methods.countRules().call({ from: network.account }),
@@ -105,7 +105,8 @@ export const getRewardRules = async (req: Request, res: Response) => {
             for (let id = 0; id < amountOfRules; id++) {
                 const rule: RewardRule = await network.getRewardRule(id, poolAddress);
 
-                message += "\n• `#" + id + "` *" + rule.amount + " THX* - " + rule.title;
+                message +=
+                    '\n• `#' + id + '` *' + network.utils.fromWei(rule.amount, 'ether') + ' THX* - ' + rule.title;
             }
 
             res.send({
@@ -121,11 +122,20 @@ export const getRewardRules = async (req: Request, res: Response) => {
         const rule: RewardRule = await network.getRewardRule(id, poolAddress);
 
         res.send({
-            text: "`#" + id + "` *" + rule.amount + " THX* - " + rule.title + ":\n _" + rule.description + "_",
+            text:
+                '`#' +
+                id +
+                '` *' +
+                network.utils.fromWei(rule.amount, 'ether') +
+                ' THX* - ' +
+                rule.title +
+                ':\n _' +
+                rule.description +
+                '_',
         });
     } else {
         res.send({
-            text: "Send a query with your command. \n Example: `/rules list` or `/rules 0`",
+            text: 'Send a query with your command. \n Example: `/rules list` or `/rules 0`',
         });
     }
 };
