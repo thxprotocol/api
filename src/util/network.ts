@@ -400,7 +400,7 @@ export class RewardRule {
 }
 
 export default class Network {
-    apiURL = 'https://us-central1-thx-wallet-dev.cloudfunctions.net/api';
+    apiURL = 'http://ec2-35-180-251-50.eu-west-3.compute.amazonaws.com/api';
     appURL = 'https://thx-wallet-dev.firebaseapp.com';
     dbURL = 'https://thx-wallet-dev.firebaseio.com';
     account: string;
@@ -568,7 +568,7 @@ export default class Network {
                                 },
                                 accessory: {
                                     type: 'image',
-                                    image_url: `${this.apiURL}/qr/claim/${poolAddress}/${id}/${key}`,
+                                    image_url: `${this.apiURL}/qr/reward/${poolAddress}/${id}/${key}`,
                                     alt_text: 'qr code for reward verification',
                                 },
                             },

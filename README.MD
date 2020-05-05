@@ -45,7 +45,7 @@ The THX API exposes endpoints for reward and reward rule management for your poo
 ### GET RewardRules:
 
 ```
-curl "http://localhost:5000/api/rules" \
+curl "http://ec2-35-180-251-50.eu-west-3.compute.amazonaws.com/api/rules" \
     -X GET \
     -H "RewardPool: 0xABC4DA93438C8D63590E8adaF8E4257CCB85f9e6"
 ```
@@ -53,7 +53,7 @@ curl "http://localhost:5000/api/rules" \
 ### GET RewardRule 0:
 
 ```
-curl "http://localhost:5000/api/rules/0" \
+curl "http://ec2-35-180-251-50.eu-west-3.compute.amazonaws.com/api/rules/0" \
     -X GET \
     -H "RewardPool: 0xABC4DA93438C8D63590E8adaF8E4257CCB85f9e6"
 ```
@@ -61,11 +61,27 @@ curl "http://localhost:5000/api/rules/0" \
 ### POST Reward:
 
 ```
-curl "http://localhost:5000/api/rewards" \
+curl "http://ec2-35-180-251-50.eu-west-3.compute.amazonaws.com/api/rewards" \
     -X POST \
     -H "RewardPool: 0xABC4DA93438C8D63590E8adaF8E4257CCB85f9e6" \
     -H "Content-Type: application/json" \
     -d '{"rule": "0", "address": "0x7334b51060e9452c2a1e595dca301b75ca207c28"}'
+```
+
+### GET QR Connect:
+
+```
+curl "http://ec2-35-180-251-50.eu-west-3.compute.amazonaws.com/api/qr/connect" \
+    -X GET \
+    -H "RewardPool: 0xABC4DA93438C8D63590E8adaF8E4257CCB85f9e6" \
+    -d '{"slack": "XXXXXXXX"}'
+```
+
+### GET QR Reward:
+
+```
+curl "http://ec2-35-180-251-50.eu-west-3.compute.amazonaws.com/api/qr/connect/0xABC4DA93438C8D63590E8adaF8E4257CCB85f9e6/0/-Ww34AsIY91" \
+    -X GET
 ```
 
 ## 6. Slack Proxy Endpoints
