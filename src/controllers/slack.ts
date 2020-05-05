@@ -122,7 +122,7 @@ async function proposeReward(channel: string, member: any, id: any, poolAddress:
         const payload: any = {
             as_user: true,
             channel,
-            text: `:moneybag: *Congratulations!* *${member.firstName} ${member.lastName}* has rewarded you *${amount} THX*.`,
+            text: `:moneybag: *Congratulations!* *${member.firstName} ${member.lastName}* has rewarded you *${utils.fromWei(amount, "ether")} THX*.`,
             attachments: [
                 {
                     blocks: [
