@@ -117,7 +117,7 @@ async function setReward(poolAddress: string, id: number, key: string) {
 }
 
 async function proposeReward(channel: string, member: any, id: any, poolAddress: string, key: string, amount: string) {
-    console.log(new Date().getTime(), "Invoked proposeReward");
+    console.log(new Date().getTime(), "Invoked proposeReward", key);
     try {
         const payload: any = {
             as_user: true,
@@ -165,6 +165,10 @@ async function proposeReward(channel: string, member: any, id: any, poolAddress:
                 },
             ],
         };
+        
+        console.log(payload.attachments[0]);
+        console.log(payload.attachments[0].blocks[0]);
+        console.log(payload.attachments[0].blocks[1]);
 
         const r = await axios({
             method: "POST",
@@ -174,7 +178,8 @@ async function proposeReward(channel: string, member: any, id: any, poolAddress:
                 "Content-Type": "application/json;charset=utf-8",
             },
             data: JSON.stringify(payload),
-        });
+        })
+        .catch(e => console.error);
         
         return r;
     } catch(e) {
@@ -288,7 +293,7 @@ export const getRewardRules = async (req: Request, res: Response) => {
                 text: `*${poolName}* has 0 rules available.`,
             });
         } 
-    }  else if (!isNaN(query[0])) {
+    }  else if (query[0] && !isNaN(query[0])) {
         const id = parseInt(query[0], 10);
         const rule: any = await getRewardRule(id, poolAddress);
         const r = await PoolContract.methods.rules(id).call({ from: API_ADDRESS });
@@ -298,7 +303,7 @@ export const getRewardRules = async (req: Request, res: Response) => {
         });
     } else {
         res.send({
-            text: "Send a query with your command. \n Example: `/rules list` or `/rules 0`"
+            text: "Send a query with your command. \n Example: `/rules list` or `/rules 0`",
         });
     }
 };
