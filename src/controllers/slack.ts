@@ -11,7 +11,7 @@ const network = new Network();
  */
 export const getSlack = (req: Request, res: Response) => {
     res.send({
-        message: 'THX Slack Proxy v0.1.0',
+        message: `THX API v0.1.0 (${process.env.NODE_ENV})`,
     });
 };
 
