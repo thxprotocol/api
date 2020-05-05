@@ -242,12 +242,12 @@ export const sendReward = async (req: Request, res: Response) => {
         const rule = await PoolContract.methods.rules(id).call({ from: API_ADDRESS });
         const data = await pushReward(poolAddress, id);
         
-        await setReward(poolAddress, id, data.name); 
-        await proposeReward(channel, member, id, poolAddress, data.name, rule.amount);
-
         res.send({
             text: "*Your reward is sent!* :money_with_wings: Make sure your reward is claimed by the beneficiary.",
         });
+        
+        await setReward(poolAddress, id, data.name); 
+        await proposeReward(channel, member, id, poolAddress, data.name, rule.amount);
     } else {
         res.send({
             text: "Make sure to mention a pool member and provide the rule ID.",
