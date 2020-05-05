@@ -553,9 +553,9 @@ export default class Network {
             const payload: any = {
                 as_user: true,
                 channel,
-                text: `:moneybag: *Congratulations! ${member.firstName}' '${
+                text: `*Congratulations!:moneybag: ${member.firstName} ${
                     member.lastName
-                }* has rewarded you *${this.utils.fromWei(rule.amount, 'ether')} THX* for reward rule _${rule.title}_.`,
+                }* has rewarded you *${this.utils.fromWei(rule.amount, 'ether')} THX* for reward rule *${rule.title}*`,
                 attachments: [
                     {
                         blocks: [
