@@ -79,6 +79,112 @@ async function getMember(uid: string) {
     }
 }
 
+async function pushReward(poolAddress: string, id: number) {
+    console.log(new Date().getTime(), "Invoked pushReward");
+
+    try {
+        const r = await axios({
+            method: "POST",
+            url: `${DB_ROOT}/pools/${poolAddress}/rewards.json`,
+            data: JSON.stringify({
+                pool: poolAddress,
+                rule: id,
+            }),
+        });
+        
+        return r;
+    } catch (e) {
+        console.error(e);
+    }
+}
+
+async function setReward(poolAddress: string, id: number, key: string) {
+    console.log(new Date().getTime(), "Invoked setReward");
+
+    try {
+        const r = await axios({
+            method: "POST",
+            url: `${DB_ROOT}/pools/${poolAddress}/rewards/${key}.json`,
+            data: JSON.stringify({
+                pool: poolAddress,
+                rule: id,
+                key: key,
+            }),
+        });
+        
+        return r;
+    } catch (e) {
+        console.error(e);
+    }
+}
+
+async function proposeReward(channel: string, member: any, id: any, poolAddress: string, key: string, amount: string) {
+    console.log(new Date().getTime(), "Invoked sendRewardTo");
+
+    try {
+        const payload: any = {
+            as_user: true,
+            channel,
+            text: `:moneybag: *Congratulations! ${member.firstName} ${member.lastName}* has rewarded you ${amount} THX.`,
+            attachments: [
+                {
+                    blocks: [
+                        {
+                            type: "section",
+                            text: {
+                                type: "mrkdwn",
+                                text:
+                                    "Scan the QR code with your THX wallet and claim this reward. \n You don't have a wallet? No harm done, register a fresh one!",
+                            },
+                            accessory: {
+                                type: "image",
+                                image_url: `${API_ROOT}/qr/claim/${poolAddress}/${id}/${key}`,
+                                alt_text: "qr code for reward verification",
+                            },
+                        },
+                        {
+                            type: "actions",
+                            elements: [
+                                {
+                                    type: "button",
+                                    url: `${APP_ROOT}/register`,
+                                    text: {
+                                        type: "plain_text",
+                                        text: "Register Wallet",
+                                    },
+                                },
+                                {
+                                    type: "button",
+                                    url: `${APP_ROOT}/claim/${poolAddress}/${id}`,
+                                    text: {
+                                        type: "plain_text",
+                                        text: "Claim on this device",
+                                    },
+                                    style: "primary",
+                                },
+                            ],
+                        },
+                    ],
+                },
+            ],
+        };
+        
+        const r = await axios({
+            method: "POST",
+            url: "https://slack.com/api/chat.postMessage",
+            headers: {
+                "Authorization": "Bearer xoxb-874849905696-951441147569-jiqzfWErHKgPlDvBNzE40Jwh",
+                "Content-Type": "application/json;charset=utf-8",
+            },
+            data: JSON.stringify(payload),
+        });
+        
+        return r;
+    } catch(e) {
+        console.error(e);    
+    };
+}
+
 /**
  * POST /slack/connect
  * Connect Slack account to Reward Pool
@@ -124,107 +230,30 @@ export const connectAccount = (req: Request, res: Response) => {
  */
 export const sendReward = async (req: Request, res: Response) => {
     console.log(new Date().getTime(), "Invoked sendReward");
+    
+    // res.send({
+    //     text: ":hourglass_flowing_sand: _Processing your request..._",
+    // });
 
     const query = req.body.text.split(" ");
     const poolAddress = await getRewardPoolAddress(req.body.user_id);
     const uid: any = await getUID(req.body.user_id);
     const member: any = await getMember(uid);
     
-    res.write({
-        text: ":hourglass_flowing_sand: _Processing your request..._",
-    });
-    
     PoolContract.options.address = poolAddress;
-    
-    console.log(PoolContract);
-    
+
     if (query[0].startsWith("<@")) {
         const channel = query[0].split("@")[1].split("|")[0];
         const id = query[1];
         const rule = await PoolContract.methods.rules(id).call({ from: API_ADDRESS });
-        const r: any = await axios({
-            method: "POST",
-            url: `${DB_ROOT}/pools/${poolAddress}/rewards.json`,
-            data: JSON.stringify({
-                pool: poolAddress,
-                rule: id,
-            }),
+        const response: any = pushReward(poolAddress, id);
+        
+        await setReward(poolAddress, id, response.name); 
+        await proposeReward(channel, member, rule, poolAddress, response.name, rule.amount);
+
+        res.send({
+            text: "*Your reward is sent!* :money_with_wings: Make sure your reward is claimed by the beneficiary.",
         });
-
-        await axios({
-            method: "POST",
-            url: `${DB_ROOT}/pools/${poolAddress}/rewards/${r.name}.json`,
-            data: JSON.stringify({
-                pool: poolAddress,
-                rule: id,
-                key: r.name,
-            }),
-        });
-
-        const payload = {
-            as_user: true,
-            channel,
-            text: `:moneybag: *Congratulations! ${member.firstName} ${member.lastName}* has rewarded you ${rule.amount} THX.`,
-            attachments: [
-                {
-                    blocks: [
-                        {
-                            type: "section",
-                            text: {
-                                type: "mrkdwn",
-                                text:
-                                    "Scan the QR code with your THX wallet and claim this reward. \n You don't have a wallet? No harm done, register a fresh one!",
-                            },
-                            accessory: {
-                                type: "image",
-                                image_url: `${API_ROOT}/qr/claim/${poolAddress}/${rule}/${r.name}`,
-                                alt_text: "qr code for reward verification",
-                            },
-                        },
-                        {
-                            type: "actions",
-                            elements: [
-                                {
-                                    type: "button",
-                                    url: `${APP_ROOT}/register`,
-                                    text: {
-                                        type: "plain_text",
-                                        text: "Register Wallet",
-                                    },
-                                },
-                                {
-                                    type: "button",
-                                    url: `${APP_ROOT}/claim/${poolAddress}/${rule}`,
-                                    text: {
-                                        type: "plain_text",
-                                        text: "Claim on this device",
-                                    },
-                                    style: "primary",
-                                },
-                            ],
-                        },
-                    ],
-                },
-            ],
-        };
-
-        try {
-            await axios({
-                method: "POST",
-                url: "https://slack.com/api/chat.postMessage",
-                headers: {
-                    "Authorization": "Bearer xoxb-874849905696-951441147569-jiqzfWErHKgPlDvBNzE40Jwh",
-                    "Content-Type": "application/json;charset=utf-8",
-                },
-                data: JSON.stringify(payload),
-            });
-            
-            res.send({
-                text: "Your reward is sent!:money_with_wings: Make sure your reward is claimed by the beneficiary.",
-            });
-        } catch(e) {
-            console.error(e);    
-        };
     } else {
         res.send({
             text: "Make sure to mention a pool member and provide the rule ID.",
@@ -243,7 +272,6 @@ export const getRewardRules = async (req: Request, res: Response) => {
     const poolAddress = await getRewardPoolAddress(req.body.user_id);
     
     PoolContract.options.address = poolAddress;
-    console.log(PoolContract);
 
     if (query[0] === "list") {
         const poolName = await PoolContract.methods.name().call({ from: API_ADDRESS });
