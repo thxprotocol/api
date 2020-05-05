@@ -91,7 +91,7 @@ async function pushReward(poolAddress: string, id: number) {
             }),
         });
         
-        return r;
+        return r.data;
     } catch (e) {
         console.error(e);
     }
@@ -118,7 +118,6 @@ async function setReward(poolAddress: string, id: number, key: string) {
 
 async function proposeReward(channel: string, member: any, id: any, poolAddress: string, key: string, amount: string) {
     console.log(new Date().getTime(), "Invoked proposeReward");
-    console.log(new Date().getTime(), channel, member, id, poolAddress, key, amount);
     try {
         const payload: any = {
             as_user: true,
@@ -166,7 +165,7 @@ async function proposeReward(channel: string, member: any, id: any, poolAddress:
                 },
             ],
         };
-        console.log(payload);
+
         const r = await axios({
             method: "POST",
             url: "https://slack.com/api/chat.postMessage",
@@ -240,10 +239,10 @@ export const sendReward = async (req: Request, res: Response) => {
         const channel = query[0].split("@")[1].split("|")[0];
         const id = query[1];
         const rule = await PoolContract.methods.rules(id).call({ from: API_ADDRESS });
-        const response: any = pushReward(poolAddress, id);
+        const data = await pushReward(poolAddress, id);
         
-        await setReward(poolAddress, id, response.name); 
-        await proposeReward(channel, member, rule, poolAddress, response.name, rule.amount);
+        await setReward(poolAddress, id, data.name); 
+        await proposeReward(channel, member, rule, poolAddress, data.name, rule.amount);
 
         res.send({
             text: "*Your reward is sent!* :money_with_wings: Make sure your reward is claimed by the beneficiary.",
