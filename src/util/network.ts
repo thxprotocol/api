@@ -400,25 +400,25 @@ export class RewardRule {
 }
 
 export default class Network {
-    apiURL = 'http://ec2-35-180-251-50.eu-west-3.compute.amazonaws.com/api';
-    appURL = 'https://thx-wallet-dev.firebaseapp.com';
-    dbURL = 'https://thx-wallet-dev.firebaseio.com';
+    apiURL: string = process.env.API_URL;
+    appURL: string = process.env.APP_URL;
+    dbURL: string = process.env.DB_URL;
     account: string;
+    rewardPool: any;
     web3: any;
     utils: any;
-    rewardPool: any;
 
     constructor() {
-        const PRIVATE_KEY_ARRAY = CryptoUtils.generatePrivateKey();
-        const PUBLIC_KEY = CryptoUtils.publicKeyFromPrivateKey(PRIVATE_KEY_ARRAY);
-        const EXTDEV_CHAIN_ID = 'extdev-plasma-us1';
+        const privateKeyArray = CryptoUtils.generatePrivateKey();
+        const publicKey = CryptoUtils.publicKeyFromPrivateKey(privateKeyArray);
         const client: any = new Client(
-            EXTDEV_CHAIN_ID,
-            'wss://extdev-plasma-us1.dappchains.com/websocket',
-            'wss://extdev-plasma-us1.dappchains.com/queryws',
+            process.env.EXTDEV_CHAIN_ID,
+            process.env.EXTDEV_SOCKET_URL,
+            process.env.EXTDEV_QUERY_URL,
         );
-        this.web3 = new Web3(new LoomProvider(client, PRIVATE_KEY_ARRAY));
-        this.account = LocalAddress.fromPublicKey(PUBLIC_KEY).toString();
+
+        this.web3 = new Web3(new LoomProvider(client, privateKeyArray));
+        this.account = LocalAddress.fromPublicKey(publicKey).toString();
         this.utils = new Web3().utils;
         this.rewardPool = new this.web3.eth.Contract(RewardPoolABI);
     }

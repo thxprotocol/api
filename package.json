@@ -9,7 +9,9 @@
     "author": "Peter Polman",
     "license": "MIT",
     "scripts": {
-        "serve": "npm run build && node dist/server.js",
+        "start-prod": "npm run build && NODE_ENV=production node ./dist/server.js",
+        "start-dev": "npm run build && NODE_ENV=development node ./dist/server.js",
+        "serve": "npm run build && npm run start",
         "lint": "tsc --noEmit && eslint \"**/*.{js,ts}\" --quiet --fix",
         "build": "npm run build-ts",
         "build-ts": "tsc",
