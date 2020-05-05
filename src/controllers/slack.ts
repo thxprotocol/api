@@ -81,7 +81,6 @@ async function getMember(uid: string) {
 
 async function pushReward(poolAddress: string, id: number) {
     console.log(new Date().getTime(), "Invoked pushReward");
-
     try {
         const r = await axios({
             method: "POST",
@@ -100,7 +99,6 @@ async function pushReward(poolAddress: string, id: number) {
 
 async function setReward(poolAddress: string, id: number, key: string) {
     console.log(new Date().getTime(), "Invoked setReward");
-
     try {
         const r = await axios({
             method: "POST",
@@ -119,13 +117,13 @@ async function setReward(poolAddress: string, id: number, key: string) {
 }
 
 async function proposeReward(channel: string, member: any, id: any, poolAddress: string, key: string, amount: string) {
-    console.log(new Date().getTime(), "Invoked sendRewardTo");
-
+    console.log(new Date().getTime(), "Invoked proposeReward");
+    console.log(new Date().getTime(), channel, member, id, poolAddress, key, amount);
     try {
         const payload: any = {
             as_user: true,
             channel,
-            text: `:moneybag: *Congratulations! ${member.firstName} ${member.lastName}* has rewarded you ${amount} THX.`,
+            text: `:moneybag: *Congratulations!* *${member.firstName} ${member.lastName}* has rewarded you *${amount} THX*.`,
             attachments: [
                 {
                     blocks: [
@@ -152,15 +150,15 @@ async function proposeReward(channel: string, member: any, id: any, poolAddress:
                                         type: "plain_text",
                                         text: "Register Wallet",
                                     },
+                                    style: "primary",
                                 },
                                 {
                                     type: "button",
-                                    url: `${APP_ROOT}/claim/${poolAddress}/${id}`,
+                                    url: "https://www.thxprotocol.com/",
                                     text: {
                                         type: "plain_text",
-                                        text: "Claim on this device",
+                                        text: "More info",
                                     },
-                                    style: "primary",
                                 },
                             ],
                         },
@@ -168,7 +166,7 @@ async function proposeReward(channel: string, member: any, id: any, poolAddress:
                 },
             ],
         };
-        
+        console.log(payload);
         const r = await axios({
             method: "POST",
             url: "https://slack.com/api/chat.postMessage",
@@ -230,10 +228,6 @@ export const connectAccount = (req: Request, res: Response) => {
  */
 export const sendReward = async (req: Request, res: Response) => {
     console.log(new Date().getTime(), "Invoked sendReward");
-    
-    // res.send({
-    //     text: ":hourglass_flowing_sand: _Processing your request..._",
-    // });
 
     const query = req.body.text.split(" ");
     const poolAddress = await getRewardPoolAddress(req.body.user_id);
@@ -301,7 +295,7 @@ export const getRewardRules = async (req: Request, res: Response) => {
         const r = await PoolContract.methods.rules(id).call({ from: API_ADDRESS });
         
         res.send({
-            text: "`#" + id + "` *" + utils.fromWei(r.amount, "ether") + " THX* - " + rule.title + ": " + rule.description,
+            text: "`#" + id + "` *" + utils.fromWei(r.amount, "ether") + " THX* - " + rule.title + ":\n _" + rule.description + "_",
         });
     } else {
         res.send({
