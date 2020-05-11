@@ -2,6 +2,7 @@ import logger from './logger';
 import dotenv from 'dotenv';
 
 export const ENVIRONMENT = process.env.NODE_ENV;
+export const VERSION = 'v1';
 
 switch (ENVIRONMENT) {
     case 'production':

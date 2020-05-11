@@ -21,7 +21,7 @@ This repository holds the source for the THX API and the Slack Proxy that is use
 
 ## 2. Register
 
-1. Create THX account at https://thx-wallet-dev.firebaseapp.com/register
+1. Create THX account at https://wallet.thxprotocol.com/register
 2. Connect the wallet to the networks
 3. Join or create a reward pool
 
@@ -45,42 +45,42 @@ The THX API exposes endpoints for reward and reward rule management for your poo
 ### GET RewardRules:
 
 ```
-curl "http://ec2-35-180-251-50.eu-west-3.compute.amazonaws.com/api/rules" \
+curl "https://api.thxprotocol.com/v1/rules" \
     -X GET \
-    -H "RewardPool: 0xABC4DA93438C8D63590E8adaF8E4257CCB85f9e6"
+    -H "RewardPool: 0xAF856BE68391f2703216d286F00B1608F1fae4E1"
 ```
 
 ### GET RewardRule 0:
 
 ```
-curl "http://ec2-35-180-251-50.eu-west-3.compute.amazonaws.com/api/rules/0" \
+curl "https://api.thxprotocol.com/v1/rules/0" \
     -X GET \
-    -H "RewardPool: 0xABC4DA93438C8D63590E8adaF8E4257CCB85f9e6"
+    -H "RewardPool: 0xAF856BE68391f2703216d286F00B1608F1fae4E1"
 ```
 
 ### POST Reward:
 
 ```
-curl "http://ec2-35-180-251-50.eu-west-3.compute.amazonaws.com/api/rewards" \
+curl "https://api.thxprotocol.com/v1/rewards" \
     -X POST \
-    -H "RewardPool: 0xABC4DA93438C8D63590E8adaF8E4257CCB85f9e6" \
+    -H "RewardPool: 0xAF856BE68391f2703216d286F00B1608F1fae4E1" \
     -H "Content-Type: application/json" \
-    -d '{"rule": "0", "address": "0x7334b51060e9452c2a1e595dca301b75ca207c28"}'
+    -d '{"rule": "0", "address": "0x2d7ab3737030959489f9b5880a6ea78942570151"}'
 ```
 
 ### GET QR Connect:
 
 ```
-curl "http://ec2-35-180-251-50.eu-west-3.compute.amazonaws.com/api/qr/connect" \
+curl "https://api.thxprotocol.com/v1/qr/connect" \
     -X GET \
-    -H "RewardPool: 0xABC4DA93438C8D63590E8adaF8E4257CCB85f9e6" \
+    -H "RewardPool: 0xAF856BE68391f2703216d286F00B1608F1fae4E1" \
     -d '{"slack": "XXXXXXXX"}'
 ```
 
 ### GET QR Reward:
 
 ```
-curl "http://ec2-35-180-251-50.eu-west-3.compute.amazonaws.com/api/qr/connect/0xABC4DA93438C8D63590E8adaF8E4257CCB85f9e6/0/-Ww34AsIY91" \
+curl "https://api.thxprotocol.com/v1/qr/connect/0xAF856BE68391f2703216d286F00B1608F1fae4E1/0/-Ww34AsIY91" \
     -X GET
 ```
 
@@ -89,7 +89,7 @@ curl "http://ec2-35-180-251-50.eu-west-3.compute.amazonaws.com/api/qr/connect/0x
 The THX Slack Proxy exposes endpoints to be called by Slack slash commands.
 
 ```
-http://localhost:5000/slack/connect
-http://localhost:5000/slack/rules
-http://localhost:5000/slack/reward
+https://api.thxprotocol.com/v1/slack/connect
+https://api.thxprotocol.com/v1/slack/rules
+https://api.thxprotocol.com/v1/slack/reward
 ```

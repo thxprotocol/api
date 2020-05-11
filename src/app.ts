@@ -5,7 +5,7 @@ import bodyParser from 'body-parser';
 import lusca from 'lusca';
 import flash from 'express-flash';
 import path from 'path';
-import { SESSION_SECRET } from './util/secrets';
+import { VERSION, SESSION_SECRET } from './util/secrets';
 
 import * as apiController from './controllers/api';
 import * as slackController from './controllers/slack';
@@ -34,19 +34,19 @@ app.use(express.static(path.join(__dirname, 'public'), { maxAge: 31557600000 }))
 /**
  * API routes.
  */
-app.post('/api/rewards', apiController.postReward);
-app.get('/api', apiController.getAPI);
-app.get('/api/rules', apiController.getRewardRules);
-app.get('/api/rules/:id', apiController.getRewardRule);
-app.get('/api/qr/connect/:pool/:slack', apiController.getQRConnect);
-app.get('/api/qr/reward/:pool/:rule/:key', apiController.getQRReward);
+app.post(`/${VERSION}/rewards`, apiController.postReward);
+app.get(`/${VERSION}`, apiController.getAPI);
+app.get(`/${VERSION}/rules`, apiController.getRewardRules);
+app.get(`/${VERSION}/rules/:id`, apiController.getRewardRule);
+app.get(`/${VERSION}/qr/connect/:pool/:slack`, apiController.getQRConnect);
+app.get(`/${VERSION}/qr/reward/:pool/:rule/:key`, apiController.getQRReward);
 
 /**
  * Slack Proxy routes.
  */
-app.get('/slack', slackController.getSlack);
-app.post('/slack/connect', slackController.connectAccount);
-app.post('/slack/rules', slackController.getRewardRules);
-app.post('/slack/reward', slackController.sendReward);
+app.get(`/${VERSION}/slack`, slackController.getSlack);
+app.post(`/${VERSION}/slack/connect`, slackController.connectAccount);
+app.post(`/${VERSION}/slack/rules`, slackController.getRewardRules);
+app.post(`/${VERSION}/slack/reward`, slackController.sendReward);
 
 export default app;
