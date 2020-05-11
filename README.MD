@@ -71,14 +71,14 @@ curl "https://api.thxprotocol.com/v1/rewards" \
 ### GET QR Connect:
 
 ```
-curl "https://api.thxprotocol.com/v1/qr/connect/0xAF856BE68391f2703216d286F00B1608F1fae4E1/XXXXXXXX" \
+curl --output qr.png "https://api.thxprotocol.com/v1/qr/connect/0xAF856BE68391f2703216d286F00B1608F1fae4E1/XXXXXXXX" \
     -X GET
 ```
 
 ### GET QR Reward:
 
 ```
-curl "https://api.thxprotocol.com/v1/qr/reward/0xAF856BE68391f2703216d286F00B1608F1fae4E1/0/-Ww34AsIY91" \
+curl --output qr.png "https://api.thxprotocol.com/v1/qr/reward/0xAF856BE68391f2703216d286F00B1608F1fae4E1/0/-Ww34AsIY91" \
     -X GET
 ```
 
