@@ -40,7 +40,7 @@ This repository holds the source for the THX API and the Slack Proxy that is use
 
 ## 5. API Endpoints
 
-The THX API exposes endpoints for reward and reward rule management for your pool.
+The THX API exposes endpoints for reward and reward rule management for your pool. When targeting the development environment endpoints use `http://ec2-35-180-251-50.eu-west-3.compute.amazonaws.com:8443` as a domain for your API url.
 
 ### GET RewardRules:
 
@@ -71,16 +71,14 @@ curl "https://api.thxprotocol.com/v1/rewards" \
 ### GET QR Connect:
 
 ```
-curl "https://api.thxprotocol.com/v1/qr/connect" \
-    -X GET \
-    -H "RewardPool: 0xAF856BE68391f2703216d286F00B1608F1fae4E1" \
-    -d '{"slack": "XXXXXXXX"}'
+curl "https://api.thxprotocol.com/v1/qr/connect/0xAF856BE68391f2703216d286F00B1608F1fae4E1/XXXXXXXX" \
+    -X GET
 ```
 
 ### GET QR Reward:
 
 ```
-curl "https://api.thxprotocol.com/v1/qr/connect/0xAF856BE68391f2703216d286F00B1608F1fae4E1/0/-Ww34AsIY91" \
+curl "https://api.thxprotocol.com/v1/qr/reward/0xAF856BE68391f2703216d286F00B1608F1fae4E1/0/-Ww34AsIY91" \
     -X GET
 ```
 
