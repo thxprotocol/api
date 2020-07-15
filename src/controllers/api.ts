@@ -1,10 +1,10 @@
-'use strict';
+"use strict";
 
-import { Response, Request } from 'express';
-import Network from '../util/network';
+import { Response, Request } from "express";
+import Network from "../util/network";
 
 const network = new Network();
-const qrcode = require('qrcode');
+const qrcode = require("qrcode");
 
 /**
  * GET /api
@@ -21,7 +21,7 @@ export const getAPI = (req: Request, res: Response) => {
  * Proposes a reward for the beneficiary
  */
 export const postReward = async (req: Request, res: Response) => {
-    const poolAddress = req.header('RewardPool');
+    const poolAddress = req.header("RewardPool");
 
     try {
         const tx = await network.createReward(poolAddress, req.body.rule, req.body.address);
@@ -38,12 +38,12 @@ export const postReward = async (req: Request, res: Response) => {
  * Returns a specific reward rule
  */
 export const getRewardRule = async (req: Request, res: Response) => {
-    const poolAddress = req.header('RewardPool');
+    const poolAddress = req.header("RewardPool");
     const id = parseInt(req.params.id, 10);
     const rule = await network.getRewardRule(id, poolAddress);
 
     res.writeHead(rule ? 200 : 404, {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
     });
     res.end(JSON.stringify(rule));
 };
@@ -53,7 +53,7 @@ export const getRewardRule = async (req: Request, res: Response) => {
  * Lists reward rules
  */
 export const getRewardRules = async (req: Request, res: Response) => {
-    const poolAddress = req.header('RewardPool');
+    const poolAddress = req.header("RewardPool");
     const amountOfRules = await network.countRules(poolAddress);
 
     if (amountOfRules > 0) {
@@ -66,12 +66,12 @@ export const getRewardRules = async (req: Request, res: Response) => {
         }
 
         res.writeHead(200, {
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json",
         });
         res.end(JSON.stringify(rules));
     } else {
         res.writeHead(404, {
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json",
         });
         res.end({
             message: `Pool *${network.rewardPool.address}* has no rules available.`,
@@ -91,7 +91,7 @@ export const getQRConnect = async (req: Request, res: Response) => {
     const qrBase64 = await qrcode.toDataURL(JSON.stringify(data));
 
     res.writeHead(200, {
-        'Content-Type': 'image/png',
+        "Content-Type": "image/png",
     });
     res.end(network.getQRBuffer(qrBase64));
 };
@@ -109,7 +109,7 @@ export const getQRReward = async (req: Request, res: Response) => {
     const qrBase64 = await qrcode.toDataURL(JSON.stringify(data));
 
     res.writeHead(200, {
-        'Content-Type': 'image/png',
+        "Content-Type": "image/png",
     });
     res.end(network.getQRBuffer(qrBase64));
 };
