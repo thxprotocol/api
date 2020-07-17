@@ -31,6 +31,17 @@ app.use(lusca.xssProtection(true));
 
 app.use(express.static(path.join(__dirname, "public"), { maxAge: 31557600000 }));
 
+
+/**
+ * Slack Proxy routes.
+ */
+app.get(`/${VERSION}/proxy/slack`, slackController.getSlack);
+app.post(`/${VERSION}/proxy/slack/connect`, slackController.connectAccount);
+app.post(`/${VERSION}/proxy/slack/rules`, slackController.getRewardRules);
+app.post(`/${VERSION}/proxy/slack/reward`, slackController.sendReward);
+app.get(`/${VERSION}/qr/reward/:pool/:rule/:key`, apiController.getQRReward);
+app.get(`/${VERSION}/qr/connect/:pool/:slack`, apiController.getQRConnect);
+
 app.use(function(req, res, next) {
     if (!req.headers["x-api-key"]) {
       return res.status(403).json({ error: "No API Key provided!" });
@@ -47,15 +58,5 @@ app.get(`/${VERSION}`, apiController.getAPI);
 // app.get(`/${VERSION}/login`, apiController.postLogin);
 app.get(`/${VERSION}/rules`, apiController.getRewardRules);
 app.get(`/${VERSION}/rules/:id`, apiController.getRewardRule);
-app.get(`/${VERSION}/qr/reward/:pool/:rule/:key`, apiController.getQRReward);
-app.get(`/${VERSION}/qr/connect/:pool/:slack`, apiController.getQRConnect);
-
-/**
- * Slack Proxy routes.
- */
-app.get(`/${VERSION}/proxy/slack`, slackController.getSlack);
-app.post(`/${VERSION}/proxy/slack/connect`, slackController.connectAccount);
-app.post(`/${VERSION}/proxy/slack/rules`, slackController.getRewardRules);
-app.post(`/${VERSION}/proxy/slack/reward`, slackController.sendReward);
 
 export default app;
