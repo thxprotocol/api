@@ -50,13 +50,15 @@ app.use(function(req, res, next) {
     }
     next();
 });
+
 /**
  * API routes.
  */
 app.post(`/${VERSION}/rewards`, apiController.postReward);
 app.get(`/${VERSION}`, apiController.getAPI);
-// app.get(`/${VERSION}/login`, apiController.postLogin);
 app.get(`/${VERSION}/rules`, apiController.getRewardRules);
+app.get(`/${VERSION}/members`, apiController.getMembers);
 app.get(`/${VERSION}/rules/:id`, apiController.getRewardRule);
+app.get(`/${VERSION}/members/:id`, apiController.getMember);
 
 export default app;
