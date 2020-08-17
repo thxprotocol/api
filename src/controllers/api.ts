@@ -34,6 +34,36 @@ export const postReward = async (req: Request, res: Response) => {
 };
 
 /**
+ * GET /api/members/
+ * Returns a specific reward rule
+ */
+export const getMembers = async (req: Request, res: Response) => {
+    // const poolAddress = req.header("RewardPool");
+    // const id = parseInt(req.params.id, 10);
+    // const member = await network.getMember(id, poolAddress);
+
+    // res.writeHead(member ? 200 : 404, {
+    //     "Content-Type": "application/json",
+    // });
+    // res.end(JSON.stringify(member));
+};
+
+/**
+ * GET /api/members/:id
+ * Returns a specific reward rule
+ */
+export const getMember = async (req: Request, res: Response) => {
+    const poolAddress = req.header("RewardPool");
+    const id = parseInt(req.params.id, 10);
+    const member = await network.getMember(id, poolAddress);
+
+    res.writeHead(member ? 200 : 404, {
+        "Content-Type": "application/json",
+    });
+    res.end(JSON.stringify(member));
+};
+
+/**
  * GET /api/rules/:id
  * Returns a specific reward rule
  */

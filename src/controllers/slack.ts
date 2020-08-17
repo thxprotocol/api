@@ -59,7 +59,7 @@ export const sendReward = async (req: Request, res: Response) => {
     const query = req.body.text.split(' ');
     const poolAddress = await network.getRewardPoolAddress(req.body.user_id);
     const uid: any = await network.getUID(req.body.user_id);
-    const member: any = await network.getMember(uid);
+    const user: any = await network.getUser(uid, poolAddress);
 
     network.rewardPool.options.address = poolAddress;
 
@@ -74,7 +74,7 @@ export const sendReward = async (req: Request, res: Response) => {
         });
 
         await network.setReward(poolAddress, id, data.name);
-        await network.proposeReward(channel, member, id, poolAddress, data.name, rule);
+        await network.proposeReward(channel, user, id, poolAddress, data.name, rule);
     } else {
         res.send({
             text: 'Make sure to mention a pool member and provide the rule ID.',

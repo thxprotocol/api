@@ -93,7 +93,38 @@ export default class Network {
         }
     }
 
-    async getMember(uid: string) {
+    async getMember(id: number, poolAddress: string) {
+        this.rewardPool.options.address = poolAddress;
+
+        try {
+            const address = await this.rewardPool.methods.members(id).call({ from: this.account });
+            const r = await axios({
+                method: 'GET',
+                url: `${this.dbURL}/wallets/${address.toLowerCase()}.json`,
+            });
+            const u = await axios({
+                method: 'GET',
+                url: `${this.dbURL}/users/${r.data.uid}.json`,
+            });
+        
+            return {
+                id,
+                address,
+                uid: r.data.uid,
+                email: u.data.email,
+                firstName: u.data.firstName,
+                lastName: u.data.lastName,
+                picture: u.data.picture && u.data.picture.url,
+            };
+        } catch (e) {
+            console.error(e);
+        }
+    }
+
+
+    async getUser(uid: string, poolAddress: string) {
+        this.rewardPool.options.address = poolAddress;
+
         try {
             const r = await axios({
                 method: 'GET',
