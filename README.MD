@@ -1,4 +1,4 @@
-# THX API v0.1.0-alpha
+# THX API
 
 ## Description
 
