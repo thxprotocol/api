@@ -255,7 +255,7 @@ export default class Network {
                 method: 'POST',
                 url: 'https://slack.com/api/chat.postMessage',
                 headers: {
-                    'Authorization': 'Bearer xoxb-874849905696-951441147569-jiqzfWErHKgPlDvBNzE40Jwh',
+                    'Authorization': `Bearer ${process.env.SLACK_TOKEN}`,
                     'Content-Type': 'application/json;charset=utf-8',
                 },
                 data: JSON.stringify(payload),
