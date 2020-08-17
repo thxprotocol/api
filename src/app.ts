@@ -9,6 +9,7 @@ import { VERSION, SESSION_SECRET } from "./util/secrets";
 
 import * as apiController from "./controllers/api";
 import * as slackController from "./controllers/slack";
+import { RewardRule } from "./util/network";
 
 const app = express();
 
@@ -31,6 +32,14 @@ app.use(lusca.xssProtection(true));
 
 app.use(express.static(path.join(__dirname, "public"), { maxAge: 31557600000 }));
 
+function auth(req: any, res: any, next: any) {
+    if (!req.headers["x-api-key"]) {
+        return res.status(403).json({ error: "No API Key provided!" });
+    } else if (req.headers["x-api-key"] !== process.env.API_KEY) {
+        return res.status(403).json({ error: "Incorrect API Key provided." });
+    }
+    next();
+};
 
 /**
  * Slack Proxy routes.
@@ -42,23 +51,14 @@ app.post(`/${VERSION}/proxy/slack/reward`, slackController.sendReward);
 app.get(`/${VERSION}/qr/reward/:pool/:rule/:key`, apiController.getQRReward);
 app.get(`/${VERSION}/qr/connect/:pool/:slack`, apiController.getQRConnect);
 
-app.use(function(req, res, next) {
-    if (!req.headers["x-api-key"]) {
-      return res.status(403).json({ error: "No API Key provided!" });
-    } else if (req.headers["x-api-key"] !== process.env.API_KEY) {
-        return res.status(403).json({ error: "Incorrect API Key provided." });
-    }
-    next();
-});
-
 /**
  * API routes.
  */
 app.post(`/${VERSION}/rewards`, apiController.postReward);
 app.get(`/${VERSION}`, apiController.getAPI);
 app.get(`/${VERSION}/rules`, apiController.getRewardRules);
-app.get(`/${VERSION}/members`, apiController.getMembers);
 app.get(`/${VERSION}/rules/:id`, apiController.getRewardRule);
+app.get(`/${VERSION}/members`, apiController.getMembers);
 app.get(`/${VERSION}/members/:id`, apiController.getMember);
 
 export default app;
