@@ -2,6 +2,7 @@ import logger from "./logger";
 import dotenv from "dotenv";
 
 export const ENVIRONMENT = process.env.NODE_ENV;
+
 export const VERSION = "v1";
 
 switch (ENVIRONMENT) {
@@ -15,9 +16,13 @@ switch (ENVIRONMENT) {
         dotenv.config({ path: ".env.local" });
         break;
 }
+export const MONGODB_URI = process.env["MONGODB_URI"];
+if (!MONGODB_URI) {
+    logger.error("No mongo connection string. Set MONGODB_URI environment variable.");
 
+    process.exit(1);
+}
 export const SESSION_SECRET = process.env["SESSION_SECRET"];
-
 if (!SESSION_SECRET) {
     logger.error("No client secret. Set SESSION_SECRET environment variable.");
     process.exit(1);
