@@ -1,6 +1,6 @@
-import bcrypt from "bcrypt-nodejs";
-import crypto from "crypto";
-import mongoose from "mongoose";
+import bcrypt from 'bcrypt-nodejs';
+import crypto from 'crypto';
+import mongoose from 'mongoose';
 
 export type AccountDocument = mongoose.Document & {
     email: string;
@@ -13,8 +13,8 @@ export type AccountDocument = mongoose.Document & {
         name: string;
         gender: string;
         location: string;
-        website: string;
         picture: string;
+        rewardPools: string[];
     };
 
     comparePassword: comparePasswordFunction;
@@ -28,33 +28,42 @@ export interface AuthToken {
     kind: string;
 }
 
-const accountSchema = new mongoose.Schema({
-    email: { type: String, unique: true },
-    password: String,
-    passwordResetToken: String,
-    passwordResetExpires: Date,
-    apiKey: String,
-    tokens: Array,
-    profile: {
-        firstName: String,
-        lastName: String,
-        gender: String,
-        location: String,
-        website: String,
-        picture: String
-    }
-}, { timestamps: true });
+const accountSchema = new mongoose.Schema(
+    {
+        email: { type: String, unique: true },
+        password: String,
+        passwordResetToken: String,
+        passwordResetExpires: Date,
+        apiKey: String,
+        tokens: Array,
+        profile: {
+            firstName: String,
+            lastName: String,
+            gender: String,
+            location: String,
+            picture: String,
+            rewardPools: Array,
+        },
+    },
+    { timestamps: true },
+);
 
 /**
  * Password hash middleware.
  */
-accountSchema.pre("save", function save(next) {
+accountSchema.pre('save', function save(next) {
     const account = this as AccountDocument;
-    if (!account.isModified("password")) { return next(); }
+    if (!account.isModified('password')) {
+        return next();
+    }
     bcrypt.genSalt(10, (err, salt) => {
-        if (err) { return next(err); }
+        if (err) {
+            return next(err);
+        }
         bcrypt.hash(account.password, salt, undefined, (err: mongoose.Error, hash) => {
-            if (err) { return next(err); }
+            if (err) {
+                return next(err);
+            }
             account.password = hash;
             next();
         });
@@ -76,8 +85,8 @@ accountSchema.methods.gravatar = function (size: number = 200) {
     if (!this.email) {
         return `https://gravatar.com/avatar/?s=${size}&d=retro`;
     }
-    const md5 = crypto.createHash("md5").update(this.email).digest("hex");
+    const md5 = crypto.createHash('md5').update(this.email).digest('hex');
     return `https://gravatar.com/avatar/${md5}?s=${size}&d=retro`;
 };
 
-export const Account = mongoose.model<AccountDocument>("Account", accountSchema);
+export const Account = mongoose.model<AccountDocument>('Account', accountSchema);

@@ -25,11 +25,8 @@
         "watch": "concurrently -k -p \"[{name}]\" -n \"Sass,TypeScript,Node\" -c \"yellow.bold,cyan.bold,green.bold\" \"npm run watch-ts\" \"npm run watch-node\"",
         "test": "jest --forceExit --coverage --verbose",
         "watch-test": "npm run test -- --watchAll",
-        "build-sass": "node-sass src/public/css/main.scss dist/public/css/main.css",
-        "watch-sass": "node-sass -w src/public/css/main.scss dist/public/css/main.css",
-        "copy-static-assets": "ts-node copyStaticAssets.ts",
         "debug": "npm run build && npm run watch-debug",
-        "serve-debug": "nodemon --inspect dist/server.js",
+        "serve-debug": "NODE_ENV=local nodemon --inspect dist/server.js",
         "watch-debug": "concurrently -k -p \"[{name}]\" -n \"TypeScript,Node\" -c \"yellow.bold,cyan.bold,green.bold\" \"npm run watch-ts\" \"npm run serve-debug\""
     },
     "dependencies": {
