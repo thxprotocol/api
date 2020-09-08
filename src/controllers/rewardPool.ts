@@ -1,7 +1,8 @@
-import { rewardPoolContract, ownerAccount, RewardPool, RewardPoolDocument } from '../models/RewardPool';
+import { RewardPool, RewardPoolDocument } from '../models/RewardPool';
 import { Account, AccountDocument } from '../models/Account';
 import { Request, Response, NextFunction } from 'express';
 import { REWARD_POOL_BIN } from '../util/secrets';
+import { rewardPoolContract, tokenContract, ownerAccount } from '../util/network';
 import { check, validationResult } from 'express-validator';
 
 /**
@@ -16,10 +17,16 @@ export const getRewardPool = async (req: Request, res: Response, next: NextFunct
     }
 
     const from = ownerAccount().address;
-    const contract = rewardPoolContract(req.params.address);
+    const rewardPoolInstance = rewardPoolContract(req.params.address);
+    const tokenInstance = tokenContract(await rewardPoolInstance.methods.token().call({ from }));
     const contractData = {
-        rewardRuleCount: await contract.methods.getRewardRuleCount().call({ from }),
-        rewardCount: await contract.methods.getRewardCount().call({ from }),
+        balance: await tokenInstance.methods.balanceOf(req.params.address).call({ from }),
+        rewardRuleCount: await rewardPoolInstance.methods.getRewardRuleCount().call({ from }),
+        rewardCount: await rewardPoolInstance.methods.getRewardCount().call({ from }),
+        rewardPollDuration: await rewardPoolInstance.methods.rewardPollDuration().call({ from }),
+        rewardRulePollDuration: await rewardPoolInstance.methods.rewardRulePollDuration().call({ from }),
+        minRewardRulePollTokensPerc: await rewardPoolInstance.methods.minRewardRulePollTokensPerc().call({ from }),
+        minRewardPollTokensPerc: await rewardPoolInstance.methods.minRewardPollTokensPerc().call({ from }),
     };
 
     RewardPool.findOne({ address: req.params.address }, (err, { uid, address, title }: RewardPoolDocument) => {
@@ -60,7 +67,7 @@ export const postRewardPool = async (req: Request, res: Response, next: NextFunc
         await instance.methods.initialize(from, req.body.token).send({ from });
         await instance.methods.addManager(from).send({ from });
         await instance.methods.addMember(from).send({ from });
-        await instance.methods.setRewardRulePollDuration(0).send({ from });
+        await instance.methods.setRewardRulePollDuration(90).send({ from });
         await instance.methods.setMinRewardRulePollTokensPerc(0).send({ from });
 
         const rewardPool = new RewardPool({
@@ -94,4 +101,29 @@ export const postRewardPool = async (req: Request, res: Response, next: NextFunc
     }
 };
 
-export const updateRewardRule = async (req: Request, res: Response, next: NextFunction) => {};
+export const postRewardPoolDeposit = async (req: Request, res: Response, next: NextFunction) => {
+    const address = req.header('RewardPool');
+
+    await check(address, 'no reward pool header provided');
+    await check('amount', 'no amount is provided');
+
+    const errors = validationResult(req);
+
+    if (!errors.isEmpty()) {
+        return res.send(errors.array());
+    }
+
+    try {
+        const from = ownerAccount().address;
+        const instance = rewardPoolContract(address);
+        const tokenInstance = tokenContract(await instance.methods.token().call({ from }));
+
+        await tokenInstance.methods.approve(req.body.amount).send({ from });
+        await instance.methods.deposit(req.body.amount).send({ from });
+    } catch (err) {
+        console.error(err);
+        return res.send({ msg: 'RewardPool not deployed', err });
+    }
+};
+
+export const updateRewardPool = async (req: Request, res: Response, next: NextFunction) => {};

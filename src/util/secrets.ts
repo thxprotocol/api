@@ -4,7 +4,7 @@ import fs from 'fs';
 export const VERSION = 'v1';
 export const REWARD_POOL_ABI = fs.readFileSync('./src/contracts/RewardPool.abi', 'utf8');
 export const REWARD_POOL_BIN = fs.readFileSync('./src/contracts/RewardPool.bin', 'utf8');
-
+export const ERC20_ABI = fs.readFileSync('./src/contracts/ERC20.abi', 'utf8');
 export const ENVIRONMENT = process.env.NODE_ENV;
 
 switch (ENVIRONMENT) {

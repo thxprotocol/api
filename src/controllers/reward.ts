@@ -1,10 +1,8 @@
-import { Account, AccountDocument } from '../models/Account';
-import { Reward, RewardDocument } from '../models/Reward';
+import { AccountDocument } from '../models/Account';
 import { Request, Response, NextFunction } from 'express';
 import '../config/passport';
 import { check, validationResult } from 'express-validator';
-import { RewardPool, rewardPoolContract, ownerAccount } from '../models/RewardPool';
-
+import { rewardPoolContract, ownerAccount } from '../util/network';
 /**
  * Get a reward
  * @route GET /reward/:id
@@ -13,10 +11,7 @@ export const getReward = async (req: Request, res: Response, next: NextFunction)
     const uid = req.session.passport.user;
     const address = req.header('RewardPool');
 
-    if (!uid) {
-        return res.send({ msg: 'The UID for this session is not found.' });
-    }
-
+    await check(uid, 'The UID for this session is not found.').exists();
     await check(address, 'RewardPool unavailable to this account').isIn(
         (req.user as AccountDocument).profile.rewardPools,
     );

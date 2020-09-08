@@ -38,7 +38,6 @@ mongoose
         console.log(`MongoDB connection error. Please make sure MongoDB is running. ${err}`);
         // process.exit();
     });
-
 app.set('port', process.env.PORT || 3000);
 app.use(compression());
 app.use(bodyParser.json());
@@ -89,8 +88,9 @@ router.post('/account/password', passportConfig.isAuthenticated, accountControll
 router.delete('/account', passportConfig.isAuthenticated, accountController.deleteAccount);
 
 // Reward Pools
-router.post('/reward_pools/', rewardPoolController.postRewardPool);
 router.get('/reward_pools/:address', rewardPoolController.getRewardPool);
+router.post('/reward_pools/', rewardPoolController.postRewardPool);
+router.post('/reward_pools/deposit', rewardPoolController.postRewardPoolDeposit);
 
 // Rewards
 router.get('/rewards/:id', rewardController.getReward);
