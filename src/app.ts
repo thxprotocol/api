@@ -76,10 +76,11 @@ app.use(express.static(path.join(__dirname, 'public'), { maxAge: 31557600000 }))
 const router = express.Router();
 
 // Auth
-router.post('/login', accountController.postLogin);
+router.post('/signup', accountController.postSignup);
 router.post('/forgot', accountController.postForgot);
 router.post('/reset/:token', accountController.postReset);
-router.post('/signup', accountController.postSignup);
+router.post('/login', accountController.postLogin);
+router.get('/logout', accountController.logout);
 
 // Account
 router.get('/account', passportConfig.isAuthenticated, accountController.getAccount);

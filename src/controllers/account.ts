@@ -10,6 +10,15 @@ import { check, sanitize, validationResult } from 'express-validator';
 import '../config/passport';
 
 /**
+ * Log out.
+ * @route GET /logout
+ */
+export const logout = (req: Request, res: Response) => {
+    req.logout();
+    res.redirect('/');
+};
+
+/**
  * Sign in using email and password.
  * @route POST /login
  */
