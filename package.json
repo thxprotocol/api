@@ -23,7 +23,7 @@
         "watch-ts": "tsc -w",
         "watch-node": "nodemon dist/server.js",
         "watch": "concurrently -k -p \"[{name}]\" -n \"Sass,TypeScript,Node\" -c \"yellow.bold,cyan.bold,green.bold\" \"npm run watch-ts\" \"npm run watch-node\"",
-        "test": "jest --forceExit --coverage --verbose",
+        "test": "NODE_ENV=local jest --forceExit --coverage --verbose ./test/*test.ts",
         "watch-test": "npm run test -- --watchAll",
         "debug": "npm run build && npm run watch-debug",
         "serve-debug": "NODE_ENV=local nodemon --inspect dist/server.js",
