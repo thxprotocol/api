@@ -22,9 +22,9 @@ jobs:
                   node-version: 10
             - name: 'Bump Minor Version'
               run: |
+                  git config --global user.email "versionbot@thx.network"
+                  git config --global user.name "Version Bot"
                   npm version minor
-                  git config --local user.email "versionbot@thx.network"
-                  git config --local user.name "Version Bot"
                   git push
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
