@@ -9,6 +9,7 @@ import bluebird from 'bluebird';
 import lusca from 'lusca';
 import path from 'path';
 import { MONGODB_URI, VERSION, SESSION_SECRET } from './util/secrets';
+import morgan from 'morgan';
 
 const MongoStore = mongo(session);
 
@@ -29,16 +30,12 @@ const app = express();
 const mongoUrl = MONGODB_URI;
 mongoose.Promise = bluebird;
 
-mongoose
-    .connect(mongoUrl, { useNewUrlParser: true, useCreateIndex: true, useUnifiedTopology: true })
-    .then(() => {
-        /** ready to use. The `mongoose.connect()` promise resolves to undefined. */
-    })
-    .catch((err) => {
-        console.log(`MongoDB connection error. Please make sure MongoDB is running. ${err}`);
-        // process.exit();
-    });
+mongoose.connect(mongoUrl, { useNewUrlParser: true, useCreateIndex: true, useUnifiedTopology: true }).catch((err) => {
+    console.log(`MongoDB connection error. Please make sure MongoDB is running. ${err}`);
+    process.exit();
+});
 app.set('port', process.env.PORT || 3000);
+app.use(morgan('combined'));
 app.use(compression());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
