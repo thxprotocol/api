@@ -94,6 +94,7 @@ router.post('/reward_pools/deposit', rewardPoolController.postRewardPoolDeposit)
 // Rewards
 router.get('/rewards', rewardController.getReward);
 router.get('/rewards/:id', rewardController.getReward);
+router.post('/rewards', rewardController.postReward);
 
 router.get('/reward_rules/:id', rewardRuleController.getRewardRule);
 router.post('/reward_rules', rewardRuleController.postRewardRule);

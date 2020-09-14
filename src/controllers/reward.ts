@@ -1,15 +1,11 @@
 import { AccountDocument } from '../models/Account';
-import { Request, Response, NextFunction } from 'express';
+import e, { Request, Response, NextFunction } from 'express';
 import '../config/passport';
 import { check, validationResult } from 'express-validator';
 import { rewardPoolContract, ownerAccount } from '../util/network';
 import logger from '../util/logger';
 
-/**
- * Get a reward
- * @route GET /reward/:id
- */
-export const getReward = async (req: Request, res: Response, next: NextFunction) => {
+async function isAllowed(req: Request, res: Response) {
     const uid = req.session.passport.user;
     const address = req.header('RewardPool');
 
@@ -23,6 +19,16 @@ export const getReward = async (req: Request, res: Response, next: NextFunction)
     if (!errors.isEmpty()) {
         return res.status(400).send(errors.array());
     }
+}
+
+/**
+ * Get a reward
+ * @route GET /rewards/:id
+ */
+export const getReward = async (req: Request, res: Response, next: NextFunction) => {
+    const address = req.header('RewardPool');
+
+    await isAllowed(req, res);
 
     try {
         const from = ownerAccount().address;
@@ -33,7 +39,7 @@ export const getReward = async (req: Request, res: Response, next: NextFunction)
         res.send(reward);
     } catch (err) {
         logger.error(err);
-        return res.status(404).send({ msg: 'Reward not found', err });
+        return res.status(404).end();
     }
 };
 
@@ -41,4 +47,27 @@ export const getReward = async (req: Request, res: Response, next: NextFunction)
  * Create a reward
  * @route POST /reward/
  */
-export const postReward = async (req: Request, res: Response, next: NextFunction) => {};
+export const postReward = async (req: Request, res: Response, next: NextFunction) => {
+    const address = req.header('RewardPool');
+
+    await isAllowed(req, res);
+
+    await check('amount', 'Request body should have amount').exists();
+    await check('beneficiary', 'Request body should have beneficiary').exists();
+
+    try {
+        const from = ownerAccount().address;
+        const contract = rewardPoolContract(address);
+        const tx = await contract.methods
+            .proposeReward(req.body.amount.toString(), req.body.beneficiary)
+            .send({ from });
+        console.log(tx.events.RewardPollCreated.returnValues);
+        const id = tx.events.RewardPollCreated.returnValues.id;
+        const reward = tx.events.RewardPollCreated.returnValues.reward;
+
+        res.status(200).send({ id, reward });
+    } catch (err) {
+        logger.error(err);
+        return res.status(500).end();
+    }
+};
