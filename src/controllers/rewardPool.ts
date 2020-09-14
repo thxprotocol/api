@@ -3,7 +3,8 @@ import { Account, AccountDocument } from '../models/Account';
 import { Request, Response, NextFunction } from 'express';
 import { REWARD_POOL_BIN } from '../util/secrets';
 import { rewardPoolContract, tokenContract, ownerAccount } from '../util/network';
-import { check, validationResult } from 'express-validator';
+import { handleValidation } from '../util/validation';
+import logger from '../util/logger';
 
 /**
  * Get a rewardPool
@@ -46,13 +47,7 @@ export const getRewardPool = async (req: Request, res: Response, next: NextFunct
  * @route POST /reward_pools
  */
 export const postRewardPool = async (req: Request, res: Response, next: NextFunction) => {
-    await check('token', 'Please provide a valid ERC20 address.').exists().run(req);
-
-    const errors = validationResult(req);
-
-    if (!errors.isEmpty()) {
-        return res.send(errors.array());
-    }
+    handleValidation(req, res);
 
     try {
         const uid = req.session.passport.user;
@@ -104,24 +99,17 @@ export const postRewardPool = async (req: Request, res: Response, next: NextFunc
 export const postRewardPoolDeposit = async (req: Request, res: Response, next: NextFunction) => {
     const address = req.header('RewardPool');
 
-    await check(address, 'no reward pool header provided');
-    await check('amount', 'no amount is provided');
-
-    const errors = validationResult(req);
-
-    if (!errors.isEmpty()) {
-        return res.send(errors.array());
-    }
+    handleValidation(req, res);
 
     try {
         const from = ownerAccount().address;
         const instance = rewardPoolContract(address);
         const tokenInstance = tokenContract(await instance.methods.token().call({ from }));
 
-        await tokenInstance.methods.approve(req.body.amount).send({ from });
-        await instance.methods.deposit(req.body.amount).send({ from });
+        // Check balance
+        /// Return a QR here and handle approve and deposit in client app
     } catch (err) {
-        console.error(err);
+        logger.error(err);
         return res.send({ msg: 'RewardPool not deployed', err });
     }
 };

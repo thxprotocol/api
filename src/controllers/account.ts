@@ -8,6 +8,7 @@ import { IVerifyOptions } from 'passport-local';
 import { WriteError } from 'mongodb';
 import { check, sanitize, validationResult } from 'express-validator';
 import '../config/passport';
+import { handleValidation } from '../util/validation';
 
 /**
  * Log out.
@@ -23,15 +24,9 @@ export const logout = (req: Request, res: Response) => {
  * @route POST /login
  */
 export const postLogin = async (req: Request, res: Response, next: NextFunction) => {
-    await check('email', 'Email is not valid').isEmail().run(req);
-    await check('password', 'Password cannot be blank').isLength({ min: 1 }).run(req);
     await sanitize('email').normalizeEmail({ gmail_remove_dots: false }).run(req);
 
-    const errors = validationResult(req);
-
-    if (!errors.isEmpty()) {
-        return res.send(errors.array());
-    }
+    handleValidation(req, res);
 
     passport.authenticate('local', (err: Error, account: AccountDocument, info: IVerifyOptions) => {
         if (err) {
@@ -54,16 +49,8 @@ export const postLogin = async (req: Request, res: Response, next: NextFunction)
  * @route POST /signup
  */
 export const postSignup = async (req: Request, res: Response, next: NextFunction) => {
-    await check('email', 'Email is not valid').isEmail().run(req);
-    await check('password', 'Password must be at least 4 characters long').isLength({ min: 4 }).run(req);
-    await check('confirmPassword', 'Passwords do not match').equals(req.body.password).run(req);
     await sanitize('email').normalizeEmail({ gmail_remove_dots: false }).run(req);
-
-    const errors = validationResult(req);
-
-    if (!errors.isEmpty()) {
-        return res.send(errors.array());
-    }
+    handleValidation(req, res);
 
     const account = new Account({
         email: req.body.email,
@@ -116,14 +103,9 @@ export const getAccount = async (req: Request, res: Response, next: NextFunction
  * @route POST /account/profile
  */
 export const postUpdateProfile = async (req: Request, res: Response, next: NextFunction) => {
-    await check('email', 'Please enter a valid email address.').isEmail().run(req);
     await sanitize('email').normalizeEmail({ gmail_remove_dots: false }).run(req);
 
-    const errors = validationResult(req);
-
-    if (!errors.isEmpty()) {
-        return res.send(errors.array());
-    }
+    handleValidation(req, res);
 
     Account.findById((req.user as AccountDocument).id, (err, account: AccountDocument) => {
         if (err) {
@@ -154,14 +136,7 @@ export const postUpdateProfile = async (req: Request, res: Response, next: NextF
  * @route POST /account/password
  */
 export const postUpdatePassword = async (req: Request, res: Response, next: NextFunction) => {
-    await check('password', 'Password must be at least 4 characters long').isLength({ min: 4 }).run(req);
-    await check('confirmPassword', 'Passwords do not match').equals(req.body.password).run(req);
-
-    const errors = validationResult(req);
-
-    if (!errors.isEmpty()) {
-        return res.send(errors.array());
-    }
+    handleValidation(req, res);
 
     const account = req.user as AccountDocument;
     Account.findById(account.id, (err, account: AccountDocument) => {
@@ -198,14 +173,7 @@ export const deleteAccount = (req: Request, res: Response, next: NextFunction) =
  * @route POST /reset/:token
  */
 export const postReset = async (req: Request, res: Response, next: NextFunction) => {
-    await check('password', 'Password must be at least 4 characters long.').isLength({ min: 4 }).run(req);
-    await check('confirm', 'Passwords must match.').equals(req.body.password).run(req);
-
-    const errors = validationResult(req);
-
-    if (!errors.isEmpty()) {
-        return res.send(errors.array());
-    }
+    handleValidation(req, res);
 
     async.waterfall(
         [

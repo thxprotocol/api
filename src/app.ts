@@ -19,11 +19,10 @@ import * as accountController from './controllers/account';
 import * as rewardPoolController from './controllers/rewardPool';
 import * as rewardRuleController from './controllers/rewardRule';
 import * as rewardController from './controllers/reward';
-import * as pollController from './controllers/poll';
-// import * as slackController from './controllers/slack';
 
 // API keys and Passport configuration
 import * as passportConfig from './config/passport';
+import { validate } from './util/validation';
 
 const app = express();
 
@@ -57,47 +56,42 @@ app.use(lusca.xframe('SAMEORIGIN'));
 app.use(lusca.xssProtection(true));
 app.use(express.static(path.join(__dirname, 'public'), { maxAge: 31557600000 }));
 
-/**
- * Slack Proxy routes.
- */
-// app.get(`/${VERSION}/proxy/slack`, slackController.getSlack);
-// app.post(`/${VERSION}/proxy/slack/connect`, slackController.connectAccount);
-// app.post(`/${VERSION}/proxy/slack/rules`, slackController.getRewardRules);
-// app.post(`/${VERSION}/proxy/slack/reward`, slackController.sendReward);
-// app.get(`/${VERSION}/qr/reward/:pool/:rule/:key`, apiController.getQRReward);
-// app.get(`/${VERSION}/qr/connect/:pool/:slack`, apiController.getQRConnect);
-
-/**
- * API routes.
- */
-// app.get(`/${VERSION}`, apiController.getAPI);
 const router = express.Router();
 
 // Auth
-router.post('/signup', accountController.postSignup);
+router.post('/signup', validate.postSignup, accountController.postSignup);
 router.post('/forgot', accountController.postForgot);
-router.post('/reset/:token', accountController.postReset);
-router.post('/login', accountController.postLogin);
+router.post('/reset/:token', validate.postReset, accountController.postReset);
+router.post('/login', validate.postLogin, accountController.postLogin);
 router.get('/logout', accountController.logout);
 
+// All protected routes below this line
+router.use(passportConfig.isAuthenticated);
+
 // Account
-router.get('/account', passportConfig.isAuthenticated, accountController.getAccount);
-router.post('/account/profile', passportConfig.isAuthenticated, accountController.postUpdateProfile);
-router.post('/account/password', passportConfig.isAuthenticated, accountController.postUpdatePassword);
-router.delete('/account', passportConfig.isAuthenticated, accountController.deleteAccount);
+router.get('/account', accountController.getAccount);
+router.post('/account/profile', validate.postUpdateProfile, accountController.postUpdateProfile);
+router.post('/account/password', validate.postUpdatePassword, accountController.postUpdatePassword);
+router.delete('/account', accountController.deleteAccount);
 
 // Reward Pools
-router.get('/reward_pools/:address', rewardPoolController.getRewardPool);
-router.post('/reward_pools/', rewardPoolController.postRewardPool);
-router.post('/reward_pools/deposit', rewardPoolController.postRewardPoolDeposit);
+router.get('/reward_pools/:address', validate.getRewardPools, rewardPoolController.getRewardPool);
+router.post('/reward_pools/', validate.postRewardPools, rewardPoolController.postRewardPool);
+router.post(
+    '/reward_pools/:address/deposit',
+    validate.postRewardPoolDeposit,
+    rewardPoolController.postRewardPoolDeposit,
+);
+
+// Reward Rules
+router.get('/reward_rules/:id/claim', validate.getRewardRuleClaim, rewardRuleController.getRewardRuleClaim);
+router.get('/reward_rules/:id', validate.postRewardRule, rewardRuleController.getRewardRule);
+router.post('/reward_rules', validate.postRewardRule, rewardRuleController.postRewardRule);
 
 // Rewards
-router.get('/rewards', rewardController.getReward);
-router.get('/rewards/:id', rewardController.getReward);
+router.get('/rewards', validate.getReward, rewardController.getReward);
+router.get('/rewards/:id', validate.getReward, rewardController.getReward);
 router.post('/rewards', rewardController.postReward);
-
-router.get('/reward_rules/:id', rewardRuleController.getRewardRule);
-router.post('/reward_rules', rewardRuleController.postRewardRule);
 
 app.use(`/${VERSION}`, router);
 

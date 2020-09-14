@@ -1,26 +1,20 @@
-import { AccountDocument } from '../models/Account';
 import { Request, Response, NextFunction } from 'express';
-import { check, validationResult } from 'express-validator';
 import { rewardPoolContract, ownerAccount } from '../util/network';
 import { RewardRule, RewardRuleDocument } from '../models/RewardRule';
+import logger from '../util/logger';
 import '../config/passport';
+import { handleValidation } from '../util/validation';
+
+const qrcode = require('qrcode');
 
 /**
  * Get a rewardRule
  * @route GET /rewardrule/:id
  */
 export const getRewardRule = async (req: Request, res: Response, next: NextFunction) => {
-    const uid = req.session.passport.user;
     const address = req.header('RewardPool');
 
-    check(uid, 'The UID for this session is not found.').exists();
-    check(address, 'RewardPool unavailable to this account').isIn((req.user as AccountDocument).profile.rewardPools);
-
-    const errors = validationResult(req);
-
-    if (!errors.isEmpty()) {
-        return res.status(400).send(errors.array());
-    }
+    handleValidation(req, res);
 
     RewardRule.findOne({ id: req.params.id }, async (err, metaData) => {
         if (err) {
@@ -55,21 +49,13 @@ export const getRewardRule = async (req: Request, res: Response, next: NextFunct
  * @route POST /rewardrule
  */
 export const postRewardRule = async (req: Request, res: Response, next: NextFunction) => {
-    const poolAddress = req.header('RewardPool');
+    const address = req.header('RewardPool');
 
-    check(poolAddress, 'You do not have access to this Reward Pool').isIn(
-        (req.user as AccountDocument).profile.rewardPools,
-    );
-
-    const errors = validationResult(req);
-
-    if (!errors.isEmpty()) {
-        return res.send(errors.array());
-    }
+    handleValidation(req, res);
 
     try {
         const from = ownerAccount().address;
-        const contract = rewardPoolContract(poolAddress);
+        const contract = rewardPoolContract(address);
         const tx = await contract.methods.addRewardRule(req.body.amount).send({ from });
 
         if (tx) {
@@ -91,6 +77,30 @@ export const postRewardRule = async (req: Request, res: Response, next: NextFunc
         }
     } catch (err) {
         return res.status(500).send({ msg: 'RewardRule not added', err });
+    }
+};
+
+/**
+ * Create a reward
+ * @route GET /reward_rules/:id/claim
+ */
+export const getRewardRuleClaim = async (req: Request, res: Response, next: NextFunction) => {
+    const address = req.header('RewardPool');
+
+    handleValidation(req, res);
+
+    try {
+        const base64 = await qrcode.toDataURL(
+            JSON.stringify({
+                reward_pool: address,
+                reward_rule_id: req.params.id,
+            }),
+        );
+
+        res.status(200).send({ base64 });
+    } catch (err) {
+        logger.error(err);
+        return res.status(500).end();
     }
 };
 

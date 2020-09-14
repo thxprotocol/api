@@ -1,5 +1,5 @@
 import { AccountDocument } from '../models/Account';
-import e, { Request, Response, NextFunction } from 'express';
+import { Request, Response, NextFunction } from 'express';
 import '../config/passport';
 import { check, validationResult } from 'express-validator';
 import { rewardPoolContract, ownerAccount } from '../util/network';
@@ -36,7 +36,7 @@ export const getReward = async (req: Request, res: Response, next: NextFunction)
         const id = parseInt(req.params.id, 10);
         const reward = await contract.methods.rewards(id).call({ from });
 
-        res.send(reward);
+        res.send({ reward });
     } catch (err) {
         logger.error(err);
         return res.status(404).end();
@@ -50,10 +50,10 @@ export const getReward = async (req: Request, res: Response, next: NextFunction)
 export const postReward = async (req: Request, res: Response, next: NextFunction) => {
     const address = req.header('RewardPool');
 
-    await isAllowed(req, res);
-
     await check('amount', 'Request body should have amount').exists();
     await check('beneficiary', 'Request body should have beneficiary').exists();
+
+    await isAllowed(req, res);
 
     try {
         const from = ownerAccount().address;
@@ -61,11 +61,10 @@ export const postReward = async (req: Request, res: Response, next: NextFunction
         const tx = await contract.methods
             .proposeReward(req.body.amount.toString(), req.body.beneficiary)
             .send({ from });
-        console.log(tx.events.RewardPollCreated.returnValues);
-        const id = tx.events.RewardPollCreated.returnValues.id;
-        const reward = tx.events.RewardPollCreated.returnValues.reward;
+        const rewardAddress = tx.events.RewardPollCreated.returnValues.reward;
 
-        res.status(200).send({ id, reward });
+        // Should also return the id, or lookup (GET) should change
+        res.status(200).send({ reward: rewardAddress });
     } catch (err) {
         logger.error(err);
         return res.status(500).end();
