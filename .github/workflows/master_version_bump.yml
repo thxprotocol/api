@@ -23,6 +23,8 @@ jobs:
             - name: 'Bump Minor Version'
               run: |
                   npm version minor
+                  git config --local user.email "versionbot@thx.network"
+                  git config --local user.name "Version Bot"
                   git push
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
