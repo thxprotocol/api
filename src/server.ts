@@ -1,15 +1,15 @@
 import errorHandler from 'errorhandler';
 
 import app from './app';
-import { rewardPoolEventListener } from './services/event';
+// import { rewardPoolEventListener } from './services/event';
 
 /**
  * Error Handler. Provides full stack - remove for production
  */
 app.use(errorHandler());
-app.use(() => {
-    rewardPoolEventListener();
-});
+// app.use(() => {
+//     rewardPoolEventListener();
+// });
 
 /**
  * Start Express server.

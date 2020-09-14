@@ -10,6 +10,7 @@ import lusca from 'lusca';
 import path from 'path';
 import { MONGODB_URI, VERSION, SESSION_SECRET } from './util/secrets';
 import morgan from 'morgan';
+import logger from './util/logger';
 
 const MongoStore = mongo(session);
 
@@ -35,7 +36,7 @@ mongoose.connect(mongoUrl, { useNewUrlParser: true, useCreateIndex: true, useUni
     process.exit();
 });
 app.set('port', process.env.PORT || 3000);
-app.use(morgan('combined'));
+app.use(morgan('combined', { stream: { write: (message: any) => logger.info(message) } }));
 app.use(compression());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -91,6 +92,7 @@ router.post('/reward_pools/', rewardPoolController.postRewardPool);
 router.post('/reward_pools/deposit', rewardPoolController.postRewardPoolDeposit);
 
 // Rewards
+router.get('/rewards', rewardController.getReward);
 router.get('/rewards/:id', rewardController.getReward);
 
 router.get('/reward_rules/:id', rewardRuleController.getRewardRule);

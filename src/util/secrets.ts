@@ -1,6 +1,7 @@
 import logger from './logger';
 import dotenv from 'dotenv';
 import fs from 'fs';
+
 export const VERSION = 'v1';
 export const REWARD_POOL_ABI = fs.readFileSync('./src/contracts/RewardPool.abi', 'utf8');
 export const REWARD_POOL_BIN = fs.readFileSync('./src/contracts/RewardPool.bin', 'utf8');

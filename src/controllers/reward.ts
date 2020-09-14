@@ -3,6 +3,8 @@ import { Request, Response, NextFunction } from 'express';
 import '../config/passport';
 import { check, validationResult } from 'express-validator';
 import { rewardPoolContract, ownerAccount } from '../util/network';
+import logger from '../util/logger';
+
 /**
  * Get a reward
  * @route GET /reward/:id
@@ -30,6 +32,7 @@ export const getReward = async (req: Request, res: Response, next: NextFunction)
 
         res.send(reward);
     } catch (err) {
+        logger.error(err);
         return res.status(404).send({ msg: 'Reward not found', err });
     }
 };

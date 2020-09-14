@@ -8,29 +8,42 @@ import {
     EXTDEV_QUERY_URL,
     REWARD_POOL_ABI,
 } from '../util/secrets';
+import logger from './logger';
 
 export const ownerAccount = () => {
-    const privateKey = CryptoUtils.B64ToUint8Array(PRIVATE_KEY);
-    const publicKey = CryptoUtils.publicKeyFromPrivateKey(privateKey);
-    const address = LocalAddress.fromPublicKey(publicKey).toString();
+    try {
+        const privateKey = CryptoUtils.B64ToUint8Array(PRIVATE_KEY);
+        const publicKey = CryptoUtils.publicKeyFromPrivateKey(privateKey);
+        const address = LocalAddress.fromPublicKey(publicKey).toString();
 
-    return { privateKey, publicKey, address };
+        return { privateKey, publicKey, address };
+    } catch (err) {
+        logger.error(err);
+    }
 };
 
 export const rewardPoolContract = (address: string = null) => {
-    const client: any = new Client(EXTDEV_CHAIN_ID, EXTDEV_SOCKET_URL, EXTDEV_QUERY_URL);
-    const provider: any = new LoomProvider(client, ownerAccount().privateKey);
-    const web3 = new Web3(provider);
-    const abi = JSON.parse(REWARD_POOL_ABI);
+    try {
+        const client: any = new Client(EXTDEV_CHAIN_ID, EXTDEV_SOCKET_URL, EXTDEV_QUERY_URL);
+        const provider: any = new LoomProvider(client, ownerAccount().privateKey);
+        const web3 = new Web3(provider);
+        const abi = JSON.parse(REWARD_POOL_ABI);
 
-    return new web3.eth.Contract(abi, address);
+        return new web3.eth.Contract(abi, address);
+    } catch (err) {
+        logger.error(err);
+    }
 };
 
 export const tokenContract = (address: string = null) => {
-    const client: any = new Client(EXTDEV_CHAIN_ID, EXTDEV_SOCKET_URL, EXTDEV_QUERY_URL);
-    const provider: any = new LoomProvider(client, ownerAccount().privateKey);
-    const web3 = new Web3(provider);
-    const abi = JSON.parse(ERC20_ABI);
+    try {
+        const client: any = new Client(EXTDEV_CHAIN_ID, EXTDEV_SOCKET_URL, EXTDEV_QUERY_URL);
+        const provider: any = new LoomProvider(client, ownerAccount().privateKey);
+        const web3 = new Web3(provider);
+        const abi = JSON.parse(ERC20_ABI);
 
-    return new web3.eth.Contract(abi, address);
+        return new web3.eth.Contract(abi, address);
+    } catch (err) {
+        logger.error(err);
+    }
 };
