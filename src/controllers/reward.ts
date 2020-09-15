@@ -1,42 +1,46 @@
-import { AccountDocument } from '../models/Account';
+import { RewardState } from '../models/Reward';
 import { Request, Response, NextFunction } from 'express';
 import '../config/passport';
-import { check, validationResult } from 'express-validator';
-import { rewardPoolContract, ownerAccount } from '../util/network';
+import { rewardPoolContract, from, rewardContract } from '../util/network';
 import logger from '../util/logger';
-
-async function isAllowed(req: Request, res: Response) {
-    const uid = req.session.passport.user;
-    const address = req.header('RewardPool');
-
-    await check(uid, 'The UID for this session is not found.').exists();
-    await check(address, 'RewardPool unavailable to this account').isIn(
-        (req.user as AccountDocument).profile.rewardPools,
-    );
-
-    const errors = validationResult(req);
-
-    if (!errors.isEmpty()) {
-        return res.status(400).send(errors.array());
-    }
-}
 
 /**
  * Get a reward
- * @route GET /rewards/:id
+ * @route GET /rewards/:address
  */
 export const getReward = async (req: Request, res: Response, next: NextFunction) => {
-    const address = req.header('RewardPool');
+    try {
+        const reward = rewardContract(req.params.address);
 
-    await isAllowed(req, res);
+        const beneficiary = await reward.methods.beneficiary().call({ from });
+        const amount = await reward.methods.amount().call({ from });
+        const state = await reward.methods.state().call({ from });
+
+        res.send({ reward: req.params.address, beneficiary, amount, state: RewardState[state] });
+    } catch (err) {
+        logger.error(err);
+        return res.status(404).end();
+    }
+};
+
+/**
+ * Get a reward
+ * @route GET /rewards/
+ */
+export const getRewards = async (req: Request, res: Response, next: NextFunction) => {
+    const poolAddress = req.header('RewardPool');
+    const rewardPool = rewardPoolContract(poolAddress);
+    const rewardCount = parseInt(await rewardPool.methods.getRewardCount().call({ from }), 10);
 
     try {
-        const from = ownerAccount().address;
-        const contract = rewardPoolContract(address);
-        const id = parseInt(req.params.id, 10);
-        const reward = await contract.methods.rewards(id).call({ from });
+        let rewards = [];
 
-        res.send({ reward });
+        for (let i = 0; i < rewardCount; i++) {
+            const reward = await rewardPool.methods.rewards(i).call({ from });
+            rewards.push(reward);
+        }
+
+        res.send({ rewards });
     } catch (err) {
         logger.error(err);
         return res.status(404).end();
@@ -48,23 +52,14 @@ export const getReward = async (req: Request, res: Response, next: NextFunction)
  * @route POST /reward/
  */
 export const postReward = async (req: Request, res: Response, next: NextFunction) => {
-    const address = req.header('RewardPool');
-
-    await check('amount', 'Request body should have amount').exists();
-    await check('beneficiary', 'Request body should have beneficiary').exists();
-
-    await isAllowed(req, res);
+    const contract = rewardPoolContract(req.header('RewardPool'));
 
     try {
-        const from = ownerAccount().address;
-        const contract = rewardPoolContract(address);
         const tx = await contract.methods
             .proposeReward(req.body.amount.toString(), req.body.beneficiary)
             .send({ from });
-        const rewardAddress = tx.events.RewardPollCreated.returnValues.reward;
 
-        // Should also return the id, or lookup (GET) should change
-        res.status(200).send({ reward: rewardAddress });
+        res.status(200).send({ reward: tx.events.RewardPollCreated.returnValues.reward });
     } catch (err) {
         logger.error(err);
         return res.status(500).end();

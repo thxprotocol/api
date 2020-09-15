@@ -27,6 +27,8 @@ export const ownerAccount = () => {
     }
 };
 
+export const from = ownerAccount().address;
+
 export const rewardContract = (address: string = null) => {
     try {
         const client: any = new Client(EXTDEV_CHAIN_ID, EXTDEV_SOCKET_URL, EXTDEV_QUERY_URL);

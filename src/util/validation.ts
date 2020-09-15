@@ -30,6 +30,11 @@ const confirmPassword = body('confirmPassword')
 
 export const validate = {
     getReward: [validateRewardPoolHeader],
+    postReward: [
+        validateRewardPoolHeader,
+        check('amount', 'Request body should have amount').exists(),
+        check('beneficiary', 'Request body should have beneficiary').exists(),
+    ],
     postRewardRule: [validateRewardPoolHeader, body('title').exists(), body('amount').exists()],
     getRewardRule: [validateRewardPoolHeader, param('id').exists()],
     getRewardRuleClaim: [validateRewardPoolHeader, param('id').exists()],

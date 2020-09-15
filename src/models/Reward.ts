@@ -1,5 +1,12 @@
 import mongoose from 'mongoose';
 
+export enum RewardState {
+    Pending = 0,
+    Approved = 1,
+    Rejected = 2,
+    Withdrawn = 3,
+}
+
 export type RewardDocument = mongoose.Document & {
     id: number;
     amount: number;

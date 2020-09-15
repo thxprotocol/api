@@ -89,9 +89,9 @@ router.get('/reward_rules/:id', validate.postRewardRule, rewardRuleController.ge
 router.post('/reward_rules', validate.postRewardRule, rewardRuleController.postRewardRule);
 
 // Rewards
-router.get('/rewards', validate.getReward, rewardController.getReward);
-router.get('/rewards/:id', validate.getReward, rewardController.getReward);
-router.post('/rewards', rewardController.postReward);
+router.get('/rewards', validate.getReward, rewardController.getRewards);
+router.get('/rewards/:address', validate.getReward, rewardController.getReward);
+router.post('/rewards', validate.postReward, rewardController.postReward);
 
 app.use(`/${VERSION}`, router);
 
