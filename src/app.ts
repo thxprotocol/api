@@ -11,6 +11,7 @@ import path from 'path';
 import { MONGODB_URI, VERSION, SESSION_SECRET } from './util/secrets';
 import morgan from 'morgan';
 import logger from './util/logger';
+import cors from 'cors';
 
 const MongoStore = mongo(session);
 
@@ -35,6 +36,12 @@ mongoose.connect(mongoUrl, { useNewUrlParser: true, useCreateIndex: true, useUni
     process.exit();
 });
 app.set('port', process.env.PORT || 3000);
+app.use(
+    cors({
+        credentials: true,
+        origin: 'https://localhost:8080',
+    }),
+);
 app.use(morgan('combined', { stream: { write: (message: any) => logger.info(message) } }));
 app.use(compression());
 app.use(bodyParser.json());
