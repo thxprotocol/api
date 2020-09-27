@@ -1,36 +1,32 @@
-import { RewardPool, RewardPoolDocument } from '../models/RewardPool';
+import { AssetPool, AssetPoolDocument } from '../models/AssetPool';
 import { Account, AccountDocument } from '../models/Account';
 import { Request, Response, NextFunction } from 'express';
 import { REWARD_POOL_BIN } from '../util/secrets';
-import { rewardPoolContract, tokenContract, ownerAccount } from '../util/network';
+import { assetPoolContract, tokenContract, ownerAccount } from '../util/network';
 import { handleValidation } from '../util/validation';
 import logger from '../util/logger';
 
 /**
- * Get a rewardPool
+ * Get a AssetPool
  * @route GET /reward_pools/:address
  */
-export const getRewardPool = async (req: Request, res: Response, next: NextFunction) => {
-    const account = req.user as AccountDocument;
-
-    if (!account.profile.rewardPools.includes(req.params.address)) {
-        return res.send({ msg: 'No access to reward pool' });
-    }
+export const getAssetPool = async (req: Request, res: Response, next: NextFunction) => {
+    handleValidation(req, res);
 
     const from = ownerAccount().address;
-    const rewardPoolInstance = rewardPoolContract(req.params.address);
-    const tokenInstance = tokenContract(await rewardPoolInstance.methods.token().call({ from }));
+    const AssetPoolInstance = assetPoolContract(req.params.address);
+    const tokenInstance = tokenContract(await AssetPoolInstance.methods.token().call({ from }));
     const contractData = {
         balance: await tokenInstance.methods.balanceOf(req.params.address).call({ from }),
-        rewardRuleCount: await rewardPoolInstance.methods.getRewardRuleCount().call({ from }),
-        rewardCount: await rewardPoolInstance.methods.getRewardCount().call({ from }),
-        rewardPollDuration: await rewardPoolInstance.methods.rewardPollDuration().call({ from }),
-        rewardRulePollDuration: await rewardPoolInstance.methods.rewardRulePollDuration().call({ from }),
-        minRewardRulePollTokensPerc: await rewardPoolInstance.methods.minRewardRulePollTokensPerc().call({ from }),
-        minRewardPollTokensPerc: await rewardPoolInstance.methods.minRewardPollTokensPerc().call({ from }),
+        rewardRuleCount: await AssetPoolInstance.methods.getRewardRuleCount().call({ from }),
+        rewardCount: await AssetPoolInstance.methods.getRewardCount().call({ from }),
+        rewardPollDuration: await AssetPoolInstance.methods.rewardPollDuration().call({ from }),
+        rewardRulePollDuration: await AssetPoolInstance.methods.rewardRulePollDuration().call({ from }),
+        minRewardRulePollTokensPerc: await AssetPoolInstance.methods.minRewardRulePollTokensPerc().call({ from }),
+        minRewardPollTokensPerc: await AssetPoolInstance.methods.minRewardPollTokensPerc().call({ from }),
     };
 
-    RewardPool.findOne({ address: req.params.address }, (err, { uid, address, title }: RewardPoolDocument) => {
+    AssetPool.findOne({ address: req.params.address }, (err, { uid, address, title }: AssetPoolDocument) => {
         if (err) {
             return next(err);
         }
@@ -46,18 +42,19 @@ export const getRewardPool = async (req: Request, res: Response, next: NextFunct
  * Create a rewardRule
  * @route POST /reward_pools
  */
-export const postRewardPool = async (req: Request, res: Response, next: NextFunction) => {
+export const postAssetPool = async (req: Request, res: Response, next: NextFunction) => {
     handleValidation(req, res);
 
     try {
         const uid = req.session.passport.user;
         const from = ownerAccount().address;
-        const instance = await rewardPoolContract()
+        const instance = await assetPoolContract()
             .deploy({
                 data: REWARD_POOL_BIN,
             })
             .send({ from });
         const address = instance.options.address;
+        console.log(address);
 
         await instance.methods.initialize(from, req.body.token).send({ from });
         await instance.methods.addManager(from).send({ from });
@@ -65,23 +62,25 @@ export const postRewardPool = async (req: Request, res: Response, next: NextFunc
         await instance.methods.setRewardRulePollDuration(90).send({ from });
         await instance.methods.setMinRewardRulePollTokensPerc(0).send({ from });
 
-        const rewardPool = new RewardPool({
+        const assetPool = new AssetPool({
             title: req.body.title,
             address,
             uid,
         });
 
-        rewardPool.save(async (err) => {
+        console.log(assetPool);
+
+        assetPool.save(async (err) => {
             if (err) {
-                return res.send({ msg: 'RewardPool not saved', err });
+                return res.send({ msg: 'AssetPool not saved', err });
             }
             Account.findById((req.user as AccountDocument).id, (err, account: AccountDocument) => {
                 if (err) {
                     return res.send({ msg: 'User not updated', err });
                 }
 
-                if (!account.profile.rewardPools.includes(address)) {
-                    account.profile.rewardPools.push(address);
+                if (!account.profile.assetPools.includes(address)) {
+                    account.profile.assetPools.push(address);
                     account.save(async (err: any) => {
                         if (err) {
                             return res.send({ msg: 'User not updated', err });
@@ -92,26 +91,26 @@ export const postRewardPool = async (req: Request, res: Response, next: NextFunc
             });
         });
     } catch (err) {
-        return res.send({ msg: 'RewardPool not deployed', err });
+        return res.send({ msg: 'AssetPool not deployed', err });
     }
 };
 
-export const postRewardPoolDeposit = async (req: Request, res: Response, next: NextFunction) => {
-    const address = req.header('RewardPool');
+export const postAssetPoolDeposit = async (req: Request, res: Response, next: NextFunction) => {
+    const address = req.header('AssetPool');
 
     handleValidation(req, res);
 
     try {
         const from = ownerAccount().address;
-        const instance = rewardPoolContract(address);
+        const instance = assetPoolContract(address);
         const tokenInstance = tokenContract(await instance.methods.token().call({ from }));
 
         // Check balance
         /// Return a QR here and handle approve and deposit in client app
     } catch (err) {
         logger.error(err);
-        return res.send({ msg: 'RewardPool not deployed', err });
+        return res.send({ msg: 'AssetPool not deployed', err });
     }
 };
 
-export const updateRewardPool = async (req: Request, res: Response, next: NextFunction) => {};
+export const updateAssetPool = async (req: Request, res: Response, next: NextFunction) => {};

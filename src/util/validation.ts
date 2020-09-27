@@ -10,10 +10,10 @@ export const handleValidation = (req: Request, res: Response) => {
     }
 };
 
-const validateRewardPoolHeader = header('RewardPool')
+const validateAssetPoolHeader = header('AssetPool')
     .exists()
     .custom((address, { req }) => {
-        if (!(req.user as AccountDocument).profile.rewardPools.includes(address)) {
+        if (!(req.user as AccountDocument).profile.assetPools.includes(address)) {
             throw new Error('Access for this reward pool is not allowed.');
         }
         return true;
@@ -22,25 +22,26 @@ const validateRewardPoolHeader = header('RewardPool')
 const confirmPassword = body('confirmPassword')
     .exists()
     .custom((confirmPassword, { req }) => {
-        if (confirmPassword === req.body.password) {
-            throw new Error('Access for this reward pool is not allowed.');
+        if (confirmPassword !== req.body.password) {
+            throw new Error('Passwords are not the same.');
         }
         return true;
     });
 
 export const validate = {
-    getReward: [validateRewardPoolHeader],
-    postReward: [
-        validateRewardPoolHeader,
+    getWithdrawal: [validateAssetPoolHeader],
+    getWithdrawals: [validateAssetPoolHeader],
+    postWithdrawal: [
+        validateAssetPoolHeader,
         check('amount', 'Request body should have amount').exists(),
         check('beneficiary', 'Request body should have beneficiary').exists(),
     ],
-    postRewardRule: [validateRewardPoolHeader, body('title').exists(), body('amount').exists()],
-    getRewardRule: [validateRewardPoolHeader, param('id').exists()],
-    getRewardRuleClaim: [validateRewardPoolHeader, param('id').exists()],
-    postRewardPools: [body('token').exists(), body('title').exists()],
-    postRewardPoolDeposit: [body('amount').exists()],
-    getRewardPools: [validateRewardPoolHeader],
+    postReward: [validateAssetPoolHeader, body('title').exists(), body('amount').exists()],
+    getReward: [validateAssetPoolHeader, param('id').exists()],
+    getRewardClaim: [validateAssetPoolHeader, param('id').exists()],
+    postAssetPools: [body('token').exists(), body('title').exists()],
+    postAssetPoolDeposit: [body('amount').exists()],
+    getAssetPools: [validateAssetPoolHeader],
     postSignup: [
         check('email', 'Email is not valid').isEmail(),
         check('password', 'Password must be at least 4 characters long').isLength({ min: 4 }),
@@ -58,5 +59,4 @@ export const validate = {
         check('email', 'Email is not valid').isEmail(),
         check('password', 'Password cannot be blank').isLength({ min: 1 }),
     ],
-    postUpdateProfile: [check('email', 'Please enter a valid email address.').isEmail()],
 };

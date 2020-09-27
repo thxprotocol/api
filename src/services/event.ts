@@ -1,6 +1,6 @@
-import { rewardPoolContract } from '../util/network';
+import { assetPoolContract } from '../util/network';
 
-export const rewardPoolEventListener = () => {
+export const assetPoolEventListener = () => {
     // Get all pools addresses from mongodb
     // Subscribe for all events per contract instance
     // Log the event

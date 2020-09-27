@@ -1,14 +1,14 @@
 import mongoose from 'mongoose';
 
-export type RewardPoolDocument = mongoose.Document & {
+export type AssetPoolDocument = mongoose.Document & {
     address: string;
     title: string;
     uid: string;
-    rewardRuleCount: number;
     rewardCount: number;
+    withdrawCount: number;
 };
 
-const rewardPoolSchema = new mongoose.Schema(
+const assetPoolSchema = new mongoose.Schema(
     {
         address: String,
         title: String,
@@ -16,4 +16,4 @@ const rewardPoolSchema = new mongoose.Schema(
     },
     { timestamps: true },
 );
-export const RewardPool = mongoose.model<RewardPoolDocument>('RewardPool', rewardPoolSchema);
+export const AssetPool = mongoose.model<AssetPoolDocument>('AssetPool', assetPoolSchema);

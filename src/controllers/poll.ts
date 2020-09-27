@@ -3,6 +3,6 @@ import '../config/passport';
 
 /**
  * Profile page.
- * @route GET /account
+ * @route GET /polls/:address
  */
-export const getRewardRulePoll = async (req: Request, res: Response, next: NextFunction) => {};
+export const getRewardPoll = async (req: Request, res: Response, next: NextFunction) => {};

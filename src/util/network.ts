@@ -42,7 +42,7 @@ export const rewardContract = (address: string = null) => {
     }
 };
 
-export const rewardPoolContract = (address: string = null) => {
+export const assetPoolContract = (address: string = null) => {
     try {
         const client: any = new Client(EXTDEV_CHAIN_ID, EXTDEV_SOCKET_URL, EXTDEV_QUERY_URL);
         const provider: any = new LoomProvider(client, ownerAccount().privateKey);
