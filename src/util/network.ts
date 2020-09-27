@@ -6,7 +6,7 @@ import {
     EXTDEV_CHAIN_ID,
     EXTDEV_SOCKET_URL,
     EXTDEV_QUERY_URL,
-    REWARD_POOL_ABI,
+    ASSET_POOL_ABI,
     REWARD_ABI,
 } from '../util/secrets';
 import logger from './logger';
@@ -47,7 +47,7 @@ export const assetPoolContract = (address: string = null) => {
         const client: any = new Client(EXTDEV_CHAIN_ID, EXTDEV_SOCKET_URL, EXTDEV_QUERY_URL);
         const provider: any = new LoomProvider(client, ownerAccount().privateKey);
         const web3 = new Web3(provider);
-        const abi = JSON.parse(REWARD_POOL_ABI);
+        const abi = JSON.parse(ASSET_POOL_ABI);
 
         return new web3.eth.Contract(abi, address);
     } catch (err) {

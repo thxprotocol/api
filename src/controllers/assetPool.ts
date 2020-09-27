@@ -1,7 +1,7 @@
 import { AssetPool, AssetPoolDocument } from '../models/AssetPool';
 import { Account, AccountDocument } from '../models/Account';
 import { Request, Response, NextFunction } from 'express';
-import { REWARD_POOL_BIN } from '../util/secrets';
+import { ASSET_POOL_BIN } from '../util/secrets';
 import { assetPoolContract, tokenContract, ownerAccount } from '../util/network';
 import { handleValidation } from '../util/validation';
 import logger from '../util/logger';
@@ -14,16 +14,15 @@ export const getAssetPool = async (req: Request, res: Response, next: NextFuncti
     handleValidation(req, res);
 
     const from = ownerAccount().address;
-    const AssetPoolInstance = assetPoolContract(req.params.address);
-    const tokenInstance = tokenContract(await AssetPoolInstance.methods.token().call({ from }));
+    const assetPoolInstance = assetPoolContract(req.params.address);
+    const tokenInstance = tokenContract(await assetPoolInstance.methods.token().call({ from }));
+    const balance = await tokenInstance.methods.balanceOf(req.params.address).call({ from });
     const contractData = {
-        balance: await tokenInstance.methods.balanceOf(req.params.address).call({ from }),
-        rewardRuleCount: await AssetPoolInstance.methods.getRewardRuleCount().call({ from }),
-        rewardCount: await AssetPoolInstance.methods.getRewardCount().call({ from }),
-        rewardPollDuration: await AssetPoolInstance.methods.rewardPollDuration().call({ from }),
-        rewardRulePollDuration: await AssetPoolInstance.methods.rewardRulePollDuration().call({ from }),
-        minRewardRulePollTokensPerc: await AssetPoolInstance.methods.minRewardRulePollTokensPerc().call({ from }),
-        minRewardPollTokensPerc: await AssetPoolInstance.methods.minRewardPollTokensPerc().call({ from }),
+        balance: balance,
+        rewardCount: await assetPoolInstance.methods.getRewardCount().call({ from }),
+        withdrawCount: await assetPoolInstance.methods.getWithdrawCount().call({ from }),
+        withdrawPollDuration: await assetPoolInstance.methods.withdrawPollDuration().call({ from }),
+        rewardPollDuration: await assetPoolInstance.methods.rewardPollDuration().call({ from }),
     };
 
     AssetPool.findOne({ address: req.params.address }, (err, { uid, address, title }: AssetPoolDocument) => {
@@ -50,25 +49,21 @@ export const postAssetPool = async (req: Request, res: Response, next: NextFunct
         const from = ownerAccount().address;
         const instance = await assetPoolContract()
             .deploy({
-                data: REWARD_POOL_BIN,
+                data: ASSET_POOL_BIN,
             })
             .send({ from });
         const address = instance.options.address;
-        console.log(address);
 
         await instance.methods.initialize(from, req.body.token).send({ from });
         await instance.methods.addManager(from).send({ from });
         await instance.methods.addMember(from).send({ from });
-        await instance.methods.setRewardRulePollDuration(90).send({ from });
-        await instance.methods.setMinRewardRulePollTokensPerc(0).send({ from });
+        await instance.methods.setRewardPollDuration(90).send({ from });
 
         const assetPool = new AssetPool({
             title: req.body.title,
             address,
             uid,
         });
-
-        console.log(assetPool);
 
         assetPool.save(async (err) => {
             if (err) {
