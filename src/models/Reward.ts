@@ -1,23 +1,19 @@
 import mongoose from 'mongoose';
-
-export enum RewardState {
-    Pending = 0,
-    Approved = 1,
-    Rejected = 2,
-    Withdrawn = 3,
-}
-
 export type RewardDocument = mongoose.Document & {
     id: number;
-    amount: number;
-    beneficiary: string;
+    title: string;
+    description: string;
+    amount: string;
+    state: number;
+    poll: string;
+    updated: string;
 };
 
 const rewardSchema = new mongoose.Schema(
     {
         id: Number,
-        amount: Number,
-        beneficiary: String,
+        title: String,
+        description: String,
     },
     { timestamps: true },
 );

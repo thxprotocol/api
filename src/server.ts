@@ -1,14 +1,14 @@
 import errorHandler from 'errorhandler';
 
 import app from './app';
-// import { rewardPoolEventListener } from './services/event';
+// import { assetPoolEventListener } from './services/event';
 
 /**
  * Error Handler. Provides full stack - remove for production
  */
 app.use(errorHandler());
 // app.use(() => {
-//     rewardPoolEventListener();
+//     assetPoolEventListener();
 // });
 
 /**

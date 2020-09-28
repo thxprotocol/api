@@ -17,9 +17,10 @@ const MongoStore = mongo(session);
 
 // Controllers
 import * as accountController from './controllers/account';
-import * as rewardPoolController from './controllers/rewardPool';
-import * as rewardRuleController from './controllers/rewardRule';
+import * as assetPoolController from './controllers/assetPool';
 import * as rewardController from './controllers/reward';
+import * as withdrawalController from './controllers/withdrawal';
+import * as memberController from './controllers/member';
 
 // API keys and Passport configuration
 import * as passportConfig from './config/passport';
@@ -77,28 +78,29 @@ router.use(passportConfig.isAuthenticated);
 
 // Account
 router.get('/account', accountController.getAccount);
-router.post('/account/profile', validate.postUpdateProfile, accountController.postUpdateProfile);
+router.post('/account/profile', accountController.postUpdateProfile);
 router.post('/account/password', validate.postUpdatePassword, accountController.postUpdatePassword);
 router.delete('/account', accountController.deleteAccount);
 
-// Reward Pools
-router.get('/reward_pools/:address', validate.getRewardPools, rewardPoolController.getRewardPool);
-router.post('/reward_pools/', validate.postRewardPools, rewardPoolController.postRewardPool);
-router.post(
-    '/reward_pools/:address/deposit',
-    validate.postRewardPoolDeposit,
-    rewardPoolController.postRewardPoolDeposit,
-);
-
-// Reward Rules
-router.get('/reward_rules/:id/claim', validate.getRewardRuleClaim, rewardRuleController.getRewardRuleClaim);
-router.get('/reward_rules/:id', validate.postRewardRule, rewardRuleController.getRewardRule);
-router.post('/reward_rules', validate.postRewardRule, rewardRuleController.postRewardRule);
+// Asset Pools
+router.get('/asset_pools/:address', validate.getAssetPools, assetPoolController.getAssetPool);
+router.post('/asset_pools/', validate.postAssetPools, assetPoolController.postAssetPool);
+router.post('/asset_pools/:address/deposit', validate.postAssetPoolDeposit, assetPoolController.postAssetPoolDeposit);
 
 // Rewards
-router.get('/rewards', validate.getReward, rewardController.getRewards);
-router.get('/rewards/:address', validate.getReward, rewardController.getReward);
+router.post('/members', validate.postMember, memberController.postMember);
+router.delete('/members/:address', validate.deleteMember, memberController.deleteMember);
+router.get('/members/:address', validate.getMember, memberController.getMember);
+
+// Rewards
+router.get('/rewards/:id/claim', validate.getRewardClaim, rewardController.getRewardClaim);
+router.get('/rewards/:id', validate.getReward, rewardController.getReward);
 router.post('/rewards', validate.postReward, rewardController.postReward);
+
+// Withdrawals
+router.get('/withdrawals', validate.getWithdrawals, withdrawalController.getWithdrawals);
+router.get('/withdrawals/:address', validate.getWithdrawal, withdrawalController.getWithdrawal);
+router.post('/withdrawals', validate.postWithdrawal, withdrawalController.postWithdrawal);
 
 app.use(`/${VERSION}`, router);
 

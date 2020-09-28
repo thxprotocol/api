@@ -103,20 +103,17 @@ export const getAccount = async (req: Request, res: Response, next: NextFunction
  * @route POST /account/profile
  */
 export const postUpdateProfile = async (req: Request, res: Response, next: NextFunction) => {
-    await sanitize('email').normalizeEmail({ gmail_remove_dots: false }).run(req);
-
-    handleValidation(req, res);
-
     Account.findById((req.user as AccountDocument).id, (err, account: AccountDocument) => {
         if (err) {
             return next(err);
         }
-        account.email = req.body.email || '';
-        account.profile.name = req.body.name || '';
+        account.profile.firstName = req.body.firstName || '';
+        account.profile.lastName = req.body.lastName || '';
         account.profile.gender = req.body.gender || '';
         account.profile.location = req.body.location || '';
-        // TODO Picture should be handled
-        account.profile.rewardPools = req.body.rewardPools || '';
+        account.profile.picture = req.body.picture || '';
+        account.profile.burnProof = req.body.burnProof || [];
+        account.profile.assetPools = req.body.assetPools || [];
         account.save((err: WriteError) => {
             if (err) {
                 if (err.code === 11000) {

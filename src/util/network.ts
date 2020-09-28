@@ -1,69 +1,39 @@
+import { PRIVATE_KEY } from '../util/secrets';
 import Web3 from 'web3';
-import { LocalAddress, CryptoUtils, LoomProvider, Client } from 'loom-js';
-import {
-    ERC20_ABI,
-    PRIVATE_KEY,
-    EXTDEV_CHAIN_ID,
-    EXTDEV_SOCKET_URL,
-    EXTDEV_QUERY_URL,
-    REWARD_POOL_ABI,
-    REWARD_ABI,
-} from '../util/secrets';
-import logger from './logger';
+import fs from 'fs';
 
+export const WITHDRAW_POLL_ABI = fs.readFileSync('./src/contracts/WithdrawPoll.abi', 'utf8');
+export const REWARD_POLL_ABI = fs.readFileSync('./src/contracts/RewardPoll.abi', 'utf8');
+export const ASSET_POOL_ABI = fs.readFileSync('./src/contracts/AssetPool.abi', 'utf8');
+export const ASSET_POOL_BIN = fs.readFileSync('./src/contracts/AssetPool.bin', 'utf8');
+export const ERC20_ABI = fs.readFileSync('./src/contracts/ERC20.abi', 'utf8');
+
+export const config = {
+    child: {
+        RPC: 'https://rpc-mumbai.matic.today',
+        DERC20: '0xfe4F5145f6e09952a5ba9e956ED0C25e3Fa4c7F1',
+        ERC20: '0xaC0A42a912398deBb9336e028724FF8B74169C80',
+    },
+};
+
+const web3 = new Web3(config.child.RPC);
+const account = web3.eth.accounts.privateKeyToAccount(PRIVATE_KEY);
+
+web3.eth.accounts.wallet.add(account);
+
+export const options = { from: account.address, gas: 6e6 };
+export const rewardPollContract = (address: string = null) => {
+    return new web3.eth.Contract(JSON.parse(REWARD_POLL_ABI), address);
+};
+export const withdrawPollContract = (address: string = null) => {
+    return new web3.eth.Contract(JSON.parse(WITHDRAW_POLL_ABI), address);
+};
+export const assetPoolContract = (address: string = null) => {
+    return new web3.eth.Contract(JSON.parse(ASSET_POOL_ABI), address);
+};
+export const tokenContract = (address: string = null) => {
+    return new web3.eth.Contract(JSON.parse(ERC20_ABI), address);
+};
 export const toWei = (amount: number) => {
     return new Web3().utils.toWei(amount.toString(), 'ether');
-};
-
-export const ownerAccount = () => {
-    try {
-        const privateKey = CryptoUtils.B64ToUint8Array(PRIVATE_KEY);
-        const publicKey = CryptoUtils.publicKeyFromPrivateKey(privateKey);
-        const address = LocalAddress.fromPublicKey(publicKey).toString();
-
-        return { privateKey, publicKey, address };
-    } catch (err) {
-        logger.error(err);
-    }
-};
-
-export const from = ownerAccount().address;
-
-export const rewardContract = (address: string = null) => {
-    try {
-        const client: any = new Client(EXTDEV_CHAIN_ID, EXTDEV_SOCKET_URL, EXTDEV_QUERY_URL);
-        const provider: any = new LoomProvider(client, ownerAccount().privateKey);
-        const web3 = new Web3(provider);
-        const abi = JSON.parse(REWARD_ABI);
-
-        return new web3.eth.Contract(abi, address);
-    } catch (err) {
-        logger.error(err);
-    }
-};
-
-export const rewardPoolContract = (address: string = null) => {
-    try {
-        const client: any = new Client(EXTDEV_CHAIN_ID, EXTDEV_SOCKET_URL, EXTDEV_QUERY_URL);
-        const provider: any = new LoomProvider(client, ownerAccount().privateKey);
-        const web3 = new Web3(provider);
-        const abi = JSON.parse(REWARD_POOL_ABI);
-
-        return new web3.eth.Contract(abi, address);
-    } catch (err) {
-        logger.error(err);
-    }
-};
-
-export const tokenContract = (address: string = null) => {
-    try {
-        const client: any = new Client(EXTDEV_CHAIN_ID, EXTDEV_SOCKET_URL, EXTDEV_QUERY_URL);
-        const provider: any = new LoomProvider(client, ownerAccount().privateKey);
-        const web3 = new Web3(provider);
-        const abi = JSON.parse(ERC20_ABI);
-
-        return new web3.eth.Contract(abi, address);
-    } catch (err) {
-        logger.error(err);
-    }
 };

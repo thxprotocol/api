@@ -1,67 +1,101 @@
-import { RewardState } from '../models/Reward';
 import { Request, Response, NextFunction } from 'express';
-import '../config/passport';
-import { rewardPoolContract, from, rewardContract } from '../util/network';
+import { assetPoolContract, options } from '../util/network';
+import { Reward, RewardDocument } from '../models/Reward';
 import logger from '../util/logger';
+import '../config/passport';
+import { handleValidation } from '../util/validation';
+
+const qrcode = require('qrcode');
 
 /**
  * Get a reward
- * @route GET /rewards/:address
+ * @route GET /rewards/:id
  */
 export const getReward = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-        const reward = rewardContract(req.params.address);
+    handleValidation(req, res);
 
-        const beneficiary = await reward.methods.beneficiary().call({ from });
-        const amount = await reward.methods.amount().call({ from });
-        const state = await reward.methods.state().call({ from });
+    Reward.findOne({ id: req.params.id }, async (err, metaData) => {
+        if (err) {
+            return next(err);
+        }
 
-        res.send({ reward: req.params.address, beneficiary, amount, state: RewardState[state] });
-    } catch (err) {
-        logger.error(err);
-        return res.status(404).end();
-    }
+        if (metaData) {
+            const { id, amount, state, poll, updated } = await assetPoolContract(req.header('AssetPool'))
+                .methods.rewards(req.params.id)
+                .call(options);
+            const reward = {
+                id,
+                title: metaData.title,
+                description: metaData.description,
+                amount,
+                state,
+                poll,
+                updated,
+            } as RewardDocument;
+
+            return res.send({ reward });
+        } else {
+            logger.error(err);
+            return res.status(404).send({ msg: 'Reward not found in database' });
+        }
+    });
 };
 
 /**
- * Get a reward
- * @route GET /rewards/
+ * Create a reward
+ * @route POST /rewards
  */
-export const getRewards = async (req: Request, res: Response, next: NextFunction) => {
-    const poolAddress = req.header('RewardPool');
-    const rewardPool = rewardPoolContract(poolAddress);
-    const rewardCount = parseInt(await rewardPool.methods.getRewardCount().call({ from }), 10);
+export const postReward = async (req: Request, res: Response, next: NextFunction) => {
+    const address = req.header('AssetPool');
+
+    handleValidation(req, res);
 
     try {
-        let rewards = [];
+        const tx = await assetPoolContract(address).methods.addReward(req.body.amount).send(options);
 
-        for (let i = 0; i < rewardCount; i++) {
-            const reward = await rewardPool.methods.rewards(i).call({ from });
-            rewards.push(reward);
+        if (tx) {
+            const id = tx.events.RewardPollCreated.returnValues.id;
+            const reward = new Reward({
+                id,
+                title: req.body.title,
+                description: req.body.description,
+            });
+
+            reward.save(async (err) => {
+                if (err) {
+                    res.send({ msg: 'Reward not saved', err });
+                    return next(err);
+                }
+
+                return res.send({ id });
+            });
         }
-
-        res.send({ rewards });
     } catch (err) {
         logger.error(err);
-        return res.status(404).end();
+        return res.status(500).send({ msg: 'Reward not added', err });
     }
 };
 
 /**
  * Create a reward
- * @route POST /reward/
+ * @route GET /rewards/:id/claim
  */
-export const postReward = async (req: Request, res: Response, next: NextFunction) => {
-    const contract = rewardPoolContract(req.header('RewardPool'));
+export const getRewardClaim = async (req: Request, res: Response) => {
+    handleValidation(req, res);
 
     try {
-        const tx = await contract.methods
-            .proposeReward(req.body.amount.toString(), req.body.beneficiary)
-            .send({ from });
+        const base64 = await qrcode.toDataURL(
+            JSON.stringify({
+                asset_pool: req.header('AssetPool'),
+                reward_id: req.params.id,
+            }),
+        );
 
-        res.status(200).send({ reward: tx.events.RewardPollCreated.returnValues.reward });
+        res.status(200).send({ base64 });
     } catch (err) {
         logger.error(err);
         return res.status(500).end();
     }
 };
+
+export const updateReward = async (req: Request, res: Response, next: NextFunction) => {};
