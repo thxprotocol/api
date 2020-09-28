@@ -30,6 +30,8 @@
         "watch-debug": "concurrently -k -p \"[{name}]\" -n \"TypeScript,Node\" -c \"yellow.bold,cyan.bold,green.bold\" \"npm run watch-ts\" \"npm run serve-debug\""
     },
     "dependencies": {
+        "@maticnetwork/maticjs": "^2.0.7",
+        "@truffle/hdwallet-provider": "^1.1.0",
         "async": "^3.1.0",
         "axios": "^0.19.2",
         "bcrypt-nodejs": "^0.0.3",
@@ -56,6 +58,7 @@
         "passport-local": "^1.0.0",
         "pug": "^2.0.4",
         "qrcode": "^1.4.4",
+        "solc": "^0.7.1",
         "web3": "^1.2.7",
         "winston": "^3.2.1"
     },

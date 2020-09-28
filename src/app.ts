@@ -20,6 +20,7 @@ import * as accountController from './controllers/account';
 import * as assetPoolController from './controllers/assetPool';
 import * as rewardController from './controllers/reward';
 import * as withdrawalController from './controllers/withdrawal';
+import * as memberController from './controllers/member';
 
 // API keys and Passport configuration
 import * as passportConfig from './config/passport';
@@ -81,14 +82,19 @@ router.post('/account/profile', accountController.postUpdateProfile);
 router.post('/account/password', validate.postUpdatePassword, accountController.postUpdatePassword);
 router.delete('/account', accountController.deleteAccount);
 
-// Reward Pools
+// Asset Pools
 router.get('/asset_pools/:address', validate.getAssetPools, assetPoolController.getAssetPool);
 router.post('/asset_pools/', validate.postAssetPools, assetPoolController.postAssetPool);
 router.post('/asset_pools/:address/deposit', validate.postAssetPoolDeposit, assetPoolController.postAssetPoolDeposit);
 
 // Rewards
+router.post('/members', validate.postMember, memberController.postMember);
+router.delete('/members/:address', validate.deleteMember, memberController.deleteMember);
+router.get('/members/:address', validate.getMember, memberController.getMember);
+
+// Rewards
 router.get('/rewards/:id/claim', validate.getRewardClaim, rewardController.getRewardClaim);
-router.get('/rewards/:id', validate.postReward, rewardController.getReward);
+router.get('/rewards/:id', validate.getReward, rewardController.getReward);
 router.post('/rewards', validate.postReward, rewardController.postReward);
 
 // Withdrawals

@@ -1,8 +1,8 @@
+import { ASSET_POOL_BIN } from '../util/network';
 import { AssetPool, AssetPoolDocument } from '../models/AssetPool';
 import { Account, AccountDocument } from '../models/Account';
 import { Request, Response, NextFunction } from 'express';
-import { ASSET_POOL_BIN } from '../util/secrets';
-import { assetPoolContract, tokenContract, ownerAccount } from '../util/network';
+import { assetPoolContract, tokenContract, options } from '../util/network';
 import { handleValidation } from '../util/validation';
 import logger from '../util/logger';
 
@@ -13,16 +13,15 @@ import logger from '../util/logger';
 export const getAssetPool = async (req: Request, res: Response, next: NextFunction) => {
     handleValidation(req, res);
 
-    const from = ownerAccount().address;
     const assetPoolInstance = assetPoolContract(req.params.address);
-    const tokenInstance = tokenContract(await assetPoolInstance.methods.token().call({ from }));
-    const balance = await tokenInstance.methods.balanceOf(req.params.address).call({ from });
+    const tokenInstance = tokenContract(await assetPoolInstance.methods.token().call(options));
+    const balance = await tokenInstance.methods.balanceOf(req.params.address).call(options);
     const contractData = {
         balance: balance,
-        rewardCount: await assetPoolInstance.methods.getRewardCount().call({ from }),
-        withdrawCount: await assetPoolInstance.methods.getWithdrawCount().call({ from }),
-        withdrawPollDuration: await assetPoolInstance.methods.withdrawPollDuration().call({ from }),
-        rewardPollDuration: await assetPoolInstance.methods.rewardPollDuration().call({ from }),
+        rewardCount: await assetPoolInstance.methods.getRewardCount().call(options),
+        withdrawCount: await assetPoolInstance.methods.getWithdrawCount().call(options),
+        withdrawPollDuration: await assetPoolInstance.methods.withdrawPollDuration().call(options),
+        rewardPollDuration: await assetPoolInstance.methods.rewardPollDuration().call(options),
     };
 
     AssetPool.findOne({ address: req.params.address }, (err, { uid, address, title }: AssetPoolDocument) => {
@@ -32,7 +31,8 @@ export const getAssetPool = async (req: Request, res: Response, next: NextFuncti
         if (address) {
             res.send({ title, address, uid, ...contractData });
         } else {
-            res.send({ msg: `No reward pool found for address ${address}` });
+            logger.error(err);
+            res.status(404).send({ msg: `No reward pool found for address ${address}` });
         }
     });
 };
@@ -45,24 +45,22 @@ export const postAssetPool = async (req: Request, res: Response, next: NextFunct
     handleValidation(req, res);
 
     try {
-        const uid = req.session.passport.user;
-        const from = ownerAccount().address;
         const instance = await assetPoolContract()
             .deploy({
                 data: ASSET_POOL_BIN,
             })
-            .send({ from });
+            .send(options);
         const address = instance.options.address;
 
-        await instance.methods.initialize(from, req.body.token).send({ from });
-        await instance.methods.addManager(from).send({ from });
-        await instance.methods.addMember(from).send({ from });
-        await instance.methods.setRewardPollDuration(90).send({ from });
+        await instance.methods.initialize(options.from, req.body.token).send(options);
+        await instance.methods.addManager(options.from).send(options);
+        await instance.methods.addMember(options.from).send(options);
+        await instance.methods.setRewardPollDuration(180).send(options);
 
         const assetPool = new AssetPool({
-            title: req.body.title,
             address,
-            uid,
+            title: req.body.title,
+            uid: req.session.passport.user,
         });
 
         assetPool.save(async (err) => {
@@ -86,7 +84,8 @@ export const postAssetPool = async (req: Request, res: Response, next: NextFunct
             });
         });
     } catch (err) {
-        return res.send({ msg: 'AssetPool not deployed', err });
+        logger.error(err);
+        res.status(404).send({ msg: 'AssetPool not deployed', err });
     }
 };
 
@@ -96,15 +95,14 @@ export const postAssetPoolDeposit = async (req: Request, res: Response, next: Ne
     handleValidation(req, res);
 
     try {
-        const from = ownerAccount().address;
         const instance = assetPoolContract(address);
-        const tokenInstance = tokenContract(await instance.methods.token().call({ from }));
+        const tokenInstance = tokenContract(await instance.methods.token().call(options));
+        const balance = tokenInstance.methods.balanceOf(address).call(options);
 
-        // Check balance
         /// Return a QR here and handle approve and deposit in client app
     } catch (err) {
         logger.error(err);
-        return res.send({ msg: 'AssetPool not deployed', err });
+        res.status(404).send({ msg: 'AssetPool not deployed', err });
     }
 };
 

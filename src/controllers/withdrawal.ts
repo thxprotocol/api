@@ -1,7 +1,7 @@
 import { WithdrawState } from '../models/Withdraw';
 import { Request, Response, NextFunction } from 'express';
 import '../config/passport';
-import { assetPoolContract, from, rewardContract } from '../util/network';
+import { assetPoolContract, options, withdrawPollContract } from '../util/network';
 import logger from '../util/logger';
 
 /**
@@ -10,11 +10,10 @@ import logger from '../util/logger';
  */
 export const getWithdrawal = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const reward = rewardContract(req.params.address);
-
-        const beneficiary = await reward.methods.beneficiary().call({ from });
-        const amount = await reward.methods.amount().call({ from });
-        const state = await reward.methods.state().call({ from });
+        const reward = withdrawPollContract(req.params.address);
+        const beneficiary = await reward.methods.beneficiary().call(options);
+        const amount = await reward.methods.amount().call(options);
+        const state = await reward.methods.state().call(options);
 
         res.send({ reward: req.params.address, beneficiary, amount, state: WithdrawState[state] });
     } catch (err) {
@@ -24,23 +23,25 @@ export const getWithdrawal = async (req: Request, res: Response, next: NextFunct
 };
 
 /**
- * Get a reward
- * @route GET /withdrawals/
+ * Get all withdrawals of a member
+ * @route GET /withdrawals/:member
  */
-export const getWithdrawals = async (req: Request, res: Response, next: NextFunction) => {
-    const poolAddress = req.header('AssetPool');
-    const assetPool = assetPoolContract(poolAddress);
-    const withdrawalCount = parseInt(await assetPool.methods.getWithdrawCount().call({ from }), 10);
+export const getWithdrawals = async (req: Request, res: Response) => {
+    const assetPool = assetPoolContract(req.header('AssetPool'));
+    const withdrawalCount = parseInt(
+        await assetPool.methods.getWithdrawPollsCountOf(req.body.member).call(options),
+        10,
+    );
 
     try {
-        let withdrawals = [];
+        let withdrawPolls = [];
 
         for (let i = 0; i < withdrawalCount; i++) {
-            const reward = await assetPool.methods.rewards(i).call({ from });
-            withdrawals.push(reward);
+            const withdrawPoll = await assetPool.methods.withdrawalPollsOf(req.body.member, i).call(options);
+            withdrawPolls.push(withdrawPoll);
         }
 
-        res.send({ withdrawals });
+        res.send({ withdrawPolls });
     } catch (err) {
         logger.error(err);
         return res.status(404).end();
@@ -48,18 +49,17 @@ export const getWithdrawals = async (req: Request, res: Response, next: NextFunc
 };
 
 /**
- * Create a reward
+ * Create a withdrawal
  * @route POST /withdrawals/
  */
-export const postWithdrawal = async (req: Request, res: Response, next: NextFunction) => {
-    const contract = assetPoolContract(req.header('AssetPool'));
-
+export const postWithdrawal = async (req: Request, res: Response) => {
     try {
-        const tx = await contract.methods
-            .proposeWithdraw(req.body.amount.toString(), req.body.beneficiary)
-            .send({ from });
+        const tx = await assetPoolContract(req.header('AssetPool'))
+            .methods.proposeWithdraw(req.body.amount.toString(), req.body.beneficiary)
+            .send(options);
+        const reward = tx.events.WithdrawPollCreated.returnValues.reward;
 
-        res.status(200).send({ reward: tx.events.WithdrawPollCreated.returnValues.reward });
+        return res.send({ reward });
     } catch (err) {
         logger.error(err);
         return res.status(500).end();

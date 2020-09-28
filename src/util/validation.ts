@@ -29,13 +29,16 @@ const confirmPassword = body('confirmPassword')
     });
 
 export const validate = {
-    getWithdrawal: [validateAssetPoolHeader],
-    getWithdrawals: [validateAssetPoolHeader],
+    getWithdrawal: [validateAssetPoolHeader, param('withdrawal').exists()],
+    getWithdrawals: [validateAssetPoolHeader, body('member').exists()],
     postWithdrawal: [
         validateAssetPoolHeader,
         check('amount', 'Request body should have amount').exists(),
         check('beneficiary', 'Request body should have beneficiary').exists(),
     ],
+    postMember: [validateAssetPoolHeader, body('address').exists()],
+    deleteMember: [validateAssetPoolHeader, param('address').exists()],
+    getMember: [validateAssetPoolHeader, param('address').exists()],
     postReward: [validateAssetPoolHeader, body('title').exists(), body('amount').exists()],
     getReward: [validateAssetPoolHeader, param('id').exists()],
     getRewardClaim: [validateAssetPoolHeader, param('id').exists()],
