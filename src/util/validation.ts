@@ -57,11 +57,13 @@ export const validate = {
     // rewards
     postReward: [validateAssetPoolHeader, body('title').exists(), body('amount').exists()],
     getReward: [validateAssetPoolHeader, param('id').exists()],
+    putReward: [validateAssetPoolHeader, body('amount').exists(), body('title').exists(), body('description').exists()],
     getRewardClaim: [validateAssetPoolHeader, param('id').exists()],
     // asset_pools
     postAssetPools: [body('token').exists(), body('title').exists()],
-    postAssetPoolDeposit: [body('amount').exists()],
-    getAssetPools: [validateAssetPoolHeader],
+    postAssetPoolDeposit: [validateAssetPoolHeader, body('amount').exists()],
+    putAssetPool: [validateAssetPoolHeader, body('rewardPollDuration').exists(), body('withdrawPollDuration').exists()],
+    getAssetPool: [validateAssetPoolHeader, param('address').exists()],
     // account
     postSignup: [
         check('email', 'Email is not valid').isEmail(),

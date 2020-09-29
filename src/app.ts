@@ -84,11 +84,12 @@ router.post('/account/password', validate.postUpdatePassword, accountController.
 router.delete('/account', accountController.deleteAccount);
 
 // Asset Pools
-router.get('/asset_pools/:address', validate.getAssetPools, assetPoolController.getAssetPool);
 router.post('/asset_pools/', validate.postAssetPools, assetPoolController.postAssetPool);
+router.get('/asset_pools/:address', validate.getAssetPool, assetPoolController.getAssetPool);
+router.put('/asset_pools/:address', validate.putAssetPool, assetPoolController.putAssetPool);
 router.post('/asset_pools/:address/deposit', validate.postAssetPoolDeposit, assetPoolController.postAssetPoolDeposit);
 
-// Rewards
+// Members
 router.post('/members', validate.postMember, memberController.postMember);
 router.delete('/members/:address', validate.deleteMember, memberController.deleteMember);
 router.get('/members/:address', validate.getMember, memberController.getMember);
@@ -97,6 +98,7 @@ router.get('/members/:address', validate.getMember, memberController.getMember);
 router.get('/rewards/:id/claim', validate.getRewardClaim, rewardController.getRewardClaim);
 router.get('/rewards/:id', validate.getReward, rewardController.getReward);
 router.post('/rewards', validate.postReward, rewardController.postReward);
+router.put('/rewards/:id', validate.putReward, rewardController.putReward);
 // TODO router.get('/rewards/:address/finalize', validate.getFinalize, rewardController.getFinalize);
 // TODO router.post('/rewards/:address/finalize', validate.postFinalize, rewardController.postFinalize);
 

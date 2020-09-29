@@ -5,6 +5,8 @@ import { assetPoolContract, options, withdrawPollContract } from '../util/networ
 import logger from '../util/logger';
 import { handleValidation } from '../util/validation';
 
+const qrcode = require('qrcode');
+
 /**
  * Get a reward
  * @route GET /withdrawals/:address
@@ -38,33 +40,32 @@ export const getWithdrawal = async (req: Request, res: Response) => {
         });
     } catch (err) {
         logger.error(err);
-        return res.status(404).end();
+        return res.status(500).end();
     }
 };
 
 /**
  * Get all withdrawals of a member
- * @route GET /withdrawals/:member
+ * @route GET /withdrawals
  */
 export const getWithdrawals = async (req: Request, res: Response) => {
     handleValidation(req, res);
     try {
         const assetPool = assetPoolContract(req.header('AssetPool'));
-        const withdrawalCount = parseInt(
-            await assetPool.methods.getWithdrawPollsCountOf(req.body.member).call(options),
-            10,
-        );
-        let withdrawPolls = [];
-
-        for (let i = 0; i < withdrawalCount; i++) {
-            const withdrawPoll = await assetPool.methods.withdrawalPollsOf(req.body.member, i).call(options);
-            withdrawPolls.push(withdrawPoll);
-        }
+        const withdrawPolls = (
+            await assetPool.getPastEvents('WithdrawPollCreated', {
+                filter: { member: req.body.member },
+                fromBlock: 0,
+                toBlock: 'latest',
+            })
+        ).map((event) => {
+            return event.returnValues.poll;
+        });
 
         res.send({ withdrawPolls });
     } catch (err) {
         logger.error(err);
-        res.status(404).end();
+        res.status(500).end();
     }
 };
 
@@ -78,11 +79,32 @@ export const postWithdrawal = async (req: Request, res: Response) => {
         const tx = await assetPoolContract(req.header('AssetPool'))
             .methods.proposeWithdraw(req.body.amount.toString(), req.body.beneficiary)
             .send(options);
-        const reward = tx.events.WithdrawPollCreated.returnValues.reward;
+        const pollAddress = tx.events.WithdrawPollCreated.returnValues.poll;
 
-        res.send({ reward });
+        res.redirect('/v1/withdrawals/' + pollAddress);
     } catch (err) {
         logger.error(err);
         res.status(500).end();
+    }
+};
+
+/**
+ * Get withdrawal withdraw
+ * @route GET /withdrawals/:address/withdraw
+ */
+export const getWithdraw = async (req: Request, res: Response) => {
+    handleValidation(req, res);
+    try {
+        const base64 = await qrcode.toDataURL(
+            JSON.stringify({
+                contractAddress: req.params.address,
+                contract: 'WithdrawPoll',
+                method: 'withdraw',
+            }),
+        );
+        res.send({ base64 });
+    } catch (err) {
+        logger.error(err);
+        return res.status(500).end();
     }
 };
