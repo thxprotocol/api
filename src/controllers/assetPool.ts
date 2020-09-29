@@ -13,28 +13,35 @@ import logger from '../util/logger';
 export const getAssetPool = async (req: Request, res: Response, next: NextFunction) => {
     handleValidation(req, res);
 
-    const assetPoolInstance = assetPoolContract(req.params.address);
-    const tokenInstance = tokenContract(await assetPoolInstance.methods.token().call(options));
-    const balance = await tokenInstance.methods.balanceOf(req.params.address).call(options);
-    const contractData = {
-        balance: balance,
-        rewardCount: await assetPoolInstance.methods.getRewardCount().call(options),
-        withdrawCount: await assetPoolInstance.methods.getWithdrawCount().call(options),
-        withdrawPollDuration: await assetPoolInstance.methods.withdrawPollDuration().call(options),
-        rewardPollDuration: await assetPoolInstance.methods.rewardPollDuration().call(options),
-    };
+    try {
+        const assetPoolInstance = assetPoolContract(req.params.address);
+        const tokenAddress = await assetPoolInstance.methods.token().call(options);
+        const tokenInstance = tokenContract(tokenAddress);
+        const contractData = {
+            token: {
+                name: await tokenInstance.methods.name().call(options),
+                symbol: await tokenInstance.methods.symbol().call(options),
+                balance: await tokenInstance.methods.balanceOf(req.params.address).call(options),
+            },
+            withdrawPollDuration: await assetPoolInstance.methods.withdrawPollDuration().call(options),
+            rewardPollDuration: await assetPoolInstance.methods.rewardPollDuration().call(options),
+        };
 
-    AssetPool.findOne({ address: req.params.address }, (err, { uid, address, title }: AssetPoolDocument) => {
-        if (err) {
-            return next(err);
-        }
-        if (address) {
-            res.send({ title, address, uid, ...contractData });
-        } else {
-            logger.error(err);
-            res.status(404).send({ msg: `No reward pool found for address ${address}` });
-        }
-    });
+        AssetPool.findOne({ address: req.params.address }, (err, { uid, address, title }: AssetPoolDocument) => {
+            if (err) {
+                return next(err);
+            }
+            if (address) {
+                res.send({ title, address, uid, ...contractData });
+            } else {
+                logger.error(err);
+                res.status(404).send({ msg: `No reward pool found for address ${address}` });
+            }
+        });
+    } catch (err) {
+        logger.error(err);
+        res.status(500).send({ msg: 'AssetPool not deployed', err });
+    }
 };
 
 /**
@@ -75,7 +82,7 @@ export const postAssetPool = async (req: Request, res: Response, next: NextFunct
                         if (err) {
                             return res.send({ msg: 'User not updated', err });
                         }
-                        return res.send({ address });
+                        res.redirect('/v1/asset_pools/' + address);
                     });
                 }
             });
@@ -86,6 +93,10 @@ export const postAssetPool = async (req: Request, res: Response, next: NextFunct
     }
 };
 
+/**
+ * Create a deposit for this asset pool
+ * @route POST /reward_pools/:address/deposit
+ */
 export const postAssetPoolDeposit = async (req: Request, res: Response, next: NextFunction) => {
     handleValidation(req, res);
 
@@ -102,7 +113,11 @@ export const postAssetPoolDeposit = async (req: Request, res: Response, next: Ne
     }
 };
 
-export const updateAssetPool = async (req: Request, res: Response, next: NextFunction) => {
+/**
+ * Update the configuration for this reward
+ * @route PUT /reward_pools/:address
+ */
+export const putAssetPool = async (req: Request, res: Response, next: NextFunction) => {
     handleValidation(req, res);
 
     try {
@@ -110,6 +125,8 @@ export const updateAssetPool = async (req: Request, res: Response, next: NextFun
 
         await instance.methods.setRewardPollDuration(req.body.rewardPollDuration).send(options);
         await instance.methods.setWithdrawPollDuration(req.body.withdrawPollDuration).send(options);
+
+        res.redirect('/v1/asset_pools/' + req.params.address);
     } catch (err) {
         logger.error(err);
         res.status(500).send({ msg: 'Transaction failed', err });

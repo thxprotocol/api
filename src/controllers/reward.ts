@@ -65,7 +65,7 @@ export const postReward = async (req: Request, res: Response, next: NextFunction
                     return next(err);
                 }
 
-                return res.send({ id });
+                res.redirect('/v1/rewards/' + id);
             });
         }
     } catch (err) {
@@ -98,4 +98,52 @@ export const getRewardClaim = async (req: Request, res: Response) => {
     }
 };
 
-export const updateReward = async (req: Request, res: Response, next: NextFunction) => {};
+/**
+ * Update a reward
+ * @route PUT /rewards/:id
+ */
+export const putReward = async (req: Request, res: Response, next: NextFunction) => {
+    handleValidation(req, res);
+    try {
+        const metaData = await Reward.findOne({ id: req.params.id });
+
+        if (!req.body.title || req.body.title !== metaData.title) {
+            metaData.title = req.body.title;
+        }
+
+        if (!req.body.description || req.body.description !== metaData.description) {
+            metaData.description = req.body.description;
+        }
+
+        metaData.save(async (err) => {
+            if (err) {
+                throw Error('Could not find reward in database');
+            }
+
+            const { amount } = await assetPoolContract(req.header('AssetPool'))
+                .methods.rewards(req.params.id)
+                .call(options);
+
+            if (amount !== req.body.amount) {
+                const base64 = await qrcode.toDataURL(
+                    JSON.stringify({
+                        contractAddress: req.header('AssetPool'),
+                        contract: 'AssetPool',
+                        method: 'updateReward',
+                        params: {
+                            id: req.params.id,
+                            amount: req.params.amount,
+                        },
+                    }),
+                );
+                res.send({ base64 });
+            } else {
+                // TODO this one is not handled
+                throw Error('Proposed amount is equal to current amount');
+            }
+        });
+    } catch (err) {
+        logger.error(err);
+        return res.status(500).end();
+    }
+};
