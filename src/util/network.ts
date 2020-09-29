@@ -2,6 +2,7 @@ import { PRIVATE_KEY } from '../util/secrets';
 import Web3 from 'web3';
 import fs from 'fs';
 
+export const BASE_POLL_ABI = fs.readFileSync('./src/contracts/BasePoll.abi', 'utf8');
 export const WITHDRAW_POLL_ABI = fs.readFileSync('./src/contracts/WithdrawPoll.abi', 'utf8');
 export const REWARD_POLL_ABI = fs.readFileSync('./src/contracts/RewardPoll.abi', 'utf8');
 export const ASSET_POOL_ABI = fs.readFileSync('./src/contracts/AssetPool.abi', 'utf8');
@@ -22,6 +23,9 @@ const account = web3.eth.accounts.privateKeyToAccount(PRIVATE_KEY);
 web3.eth.accounts.wallet.add(account);
 
 export const options = { from: account.address, gas: 6e6 };
+export const basePollContract = (address: string = null) => {
+    return new web3.eth.Contract(JSON.parse(BASE_POLL_ABI), address);
+};
 export const rewardPollContract = (address: string = null) => {
     return new web3.eth.Contract(JSON.parse(REWARD_POLL_ABI), address);
 };

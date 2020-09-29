@@ -53,9 +53,6 @@ export const postAssetPool = async (req: Request, res: Response, next: NextFunct
         const address = instance.options.address;
 
         await instance.methods.initialize(options.from, req.body.token).send(options);
-        await instance.methods.addManager(options.from).send(options);
-        await instance.methods.addMember(options.from).send(options);
-        await instance.methods.setRewardPollDuration(180).send(options);
 
         const assetPool = new AssetPool({
             address,
@@ -78,32 +75,43 @@ export const postAssetPool = async (req: Request, res: Response, next: NextFunct
                         if (err) {
                             return res.send({ msg: 'User not updated', err });
                         }
-                        return res.send(address);
+                        return res.send({ address });
                     });
                 }
             });
         });
     } catch (err) {
         logger.error(err);
-        res.status(404).send({ msg: 'AssetPool not deployed', err });
+        res.status(500).send({ msg: 'AssetPool not deployed', err });
     }
 };
 
 export const postAssetPoolDeposit = async (req: Request, res: Response, next: NextFunction) => {
-    const address = req.header('AssetPool');
-
     handleValidation(req, res);
 
     try {
+        const address = req.header('AssetPool');
         const instance = assetPoolContract(address);
         const tokenInstance = tokenContract(await instance.methods.token().call(options));
         const balance = tokenInstance.methods.balanceOf(address).call(options);
 
-        /// Return a QR here and handle approve and deposit in client app
+        // TODO Return a QR here and handle approve and deposit in client app
     } catch (err) {
         logger.error(err);
-        res.status(404).send({ msg: 'AssetPool not deployed', err });
+        res.status(500).send({ msg: 'Transaction failed', err });
     }
 };
 
-export const updateAssetPool = async (req: Request, res: Response, next: NextFunction) => {};
+export const updateAssetPool = async (req: Request, res: Response, next: NextFunction) => {
+    handleValidation(req, res);
+
+    try {
+        const instance = assetPoolContract(req.header('AssetPool'));
+
+        await instance.methods.setRewardPollDuration(req.body.rewardPollDuration).send(options);
+        await instance.methods.setWithdrawPollDuration(req.body.withdrawPollDuration).send(options);
+    } catch (err) {
+        logger.error(err);
+        res.status(500).send({ msg: 'Transaction failed', err });
+    }
+};

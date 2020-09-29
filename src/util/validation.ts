@@ -29,22 +29,40 @@ const confirmPassword = body('confirmPassword')
     });
 
 export const validate = {
-    getWithdrawal: [validateAssetPoolHeader, param('withdrawal').exists()],
+    // withdrawal
+    getWithdrawal: [validateAssetPoolHeader, param('address').exists()],
     getWithdrawals: [validateAssetPoolHeader, body('member').exists()],
     postWithdrawal: [
         validateAssetPoolHeader,
         check('amount', 'Request body should have amount').exists(),
         check('beneficiary', 'Request body should have beneficiary').exists(),
     ],
+    // polls
+    getPoll: [validateAssetPoolHeader, param('address').exists()],
+    getVote: [validateAssetPoolHeader, param('agree').exists()],
+    getRevokeVote: [validateAssetPoolHeader],
+    postVote: [
+        validateAssetPoolHeader,
+        param('address').exists(),
+        body('voter').exists(),
+        body('agree').exists(),
+        body('nonce').exists(),
+        body('sig').exists(),
+    ],
+    deleteVote: [validateAssetPoolHeader],
+    // members
     postMember: [validateAssetPoolHeader, body('address').exists()],
     deleteMember: [validateAssetPoolHeader, param('address').exists()],
     getMember: [validateAssetPoolHeader, param('address').exists()],
+    // rewards
     postReward: [validateAssetPoolHeader, body('title').exists(), body('amount').exists()],
     getReward: [validateAssetPoolHeader, param('id').exists()],
     getRewardClaim: [validateAssetPoolHeader, param('id').exists()],
+    // asset_pools
     postAssetPools: [body('token').exists(), body('title').exists()],
     postAssetPoolDeposit: [body('amount').exists()],
     getAssetPools: [validateAssetPoolHeader],
+    // account
     postSignup: [
         check('email', 'Email is not valid').isEmail(),
         check('password', 'Password must be at least 4 characters long').isLength({ min: 4 }),
