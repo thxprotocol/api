@@ -37,6 +37,7 @@ export const validate = {
         check('beneficiary', 'Request body should have beneficiary').exists(),
     ],
     getWithdrawalVote: [validateAssetPoolHeader, param('agree').exists()],
+    getWithdrawalRevokeVote: [validateAssetPoolHeader],
     postWithdrawalVote: [
         validateAssetPoolHeader,
         param('address').exists(),
@@ -45,6 +46,7 @@ export const validate = {
         body('nonce').exists(),
         body('sig').exists(),
     ],
+    deleteWithdrawalVote: [validateAssetPoolHeader],
     postMember: [validateAssetPoolHeader, body('address').exists()],
     deleteMember: [validateAssetPoolHeader, param('address').exists()],
     getMember: [validateAssetPoolHeader, param('address').exists()],

@@ -101,7 +101,13 @@ router.post('/rewards', validate.postReward, rewardController.postReward);
 router.get('/withdrawals', validate.getWithdrawals, withdrawalController.getWithdrawals);
 router.get('/withdrawals/:address', validate.getWithdrawal, withdrawalController.getWithdrawal);
 router.get('/withdrawals/:address/vote/:agree', validate.getWithdrawalVote, withdrawalController.getWithdrawalVote);
+router.get(
+    '/withdrawals/:address/revoke_vote',
+    validate.getWithdrawalRevokeVote,
+    withdrawalController.getWithdrawalRevokeVote,
+);
 router.post('/withdrawals/:address/vote', validate.postWithdrawalVote, withdrawalController.postWithdrawalVote);
+router.delete('/withdrawals/:address/vote', validate.deleteWithdrawalVote, withdrawalController.deleteWithdrawalVote);
 router.post('/withdrawals', validate.postWithdrawal, withdrawalController.postWithdrawal);
 
 app.use(`/${VERSION}`, router);

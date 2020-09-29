@@ -127,3 +127,41 @@ export const postWithdrawalVote = async (req: Request, res: Response) => {
         return res.status(500).end();
     }
 };
+
+/**
+ * Cast a vote for a withdrawal
+ * @route GET /withdrawals/:address/revoke_vote
+ */
+export const getWithdrawalRevokeVote = async (req: Request, res: Response) => {
+    handleValidation(req, res);
+    try {
+        const base64 = await qrcode.toDataURL(
+            JSON.stringify({
+                contractAddress: req.params.address,
+                contract: 'WithdrawPoll',
+                method: 'revokeVote',
+            }),
+        );
+        res.send({ base64 });
+    } catch (err) {
+        logger.error(err);
+        return res.status(500).end();
+    }
+};
+
+/**
+ * Revoke a vote for a withdrawal
+ * @route DELETE /withdrawals/:address/vote/
+ */
+export const deleteWithdrawalVote = async (req: Request, res: Response) => {
+    handleValidation(req, res);
+    try {
+        const tx = await withdrawPollContract(req.params.address)
+            .methods.revokeVote(req.body.voter, parseInt(req.body.nonce, 10), req.body.sig)
+            .send(options);
+        res.send({ tx });
+    } catch (err) {
+        logger.error(err);
+        return res.status(500).end();
+    }
+};
