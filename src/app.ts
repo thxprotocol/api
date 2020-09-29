@@ -21,6 +21,7 @@ import * as assetPoolController from './controllers/assetPool';
 import * as rewardController from './controllers/reward';
 import * as withdrawalController from './controllers/withdrawal';
 import * as memberController from './controllers/member';
+import * as pollController from './controllers/poll';
 
 // API keys and Passport configuration
 import * as passportConfig from './config/passport';
@@ -96,19 +97,22 @@ router.get('/members/:address', validate.getMember, memberController.getMember);
 router.get('/rewards/:id/claim', validate.getRewardClaim, rewardController.getRewardClaim);
 router.get('/rewards/:id', validate.getReward, rewardController.getReward);
 router.post('/rewards', validate.postReward, rewardController.postReward);
+// TODO router.get('/rewards/:address/finalize', validate.getFinalize, rewardController.getFinalize);
+// TODO router.post('/rewards/:address/finalize', validate.postFinalize, rewardController.postFinalize);
 
 // Withdrawals
 router.get('/withdrawals', validate.getWithdrawals, withdrawalController.getWithdrawals);
 router.get('/withdrawals/:address', validate.getWithdrawal, withdrawalController.getWithdrawal);
-router.get('/withdrawals/:address/vote/:agree', validate.getWithdrawalVote, withdrawalController.getWithdrawalVote);
-router.get(
-    '/withdrawals/:address/revoke_vote',
-    validate.getWithdrawalRevokeVote,
-    withdrawalController.getWithdrawalRevokeVote,
-);
-router.post('/withdrawals/:address/vote', validate.postWithdrawalVote, withdrawalController.postWithdrawalVote);
-router.delete('/withdrawals/:address/vote', validate.deleteWithdrawalVote, withdrawalController.deleteWithdrawalVote);
 router.post('/withdrawals', validate.postWithdrawal, withdrawalController.postWithdrawal);
+// TODO router.get('/withdrawals/:address/withdraw', validate.getWithdraw, withdrawalController.getWithdraw);
+// TODO router.post('/withdrawals/:address/withdraw', validate.postWithdraw, withdrawalController.postWithdraw);
+
+// Polls
+router.get('/polls/:address', validate.getPoll, pollController.getPoll);
+router.get('/polls/:address/vote/:agree', validate.getVote, pollController.getVote);
+router.get('/polls/:address/revoke_vote', validate.getRevokeVote, pollController.getRevokeVote);
+router.post('/polls/:address/vote', validate.postVote, pollController.postVote);
+router.delete('/polls/:address/vote', validate.deleteVote, pollController.deleteVote);
 
 app.use(`/${VERSION}`, router);
 

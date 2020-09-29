@@ -4,7 +4,6 @@ import '../config/passport';
 import { assetPoolContract, options, withdrawPollContract } from '../util/network';
 import logger from '../util/logger';
 import { handleValidation } from '../util/validation';
-const qrcode = require('qrcode');
 
 /**
  * Get a reward
@@ -12,6 +11,7 @@ const qrcode = require('qrcode');
  */
 export const getWithdrawal = async (req: Request, res: Response) => {
     handleValidation(req, res);
+
     try {
         const withdrawal = withdrawPollContract(req.params.address);
         const beneficiary = await withdrawal.methods.beneficiary().call(options);
@@ -84,84 +84,5 @@ export const postWithdrawal = async (req: Request, res: Response) => {
     } catch (err) {
         logger.error(err);
         res.status(500).end();
-    }
-};
-
-/**
- * Cast a vote for a withdrawal
- * @route GET /withdrawals/:address/vote/:agree
- */
-export const getWithdrawalVote = async (req: Request, res: Response) => {
-    handleValidation(req, res);
-    try {
-        const base64 = await qrcode.toDataURL(
-            JSON.stringify({
-                contractAddress: req.params.address,
-                contract: 'WithdrawPoll',
-                method: 'vote',
-                params: {
-                    agree: !!+req.params.agree,
-                },
-            }),
-        );
-        res.send({ base64 });
-    } catch (err) {
-        logger.error(err);
-        return res.status(500).end();
-    }
-};
-
-/**
- * Cast a vote for a withdrawal
- * @route POST /withdrawals/:address/vote
- */
-export const postWithdrawalVote = async (req: Request, res: Response) => {
-    handleValidation(req, res);
-    try {
-        const tx = await withdrawPollContract(req.params.address)
-            .methods.vote(req.body.voter, JSON.parse(req.body.agree), parseInt(req.body.nonce, 10), req.body.sig)
-            .send(options);
-        res.send({ tx });
-    } catch (err) {
-        logger.error(err);
-        return res.status(500).end();
-    }
-};
-
-/**
- * Cast a vote for a withdrawal
- * @route GET /withdrawals/:address/revoke_vote
- */
-export const getWithdrawalRevokeVote = async (req: Request, res: Response) => {
-    handleValidation(req, res);
-    try {
-        const base64 = await qrcode.toDataURL(
-            JSON.stringify({
-                contractAddress: req.params.address,
-                contract: 'WithdrawPoll',
-                method: 'revokeVote',
-            }),
-        );
-        res.send({ base64 });
-    } catch (err) {
-        logger.error(err);
-        return res.status(500).end();
-    }
-};
-
-/**
- * Revoke a vote for a withdrawal
- * @route DELETE /withdrawals/:address/vote/
- */
-export const deleteWithdrawalVote = async (req: Request, res: Response) => {
-    handleValidation(req, res);
-    try {
-        const tx = await withdrawPollContract(req.params.address)
-            .methods.revokeVote(req.body.voter, parseInt(req.body.nonce, 10), req.body.sig)
-            .send(options);
-        res.send({ tx });
-    } catch (err) {
-        logger.error(err);
-        return res.status(500).end();
     }
 };

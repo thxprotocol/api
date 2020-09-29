@@ -95,7 +95,7 @@ export const postAssetPoolDeposit = async (req: Request, res: Response, next: Ne
         const tokenInstance = tokenContract(await instance.methods.token().call(options));
         const balance = tokenInstance.methods.balanceOf(address).call(options);
 
-        /// Return a QR here and handle approve and deposit in client app
+        // TODO Return a QR here and handle approve and deposit in client app
     } catch (err) {
         logger.error(err);
         res.status(500).send({ msg: 'Transaction failed', err });
