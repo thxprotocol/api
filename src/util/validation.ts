@@ -29,12 +29,21 @@ const confirmPassword = body('confirmPassword')
     });
 
 export const validate = {
-    getWithdrawal: [validateAssetPoolHeader, param('withdrawal').exists()],
+    getWithdrawal: [validateAssetPoolHeader, param('address').exists()],
     getWithdrawals: [validateAssetPoolHeader, body('member').exists()],
     postWithdrawal: [
         validateAssetPoolHeader,
         check('amount', 'Request body should have amount').exists(),
         check('beneficiary', 'Request body should have beneficiary').exists(),
+    ],
+    getWithdrawalVote: [validateAssetPoolHeader, param('agree').exists()],
+    postWithdrawalVote: [
+        validateAssetPoolHeader,
+        param('address').exists(),
+        body('voter').exists(),
+        body('agree').exists(),
+        body('nonce').exists(),
+        body('sig').exists(),
     ],
     postMember: [validateAssetPoolHeader, body('address').exists()],
     deleteMember: [validateAssetPoolHeader, param('address').exists()],

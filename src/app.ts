@@ -100,6 +100,8 @@ router.post('/rewards', validate.postReward, rewardController.postReward);
 // Withdrawals
 router.get('/withdrawals', validate.getWithdrawals, withdrawalController.getWithdrawals);
 router.get('/withdrawals/:address', validate.getWithdrawal, withdrawalController.getWithdrawal);
+router.get('/withdrawals/:address/vote/:agree', validate.getWithdrawalVote, withdrawalController.getWithdrawalVote);
+router.post('/withdrawals/:address/vote', validate.postWithdrawalVote, withdrawalController.postWithdrawalVote);
 router.post('/withdrawals', validate.postWithdrawal, withdrawalController.postWithdrawal);
 
 app.use(`/${VERSION}`, router);

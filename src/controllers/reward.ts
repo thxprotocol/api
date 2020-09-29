@@ -46,12 +46,10 @@ export const getReward = async (req: Request, res: Response, next: NextFunction)
  * @route POST /rewards
  */
 export const postReward = async (req: Request, res: Response, next: NextFunction) => {
-    const address = req.header('AssetPool');
-
     handleValidation(req, res);
 
     try {
-        const tx = await assetPoolContract(address).methods.addReward(req.body.amount).send(options);
+        const tx = await assetPoolContract(req.header('AssetPool')).methods.addReward(req.body.amount).send(options);
 
         if (tx) {
             const id = tx.events.RewardPollCreated.returnValues.id;
@@ -82,15 +80,17 @@ export const postReward = async (req: Request, res: Response, next: NextFunction
  */
 export const getRewardClaim = async (req: Request, res: Response) => {
     handleValidation(req, res);
-
     try {
         const base64 = await qrcode.toDataURL(
             JSON.stringify({
-                asset_pool: req.header('AssetPool'),
-                reward_id: req.params.id,
+                contractAddress: req.header('AssetPool'),
+                contract: 'AssetPool',
+                method: 'claimWithdraw', // "claimReward" might be a better name
+                params: {
+                    reward_id: req.params.id,
+                },
             }),
         );
-
         res.status(200).send({ base64 });
     } catch (err) {
         logger.error(err);
