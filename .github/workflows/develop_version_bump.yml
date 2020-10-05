@@ -35,7 +35,7 @@ jobs:
                   committer: GitHub <noreply@github.com>
                   author: ${{ github.actor }} <${{ github.actor }}@users.noreply.github.com>
                   signoff: false
-                  branch: release/${{ $VERSION }}
+                  branch: automerge/version
                   labels: automerge
                   delete-branch: true
                   title: Bump Patch Version
