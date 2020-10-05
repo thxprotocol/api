@@ -20,23 +20,25 @@ jobs:
                   node-version: 10
             - name: 'Bump Patch Version'
               run: |
-                  git config --global user.email "version.bot@thx.network"
-                  git config --global user.name "🤖 Version Bot"
                   npm version patch
                   VERSION=`cat package.json | grep 'version' | sed 's/[^0-9\.]//g'`
                   git tag $VERSION
-                  git checkout -b release/$VERSION
-                  git push origin release/$VERSION
               env:
                   GITHUB_TOKEN: ${{ secrets.VERSION_BUMP_TOKEN }}
             - name: Create Pull Request
               uses: peter-evans/create-pull-request@v3
               with:
+                  token: ${{ secrets.VERSION_BUMP_TOKEN }}
+                  commit-message: Update report
+                  committer: GitHub <noreply@github.com>
+                  author: ${{ github.actor }} <${{ github.actor }}@users.noreply.github.com>
+                  signoff: false
+                  branch: release/$VERSION
+                  delete-branch: true
                   title: Bump Version $VERSION
                   body: Patches package version to $VERSION
                   branch: release/$VERSION
-                  delete-branch: true
               env:
                   GITHUB_TOKEN: ${{ secrets.VERSION_BUMP_TOKEN }}
-            - name: 'cat package.json'
+            - name: 'New Version'
               run: cat ./package.json | grep "version"
