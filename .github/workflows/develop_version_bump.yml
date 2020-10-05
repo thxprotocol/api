@@ -42,8 +42,9 @@ jobs:
                   body: Patches package version.
               env:
                   GITHUB_TOKEN: ${{ secrets.VERSION_BUMP_TOKEN }}
-            - uses: hmarr/auto-approve-action@v2.0.0
-              if: github.token == secrets.VERSION_BUMP_TOKEN
+            - name: Approve Pull Request
+              uses: hmarr/auto-approve-action@v2.0.0
+              if: github.actor == '🤖 Version Bot'
               with:
                   github-token: '${{ secrets.VERSION_BUMP_TOKEN }}'
             - name: Merge Pull Request
@@ -54,5 +55,5 @@ jobs:
                   MERGE_DELETE_BRANCH: true
                   MERGE_RETRIES: 6
                   MERGE_RETRY_SLEEP: 5000
-            - name: 'Patch Version'
+            - name: 'Display Patch Version'
               run: cat ./package.json | grep "version"
