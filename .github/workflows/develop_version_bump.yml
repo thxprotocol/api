@@ -4,7 +4,6 @@ on:
     push:
         branches:
             - 'develop'
-            - 'feature/21'
 
 jobs:
     bump-version:
@@ -15,6 +14,8 @@ jobs:
               uses: 'actions/checkout@v2'
               with:
                   ref: ${{ github.ref }}
+            - name: 'cat package.json'
+              run: cat ./package.json | grep "version"
             - name: 'Setup Node.js'
               uses: 'actions/setup-node@v1'
               with:
@@ -26,33 +27,8 @@ jobs:
                   npm version patch
                   VERSION=`cat package.json | grep 'version' | sed 's/[^0-9\.]//g'`
                   git tag $VERSION
+                  git push
               env:
                   GITHUB_TOKEN: ${{ secrets.VERSION_BUMP_TOKEN }}
-            - name: Create Pull Request
-              uses: peter-evans/create-pull-request@v3
-              with:
-                  token: ${{ secrets.VERSION_BUMP_TOKEN }}
-                  author: ${{ github.actor }} <${{ github.actor }}@users.noreply.github.com>
-                  branch: version_bump
-                  labels: automerge
-                  delete-branch: true
-                  title: Bump Patch Version
-                  body: Patches package version.
-              env:
-                  GITHUB_TOKEN: ${{ secrets.VERSION_BUMP_TOKEN }}
-            - name: Approve Pull Request
-              uses: hmarr/auto-approve-action@v2.0.0
-              if: contains(github.event.pull_request.title, 'Bump Patch Version')
-              with:
-                  github-token: '${{ secrets.VERSION_BUMP_TOKEN }}'
-            - name: Merge Pull Request
-              uses: 'pascalgn/automerge-action@v0.11.0'
-              env:
-                  GITHUB_TOKEN: '${{ secrets.VERSION_BUMP_TOKEN }}'
-                  MERGE_METHOD: 'squash'
-                  MERGE_LABELS: 'automerge'
-                  MERGE_DELETE_BRANCH: true
-                  MERGE_RETRIES: 6
-                  MERGE_RETRY_SLEEP: 5000
-            - name: 'Display Patch Version'
+            - name: 'Version Bumped'
               run: cat ./package.json | grep "version"
