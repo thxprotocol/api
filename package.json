@@ -108,6 +108,7 @@
         "nodemon": "^1.19.2",
         "shelljs": "^0.8.3",
         "supertest": "^4.0.2",
+        "swagger-jsdoc": "^4.2.0",
         "ts-jest": "^24.1.0",
         "ts-node": "^8.4.1",
         "typescript": "^3.6.3"
