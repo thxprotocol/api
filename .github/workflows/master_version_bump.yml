@@ -1,7 +1,7 @@
 name: 'Bump Minor Version'
 
 on:
-    pull_request:
+    push:
         branches:
             - 'master'
 
@@ -20,6 +20,7 @@ jobs:
               with:
                   node-version: 10
             - name: 'Bump Minor Version'
+              if: github.actor != 'Version Bot'
               run: |
                   git config --global user.email "version.bot@thx.network"
                   git config --global user.name "Version Bot"
