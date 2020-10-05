@@ -19,15 +19,15 @@ jobs:
               uses: 'actions/setup-node@v1'
               with:
                   node-version: 10
-            - name: 'Bump Patch Version'
-              run: |
-                  git config --global user.email "version.bot@thx.network"
-                  git config --global user.name "Version Bot"
-                  npm version patch
-                  VERSION=`cat package.json | grep 'version' | sed 's/[^0-9\.]//g'`
-                  git tag $VERSION
-                  git push
-              env:
-                  GITHUB_TOKEN: ${{ secrets.VERSION_BUMP_TOKEN }}
-            - name: 'Version Bumped'
-              run: cat ./package.json | grep "version"
+            # - name: 'Bump Patch Version'
+            #   run: |
+            #       git config --global user.email "version.bot@thx.network"
+            #       git config --global user.name "Version Bot"
+            #       npm version patch
+            #       VERSION=`cat package.json | grep 'version' | sed 's/[^0-9\.]//g'`
+            #       git tag $VERSION
+            #       git push
+            #   env:
+            #       GITHUB_TOKEN: ${{ secrets.VERSION_BUMP_TOKEN }}
+            # - name: 'Version Bumped'
+            #   run: cat ./package.json | grep "version"
