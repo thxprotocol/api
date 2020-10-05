@@ -23,7 +23,7 @@ export const getAssetPool = async (req: Request, res: Response, next: NextFuncti
                 symbol: await tokenInstance.methods.symbol().call(options),
                 balance: await tokenInstance.methods.balanceOf(req.params.address).call(options),
             },
-            withdrawPollDuration: await assetPoolInstance.methods.withdrawPollDuration().call(options),
+            proposeWithdrawPollDuration: await assetPoolInstance.methods.proposeWithdrawPollDuration().call(options),
             rewardPollDuration: await assetPoolInstance.methods.rewardPollDuration().call(options),
         };
 
@@ -124,7 +124,7 @@ export const putAssetPool = async (req: Request, res: Response, next: NextFuncti
         const instance = assetPoolContract(req.header('AssetPool'));
 
         await instance.methods.setRewardPollDuration(req.body.rewardPollDuration).send(options);
-        await instance.methods.setWithdrawPollDuration(req.body.withdrawPollDuration).send(options);
+        await instance.methods.setProposeWithdrawPollDuration(req.body.proposeWithdrawPollDuration).send(options);
 
         res.redirect('/v1/asset_pools/' + req.params.address);
     } catch (err) {
