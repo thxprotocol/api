@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { assetPoolContract, options } from '../util/network';
+import { assetPoolContract, options, rewardPollContract } from '../util/network';
 import { Reward, RewardDocument } from '../models/Reward';
 import logger from '../util/logger';
 import '../config/passport';
@@ -14,31 +14,48 @@ const qrcode = require('qrcode');
 export const getReward = async (req: Request, res: Response, next: NextFunction) => {
     handleValidation(req, res);
 
-    Reward.findOne({ id: req.params.id }, async (err, metaData) => {
-        if (err) {
-            return next(err);
-        }
+    try {
+        Reward.findOne({ id: req.params.id }, async (err, metaData) => {
+            if (err) {
+                throw new Error('Reward does not exist in database.');
+            }
 
-        if (metaData) {
-            const { id, amount, state, poll, updated } = await assetPoolContract(req.header('AssetPool'))
-                .methods.rewards(req.params.id)
-                .call(options);
-            const reward = {
-                id,
-                title: metaData.title,
-                description: metaData.description,
-                amount,
-                state,
-                poll,
-                updated,
-            } as RewardDocument;
+            try {
+                const { id, withdrawAmount, withdrawDuration, state, poll, updated } = await assetPoolContract(
+                    req.header('AssetPool'),
+                )
+                    .methods.rewards(req.params.id)
+                    .call(options);
+                const rewardPollInstance = rewardPollContract(poll);
+                const proposal = {
+                    withdrawAmount: await rewardPollInstance.methods.withdrawAmount().call(options),
+                    withdrawDuration: await rewardPollInstance.methods.withdrawDuration().call(options),
+                };
 
-            return res.send({ reward });
-        } else {
-            logger.error(err);
-            return res.status(404).send({ msg: 'Reward not found in database' });
-        }
-    });
+                const reward = {
+                    id,
+                    title: metaData.title,
+                    description: metaData.description,
+                    withdrawAmount,
+                    withdrawDuration,
+                    state,
+                    poll: {
+                        address: poll,
+                        withdrawAmount: proposal.withdrawAmount,
+                        withdrawDuration: proposal.withdrawDuration,
+                    },
+                    updated,
+                } as RewardDocument;
+
+                return res.send({ reward });
+            } catch (err) {
+                throw new Error('Reward does not exists on chain.');
+            }
+        });
+    } catch (err) {
+        logger.error(err);
+        return res.status(500).end({ msg: err });
+    }
 };
 
 /**
@@ -49,28 +66,30 @@ export const postReward = async (req: Request, res: Response, next: NextFunction
     handleValidation(req, res);
 
     try {
-        const tx = await assetPoolContract(req.header('AssetPool')).methods.addReward(req.body.amount).send(options);
+        const tx = await assetPoolContract(req.header('AssetPool'))
+            .methods.addReward(req.body.withdrawAmount, req.body.withdrawDuration)
+            .send(options);
 
-        if (tx) {
-            const id = tx.events.RewardPollCreated.returnValues.id;
-            const reward = new Reward({
-                id,
-                title: req.body.title,
-                description: req.body.description,
-            });
-
-            reward.save(async (err) => {
-                if (err) {
-                    res.send({ msg: 'Reward not saved', err });
-                    return next(err);
-                }
-
-                res.redirect('/v1/rewards/' + id);
-            });
+        if (tx.level === 'error') {
+            throw new Error('Transaction reverted.');
         }
+        const id = tx.events.RewardPollCreated.returnValues.id;
+        const reward = new Reward({
+            id,
+            title: req.body.title,
+            description: req.body.description,
+        });
+
+        reward.save(async (err) => {
+            if (err) {
+                throw new Error('Reward not saved');
+            }
+
+            res.redirect('/v1/rewards/' + id);
+        });
     } catch (err) {
         logger.error(err);
-        return res.status(500).send({ msg: 'Reward not added', err });
+        return res.status(500).end({ msg: err });
     }
 };
 
@@ -99,10 +118,10 @@ export const getRewardClaim = async (req: Request, res: Response) => {
 };
 
 /**
- * Update a reward
- * @route PUT /rewards/:id
+ * GET QR for updating reward
+ * @route GET /rewards/:id/update
  */
-export const putReward = async (req: Request, res: Response, next: NextFunction) => {
+export const getRewardUpdate = async (req: Request, res: Response, next: NextFunction) => {
     handleValidation(req, res);
     try {
         const metaData = await Reward.findOne({ id: req.params.id });
@@ -120,11 +139,12 @@ export const putReward = async (req: Request, res: Response, next: NextFunction)
                 throw Error('Could not find reward in database');
             }
 
-            const { amount } = await assetPoolContract(req.header('AssetPool'))
+            const { withdrawAmount, withdrawDuration } = await assetPoolContract(req.header('AssetPool'))
                 .methods.rewards(req.params.id)
                 .call(options);
+            console.log(withdrawAmount, withdrawDuration);
 
-            if (amount !== req.body.amount) {
+            if (withdrawAmount !== req.body.withdrawAmount || withdrawDuration !== req.body.withdrawDuration) {
                 const base64 = await qrcode.toDataURL(
                     JSON.stringify({
                         contractAddress: req.header('AssetPool'),
@@ -132,7 +152,8 @@ export const putReward = async (req: Request, res: Response, next: NextFunction)
                         method: 'updateReward',
                         params: {
                             id: req.params.id,
-                            amount: req.params.amount,
+                            withdrawAmount: req.body.withdrawAmount,
+                            withdrawDuration: req.body.withdrawDuration,
                         },
                     }),
                 );
