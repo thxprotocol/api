@@ -37,7 +37,6 @@ jobs:
                   delete-branch: true
                   title: Bump Version $VERSION
                   body: Patches package version to $VERSION
-                  branch: release/$VERSION
               env:
                   GITHUB_TOKEN: ${{ secrets.VERSION_BUMP_TOKEN }}
             - name: 'New Version'
