@@ -39,14 +39,10 @@ jobs:
                   body: Patches package version.
               env:
                   GITHUB_TOKEN: ${{ secrets.VERSION_BUMP_TOKEN }}
-            - name: Approve Pull Request
-              uses: hmarr/auto-approve-action@v2.0.0
-              if: github.actor == 'Version Bot'
+            - uses: hmarr/auto-approve-action@v2.0.0
+              if: github.token == '${{ secrets.VERSION_BUMP_TOKEN }}'
               with:
                   github-token: '${{ secrets.VERSION_BUMP_TOKEN }}'
-                  args: '--trace'
-              env:
-                  GITHUB_TOKEN: ${{ secrets.VERSION_BUMP_TOKEN }}
             - name: Merge Pull Request
               uses: 'pascalgn/automerge-action@v0.11.0'
               env:
