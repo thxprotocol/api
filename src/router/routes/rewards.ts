@@ -7,7 +7,7 @@ const router = express.Router();
 router.get('/:id/claim', validate.getRewardClaim, rewardController.getRewardClaim);
 router.get('/:id', validate.getReward, rewardController.getReward);
 router.post('/', validate.postReward, rewardController.postReward);
-router.get('/:id/update', validate.getRewardUpdate, rewardController.getRewardUpdate);
+router.put('/:id', validate.putReward, rewardController.putReward);
 
 // TODO router.get('/rewards/:address/finalize', validate.getFinalize, rewardController.getFinalize);
 // TODO router.post('/rewards/:address/finalize', validate.postFinalize, rewardController.postFinalize);

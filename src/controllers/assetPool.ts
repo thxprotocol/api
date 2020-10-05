@@ -16,6 +16,10 @@ import logger from '../util/logger';
  *     produces:
  *       - application/json
  *     parameters:
+ *       - name: AssetPool
+ *         in: header
+ *         required: true
+ *         type: string
  *       - name: address
  *         in: path
  *         required: true

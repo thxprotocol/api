@@ -324,6 +324,12 @@
         ],
         "parameters": [
           {
+            "name": "AssetPool",
+            "in": "header",
+            "required": true,
+            "type": "string"
+          },
+          {
             "name": "address",
             "in": "path",
             "required": true,
@@ -445,18 +451,583 @@
           }
         }
       }
+    },
+    "/members": {
+      "post": {
+        "tags": [
+          "members"
+        ],
+        "description": "Invite a member",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "AssetPool",
+            "in": "header",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "address",
+            "in": "body",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "success"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "members"
+        ],
+        "description": "Invite a member",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "AssetPool",
+            "in": "header",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "address",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "success"
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "members"
+        ],
+        "description": "Invite a member",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "AssetPool",
+            "in": "header",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "address",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "success"
+          }
+        }
+      }
+    },
+    "/polls/:address/vote/:agree": {
+      "get": {
+        "tags": [
+          "polls"
+        ],
+        "description": "Get a quick response image to vote.",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "AssetPool",
+            "in": "header",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "address",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "agree",
+            "description": "Provide 0 to disagree and 1 to agree",
+            "in": "path",
+            "required": true,
+            "type": "int"
+          }
+        ],
+        "responses": {
+          "200": {
+            "base64": "..."
+          }
+        }
+      }
+    },
+    "/polls/:address/": {
+      "get": {
+        "tags": [
+          "polls"
+        ],
+        "description": "Get general information about a poll.",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "AssetPool",
+            "in": "header",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "address",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "data": "..."
+          }
+        }
+      }
+    },
+    "/polls/:address/vote": {
+      "post": {
+        "tags": [
+          "polls"
+        ],
+        "description": "Get a quick response image to vote.",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "AssetPool",
+            "in": "header",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "address",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "voter",
+            "in": "body",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "agree",
+            "description": "Provide 0 to disagree and 1 to agree",
+            "in": "body",
+            "required": true,
+            "type": "int"
+          },
+          {
+            "name": "nonce",
+            "in": "body",
+            "required": true,
+            "type": "int"
+          },
+          {
+            "name": "sig",
+            "in": "body",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "base64": "..."
+          }
+        }
+      }
+    },
+    "/polls/:address/revoke_vote": {
+      "get": {
+        "tags": [
+          "polls"
+        ],
+        "description": "Cast a vote for a poll",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "AssetPool",
+            "in": "header",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "address",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "base64": "..."
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "polls"
+        ],
+        "description": "Cast a vote for a poll",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "AssetPool",
+            "in": "header",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "address",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "voter",
+            "in": "body",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "nonce",
+            "in": "body",
+            "required": true,
+            "type": "int"
+          },
+          {
+            "name": "sig",
+            "in": "body",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "base64": "..."
+          }
+        }
+      }
+    },
+    "/rewards/:id/": {
+      "get": {
+        "tags": [
+          "rewards"
+        ],
+        "description": "Get information about a reward in the asset pool",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "AssetPool",
+            "in": "header",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "int"
+          }
+        ],
+        "responses": {
+          "200": {
+            "message": "..."
+          }
+        }
+      }
+    },
+    "/rewards": {
+      "post": {
+        "tags": [
+          "rewards"
+        ],
+        "description": "Create a new reward in the asset pool",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "AssetPool",
+            "in": "header",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "title",
+            "in": "body",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "description",
+            "in": "body",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "withdrawAmount",
+            "in": "body",
+            "required": true,
+            "type": "int"
+          },
+          {
+            "name": "withdrawDuration",
+            "in": "body",
+            "required": true,
+            "type": "int"
+          }
+        ],
+        "responses": {
+          "200": {
+            "message": "..."
+          }
+        }
+      }
+    },
+    "/rewards/:id/claim": {
+      "get": {
+        "tags": [
+          "rewards"
+        ],
+        "description": "Create a quick response image to claim the reward.",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "AssetPool",
+            "in": "header",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "int"
+          }
+        ],
+        "responses": {
+          "200": {
+            "base64": "..."
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "rewards"
+        ],
+        "description": "Create a quick response image to claim the reward.",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "AssetPool",
+            "in": "header",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "int"
+          },
+          {
+            "name": "title",
+            "in": "body",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "description",
+            "in": "body",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "withdrawAmount",
+            "in": "body",
+            "required": true,
+            "type": "int"
+          },
+          {
+            "name": "withdrawDuration",
+            "in": "body",
+            "required": true,
+            "type": "int"
+          }
+        ],
+        "responses": {
+          "200": {
+            "base64": "..."
+          }
+        }
+      }
+    },
+    "/withdrawals/:address": {
+      "get": {
+        "tags": [
+          "withdrawals"
+        ],
+        "description": "Get information about a withdrawal",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "AssetPool",
+            "in": "header",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "address",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "startTime": "DateTime of the start of the poll",
+            "endTime": "DateTime of the start of the poll",
+            "withdrawal": "Address of the withdraw poll",
+            "beneficiary": "Beneficiary of the withdraw poll",
+            "amount": "Rewarded amount for the beneficiary",
+            "state": "WithdrawState [Pending, Approved, Rejected, Withdrawn]",
+            "yesCounter": "Amount of yes votes",
+            "noCounter": "Amount of no votes",
+            "totalVotes": "Total amount of votes",
+            "finalized": "Is the poll finalized or not"
+          }
+        }
+      }
+    },
+    "/withdrawals": {
+      "get": {
+        "tags": [
+          "withdrawals"
+        ],
+        "description": "Get a list of withdrawals for the asset pool.",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "AssetPool",
+            "in": "header",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "withdrawPolls": "..."
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "withdrawals"
+        ],
+        "description": "Propose a withdrawal in the asset pool.",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "AssetPool",
+            "in": "header",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "amount",
+            "in": "body",
+            "required": true,
+            "type": "int"
+          },
+          {
+            "name": "beneficiary",
+            "in": "body",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "data": "..."
+          },
+          "304": "/withdrawals/:address"
+        }
+      }
+    },
+    "/withdrawals/:address/withdraw": {
+      "get": {
+        "tags": [
+          "withdrawals"
+        ],
+        "description": "Create a quick response image for withdrawing the reward.",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "AssetPool",
+            "in": "header",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "address",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "base64": "..."
+          }
+        }
+      }
     }
   },
   "definitions": {},
   "responses": {},
   "parameters": {},
   "securityDefinitions": {},
-  "tags": [
-    {
-      "name": "auth"
-    },
-    {
-      "name": "account"
-    }
-  ]
+  "tags": []
 }

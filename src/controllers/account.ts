@@ -12,13 +12,6 @@ import { handleValidation } from '../util/validation';
 
 /**
  * @swagger
- * tags:
- *  - name: auth
- *  - name: account
- */
-
-/**
- * @swagger
  * /logout:
  *   get:
  *     tags:

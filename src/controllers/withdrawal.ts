@@ -8,8 +8,35 @@ import { handleValidation } from '../util/validation';
 const qrcode = require('qrcode');
 
 /**
- * Get a reward
- * @route GET /withdrawals/:address
+ * @swagger
+ * /withdrawals/:address:
+ *   get:
+ *     tags:
+ *       - withdrawals
+ *     description: Get information about a withdrawal
+ *     produces:
+ *       - application/json
+ *     parameters:
+ *       - name: AssetPool
+ *         in: header
+ *         required: true
+ *         type: string
+ *       - name: address
+ *         in: path
+ *         required: true
+ *         type: string
+ *     responses:
+ *       200:
+ *         startTime: DateTime of the start of the poll
+ *         endTime: DateTime of the start of the poll
+ *         withdrawal: Address of the withdraw poll
+ *         beneficiary: Beneficiary of the withdraw poll
+ *         amount: Rewarded amount for the beneficiary
+ *         state: WithdrawState [Pending, Approved, Rejected, Withdrawn]
+ *         yesCounter: Amount of yes votes
+ *         noCounter: Amount of no votes
+ *         totalVotes: Total amount of votes
+ *         finalized: Is the poll finalized or not
  */
 export const getWithdrawal = async (req: Request, res: Response) => {
     handleValidation(req, res);
@@ -45,8 +72,22 @@ export const getWithdrawal = async (req: Request, res: Response) => {
 };
 
 /**
- * Get all withdrawals of a member
- * @route GET /withdrawals
+ * @swagger
+ * /withdrawals:
+ *   get:
+ *     tags:
+ *       - withdrawals
+ *     description: Get a list of withdrawals for the asset pool.
+ *     produces:
+ *       - application/json
+ *     parameters:
+ *       - name: AssetPool
+ *         in: header
+ *         required: true
+ *         type: string
+ *     responses:
+ *       200:
+ *         withdrawPolls: ...
  */
 export const getWithdrawals = async (req: Request, res: Response) => {
     handleValidation(req, res);
@@ -70,8 +111,31 @@ export const getWithdrawals = async (req: Request, res: Response) => {
 };
 
 /**
- * Create a withdrawal
- * @route POST /withdrawals/
+ * @swagger
+ * /withdrawals:
+ *   post:
+ *     tags:
+ *       - withdrawals
+ *     description: Propose a withdrawal in the asset pool.
+ *     produces:
+ *       - application/json
+ *     parameters:
+ *       - name: AssetPool
+ *         in: header
+ *         required: true
+ *         type: string
+ *       - name: amount
+ *         in: body
+ *         required: true
+ *         type: int
+ *       - name: beneficiary
+ *         in: body
+ *         required: true
+ *         type: string
+ *     responses:
+ *       304: /withdrawals/:address
+ *       200:
+ *         data: ...
  */
 export const postWithdrawal = async (req: Request, res: Response) => {
     handleValidation(req, res);
@@ -89,8 +153,26 @@ export const postWithdrawal = async (req: Request, res: Response) => {
 };
 
 /**
- * Get withdrawal withdraw
- * @route GET /withdrawals/:address/withdraw
+ * @swagger
+ * /withdrawals/:address/withdraw:
+ *   get:
+ *     tags:
+ *       - withdrawals
+ *     description: Create a quick response image for withdrawing the reward.
+ *     produces:
+ *       - application/json
+ *     parameters:
+ *       - name: AssetPool
+ *         in: header
+ *         required: true
+ *         type: string
+ *       - name: address
+ *         in: path
+ *         required: true
+ *         type: string
+ *     responses:
+ *       200:
+ *         base64: ...
  */
 export const getWithdraw = async (req: Request, res: Response) => {
     handleValidation(req, res);

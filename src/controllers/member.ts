@@ -4,8 +4,26 @@ import '../config/passport';
 import { handleValidation } from '../util/validation';
 
 /**
- * Invite a member
- * @route POST /members
+ * @swagger
+ * /members:
+ *   post:
+ *     tags:
+ *       - members
+ *     description: Invite a member
+ *     produces:
+ *       - application/json
+ *     parameters:
+ *       - name: AssetPool
+ *         in: header
+ *         required: true
+ *         type: string
+ *       - name: address
+ *         in: body
+ *         required: true
+ *         type: string
+ *     responses:
+ *       200:
+ *         description: success
  */
 export const postMember = async (req: Request, res: Response) => {
     handleValidation(req, res);
@@ -19,8 +37,26 @@ export const postMember = async (req: Request, res: Response) => {
 };
 
 /**
- * Remove a member
- * @route DELETE /members/:address
+ * @swagger
+ * /members:
+ *   delete:
+ *     tags:
+ *       - members
+ *     description: Invite a member
+ *     produces:
+ *       - application/json
+ *     parameters:
+ *       - name: AssetPool
+ *         in: header
+ *         required: true
+ *         type: string
+ *       - name: address
+ *         in: path
+ *         required: true
+ *         type: string
+ *     responses:
+ *       200:
+ *         description: success
  */
 export const deleteMember = async (req: Request, res: Response) => {
     handleValidation(req, res);
@@ -34,9 +70,28 @@ export const deleteMember = async (req: Request, res: Response) => {
         return res.status(500).send({ msg: 'Member not removed', err });
     }
 };
+
 /**
- * Get a member
- * @route GET /members/:address
+ * @swagger
+ * /members:
+ *   get:
+ *     tags:
+ *       - members
+ *     description: Invite a member
+ *     produces:
+ *       - application/json
+ *     parameters:
+ *       - name: AssetPool
+ *         in: header
+ *         required: true
+ *         type: string
+ *       - name: address
+ *         in: path
+ *         required: true
+ *         type: string
+ *     responses:
+ *       200:
+ *         description: success
  */
 export const getMember = async (req: Request, res: Response) => {
     handleValidation(req, res);
