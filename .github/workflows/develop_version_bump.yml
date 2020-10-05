@@ -32,15 +32,16 @@ jobs:
               with:
                   token: ${{ secrets.VERSION_BUMP_TOKEN }}
                   author: ${{ github.actor }} <${{ github.actor }}@users.noreply.github.com>
-                  branch: automerge/version
+                  branch: version_bump
                   labels: automerge
                   delete-branch: true
                   title: Bump Patch Version
                   body: Patches package version.
               env:
                   GITHUB_TOKEN: ${{ secrets.VERSION_BUMP_TOKEN }}
-            - uses: hmarr/auto-approve-action@v2.0.0
-              if: github.token == '${{ secrets.VERSION_BUMP_TOKEN }}'
+            - name: Approve Pull Request
+              uses: hmarr/auto-approve-action@v2.0.0
+              if: contains(github.event.pull_request.title, 'Bump Patch Version')
               with:
                   github-token: '${{ secrets.VERSION_BUMP_TOKEN }}'
             - name: Merge Pull Request
