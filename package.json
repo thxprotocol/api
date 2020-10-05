@@ -15,6 +15,7 @@
         "lint": "tsc --noEmit && eslint \"**/*.{js,ts}\" --quiet --fix",
         "build": "npm run build-ts",
         "build-ts": "tsc",
+        "build-docs": "swagger-jsdoc -d ./src/swaggerDef.js -o ./src/swagger.json",
         "contracts:compile": "npm run compile:pool:abi; npm run compile:pool:bin; npm run compile:token:abi; npm run compile:token:bin",
         "compile:pool:abi": "solc @openzeppelin=$(pwd)/contracts/node_modules/@openzeppelin ./contracts/contracts/AssetPool.sol -o ./src/contracts --abi --overwrite --optimize",
         "compile:pool:bin": "solc @openzeppelin=$(pwd)/contracts/node_modules/@openzeppelin ./contracts/contracts/AssetPool.sol -o ./src/contracts --bin --overwrite --optimize ",
@@ -109,6 +110,7 @@
         "shelljs": "^0.8.3",
         "supertest": "^4.0.2",
         "swagger-jsdoc": "^4.2.0",
+        "swagger-ui-express": "^4.1.4",
         "ts-jest": "^24.1.0",
         "ts-node": "^8.4.1",
         "typescript": "^3.6.3"

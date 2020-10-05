@@ -11,8 +11,35 @@ import '../config/passport';
 import { handleValidation } from '../util/validation';
 
 /**
- * Log out.
- * @route GET /logout
+ * @swagger
+ * tags:
+ *  - name: auth
+ *  - name: account
+ */
+
+/**
+ * @swagger
+ * /logout:
+ *   get:
+ *     tags:
+ *       - auth
+ *     description: Sign out and redirect.
+ *     produces:
+ *       - application/json
+ *     parameters:
+ *       - name: username
+ *         description: Username to use for login.
+ *         in: formData
+ *         required: true
+ *         type: string
+ *       - name: password
+ *         description: User's password.
+ *         in: formData
+ *         required: true
+ *         type: string
+ *     responses:
+ *       200:
+ *         description: login
  */
 export const logout = (req: Request, res: Response) => {
     req.logout();
@@ -20,8 +47,28 @@ export const logout = (req: Request, res: Response) => {
 };
 
 /**
- * Sign in using email and password.
- * @route POST /login
+ * @swagger
+ * /login:
+ *   post:
+ *     tags:
+ *       - auth
+ *     description: Sign in using email and password.
+ *     produces:
+ *       - application/json
+ *     parameters:
+ *       - name: email
+ *         description: Email to use for login.
+ *         in: body
+ *         required: true
+ *         type: string
+ *       - name: password
+ *         description: Password to use for login.
+ *         in: body
+ *         required: true
+ *         type: string
+ *     responses:
+ *       200:
+ *         description: login
  */
 export const postLogin = async (req: Request, res: Response, next: NextFunction) => {
     await sanitize('email').normalizeEmail({ gmail_remove_dots: false }).run(req);
@@ -45,8 +92,33 @@ export const postLogin = async (req: Request, res: Response, next: NextFunction)
 };
 
 /**
- * Create a new local account.
- * @route POST /signup
+ * @swagger
+ * /signup:
+ *   post:
+ *     tags:
+ *       - auth
+ *     description: Create an account using email and password.
+ *     produces:
+ *       - application/json
+ *     parameters:
+ *       - name: email
+ *         description: Email to use for login.
+ *         in: body
+ *         required: true
+ *         type: string
+ *       - name: password
+ *         description: Password to use for login.
+ *         in: body
+ *         required: true
+ *         type: string
+ *       - name: confirmPassword
+ *         description: Password to use for confirmation.
+ *         in: body
+ *         required: true
+ *         type: string
+ *     responses:
+ *       200:
+ *         description: login
  */
 export const postSignup = async (req: Request, res: Response, next: NextFunction) => {
     await sanitize('email').normalizeEmail({ gmail_remove_dots: false }).run(req);
@@ -62,7 +134,7 @@ export const postSignup = async (req: Request, res: Response, next: NextFunction
             return next(err);
         }
         if (existingUser) {
-            return res.send({ msg: 'Account with that email address already exists.' });
+            return res.status(403).send({ msg: 'Account with that email address already exists.' });
         }
         account.save((err) => {
             if (err) {
@@ -72,15 +144,24 @@ export const postSignup = async (req: Request, res: Response, next: NextFunction
                 if (err) {
                     return next(err);
                 }
-                res.redirect('/');
+                res.redirect('/account');
             });
         });
     });
 };
 
 /**
- * Profile page.
- * @route GET /account
+ * @swagger
+ * /account:
+ *   get:
+ *     tags:
+ *       - account
+ *     description: Get profile information for your account
+ *     produces:
+ *       - application/json
+ *     responses:
+ *       200:
+ *         description: login
  */
 export const getAccount = async (req: Request, res: Response, next: NextFunction) => {
     const account = req.user as AccountDocument;
@@ -99,8 +180,50 @@ export const getAccount = async (req: Request, res: Response, next: NextFunction
 };
 
 /**
- * Update profile information.
- * @route POST /account/profile
+ * @swagger
+ * /account/profile:
+ *   post:
+ *     tags:
+ *       - account
+ *     description: Create profile information for your account.
+ *     produces:
+ *       - application/json
+ *     parameters:
+ *       - name: firstName
+ *         in: body
+ *         required: false
+ *         type: string
+ *       - name: lastName
+ *         in: body
+ *         required: false
+ *         type: string
+ *       - name: gender
+ *         in: body
+ *         required: false
+ *         type: string
+ *       - name: location
+ *         in: body
+ *         required: false
+ *         type: string
+ *       - name: picture
+ *         in: body
+ *         required: false
+ *         type: string
+ *       - name: burnProof
+ *         in: body
+ *         required: false
+ *         type: array
+ *         items:
+ *          type: string
+ *       - name: assetPools
+ *         in: body
+ *         required: false
+ *         type: array
+ *         items:
+ *          type: string
+ *     responses:
+ *       200:
+ *         description: login
  */
 export const postUpdateProfile = async (req: Request, res: Response, next: NextFunction) => {
     Account.findById((req.user as AccountDocument).id, (err, account: AccountDocument) => {
@@ -129,8 +252,33 @@ export const postUpdateProfile = async (req: Request, res: Response, next: NextF
 };
 
 /**
- * Update current password.
- * @route POST /account/password
+ * @swagger
+ * /account/password:
+ *   post:
+ *     tags:
+ *       - account
+ *     description: Update current password.
+ *     produces:
+ *       - application/json
+ *     parameters:
+ *       - name: email
+ *         description: Email to use for login.
+ *         in: body
+ *         required: true
+ *         type: string
+ *       - name: password
+ *         description: Password to use for login.
+ *         in: body
+ *         required: true
+ *         type: string
+ *       - name: confirmPassword
+ *         description: Password to use for confirmation.
+ *         in: body
+ *         required: true
+ *         type: string
+ *     responses:
+ *       200:
+ *         description: login
  */
 export const postUpdatePassword = async (req: Request, res: Response, next: NextFunction) => {
     handleValidation(req, res);
@@ -151,8 +299,15 @@ export const postUpdatePassword = async (req: Request, res: Response, next: Next
 };
 
 /**
- * Delete user account.
- * @route POST /account/delete
+ * @swagger
+ * /account:
+ *   delete:
+ *     tags:
+ *       - account
+ *     description: Delete current users account
+ *     responses:
+ *       200:
+ *         description: login
  */
 export const deleteAccount = (req: Request, res: Response, next: NextFunction) => {
     const account = req.user as AccountDocument;
@@ -166,8 +321,30 @@ export const deleteAccount = (req: Request, res: Response, next: NextFunction) =
 };
 
 /**
- * Process the reset password request.
- * @route POST /reset/:token
+ * @swagger
+ * /reset/:token:
+ *   post:
+ *     tags:
+ *       - account
+ *     description: Resets your password based on token in url.
+ *     produces:
+ *       - application/json
+ *     parameters:
+ *       - name: token
+ *         in: body
+ *         required: true
+ *         type: string
+ *       - name: password
+ *         in: body
+ *         required: true
+ *         type: string
+ *       - name: confirmPassword
+ *         in: body
+ *         required: true
+ *         type: string
+ *     responses:
+ *       200:
+ *         description: login
  */
 export const postReset = async (req: Request, res: Response, next: NextFunction) => {
     handleValidation(req, res);
@@ -228,11 +405,32 @@ export const postReset = async (req: Request, res: Response, next: NextFunction)
 };
 
 /**
- * Create a random token, then the send account an email with a reset link.
- * @route POST /forgot
+ * @swagger
+ * /forgot:
+ *   post:
+ *     tags:
+ *       - auth
+ *     description: E-mails a link to reset the password.
+ *     produces:
+ *       - application/json
+ *     parameters:
+ *       - name: email
+ *         in: body
+ *         required: true
+ *         type: string
+ *       - name: password
+ *         in: body
+ *         required: true
+ *         type: string
+ *       - name: confirmPassword
+ *         in: body
+ *         required: true
+ *         type: string
+ *     responses:
+ *       200:
+ *         description: login
  */
 export const postForgot = async (req: Request, res: Response, next: NextFunction) => {
-    await check('email', 'Please enter a valid email address.').isEmail().run(req);
     await sanitize('email').normalizeEmail({ gmail_remove_dots: false }).run(req);
 
     const errors = validationResult(req);
