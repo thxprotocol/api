@@ -6,8 +6,31 @@ import { handleValidation } from '../util/validation';
 const qrcode = require('qrcode');
 
 /**
- * Cast a vote for a poll
- * @route GET /polls/:address/vote/:agree
+ * @swagger
+ * /polls/:address/vote/:agree:
+ *   get:
+ *     tags:
+ *       - polls
+ *     description: Get a quick response image to vote.
+ *     produces:
+ *       - application/json
+ *     parameters:
+ *       - name: AssetPool
+ *         in: header
+ *         required: true
+ *         type: string
+ *       - name: address
+ *         in: path
+ *         required: true
+ *         type: string
+ *       - name: agree
+ *         description: Provide 0 to disagree and 1 to agree
+ *         in: path
+ *         required: true
+ *         type: int
+ *     responses:
+ *       200:
+ *         base64: ...
  */
 export const getVote = async (req: Request, res: Response) => {
     handleValidation(req, res);
@@ -30,8 +53,26 @@ export const getVote = async (req: Request, res: Response) => {
 };
 
 /**
- * Get a poll
- * @route GET /polls/:address
+ * @swagger
+ * /polls/:address/:
+ *   get:
+ *     tags:
+ *       - polls
+ *     description: Get general information about a poll.
+ *     produces:
+ *       - application/json
+ *     parameters:
+ *       - name: AssetPool
+ *         in: header
+ *         required: true
+ *         type: string
+ *       - name: address
+ *         in: path
+ *         required: true
+ *         type: string
+ *     responses:
+ *       200:
+ *         data: ...
  */
 export const getPoll = async (req: Request, res: Response) => {
     handleValidation(req, res);
@@ -61,8 +102,43 @@ export const getPoll = async (req: Request, res: Response) => {
 };
 
 /**
- * Cast a vote for a poll
- * @route POST /polls/:address/vote
+ * @swagger
+ * /polls/:address/vote:
+ *   post:
+ *     tags:
+ *       - polls
+ *     description: Get a quick response image to vote.
+ *     produces:
+ *       - application/json
+ *     parameters:
+ *       - name: AssetPool
+ *         in: header
+ *         required: true
+ *         type: string
+ *       - name: address
+ *         in: path
+ *         required: true
+ *         type: string
+ *       - name: voter
+ *         in: body
+ *         required: true
+ *         type: string
+ *       - name: agree
+ *         description: Provide 0 to disagree and 1 to agree
+ *         in: body
+ *         required: true
+ *         type: int
+ *       - name: nonce
+ *         in: body
+ *         required: true
+ *         type: int
+ *       - name: sig
+ *         in: body
+ *         required: true
+ *         type: string
+ *     responses:
+ *       200:
+ *         base64: ...
  */
 export const postVote = async (req: Request, res: Response) => {
     handleValidation(req, res);
@@ -78,8 +154,26 @@ export const postVote = async (req: Request, res: Response) => {
 };
 
 /**
- * Cast a vote for a poll
- * @route GET /polls/:address/revoke_vote
+ * @swagger
+ * /polls/:address/revoke_vote:
+ *   get:
+ *     tags:
+ *       - polls
+ *     description: Cast a vote for a poll
+ *     produces:
+ *       - application/json
+ *     parameters:
+ *       - name: AssetPool
+ *         in: header
+ *         required: true
+ *         type: string
+ *       - name: address
+ *         in: path
+ *         required: true
+ *         type: string
+ *     responses:
+ *       200:
+ *         base64: ...
  */
 export const getRevokeVote = async (req: Request, res: Response) => {
     handleValidation(req, res);
@@ -99,8 +193,38 @@ export const getRevokeVote = async (req: Request, res: Response) => {
 };
 
 /**
- * Revoke a vote for a poll
- * @route DELETE /polls/:address/vote
+ * @swagger
+ * /polls/:address/revoke_vote:
+ *   delete:
+ *     tags:
+ *       - polls
+ *     description: Cast a vote for a poll
+ *     produces:
+ *       - application/json
+ *     parameters:
+ *       - name: AssetPool
+ *         in: header
+ *         required: true
+ *         type: string
+ *       - name: address
+ *         in: path
+ *         required: true
+ *         type: string
+ *       - name: voter
+ *         in: body
+ *         required: true
+ *         type: string
+ *       - name: nonce
+ *         in: body
+ *         required: true
+ *         type: int
+ *       - name: sig
+ *         in: body
+ *         required: true
+ *         type: string
+ *     responses:
+ *       200:
+ *         base64: ...
  */
 export const deleteVote = async (req: Request, res: Response) => {
     handleValidation(req, res);

@@ -8,8 +8,26 @@ import { handleValidation } from '../util/validation';
 const qrcode = require('qrcode');
 
 /**
- * Get a reward
- * @route GET /rewards/:id
+ * @swagger
+ * /rewards/:id/:
+ *   get:
+ *     tags:
+ *       - rewards
+ *     description: Get information about a reward in the asset pool
+ *     produces:
+ *       - application/json
+ *     parameters:
+ *       - name: AssetPool
+ *         in: header
+ *         required: true
+ *         type: string
+ *       - name: id
+ *         in: path
+ *         required: true
+ *         type: int
+ *     responses:
+ *       200:
+ *         message: ...
  */
 export const getReward = async (req: Request, res: Response, next: NextFunction) => {
     handleValidation(req, res);
@@ -59,8 +77,38 @@ export const getReward = async (req: Request, res: Response, next: NextFunction)
 };
 
 /**
- * Create a reward
- * @route POST /rewards
+ * @swagger
+ * /rewards:
+ *   post:
+ *     tags:
+ *       - rewards
+ *     description: Create a new reward in the asset pool
+ *     produces:
+ *       - application/json
+ *     parameters:
+ *       - name: AssetPool
+ *         in: header
+ *         required: true
+ *         type: string
+ *       - name: title
+ *         in: body
+ *         required: true
+ *         type: string
+ *       - name: description
+ *         in: body
+ *         required: true
+ *         type: string
+ *       - name: withdrawAmount
+ *         in: body
+ *         required: true
+ *         type: int
+ *       - name: withdrawDuration
+ *         in: body
+ *         required: true
+ *         type: int
+ *     responses:
+ *       200:
+ *         message: ...
  */
 export const postReward = async (req: Request, res: Response, next: NextFunction) => {
     handleValidation(req, res);
@@ -94,8 +142,26 @@ export const postReward = async (req: Request, res: Response, next: NextFunction
 };
 
 /**
- * Create a reward
- * @route GET /rewards/:id/claim
+ * @swagger
+ * /rewards/:id/claim:
+ *   get:
+ *     tags:
+ *       - rewards
+ *     description: Create a quick response image to claim the reward.
+ *     produces:
+ *       - application/json
+ *     parameters:
+ *       - name: AssetPool
+ *         in: header
+ *         required: true
+ *         type: string
+ *       - name: id
+ *         in: path
+ *         required: true
+ *         type: int
+ *     responses:
+ *       200:
+ *         base64: ...
  */
 export const getRewardClaim = async (req: Request, res: Response) => {
     handleValidation(req, res);
@@ -118,10 +184,44 @@ export const getRewardClaim = async (req: Request, res: Response) => {
 };
 
 /**
- * GET QR for updating reward
- * @route GET /rewards/:id/update
+ * @swagger
+ * /rewards/:id/claim:
+ *   put:
+ *     tags:
+ *       - rewards
+ *     description: Create a quick response image to claim the reward.
+ *     produces:
+ *       - application/json
+ *     parameters:
+ *       - name: AssetPool
+ *         in: header
+ *         required: true
+ *         type: string
+ *       - name: id
+ *         in: path
+ *         required: true
+ *         type: int
+ *       - name: title
+ *         in: body
+ *         required: true
+ *         type: string
+ *       - name: description
+ *         in: body
+ *         required: true
+ *         type: string
+ *       - name: withdrawAmount
+ *         in: body
+ *         required: true
+ *         type: int
+ *       - name: withdrawDuration
+ *         in: body
+ *         required: true
+ *         type: int
+ *     responses:
+ *       200:
+ *         base64: ...
  */
-export const getRewardUpdate = async (req: Request, res: Response, next: NextFunction) => {
+export const putReward = async (req: Request, res: Response, next: NextFunction) => {
     handleValidation(req, res);
     try {
         const metaData = await Reward.findOne({ id: req.params.id });

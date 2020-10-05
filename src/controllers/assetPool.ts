@@ -7,8 +7,26 @@ import { handleValidation } from '../util/validation';
 import logger from '../util/logger';
 
 /**
- * Get a AssetPool
- * @route GET /reward_pools/:address
+ * @swagger
+ * /asset_pools/:address:
+ *   get:
+ *     tags:
+ *       - asset_pools
+ *     description: Get an asset pool
+ *     produces:
+ *       - application/json
+ *     parameters:
+ *       - name: AssetPool
+ *         in: header
+ *         required: true
+ *         type: string
+ *       - name: address
+ *         in: path
+ *         required: true
+ *         type: string
+ *     responses:
+ *       200:
+ *         description: login
  */
 export const getAssetPool = async (req: Request, res: Response, next: NextFunction) => {
     handleValidation(req, res);
@@ -45,8 +63,27 @@ export const getAssetPool = async (req: Request, res: Response, next: NextFuncti
 };
 
 /**
- * Create a rewardRule
- * @route POST /reward_pools
+ * @swagger
+ * /asset_pools:
+ *   post:
+ *     tags:
+ *       - asset_pools
+ *     description: Create an asset pool
+ *     produces:
+ *       - application/json
+ *     parameters:
+ *       - name: title
+ *         in: body
+ *         required: true
+ *         type: string
+ *       - name: token
+ *         description: Address of the ERC20 token used for this pool.
+ *         in: body
+ *         required: true
+ *         type: string
+ *     responses:
+ *       200:
+ *         description: Success code.
  */
 export const postAssetPool = async (req: Request, res: Response, next: NextFunction) => {
     handleValidation(req, res);
@@ -94,8 +131,30 @@ export const postAssetPool = async (req: Request, res: Response, next: NextFunct
 };
 
 /**
- * Create a deposit for this asset pool
- * @route POST /reward_pools/:address/deposit
+ * @swagger
+ * /asset_pools/:address/deposit:
+ *   post:
+ *     tags:
+ *       - asset_pools
+ *     description: Create an asset pool
+ *     produces:
+ *       - application/json
+ *     parameters:
+ *       - name: AssetPool
+ *         in: header
+ *         required: true
+ *         type: string
+ *       - name: amount
+ *         in: body
+ *         required: true
+ *         type: string
+ *       - name: sig
+ *         in: body
+ *         required: true
+ *         type: string
+ *     responses:
+ *       200:
+ *         description: Success code.
  */
 export const postAssetPoolDeposit = async (req: Request, res: Response, next: NextFunction) => {
     handleValidation(req, res);
@@ -114,8 +173,34 @@ export const postAssetPoolDeposit = async (req: Request, res: Response, next: Ne
 };
 
 /**
- * Update the configuration for this reward
- * @route PUT /reward_pools/:address
+ * @swagger
+ * /asset_pools/:address/:
+ *   put:
+ *     tags:
+ *       - asset_pools
+ *     description: Update the configuration for this asset pool
+ *     produces:
+ *       - application/json
+ *     parameters:
+ *       - name: AssetPool
+ *         in: header
+ *         required: true
+ *         type: string
+ *       - name: address
+ *         in: path
+ *         required: true
+ *         type: string
+ *       - name: rewardPollDuration
+ *         in: body
+ *         required: true
+ *         type: int
+ *       - name: proposeWithdrawPollDuration
+ *         in: body
+ *         required: true
+ *         type: int
+ *     responses:
+ *       200:
+ *         description: Success.
  */
 export const putAssetPool = async (req: Request, res: Response, next: NextFunction) => {
     handleValidation(req, res);

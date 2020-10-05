@@ -1,4 +1,4 @@
-name: 'Patch Version'
+name: 'Bump Patch Version'
 
 on:
     push:
@@ -7,6 +7,7 @@ on:
 
 jobs:
     bump-version:
+        name: 'Bump Version on develop'
         runs-on: ubuntu-latest
 
         steps:
@@ -15,18 +16,16 @@ jobs:
               with:
                   ref: ${{ github.ref }}
             - name: 'cat package.json'
-              run: cat ./package.json | grep "version"
+              run: cat ./package.json
             - name: 'Setup Node.js'
               uses: 'actions/setup-node@v1'
               with:
-                  node-version: 10
-            - name: 'Bump Patch Version'
-              run: |
-                  git config --global user.email "versionbot@thx.network"
-                  git config --global user.name "Version Bot"
-                  npm version patch
-                  git push
+                  node-version: 12
+            - name: 'Automated Version Bump'
+              uses: 'phips28/gh-action-bump-version@master'
+              with:
+                  tag-prefix: 'develop'
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
             - name: 'cat package.json'
-              run: cat ./package.json | grep "version"
+              run: cat ./package.json
