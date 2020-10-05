@@ -20,7 +20,7 @@ jobs:
               with:
                   node-version: 10
             - name: 'Bump Patch Version'
-              if: github.actor != "Version Bot"
+              if: github.actor != 'Version Bot'
               run: |
                   git config --global user.email "version.bot@thx.network"
                   git config --global user.name "Version Bot"
