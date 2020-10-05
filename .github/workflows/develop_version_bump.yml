@@ -35,11 +35,17 @@ jobs:
                   committer: GitHub <noreply@github.com>
                   author: ${{ github.actor }} <${{ github.actor }}@users.noreply.github.com>
                   signoff: false
-                  branch: release/$VERSION
+                  branch: automerge/version
+                  labels: automerge
                   delete-branch: true
-                  title: Bump Version $VERSION
-                  body: Patches package version to $VERSION
+                  title: Bump Patch Version
+                  body: Patches package version.
               env:
                   GITHUB_TOKEN: ${{ secrets.VERSION_BUMP_TOKEN }}
-            - name: 'New Version'
+            - name: Merge Pull Request
+              uses: 'pascalgn/automerge-action@v0.11.0'
+              env:
+                  GITHUB_TOKEN: '${{ secrets.VERSION_BUMP_TOKEN }}'
+                  MERGE_LABELS: 'automerge'
+            - name: 'Patch Version'
               run: cat ./package.json | grep "version"
