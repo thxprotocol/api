@@ -1,13 +1,13 @@
 {
     "name": "thx-api",
-    "version": "0.1.17",
+    "version": "0.1.6",
     "description": "Public API for THX project",
     "repository": {
         "type": "git",
-        "url": "https://github.com/peterpolman/thx-api"
+        "url": "https://github.com/thxprotocol/api"
     },
     "author": "Peter Polman",
-    "license": "MIT",
+    "license": "AGPL-3.0 License",
     "scripts": {
         "start-prod": "npm run build && NODE_ENV=production node ./dist/server.js",
         "start-dev": "npm run build && NODE_ENV=development node ./dist/server.js",
