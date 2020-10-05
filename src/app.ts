@@ -98,7 +98,7 @@ router.get('/members/:address', validate.getMember, memberController.getMember);
 router.get('/rewards/:id/claim', validate.getRewardClaim, rewardController.getRewardClaim);
 router.get('/rewards/:id', validate.getReward, rewardController.getReward);
 router.post('/rewards', validate.postReward, rewardController.postReward);
-router.put('/rewards/:id', validate.putReward, rewardController.putReward);
+router.get('/rewards/:id/update', validate.getRewardUpdate, rewardController.getRewardUpdate);
 // TODO router.get('/rewards/:address/finalize', validate.getFinalize, rewardController.getFinalize);
 // TODO router.post('/rewards/:address/finalize', validate.postFinalize, rewardController.postFinalize);
 

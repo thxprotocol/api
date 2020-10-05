@@ -55,14 +55,30 @@ export const validate = {
     deleteMember: [validateAssetPoolHeader, param('address').exists()],
     getMember: [validateAssetPoolHeader, param('address').exists()],
     // rewards
-    postReward: [validateAssetPoolHeader, body('title').exists(), body('amount').exists()],
+    postReward: [
+        validateAssetPoolHeader,
+        body('title').exists(),
+        body('description').exists(),
+        body('withdrawAmount').exists(),
+        body('withdrawDuration').exists(),
+    ],
     getReward: [validateAssetPoolHeader, param('id').exists()],
-    putReward: [validateAssetPoolHeader, body('amount').exists(), body('title').exists(), body('description').exists()],
+    getRewardUpdate: [
+        validateAssetPoolHeader,
+        body('withdrawAmount').exists(),
+        body('withdrawDuration').exists(),
+        body('title').exists(),
+        body('description').exists(),
+    ],
     getRewardClaim: [validateAssetPoolHeader, param('id').exists()],
     // asset_pools
     postAssetPools: [body('token').exists(), body('title').exists()],
     postAssetPoolDeposit: [validateAssetPoolHeader, body('amount').exists()],
-    putAssetPool: [validateAssetPoolHeader, body('rewardPollDuration').exists(), body('withdrawPollDuration').exists()],
+    putAssetPool: [
+        validateAssetPoolHeader,
+        body('rewardPollDuration').exists(),
+        body('proposeWithdrawPollDuration').exists(),
+    ],
     getAssetPool: [validateAssetPoolHeader, param('address').exists()],
     // account
     postSignup: [
