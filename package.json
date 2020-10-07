@@ -7,7 +7,7 @@
         "url": "https://github.com/thxprotocol/api"
     },
     "author": "Peter Polman",
-    "license": "AGPL-3.0 License",
+    "license": "AGPL-3.0",
     "scripts": {
         "start-prod": "npm run build && NODE_ENV=production node ./dist/server.js",
         "start-dev": "npm run build && NODE_ENV=development node ./dist/server.js",
@@ -24,7 +24,7 @@
         "watch-ts": "tsc -w",
         "watch-node": "nodemon dist/server.js",
         "watch": "concurrently -k -p \"[{name}]\" -n \"Sass,TypeScript,Node\" -c \"yellow.bold,cyan.bold,green.bold\" \"npm run watch-ts\" \"npm run watch-node\"",
-        "test": "jest --forceExit --coverage --verbose ./test/*test.ts",
+        "test": "NODE_ENV=test jest --force-exit --verbose ./test/*test.ts",
         "watch-test": "npm run test -- --watchAll",
         "debug": "npm run build && npm run watch-debug",
         "serve-debug": "NODE_ENV=local nodemon --inspect dist/server.js",
@@ -105,6 +105,7 @@
         "eslint": "^6.4.0",
         "firebase": "^7.16.0",
         "jest": "^24.9.0",
+        "mongodb-memory-server": "^6.9.0",
         "node-sass": "^4.14.0",
         "nodemon": "^1.19.2",
         "shelljs": "^0.8.3",

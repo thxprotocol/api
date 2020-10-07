@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { assetPoolContract, options, tokenContract } from '../util/network';
 import '../config/passport';
-import { handleValidation } from '../util/validation';
+import { validationResult } from 'express-validator';
 
 /**
  * @swagger
@@ -26,7 +26,11 @@ import { handleValidation } from '../util/validation';
  *         description: success
  */
 export const postMember = async (req: Request, res: Response) => {
-    handleValidation(req, res);
+    const errors = validationResult(req);
+
+    if (!errors.isEmpty()) {
+        return res.status(500).send(errors.array()).end();
+    }
 
     try {
         const tx = await assetPoolContract(req.header('AssetPool')).methods.addMember(req.body.address).send(options);
@@ -59,7 +63,11 @@ export const postMember = async (req: Request, res: Response) => {
  *         description: success
  */
 export const deleteMember = async (req: Request, res: Response) => {
-    handleValidation(req, res);
+    const errors = validationResult(req);
+
+    if (!errors.isEmpty()) {
+        return res.status(500).send(errors.array()).end();
+    }
 
     try {
         const tx = await assetPoolContract(req.header('AssetPool'))
@@ -94,7 +102,11 @@ export const deleteMember = async (req: Request, res: Response) => {
  *         description: success
  */
 export const getMember = async (req: Request, res: Response) => {
-    handleValidation(req, res);
+    const errors = validationResult(req);
+
+    if (!errors.isEmpty()) {
+        return res.status(500).send(errors.array()).end();
+    }
 
     try {
         const assetPoolInstance = assetPoolContract(req.header('AssetPool'));

@@ -3,7 +3,7 @@ import { assetPoolContract, options, rewardPollContract } from '../util/network'
 import { Reward, RewardDocument } from '../models/Reward';
 import logger from '../util/logger';
 import '../config/passport';
-import { handleValidation } from '../util/validation';
+import { validationResult } from 'express-validator';
 
 const qrcode = require('qrcode');
 
@@ -30,7 +30,11 @@ const qrcode = require('qrcode');
  *         message: ...
  */
 export const getReward = async (req: Request, res: Response, next: NextFunction) => {
-    handleValidation(req, res);
+    const errors = validationResult(req);
+
+    if (!errors.isEmpty()) {
+        return res.status(500).send(errors.array()).end();
+    }
 
     try {
         Reward.findOne({ id: req.params.id }, async (err, metaData) => {
@@ -111,7 +115,11 @@ export const getReward = async (req: Request, res: Response, next: NextFunction)
  *         message: ...
  */
 export const postReward = async (req: Request, res: Response, next: NextFunction) => {
-    handleValidation(req, res);
+    const errors = validationResult(req);
+
+    if (!errors.isEmpty()) {
+        return res.status(500).send(errors.array()).end();
+    }
 
     try {
         const tx = await assetPoolContract(req.header('AssetPool'))
@@ -164,7 +172,12 @@ export const postReward = async (req: Request, res: Response, next: NextFunction
  *         base64: ...
  */
 export const getRewardClaim = async (req: Request, res: Response) => {
-    handleValidation(req, res);
+    const errors = validationResult(req);
+
+    if (!errors.isEmpty()) {
+        return res.status(500).send(errors.array()).end();
+    }
+
     try {
         const base64 = await qrcode.toDataURL(
             JSON.stringify({
@@ -222,7 +235,12 @@ export const getRewardClaim = async (req: Request, res: Response) => {
  *         base64: ...
  */
 export const putReward = async (req: Request, res: Response, next: NextFunction) => {
-    handleValidation(req, res);
+    const errors = validationResult(req);
+
+    if (!errors.isEmpty()) {
+        return res.status(500).send(errors.array()).end();
+    }
+
     try {
         const metaData = await Reward.findOne({ id: req.params.id });
 

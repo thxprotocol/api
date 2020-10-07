@@ -1,34 +1,28 @@
+import { APP_URL, VERSION, SESSION_SECRET, MONGODB_URI } from './util/secrets';
 import express from 'express';
 import compression from 'compression';
 import session from 'express-session';
 import bodyParser from 'body-parser';
-import mongo from 'connect-mongo';
-import mongoose from 'mongoose';
 import passport from 'passport';
-import bluebird from 'bluebird';
 import lusca from 'lusca';
 import path from 'path';
-import { MONGODB_URI, VERSION, SESSION_SECRET } from './util/secrets';
 import morgan from 'morgan';
 import logger from './util/logger';
 import cors from 'cors';
 import router from './router';
+import mongo from 'connect-mongo';
+import db from './util/database';
 
-const MongoStore = mongo(session);
 const app = express();
-const mongoUrl = MONGODB_URI;
+const MongoStore = mongo(session);
 
-mongoose.Promise = bluebird;
-mongoose.connect(mongoUrl, { useNewUrlParser: true, useCreateIndex: true, useUnifiedTopology: true }).catch((err) => {
-    console.log(`MongoDB connection error. Please make sure MongoDB is running. ${err}`);
-    process.exit();
-});
+db.connect(MONGODB_URI);
 
 app.set('port', process.env.PORT || 3000);
 app.use(
     cors({
         credentials: true,
-        origin: 'https://localhost:8080', // Multiple clients should be able to use this API.
+        origin: APP_URL,
     }),
 );
 app.use(morgan('combined', { stream: { write: (message: any) => logger.info(message) } }));
@@ -41,7 +35,7 @@ app.use(
         saveUninitialized: true,
         secret: SESSION_SECRET,
         store: new MongoStore({
-            url: mongoUrl,
+            url: MONGODB_URI,
             autoReconnect: true,
         }),
     }),
