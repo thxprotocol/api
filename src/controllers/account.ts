@@ -74,7 +74,7 @@ export const postLogin = async (req: Request, res: Response, next: NextFunction)
             return next(err);
         }
         if (!account) {
-            return res.status(403).send({ msg: info.message }).end();
+            return res.status(401).send({ msg: info.message }).end();
         }
         req.logIn(account, (err) => {
             if (err) {

@@ -10,38 +10,38 @@ afterAll(async () => {
     await db.disconnect();
 });
 
-// describe('POST /login (no auth)', () => {
-//     it('returns 500 if payload is missing', async (done) => {
-//         user.post('/v1/login').end((err, res) => {
-//             expect(res.status).toBe(500);
-//             done();
-//         });
-//     });
-//     it('returns 500 if email is missing', (done) => {
-//         user.post('/v1/login')
-//             .send({ password: 'mellon' })
-//             .end((err, res) => {
-//                 expect(res.status).toBe(500);
-//                 done();
-//             });
-//     });
-//     it('returns 500 if password is missing', (done) => {
-//         user.post('/v1/login')
-//             .send({ email: 'test.bot@thx.network' })
-//             .end((err, res) => {
-//                 expect(res.status).toBe(500);
-//                 done();
-//             });
-//     });
-//     it('returns 500 if account is not found', (done) => {
-//         user.post('/v1/login')
-//             .send({ email: 'test.bot@thx.network', password: 'mellon' })
-//             .end((err, res) => {
-//                 expect(res.status).toBe(500);
-//                 done();
-//             });
-//     });
-// });
+describe('POST /login (no auth)', () => {
+    it('returns 500 if payload is missing', async (done) => {
+        user.post('/v1/login').end((err, res) => {
+            expect(res.status).toBe(500);
+            done();
+        });
+    });
+    it('returns 500 if email is missing', (done) => {
+        user.post('/v1/login')
+            .send({ password: 'mellon' })
+            .end((err, res) => {
+                expect(res.status).toBe(500);
+                done();
+            });
+    });
+    it('returns 500 if password is missing', (done) => {
+        user.post('/v1/login')
+            .send({ email: 'test.bot@thx.network' })
+            .end((err, res) => {
+                expect(res.status).toBe(500);
+                done();
+            });
+    });
+    it('returns 401 if account is not found', (done) => {
+        user.post('/v1/login')
+            .send({ email: 'test.bot@thx.network', password: 'mellon' })
+            .end((err, res) => {
+                expect(res.status).toBe(401);
+                done();
+            });
+    });
+});
 
 describe('POST /signup', () => {
     it('returns 500 if payload is missing', (done) => {
@@ -113,11 +113,11 @@ describe('GET /account (after logout)', () => {
 describe('POST /login', () => {
     let redirectURL = '';
 
-    it('should return a 403 if credentials are incorrect', (done) => {
+    it('should return a 401 if credentials are incorrect', (done) => {
         user.post('/v1/login')
             .send({ email: 'bad.bot@thx.network', password: 'mellon' })
             .end((err, res) => {
-                expect(res.status).toBe(403);
+                expect(res.status).toBe(401);
                 done();
             });
     });
