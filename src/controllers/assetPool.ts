@@ -26,7 +26,28 @@ import { validationResult } from 'express-validator';
  *         type: string
  *     responses:
  *       200:
- *         description: login
+ *          description: An asset pool object exposing the configuration and balance.
+ *          schema:
+ *              type: object
+ *              properties:
+ *                 token:
+ *                    type: object
+ *                    properties:
+ *                       name:
+ *                          type: string
+ *                          description: The name of the token configured for this asset pool
+ *                       symbol:
+ *                          type: string
+ *                          description: The symbol of the token configured for this asset pool
+ *                       balance:
+ *                          type: number
+ *                          description: The token balance of the asset pool for this token
+ *                 proposeWithdrawPollDuration:
+ *                    type: number
+ *                    description: The default duration of the withdraw polls
+ *                 rewardPollDuration:
+ *                    type: number
+ *                    description: The default duration of the reward polls
  */
 export const getAssetPool = async (req: Request, res: Response, next: NextFunction) => {
     const errors = validationResult(req);
@@ -41,6 +62,7 @@ export const getAssetPool = async (req: Request, res: Response, next: NextFuncti
         const tokenInstance = tokenContract(tokenAddress);
         const contractData = {
             token: {
+                address: tokenInstance.options.address,
                 name: await tokenInstance.methods.name().call(options),
                 symbol: await tokenInstance.methods.symbol().call(options),
                 balance: await tokenInstance.methods.balanceOf(req.params.address).call(options),

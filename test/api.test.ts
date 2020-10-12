@@ -2,8 +2,15 @@ import request from 'supertest';
 import app from '../src/app';
 import db from '../src/util/database';
 import mongoose from 'mongoose';
+import { deployTestTokenContract } from '../src/util/network';
 
 const user = request.agent(app);
+
+let poolAddress: any, testTokenInstance: any;
+
+(async () => {
+    testTokenInstance = await deployTestTokenContract();
+})();
 
 afterAll(async () => {
     await mongoose.disconnect();
@@ -149,12 +156,10 @@ describe('GET /account (after login)', () => {
     });
 });
 
-let poolAddress = '';
-
 describe('POST /asset_pools', () => {
-    it('should return a 200', (done) => {
+    it('should return a 200', async (done) => {
         user.post('/v1/asset_pools')
-            .send({ title: 'Volunteers United', token: '0xaC0A42a912398deBb9336e028724FF8B74169C80' })
+            .send({ title: 'Volunteers United', token: testTokenInstance.options.address })
             .end((err, res) => {
                 expect(res.status).toBe(200);
                 expect(res.body.address).toContain('0x');
@@ -170,6 +175,7 @@ describe('GET /asset_pools', () => {
             .set({ AssetPool: poolAddress })
             .end((err, res) => {
                 expect(res.body.address).toEqual(poolAddress);
+                expect(res.body.token.address).toEqual(testTokenInstance.options.address);
                 expect(res.status).toBe(200);
                 done();
             });
