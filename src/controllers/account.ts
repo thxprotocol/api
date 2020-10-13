@@ -35,7 +35,7 @@ import '../config/passport';
  */
 export const logout = (req: Request, res: Response) => {
     req.logout();
-    res.redirect('/');
+    res.end();
 };
 
 /**
@@ -80,7 +80,7 @@ export const postLogin = async (req: Request, res: Response, next: NextFunction)
             if (err) {
                 return next(err);
             }
-            res.redirect('/account');
+            res.redirect('account');
         });
     })(req, res, next);
 };
@@ -142,7 +142,7 @@ export const postSignup = async (req: Request, res: Response, next: NextFunction
                 if (err) {
                     return next(err);
                 }
-                res.redirect('/account');
+                res.redirect('account');
             });
         });
     });
