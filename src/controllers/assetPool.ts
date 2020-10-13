@@ -25,6 +25,10 @@ import { validationResult } from 'express-validator';
  *         required: true
  *         type: string
  *     responses:
+ *       400:
+ *          description: Bad request. Asset pool potentially not deployed.
+ *       404:
+ *          description: No asset pool found for this address.
  *       200:
  *          description: An asset pool object exposing the configuration and balance.
  *          schema:
@@ -53,7 +57,7 @@ export const getAssetPool = async (req: Request, res: Response, next: NextFuncti
     const errors = validationResult(req);
 
     if (!errors.isEmpty()) {
-        return res.status(500).send(errors.array()).end();
+        return res.status(400).send(errors.array()).end();
     }
 
     try {

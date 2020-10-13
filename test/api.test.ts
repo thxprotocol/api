@@ -7,7 +7,7 @@ import { deployTestTokenContract } from '../src/util/network';
 const user = request.agent(app);
 
 let poolAddress: any, testTokenInstance: any;
-
+const poolTitle = 'Volunteers United';
 (async () => {
     testTokenInstance = await deployTestTokenContract();
 })();
@@ -159,7 +159,7 @@ describe('GET /account (after login)', () => {
 describe('POST /asset_pools', () => {
     it('should return a 200', async (done) => {
         user.post('/v1/asset_pools')
-            .send({ title: 'Volunteers United', token: testTokenInstance.options.address })
+            .send({ title: poolTitle, token: testTokenInstance.options.address })
             .end((err, res) => {
                 expect(res.status).toBe(200);
                 expect(res.body.address).toContain('0x');
@@ -174,6 +174,7 @@ describe('GET /asset_pools', () => {
         user.get('/v1/asset_pools/' + poolAddress)
             .set({ AssetPool: poolAddress })
             .end((err, res) => {
+                expect(res.body.title).toEqual(poolTitle);
                 expect(res.body.address).toEqual(poolAddress);
                 expect(res.body.token.address).toEqual(testTokenInstance.options.address);
                 expect(res.status).toBe(200);
