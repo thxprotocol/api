@@ -14,6 +14,9 @@ switch (ENVIRONMENT) {
     case "local":
         dotenv.config({ path: ".env.local" });
         break;
+    default:
+        dotenv.config({ path: ".env" })
+        break;
 }
 
 export const SESSION_SECRET = process.env["SESSION_SECRET"];
