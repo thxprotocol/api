@@ -66,7 +66,7 @@ export const postLogin = async (req: Request, res: Response, next: NextFunction)
     const errors = validationResult(req);
 
     if (!errors.isEmpty()) {
-        return res.status(500).send(errors.array()).end();
+        return res.status(400).send(errors.array()).end();
     }
 
     passport.authenticate('local', (err: Error, account: AccountDocument, info: IVerifyOptions) => {
@@ -118,7 +118,7 @@ export const postSignup = async (req: Request, res: Response, next: NextFunction
     const errors = validationResult(req);
 
     if (!errors.isEmpty()) {
-        return res.status(500).send(errors.array()).end();
+        return res.status(400).send(errors.array()).end();
     }
 
     const account = new Account({
@@ -128,7 +128,7 @@ export const postSignup = async (req: Request, res: Response, next: NextFunction
 
     Account.findOne({ email: req.body.email }, (err, existingUser) => {
         if (err) {
-            return res.status(500).end();
+            return res.status(400).end();
         }
         if (existingUser) {
             return res.status(403).end();
@@ -166,7 +166,7 @@ export const getAccount = async (req: Request, res: Response, next: NextFunction
     const errors = validationResult(req);
 
     if (!errors.isEmpty()) {
-        return res.status(500).send(errors.array()).end();
+        return res.status(400).send(errors.array()).end();
     }
 
     Account.findById(account.id, (err, account: AccountDocument) => {
@@ -229,7 +229,7 @@ export const postUpdateProfile = async (req: Request, res: Response, next: NextF
     const errors = validationResult(req);
 
     if (!errors.isEmpty()) {
-        return res.status(500).send(errors.array()).end();
+        return res.status(400).send(errors.array()).end();
     }
 
     Account.findById((req.user as AccountDocument).id, (err, account: AccountDocument) => {
@@ -294,7 +294,7 @@ export const postUpdatePassword = async (req: Request, res: Response, next: Next
     const errors = validationResult(req);
 
     if (!errors.isEmpty()) {
-        return res.status(500).send(errors.array()).end();
+        return res.status(400).send(errors.array()).end();
     }
 
     Account.findById(account.id, (err, account: AccountDocument) => {
@@ -327,7 +327,7 @@ export const deleteAccount = (req: Request, res: Response, next: NextFunction) =
     const errors = validationResult(req);
 
     if (!errors.isEmpty()) {
-        return res.status(500).send(errors.array()).end();
+        return res.status(400).send(errors.array()).end();
     }
 
     Account.remove({ _id: account.id }, (err) => {
@@ -369,7 +369,7 @@ export const postReset = async (req: Request, res: Response, next: NextFunction)
     const errors = validationResult(req);
 
     if (!errors.isEmpty()) {
-        return res.status(500).send(errors.array()).end();
+        return res.status(400).send(errors.array()).end();
     }
 
     async.waterfall(
@@ -457,7 +457,7 @@ export const postForgot = async (req: Request, res: Response, next: NextFunction
     const errors = validationResult(req);
 
     if (!errors.isEmpty()) {
-        return res.status(500).send(errors.array()).end();
+        return res.status(400).send(errors.array()).end();
     }
 
     async.waterfall(

@@ -112,40 +112,41 @@ export const getReward = async (req: Request, res: Response, next: NextFunction)
  *         type: int
  *     responses:
  *       200:
- *         message: ...
+ *         description: OK
  */
 export const postReward = async (req: Request, res: Response, next: NextFunction) => {
     const errors = validationResult(req);
 
     if (!errors.isEmpty()) {
-        return res.status(500).send(errors.array()).end();
+        return res.status(400).send(errors.array()).end();
     }
 
     try {
-        const tx = await assetPoolContract(req.header('AssetPool'))
-            .methods.addReward(req.body.withdrawAmount, req.body.withdrawDuration)
+        const poolInstance = assetPoolContract(req.header('AssetPool'));
+        const tx = await poolInstance.methods
+            .addReward(req.body.withdrawAmount, req.body.withdrawDuration)
             .send(options);
 
         if (tx.level === 'error') {
             throw new Error('Transaction reverted.');
         }
+
         const id = tx.events.RewardPollCreated.returnValues.id;
         const reward = new Reward({
             id,
             title: req.body.title,
             description: req.body.description,
         });
-
         reward.save(async (err) => {
             if (err) {
                 throw new Error('Reward not saved');
             }
 
-            res.redirect('/v1/rewards/' + id);
+            res.redirect('rewards/' + id);
         });
     } catch (err) {
-        logger.error(err);
-        return res.status(500).end({ msg: err });
+        logger.error(err.toString());
+        res.status(400).end();
     }
 };
 
@@ -260,7 +261,6 @@ export const putReward = async (req: Request, res: Response, next: NextFunction)
             const { withdrawAmount, withdrawDuration } = await assetPoolContract(req.header('AssetPool'))
                 .methods.rewards(req.params.id)
                 .call(options);
-            console.log(withdrawAmount, withdrawDuration);
 
             if (withdrawAmount !== req.body.withdrawAmount || withdrawDuration !== req.body.withdrawDuration) {
                 const base64 = await qrcode.toDataURL(
