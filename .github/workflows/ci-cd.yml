@@ -55,6 +55,11 @@ jobs:
             # Install project dependencies and build
             - name: Install dependencies
               run: npm install
+
+            # Prevent files from having a timestamp before 1980
+            - name: Patch dependencies
+              run: find ./node_modules -mtime +10950 -exec touch {} \;
+
             - name: Run build
               run: npm run build
 
