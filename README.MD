@@ -1,4 +1,5 @@
 ![CI](https://github.com/thxprotocol/api/workflows/CI/badge.svg?branch=master)
+![AWSDevAPIBuild](https://codebuild.eu-west-3.amazonaws.com/badges?uuid=eyJlbmNyeXB0ZWREYXRhIjoiUG8vWDVFdTd0SGpRa2Q2MGRMSVF3YUQyWnJ6VmpjVGl3UGdERXoyb1hoZDE4U2NkQjd1NDZ5enpKR0tvcjJ1aWhleVdrUGVoUlgxVG5kOFhCK05uV3BjPSIsIml2UGFyYW1ldGVyU3BlYyI6IjNQdWo1cXNPb3JBUUVnVVQiLCJtYXRlcmlhbFNldFNlcmlhbCI6MX0%3D&branch=master)
 
 # THX API
 
