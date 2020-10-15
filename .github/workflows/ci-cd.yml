@@ -37,7 +37,7 @@ jobs:
             matrix:
                 python-version: [3.8]
                 node-version: ['10.x']
-                appname: ['api-dev']
+                appname: ['aws-codedeploy']
                 deploy-group: ['develop']
                 s3-bucket: ['aws-codedeploy-deployments-api']
                 s3-filename: ['develop-aws-codedeploy-${{ github.sha }}']
