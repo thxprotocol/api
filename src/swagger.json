@@ -1,7 +1,7 @@
 {
   "info": {
     "title": "THX API Specification",
-    "version": "0.1.6"
+    "version": "0.1.10"
   },
   "basePath": "https://api.thx.network/v1",
   "swagger": "2.0",
@@ -9,7 +9,7 @@
     "/logout": {
       "get": {
         "tags": [
-          "auth"
+          "Authentication"
         ],
         "description": "Sign out and redirect.",
         "produces": [
@@ -41,7 +41,7 @@
     "/login": {
       "post": {
         "tags": [
-          "auth"
+          "Authentication"
         ],
         "description": "Sign in using email and password.",
         "produces": [
@@ -73,7 +73,7 @@
     "/signup": {
       "post": {
         "tags": [
-          "auth"
+          "Authentication"
         ],
         "description": "Create an account using email and password.",
         "produces": [
@@ -280,7 +280,7 @@
     "/forgot": {
       "post": {
         "tags": [
-          "auth"
+          "Authentication"
         ],
         "description": "E-mails a link to reset the password.",
         "produces": [
@@ -338,7 +338,37 @@
         ],
         "responses": {
           "200": {
-            "description": "login"
+            "description": "An asset pool object exposing the configuration and balance.",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "token": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "type": "string",
+                      "description": "The name of the token configured for this asset pool"
+                    },
+                    "symbol": {
+                      "type": "string",
+                      "description": "The symbol of the token configured for this asset pool"
+                    },
+                    "balance": {
+                      "type": "number",
+                      "description": "The token balance of the asset pool for this token"
+                    }
+                  }
+                },
+                "proposeWithdrawPollDuration": {
+                  "type": "number",
+                  "description": "The default duration of the withdraw polls"
+                },
+                "rewardPollDuration": {
+                  "type": "number",
+                  "description": "The default duration of the reward polls"
+                }
+              }
+            }
           }
         }
       }

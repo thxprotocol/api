@@ -3,7 +3,7 @@ import { Request, Response } from 'express';
 import '../config/passport';
 import { assetPoolContract, options, withdrawPollContract } from '../util/network';
 import logger from '../util/logger';
-import { handleValidation } from '../util/validation';
+import { validationResult } from 'express-validator';
 
 const qrcode = require('qrcode');
 
@@ -39,7 +39,11 @@ const qrcode = require('qrcode');
  *         finalized: Is the poll finalized or not
  */
 export const getWithdrawal = async (req: Request, res: Response) => {
-    handleValidation(req, res);
+    const errors = validationResult(req);
+
+    if (!errors.isEmpty()) {
+        return res.status(500).send(errors.array()).end();
+    }
 
     try {
         const withdrawal = withdrawPollContract(req.params.address);
@@ -90,7 +94,12 @@ export const getWithdrawal = async (req: Request, res: Response) => {
  *         withdrawPolls: ...
  */
 export const getWithdrawals = async (req: Request, res: Response) => {
-    handleValidation(req, res);
+    const errors = validationResult(req);
+
+    if (!errors.isEmpty()) {
+        return res.status(500).send(errors.array()).end();
+    }
+
     try {
         const assetPool = assetPoolContract(req.header('AssetPool'));
         const withdrawPolls = (
@@ -138,7 +147,12 @@ export const getWithdrawals = async (req: Request, res: Response) => {
  *         data: ...
  */
 export const postWithdrawal = async (req: Request, res: Response) => {
-    handleValidation(req, res);
+    const errors = validationResult(req);
+
+    if (!errors.isEmpty()) {
+        return res.status(500).send(errors.array()).end();
+    }
+
     try {
         const tx = await assetPoolContract(req.header('AssetPool'))
             .methods.proposeWithdraw(req.body.amount.toString(), req.body.beneficiary)
@@ -175,7 +189,12 @@ export const postWithdrawal = async (req: Request, res: Response) => {
  *         base64: ...
  */
 export const getWithdraw = async (req: Request, res: Response) => {
-    handleValidation(req, res);
+    const errors = validationResult(req);
+
+    if (!errors.isEmpty()) {
+        return res.status(500).send(errors.array()).end();
+    }
+
     try {
         const base64 = await qrcode.toDataURL(
             JSON.stringify({
