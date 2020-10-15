@@ -36,7 +36,7 @@ jobs:
         strategy:
             matrix:
                 python-version: [3.8]
-                node-version: ['12.x']
+                node-version: ['10.x']
                 appname: ['api-dev']
                 deploy-group: ['develop']
                 s3-bucket: ['aws-codedeploy-deployments-api']
