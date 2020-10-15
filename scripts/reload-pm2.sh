@@ -1,3 +1,3 @@
 #!/bin/bash
 cd ~/aws-codedeploy
-pm2 startOrReload ecosystem.config.js 
+pm2 dist/server.js --name api-dev
