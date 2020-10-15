@@ -1,14 +1,5 @@
 import { AccountDocument } from '../models/Account';
-import { Request, Response, NextFunction } from 'express';
-import { body, check, header, param, validationResult } from 'express-validator';
-
-export const handleValidation = (req: Request, res: Response) => {
-    const errors = validationResult(req);
-
-    if (!errors.isEmpty()) {
-        return res.status(500).send(errors.array());
-    }
-};
+import { body, check, header, param } from 'express-validator';
 
 const validateAssetPoolHeader = header('AssetPool')
     .exists()
@@ -82,6 +73,9 @@ export const validate = {
     getAssetPool: [validateAssetPoolHeader, param('address').exists()],
     // account
     postSignup: [
+        body('email').exists(),
+        body('password').exists(),
+        body('confirmPassword').exists(),
         check('email', 'Email is not valid').isEmail(),
         check('password', 'Password must be at least 4 characters long').isLength({ min: 4 }),
         confirmPassword,
@@ -95,6 +89,8 @@ export const validate = {
         confirmPassword,
     ],
     postLogin: [
+        body('email').exists(),
+        body('password').exists(),
         check('email', 'Email is not valid').isEmail(),
         check('password', 'Password cannot be blank').isLength({ min: 1 }),
     ],

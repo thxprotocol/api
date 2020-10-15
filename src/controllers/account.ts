@@ -6,16 +6,15 @@ import { Account, AccountDocument, AuthToken } from '../models/Account';
 import { Request, Response, NextFunction } from 'express';
 import { IVerifyOptions } from 'passport-local';
 import { WriteError } from 'mongodb';
-import { check, sanitize, validationResult } from 'express-validator';
+import { validationResult } from 'express-validator';
 import '../config/passport';
-import { handleValidation } from '../util/validation';
 
 /**
  * @swagger
  * /logout:
  *   get:
  *     tags:
- *       - auth
+ *       - Authentication
  *     description: Sign out and redirect.
  *     produces:
  *       - application/json
@@ -36,7 +35,7 @@ import { handleValidation } from '../util/validation';
  */
 export const logout = (req: Request, res: Response) => {
     req.logout();
-    res.redirect('/');
+    res.end();
 };
 
 /**
@@ -44,7 +43,7 @@ export const logout = (req: Request, res: Response) => {
  * /login:
  *   post:
  *     tags:
- *       - auth
+ *       - Authentication
  *     description: Sign in using email and password.
  *     produces:
  *       - application/json
@@ -64,22 +63,24 @@ export const logout = (req: Request, res: Response) => {
  *         description: login
  */
 export const postLogin = async (req: Request, res: Response, next: NextFunction) => {
-    await sanitize('email').normalizeEmail({ gmail_remove_dots: false }).run(req);
+    const errors = validationResult(req);
 
-    handleValidation(req, res);
+    if (!errors.isEmpty()) {
+        return res.status(400).send(errors.array()).end();
+    }
 
     passport.authenticate('local', (err: Error, account: AccountDocument, info: IVerifyOptions) => {
         if (err) {
             return next(err);
         }
         if (!account) {
-            return res.send({ msg: info.message });
+            return res.status(401).send({ msg: info.message }).end();
         }
         req.logIn(account, (err) => {
             if (err) {
                 return next(err);
             }
-            res.send({ msg: 'Success! You are logged in.' });
+            res.redirect('account');
         });
     })(req, res, next);
 };
@@ -89,7 +90,7 @@ export const postLogin = async (req: Request, res: Response, next: NextFunction)
  * /signup:
  *   post:
  *     tags:
- *       - auth
+ *       - Authentication
  *     description: Create an account using email and password.
  *     produces:
  *       - application/json
@@ -114,8 +115,11 @@ export const postLogin = async (req: Request, res: Response, next: NextFunction)
  *         description: login
  */
 export const postSignup = async (req: Request, res: Response, next: NextFunction) => {
-    await sanitize('email').normalizeEmail({ gmail_remove_dots: false }).run(req);
-    handleValidation(req, res);
+    const errors = validationResult(req);
+
+    if (!errors.isEmpty()) {
+        return res.status(400).send(errors.array()).end();
+    }
 
     const account = new Account({
         email: req.body.email,
@@ -124,20 +128,21 @@ export const postSignup = async (req: Request, res: Response, next: NextFunction
 
     Account.findOne({ email: req.body.email }, (err, existingUser) => {
         if (err) {
-            return next(err);
+            return res.status(400).end();
         }
         if (existingUser) {
-            return res.status(403).send({ msg: 'Account with that email address already exists.' });
+            return res.status(403).end();
         }
         account.save((err) => {
             if (err) {
                 return next(err);
             }
+
             req.logIn(account, (err) => {
                 if (err) {
                     return next(err);
                 }
-                res.redirect('/account');
+                res.redirect('account');
             });
         });
     });
@@ -158,8 +163,10 @@ export const postSignup = async (req: Request, res: Response, next: NextFunction
  */
 export const getAccount = async (req: Request, res: Response, next: NextFunction) => {
     const account = req.user as AccountDocument;
-    if (!account) {
-        return res.send({ msg: 'The UID for this session is not found.' });
+    const errors = validationResult(req);
+
+    if (!errors.isEmpty()) {
+        return res.status(400).send(errors.array()).end();
     }
 
     Account.findById(account.id, (err, account: AccountDocument) => {
@@ -219,6 +226,12 @@ export const getAccount = async (req: Request, res: Response, next: NextFunction
  *         description: login
  */
 export const postUpdateProfile = async (req: Request, res: Response, next: NextFunction) => {
+    const errors = validationResult(req);
+
+    if (!errors.isEmpty()) {
+        return res.status(400).send(errors.array()).end();
+    }
+
     Account.findById((req.user as AccountDocument).id, (err, account: AccountDocument) => {
         if (err) {
             return next(err);
@@ -233,13 +246,16 @@ export const postUpdateProfile = async (req: Request, res: Response, next: NextF
         account.save((err: WriteError) => {
             if (err) {
                 if (err.code === 11000) {
-                    return res.send({
-                        msg: 'The email address you have entered is already associated with an account.',
-                    });
+                    return res
+                        .status(403)
+                        .send({
+                            msg: 'The email address you have entered is already associated with an account.',
+                        })
+                        .end();
                 }
                 return next(err);
             }
-            res.send({ msg: 'Profile information has been updated.' });
+            return res.status(200).send({ msg: 'Profile information has been updated.' }).end();
         });
     });
 };
@@ -274,9 +290,13 @@ export const postUpdateProfile = async (req: Request, res: Response, next: NextF
  *         description: login
  */
 export const postUpdatePassword = async (req: Request, res: Response, next: NextFunction) => {
-    handleValidation(req, res);
-
     const account = req.user as AccountDocument;
+    const errors = validationResult(req);
+
+    if (!errors.isEmpty()) {
+        return res.status(400).send(errors.array()).end();
+    }
+
     Account.findById(account.id, (err, account: AccountDocument) => {
         if (err) {
             return next(err);
@@ -286,7 +306,7 @@ export const postUpdatePassword = async (req: Request, res: Response, next: Next
             if (err) {
                 return next(err);
             }
-            res.send({ msg: 'Password has been changed.' });
+            return res.status(200).send({ msg: 'Password has been changed.' }).end();
         });
     });
 };
@@ -304,12 +324,18 @@ export const postUpdatePassword = async (req: Request, res: Response, next: Next
  */
 export const deleteAccount = (req: Request, res: Response, next: NextFunction) => {
     const account = req.user as AccountDocument;
+    const errors = validationResult(req);
+
+    if (!errors.isEmpty()) {
+        return res.status(400).send(errors.array()).end();
+    }
+
     Account.remove({ _id: account.id }, (err) => {
         if (err) {
             return next(err);
         }
         req.logout();
-        return res.send({ msg: 'Your account has been deleted.' });
+        return res.status(200).send({ msg: 'Your account has been deleted.' }).end();
     });
 };
 
@@ -340,7 +366,11 @@ export const deleteAccount = (req: Request, res: Response, next: NextFunction) =
  *         description: login
  */
 export const postReset = async (req: Request, res: Response, next: NextFunction) => {
-    handleValidation(req, res);
+    const errors = validationResult(req);
+
+    if (!errors.isEmpty()) {
+        return res.status(400).send(errors.array()).end();
+    }
 
     async.waterfall(
         [
@@ -392,7 +422,7 @@ export const postReset = async (req: Request, res: Response, next: NextFunction)
             if (err) {
                 return next(err);
             }
-            res.redirect('/');
+            return res.redirect('/');
         },
     );
 };
@@ -402,7 +432,7 @@ export const postReset = async (req: Request, res: Response, next: NextFunction)
  * /forgot:
  *   post:
  *     tags:
- *       - auth
+ *       - Authentication
  *     description: E-mails a link to reset the password.
  *     produces:
  *       - application/json
@@ -424,12 +454,10 @@ export const postReset = async (req: Request, res: Response, next: NextFunction)
  *         description: login
  */
 export const postForgot = async (req: Request, res: Response, next: NextFunction) => {
-    await sanitize('email').normalizeEmail({ gmail_remove_dots: false }).run(req);
-
     const errors = validationResult(req);
 
     if (!errors.isEmpty()) {
-        return res.status(404).send(errors.array());
+        return res.status(400).send(errors.array()).end();
     }
 
     async.waterfall(
@@ -446,7 +474,7 @@ export const postForgot = async (req: Request, res: Response, next: NextFunction
                         return done(err);
                     }
                     if (!account) {
-                        return res.send({ msg: 'Account with that email address does not exist.' });
+                        return res.status(404).send({ msg: 'Account with that email address does not exist.' }).end();
                     }
                     account.passwordResetToken = token;
                     account.passwordResetExpires = Date.now() + 3600000; // 1 hour
@@ -482,7 +510,7 @@ export const postForgot = async (req: Request, res: Response, next: NextFunction
             if (err) {
                 return next(err);
             }
-            res.redirect('/forgot');
+            return res.redirect('/forgot');
         },
     );
 };

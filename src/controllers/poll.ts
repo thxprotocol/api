@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import '../config/passport';
 import { options, basePollContract } from '../util/network';
 import logger from '../util/logger';
-import { handleValidation } from '../util/validation';
+import { validationResult } from 'express-validator';
 const qrcode = require('qrcode');
 
 /**
@@ -33,7 +33,12 @@ const qrcode = require('qrcode');
  *         base64: ...
  */
 export const getVote = async (req: Request, res: Response) => {
-    handleValidation(req, res);
+    const errors = validationResult(req);
+
+    if (!errors.isEmpty()) {
+        return res.status(500).send(errors.array()).end();
+    }
+
     try {
         const base64 = await qrcode.toDataURL(
             JSON.stringify({
@@ -75,7 +80,11 @@ export const getVote = async (req: Request, res: Response) => {
  *         data: ...
  */
 export const getPoll = async (req: Request, res: Response) => {
-    handleValidation(req, res);
+    const errors = validationResult(req);
+
+    if (!errors.isEmpty()) {
+        return res.status(500).send(errors.array()).end();
+    }
 
     try {
         const poll = basePollContract(req.params.address);
@@ -141,7 +150,12 @@ export const getPoll = async (req: Request, res: Response) => {
  *         base64: ...
  */
 export const postVote = async (req: Request, res: Response) => {
-    handleValidation(req, res);
+    const errors = validationResult(req);
+
+    if (!errors.isEmpty()) {
+        return res.status(500).send(errors.array()).end();
+    }
+
     try {
         const tx = await basePollContract(req.params.address)
             .methods.vote(req.body.voter, JSON.parse(req.body.agree), parseInt(req.body.nonce, 10), req.body.sig)
@@ -176,7 +190,12 @@ export const postVote = async (req: Request, res: Response) => {
  *         base64: ...
  */
 export const getRevokeVote = async (req: Request, res: Response) => {
-    handleValidation(req, res);
+    const errors = validationResult(req);
+
+    if (!errors.isEmpty()) {
+        return res.status(500).send(errors.array()).end();
+    }
+
     try {
         const base64 = await qrcode.toDataURL(
             JSON.stringify({
@@ -227,7 +246,12 @@ export const getRevokeVote = async (req: Request, res: Response) => {
  *         base64: ...
  */
 export const deleteVote = async (req: Request, res: Response) => {
-    handleValidation(req, res);
+    const errors = validationResult(req);
+
+    if (!errors.isEmpty()) {
+        return res.status(500).send(errors.array()).end();
+    }
+
     try {
         const tx = await basePollContract(req.params.address)
             .methods.revokeVote(req.body.voter, parseInt(req.body.nonce, 10), req.body.sig)
