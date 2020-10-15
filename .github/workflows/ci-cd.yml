@@ -3,10 +3,10 @@ name: CI/CD
 on:
     push:
         branches:
-            - staging
+            - develop
     pull_request:
         branches:
-            - staging
+            - develop
 
 jobs:
     buildAndTest:
