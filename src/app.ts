@@ -1,4 +1,4 @@
-import { APP_URL, VERSION, SESSION_SECRET, MONGODB_URI } from './util/secrets';
+import { APP_URL, VERSION, SESSION_SECRET, MONGODB_URI, ENVIRONMENT } from './util/secrets';
 import express from 'express';
 import compression from 'compression';
 import session from 'express-session';
