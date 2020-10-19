@@ -44,5 +44,5 @@ npm run watch-debug
 The API specification is living at:
 
 -   https://localhost:8088/v1/docs/ (local)
--   https://dev.thx.api.network/v1/docs/ (staging)
--   https://thx.api.network/v1/docs/ (production)
+-   https://dev.api.thx.network/v1/docs/ (staging)
+<!-- -   https://api.thx.network/v1/docs/ (production) -->
