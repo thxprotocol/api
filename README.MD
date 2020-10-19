@@ -13,6 +13,7 @@ This repository holds the source for the THX REST API.
 ## 1. Prerequisites
 
 -   [Ganache](https://www.trufflesuite.com/ganache)
+-   Docker
 -   nodejs 10.x
 -   solc (only if you need ot recompile contracts frequently)
 
@@ -20,8 +21,10 @@ This repository holds the source for the THX REST API.
 
 1. `git submodule init` (only if you need ot recompile contracts frequently)
 2. `git submodule update` (only if you need ot recompile contracts frequently)
-3. `npm install`
-4. `mv .env.example .env`
+3. `docker-compose up -d`
+4. `npm install`
+5. Rename `.env.example` to `.env`
+6. Change mongodb connectionstring to `mongodb://root:root@localhost:27017/api`
 
 ## 3. Running
 
