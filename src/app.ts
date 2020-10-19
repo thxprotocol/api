@@ -1,4 +1,4 @@
-import { APP_URL, VERSION, SESSION_SECRET, MONGODB_URI } from './util/secrets';
+import { ORIGIN, VERSION, SESSION_SECRET, MONGODB_URI } from './util/secrets';
 import express from 'express';
 import compression from 'compression';
 import session from 'express-session';
@@ -22,7 +22,7 @@ app.set('port', process.env.PORT || 3000);
 app.use(
     cors({
         credentials: true,
-        origin: APP_URL,
+        origin: ORIGIN,
     }),
 );
 app.use(morgan('combined', { stream: { write: (message: any) => logger.info(message) } }));

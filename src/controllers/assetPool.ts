@@ -114,6 +114,11 @@ export const getAssetPool = async (req: Request, res: Response, next: NextFuncti
  *     responses:
  *       200:
  *         description: Success code.
+ *         schema:
+ *             type: object
+ *             properties:
+ *                address:
+ *                   type: string
  */
 export const postAssetPool = async (req: Request, res: Response, next: NextFunction) => {
     const errors = validationResult(req);

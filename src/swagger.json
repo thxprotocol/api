@@ -33,7 +33,7 @@
         ],
         "responses": {
           "200": {
-            "description": "login"
+            "description": "OK"
           }
         }
       }
@@ -65,7 +65,15 @@
         ],
         "responses": {
           "200": {
-            "description": "login"
+            "description": "OK"
+          },
+          "302": {
+            "description": "OK",
+            "headers": {
+              "Location": {
+                "type": "string"
+              }
+            }
           }
         }
       }
@@ -369,6 +377,12 @@
                 }
               }
             }
+          },
+          "400": {
+            "description": "Bad request. Asset pool potentially not deployed."
+          },
+          "404": {
+            "description": "No asset pool found for this address."
           }
         }
       }
@@ -399,7 +413,15 @@
         ],
         "responses": {
           "200": {
-            "description": "Success code."
+            "description": "Success code.",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "address": {
+                  "type": "string"
+                }
+              }
+            }
           }
         }
       }
@@ -839,7 +861,7 @@
         ],
         "responses": {
           "200": {
-            "message": "..."
+            "description": "OK"
           }
         }
       }
