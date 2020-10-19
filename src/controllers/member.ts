@@ -9,7 +9,7 @@ import { validationResult } from 'express-validator';
  *   post:
  *     tags:
  *       - members
- *     description: Invite a member
+ *     description: Add a member to the asset pool
  *     produces:
  *       - application/json
  *     parameters:
@@ -23,7 +23,7 @@ import { validationResult } from 'express-validator';
  *         type: string
  *     responses:
  *       200:
- *         description: success
+ *         description: OK
  */
 export const postMember = async (req: Request, res: Response) => {
     const errors = validationResult(req);
@@ -46,7 +46,7 @@ export const postMember = async (req: Request, res: Response) => {
  *   delete:
  *     tags:
  *       - members
- *     description: Invite a member
+ *     description: Remove a member from the asset pool
  *     produces:
  *       - application/json
  *     parameters:
@@ -60,7 +60,7 @@ export const postMember = async (req: Request, res: Response) => {
  *         type: string
  *     responses:
  *       200:
- *         description: success
+ *         description: OK
  */
 export const deleteMember = async (req: Request, res: Response) => {
     const errors = validationResult(req);
@@ -81,11 +81,11 @@ export const deleteMember = async (req: Request, res: Response) => {
 
 /**
  * @swagger
- * /members:
+ * /members/:address:
  *   get:
  *     tags:
  *       - members
- *     description: Invite a member
+ *     description: Get information about a member in the asset pool
  *     produces:
  *       - application/json
  *     parameters:
@@ -99,7 +99,28 @@ export const deleteMember = async (req: Request, res: Response) => {
  *         type: string
  *     responses:
  *       200:
- *         description: success
+ *         description: OK
+ *         schema:
+ *            type: object
+ *            properties:
+ *               token:
+ *                  type: object
+ *                  properties:
+ *                     name:
+ *                        type: string
+ *                        description: The name of the token configured for this asset pool
+ *                     symbol:
+ *                        type: string
+ *                        description: The symbol of the token configured for this asset pool
+ *                     balance:
+ *                        type: number
+ *                        description: The token balance of the asset pool for this token
+ *               isMember:
+ *                  type: boolean
+ *                  description: If this address is known as member of the asset pool
+ *               isManager:
+ *                  type: boolean
+ *                  description: If this address is known as manager of the asset pool
  */
 export const getMember = async (req: Request, res: Response) => {
     const errors = validationResult(req);
