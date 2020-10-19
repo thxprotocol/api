@@ -213,7 +213,7 @@ export const getRevokeVote = async (req: Request, res: Response) => {
 
 /**
  * @swagger
- * /polls/:address/revoke_vote:
+ * /polls/:address/vote:
  *   delete:
  *     tags:
  *       - polls
@@ -243,7 +243,13 @@ export const getRevokeVote = async (req: Request, res: Response) => {
  *         type: string
  *     responses:
  *       200:
- *         base64: ...
+ *          description: An asset pool object exposing the configuration and balance.
+ *          schema:
+ *              type: object
+ *              properties:
+ *                  base64:
+ *                      type: string
+ *                      description: Set as src for <img> and scan with wallet.
  */
 export const deleteVote = async (req: Request, res: Response) => {
     const errors = validationResult(req);

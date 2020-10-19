@@ -11,31 +11,7 @@
         "tags": [
           "Authentication"
         ],
-        "description": "Sign out and redirect.",
-        "produces": [
-          "application/json"
-        ],
-        "parameters": [
-          {
-            "name": "username",
-            "description": "Username to use for login.",
-            "in": "formData",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "password",
-            "description": "User's password.",
-            "in": "formData",
-            "required": true,
-            "type": "string"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        }
+        "description": "Sign out and end current session."
       }
     },
     "/login": {
@@ -68,7 +44,7 @@
             "description": "OK"
           },
           "302": {
-            "description": "OK",
+            "description": "Redirect to /account",
             "headers": {
               "Location": {
                 "type": "string"
@@ -112,7 +88,15 @@
         ],
         "responses": {
           "200": {
-            "description": "login"
+            "description": "OK"
+          },
+          "302": {
+            "description": "Redirect to /account",
+            "headers": {
+              "Location": {
+                "type": "string"
+              }
+            }
           }
         }
       }
@@ -120,7 +104,7 @@
     "/account": {
       "get": {
         "tags": [
-          "account"
+          "Account"
         ],
         "description": "Get profile information for your account",
         "produces": [
@@ -128,26 +112,52 @@
         ],
         "responses": {
           "200": {
-            "description": "login"
+            "description": "OK",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "burnProof": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "description": "Burnproof transaction hash"
+                  }
+                },
+                "assetPools": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "description": "Asset pool address"
+                  }
+                },
+                "firstName": {
+                  "type": "string",
+                  "description": "First name of the logged in user."
+                },
+                "lastName": {
+                  "type": "string",
+                  "description": "Last name of the logged in user."
+                },
+                "gender": {
+                  "type": "string",
+                  "description": "Gender of the logged in user"
+                },
+                "location": {
+                  "type": "string",
+                  "description": "Provided location of the logged in user"
+                },
+                "picture": {
+                  "type": "string",
+                  "description": "Picture provided by the user"
+                }
+              }
+            }
           }
         }
       },
-      "delete": {
+      "patch": {
         "tags": [
-          "account"
-        ],
-        "description": "Delete current users account",
-        "responses": {
-          "200": {
-            "description": "login"
-          }
-        }
-      }
-    },
-    "/account/profile": {
-      "post": {
-        "tags": [
-          "account"
+          "Account"
         ],
         "description": "Create profile information for your account.",
         "produces": [
@@ -205,15 +215,42 @@
         ],
         "responses": {
           "200": {
-            "description": "login"
+            "description": "OK"
+          },
+          "302": {
+            "description": "Redirect to /account",
+            "headers": {
+              "Location": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Account"
+        ],
+        "description": "Delete current users account",
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "302": {
+            "description": "Redirect to /login",
+            "headers": {
+              "Location": {
+                "type": "string"
+              }
+            }
           }
         }
       }
     },
     "/account/password": {
-      "post": {
+      "put": {
         "tags": [
-          "account"
+          "Account"
         ],
         "description": "Update current password.",
         "produces": [
@@ -244,7 +281,15 @@
         ],
         "responses": {
           "200": {
-            "description": "login"
+            "description": "OK"
+          },
+          "302": {
+            "description": "Redirect to /logout",
+            "headers": {
+              "Location": {
+                "type": "string"
+              }
+            }
           }
         }
       }
@@ -252,7 +297,7 @@
     "/reset/:token": {
       "post": {
         "tags": [
-          "account"
+          "Account"
         ],
         "description": "Resets your password based on token in url.",
         "produces": [
@@ -280,7 +325,7 @@
         ],
         "responses": {
           "200": {
-            "description": "login"
+            "description": "OK"
           }
         }
       }
@@ -316,7 +361,7 @@
         ],
         "responses": {
           "200": {
-            "description": "login"
+            "description": "OK"
           }
         }
       }
@@ -413,12 +458,13 @@
         ],
         "responses": {
           "200": {
-            "description": "Success code.",
+            "description": "OK.",
             "schema": {
               "type": "object",
               "properties": {
                 "address": {
-                  "type": "string"
+                  "type": "string",
+                  "description": "Address of the new asset pool."
                 }
               }
             }
@@ -457,7 +503,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Success code."
+            "description": "OK"
           }
         }
       }
@@ -742,36 +788,6 @@
             "base64": "..."
           }
         }
-      }
-    },
-    "/polls/:address/revoke_vote": {
-      "get": {
-        "tags": [
-          "polls"
-        ],
-        "description": "Cast a vote for a poll",
-        "produces": [
-          "application/json"
-        ],
-        "parameters": [
-          {
-            "name": "AssetPool",
-            "in": "header",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "address",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          }
-        ],
-        "responses": {
-          "200": {
-            "base64": "..."
-          }
-        }
       },
       "delete": {
         "tags": [
@@ -809,6 +825,45 @@
           {
             "name": "sig",
             "in": "body",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "An asset pool object exposing the configuration and balance.",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "base64": {
+                  "type": "string",
+                  "description": "Set as src for <img> and scan with wallet."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/polls/:address/revoke_vote": {
+      "get": {
+        "tags": [
+          "polls"
+        ],
+        "description": "Cast a vote for a poll",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "AssetPool",
+            "in": "header",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "address",
+            "in": "path",
             "required": true,
             "type": "string"
           }

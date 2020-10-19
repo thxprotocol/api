@@ -15,23 +15,7 @@ import '../config/passport';
  *   get:
  *     tags:
  *       - Authentication
- *     description: Sign out and redirect.
- *     produces:
- *       - application/json
- *     parameters:
- *       - name: username
- *         description: Username to use for login.
- *         in: formData
- *         required: true
- *         type: string
- *       - name: password
- *         description: User's password.
- *         in: formData
- *         required: true
- *         type: string
- *     responses:
- *       200:
- *         description: OK
+ *     description: Sign out and end current session.
  */
 export const logout = (req: Request, res: Response) => {
     req.logout();
@@ -62,10 +46,10 @@ export const logout = (req: Request, res: Response) => {
  *       200:
  *         description: OK
  *       302:
- *         description: OK
- *         headers:
- *            Location:
- *               type: string
+ *          description: Redirect to /account
+ *          headers:
+ *             Location:
+ *                type: string
  */
 export const postLogin = async (req: Request, res: Response, next: NextFunction) => {
     const errors = validationResult(req);
@@ -117,7 +101,12 @@ export const postLogin = async (req: Request, res: Response, next: NextFunction)
  *         type: string
  *     responses:
  *       200:
- *         description: login
+ *         description: OK
+ *       302:
+ *          description: Redirect to /account
+ *          headers:
+ *             Location:
+ *                type: string
  */
 export const postSignup = async (req: Request, res: Response, next: NextFunction) => {
     const errors = validationResult(req);
@@ -158,13 +147,41 @@ export const postSignup = async (req: Request, res: Response, next: NextFunction
  * /account:
  *   get:
  *     tags:
- *       - account
+ *       - Account
  *     description: Get profile information for your account
  *     produces:
  *       - application/json
  *     responses:
  *       200:
- *         description: login
+ *         description: OK
+ *         schema:
+ *          type: object
+ *          properties:
+ *              burnProof:
+ *                  type: array
+ *                  items:
+ *                      type: string
+ *                      description: Burnproof transaction hash
+ *              assetPools:
+ *                  type: array
+ *                  items:
+ *                      type: string
+ *                      description: Asset pool address
+ *              firstName:
+ *                  type: string
+ *                  description: First name of the logged in user.
+ *              lastName:
+ *                  type: string
+ *                  description: Last name of the logged in user.
+ *              gender:
+ *                  type: string
+ *                  description: Gender of the logged in user
+ *              location:
+ *                  type: string
+ *                  description: Provided location of the logged in user
+ *              picture:
+ *                  type: string
+ *                  description: Picture provided by the user
  */
 export const getAccount = async (req: Request, res: Response, next: NextFunction) => {
     const account = req.user as AccountDocument;
@@ -179,17 +196,17 @@ export const getAccount = async (req: Request, res: Response, next: NextFunction
             return next(err);
         }
         if (account) {
-            res.send(account);
+            res.send(account.profile);
         }
     });
 };
 
 /**
  * @swagger
- * /account/profile:
- *   post:
+ * /account:
+ *   patch:
  *     tags:
- *       - account
+ *       - Account
  *     description: Create profile information for your account.
  *     produces:
  *       - application/json
@@ -228,9 +245,15 @@ export const getAccount = async (req: Request, res: Response, next: NextFunction
  *          type: string
  *     responses:
  *       200:
- *         description: login
+ *         description: OK
+ *       302:
+ *          description: Redirect to /account
+ *          headers:
+ *             Location:
+ *                type: string
+ *
  */
-export const postUpdateProfile = async (req: Request, res: Response, next: NextFunction) => {
+export const patchAccount = async (req: Request, res: Response, next: NextFunction) => {
     const errors = validationResult(req);
 
     if (!errors.isEmpty()) {
@@ -241,13 +264,13 @@ export const postUpdateProfile = async (req: Request, res: Response, next: NextF
         if (err) {
             return next(err);
         }
-        account.profile.firstName = req.body.firstName || '';
-        account.profile.lastName = req.body.lastName || '';
-        account.profile.gender = req.body.gender || '';
-        account.profile.location = req.body.location || '';
-        account.profile.picture = req.body.picture || '';
-        account.profile.burnProof = req.body.burnProof || [];
-        account.profile.assetPools = req.body.assetPools || [];
+        account.profile.firstName = req.body.firstName || account.profile.firstName;
+        account.profile.lastName = req.body.lastName || account.profile.lastName;
+        account.profile.gender = req.body.gender || account.profile.gender;
+        account.profile.location = req.body.location || account.profile.location;
+        account.profile.picture = req.body.picture || req.body.picture;
+        account.profile.burnProof = req.body.burnProof || account.profile.burnProof;
+        account.profile.assetPools = req.body.assetPools || account.profile.assetPools;
         account.save((err: WriteError) => {
             if (err) {
                 if (err.code === 11000) {
@@ -260,7 +283,7 @@ export const postUpdateProfile = async (req: Request, res: Response, next: NextF
                 }
                 return next(err);
             }
-            return res.status(200).send({ msg: 'Profile information has been updated.' }).end();
+            return res.redirect('account');
         });
     });
 };
@@ -268,9 +291,9 @@ export const postUpdateProfile = async (req: Request, res: Response, next: NextF
 /**
  * @swagger
  * /account/password:
- *   post:
+ *   put:
  *     tags:
- *       - account
+ *       - Account
  *     description: Update current password.
  *     produces:
  *       - application/json
@@ -291,10 +314,15 @@ export const postUpdateProfile = async (req: Request, res: Response, next: NextF
  *         required: true
  *         type: string
  *     responses:
- *       200:
- *         description: login
+ *        200:
+ *         description: OK
+ *        302:
+ *          description: Redirect to /logout
+ *          headers:
+ *             Location:
+ *                type: string
  */
-export const postUpdatePassword = async (req: Request, res: Response, next: NextFunction) => {
+export const putPassword = async (req: Request, res: Response, next: NextFunction) => {
     const account = req.user as AccountDocument;
     const errors = validationResult(req);
 
@@ -311,7 +339,7 @@ export const postUpdatePassword = async (req: Request, res: Response, next: Next
             if (err) {
                 return next(err);
             }
-            return res.status(200).send({ msg: 'Password has been changed.' }).end();
+            return res.status(200).redirect('logout');
         });
     });
 };
@@ -321,11 +349,16 @@ export const postUpdatePassword = async (req: Request, res: Response, next: Next
  * /account:
  *   delete:
  *     tags:
- *       - account
+ *       - Account
  *     description: Delete current users account
  *     responses:
  *       200:
- *         description: login
+ *         description: OK
+ *       302:
+ *          description: Redirect to /login
+ *          headers:
+ *             Location:
+ *                type: string
  */
 export const deleteAccount = (req: Request, res: Response, next: NextFunction) => {
     const account = req.user as AccountDocument;
@@ -340,7 +373,7 @@ export const deleteAccount = (req: Request, res: Response, next: NextFunction) =
             return next(err);
         }
         req.logout();
-        return res.status(200).send({ msg: 'Your account has been deleted.' }).end();
+        return res.redirect('login');
     });
 };
 
@@ -349,7 +382,7 @@ export const deleteAccount = (req: Request, res: Response, next: NextFunction) =
  * /reset/:token:
  *   post:
  *     tags:
- *       - account
+ *       - Account
  *     description: Resets your password based on token in url.
  *     produces:
  *       - application/json
@@ -368,7 +401,7 @@ export const deleteAccount = (req: Request, res: Response, next: NextFunction) =
  *         type: string
  *     responses:
  *       200:
- *         description: login
+ *         description: OK
  */
 export const postReset = async (req: Request, res: Response, next: NextFunction) => {
     const errors = validationResult(req);
@@ -456,7 +489,7 @@ export const postReset = async (req: Request, res: Response, next: NextFunction)
  *         type: string
  *     responses:
  *       200:
- *         description: login
+ *         description: OK
  */
 export const postForgot = async (req: Request, res: Response, next: NextFunction) => {
     const errors = validationResult(req);

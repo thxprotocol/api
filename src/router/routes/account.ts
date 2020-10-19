@@ -5,8 +5,8 @@ import { validate } from '../../util/validation';
 const router = express.Router();
 
 router.get('/', accountController.getAccount);
-router.post('/profile', accountController.postUpdateProfile);
-router.post('/password', validate.postUpdatePassword, accountController.postUpdatePassword);
+router.patch('/', accountController.patchAccount);
 router.delete('/', accountController.deleteAccount);
+router.post('/password', validate.putPassword, accountController.putPassword);
 
 export default router;

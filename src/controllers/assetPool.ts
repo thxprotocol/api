@@ -113,12 +113,13 @@ export const getAssetPool = async (req: Request, res: Response, next: NextFuncti
  *         type: string
  *     responses:
  *       200:
- *         description: Success code.
+ *         description: OK.
  *         schema:
  *             type: object
  *             properties:
  *                address:
  *                   type: string
+ *                   description: Address of the new asset pool.
  */
 export const postAssetPool = async (req: Request, res: Response, next: NextFunction) => {
     const errors = validationResult(req);
@@ -194,7 +195,7 @@ export const postAssetPool = async (req: Request, res: Response, next: NextFunct
  *         type: string
  *     responses:
  *       200:
- *         description: Success code.
+ *         description: OK
  */
 export const postAssetPoolDeposit = async (req: Request, res: Response, next: NextFunction) => {
     const errors = validationResult(req);

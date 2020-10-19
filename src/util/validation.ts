@@ -80,7 +80,7 @@ export const validate = {
         check('password', 'Password must be at least 4 characters long').isLength({ min: 4 }),
         confirmPassword,
     ],
-    postUpdatePassword: [
+    putPassword: [
         check('password', 'Password must be at least 4 characters long').isLength({ min: 4 }),
         confirmPassword,
     ],
