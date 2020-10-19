@@ -9,7 +9,7 @@
     "author": "Peter Polman",
     "license": "AGPL-3.0",
     "scripts": {
-        "serve": "npm run build && node ./dist/server.js",
+        "serve": "node ./dist/server.js",
         "lint": "tsc --noEmit && eslint \"**/*.{js,ts}\" --quiet --fix",
         "build": "npm run build-ts",
         "build-ts": "tsc",
@@ -24,7 +24,7 @@
         "watch": "concurrently -k -p \"[{name}]\" -n \"Sass,TypeScript,Node\" -c \"yellow.bold,cyan.bold,green.bold\" \"npm run watch-ts\" \"npm run watch-node\"",
         "test": "npm run run-ganache && npm run run-tests",
         "run-tests": "NODE_ENV=test jest --force-exit --verbose ./test/*test.ts",
-        "run-ganache": "npm run stop-ganache && KEY=$(grep PRIVATE_KEY .env | xargs); PKEY=${KEY#*=}; ganache-cli -p 7545  -q --account=\"${PKEY},1000000000000000000000000000000000000000\" > /dev/null & sleep 5",
+        "run-ganache": "npm run stop-ganache && ganache-cli -p 7545  -q --account=\"0x348ce564d427a3311b6536bbcff9390d69395b06ed6c486954e971d960fe8709,1000000000000000000000000000000000000000\" > /dev/null & sleep 5",
         "stop-ganache": "kill $(lsof -t -i :7545) || echo 'No process running on port 7545'",
         "watch-test": "npm run test -- --watchAll",
         "debug": "npm run build && npm run watch-debug",

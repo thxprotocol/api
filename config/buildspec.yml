@@ -1,0 +1,14 @@
+version: 0.1
+os: ubuntu
+files:
+    - source: /
+      destination: /home/ubuntu/sites/api-dev
+hooks:
+    BeforeInstall:
+        - location: scripts/install.sh
+    #AfterInstall:
+    #   - location: scripts/test.sh
+    #    timeout: 10000
+    ApplicationStart:
+        - location: scripts/run.sh
+          timeout: 3600

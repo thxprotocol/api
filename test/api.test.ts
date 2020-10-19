@@ -3,19 +3,31 @@ import app from '../src/app';
 import db from '../src/util/database';
 import mongoose from 'mongoose';
 import { deployTestTokenContract } from '../src/util/network';
+import { MongoMemoryServer } from 'mongodb-memory-server';
 
 const user = request.agent(app);
-
-let poolAddress: any, testTokenInstance: any;
 const poolTitle = 'Volunteers United';
 
-(async () => {
+let poolAddress: any, testTokenInstance: any;
+
+beforeAll(async () => {
+    const server = new MongoMemoryServer({
+        instance: {
+            ip: 'localhost',
+            port: 27027,
+            dbName: 'test',
+        },
+        autoStart: true,
+    });
+
     testTokenInstance = await deployTestTokenContract();
-})();
+
+    await server.ensureInstance();
+});
 
 afterAll(async () => {
     await mongoose.disconnect();
-    await db.disconnect();
+    return await db.disconnect();
 });
 
 describe('POST /login (no auth)', () => {
@@ -258,36 +270,36 @@ describe('PUT /asset_pools/:address', () => {
     });
 });
 
-const rewardTitle = 'Complete your profile!';
-const rewardDescription = 'Earn great rewards for tiny things.';
+// const rewardTitle = 'Complete your profile!';
+// const rewardDescription = 'Earn great rewards for tiny things.';
 
-describe('POST /rewards/', () => {
-    let redirectURL = '';
+// describe('POST /rewards/', () => {
+//     let redirectURL = '';
 
-    it('should return a 302 ', (done) => {
-        user.post('/v1/rewards/')
-            .set({ AssetPool: poolAddress })
-            .send({
-                withdrawAmount: '20000000000000000000',
-                withdrawDuration: '400',
-                title: 'Complete your profile!',
-                description: 'You should do this and that...',
-            })
-            .end(async (err, res) => {
-                expect(res.status).toBe(302);
-                done();
-            });
-    });
+//     it('should return a 302 ', (done) => {
+//         user.post('/v1/rewards/')
+//             .set({ AssetPool: poolAddress })
+//             .send({
+//                 withdrawAmount: '20000000000000000000',
+//                 withdrawDuration: '400',
+//                 title: 'Complete your profile!',
+//                 description: 'You should do this and that...',
+//             })
+//             .end(async (err, res) => {
+//                 expect(res.status).toBe(302);
+//                 done();
+//             });
+//     });
 
-    it('should return a 200 after redirect', (done) => {
-        user.get('/v1/' + redirectURL)
-            .set({ AssetPool: poolAddress })
-            .end(async (err, res) => {
-                expect(Number(res.body.id)).toEqual(0);
-                expect(res.body.title).toEqual(rewardTitle);
-                expect(res.body.description).toEqual(rewardDescription);
-                expect(res.status).toBe(200);
-                done();
-            });
-    });
-});
+//     it('should return a 200 after redirect', (done) => {
+//         user.get('/v1/' + redirectURL)
+//             .set({ AssetPool: poolAddress })
+//             .end(async (err, res) => {
+//                 expect(Number(res.body.id)).toEqual(0);
+//                 expect(res.body.title).toEqual(rewardTitle);
+//                 expect(res.body.description).toEqual(rewardDescription);
+//                 expect(res.status).toBe(200);
+//                 done();
+//             });
+//     });
+// });

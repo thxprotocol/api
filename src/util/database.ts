@@ -1,8 +1,6 @@
 import mongoose from 'mongoose';
 import bluebird from 'bluebird';
 import logger from './logger';
-import { MongoMemoryServer } from 'mongodb-memory-server';
-import { ENVIRONMENT } from './secrets';
 
 mongoose.Promise = bluebird;
 
@@ -15,13 +13,7 @@ const connect = async (url: string) => {
     };
 
     if (mongoose.connection.readyState === 0) {
-        if (ENVIRONMENT === 'test') {
-            const mongoServer = new MongoMemoryServer();
-            url = await mongoServer.getUri();
-            await mongoose.connect(url, mongooseOpts);
-        } else {
-            await mongoose.connect(url, mongooseOpts);
-        }
+        await mongoose.connect(url, mongooseOpts);
     }
 
     mongoose.connection.on('error', (err) => {
