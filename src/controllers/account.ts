@@ -31,7 +31,7 @@ import '../config/passport';
  *         type: string
  *     responses:
  *       200:
- *         description: login
+ *         description: OK
  */
 export const logout = (req: Request, res: Response) => {
     req.logout();
@@ -60,7 +60,12 @@ export const logout = (req: Request, res: Response) => {
  *         type: string
  *     responses:
  *       200:
- *         description: login
+ *         description: OK
+ *       302:
+ *         description: OK
+ *         headers:
+ *            Location:
+ *               type: string
  */
 export const postLogin = async (req: Request, res: Response, next: NextFunction) => {
     const errors = validationResult(req);

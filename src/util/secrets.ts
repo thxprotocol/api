@@ -8,7 +8,7 @@ export const ENVIRONMENT = process.env.NODE_ENV;
 export const MONGODB_URI = process.env['MONGODB_URI'];
 export const PRIVATE_KEY = process.env['PRIVATE_KEY'];
 export const SESSION_SECRET = process.env['SESSION_SECRET'];
-export const APP_URL = process.env['APP_URL'];
+export const ORIGIN = process.env['ORIGIN'];
 export const RPC = process.env['RPC'];
 
 if (!MONGODB_URI) {
