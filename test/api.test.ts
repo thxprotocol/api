@@ -199,11 +199,11 @@ describe('GET /asset_pools/:address', () => {
             });
     });
 
-    it('should return a 500 if pool does not exist', (done) => {
+    it('should return a 404 if pool does not exist', (done) => {
         user.get('/v1/asset_pools/0x0000000000000000000000000000000000000000')
             .set({ AssetPool: poolAddress })
             .end(async (err, res) => {
-                expect(res.status).toBe(400);
+                expect(res.status).toBe(404);
                 done();
             });
     });

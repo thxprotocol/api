@@ -12,7 +12,7 @@ const qrcode = require('qrcode');
  * /rewards/:id/:
  *   get:
  *     tags:
- *       - rewards
+ *       - Rewards
  *     description: Get information about a reward in the asset pool
  *     produces:
  *       - application/json
@@ -24,16 +24,30 @@ const qrcode = require('qrcode');
  *       - name: id
  *         in: path
  *         required: true
- *         type: int
+ *         type: integer
  *     responses:
  *       200:
- *         message: ...
+ *         schema:
+ *           type: object
+ *           properties:
+ *             title:
+ *               type: string
+ *               description:
+ *             description:
+ *               type: string
+ *               description: The description
+ *             withdrawAmount:
+ *               type: number
+ *               description: Size of the reward
+ *             withdrawDuration:
+ *               type: number
+ *               description: Default duration of the withdraw poll
  */
 export const getReward = async (req: Request, res: Response, next: NextFunction) => {
     const errors = validationResult(req);
 
     if (!errors.isEmpty()) {
-        return res.status(500).send(errors.array()).end();
+        return res.status(400).json(errors.array()).end();
     }
 
     try {
@@ -53,7 +67,6 @@ export const getReward = async (req: Request, res: Response, next: NextFunction)
                     withdrawAmount: await rewardPollInstance.methods.withdrawAmount().call(options),
                     withdrawDuration: await rewardPollInstance.methods.withdrawDuration().call(options),
                 };
-
                 const reward = {
                     id,
                     title: metaData.title,
@@ -69,14 +82,14 @@ export const getReward = async (req: Request, res: Response, next: NextFunction)
                     updated,
                 } as RewardDocument;
 
-                return res.send({ reward });
+                res.json({ reward });
             } catch (err) {
                 throw new Error('Reward does not exists on chain.');
             }
         });
     } catch (err) {
-        logger.error(err);
-        return res.status(500).end({ msg: err });
+        logger.error(err.toString());
+        res.status(500).end({ msg: err.toString() });
     }
 };
 
@@ -85,7 +98,7 @@ export const getReward = async (req: Request, res: Response, next: NextFunction)
  * /rewards:
  *   post:
  *     tags:
- *       - rewards
+ *       - Rewards
  *     description: Create a new reward in the asset pool
  *     produces:
  *       - application/json
@@ -105,20 +118,23 @@ export const getReward = async (req: Request, res: Response, next: NextFunction)
  *       - name: withdrawAmount
  *         in: body
  *         required: true
- *         type: int
+ *         type: integer
  *       - name: withdrawDuration
  *         in: body
  *         required: true
- *         type: int
+ *         type: integer
  *     responses:
- *       200:
- *         description: OK
+ *       302:
+ *          headers:
+ *              Location:
+ *                  type: string
+ *                  description: Redirect route to /reward/:address
  */
 export const postReward = async (req: Request, res: Response, next: NextFunction) => {
     const errors = validationResult(req);
 
     if (!errors.isEmpty()) {
-        return res.status(400).send(errors.array()).end();
+        return res.status(400).json(errors.array()).end();
     }
 
     try {
@@ -155,7 +171,7 @@ export const postReward = async (req: Request, res: Response, next: NextFunction
  * /rewards/:id/claim:
  *   get:
  *     tags:
- *       - rewards
+ *       - Rewards
  *     description: Create a quick response image to claim the reward.
  *     produces:
  *       - application/json
@@ -167,16 +183,16 @@ export const postReward = async (req: Request, res: Response, next: NextFunction
  *       - name: id
  *         in: path
  *         required: true
- *         type: int
+ *         type: integer
  *     responses:
  *       200:
- *         base64: ...
+ *         base64: data:image/jpeg;base64,...
  */
 export const getRewardClaim = async (req: Request, res: Response) => {
     const errors = validationResult(req);
 
     if (!errors.isEmpty()) {
-        return res.status(500).send(errors.array()).end();
+        return res.status(500).json(errors.array()).end();
     }
 
     try {
@@ -190,7 +206,7 @@ export const getRewardClaim = async (req: Request, res: Response) => {
                 },
             }),
         );
-        res.status(200).send({ base64 });
+        res.status(200).json({ base64 });
     } catch (err) {
         logger.error(err);
         return res.status(500).end();
@@ -202,7 +218,7 @@ export const getRewardClaim = async (req: Request, res: Response) => {
  * /rewards/:id/claim:
  *   put:
  *     tags:
- *       - rewards
+ *       - Rewards
  *     description: Create a quick response image to claim the reward.
  *     produces:
  *       - application/json
@@ -214,7 +230,7 @@ export const getRewardClaim = async (req: Request, res: Response) => {
  *       - name: id
  *         in: path
  *         required: true
- *         type: int
+ *         type: integer
  *       - name: title
  *         in: body
  *         required: true
@@ -226,20 +242,20 @@ export const getRewardClaim = async (req: Request, res: Response) => {
  *       - name: withdrawAmount
  *         in: body
  *         required: true
- *         type: int
+ *         type: integer
  *       - name: withdrawDuration
  *         in: body
  *         required: true
- *         type: int
+ *         type: integer
  *     responses:
  *       200:
- *         base64: ...
+ *         base64: data:image/jpeg;base64,...
  */
 export const putReward = async (req: Request, res: Response, next: NextFunction) => {
     const errors = validationResult(req);
 
     if (!errors.isEmpty()) {
-        return res.status(500).send(errors.array()).end();
+        return res.status(500).json(errors.array()).end();
     }
 
     try {

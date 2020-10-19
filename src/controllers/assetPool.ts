@@ -11,8 +11,8 @@ import { validationResult } from 'express-validator';
  * /asset_pools/:address:
  *   get:
  *     tags:
- *       - asset_pools
- *     description: Get an asset pool
+ *       - Asset Pools
+ *     description: Get information about a specific asset pool.
  *     produces:
  *       - application/json
  *     parameters:
@@ -57,7 +57,7 @@ export const getAssetPool = async (req: Request, res: Response, next: NextFuncti
     const errors = validationResult(req);
 
     if (!errors.isEmpty()) {
-        return res.status(400).send(errors.array()).end();
+        return res.status(400).json(errors.array()).end();
     }
 
     try {
@@ -74,21 +74,17 @@ export const getAssetPool = async (req: Request, res: Response, next: NextFuncti
             proposeWithdrawPollDuration: await assetPoolInstance.methods.proposeWithdrawPollDuration().call(options),
             rewardPollDuration: await assetPoolInstance.methods.rewardPollDuration().call(options),
         };
+        const { uid, address, title }: AssetPoolDocument = await AssetPool.findOne({ address: req.params.address });
 
-        AssetPool.findOne({ address: req.params.address }, (err, { uid, address, title }: AssetPoolDocument) => {
-            if (err) {
-                return next(err);
-            }
-            if (address) {
-                res.send({ title, address, uid, ...contractData });
-            } else {
-                logger.error(err);
-                res.status(404).send({ msg: `No reward pool found for address ${address}` });
-            }
-        });
+        if (!address) {
+            throw Error(`No asset pool found for address ${address}`);
+        }
+
+        res.send({ title, address, uid, ...contractData });
     } catch (err) {
-        logger.error(err.toString());
-        res.status(400).send({ msg: err.toString() });
+        const error = err.toString();
+        logger.error(error);
+        res.status(500).json({ msg: 'Something went wrong while getting the asset pool', error });
     }
 };
 
@@ -97,8 +93,8 @@ export const getAssetPool = async (req: Request, res: Response, next: NextFuncti
  * /asset_pools:
  *   post:
  *     tags:
- *       - asset_pools
- *     description: Create an asset pool
+ *       - Asset Pools
+ *     description: Create a new asset pool, deploy it on the network and retrieve the address.
  *     produces:
  *       - application/json
  *     parameters:
@@ -126,7 +122,7 @@ export const postAssetPool = async (req: Request, res: Response, next: NextFunct
     let address = '';
 
     if (!errors.isEmpty()) {
-        return res.status(400).send(errors.array()).end();
+        return res.status(400).json(errors.array()).end();
     }
 
     try {
@@ -138,37 +134,23 @@ export const postAssetPool = async (req: Request, res: Response, next: NextFunct
         address = instance.options.address;
 
         await instance.methods.initialize(options.from, req.body.token).send(options);
+        await new AssetPool({
+            address,
+            title: req.body.title,
+            uid: req.session.passport.user,
+        }).save();
+
+        const account: AccountDocument = await Account.findById((req.user as AccountDocument).id);
+
+        if (!account.profile.assetPools.includes(address)) {
+            account.profile.assetPools.push(address);
+            await account.save();
+        }
+        res.send({ address });
     } catch (err) {
         logger.error(err.toString());
-        return res.status(400).send({ msg: err.toString() }).end();
+        res.status(400).json({ msg: err.toString() }).end();
     }
-
-    const assetPool = new AssetPool({
-        address,
-        title: req.body.title,
-        uid: req.session.passport.user,
-    });
-
-    assetPool.save(async (err) => {
-        if (err) {
-            return next(err);
-        }
-        Account.findById((req.user as AccountDocument).id, (err, account: AccountDocument) => {
-            if (err) {
-                return next(err);
-            }
-
-            if (!account.profile.assetPools.includes(address)) {
-                account.profile.assetPools.push(address);
-                account.save(async (err: any) => {
-                    if (err) {
-                        return next(err);
-                    }
-                    res.send({ address });
-                });
-            }
-        });
-    });
 };
 
 /**
@@ -176,8 +158,8 @@ export const postAssetPool = async (req: Request, res: Response, next: NextFunct
  * /asset_pools/:address/deposit:
  *   post:
  *     tags:
- *       - asset_pools
- *     description: Create an asset pool
+ *       - Asset Pools
+ *     description: Create a deposit for an asset pool.
  *     produces:
  *       - application/json
  *     parameters:
@@ -201,7 +183,7 @@ export const postAssetPoolDeposit = async (req: Request, res: Response, next: Ne
     const errors = validationResult(req);
 
     if (!errors.isEmpty()) {
-        return res.status(400).send(errors.array()).end();
+        return res.status(400).json(errors.array()).end();
     }
 
     try {
@@ -213,7 +195,7 @@ export const postAssetPoolDeposit = async (req: Request, res: Response, next: Ne
         // TODO Return a QR here and handle approve and deposit in client app
     } catch (err) {
         logger.error(err.toString());
-        res.status(400).send({ msg: err.toString() });
+        res.status(400).json({ msg: err.toString() });
     }
 };
 
@@ -222,7 +204,7 @@ export const postAssetPoolDeposit = async (req: Request, res: Response, next: Ne
  * /asset_pools/:address/:
  *   put:
  *     tags:
- *       - asset_pools
+ *       - Asset Pools
  *     description: Update the configuration for this asset pool
  *     produces:
  *       - application/json
@@ -238,20 +220,20 @@ export const postAssetPoolDeposit = async (req: Request, res: Response, next: Ne
  *       - name: rewardPollDuration
  *         in: body
  *         required: true
- *         type: int
+ *         type: integer
  *       - name: proposeWithdrawPollDuration
  *         in: body
  *         required: true
- *         type: int
+ *         type: integer
  *     responses:
  *       200:
- *         description: Success.
+ *         description: OK
  */
 export const putAssetPool = async (req: Request, res: Response, next: NextFunction) => {
     const errors = validationResult(req);
 
     if (!errors.isEmpty()) {
-        return res.status(400).send(errors.array()).end();
+        return res.status(400).json(errors.array()).end();
     }
 
     try {
@@ -263,6 +245,6 @@ export const putAssetPool = async (req: Request, res: Response, next: NextFuncti
         res.redirect('/v1/asset_pools/' + req.params.address);
     } catch (err) {
         logger.error(err.toString());
-        res.status(400).send({ msg: err.toString() });
+        res.status(400).json({ msg: err.toString() });
     }
 };

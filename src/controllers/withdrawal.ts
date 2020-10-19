@@ -42,7 +42,7 @@ export const getWithdrawal = async (req: Request, res: Response) => {
     const errors = validationResult(req);
 
     if (!errors.isEmpty()) {
-        return res.status(500).send(errors.array()).end();
+        return res.status(500).json(errors.array()).end();
     }
 
     try {
@@ -97,7 +97,7 @@ export const getWithdrawals = async (req: Request, res: Response) => {
     const errors = validationResult(req);
 
     if (!errors.isEmpty()) {
-        return res.status(500).send(errors.array()).end();
+        return res.status(500).json(errors.array()).end();
     }
 
     try {
@@ -136,7 +136,7 @@ export const getWithdrawals = async (req: Request, res: Response) => {
  *       - name: amount
  *         in: body
  *         required: true
- *         type: int
+ *         type: integer
  *       - name: beneficiary
  *         in: body
  *         required: true
@@ -150,7 +150,7 @@ export const postWithdrawal = async (req: Request, res: Response) => {
     const errors = validationResult(req);
 
     if (!errors.isEmpty()) {
-        return res.status(500).send(errors.array()).end();
+        return res.status(500).json(errors.array()).end();
     }
 
     try {
@@ -186,13 +186,13 @@ export const postWithdrawal = async (req: Request, res: Response) => {
  *         type: string
  *     responses:
  *       200:
- *         base64: ...
+ *         base64: data:image/jpeg;base64,...
  */
 export const getWithdraw = async (req: Request, res: Response) => {
     const errors = validationResult(req);
 
     if (!errors.isEmpty()) {
-        return res.status(500).send(errors.array()).end();
+        return res.status(500).json(errors.array()).end();
     }
 
     try {

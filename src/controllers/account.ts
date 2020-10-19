@@ -55,7 +55,7 @@ export const postLogin = async (req: Request, res: Response, next: NextFunction)
     const errors = validationResult(req);
 
     if (!errors.isEmpty()) {
-        return res.status(400).send(errors.array()).end();
+        return res.status(400).json(errors.array()).end();
     }
 
     passport.authenticate('local', (err: Error, account: AccountDocument, info: IVerifyOptions) => {
@@ -63,7 +63,7 @@ export const postLogin = async (req: Request, res: Response, next: NextFunction)
             return next(err);
         }
         if (!account) {
-            return res.status(401).send({ msg: info.message }).end();
+            return res.status(401).json({ msg: info.message }).end();
         }
         req.logIn(account, (err) => {
             if (err) {
@@ -112,7 +112,7 @@ export const postSignup = async (req: Request, res: Response, next: NextFunction
     const errors = validationResult(req);
 
     if (!errors.isEmpty()) {
-        return res.status(400).send(errors.array()).end();
+        return res.status(400).json(errors.array()).end();
     }
 
     const account = new Account({
@@ -188,7 +188,7 @@ export const getAccount = async (req: Request, res: Response, next: NextFunction
     const errors = validationResult(req);
 
     if (!errors.isEmpty()) {
-        return res.status(400).send(errors.array()).end();
+        return res.status(400).json(errors.array()).end();
     }
 
     Account.findById(account.id, (err, account: AccountDocument) => {
@@ -257,7 +257,7 @@ export const patchAccount = async (req: Request, res: Response, next: NextFuncti
     const errors = validationResult(req);
 
     if (!errors.isEmpty()) {
-        return res.status(400).send(errors.array()).end();
+        return res.status(400).json(errors.array()).end();
     }
 
     Account.findById((req.user as AccountDocument).id, (err, account: AccountDocument) => {
@@ -327,7 +327,7 @@ export const putPassword = async (req: Request, res: Response, next: NextFunctio
     const errors = validationResult(req);
 
     if (!errors.isEmpty()) {
-        return res.status(400).send(errors.array()).end();
+        return res.status(400).json(errors.array()).end();
     }
 
     Account.findById(account.id, (err, account: AccountDocument) => {
@@ -365,7 +365,7 @@ export const deleteAccount = (req: Request, res: Response, next: NextFunction) =
     const errors = validationResult(req);
 
     if (!errors.isEmpty()) {
-        return res.status(400).send(errors.array()).end();
+        return res.status(400).json(errors.array()).end();
     }
 
     Account.remove({ _id: account.id }, (err) => {
@@ -407,7 +407,7 @@ export const postReset = async (req: Request, res: Response, next: NextFunction)
     const errors = validationResult(req);
 
     if (!errors.isEmpty()) {
-        return res.status(400).send(errors.array()).end();
+        return res.status(400).json(errors.array()).end();
     }
 
     async.waterfall(
@@ -495,7 +495,7 @@ export const postForgot = async (req: Request, res: Response, next: NextFunction
     const errors = validationResult(req);
 
     if (!errors.isEmpty()) {
-        return res.status(400).send(errors.array()).end();
+        return res.status(400).json(errors.array()).end();
     }
 
     async.waterfall(
@@ -512,7 +512,7 @@ export const postForgot = async (req: Request, res: Response, next: NextFunction
                         return done(err);
                     }
                     if (!account) {
-                        return res.status(404).send({ msg: 'Account with that email address does not exist.' }).end();
+                        return res.status(404).json({ msg: 'Account with that email address does not exist.' }).end();
                     }
                     account.passwordResetToken = token;
                     account.passwordResetExpires = Date.now() + 3600000; // 1 hour

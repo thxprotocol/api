@@ -43,6 +43,7 @@ export const validate = {
     deleteVote: [validateAssetPoolHeader],
     // members
     postMember: [validateAssetPoolHeader, body('address').exists()],
+    patchMember: [validateAssetPoolHeader, body('address').exists()],
     deleteMember: [validateAssetPoolHeader, param('address').exists()],
     getMember: [validateAssetPoolHeader, param('address').exists()],
     // rewards

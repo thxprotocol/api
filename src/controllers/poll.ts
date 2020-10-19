@@ -10,7 +10,7 @@ const qrcode = require('qrcode');
  * /polls/:address/vote/:agree:
  *   get:
  *     tags:
- *       - polls
+ *       - Polls
  *     description: Get a quick response image to vote.
  *     produces:
  *       - application/json
@@ -27,16 +27,16 @@ const qrcode = require('qrcode');
  *         description: Provide 0 to disagree and 1 to agree
  *         in: path
  *         required: true
- *         type: int
+ *         type: integer
  *     responses:
  *       200:
- *         base64: ...
+ *         base64: data:image/jpeg;base64,...
  */
 export const getVote = async (req: Request, res: Response) => {
     const errors = validationResult(req);
 
     if (!errors.isEmpty()) {
-        return res.status(500).send(errors.array()).end();
+        return res.status(500).json(errors.array()).end();
     }
 
     try {
@@ -62,7 +62,7 @@ export const getVote = async (req: Request, res: Response) => {
  * /polls/:address/:
  *   get:
  *     tags:
- *       - polls
+ *       - Polls
  *     description: Get general information about a poll.
  *     produces:
  *       - application/json
@@ -76,37 +76,56 @@ export const getVote = async (req: Request, res: Response) => {
  *         required: true
  *         type: string
  *     responses:
+ *       404:
+ *         description: Poll is nto found
  *       200:
- *         data: ...
+ *         description: OK
+ *         schema:
+ *            type: object
+ *            properties:
+ *               startTime:
+ *                  type: string
+ *                  description: Date string of start of the poll
+ *               endTime:
+ *                  type: string
+ *                  description: Date string of end of the poll
+ *               yesCounter:
+ *                  type: number
+ *                  description: Amount of yes votes on the poll
+ *               noCounter:
+ *                  type: number
+ *                  description: Amount of no votes on the poll
+ *               totalVoted:
+ *                  type: number
+ *                  description: Total amount of votes on the poll
+ *               finalized:
+ *                  type: boolean
+ *                  description: Poll is finalized or not
+ *
  */
 export const getPoll = async (req: Request, res: Response) => {
     const errors = validationResult(req);
 
     if (!errors.isEmpty()) {
-        return res.status(500).send(errors.array()).end();
+        return res.status(500).json(errors.array()).end();
     }
 
     try {
         const poll = basePollContract(req.params.address);
         const startTime = await poll.methods.startTime().call(options);
         const endTime = await poll.methods.endTime().call(options);
-        const yesCounter = await poll.methods.yesCounter().call(options);
-        const noCounter = await poll.methods.noCounter().call(options);
-        const totalVoted = await poll.methods.totalVoted().call(options);
-        const finalized = await poll.methods.finalized().call(options);
 
         res.send({
             startTime: new Date(startTime * 1000),
             endTime: new Date(endTime * 1000),
-            withdrawal: poll.options.address,
-            yesCounter,
-            noCounter,
-            totalVoted,
-            finalized,
+            yesCounter: await poll.methods.yesCounter().call(options),
+            noCounter: await poll.methods.noCounter().call(options),
+            totalVoted: await poll.methods.totalVoted().call(options),
+            finalized: await poll.methods.finalized().call(options),
         });
     } catch (err) {
         logger.error(err);
-        return res.status(404).end();
+        res.status(404).end();
     }
 };
 
@@ -115,7 +134,7 @@ export const getPoll = async (req: Request, res: Response) => {
  * /polls/:address/vote:
  *   post:
  *     tags:
- *       - polls
+ *       - Polls
  *     description: Get a quick response image to vote.
  *     produces:
  *       - application/json
@@ -136,24 +155,24 @@ export const getPoll = async (req: Request, res: Response) => {
  *         description: Provide 0 to disagree and 1 to agree
  *         in: body
  *         required: true
- *         type: int
+ *         type: integer
  *       - name: nonce
  *         in: body
  *         required: true
- *         type: int
+ *         type: integer
  *       - name: sig
  *         in: body
  *         required: true
  *         type: string
  *     responses:
  *       200:
- *         base64: ...
+ *         base64: data:image/jpeg;base64,...
  */
 export const postVote = async (req: Request, res: Response) => {
     const errors = validationResult(req);
 
     if (!errors.isEmpty()) {
-        return res.status(500).send(errors.array()).end();
+        return res.status(500).json(errors.array()).end();
     }
 
     try {
@@ -163,7 +182,7 @@ export const postVote = async (req: Request, res: Response) => {
         res.send({ tx });
     } catch (err) {
         logger.error(err);
-        return res.status(500).end();
+        res.status(500).end();
     }
 };
 
@@ -172,7 +191,7 @@ export const postVote = async (req: Request, res: Response) => {
  * /polls/:address/revoke_vote:
  *   get:
  *     tags:
- *       - polls
+ *       - Polls
  *     description: Cast a vote for a poll
  *     produces:
  *       - application/json
@@ -187,13 +206,13 @@ export const postVote = async (req: Request, res: Response) => {
  *         type: string
  *     responses:
  *       200:
- *         base64: ...
+ *         base64: data:image/jpeg;base64,...
  */
 export const getRevokeVote = async (req: Request, res: Response) => {
     const errors = validationResult(req);
 
     if (!errors.isEmpty()) {
-        return res.status(500).send(errors.array()).end();
+        return res.status(500).json(errors.array()).end();
     }
 
     try {
@@ -216,7 +235,7 @@ export const getRevokeVote = async (req: Request, res: Response) => {
  * /polls/:address/vote:
  *   delete:
  *     tags:
- *       - polls
+ *       - Polls
  *     description: Cast a vote for a poll
  *     produces:
  *       - application/json
@@ -236,7 +255,7 @@ export const getRevokeVote = async (req: Request, res: Response) => {
  *       - name: nonce
  *         in: body
  *         required: true
- *         type: int
+ *         type: integer
  *       - name: sig
  *         in: body
  *         required: true
@@ -255,7 +274,7 @@ export const deleteVote = async (req: Request, res: Response) => {
     const errors = validationResult(req);
 
     if (!errors.isEmpty()) {
-        return res.status(500).send(errors.array()).end();
+        return res.status(500).json(errors.array()).end();
     }
 
     try {
