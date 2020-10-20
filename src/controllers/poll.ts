@@ -30,13 +30,13 @@ const qrcode = require('qrcode');
  *         type: integer
  *     responses:
  *       200:
- *         base64: data:image/jpeg;base64,...
+ *         base64: data:image/png;base64,...
  */
 export const getVote = async (req: Request, res: Response) => {
     const errors = validationResult(req);
 
     if (!errors.isEmpty()) {
-        return res.status(500).json(errors.array()).end();
+        return res.status(400).json(errors.array()).end();
     }
 
     try {
@@ -50,10 +50,10 @@ export const getVote = async (req: Request, res: Response) => {
                 },
             }),
         );
-        res.send({ base64 });
+        res.json({ base64 });
     } catch (err) {
-        logger.error(err);
-        return res.status(500).end();
+        logger.error(err.toString());
+        res.status(500).json({ error: err.toString() });
     }
 };
 
@@ -107,7 +107,7 @@ export const getPoll = async (req: Request, res: Response) => {
     const errors = validationResult(req);
 
     if (!errors.isEmpty()) {
-        return res.status(500).json(errors.array()).end();
+        return res.status(400).json(errors.array()).end();
     }
 
     try {
@@ -115,7 +115,7 @@ export const getPoll = async (req: Request, res: Response) => {
         const startTime = await poll.methods.startTime().call(options);
         const endTime = await poll.methods.endTime().call(options);
 
-        res.send({
+        res.json({
             startTime: new Date(startTime * 1000),
             endTime: new Date(endTime * 1000),
             yesCounter: await poll.methods.yesCounter().call(options),
@@ -124,8 +124,8 @@ export const getPoll = async (req: Request, res: Response) => {
             finalized: await poll.methods.finalized().call(options),
         });
     } catch (err) {
-        logger.error(err);
-        res.status(404).end();
+        logger.error(err.toString());
+        res.status(404).json({ error: err.toString() });
     }
 };
 
@@ -152,10 +152,9 @@ export const getPoll = async (req: Request, res: Response) => {
  *         required: true
  *         type: string
  *       - name: agree
- *         description: Provide 0 to disagree and 1 to agree
  *         in: body
  *         required: true
- *         type: integer
+ *         type: boolean
  *       - name: nonce
  *         in: body
  *         required: true
@@ -166,23 +165,26 @@ export const getPoll = async (req: Request, res: Response) => {
  *         type: string
  *     responses:
  *       200:
- *         base64: data:image/jpeg;base64,...
+ *         base64: data:image/png;base64,...
  */
 export const postVote = async (req: Request, res: Response) => {
     const errors = validationResult(req);
 
     if (!errors.isEmpty()) {
-        return res.status(500).json(errors.array()).end();
+        return res.status(400).json(errors.array()).end();
     }
 
     try {
-        const tx = await basePollContract(req.params.address)
-            .methods.vote(req.body.voter, JSON.parse(req.body.agree), parseInt(req.body.nonce, 10), req.body.sig)
+        const instance = basePollContract(req.params.address);
+
+        await instance.methods
+            .vote(req.body.voter, JSON.parse(req.body.agree), parseInt(req.body.nonce, 10), req.body.sig)
             .send(options);
-        res.send({ tx });
+
+        res.redirect(`polls/${req.params.address}`);
     } catch (err) {
-        logger.error(err);
-        res.status(500).end();
+        logger.error(err.toString());
+        res.status(500).json({ error: err.toString() });
     }
 };
 
@@ -206,7 +208,7 @@ export const postVote = async (req: Request, res: Response) => {
  *         type: string
  *     responses:
  *       200:
- *         base64: data:image/jpeg;base64,...
+ *         base64: data:image/png;base64,...
  */
 export const getRevokeVote = async (req: Request, res: Response) => {
     const errors = validationResult(req);

@@ -33,6 +33,7 @@ This repository holds the source for the THX REST API.
 3. Set PRIVATE_KEY in the active .env file with this value
 
 ```
+npm run build
 npm run serve
 ```
 

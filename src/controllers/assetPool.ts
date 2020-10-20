@@ -202,7 +202,7 @@ export const postAssetPoolDeposit = async (req: Request, res: Response, next: Ne
 /**
  * @swagger
  * /asset_pools/:address/:
- *   put:
+ *   patch:
  *     tags:
  *       - Asset Pools
  *     description: Update the configuration for this asset pool
@@ -229,7 +229,7 @@ export const postAssetPoolDeposit = async (req: Request, res: Response, next: Ne
  *       200:
  *         description: OK
  */
-export const putAssetPool = async (req: Request, res: Response, next: NextFunction) => {
+export const patchAssetPool = async (req: Request, res: Response, next: NextFunction) => {
     const errors = validationResult(req);
 
     if (!errors.isEmpty()) {
@@ -239,12 +239,16 @@ export const putAssetPool = async (req: Request, res: Response, next: NextFuncti
     try {
         const instance = assetPoolContract(req.header('AssetPool'));
 
-        await instance.methods.setRewardPollDuration(req.body.rewardPollDuration).send(options);
-        await instance.methods.setProposeWithdrawPollDuration(req.body.proposeWithdrawPollDuration).send(options);
+        if (req.body.rewardPollDuration) {
+            await instance.methods.setRewardPollDuration(req.body.rewardPollDuration).send(options);
+        }
+        if (req.body.proposeWithdrawPollDuration) {
+            await instance.methods.setProposeWithdrawPollDuration(req.body.proposeWithdrawPollDuration).send(options);
+        }
 
-        res.redirect('/v1/asset_pools/' + req.params.address);
+        res.redirect('asset_pools/' + req.params.address);
     } catch (err) {
         logger.error(err.toString());
-        res.status(400).json({ msg: err.toString() });
+        res.status(500).json({ msg: err.toString() });
     }
 };

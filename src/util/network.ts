@@ -10,7 +10,7 @@ export const ASSET_POOL_BIN = fs.readFileSync('./src/contracts/AssetPool.bin', '
 export const ERC20_BIN = fs.readFileSync('./src/contracts/ERC20.bin', 'utf8');
 export const ERC20_ABI = fs.readFileSync('./src/contracts/ERC20.abi', 'utf8');
 
-const web3 = new Web3(RPC);
+export const web3 = new Web3(RPC);
 const account = web3.eth.accounts.privateKeyToAccount(PRIVATE_KEY);
 
 web3.eth.accounts.wallet.add(account);
