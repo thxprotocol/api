@@ -84,7 +84,7 @@ export const getAssetPool = async (req: Request, res: Response, next: NextFuncti
     } catch (err) {
         const error = err.toString();
         logger.error(error);
-        res.status(500).json({ msg: 'Something went wrong while getting the asset pool', error });
+        res.status(404).json({ msg: 'Something went wrong while getting the asset pool', error });
     }
 };
 
