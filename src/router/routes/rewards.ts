@@ -8,9 +8,10 @@ router.get('/:id/claim', validate.getRewardClaim, rewardController.getRewardClai
 router.get('/:id', validate.getReward, rewardController.getReward);
 router.post('/', validate.postReward, rewardController.postReward);
 router.patch('/:id', validate.patchReward, rewardController.patchReward);
+router.post('/:id/finalize', validate.postRewardFinalize, rewardController.postRewardFinalize);
+
 // router.put('/:id', validate.putReward, rewardController.putReward);
 
-// TODO router.get('/rewards/:address/finalize', validate.getFinalize, rewardController.getFinalize);
 // TODO router.post('/rewards/:address/finalize', validate.postFinalize, rewardController.postFinalize);
 
 export default router;

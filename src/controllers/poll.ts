@@ -84,11 +84,23 @@ export const getVote = async (req: Request, res: Response) => {
  *            type: object
  *            properties:
  *               startTime:
- *                  type: string
- *                  description: Date string of start of the poll
+ *                  type: object
+ *                  properties:
+ *                      raw:
+ *                          type: number
+ *                          description: Unix timestamp for start of the poll
+ *                      formatted:
+ *                          type: string
+ *                          description: Date string of start of the poll
  *               endTime:
- *                  type: string
- *                  description: Date string of end of the poll
+ *                  type: object
+ *                  properties:
+ *                      raw:
+ *                          type: number
+ *                          description: Unix timestamp for start of the poll
+ *                      formatted:
+ *                          type: string
+ *                          description: Date string of start of the poll
  *               yesCounter:
  *                  type: number
  *                  description: Amount of yes votes on the poll
@@ -116,8 +128,14 @@ export const getPoll = async (req: Request, res: Response) => {
         const endTime = await poll.methods.endTime().call(options);
 
         res.json({
-            startTime: new Date(startTime * 1000),
-            endTime: new Date(endTime * 1000),
+            startTime: {
+                raw: startTime,
+                formatted: new Date(startTime * 1000),
+            },
+            endTime: {
+                raw: endTime,
+                formatted: new Date(endTime * 1000),
+            },
             yesCounter: await poll.methods.yesCounter().call(options),
             noCounter: await poll.methods.noCounter().call(options),
             totalVoted: await poll.methods.totalVoted().call(options),

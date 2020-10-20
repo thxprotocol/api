@@ -54,6 +54,7 @@ export const validate = {
         body('withdrawAmount').exists(),
         body('withdrawDuration').exists(),
     ],
+    postRewardFinalize: [validateAssetPoolHeader],
     getReward: [validateAssetPoolHeader, param('id').exists()],
     patchReward: [validateAssetPoolHeader],
     putReward: [

@@ -670,7 +670,7 @@
         ],
         "responses": {
           "200": {
-            "base64": "data:image/jpeg;base64,..."
+            "base64": "data:image/png;base64,..."
           }
         }
       }
@@ -705,12 +705,30 @@
               "type": "object",
               "properties": {
                 "startTime": {
-                  "type": "string",
-                  "description": "Date string of start of the poll"
+                  "type": "object",
+                  "properties": {
+                    "raw": {
+                      "type": "number",
+                      "description": "Unix timestamp for start of the poll"
+                    },
+                    "formatted": {
+                      "type": "string",
+                      "description": "Date string of start of the poll"
+                    }
+                  }
                 },
                 "endTime": {
-                  "type": "string",
-                  "description": "Date string of end of the poll"
+                  "type": "object",
+                  "properties": {
+                    "raw": {
+                      "type": "number",
+                      "description": "Unix timestamp for start of the poll"
+                    },
+                    "formatted": {
+                      "type": "string",
+                      "description": "Date string of start of the poll"
+                    }
+                  }
                 },
                 "yesCounter": {
                   "type": "number",
@@ -767,10 +785,9 @@
           },
           {
             "name": "agree",
-            "description": "Provide 0 to disagree and 1 to agree",
             "in": "body",
             "required": true,
-            "type": "integer"
+            "type": "boolean"
           },
           {
             "name": "nonce",
@@ -787,7 +804,7 @@
         ],
         "responses": {
           "200": {
-            "base64": "data:image/jpeg;base64,..."
+            "base64": "data:image/png;base64,..."
           }
         }
       },
@@ -872,7 +889,7 @@
         ],
         "responses": {
           "200": {
-            "base64": "data:image/jpeg;base64,..."
+            "base64": "data:image/png;base64,..."
           }
         }
       }
@@ -973,7 +990,28 @@
             "headers": {
               "Location": {
                 "type": "string",
-                "description": "Redirect route to /reward/:address"
+                "description": "Redirect route to /reward/:id"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/rewards/:id/finalize": {
+      "post": {
+        "tags": [
+          "Rewards"
+        ],
+        "description": "Finalize the reward and update struct",
+        "produces": [
+          "application/json"
+        ],
+        "responses": {
+          "302": {
+            "headers": {
+              "Location": {
+                "type": "string",
+                "description": "Redirect route to /reward/:id"
               }
             }
           }

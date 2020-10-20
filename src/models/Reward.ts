@@ -8,6 +8,7 @@ export type RewardDocument = mongoose.Document & {
     state: number;
     poll: {
         address: string;
+        finalized: boolean;
         withdrawAmount: number;
         withdrawDuration: number;
     };

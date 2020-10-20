@@ -64,6 +64,7 @@ export const getReward = async (req: Request, res: Response, next: NextFunction)
                 withdrawAmount: await rewardPollInstance.methods.withdrawAmount().call(options),
                 withdrawDuration: await rewardPollInstance.methods.withdrawDuration().call(options),
             };
+            const finalized = await rewardPollInstance.methods.finalized().call(options);
             const reward = {
                 id,
                 title: metaData.title,
@@ -73,6 +74,7 @@ export const getReward = async (req: Request, res: Response, next: NextFunction)
                 state,
                 poll: {
                     address: poll,
+                    finalized,
                     withdrawAmount: proposal.withdrawAmount,
                     withdrawDuration: proposal.withdrawDuration,
                 },
@@ -125,7 +127,7 @@ export const getReward = async (req: Request, res: Response, next: NextFunction)
  *          headers:
  *              Location:
  *                  type: string
- *                  description: Redirect route to /reward/:address
+ *                  description: Redirect route to /reward/:id
  */
 export const postReward = async (req: Request, res: Response, next: NextFunction) => {
     const errors = validationResult(req);
@@ -152,6 +154,43 @@ export const postReward = async (req: Request, res: Response, next: NextFunction
 
             res.redirect('rewards/' + id);
         });
+    } catch (err) {
+        logger.error(err.toString());
+        res.status(500).json({ msg: err.toString() });
+    }
+};
+
+/**
+ * @swagger
+ * /rewards/:id/finalize:
+ *   post:
+ *     tags:
+ *       - Rewards
+ *     description: Finalize the reward and update struct
+ *     produces:
+ *       - application/json
+ *     responses:
+ *       302:
+ *          headers:
+ *              Location:
+ *                  type: string
+ *                  description: Redirect route to /reward/:id
+ */
+export const postRewardFinalize = async (req: Request, res: Response, next: NextFunction) => {
+    const errors = validationResult(req);
+
+    if (!errors.isEmpty()) {
+        return res.status(400).json(errors.array()).end();
+    }
+
+    try {
+        const poolInstance = assetPoolContract(req.header('AssetPool'));
+        const { poll } = await poolInstance.methods.rewards(req.params.id).call(options);
+        const pollInstance = rewardPollContract(poll);
+
+        const tx = await pollInstance.methods.tryToFinalize().send(options);
+
+        res.redirect('rewards/' + req.params.id);
     } catch (err) {
         logger.error(err.toString());
         res.status(500).json({ msg: err.toString() });

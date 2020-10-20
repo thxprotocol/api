@@ -32,7 +32,7 @@ export const tokenContract = (address: string = null) => {
     return new web3.eth.Contract(JSON.parse(ERC20_ABI), address);
 };
 export const toWei = (amount: number) => {
-    return new Web3().utils.toWei(amount.toString(), 'ether');
+    return web3.utils.toWei(amount.toString(), 'ether');
 };
 export const deployTestTokenContract = async () => {
     const contract = new web3.eth.Contract(JSON.parse(ERC20_ABI));

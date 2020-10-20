@@ -4,13 +4,27 @@ import db from '../src/util/database';
 import mongoose from 'mongoose';
 import { deployTestTokenContract, options, web3 } from '../src/util/network';
 import { MongoMemoryServer } from 'mongodb-memory-server';
-import Web3 from 'web3';
-import { RPC } from '../src/util/secrets';
+import { before } from 'lodash';
 
 const user = request.agent(app);
 const poolTitle = 'Volunteers United';
+const rewardPollDuration = 10;
+const proposeWithdrawPollDuration = 10;
+const VOTER_PK = '0x97093724e1748ebfa6aa2d2ec4ec68df8678423ab9a12eb2d27ddc74e35e5db9';
+const voter = web3.eth.accounts.privateKeyToAccount(VOTER_PK);
+const jsonrpc = '2.0';
+const id = 0;
+const send = (method: string, params: any[] = []) =>
+    (web3.currentProvider as any).send({ id, jsonrpc, method, params }, () => {});
 
-let poolAddress: any, testTokenInstance: any;
+const timeTravel = async (seconds: number) => {
+    await send('evm_increaseTime', [seconds.toString()]);
+    await send('evm_mine');
+};
+
+web3.eth.accounts.wallet.add(voter);
+
+let poolAddress: any, testTokenInstance: any, pollAddress: any;
 
 beforeAll(async () => {
     const server = new MongoMemoryServer({
@@ -267,8 +281,8 @@ describe('PATCH /asset_pools/:address', () => {
         user.get('/v1/asset_pools/' + poolAddress)
             .set({ AssetPool: poolAddress })
             .end(async (err, res) => {
-                expect(Number(res.body.proposeWithdrawPollDuration)).toEqual(10);
-                expect(Number(res.body.rewardPollDuration)).toEqual(10);
+                expect(Number(res.body.proposeWithdrawPollDuration)).toEqual(proposeWithdrawPollDuration);
+                expect(Number(res.body.rewardPollDuration)).toEqual(rewardPollDuration);
                 expect(res.status).toBe(200);
                 done();
             });
@@ -343,13 +357,6 @@ describe('GET /rewards/:id', () => {
     });
 });
 
-// const VOTER = '0xaf9d56684466fcFcEA0a2B7fC137AB864d642946';
-
-const VOTER_PK = '0x97093724e1748ebfa6aa2d2ec4ec68df8678423ab9a12eb2d27ddc74e35e5db9';
-const voter = web3.eth.accounts.privateKeyToAccount(VOTER_PK);
-web3.eth.accounts.wallet.add(voter);
-let pollAddress = '';
-
 describe('GET /members/:address', () => {
     it('should return a 404 if member is not found', (done) => {
         user.post('/v1/members/' + voter.address)
@@ -386,17 +393,6 @@ describe('POST /members/:address', () => {
                 done();
             });
     });
-
-    // it('should return a 200 and for the redirect and show updated role information', (done) => {
-    //     user.get('/v1/members/' + VOTER)
-    //         .set({ AssetPool: poolAddress })
-    //         .end(async (err, res) => {
-    //             expect(res.body.isMember).toEqual(true);
-    //             expect(res.body.isManager).toEqual(false);
-    //             expect(res.status).toBe(200);
-    //             done();
-    //         });
-    // });
 });
 
 describe('GET /polls/:id', () => {
@@ -461,8 +457,6 @@ describe('POST /polls/:address/vote', () => {
             })
             .set({ AssetPool: poolAddress })
             .end(async (err, res) => {
-                console.log(res.headers.location);
-
                 redirectURL = res.headers.location;
                 expect(res.status).toBe(302);
                 done();
@@ -475,6 +469,36 @@ describe('POST /polls/:address/vote', () => {
             .end(async (err, res) => {
                 expect(Number(res.body.yesCounter)).toEqual(1);
                 expect(Number(res.body.noCounter)).toEqual(0);
+                expect(res.status).toBe(200);
+                done();
+            });
+    });
+});
+
+describe('POST /rewards/:id/finalize', () => {
+    let redirectURL = '';
+
+    beforeAll(async () => {
+        await timeTravel(rewardPollDuration);
+    });
+
+    it('should return a 302 after finalizing the poll', (done) => {
+        user.post(`/v1/rewards/0/finalize`)
+            .set({ AssetPool: poolAddress })
+            .end(async (err, res) => {
+                redirectURL = res.header.location;
+
+                expect(res.status).toBe(302);
+                done();
+            });
+    });
+
+    it('should return a 200 after getting the reward', (done) => {
+        user.get(`/v1/${redirectURL}`)
+            .set({ AssetPool: poolAddress })
+            .end(async (err, res) => {
+                expect(Number(res.body.state)).toEqual(1);
+                expect(JSON.parse(res.body.poll.finalized)).toEqual(true);
                 expect(res.status).toBe(200);
                 done();
             });
