@@ -22,4 +22,5 @@ const rewardSchema = new mongoose.Schema(
     },
     { timestamps: true },
 );
+
 export const Reward = mongoose.model<RewardDocument>('Reward', rewardSchema);

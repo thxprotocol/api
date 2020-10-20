@@ -30,15 +30,17 @@ export const postMember = async (req: Request, res: Response) => {
     const errors = validationResult(req);
 
     if (!errors.isEmpty()) {
-        return res.status(500).json(errors.array()).end();
+        return res.status(400).json(errors.array()).end();
     }
 
     try {
         const tx = await assetPoolContract(req.header('AssetPool')).methods.addMember(req.body.address).send(options);
+        const address = tx.events.MemberAdded.returnValues.account;
 
-        res.json(tx.events.MemberAdded.returnValues.account);
+        res.redirect(`members/${address}`);
     } catch (err) {
-        res.status(500).json({ msg: 'Member not invited', err });
+        logger.error(err.toString());
+        res.status(500).json({ error: err.toString() });
     }
 };
 

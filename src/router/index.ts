@@ -12,10 +12,6 @@ import pollsRouter from './routes/polls';
 // Controllers
 import * as accountController from '../controllers/account';
 
-import * as rewardController from '../controllers/reward';
-import * as withdrawalController from '../controllers/withdrawal';
-import * as pollController from '../controllers/poll';
-
 // API keys and Passport configuration
 import * as passportConfig from '../config/passport';
 import { validate } from '../util/validation';

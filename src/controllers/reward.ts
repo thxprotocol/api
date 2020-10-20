@@ -51,45 +51,42 @@ export const getReward = async (req: Request, res: Response, next: NextFunction)
     }
 
     try {
-        Reward.findOne({ id: req.params.id }, async (err, metaData) => {
-            if (err) {
-                throw new Error('Reward does not exist in database.');
-            }
+        const metaData = await Reward.findOne({ id: req.params.id });
 
-            try {
-                const { id, withdrawAmount, withdrawDuration, state, poll, updated } = await assetPoolContract(
-                    req.header('AssetPool'),
-                )
-                    .methods.rewards(req.params.id)
-                    .call(options);
-                const rewardPollInstance = rewardPollContract(poll);
-                const proposal = {
-                    withdrawAmount: await rewardPollInstance.methods.withdrawAmount().call(options),
-                    withdrawDuration: await rewardPollInstance.methods.withdrawDuration().call(options),
-                };
-                const reward = {
-                    id,
-                    title: metaData.title,
-                    description: metaData.description,
-                    withdrawAmount,
-                    withdrawDuration,
-                    state,
-                    poll: {
-                        address: poll,
-                        withdrawAmount: proposal.withdrawAmount,
-                        withdrawDuration: proposal.withdrawDuration,
-                    },
-                    updated,
-                } as RewardDocument;
+        try {
+            const { id, withdrawAmount, withdrawDuration, state, poll, updated } = await assetPoolContract(
+                req.header('AssetPool'),
+            )
+                .methods.rewards(req.params.id)
+                .call(options);
+            const rewardPollInstance = rewardPollContract(poll);
+            const proposal = {
+                withdrawAmount: await rewardPollInstance.methods.withdrawAmount().call(options),
+                withdrawDuration: await rewardPollInstance.methods.withdrawDuration().call(options),
+            };
+            const reward = {
+                id,
+                title: metaData.title,
+                description: metaData.description,
+                withdrawAmount,
+                withdrawDuration,
+                state,
+                poll: {
+                    address: poll,
+                    withdrawAmount: proposal.withdrawAmount,
+                    withdrawDuration: proposal.withdrawDuration,
+                },
+                updated,
+            } as RewardDocument;
 
-                res.json({ reward });
-            } catch (err) {
-                throw new Error('Reward does not exists on chain.');
-            }
-        });
+            res.json(reward);
+        } catch (err) {
+            logger.error(err.toString());
+            res.status(404).json({ msg: err.toString() });
+        }
     } catch (err) {
         logger.error(err.toString());
-        res.status(500).end({ msg: err.toString() });
+        res.status(500).json({ msg: err.toString() });
     }
 };
 
@@ -142,18 +139,13 @@ export const postReward = async (req: Request, res: Response, next: NextFunction
         const tx = await poolInstance.methods
             .addReward(req.body.withdrawAmount, req.body.withdrawDuration)
             .send(options);
-
-        if (tx.level === 'error') {
-            throw new Error('Transaction reverted.');
-        }
-
         const id = tx.events.RewardPollCreated.returnValues.id;
-        const reward = new Reward({
+
+        new Reward({
             id,
             title: req.body.title,
             description: req.body.description,
-        });
-        reward.save(async (err) => {
+        }).save(async (err) => {
             if (err) {
                 throw new Error('Reward not saved');
             }
@@ -162,7 +154,7 @@ export const postReward = async (req: Request, res: Response, next: NextFunction
         });
     } catch (err) {
         logger.error(err.toString());
-        res.status(400).end();
+        res.status(500).json({ msg: err.toString() });
     }
 };
 
@@ -192,7 +184,7 @@ export const getRewardClaim = async (req: Request, res: Response) => {
     const errors = validationResult(req);
 
     if (!errors.isEmpty()) {
-        return res.status(500).json(errors.array()).end();
+        return res.status(400).json(errors.array()).end();
     }
 
     try {
@@ -215,8 +207,53 @@ export const getRewardClaim = async (req: Request, res: Response) => {
 
 /**
  * @swagger
- * /rewards/:id/claim:
- *   put:
+ * /rewards/:id/give:
+ *   post:
+ *     tags:
+ *       - Rewards
+ *     description: Create a quick response image to claim the reward.
+ *     produces:
+ *       - application/json
+ *     parameters:
+ *       - name: AssetPool
+ *         in: header
+ *         required: true
+ *         type: string
+ *       - name: id
+ *         in: path
+ *         required: true
+ *         type: integer
+ *       - name: member
+ *         in: body
+ *         required: true
+ *         type: string
+ *     responses:
+ *       200:
+ *         base64: data:image/jpeg;base64,...
+ */
+export const postRewardGive = async (req: Request, res: Response) => {
+    const errors = validationResult(req);
+
+    if (!errors.isEmpty()) {
+        return res.status(400).json(errors.array()).end();
+    }
+
+    try {
+        const assetPoolInstance = assetPoolContract(req.header('AssetPool'));
+        const tx = assetPoolInstance.methods.giveReward(req.body.member).send(options);
+        const withdrawPoll = tx.events.WithdrawPollCreated.returnValues.poll;
+
+        res.json({ withdrawPoll });
+    } catch (err) {
+        logger.error(err);
+        return res.status(500).end();
+    }
+};
+
+/**
+ * @swagger
+ * /rewards/:id:
+ *   patch:
  *     tags:
  *       - Rewards
  *     description: Create a quick response image to claim the reward.
@@ -251,7 +288,7 @@ export const getRewardClaim = async (req: Request, res: Response) => {
  *       200:
  *         base64: data:image/jpeg;base64,...
  */
-export const putReward = async (req: Request, res: Response, next: NextFunction) => {
+export const patchReward = async (req: Request, res: Response, next: NextFunction) => {
     const errors = validationResult(req);
 
     if (!errors.isEmpty()) {

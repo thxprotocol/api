@@ -55,6 +55,7 @@ export const validate = {
         body('withdrawDuration').exists(),
     ],
     getReward: [validateAssetPoolHeader, param('id').exists()],
+    patchReward: [validateAssetPoolHeader],
     putReward: [
         validateAssetPoolHeader,
         body('withdrawAmount').exists(),
@@ -66,11 +67,7 @@ export const validate = {
     // asset_pools
     postAssetPools: [body('token').exists(), body('title').exists()],
     postAssetPoolDeposit: [validateAssetPoolHeader, body('amount').exists()],
-    putAssetPool: [
-        validateAssetPoolHeader,
-        body('rewardPollDuration').exists(),
-        body('proposeWithdrawPollDuration').exists(),
-    ],
+    patchAssetPool: [validateAssetPoolHeader],
     getAssetPool: [validateAssetPoolHeader, param('address').exists()],
     // account
     postSignup: [
