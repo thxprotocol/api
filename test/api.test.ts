@@ -10,6 +10,10 @@ const user = request.agent(app);
 const poolTitle = 'Volunteers United';
 const rewardPollDuration = 10;
 const proposeWithdrawPollDuration = 10;
+const rewardTitle = 'Complete your profile!';
+const rewardDescription = 'Earn great rewards for tiny things.';
+const rewardWithdrawAmount = 1000;
+const rewardWithdrawDuration = 12;
 const VOTER_PK = '0x97093724e1748ebfa6aa2d2ec4ec68df8678423ab9a12eb2d27ddc74e35e5db9';
 const voter = web3.eth.accounts.privateKeyToAccount(VOTER_PK);
 const jsonrpc = '2.0';
@@ -290,10 +294,6 @@ describe('PATCH /asset_pools/:address', () => {
 });
 
 describe('POST /rewards/', () => {
-    const rewardTitle = 'Complete your profile!';
-    const rewardDescription = 'Earn great rewards for tiny things.';
-    const rewardWithdrawAmount = 1000;
-    const rewardWithdrawDuration = 12;
     let redirectURL = '';
 
     it('should return a 302 when reward is added', (done) => {
@@ -402,7 +402,8 @@ describe('GET /polls/:id', () => {
             .end(async (err, res) => {
                 pollAddress = res.body.poll.address;
                 expect(res.body.poll.address).toContain('0x');
-                expect(res.body.state).toEqual('0');
+                expect(Number(res.body.withdrawAmount)).toEqual(0);
+                expect(Number(res.body.state)).toEqual(0);
                 expect(res.status).toBe(200);
                 done();
             });
@@ -497,6 +498,7 @@ describe('POST /rewards/:id/finalize', () => {
         user.get(`/v1/${redirectURL}`)
             .set({ AssetPool: poolAddress })
             .end(async (err, res) => {
+                expect(Number(res.body.withdrawAmount)).toEqual(1000);
                 expect(Number(res.body.state)).toEqual(1);
                 expect(JSON.parse(res.body.poll.finalized)).toEqual(true);
                 expect(res.status).toBe(200);
