@@ -4,7 +4,6 @@ import db from '../src/util/database';
 import mongoose from 'mongoose';
 import { deployTestTokenContract, options, web3 } from '../src/util/network';
 import { MongoMemoryServer } from 'mongodb-memory-server';
-import { before } from 'lodash';
 
 const user = request.agent(app);
 const poolTitle = 'Volunteers United';
@@ -22,13 +21,13 @@ const send = (method: string, params: any[] = []) =>
     (web3.currentProvider as any).send({ id, jsonrpc, method, params }, () => {});
 
 const timeTravel = async (seconds: number) => {
-    await send('evm_increaseTime', [seconds.toString()]);
+    await send('evm_increaseTime', [seconds]);
     await send('evm_mine');
 };
 
 web3.eth.accounts.wallet.add(voter);
 
-let poolAddress: any, testTokenInstance: any, pollAddress: any;
+let poolAddress: any, testTokenInstance: any, pollAddress: any, withdrawPollAddress: any;
 
 beforeAll(async () => {
     const server = new MongoMemoryServer({
@@ -431,7 +430,7 @@ describe('GET /polls/:id/vote/:agree', () => {
     });
 });
 
-describe('POST /polls/:address/vote', () => {
+describe('POST /polls/:address/vote (rewardPoll)', () => {
     let redirectURL = '';
 
     it('should return a 200 and base64 string for the yes vote', (done) => {
@@ -476,7 +475,7 @@ describe('POST /polls/:address/vote', () => {
     });
 });
 
-describe('POST /polls/:address/finalize', () => {
+describe('POST /polls/:address/finalize (rewardPoll)', () => {
     let redirectURL = '';
 
     beforeAll(async () => {
@@ -543,9 +542,7 @@ describe('POST /rewards/:id/claim', () => {
             // })
             .set({ AssetPool: poolAddress })
             .end(async (err, res) => {
-                console.log(err);
                 redirectURL = res.headers.location;
-                console.log(redirectURL);
                 expect(res.status).toBe(302);
                 done();
             });
@@ -555,7 +552,114 @@ describe('POST /rewards/:id/claim', () => {
         user.get(`/v1/${redirectURL}`)
             .set({ AssetPool: poolAddress })
             .end(async (err, res) => {
-                // expect(JSON.parse(res.body.finalized)).toEqual(true);
+                withdrawPollAddress = res.body.address;
+
+                expect(Number(res.body.amount)).toEqual(1000);
+                expect(res.body.state).toEqual('Pending');
+                expect(res.status).toBe(200);
+                done();
+            });
+    });
+});
+
+describe('POST /polls/:address/vote (withdrawPoll)', () => {
+    let redirectURL = '';
+
+    it('should return a 200 and base64 string for the yes vote', (done) => {
+        user.get(`/v1/polls/${withdrawPollAddress}/vote/1`)
+            .set({ AssetPool: poolAddress })
+            .end(async (err, res) => {
+                expect(res.body.base64).toContain('data:image/png;base64');
+                expect(res.status).toBe(200);
+                done();
+            });
+    });
+
+    it('should return a 302 when tx is handled', (done) => {
+        // We assume QR decoding works as expected, will be tested in the wallet repo
+        const hash = web3.utils.soliditySha3(options.from, true, 1, withdrawPollAddress);
+        const sig = web3.eth.accounts.sign(hash, VOTER_PK);
+
+        user.post(`/v1/polls/${withdrawPollAddress}/vote`)
+            .send({
+                voter: voter.address,
+                agree: true,
+                nonce: 1,
+                sig: sig['signature'],
+            })
+            .set({ AssetPool: poolAddress })
+            .end(async (err, res) => {
+                redirectURL = res.headers.location;
+                expect(res.status).toBe(302);
+                done();
+            });
+    });
+
+    it('should return a 200 and increase yesCounter with 1', (done) => {
+        user.get(`/v1/${redirectURL}`)
+            .set({ AssetPool: poolAddress })
+            .end(async (err, res) => {
+                expect(Number(res.body.yesCounter)).toEqual(1);
+                expect(Number(res.body.noCounter)).toEqual(0);
+                expect(res.status).toBe(200);
+                done();
+            });
+    });
+});
+
+describe('POST /polls/:address/finalize (withdrawPoll)', () => {
+    let redirectURL = '';
+
+    beforeAll(async () => {
+        await timeTravel(rewardWithdrawDuration);
+    });
+
+    it('should return a 302 after finalizing the poll', (done) => {
+        user.post(`/v1/polls/${withdrawPollAddress}/finalize`)
+            .set({ AssetPool: poolAddress })
+            .end(async (err, res) => {
+                redirectURL = res.header.location;
+
+                expect(res.status).toBe(302);
+                done();
+            });
+    });
+
+    it('should return a 200 after getting the poll', (done) => {
+        user.get(`/v1/${redirectURL}`)
+            .set({ AssetPool: poolAddress })
+            .end(async (err, res) => {
+                expect(JSON.parse(res.body.finalized)).toEqual(true);
+                expect(res.status).toBe(200);
+                done();
+            });
+    });
+});
+
+describe('GET /withdrawals/:address', () => {
+    it('should return a 200 and return updated state', (done) => {
+        user.get(`/v1/withdrawals/${withdrawPollAddress}`)
+            .set({ AssetPool: poolAddress })
+            .end(async (err, res) => {
+                expect(Number(res.body.amount)).toEqual(1000);
+                // options.from should be the fake beneficiary when signing is implemented  correctly
+                expect(res.body.beneficiary.toLowerCase()).toEqual(options.from.toLowerCase());
+                expect(res.body.state).toEqual('Approved');
+                expect(res.status).toBe(200);
+                done();
+            });
+    });
+});
+
+describe('POST /withdrawals/:address/withdraw', () => {
+    it('should return a 200 and return updated state', (done) => {
+        user.get(`/v1/withdrawals/${withdrawPollAddress}`)
+            .set({ AssetPool: poolAddress })
+            .end(async (err, res) => {
+                expect(Number(res.body.amount)).toEqual(1000);
+                // options.from should be the fake beneficiary when signing is implemented  correctly
+                expect(res.body.beneficiary.toLowerCase()).toEqual(options.from.toLowerCase());
+                expect(res.body.state).toEqual('Approved');
                 expect(res.status).toBe(200);
                 done();
             });

@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import '../config/passport';
-import { options, basePollContract, assetPoolContract } from '../util/network';
+import { options, basePollContract, assetPoolContract, web3 } from '../util/network';
 import logger from '../util/logger';
 import { validationResult } from 'express-validator';
 const qrcode = require('qrcode');

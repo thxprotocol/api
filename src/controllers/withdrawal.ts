@@ -42,7 +42,7 @@ export const getWithdrawal = async (req: Request, res: Response) => {
     const errors = validationResult(req);
 
     if (!errors.isEmpty()) {
-        return res.status(500).json(errors.array()).end();
+        res.status(500).json(errors.array()).end();
     }
 
     try {
@@ -60,7 +60,7 @@ export const getWithdrawal = async (req: Request, res: Response) => {
         res.send({
             startTime: new Date(startTime * 1000),
             endTime: new Date(endTime * 1000),
-            withdrawal: withdrawal.options.address,
+            address: withdrawal.options.address,
             beneficiary,
             amount,
             state: WithdrawState[state],
@@ -70,8 +70,8 @@ export const getWithdrawal = async (req: Request, res: Response) => {
             finalized,
         });
     } catch (err) {
-        logger.error(err);
-        return res.status(500).end();
+        logger.error(err.toString());
+        res.status(500).json({ msg: err.toString() });
     }
 };
 
@@ -114,8 +114,8 @@ export const getWithdrawals = async (req: Request, res: Response) => {
 
         res.send({ withdrawPolls });
     } catch (err) {
-        logger.error(err);
-        res.status(500).end();
+        logger.error(err.toString());
+        res.status(500).json({ msg: err.toString() });
     }
 };
 
@@ -161,8 +161,8 @@ export const postWithdrawal = async (req: Request, res: Response) => {
 
         res.redirect('/v1/withdrawals/' + pollAddress);
     } catch (err) {
-        logger.error(err);
-        res.status(500).end();
+        logger.error(err.toString());
+        res.status(500).json({ msg: err.toString() });
     }
 };
 
@@ -205,7 +205,7 @@ export const getWithdraw = async (req: Request, res: Response) => {
         );
         res.send({ base64 });
     } catch (err) {
-        logger.error(err);
-        return res.status(500).end();
+        logger.error(err.toString());
+        res.status(500).json({ msg: err.toString() });
     }
 };
