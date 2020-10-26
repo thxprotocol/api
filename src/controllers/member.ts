@@ -132,7 +132,7 @@ export const getMember = async (req: Request, res: Response) => {
     const errors = validationResult(req);
 
     if (!errors.isEmpty()) {
-        return res.status(500).json(errors.array()).end();
+        res.status(400).json(errors.array()).end();
     }
 
     try {
@@ -150,14 +150,15 @@ export const getMember = async (req: Request, res: Response) => {
             },
         });
     } catch (err) {
-        return res.status(500).json({ msg: 'Check failed', err });
+        logger.error(err.toString());
+        res.status(500).json({ msg: err.toString() });
     }
 };
 
 /**
  * @swagger
  * /members/:address:
- *   get:
+ *   patch:
  *     tags:
  *       - Members
  *     description: Get information about a member in the asset pool

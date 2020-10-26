@@ -138,8 +138,6 @@ export const postReward = async (req: Request, res: Response, next: NextFunction
 
     try {
         const poolInstance = assetPoolContract(req.header('AssetPool'));
-        console.log(req.header('AssetPool'), poolInstance);
-        console.log(req.body);
         const tx = await poolInstance.methods
             .addReward(req.body.withdrawAmount, req.body.withdrawDuration)
             .send(options);

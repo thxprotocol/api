@@ -242,11 +242,11 @@ export const postWithdrawalWithdraw = async (req: Request, res: Response) => {
     const errors = validationResult(req);
 
     if (!errors.isEmpty()) {
-        return res.status(500).json(errors.array()).end();
+        return res.status(400).json(errors.array()).end();
     }
 
     try {
-        const withdrawalInstance = await withdrawPollContract(req.params.address);
+        const withdrawalInstance = withdrawPollContract(req.params.address);
 
         await withdrawalInstance.methods.withdraw().send(options);
 

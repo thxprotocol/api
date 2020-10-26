@@ -2,7 +2,7 @@ import request from 'supertest';
 import app from '../src/app';
 import db from '../src/util/database';
 import mongoose from 'mongoose';
-import { deployTestTokenContract, options, web3 } from '../src/util/network';
+import { deployTestTokenContract, options, testTokenContract, web3 } from '../src/util/network';
 import { MongoMemoryServer } from 'mongodb-memory-server';
 
 const user = request.agent(app);
@@ -39,7 +39,8 @@ beforeAll(async () => {
         autoStart: true,
     });
 
-    testTokenInstance = await deployTestTokenContract();
+    const contract = await deployTestTokenContract();
+    testTokenInstance = testTokenContract(contract.options.address);
 
     await server.ensureInstance();
 });
@@ -192,17 +193,21 @@ describe('POST /asset_pools', () => {
     it('should return a 200', async (done) => {
         user.post('/v1/asset_pools')
             .send({ title: poolTitle, token: testTokenInstance.options.address })
-            .end((err, res) => {
+            .end(async (err, res) => {
                 expect(res.status).toBe(200);
                 expect(res.body.address).toContain('0x');
                 poolAddress = res.body.address;
+
+                // Mint rewardWithdrawAmount tokens for the pool
+                await testTokenInstance.methods.mint(poolAddress, rewardWithdrawAmount).send(options);
+
                 done();
             });
     });
 });
 
 describe('GET /asset_pools/:address', () => {
-    it('should return a 200t', (done) => {
+    it('should return a 200 and expose pool information', (done) => {
         user.get('/v1/asset_pools/' + poolAddress)
             .set({ AssetPool: poolAddress })
             .end(async (err, res) => {
@@ -680,6 +685,18 @@ describe('POST /withdrawals/:address/withdraw', () => {
             .end(async (err, res) => {
                 // Check token balances
                 expect(res.body.state).toEqual('Withdrawn');
+                expect(res.status).toBe(200);
+                done();
+            });
+    });
+});
+
+describe('GET /member/:address (after withdaw)', () => {
+    it('should return a 200 and increased token balance', async (done) => {
+        user.get('/v1/members/' + options.from)
+            .set({ AssetPool: poolAddress })
+            .end((err, res) => {
+                expect(Number(res.body.token.balance)).toBe(rewardWithdrawAmount);
                 expect(res.status).toBe(200);
                 done();
             });
