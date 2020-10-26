@@ -200,7 +200,6 @@ describe('POST /asset_pools', () => {
 
                 // Mint rewardWithdrawAmount tokens for the pool
                 await testTokenInstance.methods.mint(poolAddress, rewardWithdrawAmount).send(options);
-
                 done();
             });
     });
@@ -211,6 +210,9 @@ describe('GET /asset_pools/:address', () => {
         user.get('/v1/asset_pools/' + poolAddress)
             .set({ AssetPool: poolAddress })
             .end(async (err, res) => {
+                const poolBalance = await testTokenInstance.methods.balanceOf(poolAddress).call(options);
+
+                expect(Number(poolBalance)).toBe(rewardWithdrawAmount);
                 expect(res.body.title).toEqual(poolTitle);
                 expect(res.body.address).toEqual(poolAddress);
                 expect(res.body.token.address).toEqual(testTokenInstance.options.address);
@@ -695,7 +697,11 @@ describe('GET /member/:address (after withdaw)', () => {
     it('should return a 200 and increased token balance', async (done) => {
         user.get('/v1/members/' + options.from)
             .set({ AssetPool: poolAddress })
-            .end((err, res) => {
+            .end(async (err, res) => {
+                const poolBalance = await testTokenInstance.methods.balanceOf(poolAddress).call(options);
+
+                expect(Number(poolBalance)).toBe(0);
+                expect(Number(res.body.token.balance)).toBe(rewardWithdrawAmount);
                 expect(Number(res.body.token.balance)).toBe(rewardWithdrawAmount);
                 expect(res.status).toBe(200);
                 done();
