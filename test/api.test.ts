@@ -476,7 +476,7 @@ describe('POST /polls/:address/vote', () => {
     });
 });
 
-describe('POST /rewards/:id/finalize', () => {
+describe('POST /polls/:address/finalize', () => {
     let redirectURL = '';
 
     beforeAll(async () => {
@@ -484,7 +484,7 @@ describe('POST /rewards/:id/finalize', () => {
     });
 
     it('should return a 302 after finalizing the poll', (done) => {
-        user.post(`/v1/rewards/0/finalize`)
+        user.post(`/v1/polls/${pollAddress}/finalize`)
             .set({ AssetPool: poolAddress })
             .end(async (err, res) => {
                 redirectURL = res.header.location;
@@ -494,13 +494,68 @@ describe('POST /rewards/:id/finalize', () => {
             });
     });
 
-    it('should return a 200 after getting the reward', (done) => {
+    it('should return a 200 after getting the poll', (done) => {
         user.get(`/v1/${redirectURL}`)
+            .set({ AssetPool: poolAddress })
+            .end(async (err, res) => {
+                expect(JSON.parse(res.body.finalized)).toEqual(true);
+                expect(res.status).toBe(200);
+                done();
+            });
+    });
+});
+
+describe('GET /polls/:id (after finalizing)', () => {
+    it('should return a 200 and return updated withdrawAmount and state', (done) => {
+        user.get('/v1/rewards/0')
             .set({ AssetPool: poolAddress })
             .end(async (err, res) => {
                 expect(Number(res.body.withdrawAmount)).toEqual(1000);
                 expect(Number(res.body.state)).toEqual(1);
-                expect(JSON.parse(res.body.poll.finalized)).toEqual(true);
+                expect(res.status).toBe(200);
+                done();
+            });
+    });
+});
+
+describe('POST /rewards/:id/claim', () => {
+    let redirectURL = '';
+
+    it('should return a 200 and base64 string for the claim', (done) => {
+        user.get(`/v1/rewards/0/claim`)
+            .set({ AssetPool: poolAddress })
+            .end(async (err, res) => {
+                expect(res.body.base64).toContain('data:image/png;base64');
+                expect(res.status).toBe(200);
+                done();
+            });
+    });
+
+    it('should return a 302 when tx is handled', (done) => {
+        // We assume QR decoding works as expected, will be tested in the wallet repo
+        // const hash = web3.utils.soliditySha3(options.from, true, 1, pollAddress);
+        // const sig = web3.eth.accounts.sign(hash, VOTER_PK);
+
+        user.post(`/v1/rewards/0/claim`)
+            // .send({
+            //     nonce: 1,
+            //     sig: sig['signature'],
+            // })
+            .set({ AssetPool: poolAddress })
+            .end(async (err, res) => {
+                console.log(err);
+                redirectURL = res.headers.location;
+                console.log(redirectURL);
+                expect(res.status).toBe(302);
+                done();
+            });
+    });
+
+    it('should return a 200 after getting the withdraw poll', (done) => {
+        user.get(`/v1/${redirectURL}`)
+            .set({ AssetPool: poolAddress })
+            .end(async (err, res) => {
+                // expect(JSON.parse(res.body.finalized)).toEqual(true);
                 expect(res.status).toBe(200);
                 done();
             });

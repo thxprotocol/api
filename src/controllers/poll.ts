@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import '../config/passport';
-import { options, basePollContract } from '../util/network';
+import { options, basePollContract, assetPoolContract } from '../util/network';
 import logger from '../util/logger';
 import { validationResult } from 'express-validator';
 const qrcode = require('qrcode');
@@ -182,8 +182,11 @@ export const getPoll = async (req: Request, res: Response) => {
  *         required: true
  *         type: string
  *     responses:
- *       200:
- *         base64: data:image/png;base64,...
+ *       302:
+ *          headers:
+ *              Location:
+ *                  type: string
+ *                  description: Redirect route to /polls/:address
  */
 export const postVote = async (req: Request, res: Response) => {
     const errors = validationResult(req);
@@ -281,14 +284,12 @@ export const getRevokeVote = async (req: Request, res: Response) => {
  *         required: true
  *         type: string
  *     responses:
- *       200:
- *          description: An asset pool object exposing the configuration and balance.
- *          schema:
- *              type: object
- *              properties:
- *                  base64:
- *                      type: string
- *                      description: Set as src for <img> and scan with wallet.
+ *       302:
+ *          headers:
+ *              Location:
+ *                  type: string
+ *                  description: Redirect route to /polls/:address
+ *
  */
 export const deleteVote = async (req: Request, res: Response) => {
     const errors = validationResult(req);
@@ -298,12 +299,46 @@ export const deleteVote = async (req: Request, res: Response) => {
     }
 
     try {
-        const tx = await basePollContract(req.params.address)
+        await basePollContract(req.params.address)
             .methods.revokeVote(req.body.voter, parseInt(req.body.nonce, 10), req.body.sig)
             .send(options);
-        res.send({ tx });
+
+        res.redirect('polls/' + req.params.address);
     } catch (err) {
         logger.error(err);
         return res.status(500).end();
+    }
+};
+
+/**
+ * @swagger
+ * /polls/:address/finalize:
+ *   post:
+ *     tags:
+ *       - Rewards
+ *     description: Finalize the reward and update struct
+ *     produces:
+ *       - application/json
+ *     responses:
+ *       302:
+ *          headers:
+ *              Location:
+ *                  type: string
+ *                  description: Redirect route to /polls/:address
+ */
+export const postPollFinalize = async (req: Request, res: Response) => {
+    const errors = validationResult(req);
+
+    if (!errors.isEmpty()) {
+        return res.status(400).json(errors.array()).end();
+    }
+
+    try {
+        await basePollContract(req.params.address).methods.tryToFinalize().send(options);
+
+        res.redirect('polls/' + req.params.address);
+    } catch (err) {
+        logger.error(err.toString());
+        res.status(500).json({ msg: err.toString() });
     }
 };

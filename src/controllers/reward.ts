@@ -162,43 +162,6 @@ export const postReward = async (req: Request, res: Response, next: NextFunction
 
 /**
  * @swagger
- * /rewards/:id/finalize:
- *   post:
- *     tags:
- *       - Rewards
- *     description: Finalize the reward and update struct
- *     produces:
- *       - application/json
- *     responses:
- *       302:
- *          headers:
- *              Location:
- *                  type: string
- *                  description: Redirect route to /reward/:id
- */
-export const postRewardFinalize = async (req: Request, res: Response, next: NextFunction) => {
-    const errors = validationResult(req);
-
-    if (!errors.isEmpty()) {
-        return res.status(400).json(errors.array()).end();
-    }
-
-    try {
-        const poolInstance = assetPoolContract(req.header('AssetPool'));
-        const { poll } = await poolInstance.methods.rewards(req.params.id).call(options);
-        const pollInstance = rewardPollContract(poll);
-
-        const tx = await pollInstance.methods.tryToFinalize().send(options);
-
-        res.redirect('rewards/' + req.params.id);
-    } catch (err) {
-        logger.error(err.toString());
-        res.status(500).json({ msg: err.toString() });
-    }
-};
-
-/**
- * @swagger
  * /rewards/:id/claim:
  *   get:
  *     tags:
@@ -223,7 +186,7 @@ export const getRewardClaim = async (req: Request, res: Response) => {
     const errors = validationResult(req);
 
     if (!errors.isEmpty()) {
-        return res.status(400).json(errors.array()).end();
+        res.status(400).json(errors.array()).end();
     }
 
     try {
@@ -240,7 +203,47 @@ export const getRewardClaim = async (req: Request, res: Response) => {
         res.status(200).json({ base64 });
     } catch (err) {
         logger.error(err);
-        return res.status(500).end();
+        res.status(500).end();
+    }
+};
+
+/**
+ * @swagger
+ * /rewards/:id/claim:
+ *   post:
+ *     tags:
+ *       - Rewards
+ *     description: Create a quick response image to claim the reward.
+ *     produces:
+ *       - application/json
+ *     parameters:
+ *       - name: AssetPool
+ *         in: header
+ *         required: true
+ *         type: string
+ *       - name: id
+ *         in: path
+ *         required: true
+ *         type: integer
+ *     responses:
+ *       302:
+ *         description: OK
+ */
+export const postRewardClaim = async (req: Request, res: Response) => {
+    const errors = validationResult(req);
+
+    if (!errors.isEmpty()) {
+        res.status(400).json(errors.array()).end();
+    }
+
+    try {
+        const tx = await assetPoolContract(req.header('AssetPool')).methods.claimWithdraw(req.params.id).send(options);
+        const pollAddress = tx.events.WithdrawPollCreated.returnValues.poll;
+
+        res.redirect(`withdrawals/${pollAddress}`);
+    } catch (err) {
+        logger.error(err.toString());
+        res.status(500).json({ msg: err.toString() });
     }
 };
 
@@ -274,7 +277,7 @@ export const postRewardGive = async (req: Request, res: Response) => {
     const errors = validationResult(req);
 
     if (!errors.isEmpty()) {
-        return res.status(400).json(errors.array()).end();
+        res.status(400).json(errors.array()).end();
     }
 
     try {
@@ -284,8 +287,8 @@ export const postRewardGive = async (req: Request, res: Response) => {
 
         res.json({ withdrawPoll });
     } catch (err) {
-        logger.error(err);
-        return res.status(500).end();
+        logger.error(err.toString());
+        res.status(500).json({ msg: err.toString() });
     }
 };
 
@@ -374,7 +377,7 @@ export const patchReward = async (req: Request, res: Response, next: NextFunctio
             }
         });
     } catch (err) {
-        logger.error(err);
-        return res.status(500).end();
+        logger.error(err.toString());
+        res.status(500).json({ msg: err.toString() });
     }
 };

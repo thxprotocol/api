@@ -40,7 +40,7 @@ export const postMember = async (req: Request, res: Response) => {
         res.redirect(`members/${address}`);
     } catch (err) {
         logger.error(err.toString());
-        res.status(500).json({ error: err.toString() });
+        res.status(500).json({ msg: err.toString() });
     }
 };
 
