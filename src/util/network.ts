@@ -9,6 +9,8 @@ export const ASSET_POOL_ABI = fs.readFileSync('./src/contracts/AssetPool.abi', '
 export const ASSET_POOL_BIN = fs.readFileSync('./src/contracts/AssetPool.bin', 'utf8');
 export const ERC20_BIN = fs.readFileSync('./src/contracts/ERC20.bin', 'utf8');
 export const ERC20_ABI = fs.readFileSync('./src/contracts/ERC20.abi', 'utf8');
+export const TEST_TOKEN_BIN = fs.readFileSync('./src/contracts/TestToken.bin', 'utf8');
+export const TEST_TOKEN_ABI = fs.readFileSync('./src/contracts/TestToken.abi', 'utf8');
 
 export const web3 = new Web3(RPC);
 const account = web3.eth.accounts.privateKeyToAccount(PRIVATE_KEY);
@@ -35,6 +37,9 @@ export const toWei = (amount: number) => {
     return web3.utils.toWei(amount.toString(), 'ether');
 };
 export const deployTestTokenContract = async () => {
-    const contract = new web3.eth.Contract(JSON.parse(ERC20_ABI));
-    return await contract.deploy({ data: ERC20_BIN, arguments: ['Test Token', 'TEST'] }).send(options);
+    const contract = new web3.eth.Contract(JSON.parse(TEST_TOKEN_ABI));
+    return await contract.deploy({ data: TEST_TOKEN_BIN, arguments: [] }).send(options);
+};
+export const testTokenContract = (address: string = null) => {
+    return new web3.eth.Contract(JSON.parse(TEST_TOKEN_ABI), address);
 };

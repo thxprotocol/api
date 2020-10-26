@@ -7,7 +7,7 @@ const router = express.Router();
 router.get('/', validate.getWithdrawals, withdrawalController.getWithdrawals);
 router.get('/:address', validate.getWithdrawal, withdrawalController.getWithdrawal);
 router.post('/', validate.postWithdrawal, withdrawalController.postWithdrawal);
-// TODO router.get('/:address/withdraw', validate.getWithdraw, withdrawalController.getWithdraw);
-// TODO router.post('/:address/withdraw', validate.postWithdraw, withdrawalController.postWithdraw);
+router.get('/:address/withdraw', validate.getWithdrawalWithdraw, withdrawalController.getWithdrawalWithdraw);
+router.post('/:address/withdraw', validate.postWithdrawalWithdraw, withdrawalController.postWithdrawalWithdraw);
 
 export default router;

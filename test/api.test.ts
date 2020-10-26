@@ -505,7 +505,7 @@ describe('POST /polls/:address/finalize (rewardPoll)', () => {
 });
 
 describe('GET /polls/:id (after finalizing)', () => {
-    it('should return a 200 and return updated withdrawAmount and state', (done) => {
+    it('should return a 200 and return updated withdrawAmount and state 1', (done) => {
         user.get('/v1/rewards/0')
             .set({ AssetPool: poolAddress })
             .end(async (err, res) => {
@@ -548,7 +548,7 @@ describe('POST /rewards/:id/claim', () => {
             });
     });
 
-    it('should return a 200 after getting the withdraw poll', (done) => {
+    it('should return a 200 after return state Pending', (done) => {
         user.get(`/v1/${redirectURL}`)
             .set({ AssetPool: poolAddress })
             .end(async (err, res) => {
@@ -637,13 +637,13 @@ describe('POST /polls/:address/finalize (withdrawPoll)', () => {
 });
 
 describe('GET /withdrawals/:address', () => {
-    it('should return a 200 and return updated state', (done) => {
+    it('should return a 200 and return state Approved', (done) => {
         user.get(`/v1/withdrawals/${withdrawPollAddress}`)
             .set({ AssetPool: poolAddress })
             .end(async (err, res) => {
                 expect(Number(res.body.amount)).toEqual(1000);
                 // options.from should be the fake beneficiary when signing is implemented  correctly
-                expect(res.body.beneficiary.toLowerCase()).toEqual(options.from.toLowerCase());
+                expect(res.body.beneficiary).toEqual(web3.utils.toChecksumAddress(options.from));
                 expect(res.body.state).toEqual('Approved');
                 expect(res.status).toBe(200);
                 done();
@@ -652,16 +652,42 @@ describe('GET /withdrawals/:address', () => {
 });
 
 describe('POST /withdrawals/:address/withdraw', () => {
-    it('should return a 200 and return updated state', (done) => {
-        user.get(`/v1/withdrawals/${withdrawPollAddress}`)
+    let redirectURL = '';
+
+    it('should return a 200 and base64 string for the withdraw', (done) => {
+        user.get(`/v1/withdrawals/${withdrawPollAddress}/withdraw`)
             .set({ AssetPool: poolAddress })
             .end(async (err, res) => {
-                expect(Number(res.body.amount)).toEqual(1000);
-                // options.from should be the fake beneficiary when signing is implemented  correctly
-                expect(res.body.beneficiary.toLowerCase()).toEqual(options.from.toLowerCase());
-                expect(res.body.state).toEqual('Approved');
+                expect(res.body.base64).toContain('data:image/png;base64');
+                expect(res.status).toBe(200);
+                done();
+            });
+    });
+
+    it('should return a 302 and redirect to withdrawal', (done) => {
+        user.post(`/v1/withdrawals/${withdrawPollAddress}/withdraw`)
+            .set({ AssetPool: poolAddress })
+            .end(async (err, res) => {
+                redirectURL = res.headers.location;
+                expect(res.status).toBe(302);
+                done();
+            });
+    });
+
+    it('should return a 200 and return state Withdrawn', (done) => {
+        user.get(`/v1/${redirectURL}`)
+            .set({ AssetPool: poolAddress })
+            .end(async (err, res) => {
+                // Check token balances
+                expect(res.body.state).toEqual('Withdrawn');
                 expect(res.status).toBe(200);
                 done();
             });
     });
 });
+
+// Describe deposit flow
+// Describe flow for propose withdraw
+// Describe flow for reward give
+// Describe flow for rejected withdraw poll
+// Describe flow for rejected reward poll

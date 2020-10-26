@@ -58,8 +58,14 @@ export const getWithdrawal = async (req: Request, res: Response) => {
         const finalized = await withdrawal.methods.finalized().call(options);
 
         res.send({
-            startTime: new Date(startTime * 1000),
-            endTime: new Date(endTime * 1000),
+            startTime: {
+                raw: startTime,
+                formatted: new Date(startTime * 1000),
+            },
+            endTime: {
+                raw: endTime,
+                formatted: new Date(endTime * 1000),
+            },
             address: withdrawal.options.address,
             beneficiary,
             amount,
@@ -188,7 +194,7 @@ export const postWithdrawal = async (req: Request, res: Response) => {
  *       200:
  *         base64: data:image/jpeg;base64,...
  */
-export const getWithdraw = async (req: Request, res: Response) => {
+export const getWithdrawalWithdraw = async (req: Request, res: Response) => {
     const errors = validationResult(req);
 
     if (!errors.isEmpty()) {
@@ -204,6 +210,47 @@ export const getWithdraw = async (req: Request, res: Response) => {
             }),
         );
         res.send({ base64 });
+    } catch (err) {
+        logger.error(err.toString());
+        res.status(500).json({ msg: err.toString() });
+    }
+};
+
+/**
+ * @swagger
+ * /withdrawals/:address/withdraw:
+ *   post:
+ *     tags:
+ *       - withdrawals
+ *     description: Create a quick response image for withdrawing the reward.
+ *     produces:
+ *       - application/json
+ *     parameters:
+ *       - name: AssetPool
+ *         in: header
+ *         required: true
+ *         type: string
+ *       - name: address
+ *         in: path
+ *         required: true
+ *         type: string
+ *     responses:
+ *       200:
+ *         description: OK
+ */
+export const postWithdrawalWithdraw = async (req: Request, res: Response) => {
+    const errors = validationResult(req);
+
+    if (!errors.isEmpty()) {
+        return res.status(500).json(errors.array()).end();
+    }
+
+    try {
+        const withdrawalInstance = await withdrawPollContract(req.params.address);
+
+        await withdrawalInstance.methods.withdraw().send(options);
+
+        res.redirect(`withdrawals/${req.params.address}`);
     } catch (err) {
         logger.error(err.toString());
         res.status(500).json({ msg: err.toString() });

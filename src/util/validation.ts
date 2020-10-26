@@ -28,6 +28,8 @@ export const validate = {
         check('amount', 'Request body should have amount').exists(),
         check('beneficiary', 'Request body should have beneficiary').exists(),
     ],
+    getWithdrawalWithdraw: [validateAssetPoolHeader, param('address').exists()],
+    postWithdrawalWithdraw: [validateAssetPoolHeader, param('address').exists()],
     // polls
     getPoll: [validateAssetPoolHeader, param('address').exists()],
     getVote: [validateAssetPoolHeader, param('agree').exists()],
