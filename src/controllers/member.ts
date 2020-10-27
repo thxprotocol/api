@@ -35,7 +35,7 @@ export const postMember = async (req: Request, res: Response) => {
 
     try {
         const tx = await assetPoolContract(req.header('AssetPool')).methods.addMember(req.body.address).send(options);
-        const address = tx.events.MemberAdded.returnValues.account;
+        const address = tx.events.RoleGranted.returnValues.account;
 
         res.redirect(`members/${address}`);
     } catch (err) {

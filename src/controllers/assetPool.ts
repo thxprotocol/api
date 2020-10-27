@@ -1,10 +1,11 @@
-import { ASSET_POOL_BIN } from '../util/network';
+import { ASSET_POOL } from '../util/network';
 import { AssetPool, AssetPoolDocument } from '../models/AssetPool';
 import { Account, AccountDocument } from '../models/Account';
 import { Request, Response, NextFunction } from 'express';
 import { assetPoolContract, tokenContract, options } from '../util/network';
 import logger from '../util/logger';
 import { validationResult } from 'express-validator';
+import { GAS_STATION_ADDRESS } from '../util/secrets';
 
 /**
  * @swagger
@@ -119,7 +120,6 @@ export const getAssetPool = async (req: Request, res: Response, next: NextFuncti
  */
 export const postAssetPool = async (req: Request, res: Response, next: NextFunction) => {
     const errors = validationResult(req);
-    let address = '';
 
     if (!errors.isEmpty()) {
         return res.status(400).json(errors.array()).end();
@@ -128,12 +128,12 @@ export const postAssetPool = async (req: Request, res: Response, next: NextFunct
     try {
         const instance = await assetPoolContract()
             .deploy({
-                data: ASSET_POOL_BIN,
+                data: ASSET_POOL.bytecode,
+                arguments: [options.from, GAS_STATION_ADDRESS, req.body.token],
             })
             .send(options);
-        address = instance.options.address;
+        const address = instance.options.address;
 
-        await instance.methods.initialize(options.from, req.body.token).send(options);
         await new AssetPool({
             address,
             title: req.body.title,
@@ -149,7 +149,7 @@ export const postAssetPool = async (req: Request, res: Response, next: NextFunct
         res.send({ address });
     } catch (err) {
         logger.error(err.toString());
-        res.status(400).json({ msg: err.toString() }).end();
+        res.status(500).json({ msg: err.toString() }).end();
     }
 };
 

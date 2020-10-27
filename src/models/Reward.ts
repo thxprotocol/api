@@ -11,7 +11,7 @@ export type RewardDocument = mongoose.Document & {
         finalized: boolean;
         withdrawAmount: number;
         withdrawDuration: number;
-    };
+    } | null;
     updated: string;
 };
 

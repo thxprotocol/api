@@ -1,33 +1,25 @@
 import request from 'supertest';
-import app from '../src/app';
-import db from '../src/util/database';
 import mongoose from 'mongoose';
-import { deployTestTokenContract, options, testTokenContract, web3 } from '../src/util/network';
+import db from '../src/util/database';
+import app from '../src/app';
+import { ASSET_POOL, options, REWARD_POLL, web3 } from '../src/util/network';
 import { MongoMemoryServer } from 'mongodb-memory-server';
+import { voter, gasStation, timeTravel, testTokenInstance, signMethod, admin } from './lib/network';
+import {
+    poolTitle,
+    rewardPollDuration,
+    proposeWithdrawPollDuration,
+    rewardTitle,
+    rewardDescription,
+    rewardWithdrawAmount,
+    rewardWithdrawDuration,
+} from './lib/constants';
+import { ethers } from 'ethers';
+import { RPC } from '../src/util/secrets';
 
 const user = request.agent(app);
-const poolTitle = 'Volunteers United';
-const rewardPollDuration = 10;
-const proposeWithdrawPollDuration = 10;
-const rewardTitle = 'Complete your profile!';
-const rewardDescription = 'Earn great rewards for tiny things.';
-const rewardWithdrawAmount = 1000;
-const rewardWithdrawDuration = 12;
-const VOTER_PK = '0x97093724e1748ebfa6aa2d2ec4ec68df8678423ab9a12eb2d27ddc74e35e5db9';
-const voter = web3.eth.accounts.privateKeyToAccount(VOTER_PK);
-const jsonrpc = '2.0';
-const id = 0;
-const send = (method: string, params: any[] = []) =>
-    (web3.currentProvider as any).send({ id, jsonrpc, method, params }, () => {});
 
-const timeTravel = async (seconds: number) => {
-    await send('evm_increaseTime', [seconds]);
-    await send('evm_mine');
-};
-
-web3.eth.accounts.wallet.add(voter);
-
-let poolAddress: any, testTokenInstance: any, pollAddress: any, withdrawPollAddress: any;
+let poolAddress: any, pollAddress: any, withdrawPollAddress: any, testToken: any;
 
 beforeAll(async () => {
     const server = new MongoMemoryServer({
@@ -39,10 +31,9 @@ beforeAll(async () => {
         autoStart: true,
     });
 
-    const contract = await deployTestTokenContract();
-    testTokenInstance = testTokenContract(contract.options.address);
-
     await server.ensureInstance();
+
+    testToken = await testTokenInstance();
 });
 
 afterAll(async () => {
@@ -192,14 +183,17 @@ describe('GET /account (after login)', () => {
 describe('POST /asset_pools', () => {
     it('should return a 200', async (done) => {
         user.post('/v1/asset_pools')
-            .send({ title: poolTitle, token: testTokenInstance.options.address })
+            .send({
+                title: poolTitle,
+                token: testToken.options.address,
+            })
             .end(async (err, res) => {
                 expect(res.status).toBe(200);
                 expect(res.body.address).toContain('0x');
                 poolAddress = res.body.address;
 
-                // Mint rewardWithdrawAmount tokens for the pool
-                await testTokenInstance.methods.mint(poolAddress, rewardWithdrawAmount).send(options);
+                // Transfer some tokens to the pool rewardWithdrawAmount tokens for the pool
+                await testToken.methods.transfer(poolAddress, rewardWithdrawAmount).send(options);
                 done();
             });
     });
@@ -210,14 +204,14 @@ describe('GET /asset_pools/:address', () => {
         user.get('/v1/asset_pools/' + poolAddress)
             .set({ AssetPool: poolAddress })
             .end(async (err, res) => {
-                const poolBalance = await testTokenInstance.methods.balanceOf(poolAddress).call(options);
+                const poolBalance = await testToken.methods.balanceOf(poolAddress).call(options);
 
                 expect(Number(poolBalance)).toBe(rewardWithdrawAmount);
                 expect(res.body.title).toEqual(poolTitle);
                 expect(res.body.address).toEqual(poolAddress);
-                expect(res.body.token.address).toEqual(testTokenInstance.options.address);
-                expect(res.body.token.name).toEqual(await testTokenInstance.methods.name().call());
-                expect(res.body.token.symbol).toEqual(await testTokenInstance.methods.symbol().call());
+                expect(res.body.token.address).toEqual(testToken.options.address);
+                expect(res.body.token.name).toEqual(await testToken.methods.name().call());
+                expect(res.body.token.symbol).toEqual(await testToken.methods.symbol().call());
                 expect(Number(res.body.proposeWithdrawPollDuration)).toEqual(0);
                 expect(Number(res.body.rewardPollDuration)).toEqual(0);
                 expect(res.status).toBe(200);
@@ -450,17 +444,15 @@ describe('POST /polls/:address/vote (rewardPoll)', () => {
             });
     });
 
-    it('should return a 302 when tx is handled', (done) => {
+    it('should return a 302 when tx is handled', async (done) => {
         // We assume QR decoding works as expected, will be tested in the wallet repo
-        const hash = web3.utils.soliditySha3(options.from, true, 1, pollAddress);
-        const sig = web3.eth.accounts.sign(hash, VOTER_PK);
+        const { call, nonce, sig } = await signMethod(voter, REWARD_POLL.abi, pollAddress, 'vote', [true]);
 
         user.post(`/v1/polls/${pollAddress}/vote`)
             .send({
-                voter: voter.address,
-                agree: true,
-                nonce: 1,
-                sig: sig['signature'],
+                call,
+                nonce,
+                sig,
             })
             .set({ AssetPool: poolAddress })
             .end(async (err, res) => {
@@ -489,8 +481,15 @@ describe('POST /polls/:address/finalize (rewardPoll)', () => {
         await timeTravel(rewardPollDuration);
     });
 
-    it('should return a 302 after finalizing the poll', (done) => {
+    it('should return a 302 after finalizing the poll', async (done) => {
+        const { call, nonce, sig } = await signMethod(voter, REWARD_POLL.abi, pollAddress, 'finalize', []);
+
         user.post(`/v1/polls/${pollAddress}/finalize`)
+            .send({
+                call,
+                nonce,
+                sig,
+            })
             .set({ AssetPool: poolAddress })
             .end(async (err, res) => {
                 redirectURL = res.header.location;
@@ -500,18 +499,17 @@ describe('POST /polls/:address/finalize (rewardPoll)', () => {
             });
     });
 
-    it('should return a 200 after getting the poll', (done) => {
+    it('should return a 404 after getting the finalized poll', (done) => {
         user.get(`/v1/${redirectURL}`)
             .set({ AssetPool: poolAddress })
             .end(async (err, res) => {
-                expect(JSON.parse(res.body.finalized)).toEqual(true);
-                expect(res.status).toBe(200);
+                expect(res.status).toBe(404);
                 done();
             });
     });
 });
 
-describe('GET /polls/:id (after finalizing)', () => {
+describe('GET /rewards/:id (after finalizing)', () => {
     it('should return a 200 and return updated withdrawAmount and state 1', (done) => {
         user.get('/v1/rewards/0')
             .set({ AssetPool: poolAddress })
@@ -537,16 +535,16 @@ describe('POST /rewards/:id/claim', () => {
             });
     });
 
-    it('should return a 302 when tx is handled', (done) => {
+    it('should return a 302 when tx is handled', async (done) => {
         // We assume QR decoding works as expected, will be tested in the wallet repo
-        // const hash = web3.utils.soliditySha3(options.from, true, 1, pollAddress);
-        // const sig = web3.eth.accounts.sign(hash, VOTER_PK);
+        const { call, nonce, sig } = await signMethod(admin, ASSET_POOL.abi, poolAddress, 'claimReward', [0]);
 
         user.post(`/v1/rewards/0/claim`)
-            // .send({
-            //     nonce: 1,
-            //     sig: sig['signature'],
-            // })
+            .send({
+                call,
+                nonce,
+                sig,
+            })
             .set({ AssetPool: poolAddress })
             .end(async (err, res) => {
                 redirectURL = res.headers.location;
@@ -569,148 +567,148 @@ describe('POST /rewards/:id/claim', () => {
     });
 });
 
-describe('POST /polls/:address/vote (withdrawPoll)', () => {
-    let redirectURL = '';
+// describe('POST /polls/:address/vote (withdrawPoll)', () => {
+//     let redirectURL = '';
 
-    it('should return a 200 and base64 string for the yes vote', (done) => {
-        user.get(`/v1/polls/${withdrawPollAddress}/vote/1`)
-            .set({ AssetPool: poolAddress })
-            .end(async (err, res) => {
-                expect(res.body.base64).toContain('data:image/png;base64');
-                expect(res.status).toBe(200);
-                done();
-            });
-    });
+//     it('should return a 200 and base64 string for the yes vote', (done) => {
+//         user.get(`/v1/polls/${withdrawPollAddress}/vote/1`)
+//             .set({ AssetPool: poolAddress })
+//             .end(async (err, res) => {
+//                 expect(res.body.base64).toContain('data:image/png;base64');
+//                 expect(res.status).toBe(200);
+//                 done();
+//             });
+//     });
 
-    it('should return a 302 when tx is handled', (done) => {
-        // We assume QR decoding works as expected, will be tested in the wallet repo
-        const hash = web3.utils.soliditySha3(options.from, true, 1, withdrawPollAddress);
-        const sig = web3.eth.accounts.sign(hash, VOTER_PK);
+//     it('should return a 302 when tx is handled', (done) => {
+//         // We assume QR decoding works as expected, will be tested in the wallet repo
+//         const hash = web3.utils.soliditySha3(options.from, true, 1, withdrawPollAddress);
+//         const sig = web3.eth.accounts.sign(hash, VOTER_PK);
 
-        user.post(`/v1/polls/${withdrawPollAddress}/vote`)
-            .send({
-                voter: voter.address,
-                agree: true,
-                nonce: 1,
-                sig: sig['signature'],
-            })
-            .set({ AssetPool: poolAddress })
-            .end(async (err, res) => {
-                redirectURL = res.headers.location;
-                expect(res.status).toBe(302);
-                done();
-            });
-    });
+//         user.post(`/v1/polls/${withdrawPollAddress}/vote`)
+//             .send({
+//                 voter: voter.address,
+//                 agree: true,
+//                 nonce: 1,
+//                 sig: sig['signature'],
+//             })
+//             .set({ AssetPool: poolAddress })
+//             .end(async (err, res) => {
+//                 redirectURL = res.headers.location;
+//                 expect(res.status).toBe(302);
+//                 done();
+//             });
+//     });
 
-    it('should return a 200 and increase yesCounter with 1', (done) => {
-        user.get(`/v1/${redirectURL}`)
-            .set({ AssetPool: poolAddress })
-            .end(async (err, res) => {
-                expect(Number(res.body.yesCounter)).toEqual(1);
-                expect(Number(res.body.noCounter)).toEqual(0);
-                expect(res.status).toBe(200);
-                done();
-            });
-    });
-});
+//     it('should return a 200 and increase yesCounter with 1', (done) => {
+//         user.get(`/v1/${redirectURL}`)
+//             .set({ AssetPool: poolAddress })
+//             .end(async (err, res) => {
+//                 expect(Number(res.body.yesCounter)).toEqual(1);
+//                 expect(Number(res.body.noCounter)).toEqual(0);
+//                 expect(res.status).toBe(200);
+//                 done();
+//             });
+//     });
+// });
 
-describe('POST /polls/:address/finalize (withdrawPoll)', () => {
-    let redirectURL = '';
+// describe('POST /polls/:address/finalize (withdrawPoll)', () => {
+//     let redirectURL = '';
 
-    beforeAll(async () => {
-        await timeTravel(rewardWithdrawDuration);
-    });
+//     beforeAll(async () => {
+//         await timeTravel(rewardWithdrawDuration);
+//     });
 
-    it('should return a 302 after finalizing the poll', (done) => {
-        user.post(`/v1/polls/${withdrawPollAddress}/finalize`)
-            .set({ AssetPool: poolAddress })
-            .end(async (err, res) => {
-                redirectURL = res.header.location;
+//     it('should return a 302 after finalizing the poll', (done) => {
+//         user.post(`/v1/polls/${withdrawPollAddress}/finalize`)
+//             .set({ AssetPool: poolAddress })
+//             .end(async (err, res) => {
+//                 redirectURL = res.header.location;
 
-                expect(res.status).toBe(302);
-                done();
-            });
-    });
+//                 expect(res.status).toBe(302);
+//                 done();
+//             });
+//     });
 
-    it('should return a 200 after getting the poll', (done) => {
-        user.get(`/v1/${redirectURL}`)
-            .set({ AssetPool: poolAddress })
-            .end(async (err, res) => {
-                expect(JSON.parse(res.body.finalized)).toEqual(true);
-                expect(res.status).toBe(200);
-                done();
-            });
-    });
-});
+//     it('should return a 200 after getting the poll', (done) => {
+//         user.get(`/v1/${redirectURL}`)
+//             .set({ AssetPool: poolAddress })
+//             .end(async (err, res) => {
+//                 expect(JSON.parse(res.body.finalized)).toEqual(true);
+//                 expect(res.status).toBe(200);
+//                 done();
+//             });
+//     });
+// });
 
-describe('GET /withdrawals/:address', () => {
-    it('should return a 200 and return state Approved', (done) => {
-        user.get(`/v1/withdrawals/${withdrawPollAddress}`)
-            .set({ AssetPool: poolAddress })
-            .end(async (err, res) => {
-                expect(Number(res.body.amount)).toEqual(1000);
-                // options.from should be the fake beneficiary when signing is implemented  correctly
-                expect(res.body.beneficiary).toEqual(web3.utils.toChecksumAddress(options.from));
-                expect(res.body.state).toEqual('Approved');
-                expect(res.status).toBe(200);
-                done();
-            });
-    });
-});
+// describe('GET /withdrawals/:address', () => {
+//     it('should return a 200 and return state Approved', (done) => {
+//         user.get(`/v1/withdrawals/${withdrawPollAddress}`)
+//             .set({ AssetPool: poolAddress })
+//             .end(async (err, res) => {
+//                 expect(Number(res.body.amount)).toEqual(1000);
+//                 // options.from should be the fake beneficiary when signing is implemented  correctly
+//                 expect(res.body.beneficiary).toEqual(web3.utils.toChecksumAddress(options.from));
+//                 expect(res.body.state).toEqual('Approved');
+//                 expect(res.status).toBe(200);
+//                 done();
+//             });
+//     });
+// });
 
-describe('POST /withdrawals/:address/withdraw', () => {
-    let redirectURL = '';
+// describe('POST /withdrawals/:address/withdraw', () => {
+//     let redirectURL = '';
 
-    it('should return a 200 and base64 string for the withdraw', (done) => {
-        user.get(`/v1/withdrawals/${withdrawPollAddress}/withdraw`)
-            .set({ AssetPool: poolAddress })
-            .end(async (err, res) => {
-                expect(res.body.base64).toContain('data:image/png;base64');
-                expect(res.status).toBe(200);
-                done();
-            });
-    });
+//     it('should return a 200 and base64 string for the withdraw', (done) => {
+//         user.get(`/v1/withdrawals/${withdrawPollAddress}/withdraw`)
+//             .set({ AssetPool: poolAddress })
+//             .end(async (err, res) => {
+//                 expect(res.body.base64).toContain('data:image/png;base64');
+//                 expect(res.status).toBe(200);
+//                 done();
+//             });
+//     });
 
-    it('should return a 302 and redirect to withdrawal', (done) => {
-        user.post(`/v1/withdrawals/${withdrawPollAddress}/withdraw`)
-            .set({ AssetPool: poolAddress })
-            .end(async (err, res) => {
-                redirectURL = res.headers.location;
-                expect(res.status).toBe(302);
-                done();
-            });
-    });
+//     it('should return a 302 and redirect to withdrawal', (done) => {
+//         user.post(`/v1/withdrawals/${withdrawPollAddress}/withdraw`)
+//             .set({ AssetPool: poolAddress })
+//             .end(async (err, res) => {
+//                 redirectURL = res.headers.location;
+//                 expect(res.status).toBe(302);
+//                 done();
+//             });
+//     });
 
-    it('should return a 200 and return state Withdrawn', (done) => {
-        user.get(`/v1/${redirectURL}`)
-            .set({ AssetPool: poolAddress })
-            .end(async (err, res) => {
-                // Check token balances
-                expect(res.body.state).toEqual('Withdrawn');
-                expect(res.status).toBe(200);
-                done();
-            });
-    });
-});
+//     it('should return a 200 and return state Withdrawn', (done) => {
+//         user.get(`/v1/${redirectURL}`)
+//             .set({ AssetPool: poolAddress })
+//             .end(async (err, res) => {
+//                 // Check token balances
+//                 expect(res.body.state).toEqual('Withdrawn');
+//                 expect(res.status).toBe(200);
+//                 done();
+//             });
+//     });
+// });
 
-describe('GET /member/:address (after withdaw)', () => {
-    it('should return a 200 and increased token balance', async (done) => {
-        user.get('/v1/members/' + options.from)
-            .set({ AssetPool: poolAddress })
-            .end(async (err, res) => {
-                const poolBalance = await testTokenInstance.methods.balanceOf(poolAddress).call(options);
+// describe('GET /member/:address (after withdaw)', () => {
+//     it('should return a 200 and increased token balance', async (done) => {
+//         user.get('/v1/members/' + options.from)
+//             .set({ AssetPool: poolAddress })
+//             .end(async (err, res) => {
+//                 const poolBalance = await testToken.methods.balanceOf(poolAddress).call(options);
 
-                expect(Number(poolBalance)).toBe(0);
-                expect(Number(res.body.token.balance)).toBe(rewardWithdrawAmount);
-                expect(Number(res.body.token.balance)).toBe(rewardWithdrawAmount);
-                expect(res.status).toBe(200);
-                done();
-            });
-    });
-});
+//                 expect(Number(poolBalance)).toBe(0);
+//                 expect(Number(res.body.token.balance)).toBe(rewardWithdrawAmount);
+//                 expect(Number(res.body.token.balance)).toBe(rewardWithdrawAmount);
+//                 expect(res.status).toBe(200);
+//                 done();
+//             });
+//     });
+// });
 
-// Describe deposit flow
-// Describe flow for propose withdraw
-// Describe flow for reward give
-// Describe flow for rejected withdraw poll
-// Describe flow for rejected reward poll
+// // Describe deposit flow
+// // Describe flow for propose withdraw
+// // Describe flow for reward give
+// // Describe flow for rejected withdraw poll
+// // Describe flow for rejected reward poll

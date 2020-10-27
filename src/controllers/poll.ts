@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import '../config/passport';
-import { options, basePollContract, assetPoolContract, web3 } from '../util/network';
+import { options, basePollContract, assetPoolContract, web3, gasStation } from '../util/network';
 import logger from '../util/logger';
 import { validationResult } from 'express-validator';
 const qrcode = require('qrcode');
@@ -139,7 +139,6 @@ export const getPoll = async (req: Request, res: Response) => {
             yesCounter: await poll.methods.yesCounter().call(options),
             noCounter: await poll.methods.noCounter().call(options),
             totalVoted: await poll.methods.totalVoted().call(options),
-            finalized: await poll.methods.finalized().call(options),
         });
     } catch (err) {
         logger.error(err.toString());
@@ -196,11 +195,7 @@ export const postVote = async (req: Request, res: Response) => {
     }
 
     try {
-        const instance = basePollContract(req.params.address);
-
-        await instance.methods
-            .vote(req.body.voter, JSON.parse(req.body.agree), parseInt(req.body.nonce, 10), req.body.sig)
-            .send(options);
+        await gasStation.methods.call(req.body.call, req.params.address, req.body.nonce, req.body.sig).send(options);
 
         res.redirect(`polls/${req.params.address}`);
     } catch (err) {
@@ -334,7 +329,7 @@ export const postPollFinalize = async (req: Request, res: Response) => {
     }
 
     try {
-        await basePollContract(req.params.address).methods.tryToFinalize().send(options);
+        await gasStation.methods.call(req.body.call, req.params.address, req.body.nonce, req.body.sig).send(options);
 
         res.redirect('polls/' + req.params.address);
     } catch (err) {
