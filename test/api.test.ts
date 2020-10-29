@@ -2,9 +2,9 @@ import request from 'supertest';
 import mongoose from 'mongoose';
 import db from '../src/util/database';
 import app from '../src/app';
-import { ASSET_POOL, options, REWARD_POLL, web3 } from '../src/util/network';
+import { ASSET_POOL, REWARD_POLL, WITHDRAW_POLL } from '../src/util/network';
 import { MongoMemoryServer } from 'mongodb-memory-server';
-import { voter, gasStation, timeTravel, testTokenInstance, signMethod, admin } from './lib/network';
+import { voter, timeTravel, signMethod, admin, testTokenFactory } from './lib/network';
 import {
     poolTitle,
     rewardPollDuration,
@@ -15,7 +15,7 @@ import {
     rewardWithdrawDuration,
 } from './lib/constants';
 import { ethers } from 'ethers';
-import { RPC } from '../src/util/secrets';
+import { parseEther } from 'ethers/lib/utils';
 
 const user = request.agent(app);
 
@@ -33,7 +33,9 @@ beforeAll(async () => {
 
     await server.ensureInstance();
 
-    testToken = await testTokenInstance();
+    testToken = await testTokenFactory.deploy(admin.getAddress(), parseEther('1000000'));
+
+    await testToken.deployed();
 });
 
 afterAll(async () => {
@@ -185,7 +187,7 @@ describe('POST /asset_pools', () => {
         user.post('/v1/asset_pools')
             .send({
                 title: poolTitle,
-                token: testToken.options.address,
+                token: testToken.address,
             })
             .end(async (err, res) => {
                 expect(res.status).toBe(200);
@@ -193,7 +195,7 @@ describe('POST /asset_pools', () => {
                 poolAddress = res.body.address;
 
                 // Transfer some tokens to the pool rewardWithdrawAmount tokens for the pool
-                await testToken.methods.transfer(poolAddress, rewardWithdrawAmount).send(options);
+                await testToken.transfer(poolAddress, rewardWithdrawAmount);
                 done();
             });
     });
@@ -204,14 +206,14 @@ describe('GET /asset_pools/:address', () => {
         user.get('/v1/asset_pools/' + poolAddress)
             .set({ AssetPool: poolAddress })
             .end(async (err, res) => {
-                const poolBalance = await testToken.methods.balanceOf(poolAddress).call(options);
+                const poolBalance = await testToken.balanceOf(poolAddress);
 
                 expect(Number(poolBalance)).toBe(rewardWithdrawAmount);
                 expect(res.body.title).toEqual(poolTitle);
                 expect(res.body.address).toEqual(poolAddress);
-                expect(res.body.token.address).toEqual(testToken.options.address);
-                expect(res.body.token.name).toEqual(await testToken.methods.name().call());
-                expect(res.body.token.symbol).toEqual(await testToken.methods.symbol().call());
+                expect(res.body.token.address).toEqual(testToken.address);
+                expect(res.body.token.name).toEqual(await testToken.name());
+                expect(res.body.token.symbol).toEqual(await testToken.symbol());
                 expect(Number(res.body.proposeWithdrawPollDuration)).toEqual(0);
                 expect(Number(res.body.rewardPollDuration)).toEqual(0);
                 expect(res.status).toBe(200);
@@ -466,6 +468,7 @@ describe('POST /polls/:address/vote (rewardPoll)', () => {
         user.get(`/v1/${redirectURL}`)
             .set({ AssetPool: poolAddress })
             .end(async (err, res) => {
+                expect(Number(res.body.totalVoted)).toEqual(1);
                 expect(Number(res.body.yesCounter)).toEqual(1);
                 expect(Number(res.body.noCounter)).toEqual(0);
                 expect(res.status).toBe(200);
@@ -548,6 +551,7 @@ describe('POST /rewards/:id/claim', () => {
             .set({ AssetPool: poolAddress })
             .end(async (err, res) => {
                 redirectURL = res.headers.location;
+
                 expect(res.status).toBe(302);
                 done();
             });
@@ -559,153 +563,127 @@ describe('POST /rewards/:id/claim', () => {
             .end(async (err, res) => {
                 withdrawPollAddress = res.body.address;
 
+                expect(res.body.approvalState).toEqual(false);
                 expect(Number(res.body.amount)).toEqual(1000);
-                expect(res.body.state).toEqual('Pending');
                 expect(res.status).toBe(200);
                 done();
             });
     });
 });
 
-// describe('POST /polls/:address/vote (withdrawPoll)', () => {
-//     let redirectURL = '';
+describe('POST /polls/:address/vote (withdrawPoll)', () => {
+    let redirectURL = '';
 
-//     it('should return a 200 and base64 string for the yes vote', (done) => {
-//         user.get(`/v1/polls/${withdrawPollAddress}/vote/1`)
-//             .set({ AssetPool: poolAddress })
-//             .end(async (err, res) => {
-//                 expect(res.body.base64).toContain('data:image/png;base64');
-//                 expect(res.status).toBe(200);
-//                 done();
-//             });
-//     });
+    it('should return a 200 and base64 string for the yes vote', (done) => {
+        user.get(`/v1/polls/${withdrawPollAddress}/vote/1`)
+            .set({ AssetPool: poolAddress })
+            .end(async (err, res) => {
+                expect(res.body.base64).toContain('data:image/png;base64');
+                expect(res.status).toBe(200);
+                done();
+            });
+    });
 
-//     it('should return a 302 when tx is handled', (done) => {
-//         // We assume QR decoding works as expected, will be tested in the wallet repo
-//         const hash = web3.utils.soliditySha3(options.from, true, 1, withdrawPollAddress);
-//         const sig = web3.eth.accounts.sign(hash, VOTER_PK);
+    it('should return a 302 when tx is handled', async (done) => {
+        // We assume QR decoding works as expected, will be tested in the wallet repo
+        // Manager should vote for this poll
+        const { call, nonce, sig } = await signMethod(admin, WITHDRAW_POLL.abi, withdrawPollAddress, 'vote', [true]);
 
-//         user.post(`/v1/polls/${withdrawPollAddress}/vote`)
-//             .send({
-//                 voter: voter.address,
-//                 agree: true,
-//                 nonce: 1,
-//                 sig: sig['signature'],
-//             })
-//             .set({ AssetPool: poolAddress })
-//             .end(async (err, res) => {
-//                 redirectURL = res.headers.location;
-//                 expect(res.status).toBe(302);
-//                 done();
-//             });
-//     });
+        user.post(`/v1/polls/${withdrawPollAddress}/vote`)
+            .send({
+                call,
+                nonce,
+                sig,
+            })
+            .set({ AssetPool: poolAddress })
+            .end(async (err, res) => {
+                redirectURL = res.headers.location;
+                expect(res.status).toBe(302);
+                done();
+            });
+    });
 
-//     it('should return a 200 and increase yesCounter with 1', (done) => {
-//         user.get(`/v1/${redirectURL}`)
-//             .set({ AssetPool: poolAddress })
-//             .end(async (err, res) => {
-//                 expect(Number(res.body.yesCounter)).toEqual(1);
-//                 expect(Number(res.body.noCounter)).toEqual(0);
-//                 expect(res.status).toBe(200);
-//                 done();
-//             });
-//     });
-// });
+    it('should return a 200 and increase yesCounter with 1', (done) => {
+        user.get(`/v1/${redirectURL}`)
+            .set({ AssetPool: poolAddress })
+            .end(async (err, res) => {
+                expect(Number(res.body.totalVoted)).toEqual(1);
+                expect(Number(res.body.yesCounter)).toEqual(1);
+                expect(Number(res.body.noCounter)).toEqual(0);
+                expect(res.status).toBe(200);
+                done();
+            });
+    });
+});
 
-// describe('POST /polls/:address/finalize (withdrawPoll)', () => {
-//     let redirectURL = '';
+describe('GET /withdrawals/:address', () => {
+    it('should return a 200 and return state Approved', (done) => {
+        user.get(`/v1/withdrawals/${withdrawPollAddress}`)
+            .set({ AssetPool: poolAddress })
+            .end(async (err, res) => {
+                expect(Number(res.body.amount)).toEqual(1000);
+                expect(res.body.beneficiary).toEqual(admin.address);
+                expect(res.body.approvalState).toEqual(true);
+                expect(res.status).toBe(200);
+                done();
+            });
+    });
+});
 
-//     beforeAll(async () => {
-//         await timeTravel(rewardWithdrawDuration);
-//     });
+describe('POST /withdrawals/:address/withdraw', () => {
+    let redirectURL = '';
 
-//     it('should return a 302 after finalizing the poll', (done) => {
-//         user.post(`/v1/polls/${withdrawPollAddress}/finalize`)
-//             .set({ AssetPool: poolAddress })
-//             .end(async (err, res) => {
-//                 redirectURL = res.header.location;
+    it('should return a 200 and base64 string for the withdraw', (done) => {
+        user.get(`/v1/withdrawals/${withdrawPollAddress}/withdraw`)
+            .set({ AssetPool: poolAddress })
+            .end(async (err, res) => {
+                expect(res.body.base64).toContain('data:image/png;base64');
+                expect(res.status).toBe(200);
+                done();
+            });
+    });
 
-//                 expect(res.status).toBe(302);
-//                 done();
-//             });
-//     });
+    it('should return a 302 and redirect to withdrawal', async (done) => {
+        const { call, nonce, sig } = await signMethod(admin, WITHDRAW_POLL.abi, withdrawPollAddress, 'finalize', []);
 
-//     it('should return a 200 after getting the poll', (done) => {
-//         user.get(`/v1/${redirectURL}`)
-//             .set({ AssetPool: poolAddress })
-//             .end(async (err, res) => {
-//                 expect(JSON.parse(res.body.finalized)).toEqual(true);
-//                 expect(res.status).toBe(200);
-//                 done();
-//             });
-//     });
-// });
+        user.post(`/v1/withdrawals/${withdrawPollAddress}/withdraw`)
+            .send({
+                call,
+                nonce,
+                sig,
+            })
+            .set({ AssetPool: poolAddress })
+            .end(async (err, res) => {
+                redirectURL = res.headers.location;
+                expect(res.status).toBe(302);
+                done();
+            });
+    });
+});
 
-// describe('GET /withdrawals/:address', () => {
-//     it('should return a 200 and return state Approved', (done) => {
-//         user.get(`/v1/withdrawals/${withdrawPollAddress}`)
-//             .set({ AssetPool: poolAddress })
-//             .end(async (err, res) => {
-//                 expect(Number(res.body.amount)).toEqual(1000);
-//                 // options.from should be the fake beneficiary when signing is implemented  correctly
-//                 expect(res.body.beneficiary).toEqual(web3.utils.toChecksumAddress(options.from));
-//                 expect(res.body.state).toEqual('Approved');
-//                 expect(res.status).toBe(200);
-//                 done();
-//             });
-//     });
-// });
+describe('GET /asset_pools/:address (after withdaw)', () => {
+    it('should return a 200 and return state Withdrawn', (done) => {
+        user.get(`/v1/asset_pools/${poolAddress}`)
+            .set({ AssetPool: poolAddress })
+            .end(async (err, res) => {
+                expect(Number(res.body.token.balance)).toBe(0);
+                expect(res.status).toBe(200);
+                done();
+            });
+    });
+});
 
-// describe('POST /withdrawals/:address/withdraw', () => {
-//     let redirectURL = '';
-
-//     it('should return a 200 and base64 string for the withdraw', (done) => {
-//         user.get(`/v1/withdrawals/${withdrawPollAddress}/withdraw`)
-//             .set({ AssetPool: poolAddress })
-//             .end(async (err, res) => {
-//                 expect(res.body.base64).toContain('data:image/png;base64');
-//                 expect(res.status).toBe(200);
-//                 done();
-//             });
-//     });
-
-//     it('should return a 302 and redirect to withdrawal', (done) => {
-//         user.post(`/v1/withdrawals/${withdrawPollAddress}/withdraw`)
-//             .set({ AssetPool: poolAddress })
-//             .end(async (err, res) => {
-//                 redirectURL = res.headers.location;
-//                 expect(res.status).toBe(302);
-//                 done();
-//             });
-//     });
-
-//     it('should return a 200 and return state Withdrawn', (done) => {
-//         user.get(`/v1/${redirectURL}`)
-//             .set({ AssetPool: poolAddress })
-//             .end(async (err, res) => {
-//                 // Check token balances
-//                 expect(res.body.state).toEqual('Withdrawn');
-//                 expect(res.status).toBe(200);
-//                 done();
-//             });
-//     });
-// });
-
-// describe('GET /member/:address (after withdaw)', () => {
-//     it('should return a 200 and increased token balance', async (done) => {
-//         user.get('/v1/members/' + options.from)
-//             .set({ AssetPool: poolAddress })
-//             .end(async (err, res) => {
-//                 const poolBalance = await testToken.methods.balanceOf(poolAddress).call(options);
-
-//                 expect(Number(poolBalance)).toBe(0);
-//                 expect(Number(res.body.token.balance)).toBe(rewardWithdrawAmount);
-//                 expect(Number(res.body.token.balance)).toBe(rewardWithdrawAmount);
-//                 expect(res.status).toBe(200);
-//                 done();
-//             });
-//     });
-// });
+describe('GET /member/:address (after withdaw)', () => {
+    it('should return a 200 and increased token balance', (done) => {
+        user.get('/v1/members/' + admin.getAddress())
+            .set({ AssetPool: poolAddress })
+            .end(async (err, res) => {
+                expect(Number(res.body.token.balance)).toBe(rewardWithdrawAmount);
+                expect(res.status).toBe(200);
+                done();
+            });
+    });
+});
 
 // // Describe deposit flow
 // // Describe flow for propose withdraw

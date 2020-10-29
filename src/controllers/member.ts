@@ -1,5 +1,5 @@
-import { Request, Response, NextFunction } from 'express';
-import { assetPoolContract, options, tokenContract } from '../util/network';
+import { Request, Response } from 'express';
+import { assetPoolContract, ASSET_POOL, parseLogs, tokenContract } from '../util/network';
 import '../config/passport';
 import { validationResult } from 'express-validator';
 import logger from '../util/logger';
@@ -34,8 +34,11 @@ export const postMember = async (req: Request, res: Response) => {
     }
 
     try {
-        const tx = await assetPoolContract(req.header('AssetPool')).methods.addMember(req.body.address).send(options);
-        const address = tx.events.RoleGranted.returnValues.account;
+        const instance = assetPoolContract(req.header('AssetPool'));
+        const tx = await (await instance.addMember(req.body.address)).wait();
+        const events = await parseLogs(ASSET_POOL.abi, tx.logs);
+        const event = events.filter((e: { name: string }) => e.name === 'RoleGranted')[0];
+        const address = event.args.account;
 
         res.redirect(`members/${address}`);
     } catch (err) {
@@ -74,9 +77,8 @@ export const deleteMember = async (req: Request, res: Response) => {
     }
 
     try {
-        const tx = await assetPoolContract(req.header('AssetPool'))
-            .methods.removeMember(req.params.address)
-            .send(options);
+        const instance = assetPoolContract(req.header('AssetPool'));
+        const tx = await instance.removeMember(req.params.address);
         res.json(tx.events.MemberRemoved.returnValues.account);
     } catch (err) {
         const error = err.toString();
@@ -137,16 +139,16 @@ export const getMember = async (req: Request, res: Response) => {
 
     try {
         const assetPoolInstance = assetPoolContract(req.header('AssetPool'));
-        const tokenAddress = await assetPoolInstance.methods.token().call(options);
+        const tokenAddress = await assetPoolInstance.token();
         const tokenInstance = tokenContract(tokenAddress);
 
         return res.json({
-            isMember: await assetPoolInstance.methods.isMember(req.params.address).call(options),
-            isManager: await assetPoolInstance.methods.isManager(req.params.address).call(options),
+            isMember: await assetPoolInstance.isMember(req.params.address),
+            isManager: await assetPoolInstance.isManager(req.params.address),
             token: {
-                name: await tokenInstance.methods.name().call(options),
-                symbol: await tokenInstance.methods.symbol().call(options),
-                balance: await tokenInstance.methods.balanceOf(req.params.address).call(options),
+                name: await tokenInstance.name(),
+                symbol: await tokenInstance.symbol(),
+                balance: (await tokenInstance.balanceOf(req.params.address)).toNumber(),
             },
         });
     } catch (err) {
@@ -187,9 +189,7 @@ export const patchMember = async (req: Request, res: Response) => {
     try {
         const assetPoolInstance = assetPoolContract(req.header('AssetPool'));
 
-        await assetPoolInstance.methods[!req.body.isManager ? 'addManager' : 'removeManager'](req.params.address).send(
-            options,
-        );
+        await assetPoolInstance[!req.body.isManager ? 'addManager' : 'removeManager'](req.params.address);
 
         res.redirect(`members/${req.params.address}`);
     } catch (err) {

@@ -1,5 +1,13 @@
 import { Request, Response, NextFunction } from 'express';
-import { assetPoolContract, gasStation, options, rewardPollContract } from '../util/network';
+import {
+    assetPoolContract,
+    ASSET_POOL,
+    gasStation,
+    GAS_STATION,
+    parseLogs,
+    parseResultLog,
+    rewardPollContract,
+} from '../util/network';
 import { Reward, RewardDocument } from '../models/Reward';
 import logger from '../util/logger';
 import '../config/passport';
@@ -54,24 +62,22 @@ export const getReward = async (req: Request, res: Response, next: NextFunction)
         const metaData = await Reward.findOne({ id: req.params.id });
 
         try {
-            const { id, withdrawAmount, withdrawDuration, state, poll } = await assetPoolContract(
-                req.header('AssetPool'),
-            )
-                .methods.rewards(req.params.id)
-                .call(options);
+            const instance = assetPoolContract(req.header('AssetPool'));
+            const { id, withdrawAmount, withdrawDuration, state, poll } = await instance.rewards(req.params.id);
+            const pollInstance = rewardPollContract(poll);
             const reward = {
-                id,
+                id: id.toNumber(),
                 title: metaData.title,
                 description: metaData.description,
-                withdrawAmount,
-                withdrawDuration,
+                withdrawAmount: withdrawAmount.toNumber(),
+                withdrawDuration: withdrawDuration.toNumber(),
                 state,
                 poll:
                     poll !== '0x0000000000000000000000000000000000000000'
                         ? {
                               address: poll,
-                              withdrawAmount: await rewardPollContract(poll).methods.withdrawAmount().call(options),
-                              withdrawDuration: await rewardPollContract(poll).methods.withdrawDuration().call(options),
+                              withdrawAmount: (await pollInstance.withdrawAmount()).toNumber(),
+                              withdrawDuration: (await pollInstance.withdrawDuration()).toNumber(),
                           }
                         : null,
             } as RewardDocument;
@@ -133,10 +139,10 @@ export const postReward = async (req: Request, res: Response, next: NextFunction
 
     try {
         const poolInstance = assetPoolContract(req.header('AssetPool'));
-        const tx = await poolInstance.methods
-            .addReward(req.body.withdrawAmount, req.body.withdrawDuration)
-            .send(options);
-        const id = tx.events.RewardPollCreated.returnValues.id;
+        const tx = await (await poolInstance.addReward(req.body.withdrawAmount, req.body.withdrawDuration)).wait();
+        const events = await parseLogs(ASSET_POOL.abi, tx.logs);
+        const event = events.filter((e: { name: string }) => e.name === 'RewardPollCreated')[0];
+        const id = parseInt(event.args.id, 10);
 
         new Reward({
             id,
@@ -232,13 +238,12 @@ export const postRewardClaim = async (req: Request, res: Response) => {
     }
 
     try {
-        const tx = await gasStation.methods
-            .call(req.body.call, req.header('AssetPool'), req.body.nonce, req.body.sig)
-            .send(options);
-        console.log(tx.events.Result);
-        console.log(tx.events.Result.returnValues);
-        // Need to catch the correct withdrawPoll address here
-        const pollAddress = tx.events.WithdrawPollCreated.returnValues.poll;
+        let tx = await gasStation.call(req.body.call, req.header('AssetPool'), req.body.nonce, req.body.sig);
+        tx = await tx.wait();
+
+        const events = await parseResultLog(ASSET_POOL.abi, tx.logs);
+        const event = events.filter((e: { name: string }) => e.name === 'WithdrawPollCreated')[0];
+        const pollAddress = event.args.poll;
 
         res.redirect(`withdrawals/${pollAddress}`);
     } catch (err) {
@@ -282,8 +287,12 @@ export const postRewardGive = async (req: Request, res: Response) => {
 
     try {
         const assetPoolInstance = assetPoolContract(req.header('AssetPool'));
-        const tx = assetPoolInstance.methods.giveReward(req.body.member).send(options);
-        const withdrawPoll = tx.events.WithdrawPollCreated.returnValues.poll;
+        let tx = assetPoolInstance.giveReward(req.body.member);
+        tx = await tx.wait();
+
+        const events = await parseResultLog(ASSET_POOL.abi, tx.logs);
+        const event = events.filter((e: { name: string }) => e.name === 'WithdrawPollCreated')[0];
+        const withdrawPoll = event.args.poll;
 
         res.json({ withdrawPoll });
     } catch (err) {
@@ -353,9 +362,8 @@ export const patchReward = async (req: Request, res: Response, next: NextFunctio
                 throw Error('Could not find reward in database');
             }
 
-            const { withdrawAmount, withdrawDuration } = await assetPoolContract(req.header('AssetPool'))
-                .methods.rewards(req.params.id)
-                .call(options);
+            const instance = assetPoolContract(req.header('AssetPool'));
+            const { withdrawAmount, withdrawDuration } = await instance.rewards(req.params.id);
 
             if (withdrawAmount !== req.body.withdrawAmount || withdrawDuration !== req.body.withdrawDuration) {
                 const base64 = await qrcode.toDataURL(

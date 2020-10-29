@@ -3,7 +3,7 @@ export type RewardDocument = mongoose.Document & {
     id: number;
     title: string;
     description: string;
-    withdrawAmount: string;
+    withdrawAmount: number;
     withdrawDuration: number;
     state: number;
     poll: {

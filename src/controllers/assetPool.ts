@@ -1,8 +1,8 @@
-import { ASSET_POOL } from '../util/network';
+import { admin, assetPoolFactory } from '../util/network';
 import { AssetPool, AssetPoolDocument } from '../models/AssetPool';
 import { Account, AccountDocument } from '../models/Account';
 import { Request, Response, NextFunction } from 'express';
-import { assetPoolContract, tokenContract, options } from '../util/network';
+import { assetPoolContract, tokenContract } from '../util/network';
 import logger from '../util/logger';
 import { validationResult } from 'express-validator';
 import { GAS_STATION_ADDRESS } from '../util/secrets';
@@ -63,17 +63,19 @@ export const getAssetPool = async (req: Request, res: Response, next: NextFuncti
 
     try {
         const assetPoolInstance = assetPoolContract(req.params.address);
-        const tokenAddress = await assetPoolInstance.methods.token().call(options);
+        const tokenAddress = await assetPoolInstance.token();
         const tokenInstance = tokenContract(tokenAddress);
+        const proposeWithdrawPollDuration = (await assetPoolInstance.proposeWithdrawPollDuration()).toNumber();
+        const rewardPollDuration = (await assetPoolInstance.rewardPollDuration()).toNumber();
         const contractData = {
             token: {
-                address: tokenInstance.options.address,
-                name: await tokenInstance.methods.name().call(options),
-                symbol: await tokenInstance.methods.symbol().call(options),
-                balance: await tokenInstance.methods.balanceOf(req.params.address).call(options),
+                address: tokenInstance.address,
+                name: await tokenInstance.name(),
+                symbol: await tokenInstance.symbol(),
+                balance: (await tokenInstance.balanceOf(req.params.address)).toNumber(),
             },
-            proposeWithdrawPollDuration: await assetPoolInstance.methods.proposeWithdrawPollDuration().call(options),
-            rewardPollDuration: await assetPoolInstance.methods.rewardPollDuration().call(options),
+            proposeWithdrawPollDuration,
+            rewardPollDuration,
         };
         const { uid, address, title }: AssetPoolDocument = await AssetPool.findOne({ address: req.params.address });
 
@@ -126,27 +128,25 @@ export const postAssetPool = async (req: Request, res: Response, next: NextFunct
     }
 
     try {
-        const instance = await assetPoolContract()
-            .deploy({
-                data: ASSET_POOL.bytecode,
-                arguments: [options.from, GAS_STATION_ADDRESS, req.body.token],
-            })
-            .send(options);
-        const address = instance.options.address;
+        // Deploy asset pool contract
+        const assetPool = await assetPoolFactory.deploy(admin.getAddress(), GAS_STATION_ADDRESS, req.body.token);
 
+        // Store asset pool metadata
         await new AssetPool({
-            address,
+            address: assetPool.address,
             title: req.body.title,
             uid: req.session.passport.user,
         }).save();
 
+        // Update account
         const account: AccountDocument = await Account.findById((req.user as AccountDocument).id);
 
-        if (!account.profile.assetPools.includes(address)) {
-            account.profile.assetPools.push(address);
+        if (!account.profile.assetPools.includes(assetPool.address)) {
+            account.profile.assetPools.push(assetPool.address);
             await account.save();
         }
-        res.send({ address });
+
+        res.send({ address: assetPool.address });
     } catch (err) {
         logger.error(err.toString());
         res.status(500).json({ msg: err.toString() }).end();
@@ -189,8 +189,8 @@ export const postAssetPoolDeposit = async (req: Request, res: Response, next: Ne
     try {
         const address = req.header('AssetPool');
         const instance = assetPoolContract(address);
-        const tokenInstance = tokenContract(await instance.methods.token().call(options));
-        const balance = tokenInstance.methods.balanceOf(address).call(options);
+        const tokenInstance = tokenContract(await instance.token());
+        const balance = await tokenInstance.balanceOf(address);
 
         // TODO Return a QR here and handle approve and deposit in client app
     } catch (err) {
@@ -240,10 +240,10 @@ export const patchAssetPool = async (req: Request, res: Response, next: NextFunc
         const instance = assetPoolContract(req.header('AssetPool'));
 
         if (req.body.rewardPollDuration) {
-            await instance.methods.setRewardPollDuration(req.body.rewardPollDuration).send(options);
+            await instance.setRewardPollDuration(req.body.rewardPollDuration);
         }
         if (req.body.proposeWithdrawPollDuration) {
-            await instance.methods.setProposeWithdrawPollDuration(req.body.proposeWithdrawPollDuration).send(options);
+            await instance.setProposeWithdrawPollDuration(req.body.proposeWithdrawPollDuration);
         }
 
         res.redirect('asset_pools/' + req.params.address);

@@ -1,7 +1,7 @@
 import { WithdrawState } from '../models/Withdraw';
 import { Request, Response } from 'express';
 import '../config/passport';
-import { assetPoolContract, options, withdrawPollContract } from '../util/network';
+import { assetPoolContract, ASSET_POOL, gasStation, parseResultLog, withdrawPollContract } from '../util/network';
 import logger from '../util/logger';
 import { validationResult } from 'express-validator';
 
@@ -47,15 +47,14 @@ export const getWithdrawal = async (req: Request, res: Response) => {
 
     try {
         const withdrawal = withdrawPollContract(req.params.address);
-        const beneficiary = await withdrawal.methods.beneficiary().call(options);
-        const amount = await withdrawal.methods.amount().call(options);
-        const state = await withdrawal.methods.state().call(options);
-        const startTime = await withdrawal.methods.startTime().call(options);
-        const endTime = await withdrawal.methods.endTime().call(options);
-        const yesCounter = await withdrawal.methods.yesCounter().call(options);
-        const noCounter = await withdrawal.methods.noCounter().call(options);
-        const totalVoted = await withdrawal.methods.totalVoted().call(options);
-        const finalized = await withdrawal.methods.finalized().call(options);
+        const beneficiary = await withdrawal.beneficiary();
+        const amount = (await withdrawal.amount()).toNumber();
+        const approvalState = await withdrawal.getCurrentApprovalState();
+        const startTime = (await withdrawal.startTime()).toNumber();
+        const endTime = (await withdrawal.endTime()).toNumber();
+        const yesCounter = (await withdrawal.yesCounter()).toNumber();
+        const noCounter = (await withdrawal.noCounter()).toNumber();
+        const totalVoted = (await withdrawal.totalVoted()).toNumber();
 
         res.send({
             startTime: {
@@ -66,14 +65,13 @@ export const getWithdrawal = async (req: Request, res: Response) => {
                 raw: endTime,
                 formatted: new Date(endTime * 1000),
             },
-            address: withdrawal.options.address,
+            address: withdrawal.address,
             beneficiary,
             amount,
-            state: WithdrawState[state],
+            approvalState,
             yesCounter,
             noCounter,
             totalVoted,
-            finalized,
         });
     } catch (err) {
         logger.error(err.toString());
@@ -107,14 +105,14 @@ export const getWithdrawals = async (req: Request, res: Response) => {
     }
 
     try {
-        const assetPool = assetPoolContract(req.header('AssetPool'));
+        const instance = assetPoolContract(req.header('AssetPool'));
         const withdrawPolls = (
-            await assetPool.getPastEvents('WithdrawPollCreated', {
+            await instance.getPastEvents('WithdrawPollCreated', {
                 filter: { member: req.body.member },
                 fromBlock: 0,
                 toBlock: 'latest',
             })
-        ).map((event) => {
+        ).map((event: any) => {
             return event.returnValues.poll;
         });
 
@@ -160,10 +158,12 @@ export const postWithdrawal = async (req: Request, res: Response) => {
     }
 
     try {
-        const tx = await assetPoolContract(req.header('AssetPool'))
-            .methods.proposeWithdraw(req.body.amount.toString(), req.body.beneficiary)
-            .send(options);
-        const pollAddress = tx.events.WithdrawPollCreated.returnValues.poll;
+        let tx = await gasStation.call(req.body.call, req.header('AssetPool'), req.body.nonce, req.body.sig);
+        tx = await tx.wait();
+
+        const events = await parseResultLog(ASSET_POOL.abi, tx.logs);
+        const event = events.filter((e: { name: string }) => e.name === 'WithdrawPollCreated')[0];
+        const pollAddress = event.args.poll;
 
         res.redirect('/v1/withdrawals/' + pollAddress);
     } catch (err) {
@@ -246,9 +246,8 @@ export const postWithdrawalWithdraw = async (req: Request, res: Response) => {
     }
 
     try {
-        const withdrawalInstance = withdrawPollContract(req.params.address);
-
-        await withdrawalInstance.methods.withdraw().send(options);
+        let tx = await gasStation.call(req.body.call, req.params.address, req.body.nonce, req.body.sig);
+        tx = await tx.wait();
 
         res.redirect(`withdrawals/${req.params.address}`);
     } catch (err) {
