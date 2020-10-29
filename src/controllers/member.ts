@@ -3,6 +3,8 @@ import { assetPoolContract, ASSET_POOL, parseLogs, tokenContract } from '../util
 import '../config/passport';
 import { validationResult } from 'express-validator';
 import logger from '../util/logger';
+import { formatEther, parseEther } from 'ethers/lib/utils';
+import { BigNumber } from 'ethers';
 
 /**
  * @swagger
@@ -141,14 +143,15 @@ export const getMember = async (req: Request, res: Response) => {
         const assetPoolInstance = assetPoolContract(req.header('AssetPool'));
         const tokenAddress = await assetPoolInstance.token();
         const tokenInstance = tokenContract(tokenAddress);
+        const balance = await tokenInstance.balanceOf(req.params.address);
 
-        return res.json({
+        res.json({
             isMember: await assetPoolInstance.isMember(req.params.address),
             isManager: await assetPoolInstance.isManager(req.params.address),
             token: {
                 name: await tokenInstance.name(),
                 symbol: await tokenInstance.symbol(),
-                balance: (await tokenInstance.balanceOf(req.params.address)).toNumber(),
+                balance,
             },
         });
     } catch (err) {

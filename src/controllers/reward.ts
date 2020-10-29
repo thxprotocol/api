@@ -12,6 +12,7 @@ import { Reward, RewardDocument } from '../models/Reward';
 import logger from '../util/logger';
 import '../config/passport';
 import { validationResult } from 'express-validator';
+import { BigNumber } from 'ethers';
 
 const qrcode = require('qrcode');
 
@@ -65,18 +66,19 @@ export const getReward = async (req: Request, res: Response, next: NextFunction)
             const instance = assetPoolContract(req.header('AssetPool'));
             const { id, withdrawAmount, withdrawDuration, state, poll } = await instance.rewards(req.params.id);
             const pollInstance = rewardPollContract(poll);
+
             const reward = {
                 id: id.toNumber(),
                 title: metaData.title,
                 description: metaData.description,
-                withdrawAmount: withdrawAmount.toNumber(),
+                withdrawAmount: withdrawAmount,
                 withdrawDuration: withdrawDuration.toNumber(),
                 state,
                 poll:
                     poll !== '0x0000000000000000000000000000000000000000'
                         ? {
                               address: poll,
-                              withdrawAmount: (await pollInstance.withdrawAmount()).toNumber(),
+                              withdrawAmount: await pollInstance.withdrawAmount(),
                               withdrawDuration: (await pollInstance.withdrawDuration()).toNumber(),
                           }
                         : null,
@@ -241,8 +243,11 @@ export const postRewardClaim = async (req: Request, res: Response) => {
         let tx = await gasStation.call(req.body.call, req.header('AssetPool'), req.body.nonce, req.body.sig);
         tx = await tx.wait();
 
-        const events = await parseResultLog(ASSET_POOL.abi, tx.logs);
-        const event = events.filter((e: { name: string }) => e.name === 'WithdrawPollCreated')[0];
+        const { error, logs } = await parseResultLog(ASSET_POOL.abi, tx.logs);
+        if (error) {
+            throw Error(error);
+        }
+        const event = logs.filter((e: { name: string }) => e.name === 'WithdrawPollCreated')[0];
         const pollAddress = event.args.poll;
 
         res.redirect(`withdrawals/${pollAddress}`);
@@ -290,8 +295,11 @@ export const postRewardGive = async (req: Request, res: Response) => {
         let tx = assetPoolInstance.giveReward(req.body.member);
         tx = await tx.wait();
 
-        const events = await parseResultLog(ASSET_POOL.abi, tx.logs);
-        const event = events.filter((e: { name: string }) => e.name === 'WithdrawPollCreated')[0];
+        const { error, logs } = await parseResultLog(ASSET_POOL.abi, tx.logs);
+        if (error) {
+            throw Error(error);
+        }
+        const event = logs.filter((e: { name: string }) => e.name === 'WithdrawPollCreated')[0];
         const withdrawPoll = event.args.poll;
 
         res.json({ withdrawPoll });

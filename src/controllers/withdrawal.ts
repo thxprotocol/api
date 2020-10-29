@@ -1,4 +1,3 @@
-import { WithdrawState } from '../models/Withdraw';
 import { Request, Response } from 'express';
 import '../config/passport';
 import { assetPoolContract, ASSET_POOL, gasStation, parseResultLog, withdrawPollContract } from '../util/network';
@@ -36,7 +35,6 @@ const qrcode = require('qrcode');
  *         yesCounter: Amount of yes votes
  *         noCounter: Amount of no votes
  *         totalVotes: Total amount of votes
- *         finalized: Is the poll finalized or not
  */
 export const getWithdrawal = async (req: Request, res: Response) => {
     const errors = validationResult(req);
@@ -48,7 +46,7 @@ export const getWithdrawal = async (req: Request, res: Response) => {
     try {
         const withdrawal = withdrawPollContract(req.params.address);
         const beneficiary = await withdrawal.beneficiary();
-        const amount = (await withdrawal.amount()).toNumber();
+        const amount = await withdrawal.amount();
         const approvalState = await withdrawal.getCurrentApprovalState();
         const startTime = (await withdrawal.startTime()).toNumber();
         const endTime = (await withdrawal.endTime()).toNumber();
@@ -161,8 +159,11 @@ export const postWithdrawal = async (req: Request, res: Response) => {
         let tx = await gasStation.call(req.body.call, req.header('AssetPool'), req.body.nonce, req.body.sig);
         tx = await tx.wait();
 
-        const events = await parseResultLog(ASSET_POOL.abi, tx.logs);
-        const event = events.filter((e: { name: string }) => e.name === 'WithdrawPollCreated')[0];
+        const { error, logs } = await parseResultLog(ASSET_POOL.abi, tx.logs);
+        if (error) {
+            throw Error(error);
+        }
+        const event = logs.filter((e: { name: string }) => e.name === 'WithdrawPollCreated')[0];
         const pollAddress = event.args.poll;
 
         res.redirect('/v1/withdrawals/' + pollAddress);
@@ -249,7 +250,13 @@ export const postWithdrawalWithdraw = async (req: Request, res: Response) => {
         let tx = await gasStation.call(req.body.call, req.params.address, req.body.nonce, req.body.sig);
         tx = await tx.wait();
 
-        res.redirect(`withdrawals/${req.params.address}`);
+        const { error, logs } = await parseResultLog(ASSET_POOL.abi, tx.logs);
+        if (error) {
+            throw Error(error);
+        }
+        const event = logs.filter((l) => l.name === 'Withdrawn')[0];
+
+        res.redirect(`members/${event.args.member}`);
     } catch (err) {
         logger.error(err.toString());
         res.status(500).json({ msg: err.toString() });

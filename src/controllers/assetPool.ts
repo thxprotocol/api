@@ -6,6 +6,7 @@ import { assetPoolContract, tokenContract } from '../util/network';
 import logger from '../util/logger';
 import { validationResult } from 'express-validator';
 import { GAS_STATION_ADDRESS } from '../util/secrets';
+import { formatEther } from 'ethers/lib/utils';
 
 /**
  * @swagger
@@ -67,12 +68,13 @@ export const getAssetPool = async (req: Request, res: Response, next: NextFuncti
         const tokenInstance = tokenContract(tokenAddress);
         const proposeWithdrawPollDuration = (await assetPoolInstance.proposeWithdrawPollDuration()).toNumber();
         const rewardPollDuration = (await assetPoolInstance.rewardPollDuration()).toNumber();
+
         const contractData = {
             token: {
                 address: tokenInstance.address,
                 name: await tokenInstance.name(),
                 symbol: await tokenInstance.symbol(),
-                balance: (await tokenInstance.balanceOf(req.params.address)).toNumber(),
+                balance: await tokenInstance.balanceOf(req.params.address),
             },
             proposeWithdrawPollDuration,
             rewardPollDuration,

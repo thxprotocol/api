@@ -13,9 +13,11 @@ import {
     rewardDescription,
     rewardWithdrawAmount,
     rewardWithdrawDuration,
+    mintAmount,
 } from './lib/constants';
+import { formatEther, parseEther } from 'ethers/lib/utils';
 import { ethers } from 'ethers';
-import { parseEther } from 'ethers/lib/utils';
+import { format } from 'path';
 
 const user = request.agent(app);
 
@@ -33,7 +35,7 @@ beforeAll(async () => {
 
     await server.ensureInstance();
 
-    testToken = await testTokenFactory.deploy(admin.getAddress(), parseEther('1000000'));
+    testToken = await testTokenFactory.deploy(admin.address, mintAmount);
 
     await testToken.deployed();
 });
@@ -206,14 +208,19 @@ describe('GET /asset_pools/:address', () => {
         user.get('/v1/asset_pools/' + poolAddress)
             .set({ AssetPool: poolAddress })
             .end(async (err, res) => {
-                const poolBalance = await testToken.balanceOf(poolAddress);
+                const adminBalance = await testToken.balanceOf(admin.address);
 
-                expect(Number(poolBalance)).toBe(rewardWithdrawAmount);
+                expect(Number(formatEther(adminBalance))).toBe(
+                    Number(formatEther(mintAmount)) - Number(formatEther(rewardWithdrawAmount)),
+                );
                 expect(res.body.title).toEqual(poolTitle);
                 expect(res.body.address).toEqual(poolAddress);
+
                 expect(res.body.token.address).toEqual(testToken.address);
                 expect(res.body.token.name).toEqual(await testToken.name());
                 expect(res.body.token.symbol).toEqual(await testToken.symbol());
+                expect(Number(formatEther(res.body.token.balance))).toBe(Number(formatEther(rewardWithdrawAmount)));
+
                 expect(Number(res.body.proposeWithdrawPollDuration)).toEqual(0);
                 expect(Number(res.body.rewardPollDuration)).toEqual(0);
                 expect(res.status).toBe(200);
@@ -322,8 +329,10 @@ describe('POST /rewards/', () => {
                 expect(res.body.title).toEqual(rewardTitle);
                 expect(res.body.description).toEqual(rewardDescription);
                 expect(res.body.poll.address).toContain('0x');
-                expect(Number(res.body.poll.withdrawAmount)).toEqual(rewardWithdrawAmount);
                 expect(Number(res.body.poll.withdrawDuration)).toEqual(rewardWithdrawDuration);
+                expect(Number(formatEther(res.body.poll.withdrawAmount))).toEqual(
+                    Number(formatEther(rewardWithdrawAmount)),
+                );
                 expect(res.status).toBe(200);
                 done();
             });
@@ -404,7 +413,7 @@ describe('GET /polls/:id', () => {
             .end(async (err, res) => {
                 pollAddress = res.body.poll.address;
                 expect(res.body.poll.address).toContain('0x');
-                expect(Number(res.body.withdrawAmount)).toEqual(0);
+                expect(Number(formatEther(res.body.withdrawAmount))).toEqual(0);
                 expect(Number(res.body.state)).toEqual(0);
                 expect(res.status).toBe(200);
                 done();
@@ -517,7 +526,7 @@ describe('GET /rewards/:id (after finalizing)', () => {
         user.get('/v1/rewards/0')
             .set({ AssetPool: poolAddress })
             .end(async (err, res) => {
-                expect(Number(res.body.withdrawAmount)).toEqual(1000);
+                expect(Number(formatEther(res.body.withdrawAmount))).toEqual(Number(formatEther(rewardWithdrawAmount)));
                 expect(Number(res.body.state)).toEqual(1);
                 expect(res.status).toBe(200);
                 done();
@@ -564,7 +573,7 @@ describe('POST /rewards/:id/claim', () => {
                 withdrawPollAddress = res.body.address;
 
                 expect(res.body.approvalState).toEqual(false);
-                expect(Number(res.body.amount)).toEqual(1000);
+                expect(Number(formatEther(res.body.amount))).toEqual(Number(formatEther(rewardWithdrawAmount)));
                 expect(res.status).toBe(200);
                 done();
             });
@@ -621,7 +630,7 @@ describe('GET /withdrawals/:address', () => {
         user.get(`/v1/withdrawals/${withdrawPollAddress}`)
             .set({ AssetPool: poolAddress })
             .end(async (err, res) => {
-                expect(Number(res.body.amount)).toEqual(1000);
+                expect(Number(formatEther(res.body.amount))).toEqual(Number(formatEther(rewardWithdrawAmount)));
                 expect(res.body.beneficiary).toEqual(admin.address);
                 expect(res.body.approvalState).toEqual(true);
                 expect(res.status).toBe(200);
@@ -632,6 +641,10 @@ describe('GET /withdrawals/:address', () => {
 
 describe('POST /withdrawals/:address/withdraw', () => {
     let redirectURL = '';
+
+    beforeAll(async () => {
+        await timeTravel(rewardWithdrawDuration);
+    });
 
     it('should return a 200 and base64 string for the withdraw', (done) => {
         user.get(`/v1/withdrawals/${withdrawPollAddress}/withdraw`)
@@ -659,26 +672,24 @@ describe('POST /withdrawals/:address/withdraw', () => {
                 done();
             });
     });
-});
 
-describe('GET /asset_pools/:address (after withdaw)', () => {
-    it('should return a 200 and return state Withdrawn', (done) => {
-        user.get(`/v1/asset_pools/${poolAddress}`)
+    it('should return a 200 and have the minted amount balance again', (done) => {
+        user.get('/v1/' + redirectURL)
             .set({ AssetPool: poolAddress })
             .end(async (err, res) => {
-                expect(Number(res.body.token.balance)).toBe(0);
+                expect(Number(formatEther(res.body.token.balance))).toBe(Number(formatEther(mintAmount)));
                 expect(res.status).toBe(200);
                 done();
             });
     });
 });
 
-describe('GET /member/:address (after withdaw)', () => {
-    it('should return a 200 and increased token balance', (done) => {
-        user.get('/v1/members/' + admin.getAddress())
+describe('GET /asset_pools/:address (after withdaw)', () => {
+    it('should return a 200 and have 0 balance', (done) => {
+        user.get(`/v1/asset_pools/${poolAddress}`)
             .set({ AssetPool: poolAddress })
             .end(async (err, res) => {
-                expect(Number(res.body.token.balance)).toBe(rewardWithdrawAmount);
+                expect(Number(formatEther(res.body.token.balance))).toBe(0);
                 expect(res.status).toBe(200);
                 done();
             });
