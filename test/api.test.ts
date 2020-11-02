@@ -16,8 +16,6 @@ import {
     mintAmount,
 } from './lib/constants';
 import { formatEther, parseEther } from 'ethers/lib/utils';
-import { ethers } from 'ethers';
-import { format } from 'path';
 
 const user = request.agent(app);
 
@@ -46,13 +44,13 @@ afterAll(async () => {
 });
 
 describe('POST /login (no auth)', () => {
-    it('returns 500 if payload is missing', async (done) => {
+    it('400 if payload is missing', async (done) => {
         user.post('/v1/login').end((err, res) => {
             expect(res.status).toBe(400);
             done();
         });
     });
-    it('returns 500 if email is missing', (done) => {
+    it('400 if email is missing', (done) => {
         user.post('/v1/login')
             .send({ password: 'mellon' })
             .end((err, res) => {
@@ -60,7 +58,7 @@ describe('POST /login (no auth)', () => {
                 done();
             });
     });
-    it('returns 500 if password is missing', (done) => {
+    it('400 if password is missing', (done) => {
         user.post('/v1/login')
             .send({ email: 'test.bot@thx.network' })
             .end((err, res) => {
@@ -68,24 +66,24 @@ describe('POST /login (no auth)', () => {
                 done();
             });
     });
-    it('returns 401 if account is not found', (done) => {
+    it('401 if account is not found', (done) => {
         user.post('/v1/login')
             .send({ email: 'test.bot@thx.network', password: 'mellon' })
             .end((err, res) => {
-                expect(res.status).toBe(401);
+                expect(res.status).toBe(404);
                 done();
             });
     });
 });
 
 describe('POST /signup', () => {
-    it('returns 500 if payload is missing', (done) => {
+    it('500 if payload is missing', (done) => {
         user.post('/v1/signup').end((err, res) => {
             expect(res.status).toBe(400);
             done();
         });
     });
-    it('returns 500 if email is missing', (done) => {
+    it('500 if email is missing', (done) => {
         user.post('/v1/signup')
             .send({ password: 'mellon', confirmPassword: 'mellon' })
             .end((err, res) => {
@@ -93,7 +91,7 @@ describe('POST /signup', () => {
                 done();
             });
     });
-    it('returns 500 if password is missing', (done) => {
+    it('500 if password is missing', (done) => {
         user.post('/v1/signup')
             .send({ email: 'test.bot@thx.network', confirmPassword: 'mellon' })
             .end((err, res) => {
@@ -101,7 +99,7 @@ describe('POST /signup', () => {
                 done();
             });
     });
-    it('returns 500 if confirmPassword is missing', (done) => {
+    it('500 if confirmPassword is missing', (done) => {
         user.post('/v1/signup')
             .send({ email: 'test.bot@thx.network', password: 'mellon' })
             .end((err, res) => {
@@ -109,7 +107,7 @@ describe('POST /signup', () => {
                 done();
             });
     });
-    it('returns 302 if payload is correct', (done) => {
+    it('302 if payload is correct', (done) => {
         user.post('/v1/signup')
             .send({ email: 'test.bot@thx.network', password: 'mellon', confirmPassword: 'mellon' })
             .end((err, res) => {
@@ -117,18 +115,18 @@ describe('POST /signup', () => {
                 done();
             });
     });
-    it('returns 403 if email already exists', (done) => {
+    it('403 if email already exists', (done) => {
         user.post('/v1/signup')
             .send({ email: 'test.bot@thx.network', password: 'mellon', confirmPassword: 'mellon' })
             .end((err, res) => {
-                expect(res.status).toBe(403);
+                expect(res.status).toBe(409);
                 done();
             });
     });
 });
 
 describe('POST /logout', () => {
-    it('returns 200 if logout is handled', (done) => {
+    it('200 if logout is handled', (done) => {
         user.get('/v1/logout').end((err, res) => {
             expect(res.status).toBe(200);
             done();
@@ -137,7 +135,7 @@ describe('POST /logout', () => {
 });
 
 describe('GET /account (after logout)', () => {
-    it('should return a 401', async (done) => {
+    it('401', async (done) => {
         user.get('/v1/account').end((err, res) => {
             expect(res.status).toBe(401);
             done();
@@ -148,16 +146,16 @@ describe('GET /account (after logout)', () => {
 describe('POST /login', () => {
     let redirectURL = '';
 
-    it('should return a 401 if credentials are incorrect', (done) => {
+    it('401 if credentials are incorrect', (done) => {
         user.post('/v1/login')
             .send({ email: 'bad.bot@thx.network', password: 'mellon' })
             .end((err, res) => {
-                expect(res.status).toBe(401);
+                expect(res.status).toBe(404);
                 done();
             });
     });
 
-    it('should return a 302 if credentials are correct', (done) => {
+    it('302 if credentials are correct', (done) => {
         user.post('/v1/login')
             .send({ email: 'test.bot@thx.network', password: 'mellon' })
             .end((err, res) => {
@@ -167,7 +165,7 @@ describe('POST /login', () => {
             });
     });
 
-    it('should return a 200 after redirect', (done) => {
+    it('200 after redirect', (done) => {
         user.get('/v1/' + redirectURL).end((err, res) => {
             expect(res.status).toBe(200);
             done();
@@ -176,7 +174,7 @@ describe('POST /login', () => {
 });
 
 describe('GET /account (after login)', () => {
-    it('should return a 200', async (done) => {
+    it('200', async (done) => {
         user.get('/v1/account').end((err, res) => {
             expect(res.status).toBe(200);
             done();
@@ -185,7 +183,7 @@ describe('GET /account (after login)', () => {
 });
 
 describe('POST /asset_pools', () => {
-    it('should return a 200', async (done) => {
+    it('200', async (done) => {
         user.post('/v1/asset_pools')
             .send({
                 title: poolTitle,
@@ -204,7 +202,7 @@ describe('POST /asset_pools', () => {
 });
 
 describe('GET /asset_pools/:address', () => {
-    it('should return a 200 and expose pool information', (done) => {
+    it('200 and expose pool information', (done) => {
         user.get('/v1/asset_pools/' + poolAddress)
             .set({ AssetPool: poolAddress })
             .end(async (err, res) => {
@@ -228,7 +226,7 @@ describe('GET /asset_pools/:address', () => {
             });
     });
 
-    it('should return a 404 if pool does not exist', (done) => {
+    it('404 if pool does not exist', (done) => {
         user.get('/v1/asset_pools/0x0000000000000000000000000000000000000000')
             .set({ AssetPool: poolAddress })
             .end(async (err, res) => {
@@ -240,7 +238,7 @@ describe('GET /asset_pools/:address', () => {
 
 describe('PATCH /asset_pools/:address', () => {
     let redirectURL = '';
-    it('should return a 302 ', (done) => {
+    it('302 ', (done) => {
         user.patch('/v1/asset_pools/' + poolAddress)
             .set({ AssetPool: poolAddress })
             .send({
@@ -255,7 +253,7 @@ describe('PATCH /asset_pools/:address', () => {
             });
     });
 
-    it('should return a 200 after redirect', (done) => {
+    it('200 after redirect', (done) => {
         user.get('/v1/' + redirectURL)
             .set({ AssetPool: poolAddress })
             .end(async (err, res) => {
@@ -266,7 +264,7 @@ describe('PATCH /asset_pools/:address', () => {
             });
     });
 
-    it('should return a 500 if incorrect rewardPollDuration value is sent ', (done) => {
+    it('500 if incorrect rewardPollDuration value is sent ', (done) => {
         user.patch('/v1/asset_pools/' + poolAddress)
             .set({ AssetPool: poolAddress })
             .send({
@@ -278,7 +276,7 @@ describe('PATCH /asset_pools/:address', () => {
             });
     });
 
-    it('should return a 500 if incorrect proposeWithdrawPollDuration value is sent ', (done) => {
+    it('500 if incorrect proposeWithdrawPollDuration value is sent ', (done) => {
         user.patch('/v1/asset_pools/' + poolAddress)
             .set({ AssetPool: poolAddress })
             .send({
@@ -305,7 +303,7 @@ describe('PATCH /asset_pools/:address', () => {
 describe('POST /rewards/', () => {
     let redirectURL = '';
 
-    it('should return a 302 when reward is added', (done) => {
+    it('302 when reward is added', (done) => {
         user.post('/v1/rewards/')
             .set({ AssetPool: poolAddress })
             .send({
@@ -321,7 +319,7 @@ describe('POST /rewards/', () => {
             });
     });
 
-    it('should return a 200 after redirect', (done) => {
+    it('200 after redirect', (done) => {
         user.get('/v1/' + redirectURL)
             .set({ AssetPool: poolAddress })
             .end(async (err, res) => {
@@ -340,7 +338,7 @@ describe('POST /rewards/', () => {
 });
 
 describe('GET /rewards/:id', () => {
-    it('should return a 200 when successful', (done) => {
+    it('200 when successful', (done) => {
         user.get('/v1/rewards/0')
             .set({ AssetPool: poolAddress })
             .end(async (err, res) => {
@@ -349,7 +347,7 @@ describe('GET /rewards/:id', () => {
             });
     });
 
-    it('should return a 404 if reward can not be found', (done) => {
+    it('404 if reward can not be found', (done) => {
         user.get('/v1/rewards/1')
             .set({ AssetPool: poolAddress })
             .end(async (err, res) => {
@@ -358,7 +356,7 @@ describe('GET /rewards/:id', () => {
             });
     });
 
-    it('should return a 500 if the id parameter is invalid', (done) => {
+    it('500 if the id parameter is invalid', (done) => {
         user.get('/v1/rewards/id_invalid')
             .set({ AssetPool: poolAddress })
             .end(async (err, res) => {
@@ -369,7 +367,7 @@ describe('GET /rewards/:id', () => {
 });
 
 describe('GET /members/:address', () => {
-    it('should return a 404 if member is not found', (done) => {
+    it('404 if member is not found', (done) => {
         user.post('/v1/members/' + voter.address)
             .set({ AssetPool: poolAddress })
             .end(async (err, res) => {
@@ -382,7 +380,7 @@ describe('GET /members/:address', () => {
 describe('POST /members/:address', () => {
     let redirectURL = '';
 
-    it('should return a 302 when member is added', (done) => {
+    it('302 when member is added', (done) => {
         user.post('/v1/members/')
             .send({ address: voter.address })
             .set({ AssetPool: poolAddress })
@@ -394,7 +392,7 @@ describe('POST /members/:address', () => {
             });
     });
 
-    it('should return a 200 for the redirect', (done) => {
+    it('200 for the redirect', (done) => {
         user.get('/v1/' + redirectURL)
             .set({ AssetPool: poolAddress })
             .end(async (err, res) => {
@@ -407,7 +405,7 @@ describe('POST /members/:address', () => {
 });
 
 describe('GET /polls/:id', () => {
-    it('should return a 200 and expose poll address', (done) => {
+    it('200 and expose poll address', (done) => {
         user.get('/v1/rewards/0')
             .set({ AssetPool: poolAddress })
             .end(async (err, res) => {
@@ -420,7 +418,7 @@ describe('GET /polls/:id', () => {
             });
     });
 
-    it('should return a 200 if poll exists', (done) => {
+    it('200 if poll exists', (done) => {
         user.get('/v1/polls/' + pollAddress)
             .set({ AssetPool: poolAddress })
             .end(async (err, res) => {
@@ -431,7 +429,7 @@ describe('GET /polls/:id', () => {
 });
 
 describe('GET /polls/:id/vote/:agree', () => {
-    it('should return a 200 and base64 string for the yes vote', (done) => {
+    it('200 and base64 string for the yes vote', (done) => {
         user.get(`/v1/polls/${pollAddress}/vote/1`)
             .set({ AssetPool: poolAddress })
             .end(async (err, res) => {
@@ -445,7 +443,7 @@ describe('GET /polls/:id/vote/:agree', () => {
 describe('POST /polls/:address/vote (rewardPoll)', () => {
     let redirectURL = '';
 
-    it('should return a 200 and base64 string for the yes vote', (done) => {
+    it('200 and base64 string for the yes vote', (done) => {
         user.get(`/v1/polls/${pollAddress}/vote/1`)
             .set({ AssetPool: poolAddress })
             .end(async (err, res) => {
@@ -455,7 +453,7 @@ describe('POST /polls/:address/vote (rewardPoll)', () => {
             });
     });
 
-    it('should return a 302 when tx is handled', async (done) => {
+    it('302 when tx is handled', async (done) => {
         // We assume QR decoding works as expected, will be tested in the wallet repo
         const { call, nonce, sig } = await signMethod(voter, REWARD_POLL.abi, pollAddress, 'vote', [true]);
 
@@ -473,7 +471,7 @@ describe('POST /polls/:address/vote (rewardPoll)', () => {
             });
     });
 
-    it('should return a 200 and increase yesCounter with 1', (done) => {
+    it('200 and increase yesCounter with 1', (done) => {
         user.get(`/v1/${redirectURL}`)
             .set({ AssetPool: poolAddress })
             .end(async (err, res) => {
@@ -493,7 +491,7 @@ describe('POST /polls/:address/finalize (rewardPoll)', () => {
         await timeTravel(rewardPollDuration);
     });
 
-    it('should return a 302 after finalizing the poll', async (done) => {
+    it('302 after finalizing the poll', async (done) => {
         const { call, nonce, sig } = await signMethod(voter, REWARD_POLL.abi, pollAddress, 'finalize', []);
 
         user.post(`/v1/polls/${pollAddress}/finalize`)
@@ -511,7 +509,7 @@ describe('POST /polls/:address/finalize (rewardPoll)', () => {
             });
     });
 
-    it('should return a 404 after getting the finalized poll', (done) => {
+    it('404 after getting the finalized poll', (done) => {
         user.get(`/v1/${redirectURL}`)
             .set({ AssetPool: poolAddress })
             .end(async (err, res) => {
@@ -522,7 +520,7 @@ describe('POST /polls/:address/finalize (rewardPoll)', () => {
 });
 
 describe('GET /rewards/:id (after finalizing)', () => {
-    it('should return a 200 and return updated withdrawAmount and state 1', (done) => {
+    it('200 and return updated withdrawAmount and state 1', (done) => {
         user.get('/v1/rewards/0')
             .set({ AssetPool: poolAddress })
             .end(async (err, res) => {
@@ -537,7 +535,7 @@ describe('GET /rewards/:id (after finalizing)', () => {
 describe('POST /rewards/:id/claim', () => {
     let redirectURL = '';
 
-    it('should return a 200 and base64 string for the claim', (done) => {
+    it('200 and base64 string for the claim', (done) => {
         user.get(`/v1/rewards/0/claim`)
             .set({ AssetPool: poolAddress })
             .end(async (err, res) => {
@@ -547,7 +545,7 @@ describe('POST /rewards/:id/claim', () => {
             });
     });
 
-    it('should return a 302 when tx is handled', async (done) => {
+    it('302 when tx is handled', async (done) => {
         // We assume QR decoding works as expected, will be tested in the wallet repo
         const { call, nonce, sig } = await signMethod(admin, ASSET_POOL.abi, poolAddress, 'claimReward', [0]);
 
@@ -566,7 +564,7 @@ describe('POST /rewards/:id/claim', () => {
             });
     });
 
-    it('should return a 200 after return state Pending', (done) => {
+    it('200 after return state Pending', (done) => {
         user.get(`/v1/${redirectURL}`)
             .set({ AssetPool: poolAddress })
             .end(async (err, res) => {
@@ -583,7 +581,7 @@ describe('POST /rewards/:id/claim', () => {
 describe('POST /polls/:address/vote (withdrawPoll)', () => {
     let redirectURL = '';
 
-    it('should return a 200 and base64 string for the yes vote', (done) => {
+    it('200 and base64 string for the yes vote', (done) => {
         user.get(`/v1/polls/${withdrawPollAddress}/vote/1`)
             .set({ AssetPool: poolAddress })
             .end(async (err, res) => {
@@ -593,7 +591,7 @@ describe('POST /polls/:address/vote (withdrawPoll)', () => {
             });
     });
 
-    it('should return a 302 when tx is handled', async (done) => {
+    it('302 when tx is handled', async (done) => {
         // We assume QR decoding works as expected, will be tested in the wallet repo
         // Manager should vote for this poll
         const { call, nonce, sig } = await signMethod(admin, WITHDRAW_POLL.abi, withdrawPollAddress, 'vote', [true]);
@@ -612,7 +610,7 @@ describe('POST /polls/:address/vote (withdrawPoll)', () => {
             });
     });
 
-    it('should return a 200 and increase yesCounter with 1', (done) => {
+    it('200 and increase yesCounter with 1', (done) => {
         user.get(`/v1/${redirectURL}`)
             .set({ AssetPool: poolAddress })
             .end(async (err, res) => {
@@ -626,7 +624,7 @@ describe('POST /polls/:address/vote (withdrawPoll)', () => {
 });
 
 describe('GET /withdrawals/:address', () => {
-    it('should return a 200 and return state Approved', (done) => {
+    it('200 and return state Approved', (done) => {
         user.get(`/v1/withdrawals/${withdrawPollAddress}`)
             .set({ AssetPool: poolAddress })
             .end(async (err, res) => {
@@ -646,7 +644,7 @@ describe('POST /withdrawals/:address/withdraw', () => {
         await timeTravel(rewardWithdrawDuration);
     });
 
-    it('should return a 200 and base64 string for the withdraw', (done) => {
+    it('200 and base64 string for the withdraw', (done) => {
         user.get(`/v1/withdrawals/${withdrawPollAddress}/withdraw`)
             .set({ AssetPool: poolAddress })
             .end(async (err, res) => {
@@ -656,7 +654,7 @@ describe('POST /withdrawals/:address/withdraw', () => {
             });
     });
 
-    it('should return a 302 and redirect to withdrawal', async (done) => {
+    it('302 and redirect to withdrawal', async (done) => {
         const { call, nonce, sig } = await signMethod(admin, WITHDRAW_POLL.abi, withdrawPollAddress, 'finalize', []);
 
         user.post(`/v1/withdrawals/${withdrawPollAddress}/withdraw`)
@@ -673,7 +671,7 @@ describe('POST /withdrawals/:address/withdraw', () => {
             });
     });
 
-    it('should return a 200 and have the minted amount balance again', (done) => {
+    it('200 and have the minted amount balance again', (done) => {
         user.get('/v1/' + redirectURL)
             .set({ AssetPool: poolAddress })
             .end(async (err, res) => {
@@ -685,7 +683,7 @@ describe('POST /withdrawals/:address/withdraw', () => {
 });
 
 describe('GET /asset_pools/:address (after withdaw)', () => {
-    it('should return a 200 and have 0 balance', (done) => {
+    it('200 and have 0 balance', (done) => {
         user.get(`/v1/asset_pools/${poolAddress}`)
             .set({ AssetPool: poolAddress })
             .end(async (err, res) => {
