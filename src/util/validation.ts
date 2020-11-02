@@ -23,11 +23,7 @@ export const validate = {
     // withdrawal
     getWithdrawal: [validateAssetPoolHeader, param('address').exists()],
     getWithdrawals: [validateAssetPoolHeader, body('member').exists()],
-    postWithdrawal: [
-        validateAssetPoolHeader,
-        check('amount', 'Request body should have amount').exists(),
-        check('beneficiary', 'Request body should have beneficiary').exists(),
-    ],
+    postWithdrawal: [validateAssetPoolHeader, body('call').exists(), body('nonce').exists(), body('sig').exists()],
     getWithdrawalWithdraw: [validateAssetPoolHeader, param('address').exists()],
     postWithdrawalWithdraw: [validateAssetPoolHeader, param('address').exists()],
     // polls

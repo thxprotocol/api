@@ -125,7 +125,7 @@ export const postSignup = async (req: Request, res: Response, next: NextFunction
         const existingUser = await Account.findOne({ email: req.body.email });
 
         if (existingUser) {
-            res.status(409).end();
+            res.status(422).end();
             return;
         }
 

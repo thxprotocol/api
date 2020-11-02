@@ -54,7 +54,7 @@ export const getWithdrawal = async (req: Request, res: Response) => {
         const noCounter = (await withdrawal.noCounter()).toNumber();
         const totalVoted = (await withdrawal.totalVoted()).toNumber();
 
-        res.send({
+        res.json({
             startTime: {
                 raw: startTime,
                 formatted: new Date(startTime * 1000),
@@ -104,17 +104,14 @@ export const getWithdrawals = async (req: Request, res: Response) => {
 
     try {
         const instance = assetPoolContract(req.header('AssetPool'));
-        const withdrawPolls = (
-            await instance.getPastEvents('WithdrawPollCreated', {
-                filter: { member: req.body.member },
-                fromBlock: 0,
-                toBlock: 'latest',
-            })
-        ).map((event: any) => {
-            return event.returnValues.poll;
-        });
+        const filter = instance.filters.WithdrawPollCreated(req.body.member, null);
+        const logs = await instance.queryFilter(filter, 0, 'latest');
 
-        res.send({ withdrawPolls });
+        res.json({
+            withdrawPolls: logs.map((log) => {
+                return log.args.poll;
+            }),
+        });
     } catch (err) {
         logger.error(err.toString());
         res.status(500).json({ msg: err.toString() });
@@ -152,7 +149,7 @@ export const postWithdrawal = async (req: Request, res: Response) => {
     const errors = validationResult(req);
 
     if (!errors.isEmpty()) {
-        return res.status(500).json(errors.array()).end();
+        return res.status(400).json(errors.array()).end();
     }
 
     try {
@@ -166,7 +163,7 @@ export const postWithdrawal = async (req: Request, res: Response) => {
         const event = logs.filter((e: { name: string }) => e.name === 'WithdrawPollCreated')[0];
         const pollAddress = event.args.poll;
 
-        res.redirect('/v1/withdrawals/' + pollAddress);
+        res.redirect('withdrawals/' + pollAddress);
     } catch (err) {
         logger.error(err.toString());
         res.status(500).json({ msg: err.toString() });
