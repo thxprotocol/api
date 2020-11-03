@@ -6,7 +6,6 @@ services:
         image: mongo
         ports:
             - 27017:27017
-        restart: always
         environment:
             MONGO_INITDB_ROOT_USERNAME: root
             MONGO_INITDB_ROOT_PASSWORD: root
@@ -15,9 +14,35 @@ services:
     mongo-express:
         container_name: thx_mongo_express
         image: mongo-express
-        restart: always
         ports:
             - 8081:8081
         environment:
             ME_CONFIG_MONGODB_ADMINUSERNAME: root
             ME_CONFIG_MONGODB_ADMINPASSWORD: root
+
+    node:
+        container_name: thx_node
+        image: node:10
+        volumes:
+            - ./:/usr/src/service
+        working_dir: /usr/src/service
+        command: bash -c "npm install && npm run build && npm run serve"
+        #command: bash -c "npm run watch-debug"
+        links:
+            - mongo
+            - ganache
+        ports:
+            - 3000:3000
+
+    ganache:
+        container_name: thx_ganache
+        image: trufflesuite/ganache-cli:latest
+        ports:
+            - "8545:8545"
+        volumes:
+            - ./:/ganache_data
+        command: ["ganache-cli",
+                  "--account='0x873c254263b17925b686f971d7724267710895f1585bb0533db8e693a2af32ff,100000000000000000000'",
+                  "--account='0xe9793d9246355c0f9fd3b330c0ee0aebdb24c813d47a27c1df87d6656c691d37,100000000000000000000'",
+                  "--account='0x447b6475b1170c4edd9521ba4960bbcf4252cec02b14e0564c87ec00624033a8,100000000000000000000'",
+                  "--account='0x1b8242ac13eb24f83479b3d9d83eabf484844de02708758c27142d0ed98aec2c,100000000000000000000'",]
