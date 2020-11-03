@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import '../config/passport';
-import { options, basePollContract, assetPoolContract, web3 } from '../util/network';
+import { basePollContract, gasStation } from '../util/network';
 import logger from '../util/logger';
 import { validationResult } from 'express-validator';
 const qrcode = require('qrcode');
@@ -124,8 +124,8 @@ export const getPoll = async (req: Request, res: Response) => {
 
     try {
         const poll = basePollContract(req.params.address);
-        const startTime = await poll.methods.startTime().call(options);
-        const endTime = await poll.methods.endTime().call(options);
+        const startTime = await poll.startTime();
+        const endTime = await poll.endTime();
 
         res.json({
             startTime: {
@@ -136,10 +136,9 @@ export const getPoll = async (req: Request, res: Response) => {
                 raw: endTime,
                 formatted: new Date(endTime * 1000),
             },
-            yesCounter: await poll.methods.yesCounter().call(options),
-            noCounter: await poll.methods.noCounter().call(options),
-            totalVoted: await poll.methods.totalVoted().call(options),
-            finalized: await poll.methods.finalized().call(options),
+            yesCounter: (await poll.yesCounter()).toNumber(),
+            noCounter: (await poll.noCounter()).toNumber(),
+            totalVoted: (await poll.totalVoted()).toNumber(),
         });
     } catch (err) {
         logger.error(err.toString());
@@ -196,11 +195,8 @@ export const postVote = async (req: Request, res: Response) => {
     }
 
     try {
-        const instance = basePollContract(req.params.address);
-
-        await instance.methods
-            .vote(req.body.voter, JSON.parse(req.body.agree), parseInt(req.body.nonce, 10), req.body.sig)
-            .send(options);
+        const tx = await gasStation.call(req.body.call, req.params.address, req.body.nonce, req.body.sig);
+        await tx.wait();
 
         res.redirect(`polls/${req.params.address}`);
     } catch (err) {
@@ -299,14 +295,13 @@ export const deleteVote = async (req: Request, res: Response) => {
     }
 
     try {
-        await basePollContract(req.params.address)
-            .methods.revokeVote(req.body.voter, parseInt(req.body.nonce, 10), req.body.sig)
-            .send(options);
+        const instance = basePollContract(req.params.address);
+        await instance.revokeVote(req.body.voter, parseInt(req.body.nonce, 10), req.body.sig);
 
         res.redirect('polls/' + req.params.address);
     } catch (err) {
-        logger.error(err);
-        return res.status(500).end();
+        logger.error(err.toString());
+        res.status(500).json({ msg: err.toString() });
     }
 };
 
@@ -334,7 +329,8 @@ export const postPollFinalize = async (req: Request, res: Response) => {
     }
 
     try {
-        await basePollContract(req.params.address).methods.tryToFinalize().send(options);
+        const tx = await gasStation.call(req.body.call, req.params.address, req.body.nonce, req.body.sig);
+        await tx.wait();
 
         res.redirect('polls/' + req.params.address);
     } catch (err) {

@@ -4,8 +4,6 @@ export type AssetPoolDocument = mongoose.Document & {
     address: string;
     title: string;
     uid: string;
-    rewardCount: number;
-    withdrawCount: number;
 };
 
 const assetPoolSchema = new mongoose.Schema(

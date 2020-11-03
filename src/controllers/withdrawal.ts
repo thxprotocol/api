@@ -1,7 +1,6 @@
-import { WithdrawState } from '../models/Withdraw';
 import { Request, Response } from 'express';
 import '../config/passport';
-import { assetPoolContract, options, withdrawPollContract } from '../util/network';
+import { assetPoolContract, ASSET_POOL, gasStation, parseResultLog, withdrawPollContract } from '../util/network';
 import logger from '../util/logger';
 import { validationResult } from 'express-validator';
 
@@ -36,7 +35,6 @@ const qrcode = require('qrcode');
  *         yesCounter: Amount of yes votes
  *         noCounter: Amount of no votes
  *         totalVotes: Total amount of votes
- *         finalized: Is the poll finalized or not
  */
 export const getWithdrawal = async (req: Request, res: Response) => {
     const errors = validationResult(req);
@@ -47,17 +45,16 @@ export const getWithdrawal = async (req: Request, res: Response) => {
 
     try {
         const withdrawal = withdrawPollContract(req.params.address);
-        const beneficiary = await withdrawal.methods.beneficiary().call(options);
-        const amount = await withdrawal.methods.amount().call(options);
-        const state = await withdrawal.methods.state().call(options);
-        const startTime = await withdrawal.methods.startTime().call(options);
-        const endTime = await withdrawal.methods.endTime().call(options);
-        const yesCounter = await withdrawal.methods.yesCounter().call(options);
-        const noCounter = await withdrawal.methods.noCounter().call(options);
-        const totalVoted = await withdrawal.methods.totalVoted().call(options);
-        const finalized = await withdrawal.methods.finalized().call(options);
+        const beneficiary = await withdrawal.beneficiary();
+        const amount = await withdrawal.amount();
+        const approvalState = await withdrawal.getCurrentApprovalState();
+        const startTime = (await withdrawal.startTime()).toNumber();
+        const endTime = (await withdrawal.endTime()).toNumber();
+        const yesCounter = (await withdrawal.yesCounter()).toNumber();
+        const noCounter = (await withdrawal.noCounter()).toNumber();
+        const totalVoted = (await withdrawal.totalVoted()).toNumber();
 
-        res.send({
+        res.json({
             startTime: {
                 raw: startTime,
                 formatted: new Date(startTime * 1000),
@@ -66,14 +63,13 @@ export const getWithdrawal = async (req: Request, res: Response) => {
                 raw: endTime,
                 formatted: new Date(endTime * 1000),
             },
-            address: withdrawal.options.address,
+            address: withdrawal.address,
             beneficiary,
             amount,
-            state: WithdrawState[state],
+            approvalState,
             yesCounter,
             noCounter,
             totalVoted,
-            finalized,
         });
     } catch (err) {
         logger.error(err.toString());
@@ -107,18 +103,15 @@ export const getWithdrawals = async (req: Request, res: Response) => {
     }
 
     try {
-        const assetPool = assetPoolContract(req.header('AssetPool'));
-        const withdrawPolls = (
-            await assetPool.getPastEvents('WithdrawPollCreated', {
-                filter: { member: req.body.member },
-                fromBlock: 0,
-                toBlock: 'latest',
-            })
-        ).map((event) => {
-            return event.returnValues.poll;
-        });
+        const instance = assetPoolContract(req.header('AssetPool'));
+        const filter = instance.filters.WithdrawPollCreated(req.body.member, null);
+        const logs = await instance.queryFilter(filter, 0, 'latest');
 
-        res.send({ withdrawPolls });
+        res.json({
+            withdrawPolls: logs.map((log) => {
+                return log.args.poll;
+            }),
+        });
     } catch (err) {
         logger.error(err.toString());
         res.status(500).json({ msg: err.toString() });
@@ -156,16 +149,21 @@ export const postWithdrawal = async (req: Request, res: Response) => {
     const errors = validationResult(req);
 
     if (!errors.isEmpty()) {
-        return res.status(500).json(errors.array()).end();
+        return res.status(400).json(errors.array()).end();
     }
 
     try {
-        const tx = await assetPoolContract(req.header('AssetPool'))
-            .methods.proposeWithdraw(req.body.amount.toString(), req.body.beneficiary)
-            .send(options);
-        const pollAddress = tx.events.WithdrawPollCreated.returnValues.poll;
+        let tx = await gasStation.call(req.body.call, req.header('AssetPool'), req.body.nonce, req.body.sig);
+        tx = await tx.wait();
 
-        res.redirect('/v1/withdrawals/' + pollAddress);
+        const { error, logs } = await parseResultLog(ASSET_POOL.abi, tx.logs);
+        if (error) {
+            throw Error(error);
+        }
+        const event = logs.filter((e: { name: string }) => e.name === 'WithdrawPollCreated')[0];
+        const pollAddress = event.args.poll;
+
+        res.redirect('withdrawals/' + pollAddress);
     } catch (err) {
         logger.error(err.toString());
         res.status(500).json({ msg: err.toString() });
@@ -246,11 +244,16 @@ export const postWithdrawalWithdraw = async (req: Request, res: Response) => {
     }
 
     try {
-        const withdrawalInstance = withdrawPollContract(req.params.address);
+        let tx = await gasStation.call(req.body.call, req.params.address, req.body.nonce, req.body.sig);
+        tx = await tx.wait();
 
-        await withdrawalInstance.methods.withdraw().send(options);
+        const { error, logs } = await parseResultLog(ASSET_POOL.abi, tx.logs);
+        if (error) {
+            throw Error(error);
+        }
+        const event = logs.filter((l) => l.name === 'Withdrawn')[0];
 
-        res.redirect(`withdrawals/${req.params.address}`);
+        res.redirect(`members/${event.args.member}`);
     } catch (err) {
         logger.error(err.toString());
         res.status(500).json({ msg: err.toString() });

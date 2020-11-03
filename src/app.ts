@@ -1,4 +1,4 @@
-import { ORIGIN, VERSION, SESSION_SECRET, MONGODB_URI } from './util/secrets';
+import { ORIGIN, VERSION, SESSION_SECRET, MONGODB_URI, ENVIRONMENT } from './util/secrets';
 import express from 'express';
 import compression from 'compression';
 import session from 'express-session';
@@ -25,7 +25,12 @@ app.use(
         origin: ORIGIN,
     }),
 );
-app.use(morgan('combined', { stream: { write: (message: any) => logger.info(message) } }));
+app.use(
+    morgan('combined', {
+        skip: () => ENVIRONMENT === 'test',
+        stream: { write: (message: any) => logger.info(message) },
+    }),
+);
 app.use(compression());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
