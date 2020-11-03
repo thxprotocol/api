@@ -31,3 +31,11 @@ services:
             -   mongo
         ports:
             - 3000:3000
+
+    ganache:
+        container_name: thx_ganache
+        image: trufflesuite/ganache-cli:latest
+        ports:
+            - "8545:8545"
+        volumes:
+            - ./:/ganache_data
