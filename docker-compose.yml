@@ -22,7 +22,7 @@ services:
 
     node:
         container_name: thx_node
-        image: node:11
+        image: node:10
         volumes:
             - ./:/usr/src/service
         working_dir: /usr/src/service
@@ -30,4 +30,4 @@ services:
         links:
             -   mongo
         ports:
-            - 3000
+            - 3000:3000
