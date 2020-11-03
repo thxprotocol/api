@@ -47,7 +47,7 @@ export const validate = {
     ],
     // members
     postMember: [validateAssetPoolHeader, body('address').exists()],
-    patchMember: [validateAssetPoolHeader, body('address').exists()],
+    patchMember: [validateAssetPoolHeader, param('address').exists(), body('isManager').exists()],
     deleteMember: [validateAssetPoolHeader, param('address').exists()],
     getMember: [validateAssetPoolHeader, param('address').exists()],
     // rewards

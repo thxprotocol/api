@@ -1,10 +1,8 @@
 import { Request, Response } from 'express';
-import { assetPoolContract, ASSET_POOL, parseLogs, tokenContract } from '../util/network';
+import { admin, assetPoolContract, ASSET_POOL, parseLogs, tokenContract } from '../util/network';
 import '../config/passport';
 import { validationResult } from 'express-validator';
 import logger from '../util/logger';
-import { formatEther, parseEther } from 'ethers/lib/utils';
-import { BigNumber } from 'ethers';
 
 /**
  * @swagger
@@ -32,7 +30,7 @@ export const postMember = async (req: Request, res: Response) => {
     const errors = validationResult(req);
 
     if (!errors.isEmpty()) {
-        return res.status(400).json(errors.array()).end();
+        res.status(400).json(errors.array()).end();
     }
 
     try {
@@ -42,10 +40,10 @@ export const postMember = async (req: Request, res: Response) => {
         const event = events.filter((e: { name: string }) => e.name === 'RoleGranted')[0];
         const address = event.args.account;
 
-        res.redirect(`members/${address}`);
+        return res.redirect(`members/${address}`);
     } catch (err) {
         logger.error(err.toString());
-        res.status(500).json({ msg: err.toString() });
+        return res.status(500).json({ msg: err.toString() }).end();
     }
 };
 
@@ -75,17 +73,18 @@ export const deleteMember = async (req: Request, res: Response) => {
     const errors = validationResult(req);
 
     if (!errors.isEmpty()) {
-        return res.status(500).json(errors.array()).end();
+        return res.status(400).json(errors.array()).end();
     }
 
     try {
         const instance = assetPoolContract(req.header('AssetPool'));
-        const tx = await instance.removeMember(req.params.address);
-        res.json(tx.events.MemberRemoved.returnValues.account);
+
+        await instance.removeMember(req.params.address);
+
+        return res.end();
     } catch (err) {
-        const error = err.toString();
-        logger.error(error);
-        res.status(500).json({ msg: 'Member not removed', error });
+        logger.error(err.toString());
+        return res.status(500).json({ msg: err.toString() }).end();
     }
 };
 
@@ -141,12 +140,18 @@ export const getMember = async (req: Request, res: Response) => {
 
     try {
         const assetPoolInstance = assetPoolContract(req.header('AssetPool'));
+        const isMember = await assetPoolInstance.isMember(req.params.address);
+
+        if (!isMember) {
+            return res.status(404).json({ msg: 'Address is not a member' });
+        }
+
         const tokenAddress = await assetPoolInstance.token();
         const tokenInstance = tokenContract(tokenAddress);
         const balance = await tokenInstance.balanceOf(req.params.address);
 
-        res.json({
-            isMember: await assetPoolInstance.isMember(req.params.address),
+        return res.json({
+            isMember,
             isManager: await assetPoolInstance.isManager(req.params.address),
             token: {
                 name: await tokenInstance.name(),
@@ -156,7 +161,7 @@ export const getMember = async (req: Request, res: Response) => {
         });
     } catch (err) {
         logger.error(err.toString());
-        res.status(500).json({ msg: err.toString() });
+        return res.status(500).json({ msg: err.toString() });
     }
 };
 
@@ -186,18 +191,17 @@ export const patchMember = async (req: Request, res: Response) => {
     const errors = validationResult(req);
 
     if (!errors.isEmpty()) {
-        return res.status(500).json(errors.array()).end();
+        return res.status(400).json(errors.array()).end();
     }
 
     try {
-        const assetPoolInstance = assetPoolContract(req.header('AssetPool'));
+        const instance = assetPoolContract(req.header('AssetPool'));
 
-        await assetPoolInstance[!req.body.isManager ? 'addManager' : 'removeManager'](req.params.address);
+        await instance[req.body.isManager ? 'addManager' : 'removeManager'](req.params.address);
 
-        res.redirect(`members/${req.params.address}`);
+        return res.redirect(`members/${req.params.address}`);
     } catch (err) {
-        const error = err.toString();
-        logger.error(error);
-        res.status(500).json({ msg: 'Patch operation failed', error });
+        logger.error(err.toString());
+        return res.status(500).json({ msg: err.toString() });
     }
 };
