@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import '../config/passport';
-import { options, basePollContract } from '../util/network';
+import { basePollContract, gasStation } from '../util/network';
 import logger from '../util/logger';
 import { validationResult } from 'express-validator';
 const qrcode = require('qrcode');
@@ -30,13 +30,13 @@ const qrcode = require('qrcode');
  *         type: integer
  *     responses:
  *       200:
- *         base64: data:image/jpeg;base64,...
+ *         base64: data:image/png;base64,...
  */
 export const getVote = async (req: Request, res: Response) => {
     const errors = validationResult(req);
 
     if (!errors.isEmpty()) {
-        return res.status(500).json(errors.array()).end();
+        return res.status(400).json(errors.array()).end();
     }
 
     try {
@@ -50,10 +50,10 @@ export const getVote = async (req: Request, res: Response) => {
                 },
             }),
         );
-        res.send({ base64 });
+        res.json({ base64 });
     } catch (err) {
-        logger.error(err);
-        return res.status(500).end();
+        logger.error(err.toString());
+        res.status(500).json({ error: err.toString() });
     }
 };
 
@@ -84,11 +84,23 @@ export const getVote = async (req: Request, res: Response) => {
  *            type: object
  *            properties:
  *               startTime:
- *                  type: string
- *                  description: Date string of start of the poll
+ *                  type: object
+ *                  properties:
+ *                      raw:
+ *                          type: number
+ *                          description: Unix timestamp for start of the poll
+ *                      formatted:
+ *                          type: string
+ *                          description: Date string of start of the poll
  *               endTime:
- *                  type: string
- *                  description: Date string of end of the poll
+ *                  type: object
+ *                  properties:
+ *                      raw:
+ *                          type: number
+ *                          description: Unix timestamp for start of the poll
+ *                      formatted:
+ *                          type: string
+ *                          description: Date string of start of the poll
  *               yesCounter:
  *                  type: number
  *                  description: Amount of yes votes on the poll
@@ -107,25 +119,30 @@ export const getPoll = async (req: Request, res: Response) => {
     const errors = validationResult(req);
 
     if (!errors.isEmpty()) {
-        return res.status(500).json(errors.array()).end();
+        return res.status(400).json(errors.array()).end();
     }
 
     try {
         const poll = basePollContract(req.params.address);
-        const startTime = await poll.methods.startTime().call(options);
-        const endTime = await poll.methods.endTime().call(options);
+        const startTime = await poll.startTime();
+        const endTime = await poll.endTime();
 
-        res.send({
-            startTime: new Date(startTime * 1000),
-            endTime: new Date(endTime * 1000),
-            yesCounter: await poll.methods.yesCounter().call(options),
-            noCounter: await poll.methods.noCounter().call(options),
-            totalVoted: await poll.methods.totalVoted().call(options),
-            finalized: await poll.methods.finalized().call(options),
+        res.json({
+            startTime: {
+                raw: startTime,
+                formatted: new Date(startTime * 1000),
+            },
+            endTime: {
+                raw: endTime,
+                formatted: new Date(endTime * 1000),
+            },
+            yesCounter: (await poll.yesCounter()).toNumber(),
+            noCounter: (await poll.noCounter()).toNumber(),
+            totalVoted: (await poll.totalVoted()).toNumber(),
         });
     } catch (err) {
-        logger.error(err);
-        res.status(404).end();
+        logger.error(err.toString());
+        res.status(404).json({ error: err.toString() });
     }
 };
 
@@ -152,10 +169,9 @@ export const getPoll = async (req: Request, res: Response) => {
  *         required: true
  *         type: string
  *       - name: agree
- *         description: Provide 0 to disagree and 1 to agree
  *         in: body
  *         required: true
- *         type: integer
+ *         type: boolean
  *       - name: nonce
  *         in: body
  *         required: true
@@ -165,24 +181,27 @@ export const getPoll = async (req: Request, res: Response) => {
  *         required: true
  *         type: string
  *     responses:
- *       200:
- *         base64: data:image/jpeg;base64,...
+ *       302:
+ *          headers:
+ *              Location:
+ *                  type: string
+ *                  description: Redirect route to /polls/:address
  */
 export const postVote = async (req: Request, res: Response) => {
     const errors = validationResult(req);
 
     if (!errors.isEmpty()) {
-        return res.status(500).json(errors.array()).end();
+        return res.status(400).json(errors.array()).end();
     }
 
     try {
-        const tx = await basePollContract(req.params.address)
-            .methods.vote(req.body.voter, JSON.parse(req.body.agree), parseInt(req.body.nonce, 10), req.body.sig)
-            .send(options);
-        res.send({ tx });
+        const tx = await gasStation.call(req.body.call, req.params.address, req.body.nonce, req.body.sig);
+        await tx.wait();
+
+        res.redirect(`polls/${req.params.address}`);
     } catch (err) {
-        logger.error(err);
-        res.status(500).end();
+        logger.error(err.toString());
+        res.status(500).json({ error: err.toString() });
     }
 };
 
@@ -206,7 +225,7 @@ export const postVote = async (req: Request, res: Response) => {
  *         type: string
  *     responses:
  *       200:
- *         base64: data:image/jpeg;base64,...
+ *         base64: data:image/png;base64,...
  */
 export const getRevokeVote = async (req: Request, res: Response) => {
     const errors = validationResult(req);
@@ -261,14 +280,12 @@ export const getRevokeVote = async (req: Request, res: Response) => {
  *         required: true
  *         type: string
  *     responses:
- *       200:
- *          description: An asset pool object exposing the configuration and balance.
- *          schema:
- *              type: object
- *              properties:
- *                  base64:
- *                      type: string
- *                      description: Set as src for <img> and scan with wallet.
+ *       302:
+ *          headers:
+ *              Location:
+ *                  type: string
+ *                  description: Redirect route to /polls/:address
+ *
  */
 export const deleteVote = async (req: Request, res: Response) => {
     const errors = validationResult(req);
@@ -278,12 +295,46 @@ export const deleteVote = async (req: Request, res: Response) => {
     }
 
     try {
-        const tx = await basePollContract(req.params.address)
-            .methods.revokeVote(req.body.voter, parseInt(req.body.nonce, 10), req.body.sig)
-            .send(options);
-        res.send({ tx });
+        const instance = basePollContract(req.params.address);
+        await instance.revokeVote(req.body.voter, parseInt(req.body.nonce, 10), req.body.sig);
+
+        res.redirect('polls/' + req.params.address);
     } catch (err) {
-        logger.error(err);
-        return res.status(500).end();
+        logger.error(err.toString());
+        res.status(500).json({ msg: err.toString() });
+    }
+};
+
+/**
+ * @swagger
+ * /polls/:address/finalize:
+ *   post:
+ *     tags:
+ *       - Rewards
+ *     description: Finalize the reward and update struct
+ *     produces:
+ *       - application/json
+ *     responses:
+ *       302:
+ *          headers:
+ *              Location:
+ *                  type: string
+ *                  description: Redirect route to /polls/:address
+ */
+export const postPollFinalize = async (req: Request, res: Response) => {
+    const errors = validationResult(req);
+
+    if (!errors.isEmpty()) {
+        return res.status(400).json(errors.array()).end();
+    }
+
+    try {
+        const tx = await gasStation.call(req.body.call, req.params.address, req.body.nonce, req.body.sig);
+        await tx.wait();
+
+        res.redirect('polls/' + req.params.address);
+    } catch (err) {
+        logger.error(err.toString());
+        res.status(500).json({ msg: err.toString() });
     }
 };

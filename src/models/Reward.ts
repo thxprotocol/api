@@ -3,14 +3,15 @@ export type RewardDocument = mongoose.Document & {
     id: number;
     title: string;
     description: string;
-    withdrawAmount: string;
+    withdrawAmount: number;
     withdrawDuration: number;
     state: number;
     poll: {
         address: string;
+        finalized: boolean;
         withdrawAmount: number;
         withdrawDuration: number;
-    };
+    } | null;
     updated: string;
 };
 
@@ -22,4 +23,5 @@ const rewardSchema = new mongoose.Schema(
     },
     { timestamps: true },
 );
+
 export const Reward = mongoose.model<RewardDocument>('Reward', rewardSchema);

@@ -1,7 +1,7 @@
 {
   "info": {
     "title": "THX API Specification",
-    "version": "0.1.10"
+    "version": "0.1.11"
   },
   "basePath": "https://api.thx.network/v1",
   "swagger": "2.0",
@@ -40,9 +40,6 @@
           }
         ],
         "responses": {
-          "200": {
-            "description": "OK"
-          },
           "302": {
             "description": "Redirect to /account",
             "headers": {
@@ -50,6 +47,9 @@
                 "type": "string"
               }
             }
+          },
+          "404": {
+            "description": "Account can not be found"
           }
         }
       }
@@ -87,9 +87,6 @@
           }
         ],
         "responses": {
-          "200": {
-            "description": "OK"
-          },
           "302": {
             "description": "Redirect to /account",
             "headers": {
@@ -97,6 +94,9 @@
                 "type": "string"
               }
             }
+          },
+          "409": {
+            "description": "E-mail already exists in database."
           }
         }
       }
@@ -116,7 +116,7 @@
             "schema": {
               "type": "object",
               "properties": {
-                "burnProof": {
+                "burnProofs": {
                   "type": "array",
                   "items": {
                     "type": "string",
@@ -152,6 +152,9 @@
                 }
               }
             }
+          },
+          "500": {
+            "description": "Error during database lookup."
           }
         }
       },
@@ -195,7 +198,7 @@
             "type": "string"
           },
           {
-            "name": "burnProof",
+            "name": "burnProofs",
             "in": "body",
             "required": false,
             "type": "array",
@@ -509,7 +512,7 @@
       }
     },
     "/asset_pools/:address/": {
-      "put": {
+      "patch": {
         "tags": [
           "Asset Pools"
         ],
@@ -633,6 +636,64 @@
         ],
         "responses": {
           "200": {
+            "description": "OK",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "token": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "type": "string",
+                      "description": "The name of the token configured for this asset pool"
+                    },
+                    "symbol": {
+                      "type": "string",
+                      "description": "The symbol of the token configured for this asset pool"
+                    },
+                    "balance": {
+                      "type": "number",
+                      "description": "The token balance of the asset pool for this token"
+                    }
+                  }
+                },
+                "isMember": {
+                  "type": "boolean",
+                  "description": "If this address is known as member of the asset pool"
+                },
+                "isManager": {
+                  "type": "boolean",
+                  "description": "If this address is known as manager of the asset pool"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "Members"
+        ],
+        "description": "Get information about a member in the asset pool",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "AssetPool",
+            "in": "header",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "address",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
             "description": "OK"
           }
         }
@@ -670,7 +731,7 @@
         ],
         "responses": {
           "200": {
-            "base64": "data:image/jpeg;base64,..."
+            "base64": "data:image/png;base64,..."
           }
         }
       }
@@ -705,12 +766,30 @@
               "type": "object",
               "properties": {
                 "startTime": {
-                  "type": "string",
-                  "description": "Date string of start of the poll"
+                  "type": "object",
+                  "properties": {
+                    "raw": {
+                      "type": "number",
+                      "description": "Unix timestamp for start of the poll"
+                    },
+                    "formatted": {
+                      "type": "string",
+                      "description": "Date string of start of the poll"
+                    }
+                  }
                 },
                 "endTime": {
-                  "type": "string",
-                  "description": "Date string of end of the poll"
+                  "type": "object",
+                  "properties": {
+                    "raw": {
+                      "type": "number",
+                      "description": "Unix timestamp for start of the poll"
+                    },
+                    "formatted": {
+                      "type": "string",
+                      "description": "Date string of start of the poll"
+                    }
+                  }
                 },
                 "yesCounter": {
                   "type": "number",
@@ -767,10 +846,9 @@
           },
           {
             "name": "agree",
-            "description": "Provide 0 to disagree and 1 to agree",
             "in": "body",
             "required": true,
-            "type": "integer"
+            "type": "boolean"
           },
           {
             "name": "nonce",
@@ -786,8 +864,13 @@
           }
         ],
         "responses": {
-          "200": {
-            "base64": "data:image/jpeg;base64,..."
+          "302": {
+            "headers": {
+              "Location": {
+                "type": "string",
+                "description": "Redirect route to /polls/:address"
+              }
+            }
           }
         }
       },
@@ -832,15 +915,11 @@
           }
         ],
         "responses": {
-          "200": {
-            "description": "An asset pool object exposing the configuration and balance.",
-            "schema": {
-              "type": "object",
-              "properties": {
-                "base64": {
-                  "type": "string",
-                  "description": "Set as src for <img> and scan with wallet."
-                }
+          "302": {
+            "headers": {
+              "Location": {
+                "type": "string",
+                "description": "Redirect route to /polls/:address"
               }
             }
           }
@@ -872,7 +951,28 @@
         ],
         "responses": {
           "200": {
-            "base64": "data:image/jpeg;base64,..."
+            "base64": "data:image/png;base64,..."
+          }
+        }
+      }
+    },
+    "/polls/:address/finalize": {
+      "post": {
+        "tags": [
+          "Rewards"
+        ],
+        "description": "Finalize the reward and update struct",
+        "produces": [
+          "application/json"
+        ],
+        "responses": {
+          "302": {
+            "headers": {
+              "Location": {
+                "type": "string",
+                "description": "Redirect route to /polls/:address"
+              }
+            }
           }
         }
       }
@@ -973,7 +1073,7 @@
             "headers": {
               "Location": {
                 "type": "string",
-                "description": "Redirect route to /reward/:address"
+                "description": "Redirect route to /reward/:id"
               }
             }
           }
@@ -1009,7 +1109,73 @@
           }
         }
       },
-      "put": {
+      "post": {
+        "tags": [
+          "Rewards"
+        ],
+        "description": "Create a quick response image to claim the reward.",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "AssetPool",
+            "in": "header",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "302": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/rewards/:id/give": {
+      "post": {
+        "tags": [
+          "Rewards"
+        ],
+        "description": "Create a quick response image to claim the reward.",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "AssetPool",
+            "in": "header",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "integer"
+          },
+          {
+            "name": "member",
+            "in": "body",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "base64": "data:image/jpeg;base64,..."
+          }
+        }
+      }
+    },
+    "/rewards/:id": {
+      "patch": {
         "tags": [
           "Rewards"
         ],
@@ -1095,8 +1261,7 @@
             "state": "WithdrawState [Pending, Approved, Rejected, Withdrawn]",
             "yesCounter": "Amount of yes votes",
             "noCounter": "Amount of no votes",
-            "totalVotes": "Total amount of votes",
-            "finalized": "Is the poll finalized or not"
+            "totalVotes": "Total amount of votes"
           }
         }
       }
@@ -1186,6 +1351,34 @@
         "responses": {
           "200": {
             "base64": "data:image/jpeg;base64,..."
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "withdrawals"
+        ],
+        "description": "Create a quick response image for withdrawing the reward.",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "AssetPool",
+            "in": "header",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "address",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
           }
         }
       }

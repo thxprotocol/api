@@ -23,7 +23,7 @@ This repository holds the source for the THX REST API.
 2. `git submodule update` (only if you need ot recompile contracts frequently)
 3. `docker-compose up -d`
 4. `npm install`
-5. Rename `.env.example` to `.env`
+5. Follow .env.test as example for your .env file.
 6. Change mongodb connectionstring to `mongodb://root:root@localhost:27017/api`
 
 ## 3. Running
@@ -33,6 +33,7 @@ This repository holds the source for the THX REST API.
 3. Set PRIVATE_KEY in the active .env file with this value
 
 ```
+npm run build
 npm run serve
 ```
 

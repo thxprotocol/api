@@ -1,40 +1,87 @@
-import { RPC, PRIVATE_KEY } from '../util/secrets';
-import Web3 from 'web3';
-import fs from 'fs';
+import { ethers } from 'ethers';
+import { RPC, PRIVATE_KEY, GAS_STATION_ADDRESS } from '../util/secrets';
+import * as BasePoll from '../artifacts/BasePoll.json';
+import * as WithdrawPoll from '../artifacts/WithdrawPoll.json';
+import * as RewardPoll from '../artifacts/RewardPoll.json';
+import * as AssetPool from '../artifacts/AssetPool.json';
+import * as Erc20 from '../artifacts/ERC20.json';
+import * as GasStation from '../artifacts/GasStation.json';
 
-export const BASE_POLL_ABI = fs.readFileSync('./src/contracts/BasePoll.abi', 'utf8');
-export const WITHDRAW_POLL_ABI = fs.readFileSync('./src/contracts/WithdrawPoll.abi', 'utf8');
-export const REWARD_POLL_ABI = fs.readFileSync('./src/contracts/RewardPoll.abi', 'utf8');
-export const ASSET_POOL_ABI = fs.readFileSync('./src/contracts/AssetPool.abi', 'utf8');
-export const ASSET_POOL_BIN = fs.readFileSync('./src/contracts/AssetPool.bin', 'utf8');
-export const ERC20_BIN = fs.readFileSync('./src/contracts/ERC20.bin', 'utf8');
-export const ERC20_ABI = fs.readFileSync('./src/contracts/ERC20.abi', 'utf8');
+function hex2a(hex: any) {
+    var str = '';
+    for (var i = 0; i < hex.length; i += 2) {
+        var v = parseInt(hex.substr(i, 2), 16);
+        if (v == 8) continue; // http://www.fileformat.info/info/unicode/char/0008/index.htm
+        if (v == 15) continue;
+        if (v == 16) continue; // http://www.fileformat.info/info/unicode/char/0010/index.htm
+        if (v == 14) continue; // https://www.fileformat.info/info/unicode/char/000e/index.htm
+        if (v) str += String.fromCharCode(v);
+    }
+    return str.trim();
+}
 
-const web3 = new Web3(RPC);
-const account = web3.eth.accounts.privateKeyToAccount(PRIVATE_KEY);
+export interface Artifact {
+    abi: any;
+    bytecode: any;
+}
+export const BASE_POLL: Artifact = BasePoll;
+export const WITHDRAW_POLL: Artifact = WithdrawPoll;
+export const REWARD_POLL: Artifact = RewardPoll;
+export const ASSET_POOL: Artifact = AssetPool;
+export const ERC20: Artifact = Erc20;
+export const GAS_STATION: Artifact = GasStation;
 
-web3.eth.accounts.wallet.add(account);
-
-export const options = { from: account.address, gas: 6e6 };
+console.log(RPC);
+export const provider = new ethers.providers.JsonRpcProvider(RPC);
+export const admin = new ethers.Wallet(PRIVATE_KEY, provider);
+export const gasStation = new ethers.Contract(process.env.GAS_STATION_ADDRESS, GAS_STATION.abi, provider.getSigner());
+export const assetPoolFactory = new ethers.ContractFactory(ASSET_POOL.abi, ASSET_POOL.bytecode, admin);
 export const basePollContract = (address: string = null) => {
-    return new web3.eth.Contract(JSON.parse(BASE_POLL_ABI), address);
+    return new ethers.Contract(address, BASE_POLL.abi, provider.getSigner());
 };
 export const rewardPollContract = (address: string = null) => {
-    return new web3.eth.Contract(JSON.parse(REWARD_POLL_ABI), address);
+    return new ethers.Contract(address, REWARD_POLL.abi, provider.getSigner());
 };
 export const withdrawPollContract = (address: string = null) => {
-    return new web3.eth.Contract(JSON.parse(WITHDRAW_POLL_ABI), address);
+    return new ethers.Contract(address, WITHDRAW_POLL.abi, provider.getSigner());
 };
 export const assetPoolContract = (address: string = null) => {
-    return new web3.eth.Contract(JSON.parse(ASSET_POOL_ABI), address);
+    return new ethers.Contract(address, ASSET_POOL.abi, provider.getSigner());
 };
 export const tokenContract = (address: string = null) => {
-    return new web3.eth.Contract(JSON.parse(ERC20_ABI), address);
+    return new ethers.Contract(address, ERC20.abi, provider.getSigner());
 };
-export const toWei = (amount: number) => {
-    return new Web3().utils.toWei(amount.toString(), 'ether');
-};
-export const deployTestTokenContract = async () => {
-    const contract = new web3.eth.Contract(JSON.parse(ERC20_ABI));
-    return await contract.deploy({ data: ERC20_BIN, arguments: ['Test Token', 'TEST'] }).send(options);
-};
+export function parseLogs(abi: any, logs: any) {
+    return logs.map((log: any) => {
+        const contractInterface = new ethers.utils.Interface(abi);
+        return contractInterface.parseLog(log);
+    });
+}
+export async function parseResultLog(abi: any, logs: any) {
+    const gasStationInterface = new ethers.utils.Interface(GAS_STATION.abi);
+    const event = gasStationInterface.parseLog(logs[logs.length - 1]);
+
+    if (event.args.success) {
+        const res = [];
+        for (const log of logs) {
+            let event;
+            try {
+                const contractInterface = new ethers.utils.Interface(abi);
+                event = contractInterface.parseLog(log);
+            } catch (err) {
+                continue;
+            }
+            res.push(event);
+        }
+        return {
+            logs: res,
+        };
+    } else {
+        // remove initial string that indicates this is an error
+        // then parse it to hex --> ascii
+        const error = hex2a(event.args.data.substr(10));
+        return {
+            error: error,
+        };
+    }
+}

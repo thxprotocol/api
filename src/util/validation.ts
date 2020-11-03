@@ -23,11 +23,9 @@ export const validate = {
     // withdrawal
     getWithdrawal: [validateAssetPoolHeader, param('address').exists()],
     getWithdrawals: [validateAssetPoolHeader, body('member').exists()],
-    postWithdrawal: [
-        validateAssetPoolHeader,
-        check('amount', 'Request body should have amount').exists(),
-        check('beneficiary', 'Request body should have beneficiary').exists(),
-    ],
+    postWithdrawal: [validateAssetPoolHeader, body('call').exists(), body('nonce').exists(), body('sig').exists()],
+    getWithdrawalWithdraw: [validateAssetPoolHeader, param('address').exists()],
+    postWithdrawalWithdraw: [validateAssetPoolHeader, param('address').exists()],
     // polls
     getPoll: [validateAssetPoolHeader, param('address').exists()],
     getVote: [validateAssetPoolHeader, param('agree').exists()],
@@ -35,15 +33,21 @@ export const validate = {
     postVote: [
         validateAssetPoolHeader,
         param('address').exists(),
-        body('voter').exists(),
-        body('agree').exists(),
+        body('call').exists(),
         body('nonce').exists(),
         body('sig').exists(),
     ],
     deleteVote: [validateAssetPoolHeader],
+    postPollFinalize: [
+        validateAssetPoolHeader,
+        param('address').exists(),
+        body('call').exists(),
+        body('nonce').exists(),
+        body('sig').exists(),
+    ],
     // members
     postMember: [validateAssetPoolHeader, body('address').exists()],
-    patchMember: [validateAssetPoolHeader, body('address').exists()],
+    patchMember: [validateAssetPoolHeader, param('address').exists(), body('isManager').exists()],
     deleteMember: [validateAssetPoolHeader, param('address').exists()],
     getMember: [validateAssetPoolHeader, param('address').exists()],
     // rewards
@@ -55,6 +59,7 @@ export const validate = {
         body('withdrawDuration').exists(),
     ],
     getReward: [validateAssetPoolHeader, param('id').exists()],
+    patchReward: [validateAssetPoolHeader],
     putReward: [
         validateAssetPoolHeader,
         body('withdrawAmount').exists(),
@@ -63,14 +68,17 @@ export const validate = {
         body('description').exists(),
     ],
     getRewardClaim: [validateAssetPoolHeader, param('id').exists()],
+    postRewardClaim: [
+        validateAssetPoolHeader,
+        param('id').exists(),
+        body('call').exists(),
+        body('nonce').exists(),
+        body('sig').exists(),
+    ],
     // asset_pools
     postAssetPools: [body('token').exists(), body('title').exists()],
     postAssetPoolDeposit: [validateAssetPoolHeader, body('amount').exists()],
-    putAssetPool: [
-        validateAssetPoolHeader,
-        body('rewardPollDuration').exists(),
-        body('proposeWithdrawPollDuration').exists(),
-    ],
+    patchAssetPool: [validateAssetPoolHeader],
     getAssetPool: [validateAssetPoolHeader, param('address').exists()],
     // account
     postSignup: [

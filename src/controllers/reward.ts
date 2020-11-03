@@ -1,9 +1,18 @@
 import { Request, Response, NextFunction } from 'express';
-import { assetPoolContract, options, rewardPollContract } from '../util/network';
+import {
+    assetPoolContract,
+    ASSET_POOL,
+    gasStation,
+    GAS_STATION,
+    parseLogs,
+    parseResultLog,
+    rewardPollContract,
+} from '../util/network';
 import { Reward, RewardDocument } from '../models/Reward';
 import logger from '../util/logger';
 import '../config/passport';
 import { validationResult } from 'express-validator';
+import { BigNumber } from 'ethers';
 
 const qrcode = require('qrcode');
 
@@ -51,45 +60,38 @@ export const getReward = async (req: Request, res: Response, next: NextFunction)
     }
 
     try {
-        Reward.findOne({ id: req.params.id }, async (err, metaData) => {
-            if (err) {
-                throw new Error('Reward does not exist in database.');
-            }
+        const metaData = await Reward.findOne({ id: req.params.id });
 
-            try {
-                const { id, withdrawAmount, withdrawDuration, state, poll, updated } = await assetPoolContract(
-                    req.header('AssetPool'),
-                )
-                    .methods.rewards(req.params.id)
-                    .call(options);
-                const rewardPollInstance = rewardPollContract(poll);
-                const proposal = {
-                    withdrawAmount: await rewardPollInstance.methods.withdrawAmount().call(options),
-                    withdrawDuration: await rewardPollInstance.methods.withdrawDuration().call(options),
-                };
-                const reward = {
-                    id,
-                    title: metaData.title,
-                    description: metaData.description,
-                    withdrawAmount,
-                    withdrawDuration,
-                    state,
-                    poll: {
-                        address: poll,
-                        withdrawAmount: proposal.withdrawAmount,
-                        withdrawDuration: proposal.withdrawDuration,
-                    },
-                    updated,
-                } as RewardDocument;
+        try {
+            const instance = assetPoolContract(req.header('AssetPool'));
+            const { id, withdrawAmount, withdrawDuration, state, poll } = await instance.rewards(req.params.id);
+            const pollInstance = rewardPollContract(poll);
 
-                res.json({ reward });
-            } catch (err) {
-                throw new Error('Reward does not exists on chain.');
-            }
-        });
+            const reward = {
+                id: id.toNumber(),
+                title: metaData.title,
+                description: metaData.description,
+                withdrawAmount: withdrawAmount,
+                withdrawDuration: withdrawDuration.toNumber(),
+                state,
+                poll:
+                    poll !== '0x0000000000000000000000000000000000000000'
+                        ? {
+                              address: poll,
+                              withdrawAmount: await pollInstance.withdrawAmount(),
+                              withdrawDuration: (await pollInstance.withdrawDuration()).toNumber(),
+                          }
+                        : null,
+            } as RewardDocument;
+
+            res.json(reward);
+        } catch (err) {
+            logger.error(err.toString());
+            res.status(404).json({ msg: err.toString() });
+        }
     } catch (err) {
         logger.error(err.toString());
-        res.status(500).end({ msg: err.toString() });
+        res.status(500).json({ msg: err.toString() });
     }
 };
 
@@ -128,7 +130,7 @@ export const getReward = async (req: Request, res: Response, next: NextFunction)
  *          headers:
  *              Location:
  *                  type: string
- *                  description: Redirect route to /reward/:address
+ *                  description: Redirect route to /reward/:id
  */
 export const postReward = async (req: Request, res: Response, next: NextFunction) => {
     const errors = validationResult(req);
@@ -139,21 +141,16 @@ export const postReward = async (req: Request, res: Response, next: NextFunction
 
     try {
         const poolInstance = assetPoolContract(req.header('AssetPool'));
-        const tx = await poolInstance.methods
-            .addReward(req.body.withdrawAmount, req.body.withdrawDuration)
-            .send(options);
+        const tx = await (await poolInstance.addReward(req.body.withdrawAmount, req.body.withdrawDuration)).wait();
+        const events = await parseLogs(ASSET_POOL.abi, tx.logs);
+        const event = events.filter((e: { name: string }) => e.name === 'RewardPollCreated')[0];
+        const id = parseInt(event.args.id, 10);
 
-        if (tx.level === 'error') {
-            throw new Error('Transaction reverted.');
-        }
-
-        const id = tx.events.RewardPollCreated.returnValues.id;
-        const reward = new Reward({
+        new Reward({
             id,
             title: req.body.title,
             description: req.body.description,
-        });
-        reward.save(async (err) => {
+        }).save(async (err) => {
             if (err) {
                 throw new Error('Reward not saved');
             }
@@ -162,7 +159,7 @@ export const postReward = async (req: Request, res: Response, next: NextFunction
         });
     } catch (err) {
         logger.error(err.toString());
-        res.status(400).end();
+        res.status(500).json({ msg: err.toString() });
     }
 };
 
@@ -192,7 +189,7 @@ export const getRewardClaim = async (req: Request, res: Response) => {
     const errors = validationResult(req);
 
     if (!errors.isEmpty()) {
-        return res.status(500).json(errors.array()).end();
+        res.status(400).json(errors.array()).end();
     }
 
     try {
@@ -209,14 +206,113 @@ export const getRewardClaim = async (req: Request, res: Response) => {
         res.status(200).json({ base64 });
     } catch (err) {
         logger.error(err);
-        return res.status(500).end();
+        res.status(500).end();
     }
 };
 
 /**
  * @swagger
  * /rewards/:id/claim:
- *   put:
+ *   post:
+ *     tags:
+ *       - Rewards
+ *     description: Create a quick response image to claim the reward.
+ *     produces:
+ *       - application/json
+ *     parameters:
+ *       - name: AssetPool
+ *         in: header
+ *         required: true
+ *         type: string
+ *       - name: id
+ *         in: path
+ *         required: true
+ *         type: integer
+ *     responses:
+ *       302:
+ *         description: OK
+ */
+export const postRewardClaim = async (req: Request, res: Response) => {
+    const errors = validationResult(req);
+
+    if (!errors.isEmpty()) {
+        res.status(400).json(errors.array()).end();
+    }
+
+    try {
+        let tx = await gasStation.call(req.body.call, req.header('AssetPool'), req.body.nonce, req.body.sig);
+        tx = await tx.wait();
+
+        const { error, logs } = await parseResultLog(ASSET_POOL.abi, tx.logs);
+        if (error) {
+            throw Error(error);
+        }
+        const event = logs.filter((e: { name: string }) => e.name === 'WithdrawPollCreated')[0];
+        const pollAddress = event.args.poll;
+
+        res.redirect(`withdrawals/${pollAddress}`);
+    } catch (err) {
+        logger.error(err.toString());
+        res.status(500).json({ msg: err.toString() });
+    }
+};
+
+/**
+ * @swagger
+ * /rewards/:id/give:
+ *   post:
+ *     tags:
+ *       - Rewards
+ *     description: Create a quick response image to claim the reward.
+ *     produces:
+ *       - application/json
+ *     parameters:
+ *       - name: AssetPool
+ *         in: header
+ *         required: true
+ *         type: string
+ *       - name: id
+ *         in: path
+ *         required: true
+ *         type: integer
+ *       - name: member
+ *         in: body
+ *         required: true
+ *         type: string
+ *     responses:
+ *       200:
+ *         base64: data:image/jpeg;base64,...
+ */
+export const postRewardGive = async (req: Request, res: Response) => {
+    const errors = validationResult(req);
+
+    if (!errors.isEmpty()) {
+        res.status(400).json(errors.array()).end();
+    }
+
+    try {
+        const assetPoolInstance = assetPoolContract(req.header('AssetPool'));
+        let tx = assetPoolInstance.giveReward(req.body.member);
+        tx = await tx.wait();
+
+        const { error, logs } = await parseResultLog(ASSET_POOL.abi, tx.logs);
+        if (error) {
+            throw Error(error);
+        }
+        const event = logs.filter((e: { name: string }) => e.name === 'WithdrawPollCreated')[0];
+        const withdrawPoll = event.args.poll;
+
+        res.json({ withdrawPoll });
+    } catch (err) {
+        logger.error(err.toString());
+        res.status(500).json({ msg: err.toString() });
+    }
+};
+
+/**
+ * @swagger
+ * /rewards/:id:
+ *   patch:
  *     tags:
  *       - Rewards
  *     description: Create a quick response image to claim the reward.
@@ -251,7 +347,7 @@ export const getRewardClaim = async (req: Request, res: Response) => {
  *       200:
  *         base64: data:image/jpeg;base64,...
  */
-export const putReward = async (req: Request, res: Response, next: NextFunction) => {
+export const patchReward = async (req: Request, res: Response, next: NextFunction) => {
     const errors = validationResult(req);
 
     if (!errors.isEmpty()) {
@@ -274,9 +370,8 @@ export const putReward = async (req: Request, res: Response, next: NextFunction)
                 throw Error('Could not find reward in database');
             }
 
-            const { withdrawAmount, withdrawDuration } = await assetPoolContract(req.header('AssetPool'))
-                .methods.rewards(req.params.id)
-                .call(options);
+            const instance = assetPoolContract(req.header('AssetPool'));
+            const { withdrawAmount, withdrawDuration } = await instance.rewards(req.params.id);
 
             if (withdrawAmount !== req.body.withdrawAmount || withdrawDuration !== req.body.withdrawDuration) {
                 const base64 = await qrcode.toDataURL(
@@ -298,7 +393,7 @@ export const putReward = async (req: Request, res: Response, next: NextFunction)
             }
         });
     } catch (err) {
-        logger.error(err);
-        return res.status(500).end();
+        logger.error(err.toString());
+        res.status(500).json({ msg: err.toString() });
     }
 };

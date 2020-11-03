@@ -8,6 +8,7 @@ import { IVerifyOptions } from 'passport-local';
 import { WriteError } from 'mongodb';
 import { validationResult } from 'express-validator';
 import '../config/passport';
+import logger from '../util/logger';
 
 /**
  * @swagger
@@ -43,8 +44,8 @@ export const logout = (req: Request, res: Response) => {
  *         required: true
  *         type: string
  *     responses:
- *       200:
- *         description: OK
+ *       404:
+ *         description: Account can not be found
  *       302:
  *          description: Redirect to /account
  *          headers:
@@ -63,7 +64,7 @@ export const postLogin = async (req: Request, res: Response, next: NextFunction)
             return next(err);
         }
         if (!account) {
-            return res.status(401).json({ msg: info.message }).end();
+            return res.status(404).json({ msg: info.message }).end();
         }
         req.logIn(account, (err) => {
             if (err) {
@@ -100,8 +101,8 @@ export const postLogin = async (req: Request, res: Response, next: NextFunction)
  *         required: true
  *         type: string
  *     responses:
- *       200:
- *         description: OK
+ *       409:
+ *         description: E-mail already exists in database.
  *       302:
  *          description: Redirect to /account
  *          headers:
@@ -120,26 +121,31 @@ export const postSignup = async (req: Request, res: Response, next: NextFunction
         password: req.body.password,
     });
 
-    Account.findOne({ email: req.body.email }, (err, existingUser) => {
-        if (err) {
-            return res.status(400).end();
-        }
+    try {
+        const existingUser = await Account.findOne({ email: req.body.email });
+
         if (existingUser) {
-            return res.status(403).end();
+            res.status(422).end();
+            return;
         }
+
         account.save((err) => {
             if (err) {
-                return next(err);
+                throw Error(err);
             }
 
             req.logIn(account, (err) => {
                 if (err) {
-                    return next(err);
+                    throw Error(err);
                 }
+
                 res.redirect('account');
             });
         });
-    });
+    } catch (err) {
+        logger.error(err.toString());
+        res.status(500).json(err.toString());
+    }
 };
 
 /**
@@ -152,12 +158,14 @@ export const postSignup = async (req: Request, res: Response, next: NextFunction
  *     produces:
  *       - application/json
  *     responses:
+ *       500:
+ *         description: Error during database lookup.
  *       200:
  *         description: OK
  *         schema:
  *          type: object
  *          properties:
- *              burnProof:
+ *              burnProofs:
  *                  type: array
  *                  items:
  *                      type: string
@@ -231,7 +239,7 @@ export const getAccount = async (req: Request, res: Response, next: NextFunction
  *         in: body
  *         required: false
  *         type: string
- *       - name: burnProof
+ *       - name: burnProofs
  *         in: body
  *         required: false
  *         type: array
@@ -269,7 +277,7 @@ export const patchAccount = async (req: Request, res: Response, next: NextFuncti
         account.profile.gender = req.body.gender || account.profile.gender;
         account.profile.location = req.body.location || account.profile.location;
         account.profile.picture = req.body.picture || req.body.picture;
-        account.profile.burnProof = req.body.burnProof || account.profile.burnProof;
+        account.profile.burnProofs = req.body.burnProofs || account.profile.burnProofs;
         account.profile.assetPools = req.body.assetPools || account.profile.assetPools;
         account.save((err: WriteError) => {
             if (err) {

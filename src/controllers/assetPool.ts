@@ -1,10 +1,11 @@
-import { ASSET_POOL_BIN } from '../util/network';
+import logger from '../util/logger';
+import { admin, assetPoolFactory } from '../util/network';
 import { AssetPool, AssetPoolDocument } from '../models/AssetPool';
 import { Account, AccountDocument } from '../models/Account';
 import { Request, Response, NextFunction } from 'express';
-import { assetPoolContract, tokenContract, options } from '../util/network';
-import logger from '../util/logger';
+import { assetPoolContract, tokenContract } from '../util/network';
 import { validationResult } from 'express-validator';
+import { GAS_STATION_ADDRESS } from '../util/secrets';
 
 /**
  * @swagger
@@ -62,17 +63,20 @@ export const getAssetPool = async (req: Request, res: Response, next: NextFuncti
 
     try {
         const assetPoolInstance = assetPoolContract(req.params.address);
-        const tokenAddress = await assetPoolInstance.methods.token().call(options);
+        const tokenAddress = await assetPoolInstance.token();
         const tokenInstance = tokenContract(tokenAddress);
+        const proposeWithdrawPollDuration = (await assetPoolInstance.proposeWithdrawPollDuration()).toNumber();
+        const rewardPollDuration = (await assetPoolInstance.rewardPollDuration()).toNumber();
+
         const contractData = {
             token: {
-                address: tokenInstance.options.address,
-                name: await tokenInstance.methods.name().call(options),
-                symbol: await tokenInstance.methods.symbol().call(options),
-                balance: await tokenInstance.methods.balanceOf(req.params.address).call(options),
+                address: tokenInstance.address,
+                name: await tokenInstance.name(),
+                symbol: await tokenInstance.symbol(),
+                balance: await tokenInstance.balanceOf(req.params.address),
             },
-            proposeWithdrawPollDuration: await assetPoolInstance.methods.proposeWithdrawPollDuration().call(options),
-            rewardPollDuration: await assetPoolInstance.methods.rewardPollDuration().call(options),
+            proposeWithdrawPollDuration,
+            rewardPollDuration,
         };
         const { uid, address, title }: AssetPoolDocument = await AssetPool.findOne({ address: req.params.address });
 
@@ -119,37 +123,35 @@ export const getAssetPool = async (req: Request, res: Response, next: NextFuncti
  */
 export const postAssetPool = async (req: Request, res: Response, next: NextFunction) => {
     const errors = validationResult(req);
-    let address = '';
 
     if (!errors.isEmpty()) {
         return res.status(400).json(errors.array()).end();
     }
 
     try {
-        const instance = await assetPoolContract()
-            .deploy({
-                data: ASSET_POOL_BIN,
-            })
-            .send(options);
-        address = instance.options.address;
+        // Deploy asset pool contract
+        const assetPool = await assetPoolFactory.deploy(admin.address, GAS_STATION_ADDRESS, req.body.token);
 
-        await instance.methods.initialize(options.from, req.body.token).send(options);
+        // Store asset pool metadata
         await new AssetPool({
-            address,
+            address: assetPool.address,
             title: req.body.title,
             uid: req.session.passport.user,
         }).save();
 
+        // // Update account
         const account: AccountDocument = await Account.findById((req.user as AccountDocument).id);
 
-        if (!account.profile.assetPools.includes(address)) {
-            account.profile.assetPools.push(address);
+        if (!account.profile.assetPools.includes(assetPool.address)) {
+            account.profile.assetPools.push(assetPool.address);
             await account.save();
         }
-        res.send({ address });
+
+        res.send({ address: assetPool.address });
     } catch (err) {
+        console.log(err.toString());
         logger.error(err.toString());
-        res.status(400).json({ msg: err.toString() }).end();
+        res.status(500).json({ msg: err.toString() }).end();
     }
 };
 
@@ -189,8 +191,8 @@ export const postAssetPoolDeposit = async (req: Request, res: Response, next: Ne
     try {
         const address = req.header('AssetPool');
         const instance = assetPoolContract(address);
-        const tokenInstance = tokenContract(await instance.methods.token().call(options));
-        const balance = tokenInstance.methods.balanceOf(address).call(options);
+        const tokenInstance = tokenContract(await instance.token());
+        const balance = await tokenInstance.balanceOf(address);
 
         // TODO Return a QR here and handle approve and deposit in client app
     } catch (err) {
@@ -202,7 +204,7 @@ export const postAssetPoolDeposit = async (req: Request, res: Response, next: Ne
 /**
  * @swagger
  * /asset_pools/:address/:
- *   put:
+ *   patch:
  *     tags:
  *       - Asset Pools
  *     description: Update the configuration for this asset pool
@@ -229,7 +231,7 @@ export const postAssetPoolDeposit = async (req: Request, res: Response, next: Ne
  *       200:
  *         description: OK
  */
-export const putAssetPool = async (req: Request, res: Response, next: NextFunction) => {
+export const patchAssetPool = async (req: Request, res: Response, next: NextFunction) => {
     const errors = validationResult(req);
 
     if (!errors.isEmpty()) {
@@ -239,12 +241,16 @@ export const putAssetPool = async (req: Request, res: Response, next: NextFuncti
     try {
         const instance = assetPoolContract(req.header('AssetPool'));
 
-        await instance.methods.setRewardPollDuration(req.body.rewardPollDuration).send(options);
-        await instance.methods.setProposeWithdrawPollDuration(req.body.proposeWithdrawPollDuration).send(options);
+        if (req.body.rewardPollDuration) {
+            await instance.setRewardPollDuration(req.body.rewardPollDuration);
+        }
+        if (req.body.proposeWithdrawPollDuration) {
+            await instance.setProposeWithdrawPollDuration(req.body.proposeWithdrawPollDuration);
+        }
 
-        res.redirect('/v1/asset_pools/' + req.params.address);
+        res.redirect('asset_pools/' + req.params.address);
     } catch (err) {
         logger.error(err.toString());
-        res.status(400).json({ msg: err.toString() });
+        res.status(500).json({ msg: err.toString() });
     }
 };
