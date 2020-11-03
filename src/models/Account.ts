@@ -1,13 +1,16 @@
 import bcrypt from 'bcrypt-nodejs';
 import crypto from 'crypto';
 import mongoose from 'mongoose';
+import { encryptString } from '../util/encrypt';
 
 export type AccountDocument = mongoose.Document & {
     email: string;
     password: string;
     passwordResetToken: string;
     passwordResetExpires: Date;
-    apiKey: string;
+    address: string;
+    iv: string;
+    privateKey: string;
     tokens: AuthToken[];
     profile: {
         firstName: string;
@@ -36,7 +39,9 @@ const accountSchema = new mongoose.Schema(
         password: String,
         passwordResetToken: String,
         passwordResetExpires: Date,
-        apiKey: String,
+        address: String,
+        iv: String,
+        privateKey: String,
         tokens: Array,
         profile: {
             firstName: String,
@@ -56,9 +61,17 @@ const accountSchema = new mongoose.Schema(
  */
 accountSchema.pre('save', function save(next) {
     const account = this as AccountDocument;
+
     if (!account.isModified('password')) {
         return next();
     }
+
+    // Skip if the password has not been mofified. This will
+    // not be the case when save is executed first time
+    // Make sure to decrypt private key and encrypt again using
+    // new password if still stored in db
+    account.privateKey = encryptString(account.privateKey, account.password);
+
     bcrypt.genSalt(10, (err, salt) => {
         if (err) {
             return next(err);

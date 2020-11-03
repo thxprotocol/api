@@ -31,7 +31,6 @@ export const ASSET_POOL: Artifact = AssetPool;
 export const ERC20: Artifact = Erc20;
 export const GAS_STATION: Artifact = GasStation;
 
-console.log(RPC);
 export const provider = new ethers.providers.JsonRpcProvider(RPC);
 export const admin = new ethers.Wallet(PRIVATE_KEY, provider);
 export const gasStation = new ethers.Contract(process.env.GAS_STATION_ADDRESS, GAS_STATION.abi, provider.getSigner());

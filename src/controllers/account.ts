@@ -9,6 +9,7 @@ import { WriteError } from 'mongodb';
 import { validationResult } from 'express-validator';
 import '../config/passport';
 import logger from '../util/logger';
+import { ethers } from 'ethers';
 
 /**
  * @swagger
@@ -116,7 +117,10 @@ export const postSignup = async (req: Request, res: Response, next: NextFunction
         return res.status(400).json(errors.array()).end();
     }
 
+    const wallet = ethers.Wallet.createRandom();
     const account = new Account({
+        address: await wallet.getAddress(),
+        privateKey: wallet.privateKey,
         email: req.body.email,
         password: req.body.password,
     });
@@ -204,7 +208,7 @@ export const getAccount = async (req: Request, res: Response, next: NextFunction
             return next(err);
         }
         if (account) {
-            res.send(account.profile);
+            res.send({ address: account.address, privateKey: account.privateKey, ...account.profile });
         }
     });
 };
@@ -272,6 +276,7 @@ export const patchAccount = async (req: Request, res: Response, next: NextFuncti
         if (err) {
             return next(err);
         }
+        account.address = req.body.address || account.address;
         account.profile.firstName = req.body.firstName || account.profile.firstName;
         account.profile.lastName = req.body.lastName || account.profile.lastName;
         account.profile.gender = req.body.gender || account.profile.gender;
