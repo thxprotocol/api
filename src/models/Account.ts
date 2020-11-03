@@ -15,7 +15,7 @@ export type AccountDocument = mongoose.Document & {
         gender: string;
         location: string;
         picture: string;
-        burnProof: string[];
+        burnProofs: string[];
         assetPools: string[];
     };
 
@@ -44,7 +44,7 @@ const accountSchema = new mongoose.Schema(
             gender: String,
             location: String,
             picture: String,
-            burnProof: Array,
+            burnProofs: Array,
             assetPools: Array,
         },
     },

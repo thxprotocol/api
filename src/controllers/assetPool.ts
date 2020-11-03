@@ -1,12 +1,11 @@
+import logger from '../util/logger';
 import { admin, assetPoolFactory } from '../util/network';
 import { AssetPool, AssetPoolDocument } from '../models/AssetPool';
 import { Account, AccountDocument } from '../models/Account';
 import { Request, Response, NextFunction } from 'express';
 import { assetPoolContract, tokenContract } from '../util/network';
-import logger from '../util/logger';
 import { validationResult } from 'express-validator';
 import { GAS_STATION_ADDRESS } from '../util/secrets';
-import { formatEther } from 'ethers/lib/utils';
 
 /**
  * @swagger
@@ -131,7 +130,7 @@ export const postAssetPool = async (req: Request, res: Response, next: NextFunct
 
     try {
         // Deploy asset pool contract
-        const assetPool = await assetPoolFactory.deploy(admin.getAddress(), GAS_STATION_ADDRESS, req.body.token);
+        const assetPool = await assetPoolFactory.deploy(admin.address, GAS_STATION_ADDRESS, req.body.token);
 
         // Store asset pool metadata
         await new AssetPool({
@@ -140,7 +139,7 @@ export const postAssetPool = async (req: Request, res: Response, next: NextFunct
             uid: req.session.passport.user,
         }).save();
 
-        // Update account
+        // // Update account
         const account: AccountDocument = await Account.findById((req.user as AccountDocument).id);
 
         if (!account.profile.assetPools.includes(assetPool.address)) {
@@ -150,6 +149,7 @@ export const postAssetPool = async (req: Request, res: Response, next: NextFunct
 
         res.send({ address: assetPool.address });
     } catch (err) {
+        console.log(err.toString());
         logger.error(err.toString());
         res.status(500).json({ msg: err.toString() }).end();
     }

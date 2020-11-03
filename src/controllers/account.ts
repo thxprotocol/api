@@ -165,7 +165,7 @@ export const postSignup = async (req: Request, res: Response, next: NextFunction
  *         schema:
  *          type: object
  *          properties:
- *              burnProof:
+ *              burnProofs:
  *                  type: array
  *                  items:
  *                      type: string
@@ -239,7 +239,7 @@ export const getAccount = async (req: Request, res: Response, next: NextFunction
  *         in: body
  *         required: false
  *         type: string
- *       - name: burnProof
+ *       - name: burnProofs
  *         in: body
  *         required: false
  *         type: array
@@ -277,7 +277,7 @@ export const patchAccount = async (req: Request, res: Response, next: NextFuncti
         account.profile.gender = req.body.gender || account.profile.gender;
         account.profile.location = req.body.location || account.profile.location;
         account.profile.picture = req.body.picture || req.body.picture;
-        account.profile.burnProof = req.body.burnProof || account.profile.burnProof;
+        account.profile.burnProofs = req.body.burnProofs || account.profile.burnProofs;
         account.profile.assetPools = req.body.assetPools || account.profile.assetPools;
         account.save((err: WriteError) => {
             if (err) {

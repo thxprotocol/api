@@ -1,7 +1,7 @@
 {
   "info": {
     "title": "THX API Specification",
-    "version": "0.1.10"
+    "version": "0.1.11"
   },
   "basePath": "https://api.thx.network/v1",
   "swagger": "2.0",
@@ -40,9 +40,6 @@
           }
         ],
         "responses": {
-          "200": {
-            "description": "OK"
-          },
           "302": {
             "description": "Redirect to /account",
             "headers": {
@@ -50,6 +47,9 @@
                 "type": "string"
               }
             }
+          },
+          "404": {
+            "description": "Account can not be found"
           }
         }
       }
@@ -87,9 +87,6 @@
           }
         ],
         "responses": {
-          "200": {
-            "description": "OK"
-          },
           "302": {
             "description": "Redirect to /account",
             "headers": {
@@ -97,6 +94,9 @@
                 "type": "string"
               }
             }
+          },
+          "409": {
+            "description": "E-mail already exists in database."
           }
         }
       }
@@ -116,7 +116,7 @@
             "schema": {
               "type": "object",
               "properties": {
-                "burnProof": {
+                "burnProofs": {
                   "type": "array",
                   "items": {
                     "type": "string",
@@ -152,6 +152,9 @@
                 }
               }
             }
+          },
+          "500": {
+            "description": "Error during database lookup."
           }
         }
       },
@@ -195,7 +198,7 @@
             "type": "string"
           },
           {
-            "name": "burnProof",
+            "name": "burnProofs",
             "in": "body",
             "required": false,
             "type": "array",
@@ -1258,8 +1261,7 @@
             "state": "WithdrawState [Pending, Approved, Rejected, Withdrawn]",
             "yesCounter": "Amount of yes votes",
             "noCounter": "Amount of no votes",
-            "totalVotes": "Total amount of votes",
-            "finalized": "Is the poll finalized or not"
+            "totalVotes": "Total amount of votes"
           }
         }
       }
