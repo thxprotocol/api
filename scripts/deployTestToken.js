@@ -13,8 +13,12 @@ dotenv.config({ path: process.env.NODE_ENV === 'test' ? '.env.test' : '.env' });
 
     web3.eth.accounts.wallet.add(admin);
 
-    await testTokenContract.deploy({ data: TEST_TOKEN.bytecode, arguments: [admin.address, 100000e10] }).send({
-        from: admin.address,
-        gas: 6e6,
-    });
+    const tx = await testTokenContract
+        .deploy({ data: TEST_TOKEN.bytecode, arguments: [admin.address, 100000e10] })
+        .send({
+            from: admin.address,
+            gas: 6e6,
+        });
+
+    console.log(tx.options.address);
 })();
