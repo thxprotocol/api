@@ -86,6 +86,10 @@ export const postLogin = async (req: Request, res: Response, next: NextFunction)
  *     produces:
  *       - application/json
  *     parameters:
+ *       - name: address
+ *         in: body
+ *         required: false
+ *         type: string
  *       - name: email
  *         description: Email to use for login.
  *         in: body
@@ -116,11 +120,21 @@ export const postSignup = async (req: Request, res: Response, next: NextFunction
     if (!errors.isEmpty()) {
         return res.status(400).json(errors.array()).end();
     }
+    let address = '',
+        privateKey = '';
 
-    const wallet = ethers.Wallet.createRandom();
+    if (req.body.address) {
+        address = req.body.address;
+    } else {
+        const wallet = ethers.Wallet.createRandom();
+
+        privateKey = wallet.privateKey;
+        address = await wallet.getAddress();
+    }
+
     const account = new Account({
-        address: await wallet.getAddress(),
-        privateKey: wallet.privateKey,
+        address,
+        privateKey,
         email: req.body.email,
         password: req.body.password,
     });
@@ -179,6 +193,12 @@ export const postSignup = async (req: Request, res: Response, next: NextFunction
  *                  items:
  *                      type: string
  *                      description: Asset pool address
+ *              address:
+ *                  type: string
+ *                  description: Current wallet address for the logged in user.
+ *              privateKey:
+ *                  type: string
+ *                  description: If no wallet address is provided during signup this field will contain a password encrypted base64 string for the private key of the random wallet address.
  *              firstName:
  *                  type: string
  *                  description: First name of the logged in user.
@@ -223,6 +243,10 @@ export const getAccount = async (req: Request, res: Response, next: NextFunction
  *     produces:
  *       - application/json
  *     parameters:
+ *       - name: address
+ *         in: body
+ *         required: false
+ *         type: string
  *       - name: firstName
  *         in: body
  *         required: false

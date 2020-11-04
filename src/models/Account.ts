@@ -68,7 +68,9 @@ accountSchema.pre('save', function save(next) {
     // not be the case when save is executed first time
     // Make sure to decrypt private key and encrypt again using
     // new password if still stored in db
-    account.privateKey = encryptString(account.privateKey, account.password);
+    if (account.privateKey.length) {
+        account.privateKey = encryptString(account.privateKey, account.password);
+    }
 
     bcrypt.genSalt(10, (err, salt) => {
         if (err) {
