@@ -277,6 +277,9 @@ export const patchAccount = async (req: Request, res: Response, next: NextFuncti
             return next(err);
         }
         account.address = req.body.address || account.address;
+        if (req.body.address) {
+            account.privateKey = '';
+        }
         account.profile.firstName = req.body.firstName || account.profile.firstName;
         account.profile.lastName = req.body.lastName || account.profile.lastName;
         account.profile.gender = req.body.gender || account.profile.gender;

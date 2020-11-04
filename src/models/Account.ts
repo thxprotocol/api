@@ -9,7 +9,6 @@ export type AccountDocument = mongoose.Document & {
     passwordResetToken: string;
     passwordResetExpires: Date;
     address: string;
-    iv: string;
     privateKey: string;
     tokens: AuthToken[];
     profile: {
@@ -40,7 +39,6 @@ const accountSchema = new mongoose.Schema(
         passwordResetToken: String,
         passwordResetExpires: Date,
         address: String,
-        iv: String,
         privateKey: String,
         tokens: Array,
         profile: {
