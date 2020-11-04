@@ -278,7 +278,10 @@ export const patchAccount = async (req: Request, res: Response, next: NextFuncti
         }
         account.address = req.body.address || account.address;
         if (req.body.address) {
-            account.privateKey = '';
+            const isAddress = ethers.utils.isAddress(req.body.address);
+            if (isAddress) {
+                account.privateKey = '';
+            }
         }
         account.profile.firstName = req.body.firstName || account.profile.firstName;
         account.profile.lastName = req.body.lastName || account.profile.lastName;

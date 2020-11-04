@@ -30,7 +30,7 @@ describe('Happy Flow', () => {
     describe('POST /signup', () => {
         it('HTTP 302 if payload is correct', (done) => {
             user.post('/v1/signup')
-                .send({ email: 'test.bot@thx.network', password: 'mellon', confirmPassword: 'mellon' })
+                .send({ email: 'test.api.bot@thx.network', password: 'mellon', confirmPassword: 'mellon' })
                 .end((err, res) => {
                     expect(res.status).toBe(302);
                     done();
@@ -41,7 +41,7 @@ describe('Happy Flow', () => {
     describe('POST /login', () => {
         it('HTTP 302 if credentials are correct', (done) => {
             user.post('/v1/login')
-                .send({ email: 'test.bot@thx.network', password: 'mellon' })
+                .send({ email: 'test.api.bot@thx.network', password: 'mellon' })
                 .end((err, res) => {
                     expect(res.status).toBe(302);
                     done();

@@ -20,7 +20,7 @@ afterAll(async () => {
     await mongoose.disconnect();
 });
 
-// require('./api.ts');
-// require('./auth.ts');
-// require('./roles.ts');
+require('./api.ts');
+require('./auth.ts');
+require('./roles.ts');
 require('./encrypt.ts');

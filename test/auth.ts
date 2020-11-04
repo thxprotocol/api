@@ -27,7 +27,7 @@ describe('Authentication', () => {
         });
         it('HTTP 400 if password is missing', (done) => {
             user.post('/v1/login')
-                .send({ email: 'test.bot@thx.network' })
+                .send({ email: 'test.auth.bot@thx.network' })
                 .end((err, res) => {
                     expect(res.status).toBe(400);
                     done();
@@ -35,7 +35,7 @@ describe('Authentication', () => {
         });
         it('HTTP 401 if account is not found', (done) => {
             user.post('/v1/login')
-                .send({ email: 'test.bot@thx.network', password: 'mellon' })
+                .send({ email: 'test.auth.bot@thx.network', password: 'mellon' })
                 .end((err, res) => {
                     expect(res.status).toBe(404);
                     done();
@@ -60,7 +60,7 @@ describe('Authentication', () => {
         });
         it('HTTP 500 if password is missing', (done) => {
             user.post('/v1/signup')
-                .send({ email: 'test.bot@thx.network', confirmPassword: 'mellon' })
+                .send({ email: 'test.auth.bot@thx.network', confirmPassword: 'mellon' })
                 .end((err, res) => {
                     expect(res.status).toBe(400);
                     done();
@@ -68,7 +68,7 @@ describe('Authentication', () => {
         });
         it('HTTP 500 if confirmPassword is missing', (done) => {
             user.post('/v1/signup')
-                .send({ email: 'test.bot@thx.network', password: 'mellon' })
+                .send({ email: 'test.auth.bot@thx.network', password: 'mellon' })
                 .end((err, res) => {
                     expect(res.status).toBe(400);
                     done();
@@ -76,7 +76,7 @@ describe('Authentication', () => {
         });
         it('HTTP 302 if payload is correct', (done) => {
             user.post('/v1/signup')
-                .send({ email: 'test.bot@thx.network', password: 'mellon', confirmPassword: 'mellon' })
+                .send({ email: 'test.auth.bot@thx.network', password: 'mellon', confirmPassword: 'mellon' })
                 .end((err, res) => {
                     expect(res.status).toBe(302);
                     done();
@@ -84,7 +84,7 @@ describe('Authentication', () => {
         });
         it('HTTP 422 if email already exists', (done) => {
             user.post('/v1/signup')
-                .send({ email: 'test.bot@thx.network', password: 'mellon', confirmPassword: 'mellon' })
+                .send({ email: 'test.auth.bot@thx.network', password: 'mellon', confirmPassword: 'mellon' })
                 .end((err, res) => {
                     expect(res.status).toBe(422);
                     done();
@@ -106,7 +106,7 @@ describe('Authentication', () => {
 
         it('HTTP 302 if credentials are correct', (done) => {
             user.post('/v1/login')
-                .send({ email: 'test.bot@thx.network', password: 'mellon' })
+                .send({ email: 'test.auth.bot@thx.network', password: 'mellon' })
                 .end((err, res) => {
                     expect(res.status).toBe(302);
                     redirectURL = res.header.location;
