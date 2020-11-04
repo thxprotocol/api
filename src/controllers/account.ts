@@ -9,6 +9,7 @@ import { WriteError } from 'mongodb';
 import { validationResult } from 'express-validator';
 import '../config/passport';
 import logger from '../util/logger';
+import { ethers } from 'ethers';
 
 /**
  * @swagger
@@ -85,6 +86,10 @@ export const postLogin = async (req: Request, res: Response, next: NextFunction)
  *     produces:
  *       - application/json
  *     parameters:
+ *       - name: address
+ *         in: body
+ *         required: false
+ *         type: string
  *       - name: email
  *         description: Email to use for login.
  *         in: body
@@ -115,8 +120,21 @@ export const postSignup = async (req: Request, res: Response, next: NextFunction
     if (!errors.isEmpty()) {
         return res.status(400).json(errors.array()).end();
     }
+    let address = '',
+        privateKey = '';
+
+    if (req.body.address) {
+        address = req.body.address;
+    } else {
+        const wallet = ethers.Wallet.createRandom();
+
+        privateKey = wallet.privateKey;
+        address = await wallet.getAddress();
+    }
 
     const account = new Account({
+        address,
+        privateKey,
         email: req.body.email,
         password: req.body.password,
     });
@@ -175,6 +193,12 @@ export const postSignup = async (req: Request, res: Response, next: NextFunction
  *                  items:
  *                      type: string
  *                      description: Asset pool address
+ *              address:
+ *                  type: string
+ *                  description: Current wallet address for the logged in user.
+ *              privateKey:
+ *                  type: string
+ *                  description: If no wallet address is provided during signup this field will contain a password encrypted base64 string for the private key of the random wallet address.
  *              firstName:
  *                  type: string
  *                  description: First name of the logged in user.
@@ -204,7 +228,7 @@ export const getAccount = async (req: Request, res: Response, next: NextFunction
             return next(err);
         }
         if (account) {
-            res.send(account.profile);
+            res.send({ address: account.address, privateKey: account.privateKey, ...account.profile });
         }
     });
 };
@@ -219,6 +243,10 @@ export const getAccount = async (req: Request, res: Response, next: NextFunction
  *     produces:
  *       - application/json
  *     parameters:
+ *       - name: address
+ *         in: body
+ *         required: false
+ *         type: string
  *       - name: firstName
  *         in: body
  *         required: false
@@ -271,6 +299,13 @@ export const patchAccount = async (req: Request, res: Response, next: NextFuncti
     Account.findById((req.user as AccountDocument).id, (err, account: AccountDocument) => {
         if (err) {
             return next(err);
+        }
+        account.address = req.body.address || account.address;
+        if (req.body.address) {
+            const isAddress = ethers.utils.isAddress(req.body.address);
+            if (isAddress) {
+                account.privateKey = '';
+            }
         }
         account.profile.firstName = req.body.firstName || account.profile.firstName;
         account.profile.lastName = req.body.lastName || account.profile.lastName;

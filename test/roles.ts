@@ -29,17 +29,6 @@ describe('Roles', () => {
         });
     });
 
-    describe('POST /login', () => {
-        it('HTTP 302 if OK', (done) => {
-            user.post('/v1/login')
-                .send({ email: 'test.roles.bot@thx.network', password: 'mellon' })
-                .end((err, res) => {
-                    expect(res.status).toBe(302);
-                    done();
-                });
-        });
-    });
-
     describe('POST /asset_pools', () => {
         it('HTTP 200', async (done) => {
             user.post('/v1/asset_pools')

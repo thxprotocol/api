@@ -1,7 +1,7 @@
 {
   "info": {
     "title": "THX API Specification",
-    "version": "0.1.11"
+    "version": "0.1.12"
   },
   "basePath": "https://api.thx.network/v1",
   "swagger": "2.0",
@@ -64,6 +64,12 @@
           "application/json"
         ],
         "parameters": [
+          {
+            "name": "address",
+            "in": "body",
+            "required": false,
+            "type": "string"
+          },
           {
             "name": "email",
             "description": "Email to use for login.",
@@ -130,6 +136,14 @@
                     "description": "Asset pool address"
                   }
                 },
+                "address": {
+                  "type": "string",
+                  "description": "Wallet address of the logged in user."
+                },
+                "privateKey": {
+                  "type": "string",
+                  "description": "Encrypted base64 string for the private key of an API generated wallet. (No address provided during signup)"
+                },
                 "firstName": {
                   "type": "string",
                   "description": "First name of the logged in user."
@@ -167,6 +181,12 @@
           "application/json"
         ],
         "parameters": [
+          {
+            "name": "address",
+            "in": "body",
+            "required": false,
+            "type": "string"
+          },
           {
             "name": "firstName",
             "in": "body",
