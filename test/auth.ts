@@ -115,7 +115,7 @@ describe('Authentication', () => {
         });
 
         it('HTTP 200 after redirect', (done) => {
-            user.get('/v1/' + redirectURL).end((err, res) => {
+            user.get(redirectURL).end((err, res) => {
                 expect(res.status).toBe(200);
                 done();
             });

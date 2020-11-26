@@ -242,11 +242,6 @@ export const postVote = async (req: Request, res: Response, next: NextFunction) 
  *               base64:
  *                  type: string
  *                  description: Base64 string representing function call
- *       '302':
- *          description: Redirect to `GET /members/:address`
- *          headers:
- *             Location:
- *                type: string
  *       '400':
  *         description: Bad Request. Indicates incorrect body parameters.
  *       '401':

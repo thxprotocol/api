@@ -905,7 +905,39 @@
         ],
         "responses": {
           "200": {
-            "base64": "data:image/png;base64,..."
+            "description": "OK",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "base64": {
+                  "type": "string",
+                  "description": "Base64 string representing function call"
+                }
+              }
+            }
+          },
+          "302": {
+            "description": "Redirect to `GET /members/:address`",
+            "headers": {
+              "Location": {
+                "type": "string"
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request. Indicates incorrect body parameters."
+          },
+          "401": {
+            "description": "Unauthorized. Authenticate your request please."
+          },
+          "403": {
+            "description": "Forbidden. Your account does not have access to this pool."
+          },
+          "500": {
+            "description": "Internal Server Error."
+          },
+          "502": {
+            "description": "Bad Gateway. Received an invalid response from the network or database."
           }
         }
       }
@@ -984,8 +1016,20 @@
               }
             }
           },
-          "404": {
-            "description": "Poll is nto found"
+          "400": {
+            "description": "Bad Request. Indicates incorrect path parameters."
+          },
+          "401": {
+            "description": "Unauthorized. Authenticate your request please."
+          },
+          "403": {
+            "description": "Forbidden. Your account does not have access to this pool."
+          },
+          "500": {
+            "description": "Internal Server Error."
+          },
+          "502": {
+            "description": "Bad Gateway. Received an invalid response from the network or database."
           }
         }
       }
@@ -1089,13 +1133,31 @@
           }
         ],
         "responses": {
+          "200": {
+            "description": "OK"
+          },
           "302": {
+            "description": "Redirect to `GET /polls/:address`",
             "headers": {
               "Location": {
-                "type": "string",
-                "description": "Redirect route to /polls/:address"
+                "type": "string"
               }
             }
+          },
+          "400": {
+            "description": "Bad Request. Indicates incorrect body parameters."
+          },
+          "401": {
+            "description": "Unauthorized. Authenticate your request please."
+          },
+          "403": {
+            "description": "Forbidden. Your account does not have access to this pool."
+          },
+          "500": {
+            "description": "Internal Server Error."
+          },
+          "502": {
+            "description": "Bad Gateway. Received an invalid response from the network or database."
           }
         }
       }
@@ -1125,7 +1187,31 @@
         ],
         "responses": {
           "200": {
-            "base64": "data:image/png;base64,..."
+            "description": "OK",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "base64": {
+                  "type": "string",
+                  "description": "Base64 string representing function call"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request. Indicates incorrect body parameters."
+          },
+          "401": {
+            "description": "Unauthorized. Authenticate your request please."
+          },
+          "403": {
+            "description": "Forbidden. Your account does not have access to this pool."
+          },
+          "500": {
+            "description": "Internal Server Error."
+          },
+          "502": {
+            "description": "Bad Gateway. Received an invalid response from the network or database."
           }
         }
       }
@@ -1140,13 +1226,31 @@
           "application/json"
         ],
         "responses": {
+          "200": {
+            "description": "OK"
+          },
           "302": {
+            "description": "Redirect to `GET /polls/:address`",
             "headers": {
               "Location": {
-                "type": "string",
-                "description": "Redirect route to /polls/:address"
+                "type": "string"
               }
             }
+          },
+          "400": {
+            "description": "Bad Request. Indicates incorrect body parameters."
+          },
+          "401": {
+            "description": "Unauthorized. Authenticate your request please."
+          },
+          "403": {
+            "description": "Forbidden. Your account does not have access to this pool."
+          },
+          "500": {
+            "description": "Internal Server Error."
+          },
+          "502": {
+            "description": "Bad Gateway. Received an invalid response from the network or database."
           }
         }
       }
@@ -1179,6 +1283,10 @@
             "schema": {
               "type": "object",
               "properties": {
+                "id": {
+                  "type": "number",
+                  "description": "Unique identifier of the reward."
+                },
                 "title": {
                   "type": "string",
                   "description": null
@@ -1189,14 +1297,61 @@
                 },
                 "withdrawAmount": {
                   "type": "number",
-                  "description": "Size of the reward"
+                  "description": "Current size of the reward"
                 },
                 "withdrawDuration": {
                   "type": "number",
-                  "description": "Default duration of the withdraw poll"
+                  "description": "Current duration of the withdraw poll"
+                },
+                "state": {
+                  "type": "number",
+                  "description": "Current state of the reward [Enabled, Disabled]"
+                },
+                "poll": {
+                  "type": "object",
+                  "properties": {
+                    "address": {
+                      "type": "string",
+                      "description": "Address of the reward poll"
+                    },
+                    "withdrawAmount": {
+                      "type": "number",
+                      "description": "Proposed size of the reward"
+                    },
+                    "withdrawDuration": {
+                      "type": "number",
+                      "description": "Proposed duration of the withdraw poll"
+                    }
+                  }
                 }
               }
             }
+          },
+          "302": {
+            "description": "Redirect to `GET /rewards/:id`",
+            "headers": {
+              "Location": {
+                "type": "string"
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request. Indicates incorrect body parameters."
+          },
+          "401": {
+            "description": "Unauthorized. Authenticate your request please."
+          },
+          "403": {
+            "description": "Forbidden. Your account does not have access to this pool."
+          },
+          "404": {
+            "description": "Not Found. Reward not found for this asset pool."
+          },
+          "500": {
+            "description": "Internal Server Error."
+          },
+          "502": {
+            "description": "Bad Gateway. Received an invalid response from the network or database."
           }
         }
       }
@@ -1243,6 +1398,9 @@
           }
         ],
         "responses": {
+          "200": {
+            "description": "OK"
+          },
           "302": {
             "headers": {
               "Location": {
@@ -1250,6 +1408,21 @@
                 "description": "Redirect route to /reward/:id"
               }
             }
+          },
+          "400": {
+            "description": "Bad Request. Indicates incorrect body parameters."
+          },
+          "401": {
+            "description": "Unauthorized. Authenticate your request please."
+          },
+          "403": {
+            "description": "Forbidden. Your account does not have access to this pool."
+          },
+          "500": {
+            "description": "Internal Server Error."
+          },
+          "502": {
+            "description": "Bad Gateway. Received an invalid response from the network or database."
           }
         }
       }
@@ -1279,7 +1452,31 @@
         ],
         "responses": {
           "200": {
-            "base64": "data:image/jpeg;base64,..."
+            "description": "OK",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "base64": {
+                  "type": "string",
+                  "description": "Base64 string representing function call"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request. Indicates incorrect body parameters."
+          },
+          "401": {
+            "description": "Unauthorized. Authenticate your request please."
+          },
+          "403": {
+            "description": "Forbidden. Your account does not have access to this pool."
+          },
+          "500": {
+            "description": "Internal Server Error."
+          },
+          "502": {
+            "description": "Bad Gateway. Received an invalid response from the network or database."
           }
         }
       },
@@ -1306,8 +1503,31 @@
           }
         ],
         "responses": {
-          "302": {
+          "200": {
             "description": "OK"
+          },
+          "302": {
+            "description": "Redirect to `GET /members/:address`",
+            "headers": {
+              "Location": {
+                "type": "string"
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request. Indicates incorrect body parameters."
+          },
+          "401": {
+            "description": "Unauthorized. Authenticate your request please."
+          },
+          "403": {
+            "description": "Forbidden. Your account does not have access to this pool."
+          },
+          "500": {
+            "description": "Internal Server Error."
+          },
+          "502": {
+            "description": "Bad Gateway. Received an invalid response from the network or database."
           }
         }
       }
@@ -1343,7 +1563,31 @@
         ],
         "responses": {
           "200": {
-            "base64": "data:image/jpeg;base64,..."
+            "description": "OK",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "withdrawPoll": {
+                  "type": "string",
+                  "description": "Address off the withdraw poll"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request. Indicates incorrect body parameters."
+          },
+          "401": {
+            "description": "Unauthorized. Authenticate your request please."
+          },
+          "403": {
+            "description": "Forbidden. Your account does not have access to this pool."
+          },
+          "500": {
+            "description": "Internal Server Error."
+          },
+          "502": {
+            "description": "Bad Gateway. Received an invalid response from the network or database."
           }
         }
       }
@@ -1397,7 +1641,31 @@
         ],
         "responses": {
           "200": {
-            "base64": "data:image/jpeg;base64,..."
+            "description": "OK",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "base64": {
+                  "type": "string",
+                  "description": "Base64 string representing function call"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request. Indicates incorrect body parameters."
+          },
+          "401": {
+            "description": "Unauthorized. Authenticate your request please."
+          },
+          "403": {
+            "description": "Forbidden. Your account does not have access to this pool."
+          },
+          "500": {
+            "description": "Internal Server Error."
+          },
+          "502": {
+            "description": "Bad Gateway. Received an invalid response from the network or database."
           }
         }
       }

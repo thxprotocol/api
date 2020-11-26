@@ -140,7 +140,7 @@ export const validations = {
         body('withdrawAmount').exists(),
         body('withdrawDuration').exists(),
     ],
-    getReward: [validateAssetPoolHeader, param('id').exists()],
+    getReward: [validateAssetPoolHeader, param('id').exists().isNumeric()],
     patchReward: [validateAssetPoolHeader],
     putReward: [
         validateAssetPoolHeader,

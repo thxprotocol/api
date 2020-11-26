@@ -197,7 +197,7 @@ describe('Happy Flow', () => {
         });
 
         it('HTTP 200 after redirect', (done) => {
-            user.get('/v1/' + redirectURL)
+            user.get(redirectURL)
                 .set({ AssetPool: poolAddress })
                 .end(async (err, res) => {
                     expect(Number(res.body.id)).toEqual(0);
@@ -237,7 +237,7 @@ describe('Happy Flow', () => {
             user.get('/v1/rewards/id_invalid')
                 .set({ AssetPool: poolAddress })
                 .end(async (err, res) => {
-                    expect(res.status).toBe(500);
+                    expect(res.status).toBe(400);
                     done();
                 });
         });
@@ -391,6 +391,7 @@ describe('Happy Flow', () => {
             user.get('/v1/rewards/0')
                 .set({ AssetPool: poolAddress })
                 .end(async (err, res) => {
+                    console.log(res.body);
                     expect(Number(formatEther(res.body.withdrawAmount))).toEqual(
                         Number(formatEther(rewardWithdrawAmount)),
                     );
@@ -434,7 +435,7 @@ describe('Happy Flow', () => {
         });
 
         it('HTTP 200 after return state Pending', (done) => {
-            user.get(`/v1/${redirectURL}`)
+            user.get(redirectURL)
                 .set({ AssetPool: poolAddress })
                 .end(async (err, res) => {
                     withdrawPollAddress = res.body.address;
