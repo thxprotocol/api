@@ -1,10 +1,9 @@
-import logger from '../util/logger';
 import { admin, assetPoolFactory } from '../util/network';
 import { AssetPool, AssetPoolDocument } from '../models/AssetPool';
 import { Account, AccountDocument } from '../models/Account';
 import { Request, Response, NextFunction } from 'express';
 import { assetPoolContract, tokenContract } from '../util/network';
-import { GAS_STATION_ADDRESS } from '../util/secrets';
+import { GAS_STATION_ADDRESS, VERSION } from '../util/secrets';
 import { HttpError } from '../models/Error';
 
 /**
@@ -26,10 +25,6 @@ import { HttpError } from '../models/Error';
  *         required: true
  *         type: string
  *     responses:
- *       400:
- *          description: Bad request. Asset pool potentially not deployed.
- *       404:
- *          description: No asset pool found for this address.
  *       200:
  *          description: An asset pool object exposing the configuration and balance.
  *          schema:
@@ -53,6 +48,16 @@ import { HttpError } from '../models/Error';
  *                 rewardPollDuration:
  *                    type: number
  *                    description: The default duration of the reward polls
+ *       '400':
+ *         description: Bad Request. Could indicate incorrect rewardPollDuration or proposeWithdrawPollDuration values.
+ *       '401':
+ *         description: Unauthorized. Authenticate your request please.
+ *       '403':
+ *         description: Forbidden. Your account does not have access to this pool.
+ *       '500':
+ *         description: Internal Server Error.
+ *       '502':
+ *         description: Bad Gateway. Received an invalid response from the network or database.
  */
 export const getAssetPool = async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -81,7 +86,7 @@ export const getAssetPool = async (req: Request, res: Response, next: NextFuncti
                 next(new HttpError(404, 'Asset Pool is not found in database.'));
             }
 
-            res.send({ title, address, uid, ...contractData });
+            res.json({ title, address, uid, ...contractData });
         } catch (error) {
             next(new HttpError(500, 'Asset Pool network data can not be obtained.', error));
         }
@@ -110,7 +115,7 @@ export const getAssetPool = async (req: Request, res: Response, next: NextFuncti
  *         required: true
  *         type: string
  *     responses:
- *       200:
+ *       '200':
  *         description: OK.
  *         schema:
  *             type: object
@@ -118,11 +123,18 @@ export const getAssetPool = async (req: Request, res: Response, next: NextFuncti
  *                address:
  *                   type: string
  *                   description: Address of the new asset pool.
+ *       '400':
+ *         description: Bad Request. Could indicate incorrect rewardPollDuration or proposeWithdrawPollDuration values.
+ *       '401':
+ *         description: Unauthorized. Authenticate your request please.
+ *       '500':
+ *         description: Internal Server Error.
+ *       '502':
+ *         description: Bad Gateway. Received an invalid response from the network or database.
  */
 export const postAssetPool = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const assetPool = await assetPoolFactory.deploy(admin.address, GAS_STATION_ADDRESS, req.body.token);
-        const token = assetPool.token();
 
         try {
             await new AssetPool({
@@ -139,15 +151,15 @@ export const postAssetPool = async (req: Request, res: Response, next: NextFunct
                     await account.save();
                 }
 
-                res.send({ address: assetPool.address });
+                res.status(201).json({ address: assetPool.address });
             } catch (error) {
-                next(new HttpError(500, 'Account account update failed.', error));
+                next(new HttpError(502, 'Account account update failed.', error));
             }
         } catch (error) {
-            next(new HttpError(500, 'Asset Pool database save failed.', error));
+            next(new HttpError(502, 'Asset Pool database save failed.', error));
         }
     } catch (error) {
-        next(new HttpError(500, 'Asset Pool network deploy failed.', error));
+        next(new HttpError(502, 'Asset Pool network deploy failed.', error));
     }
 };
 
@@ -178,43 +190,46 @@ export const postAssetPool = async (req: Request, res: Response, next: NextFunct
  *         required: true
  *         type: integer
  *     responses:
- *       200:
+ *       '200':
  *         description: OK
+ *       '302':
+ *         description: Redirect. Redirects to `GET /asset_pools/:address`
+ *       '400':
+ *         description: Bad Request. Could indicate incorrect rewardPollDuration or proposeWithdrawPollDuration values.
+ *       '401':
+ *         description: Unauthorized. Authenticate your request please.
+ *       '403':
+ *         description: Forbidden. Your account does not have access to this pool.
+ *       '500':
+ *         description: Internal Server Error.
+ *       '502':
+ *         description: Bad Gateway. Received an invalid response from the network or database.
  */
 export const patchAssetPool = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-        const instance = assetPoolContract(req.header('AssetPool'));
-
-        if (req.body.rewardPollDuration) {
-            if (isNaN(req.body.rewardPollDuration)) {
-                next(new HttpError(400, 'rewardPollDuration is not a number.'));
-                return;
-            }
-
-            try {
-                await instance.setRewardPollDuration(req.body.rewardPollDuration);
-            } catch (error) {
-                next(new HttpError(500, 'Asset Pool setRewardPollDuration failed.', error));
-                return;
-            }
+    const instance = assetPoolContract(req.header('AssetPool'));
+    if (
+        req.body.rewardPollDuration &&
+        (await instance.rewardPollDuration()).toString() !== req.body.rewardPollDuration.toString()
+    ) {
+        try {
+            await instance.setRewardPollDuration(req.body.rewardPollDuration);
+        } catch (error) {
+            next(new HttpError(502, 'Asset Pool setRewardPollDuration failed.', error));
+            return;
         }
-
-        if (req.body.proposeWithdrawPollDuration) {
-            if (isNaN(req.body.rewardPollDuration)) {
-                next(new HttpError(400, 'proposeWithdrawPollDuration is not a number.'));
-                return;
-            }
-
-            try {
-                await instance.setProposeWithdrawPollDuration(req.body.proposeWithdrawPollDuration);
-            } catch (error) {
-                next(new HttpError(500, 'Asset Pool setProposeWithdrawPollDuration failed.', error));
-                return;
-            }
-        }
-
-        res.redirect('asset_pools/' + req.params.address);
-    } catch (error) {
-        next(new HttpError(500, 'Asset Pool patch failed.', error));
     }
+
+    if (
+        req.body.proposeWithdrawPollDuration &&
+        (await instance.proposeWithdrawPollDuration()).toString() !== req.body.proposeWithdrawPollDuration.toString()
+    ) {
+        try {
+            await instance.setProposeWithdrawPollDuration(req.body.proposeWithdrawPollDuration);
+        } catch (error) {
+            next(new HttpError(502, 'Asset Pool setProposeWithdrawPollDuration failed.', error));
+            return;
+        }
+    }
+
+    res.redirect(`/${VERSION}/asset_pools/${req.params.address}`);
 };

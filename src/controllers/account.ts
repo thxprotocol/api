@@ -4,12 +4,11 @@ import nodemailer from 'nodemailer';
 import passport from 'passport';
 import { Account, AccountDocument, AuthToken } from '../models/Account';
 import { Request, Response, NextFunction } from 'express';
-import { IVerifyOptions } from 'passport-local';
 import { WriteError } from 'mongodb';
 import { validationResult } from 'express-validator';
-import '../config/passport';
-import logger from '../util/logger';
 import { ethers } from 'ethers';
+import { HttpError } from '../models/Error';
+import '../config/passport';
 
 /**
  * @swagger
@@ -45,31 +44,31 @@ export const logout = (req: Request, res: Response) => {
  *         required: true
  *         type: string
  *     responses:
- *       404:
- *         description: Account can not be found
- *       302:
- *          description: Redirect to /account
+ *       '200':
+ *         description: OK
+ *       '302':
+ *          description: Redirect. Redirects to `GET /account`
  *          headers:
  *             Location:
- *                type: string
+ *                schema:
+ *                  type: string
+ *       '400':
+ *         description: Bad Request. Could indicate incorrect rewardPollDuration or proposeWithdrawPollDuration values.
+ *       '500':
+ *         description: Internal Server Error.
+ *       '502':
+ *         description: Bad Gateway. Received an invalid response from the network or database.
  */
 export const postLogin = async (req: Request, res: Response, next: NextFunction) => {
-    const errors = validationResult(req);
-
-    if (!errors.isEmpty()) {
-        return res.status(400).json(errors.array()).end();
-    }
-
-    passport.authenticate('local', (err: Error, account: AccountDocument, info: IVerifyOptions) => {
-        if (err) {
-            return next(err);
+    passport.authenticate('local', (error: Error, account: AccountDocument) => {
+        if (error) {
+            next(new HttpError(502, 'Account authenticate failed.', error));
+            return;
         }
-        if (!account) {
-            return res.status(404).json({ msg: info.message }).end();
-        }
-        req.logIn(account, (err) => {
-            if (err) {
-                return next(err);
+        req.logIn(account, (error) => {
+            if (error) {
+                next(new HttpError(502, 'Account login failed', error));
+                return;
             }
             res.redirect('account');
         });
@@ -106,20 +105,24 @@ export const postLogin = async (req: Request, res: Response, next: NextFunction)
  *         required: true
  *         type: string
  *     responses:
- *       409:
- *         description: E-mail already exists in database.
- *       302:
- *          description: Redirect to /account
+ *       '201':
+ *         description: Created
+ *       '302':
+ *          description: Redirect. Redirects to `GET /account`
  *          headers:
  *             Location:
- *                type: string
+ *                schema:
+ *                  type: string
+ *       '400':
+ *         description: Bad Request. Indicated incorrect body parameters.
+ *       '422':
+ *         description: Duplicate. An account for this email already exists.
+ *       '500':
+ *         description: Internal Server Error.
+ *       '502':
+ *         description: Bad Gateway. Received an invalid response from the network or database.
  */
 export const postSignup = async (req: Request, res: Response, next: NextFunction) => {
-    const errors = validationResult(req);
-
-    if (!errors.isEmpty()) {
-        return res.status(400).json(errors.array()).end();
-    }
     let address = '',
         privateKey = '';
 
@@ -143,26 +146,28 @@ export const postSignup = async (req: Request, res: Response, next: NextFunction
         const existingUser = await Account.findOne({ email: req.body.email });
 
         if (existingUser) {
-            res.status(422).end();
+            next(new HttpError(422, 'A user for this e-mail already exists.'));
             return;
         }
 
-        account.save((err) => {
-            if (err) {
-                throw Error(err);
+        account.save((error) => {
+            if (error) {
+                next(new HttpError(502, 'Account save failed.', error));
+                return;
             }
 
-            req.logIn(account, (err) => {
-                if (err) {
-                    throw Error(err);
+            req.logIn(account, (error) => {
+                if (error) {
+                    next(new HttpError(502, 'Account login failed', error));
+                    return;
                 }
 
-                res.redirect('account');
+                res.status(201).redirect('account');
             });
         });
     } catch (err) {
-        logger.error(err.toString());
-        res.status(500).json(err.toString());
+        next(new HttpError(500, 'Account signup failed.', err));
+        return;
     }
 };
 
@@ -176,9 +181,7 @@ export const postSignup = async (req: Request, res: Response, next: NextFunction
  *     produces:
  *       - application/json
  *     responses:
- *       500:
- *         description: Error during database lookup.
- *       200:
+ *       '200':
  *         description: OK
  *         schema:
  *          type: object
@@ -199,33 +202,22 @@ export const postSignup = async (req: Request, res: Response, next: NextFunction
  *              privateKey:
  *                  type: string
  *                  description: If no wallet address is provided during signup this field will contain a password encrypted base64 string for the private key of the random wallet address.
- *              firstName:
- *                  type: string
- *                  description: First name of the logged in user.
- *              lastName:
- *                  type: string
- *                  description: Last name of the logged in user.
- *              gender:
- *                  type: string
- *                  description: Gender of the logged in user
- *              location:
- *                  type: string
- *                  description: Provided location of the logged in user
- *              picture:
- *                  type: string
- *                  description: Picture provided by the user
+ *       '401':
+ *         description: Unauthorized. Authenticate your request please.
+ *       '403':
+ *         description: Forbidden. Your account does not have access to this asset pool.
+ *       '500':
+ *         description: Internal Server Error.
+ *       '502':
+ *         description: Bad Gateway. Received an invalid response from the network or database.
  */
 export const getAccount = async (req: Request, res: Response, next: NextFunction) => {
     const account = req.user as AccountDocument;
-    const errors = validationResult(req);
-
-    if (!errors.isEmpty()) {
-        return res.status(400).json(errors.array()).end();
-    }
 
     Account.findById(account.id, (err, account: AccountDocument) => {
         if (err) {
-            return next(err);
+            next(new HttpError(502, 'Account find failed', err));
+            return;
         }
         if (account) {
             res.send({ address: account.address, privateKey: account.privateKey, ...account.profile });
@@ -280,13 +272,23 @@ export const getAccount = async (req: Request, res: Response, next: NextFunction
  *         items:
  *          type: string
  *     responses:
- *       200:
+ *       '200':
  *         description: OK
- *       302:
- *          description: Redirect to /account
+ *       '302':
+ *          description: Redirect to `GET /account`
  *          headers:
  *             Location:
  *                type: string
+ *       '400':
+ *         description: Bad Request. Could indicate incorrect rewardPollDuration or proposeWithdrawPollDuration values.
+ *       '401':
+ *         description: Unauthorized. Authenticate your request please.
+ *       '422':
+ *         description: Duplicate. An account for this email already exists.
+ *       '500':
+ *         description: Internal Server Error.
+ *       '502':
+ *         description: Bad Gateway. Received an invalid response from the network or database.
  *
  */
 export const patchAccount = async (req: Request, res: Response, next: NextFunction) => {
@@ -298,14 +300,12 @@ export const patchAccount = async (req: Request, res: Response, next: NextFuncti
 
     Account.findById((req.user as AccountDocument).id, (err, account: AccountDocument) => {
         if (err) {
-            return next(err);
+            next(new HttpError(502, 'Account find failed.', err));
+            return;
         }
-        if (req.body.address) {
+        if (req.body.address && ethers.utils.isAddress(req.body.address)) {
             account.address = req.body.address;
-            const isAddress = ethers.utils.isAddress(req.body.address);
-            if (isAddress) {
-                account.privateKey = '';
-            }
+            account.privateKey = '';
         } else {
             account.address = account.address;
         }
@@ -316,19 +316,16 @@ export const patchAccount = async (req: Request, res: Response, next: NextFuncti
         account.profile.picture = req.body.picture || req.body.picture;
         account.profile.burnProofs = req.body.burnProofs || account.profile.burnProofs;
         account.profile.assetPools = req.body.assetPools || account.profile.assetPools;
-        account.save((err: WriteError) => {
+        account.save((err) => {
             if (err) {
                 if (err.code === 11000) {
-                    return res
-                        .status(403)
-                        .send({
-                            msg: 'The email address you have entered is already associated with an account.',
-                        })
-                        .end();
+                    next(new HttpError(422, 'A user for this e-mail already exists.', err));
+                    return;
                 }
-                return next(err);
+                next(new HttpError(502, 'Account save failed', err));
+                return;
             }
-            return res.redirect('account');
+            res.redirect('account');
         });
     });
 };
@@ -359,32 +356,37 @@ export const patchAccount = async (req: Request, res: Response, next: NextFuncti
  *         required: true
  *         type: string
  *     responses:
- *        200:
+ *       '200':
  *         description: OK
- *        302:
- *          description: Redirect to /logout
+ *       '302':
+ *          description: Redirect to `GET /logout`
  *          headers:
  *             Location:
  *                type: string
+ *       '400':
+ *         description: Bad Request. Could indicate incorrect body parameters.
+ *       '401':
+ *         description: Unauthorized. Authenticate your request please.
+ *       '500':
+ *         description: Internal Server Error.
+ *       '502':
+ *         description: Bad Gateway. Received an invalid response from the network or database.
  */
 export const putPassword = async (req: Request, res: Response, next: NextFunction) => {
     const account = req.user as AccountDocument;
-    const errors = validationResult(req);
-
-    if (!errors.isEmpty()) {
-        return res.status(400).json(errors.array()).end();
-    }
 
     Account.findById(account.id, (err, account: AccountDocument) => {
         if (err) {
-            return next(err);
+            next(new HttpError(502, 'Account find failed.', err));
+            return;
         }
         account.password = req.body.password;
-        account.save((err: WriteError) => {
+        account.save((err) => {
             if (err) {
-                return next(err);
+                next(new HttpError(502, 'Account save failed.', err));
+                return;
             }
-            return res.status(200).redirect('logout');
+            res.redirect('logout');
         });
     });
 };
@@ -397,28 +399,30 @@ export const putPassword = async (req: Request, res: Response, next: NextFunctio
  *       - Account
  *     description: Delete current users account
  *     responses:
- *       200:
+ *       '200':
  *         description: OK
- *       302:
- *          description: Redirect to /login
+ *       '302':
+ *          description: Redirect to `GET /login`
  *          headers:
  *             Location:
  *                type: string
+ *       '401':
+ *         description: Unauthorized. Authenticate your request please.
+ *       '500':
+ *         description: Internal Server Error.
+ *       '502':
+ *         description: Bad Gateway. Received an invalid response from the network or database.
  */
 export const deleteAccount = (req: Request, res: Response, next: NextFunction) => {
     const account = req.user as AccountDocument;
-    const errors = validationResult(req);
-
-    if (!errors.isEmpty()) {
-        return res.status(400).json(errors.array()).end();
-    }
 
     Account.remove({ _id: account.id }, (err) => {
         if (err) {
-            return next(err);
+            next(new HttpError(502, 'Account remove failed.', err));
+            return;
         }
         req.logout();
-        return res.redirect('login');
+        res.redirect('login');
     });
 };
 
@@ -445,16 +449,18 @@ export const deleteAccount = (req: Request, res: Response, next: NextFunction) =
  *         required: true
  *         type: string
  *     responses:
- *       200:
+ *       '200':
  *         description: OK
+ *       '401':
+ *         description: Unauthorized. Authenticate your request please.
+ *       '403':
+ *         description: Forbidden. Password reset token is invalid or has expired.
+ *       '500':
+ *         description: Internal Server Error.
+ *       '502':
+ *         description: Bad Gateway. Received an invalid response from the network or database.
  */
 export const postReset = async (req: Request, res: Response, next: NextFunction) => {
-    const errors = validationResult(req);
-
-    if (!errors.isEmpty()) {
-        return res.status(400).json(errors.array()).end();
-    }
-
     async.waterfall(
         [
             function resetPassword(done: Function) {
@@ -463,19 +469,26 @@ export const postReset = async (req: Request, res: Response, next: NextFunction)
                     .gt(Date.now())
                     .exec((err, account: any) => {
                         if (err) {
-                            return next(err);
+                            next(new HttpError(502, 'Account find passwordResetExpires failed.', err));
+                            return;
                         }
                         if (!account) {
-                            return res.send({ msg: 'Password reset token is invalid or has expired.' });
+                            next(new HttpError(403, 'Password reset token is invalid or has expired.', err));
+                            return;
                         }
                         account.password = req.body.password;
                         account.passwordResetToken = undefined;
                         account.passwordResetExpires = undefined;
-                        account.save((err: WriteError) => {
+                        account.save((err: any) => {
                             if (err) {
-                                return next(err);
+                                next(new HttpError(502, 'Account save failed.', err));
+                                return;
                             }
                             req.logIn(account, (err) => {
+                                if (err) {
+                                    next(new HttpError(502, 'Account login failed.', err));
+                                    return;
+                                }
                                 done(err, account);
                             });
                         });
@@ -491,12 +504,12 @@ export const postReset = async (req: Request, res: Response, next: NextFunction)
                 });
                 const mailOptions = {
                     to: account.email,
-                    from: 'peter@peterpolman.nl',
+                    from: 'peter@thxprotocol.com',
                     subject: 'Your password has been changed',
                     text: `Hello,\n\nThis is a confirmation that the password for your account ${account.email} has just been changed.\n`,
                 };
                 transporter.sendMail(mailOptions, (err) => {
-                    res.send({ msg: 'Success! Your password has been changed.' });
+                    res.json({ message: 'Success! Your password has been changed.' });
                     done(err);
                 });
             },
@@ -533,16 +546,20 @@ export const postReset = async (req: Request, res: Response, next: NextFunction)
  *         required: true
  *         type: string
  *     responses:
- *       200:
+ *       '200':
  *         description: OK
+ *       '401':
+ *         description: Unauthorized. Authenticate your request please.
+ *       '403':
+ *         description: Forbidden. Password reset token is invalid or has expired.
+ *       '404':
+ *         description: Not Found. Account does not exist.
+ *       '500':
+ *         description: Internal Server Error.
+ *       '502':
+ *         description: Bad Gateway. Received an invalid response from the network or database.
  */
 export const postForgot = async (req: Request, res: Response, next: NextFunction) => {
-    const errors = validationResult(req);
-
-    if (!errors.isEmpty()) {
-        return res.status(400).json(errors.array()).end();
-    }
-
     async.waterfall(
         [
             function createRandomToken(done: Function) {
@@ -554,10 +571,12 @@ export const postForgot = async (req: Request, res: Response, next: NextFunction
             function setRandomToken(token: AuthToken, done: Function) {
                 Account.findOne({ email: req.body.email }, (err, account: any) => {
                     if (err) {
-                        return done(err);
+                        next(new HttpError(502, 'Account find failed.', err));
+                        return;
                     }
                     if (!account) {
-                        return res.status(404).json({ msg: 'Account with that email address does not exist.' }).end();
+                        next(new HttpError(404, 'Account does not exist.', err));
+                        return;
                     }
                     account.passwordResetToken = token;
                     account.passwordResetExpires = Date.now() + 3600000; // 1 hour
@@ -576,7 +595,7 @@ export const postForgot = async (req: Request, res: Response, next: NextFunction
                 });
                 const mailOptions = {
                     to: account.email,
-                    from: 'peter@peterpolman.nl',
+                    from: 'peter@thxprotocol.com',
                     subject: 'Reset your THX password',
                     text: `You are receiving this email because you (or someone else) have requested the reset of the password for your account.\n\n
           Please click on the following link, or paste this into your browser to complete the process:\n\n
@@ -584,7 +603,7 @@ export const postForgot = async (req: Request, res: Response, next: NextFunction
           If you did not request this, please ignore this email and your password will remain unchanged.\n`,
                 };
                 transporter.sendMail(mailOptions, (err) => {
-                    res.send({ msg: `An e-mail has been sent to ${account.email} with further instructions.` });
+                    res.send({ message: `An e-mail has been sent to ${account.email} with further instructions.` });
                     done(err);
                 });
             },

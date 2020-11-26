@@ -1,6 +1,8 @@
 import { AccountDocument } from '../models/Account';
 import { body, check, header, param, validationResult } from 'express-validator';
 import { Response, Request, NextFunction } from 'express';
+import { HttpError } from '../models/Error';
+import { ethers } from 'ethers';
 
 export const validate = (validations: any) => {
     return async (req: Request, res: Response, next: NextFunction) => {
@@ -20,7 +22,7 @@ const validateAssetPoolHeader = header('AssetPool')
     .exists()
     .custom((address, { req }) => {
         if (!(req.user as AccountDocument).profile.assetPools.includes(address)) {
-            throw new Error('Access for this reward pool is not allowed.');
+            throw new HttpError(403, 'Access for this reward pool is not allowed.');
         }
         return true;
     });
@@ -29,20 +31,55 @@ const confirmPassword = body('confirmPassword')
     .exists()
     .custom((confirmPassword, { req }) => {
         if (confirmPassword !== req.body.password) {
-            throw new Error('Passwords are not the same.');
+            throw new HttpError(400, 'Passwords are not identical');
         }
         return true;
     });
 
 export const validations = {
     // withdrawal
-    getWithdrawal: [validateAssetPoolHeader, param('address').exists()],
-    getWithdrawals: [validateAssetPoolHeader, body('member').exists()],
+    getWithdrawal: [
+        validateAssetPoolHeader,
+        param('address')
+            .exists()
+            .custom((value) => {
+                return ethers.utils.isAddress(value);
+            }),
+    ],
+    getWithdrawals: [
+        validateAssetPoolHeader,
+        body('member')
+            .exists()
+            .custom((value) => {
+                return ethers.utils.isAddress(value);
+            }),
+    ],
     postWithdrawal: [validateAssetPoolHeader, body('call').exists(), body('nonce').exists(), body('sig').exists()],
-    getWithdrawalWithdraw: [validateAssetPoolHeader, param('address').exists()],
-    postWithdrawalWithdraw: [validateAssetPoolHeader, param('address').exists()],
+    getWithdrawalWithdraw: [
+        validateAssetPoolHeader,
+        param('address')
+            .exists()
+            .custom((value) => {
+                return ethers.utils.isAddress(value);
+            }),
+    ],
+    postWithdrawalWithdraw: [
+        validateAssetPoolHeader,
+        param('address')
+            .exists()
+            .custom((value) => {
+                return ethers.utils.isAddress(value);
+            }),
+    ],
     // polls
-    getPoll: [validateAssetPoolHeader, param('address').exists()],
+    getPoll: [
+        validateAssetPoolHeader,
+        param('address')
+            .exists()
+            .custom((value) => {
+                return ethers.utils.isAddress(value);
+            }),
+    ],
     getVote: [validateAssetPoolHeader, param('agree').exists()],
     getRevokeVote: [validateAssetPoolHeader],
     postVote: [
@@ -61,10 +98,40 @@ export const validations = {
         body('sig').exists(),
     ],
     // members
-    postMember: [validateAssetPoolHeader, body('address').exists()],
-    patchMember: [validateAssetPoolHeader, param('address').exists(), body('isManager').exists()],
-    deleteMember: [validateAssetPoolHeader, param('address').exists()],
-    getMember: [validateAssetPoolHeader, param('address').exists()],
+    postMember: [
+        validateAssetPoolHeader,
+        body('address')
+            .exists()
+            .custom((value) => {
+                return ethers.utils.isAddress(value);
+            }),
+    ],
+    patchMember: [
+        validateAssetPoolHeader,
+        param('address')
+            .exists()
+            .custom((value) => {
+                return ethers.utils.isAddress(value);
+            }),
+        ,
+        body('isManager').exists(),
+    ],
+    deleteMember: [
+        validateAssetPoolHeader,
+        param('address')
+            .exists()
+            .custom((value) => {
+                return ethers.utils.isAddress(value);
+            }),
+    ],
+    getMember: [
+        validateAssetPoolHeader,
+        param('address')
+            .exists()
+            .custom((value) => {
+                return ethers.utils.isAddress(value);
+            }),
+    ],
     // rewards
     postReward: [
         validateAssetPoolHeader,
@@ -91,15 +158,39 @@ export const validations = {
         body('sig').exists(),
     ],
     // asset_pools
-    postAssetPools: [body('token').exists(), body('title').exists()],
+    postAssetPools: [
+        body('token')
+            .exists()
+            .custom((value) => {
+                return ethers.utils.isAddress(value);
+            }),
+        ,
+        body('title').exists(),
+    ],
     postAssetPoolDeposit: [validateAssetPoolHeader, body('amount').exists()],
-    patchAssetPool: [validateAssetPoolHeader],
-    getAssetPool: [validateAssetPoolHeader, param('address').exists()],
+    patchAssetPool: [
+        validateAssetPoolHeader,
+        body('rewardPollDuration').optional().isNumeric(),
+        body('proposeWithdrawPollDuration').optional().isNumeric(),
+    ],
+    getAssetPool: [
+        validateAssetPoolHeader,
+        param('address')
+            .exists()
+            .custom((value) => {
+                return ethers.utils.isAddress(value);
+            }),
+    ],
     // account
     postSignup: [
         body('email').exists(),
         body('password').exists(),
         body('confirmPassword').exists(),
+        body('address')
+            .optional()
+            .custom((value) => {
+                return ethers.utils.isAddress(value);
+            }),
         check('email', 'Email is not valid').isEmail(),
         check('password', 'Password must be at least 4 characters long').isLength({ min: 4 }),
         confirmPassword,

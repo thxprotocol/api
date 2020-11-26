@@ -59,14 +59,14 @@ describe('Happy Flow', () => {
     });
 
     describe('POST /asset_pools', () => {
-        it('HTTP 200', async (done) => {
+        it('HTTP 201', async (done) => {
             user.post('/v1/asset_pools')
                 .send({
                     title: poolTitle,
                     token: testToken.address,
                 })
                 .end(async (err, res) => {
-                    expect(res.status).toBe(200);
+                    expect(res.status).toBe(201);
                     expect(res.body.address).toContain('0x');
                     poolAddress = res.body.address;
 
@@ -131,7 +131,7 @@ describe('Happy Flow', () => {
         });
 
         it('HTTP 200 after redirect', (done) => {
-            user.get('/v1/' + redirectURL)
+            user.get(redirectURL)
                 .set({ AssetPool: poolAddress })
                 .end(async (err, res) => {
                     expect(Number(res.body.proposeWithdrawPollDuration)).toEqual(10);
@@ -259,7 +259,7 @@ describe('Happy Flow', () => {
         });
 
         it('HTTP 200 for the redirect', (done) => {
-            user.get('/v1/' + redirectURL)
+            user.get(redirectURL)
                 .set({ AssetPool: poolAddress })
                 .end(async (err, res) => {
                     expect(res.body.isMember).toEqual(true);

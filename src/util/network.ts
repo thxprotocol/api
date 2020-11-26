@@ -50,7 +50,7 @@ export const assetPoolContract = (address: string = null) => {
 export const tokenContract = (address: string = null) => {
     return new ethers.Contract(address, ERC20.abi, provider.getSigner());
 };
-export function parseLogs(abi: any, logs: any) {
+export function parseLogs(abi: any, logs: any = []) {
     return logs.map((log: any) => {
         const contractInterface = new ethers.utils.Interface(abi);
         return contractInterface.parseLog(log);

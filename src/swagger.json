@@ -40,16 +40,27 @@
           }
         ],
         "responses": {
+          "200": {
+            "description": "OK"
+          },
           "302": {
-            "description": "Redirect to /account",
+            "description": "Redirect. Redirects to `GET /account`",
             "headers": {
               "Location": {
-                "type": "string"
+                "schema": {
+                  "type": "string"
+                }
               }
             }
           },
-          "404": {
-            "description": "Account can not be found"
+          "400": {
+            "description": "Bad Request. Could indicate incorrect rewardPollDuration or proposeWithdrawPollDuration values."
+          },
+          "500": {
+            "description": "Internal Server Error."
+          },
+          "502": {
+            "description": "Bad Gateway. Received an invalid response from the network or database."
           }
         }
       }
@@ -93,16 +104,30 @@
           }
         ],
         "responses": {
+          "201": {
+            "description": "Created"
+          },
           "302": {
-            "description": "Redirect to /account",
+            "description": "Redirect. Redirects to `GET /account`",
             "headers": {
               "Location": {
-                "type": "string"
+                "schema": {
+                  "type": "string"
+                }
               }
             }
           },
-          "409": {
-            "description": "E-mail already exists in database."
+          "400": {
+            "description": "Bad Request. Indicated incorrect body parameters."
+          },
+          "422": {
+            "description": "Duplicate. An account for this email already exists."
+          },
+          "500": {
+            "description": "Internal Server Error."
+          },
+          "502": {
+            "description": "Bad Gateway. Received an invalid response from the network or database."
           }
         }
       }
@@ -138,37 +163,26 @@
                 },
                 "address": {
                   "type": "string",
-                  "description": "Wallet address of the logged in user."
+                  "description": "Current wallet address for the logged in user."
                 },
                 "privateKey": {
                   "type": "string",
-                  "description": "Encrypted base64 string for the private key of an API generated wallet. (No address provided during signup)"
-                },
-                "firstName": {
-                  "type": "string",
-                  "description": "First name of the logged in user."
-                },
-                "lastName": {
-                  "type": "string",
-                  "description": "Last name of the logged in user."
-                },
-                "gender": {
-                  "type": "string",
-                  "description": "Gender of the logged in user"
-                },
-                "location": {
-                  "type": "string",
-                  "description": "Provided location of the logged in user"
-                },
-                "picture": {
-                  "type": "string",
-                  "description": "Picture provided by the user"
+                  "description": "If no wallet address is provided during signup this field will contain a password encrypted base64 string for the private key of the random wallet address."
                 }
               }
             }
           },
+          "401": {
+            "description": "Unauthorized. Authenticate your request please."
+          },
+          "403": {
+            "description": "Forbidden. Your account does not have access to this asset pool."
+          },
           "500": {
-            "description": "Error during database lookup."
+            "description": "Internal Server Error."
+          },
+          "502": {
+            "description": "Bad Gateway. Received an invalid response from the network or database."
           }
         }
       },
@@ -241,12 +255,27 @@
             "description": "OK"
           },
           "302": {
-            "description": "Redirect to /account",
+            "description": "Redirect to `GET /account`",
             "headers": {
               "Location": {
                 "type": "string"
               }
             }
+          },
+          "400": {
+            "description": "Bad Request. Could indicate incorrect rewardPollDuration or proposeWithdrawPollDuration values."
+          },
+          "401": {
+            "description": "Unauthorized. Authenticate your request please."
+          },
+          "422": {
+            "description": "Duplicate. An account for this email already exists."
+          },
+          "500": {
+            "description": "Internal Server Error."
+          },
+          "502": {
+            "description": "Bad Gateway. Received an invalid response from the network or database."
           }
         }
       },
@@ -260,12 +289,21 @@
             "description": "OK"
           },
           "302": {
-            "description": "Redirect to /login",
+            "description": "Redirect to `GET /login`",
             "headers": {
               "Location": {
                 "type": "string"
               }
             }
+          },
+          "401": {
+            "description": "Unauthorized. Authenticate your request please."
+          },
+          "500": {
+            "description": "Internal Server Error."
+          },
+          "502": {
+            "description": "Bad Gateway. Received an invalid response from the network or database."
           }
         }
       }
@@ -307,12 +345,24 @@
             "description": "OK"
           },
           "302": {
-            "description": "Redirect to /logout",
+            "description": "Redirect to `GET /logout`",
             "headers": {
               "Location": {
                 "type": "string"
               }
             }
+          },
+          "400": {
+            "description": "Bad Request. Could indicate incorrect body parameters."
+          },
+          "401": {
+            "description": "Unauthorized. Authenticate your request please."
+          },
+          "500": {
+            "description": "Internal Server Error."
+          },
+          "502": {
+            "description": "Bad Gateway. Received an invalid response from the network or database."
           }
         }
       }
@@ -349,6 +399,18 @@
         "responses": {
           "200": {
             "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized. Authenticate your request please."
+          },
+          "403": {
+            "description": "Forbidden. Password reset token is invalid or has expired."
+          },
+          "500": {
+            "description": "Internal Server Error."
+          },
+          "502": {
+            "description": "Bad Gateway. Received an invalid response from the network or database."
           }
         }
       }
@@ -385,6 +447,21 @@
         "responses": {
           "200": {
             "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized. Authenticate your request please."
+          },
+          "403": {
+            "description": "Forbidden. Password reset token is invalid or has expired."
+          },
+          "404": {
+            "description": "Not Found. Account does not exist."
+          },
+          "500": {
+            "description": "Internal Server Error."
+          },
+          "502": {
+            "description": "Bad Gateway. Received an invalid response from the network or database."
           }
         }
       }
@@ -447,10 +524,19 @@
             }
           },
           "400": {
-            "description": "Bad request. Asset pool potentially not deployed."
+            "description": "Bad Request. Could indicate incorrect rewardPollDuration or proposeWithdrawPollDuration values."
           },
-          "404": {
-            "description": "No asset pool found for this address."
+          "401": {
+            "description": "Unauthorized. Authenticate your request please."
+          },
+          "403": {
+            "description": "Forbidden. Your account does not have access to this pool."
+          },
+          "500": {
+            "description": "Internal Server Error."
+          },
+          "502": {
+            "description": "Bad Gateway. Received an invalid response from the network or database."
           }
         }
       }
@@ -491,42 +577,18 @@
                 }
               }
             }
-          }
-        }
-      }
-    },
-    "/asset_pools/:address/deposit": {
-      "post": {
-        "tags": [
-          "Asset Pools"
-        ],
-        "description": "Create a deposit for an asset pool.",
-        "produces": [
-          "application/json"
-        ],
-        "parameters": [
-          {
-            "name": "AssetPool",
-            "in": "header",
-            "required": true,
-            "type": "string"
           },
-          {
-            "name": "amount",
-            "in": "body",
-            "required": true,
-            "type": "string"
+          "400": {
+            "description": "Bad Request. Could indicate incorrect rewardPollDuration or proposeWithdrawPollDuration values."
           },
-          {
-            "name": "sig",
-            "in": "body",
-            "required": true,
-            "type": "string"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK"
+          "401": {
+            "description": "Unauthorized. Authenticate your request please."
+          },
+          "500": {
+            "description": "Internal Server Error."
+          },
+          "502": {
+            "description": "Bad Gateway. Received an invalid response from the network or database."
           }
         }
       }
@@ -569,6 +631,24 @@
         "responses": {
           "200": {
             "description": "OK"
+          },
+          "302": {
+            "description": "Redirect. Redirects to `GET /asset_pools/:address`"
+          },
+          "400": {
+            "description": "Bad Request. Could indicate incorrect rewardPollDuration or proposeWithdrawPollDuration values."
+          },
+          "401": {
+            "description": "Unauthorized. Authenticate your request please."
+          },
+          "403": {
+            "description": "Forbidden. Your account does not have access to this pool."
+          },
+          "500": {
+            "description": "Internal Server Error."
+          },
+          "502": {
+            "description": "Bad Gateway. Received an invalid response from the network or database."
           }
         }
       }
@@ -599,6 +679,29 @@
         "responses": {
           "200": {
             "description": "OK"
+          },
+          "302": {
+            "description": "Redirect to `GET /members/:address`",
+            "headers": {
+              "Location": {
+                "type": "string"
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request. Indicates incorrect body parameters."
+          },
+          "401": {
+            "description": "Unauthorized. Authenticate your request please."
+          },
+          "403": {
+            "description": "Forbidden. Your account does not have access to this pool."
+          },
+          "500": {
+            "description": "Internal Server Error."
+          },
+          "502": {
+            "description": "Bad Gateway. Received an invalid response from the network or database."
           }
         }
       },

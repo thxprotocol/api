@@ -1,8 +1,7 @@
-import { Request, Response } from 'express';
-import { admin, assetPoolContract, ASSET_POOL, parseLogs, tokenContract } from '../util/network';
-import '../config/passport';
-import { validationResult } from 'express-validator';
-import logger from '../util/logger';
+import { NextFunction, Request, Response } from 'express';
+import { assetPoolContract, ASSET_POOL, parseLogs, tokenContract } from '../util/network';
+import { HttpError } from '../models/Error';
+import { VERSION } from '../util/secrets';
 
 /**
  * @swagger
@@ -25,25 +24,45 @@ import logger from '../util/logger';
  *     responses:
  *       200:
  *         description: OK
+ *       '302':
+ *          description: Redirect to `GET /members/:address`
+ *          headers:
+ *             Location:
+ *                type: string
+ *       '400':
+ *         description: Bad Request. Indicates incorrect body parameters.
+ *       '401':
+ *         description: Unauthorized. Authenticate your request please.
+ *       '403':
+ *         description: Forbidden. Your account does not have access to this pool.
+ *       '500':
+ *         description: Internal Server Error.
+ *       '502':
+ *         description: Bad Gateway. Received an invalid response from the network or database.
  */
-export const postMember = async (req: Request, res: Response) => {
-    const errors = validationResult(req);
+export const postMember = async (req: Request, res: Response, next: NextFunction) => {
+    const instance = assetPoolContract(req.header('AssetPool'));
 
-    if (!errors.isEmpty()) {
-        res.status(400).json(errors.array()).end();
+    if (await instance.isMember(req.body.address)) {
+        next(new HttpError(400, 'Address is member already.'));
+        return;
     }
 
     try {
-        const instance = assetPoolContract(req.header('AssetPool'));
         const tx = await (await instance.addMember(req.body.address)).wait();
-        const events = await parseLogs(ASSET_POOL.abi, tx.logs);
-        const event = events.filter((e: { name: string }) => e.name === 'RoleGranted')[0];
-        const address = event.args.account;
 
-        return res.redirect(`members/${address}`);
+        try {
+            const events = await parseLogs(ASSET_POOL.abi, tx.logs);
+            const event = events.filter((e: { name: string }) => e.name === 'RoleGranted')[0];
+            const address = event.args.account;
+
+            res.redirect(`/${VERSION}/members/${address}`);
+        } catch (err) {
+            next(new HttpError(500, 'Parse logs failed.', err));
+            return;
+        }
     } catch (err) {
-        logger.error(err.toString());
-        return res.status(500).json({ msg: err.toString() }).end();
+        next(new HttpError(502, 'Asset Pool addMember failed.', err));
     }
 };
 
@@ -66,25 +85,28 @@ export const postMember = async (req: Request, res: Response) => {
  *         required: true
  *         type: string
  *     responses:
- *       200:
+ *       '200':
  *         description: OK
+ *       '400':
+ *         description: Bad Request. Indicates incorrect body parameters.
+ *       '401':
+ *         description: Unauthorized. Authenticate your request please.
+ *       '403':
+ *         description: Forbidden. Your account does not have access to this pool.
+ *       '500':
+ *         description: Internal Server Error.
+ *       '502':
+ *         description: Bad Gateway. Received an invalid response from the network or database.
  */
-export const deleteMember = async (req: Request, res: Response) => {
-    const errors = validationResult(req);
-
-    if (!errors.isEmpty()) {
-        return res.status(400).json(errors.array()).end();
-    }
-
+export const deleteMember = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const instance = assetPoolContract(req.header('AssetPool'));
 
         await instance.removeMember(req.params.address);
 
-        return res.end();
+        res.end();
     } catch (err) {
-        logger.error(err.toString());
-        return res.status(500).json({ msg: err.toString() }).end();
+        next(new HttpError(502, 'Asset Pool removeMember failed.', err));
     }
 };
 
@@ -130,27 +152,35 @@ export const deleteMember = async (req: Request, res: Response) => {
  *               isManager:
  *                  type: boolean
  *                  description: If this address is known as manager of the asset pool
+ *       '400':
+ *         description: Bad Request. Indicates incorrect body parameters.
+ *       '401':
+ *         description: Unauthorized. Authenticate your request please.
+ *       '403':
+ *         description: Forbidden. Your account does not have access to this pool.
+ *       '404':
+ *         description: Not Found. Address is not a member.
+ *       '500':
+ *         description: Internal Server Error.
+ *       '502':
+ *         description: Bad Gateway. Received an invalid response from the network or database.
+
  */
-export const getMember = async (req: Request, res: Response) => {
-    const errors = validationResult(req);
-
-    if (!errors.isEmpty()) {
-        res.status(400).json(errors.array()).end();
-    }
-
+export const getMember = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const assetPoolInstance = assetPoolContract(req.header('AssetPool'));
         const isMember = await assetPoolInstance.isMember(req.params.address);
 
         if (!isMember) {
-            return res.status(404).json({ msg: 'Address is not a member' });
+            next(new HttpError(404, 'Address is not a member.'));
+            return;
         }
 
         const tokenAddress = await assetPoolInstance.token();
         const tokenInstance = tokenContract(tokenAddress);
         const balance = await tokenInstance.balanceOf(req.params.address);
 
-        return res.json({
+        res.json({
             isMember,
             isManager: await assetPoolInstance.isManager(req.params.address),
             token: {
@@ -160,8 +190,7 @@ export const getMember = async (req: Request, res: Response) => {
             },
         });
     } catch (err) {
-        logger.error(err.toString());
-        return res.status(500).json({ msg: err.toString() });
+        next(new HttpError(502, 'Asset Pool get member failed.', err));
     }
 };
 
@@ -184,24 +213,35 @@ export const getMember = async (req: Request, res: Response) => {
  *         required: true
  *         type: string
  *     responses:
- *       200:
+ *       '200':
  *         description: OK
+ *       '400':
+ *         description: Bad Request. Indicates incorrect body parameters.
+ *       '401':
+ *         description: Unauthorized. Authenticate your request please.
+ *       '403':
+ *         description: Forbidden. Your account does not have access to this pool.
+ *       '404':
+ *         description: Not Found. Address is not a member.
+ *       '500':
+ *         description: Internal Server Error.
+ *       '502':
+ *         description: Bad Gateway. Received an invalid response from the network or database.
  */
-export const patchMember = async (req: Request, res: Response) => {
-    const errors = validationResult(req);
-
-    if (!errors.isEmpty()) {
-        return res.status(400).json(errors.array()).end();
-    }
-
+export const patchMember = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const instance = assetPoolContract(req.header('AssetPool'));
+        const isMember = await instance.isMember(req.params.address);
+
+        if (!isMember) {
+            next(new HttpError(404, 'Address is not a member.'));
+            return;
+        }
 
         await instance[req.body.isManager ? 'addManager' : 'removeManager'](req.params.address);
 
-        return res.redirect(`members/${req.params.address}`);
+        res.redirect(`/${VERSION}/members/${req.params.address}`);
     } catch (err) {
-        logger.error(err.toString());
-        return res.status(500).json({ msg: err.toString() });
+        next(new HttpError(502, 'Asset Pool add/remove Manager failed.', err));
     }
 };
