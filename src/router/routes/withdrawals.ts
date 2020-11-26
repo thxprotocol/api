@@ -1,13 +1,21 @@
 import express from 'express';
 import * as withdrawalController from '../../controllers/withdrawal';
-import { validate } from '../../util/validation';
+import { validations, validate } from '../../util/validation';
 
 const router = express.Router();
 
-router.get('/', validate.getWithdrawals, withdrawalController.getWithdrawals);
-router.get('/:address', validate.getWithdrawal, withdrawalController.getWithdrawal);
-router.post('/', validate.postWithdrawal, withdrawalController.postWithdrawal);
-router.get('/:address/withdraw', validate.getWithdrawalWithdraw, withdrawalController.getWithdrawalWithdraw);
-router.post('/:address/withdraw', validate.postWithdrawalWithdraw, withdrawalController.postWithdrawalWithdraw);
+router.get('/', validate(validations.getWithdrawals), withdrawalController.getWithdrawals);
+router.get('/:address', validate(validations.getWithdrawal), withdrawalController.getWithdrawal);
+router.post('/', validate(validations.postWithdrawal), withdrawalController.postWithdrawal);
+router.get(
+    '/:address/withdraw',
+    validate(validations.getWithdrawalWithdraw),
+    withdrawalController.getWithdrawalWithdraw,
+);
+router.post(
+    '/:address/withdraw',
+    validate(validations.postWithdrawalWithdraw),
+    withdrawalController.postWithdrawalWithdraw,
+);
 
 export default router;

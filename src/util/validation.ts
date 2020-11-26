@@ -1,5 +1,20 @@
 import { AccountDocument } from '../models/Account';
-import { body, check, header, param } from 'express-validator';
+import { body, check, header, param, validationResult } from 'express-validator';
+import { Response, Request, NextFunction } from 'express';
+
+export const validate = (validations: any) => {
+    return async (req: Request, res: Response, next: NextFunction) => {
+        await Promise.all(validations.map((validation: any) => validation.run(req)));
+
+        const errors = validationResult(req);
+
+        if (errors.isEmpty()) {
+            return next();
+        }
+
+        res.status(400).json({ errors: errors.array() });
+    };
+};
 
 const validateAssetPoolHeader = header('AssetPool')
     .exists()
@@ -19,7 +34,7 @@ const confirmPassword = body('confirmPassword')
         return true;
     });
 
-export const validate = {
+export const validations = {
     // withdrawal
     getWithdrawal: [validateAssetPoolHeader, param('address').exists()],
     getWithdrawals: [validateAssetPoolHeader, body('member').exists()],

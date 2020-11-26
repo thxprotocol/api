@@ -4,8 +4,8 @@ import { AssetPool, AssetPoolDocument } from '../models/AssetPool';
 import { Account, AccountDocument } from '../models/Account';
 import { Request, Response, NextFunction } from 'express';
 import { assetPoolContract, tokenContract } from '../util/network';
-import { validationResult } from 'express-validator';
 import { GAS_STATION_ADDRESS } from '../util/secrets';
+import { HttpError } from '../models/Error';
 
 /**
  * @swagger
@@ -55,40 +55,38 @@ import { GAS_STATION_ADDRESS } from '../util/secrets';
  *                    description: The default duration of the reward polls
  */
 export const getAssetPool = async (req: Request, res: Response, next: NextFunction) => {
-    const errors = validationResult(req);
-
-    if (!errors.isEmpty()) {
-        return res.status(400).json(errors.array()).end();
-    }
-
     try {
         const assetPoolInstance = assetPoolContract(req.params.address);
         const tokenAddress = await assetPoolInstance.token();
-        const tokenInstance = tokenContract(tokenAddress);
-        const proposeWithdrawPollDuration = (await assetPoolInstance.proposeWithdrawPollDuration()).toNumber();
-        const rewardPollDuration = (await assetPoolInstance.rewardPollDuration()).toNumber();
 
-        const contractData = {
-            token: {
-                address: tokenInstance.address,
-                name: await tokenInstance.name(),
-                symbol: await tokenInstance.symbol(),
-                balance: await tokenInstance.balanceOf(req.params.address),
-            },
-            proposeWithdrawPollDuration,
-            rewardPollDuration,
-        };
-        const { uid, address, title }: AssetPoolDocument = await AssetPool.findOne({ address: req.params.address });
+        try {
+            const tokenInstance = tokenContract(tokenAddress);
+            const proposeWithdrawPollDuration = (await assetPoolInstance.proposeWithdrawPollDuration()).toNumber();
+            const rewardPollDuration = (await assetPoolInstance.rewardPollDuration()).toNumber();
+            const contractData = {
+                token: {
+                    address: tokenInstance.address,
+                    name: await tokenInstance.name(),
+                    symbol: await tokenInstance.symbol(),
+                    balance: await tokenInstance.balanceOf(req.params.address),
+                },
+                proposeWithdrawPollDuration,
+                rewardPollDuration,
+            };
+            const { uid, address, title }: AssetPoolDocument = await AssetPool.findOne({
+                address: req.params.address,
+            });
 
-        if (!address) {
-            throw Error(`No asset pool found for address ${address}`);
+            if (!address) {
+                next(new HttpError(404, 'Asset Pool is not found in database.'));
+            }
+
+            res.send({ title, address, uid, ...contractData });
+        } catch (error) {
+            next(new HttpError(500, 'Asset Pool network data can not be obtained.', error));
         }
-
-        res.send({ title, address, uid, ...contractData });
-    } catch (err) {
-        const error = err.toString();
-        logger.error(error);
-        res.status(404).json({ msg: 'Something went wrong while getting the asset pool', error });
+    } catch (error) {
+        next(new HttpError(404, 'Asset Pool is not found on network.', error));
     }
 };
 
@@ -122,82 +120,37 @@ export const getAssetPool = async (req: Request, res: Response, next: NextFuncti
  *                   description: Address of the new asset pool.
  */
 export const postAssetPool = async (req: Request, res: Response, next: NextFunction) => {
-    const errors = validationResult(req);
-
-    if (!errors.isEmpty()) {
-        return res.status(400).json(errors.array()).end();
-    }
-
     try {
-        // Deploy asset pool contract
         const assetPool = await assetPoolFactory.deploy(admin.address, GAS_STATION_ADDRESS, req.body.token);
+        const token = assetPool.token();
 
-        // Store asset pool metadata
-        await new AssetPool({
-            address: assetPool.address,
-            title: req.body.title,
-            uid: req.session.passport.user,
-        }).save();
+        console.log(assetPool);
+        console.log(token);
 
-        // // Update account
-        const account: AccountDocument = await Account.findById((req.user as AccountDocument).id);
+        try {
+            await new AssetPool({
+                address: assetPool.address,
+                title: req.body.title,
+                uid: req.session.passport.user,
+            }).save();
 
-        if (!account.profile.assetPools.includes(assetPool.address)) {
-            account.profile.assetPools.push(assetPool.address);
-            await account.save();
+            try {
+                const account: AccountDocument = await Account.findById((req.user as AccountDocument).id);
+
+                if (!account.profile.assetPools.includes(assetPool.address)) {
+                    account.profile.assetPools.push(assetPool.address);
+                    await account.save();
+                }
+
+                res.send({ address: assetPool.address });
+            } catch (error) {
+                next(new HttpError(500, 'Account account update failed.', error));
+            }
+        } catch (error) {
+            next(new HttpError(500, 'Asset Pool database save failed.', error));
         }
-
-        res.send({ address: assetPool.address });
-    } catch (err) {
-        console.log(err.toString());
-        logger.error(err.toString());
-        res.status(500).json({ msg: err.toString() }).end();
-    }
-};
-
-/**
- * @swagger
- * /asset_pools/:address/deposit:
- *   post:
- *     tags:
- *       - Asset Pools
- *     description: Create a deposit for an asset pool.
- *     produces:
- *       - application/json
- *     parameters:
- *       - name: AssetPool
- *         in: header
- *         required: true
- *         type: string
- *       - name: amount
- *         in: body
- *         required: true
- *         type: string
- *       - name: sig
- *         in: body
- *         required: true
- *         type: string
- *     responses:
- *       200:
- *         description: OK
- */
-export const postAssetPoolDeposit = async (req: Request, res: Response, next: NextFunction) => {
-    const errors = validationResult(req);
-
-    if (!errors.isEmpty()) {
-        return res.status(400).json(errors.array()).end();
-    }
-
-    try {
-        const address = req.header('AssetPool');
-        const instance = assetPoolContract(address);
-        const tokenInstance = tokenContract(await instance.token());
-        const balance = await tokenInstance.balanceOf(address);
-
-        // TODO Return a QR here and handle approve and deposit in client app
-    } catch (err) {
-        logger.error(err.toString());
-        res.status(400).json({ msg: err.toString() });
+    } catch (error) {
+        next(new HttpError(500, 'Asset Pool network deploy failed.', error));
     }
 };
 
@@ -232,25 +185,27 @@ export const postAssetPoolDeposit = async (req: Request, res: Response, next: Ne
  *         description: OK
  */
 export const patchAssetPool = async (req: Request, res: Response, next: NextFunction) => {
-    const errors = validationResult(req);
-
-    if (!errors.isEmpty()) {
-        return res.status(400).json(errors.array()).end();
-    }
-
     try {
         const instance = assetPoolContract(req.header('AssetPool'));
 
         if (req.body.rewardPollDuration) {
-            await instance.setRewardPollDuration(req.body.rewardPollDuration);
+            try {
+                await instance.setRewardPollDuration(req.body.rewardPollDuration);
+            } catch (error) {
+                next(new HttpError(500, 'Asset Pool setRewardPollDuration failed.', error));
+            }
         }
+
         if (req.body.proposeWithdrawPollDuration) {
-            await instance.setProposeWithdrawPollDuration(req.body.proposeWithdrawPollDuration);
+            try {
+                await instance.setProposeWithdrawPollDuration(req.body.proposeWithdrawPollDuration);
+            } catch (error) {
+                next(new HttpError(500, 'Asset Pool setProposeWithdrawPollDuration failed.', error));
+            }
         }
 
         res.redirect('asset_pools/' + req.params.address);
-    } catch (err) {
-        logger.error(err.toString());
-        res.status(500).json({ msg: err.toString() });
+    } catch (error) {
+        next(new HttpError(500, 'Asset Pool patch failed.', error));
     }
 };
