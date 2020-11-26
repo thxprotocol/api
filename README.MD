@@ -15,38 +15,46 @@ This repository holds the source for the THX REST API.
 -   [Ganache](https://www.trufflesuite.com/ganache)
 -   Docker
 -   nodejs 10.x
--   solc (only if you need ot recompile contracts frequently)
 
-## 2. Installation
+## 2. Debugging
 
-1. `git submodule init` (only if you need ot recompile contracts frequently)
-2. `git submodule update` (only if you need ot recompile contracts frequently)
-3. `docker-compose up -d`
-4. `npm install`
-5. Follow .env.test as example for your .env file.
-6. Change mongodb connectionstring to `mongodb://root:root@localhost:27017/api`
+1. `git submodule init`
+2. `git submodule update`
+3. `npm run copy-contracts`
+4. Create `.env` in repo root and provide contents:
+
+```
+PRIVATE_KEY=0x873c254263b17925b686f971d7724267710895f1585bb0533db8e693a2af32ff
+GAS_STATION_ADDRESS=0x278ff6d33826d906070ee938cdc9788003749e93
+MONGODB_URI=mongodb://root:root@mongo:27017/admin
+SESSION_SECRET=uoifubjhjfknbdkjhiluaerhrgja
+PORT=3000
+ORIGIN=https://localhost:8080
+RPC=http://ganache:8545
+```
+
+5. `docker-compose up`
 
 ## 3. Running
 
-1. Start Ganache on port 7545
-2. Get private key value for account index 0
-3. Set PRIVATE_KEY in the active .env file with this value
-
 ```
-npm run build
-npm run serve
+# Start all containers
+docker-compose up
+
+# Suppress logging
+docker-compose up -d
+
+# Running in prod
+# make sure to provide correct .env contents
+npm install;
+npm run build;
+npm run serve;
 ```
 
-## 4. Debugging
+## 4. Interface
 
-```
-npm run watch-debug
-```
+Swagger Documentation is provided in the controllers of the routes and lives at the following endpoints:
 
-## 5. Interface
-
-The API specification is living at:
-
--   https://localhost:8088/v1/docs/ (local)
--   https://dev.api.thx.network/v1/docs/ (staging)
-<!-- -   https://api.thx.network/v1/docs/ (production) -->
+-   [Local API Specs](https://localhost:3000/v1/docs/)
+-   [Staging API Specs](https://dev.api.thx.network/v1/docs/)
+-   [Production API Specs](https://api.thx.network/v1/docs/)
