@@ -339,7 +339,7 @@ describe('Happy Flow', () => {
         });
 
         it('HTTP 200 and increase yesCounter with 1', (done) => {
-            user.get(`/v1/${redirectURL}`)
+            user.get(redirectURL)
                 .set({ AssetPool: poolAddress })
                 .end(async (err, res) => {
                     expect(Number(res.body.totalVoted)).toEqual(1);
@@ -482,7 +482,7 @@ describe('Happy Flow', () => {
         });
 
         it('HTTP 200 and increase yesCounter with 1', (done) => {
-            user.get(`/v1/${redirectURL}`)
+            user.get(redirectURL)
                 .set({ AssetPool: poolAddress })
                 .end(async (err, res) => {
                     expect(Number(res.body.totalVoted)).toEqual(1);
@@ -662,7 +662,7 @@ describe('Happy Flow', () => {
         });
 
         it('HTTP 200 and increase yesCounter with 1', (done) => {
-            user.get(`/v1/${redirectURL}`)
+            user.get(redirectURL)
                 .set({ AssetPool: poolAddress })
                 .end(async (err, res) => {
                     expect(Number(res.body.totalVoted)).toEqual(1);

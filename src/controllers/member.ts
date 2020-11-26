@@ -22,7 +22,7 @@ import { VERSION } from '../util/secrets';
  *         required: true
  *         type: string
  *     responses:
- *       200:
+ *       '200':
  *         description: OK
  *       '302':
  *          description: Redirect to `GET /members/:address`
