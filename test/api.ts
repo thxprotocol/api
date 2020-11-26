@@ -141,26 +141,26 @@ describe('Happy Flow', () => {
                 });
         });
 
-        it('HTTP 500 if incorrect rewardPollDuration value is sent ', (done) => {
+        it('HTTP 500 if incorrect rewardPollDuration type (string) sent ', (done) => {
             user.patch('/v1/asset_pools/' + poolAddress)
                 .set({ AssetPool: poolAddress })
                 .send({
                     rewardPollDuration: 'fivehundred',
                 })
                 .end(async (err, res) => {
-                    expect(res.status).toBe(500);
+                    expect(res.status).toBe(400);
                     done();
                 });
         });
 
-        it('HTTP 500 if incorrect proposeWithdrawPollDuration value is sent ', (done) => {
+        it('HTTP 500 if incorrect proposeWithdrawPollDuration type (string) is sent ', (done) => {
             user.patch('/v1/asset_pools/' + poolAddress)
                 .set({ AssetPool: poolAddress })
                 .send({
                     proposeWithdrawPollDuration: 'fivehundred',
                 })
                 .end(async (err, res) => {
-                    expect(res.status).toBe(500);
+                    expect(res.status).toBe(400);
                     done();
                 });
         });

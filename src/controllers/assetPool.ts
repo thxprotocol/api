@@ -124,9 +124,6 @@ export const postAssetPool = async (req: Request, res: Response, next: NextFunct
         const assetPool = await assetPoolFactory.deploy(admin.address, GAS_STATION_ADDRESS, req.body.token);
         const token = assetPool.token();
 
-        console.log(assetPool);
-        console.log(token);
-
         try {
             await new AssetPool({
                 address: assetPool.address,
@@ -189,18 +186,30 @@ export const patchAssetPool = async (req: Request, res: Response, next: NextFunc
         const instance = assetPoolContract(req.header('AssetPool'));
 
         if (req.body.rewardPollDuration) {
+            if (isNaN(req.body.rewardPollDuration)) {
+                next(new HttpError(400, 'rewardPollDuration is not a number.'));
+                return;
+            }
+
             try {
                 await instance.setRewardPollDuration(req.body.rewardPollDuration);
             } catch (error) {
                 next(new HttpError(500, 'Asset Pool setRewardPollDuration failed.', error));
+                return;
             }
         }
 
         if (req.body.proposeWithdrawPollDuration) {
+            if (isNaN(req.body.rewardPollDuration)) {
+                next(new HttpError(400, 'proposeWithdrawPollDuration is not a number.'));
+                return;
+            }
+
             try {
                 await instance.setProposeWithdrawPollDuration(req.body.proposeWithdrawPollDuration);
             } catch (error) {
                 next(new HttpError(500, 'Asset Pool setProposeWithdrawPollDuration failed.', error));
+                return;
             }
         }
 
