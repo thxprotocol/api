@@ -37,7 +37,7 @@ describe('Roles', () => {
                     token: testToken.address,
                 })
                 .end(async (err, res) => {
-                    expect(res.status).toBe(200);
+                    expect(res.status).toBe(201);
                     poolAddress = res.body.address;
                     done();
                 });
@@ -79,7 +79,7 @@ describe('Roles', () => {
         });
 
         it('HTTP 200 for redirect', (done) => {
-            user.get('/v1/' + redirectURL)
+            user.get(redirectURL)
                 .set({ AssetPool: poolAddress })
                 .end(async (err, res) => {
                     expect(res.body.isMember).toEqual(true);
@@ -106,7 +106,7 @@ describe('Roles', () => {
         });
 
         it('HTTP 200 and isManager true', (done) => {
-            user.get('/v1/' + redirectURL)
+            user.get(redirectURL)
                 .set({ AssetPool: poolAddress })
                 .end(async (err, res) => {
                     expect(res.body.isMember).toEqual(true);
@@ -133,7 +133,7 @@ describe('Roles', () => {
         });
 
         it('HTTP 200 and isManager: false', (done) => {
-            user.get('/v1/' + redirectURL)
+            user.get(redirectURL)
                 .set({ AssetPool: poolAddress })
                 .end(async (err, res) => {
                     expect(res.body.isMember).toEqual(true);

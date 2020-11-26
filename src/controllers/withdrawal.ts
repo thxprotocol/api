@@ -1,10 +1,9 @@
-import { Request, Response } from 'express';
-import '../config/passport';
+import { NextFunction, Request, Response } from 'express';
 import { assetPoolContract, ASSET_POOL, gasStation, parseResultLog, withdrawPollContract } from '../util/network';
-import logger from '../util/logger';
-import { validationResult } from 'express-validator';
-
-const qrcode = require('qrcode');
+import { HttpError } from '../models/Error';
+import { VERSION } from '../util/secrets';
+import qrcode from 'qrcode';
+import '../config/passport';
 
 /**
  * @swagger
@@ -25,24 +24,50 @@ const qrcode = require('qrcode');
  *         required: true
  *         type: string
  *     responses:
- *       200:
- *         startTime: DateTime of the start of the poll
- *         endTime: DateTime of the start of the poll
- *         withdrawal: Address of the withdraw poll
- *         beneficiary: Beneficiary of the withdraw poll
- *         amount: Rewarded amount for the beneficiary
- *         state: WithdrawState [Pending, Approved, Rejected, Withdrawn]
- *         yesCounter: Amount of yes votes
- *         noCounter: Amount of no votes
- *         totalVotes: Total amount of votes
+ *       '200':
+ *         description: OK
+ *         schema:
+ *            type: object
+ *            properties:
+ *              startTime:
+ *                  type: string
+ *                  description: DateTime of the start of the poll
+ *              endTime:
+ *                  type: string
+ *                  description: DateTime of the start of the poll
+ *              withdrawal:
+ *                  type: string
+ *                  description: Address of the withdraw poll
+ *              beneficiary:
+ *                  type: string
+ *                  description: Beneficiary of the withdraw poll
+ *              amount:
+ *                  type: string
+ *                  description: Rewarded amount for the beneficiary
+ *              state:
+ *                  type: string
+ *                  description: WithdrawState [Pending, Approved, Rejected, Withdrawn]
+ *              yesCounter:
+ *                  type: string
+ *                  description: Amount of yes votes
+ *              noCounter:
+ *                  type: string
+ *                  description: Amount of no votes
+ *              totalVotes:
+ *                  type: string
+ *                  description: Total amount of votes
+ *       '400':
+ *         description: Bad Request. Indicates incorrect body parameters.
+ *       '401':
+ *         description: Unauthorized. Authenticate your request please.
+ *       '403':
+ *         description: Forbidden. Your account does not have access to this pool.
+ *       '500':
+ *         description: Internal Server Error.
+ *       '502':
+ *         description: Bad Gateway. Received an invalid response from the network or database.
  */
-export const getWithdrawal = async (req: Request, res: Response) => {
-    const errors = validationResult(req);
-
-    if (!errors.isEmpty()) {
-        res.status(500).json(errors.array()).end();
-    }
-
+export const getWithdrawal = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const withdrawal = withdrawPollContract(req.params.address);
         const beneficiary = await withdrawal.beneficiary();
@@ -72,8 +97,7 @@ export const getWithdrawal = async (req: Request, res: Response) => {
             totalVoted,
         });
     } catch (err) {
-        logger.error(err.toString());
-        res.status(500).json({ msg: err.toString() });
+        next(new HttpError(502, 'Withdraw Poll get data failed.', err));
     }
 };
 
@@ -92,16 +116,25 @@ export const getWithdrawal = async (req: Request, res: Response) => {
  *         required: true
  *         type: string
  *     responses:
- *       200:
- *         withdrawPolls: ...
+ *       '200':
+ *          description: OK
+ *          schema:
+ *              withdrawPolls:
+ *                  type: array
+ *                  items:
+ *                      type: string
+ *       '400':
+ *          description: Bad Request. Indicates incorrect body parameters.
+ *       '401':
+ *          description: Unauthorized. Authenticate your request please.
+ *       '403':
+ *          description: Forbidden. Your account does not have access to this pool.
+ *       '500':
+ *          description: Internal Server Error.
+ *       '502':
+ *          description: Bad Gateway. Received an invalid response from the network or database.
  */
-export const getWithdrawals = async (req: Request, res: Response) => {
-    const errors = validationResult(req);
-
-    if (!errors.isEmpty()) {
-        return res.status(500).json(errors.array()).end();
-    }
-
+export const getWithdrawals = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const instance = assetPoolContract(req.header('AssetPool'));
         const filter = instance.filters.WithdrawPollCreated(req.body.member, null);
@@ -113,8 +146,7 @@ export const getWithdrawals = async (req: Request, res: Response) => {
             }),
         });
     } catch (err) {
-        logger.error(err.toString());
-        res.status(500).json({ msg: err.toString() });
+        next(new HttpError(502, 'Get WithdrawPollCreated logs failed.', err));
     }
 };
 
@@ -141,32 +173,47 @@ export const getWithdrawals = async (req: Request, res: Response) => {
  *         required: true
  *         type: string
  *     responses:
- *       304: /withdrawals/:address
- *       200:
- *         data: ...
+ *       '200':
+ *          description: OK
+ *       '302':
+ *          description: Redirect to `GET /withdrawals/:address`
+ *          headers:
+ *             Location:
+ *                type: string
+ *       '400':
+ *          description: Bad Request. Indicates incorrect body parameters.
+ *       '401':
+ *          description: Unauthorized. Authenticate your request please.
+ *       '403':
+ *          description: Forbidden. Your account does not have access to this pool.
+ *       '500':
+ *          description: Internal Server Error.
+ *       '502':
+ *          description: Bad Gateway. Received an invalid response from the network or database.
  */
-export const postWithdrawal = async (req: Request, res: Response) => {
-    const errors = validationResult(req);
-
-    if (!errors.isEmpty()) {
-        return res.status(400).json(errors.array()).end();
-    }
-
+export const postWithdrawal = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        let tx = await gasStation.call(req.body.call, req.header('AssetPool'), req.body.nonce, req.body.sig);
-        tx = await tx.wait();
+        const tx = await (
+            await gasStation.call(req.body.call, req.header('AssetPool'), req.body.nonce, req.body.sig)
+        ).wait();
 
-        const { error, logs } = await parseResultLog(ASSET_POOL.abi, tx.logs);
-        if (error) {
-            throw Error(error);
+        try {
+            const { error, logs } = await parseResultLog(ASSET_POOL.abi, tx.logs);
+
+            if (error) {
+                throw error;
+            }
+
+            const event = logs.filter((e: { name: string }) => e.name === 'WithdrawPollCreated')[0];
+            const pollAddress = event.args.poll;
+
+            res.redirect(`/${VERSION}/withdrawals/${pollAddress}`);
+        } catch (err) {
+            next(new HttpError(500, 'Parse logs failed.', err));
+            return;
         }
-        const event = logs.filter((e: { name: string }) => e.name === 'WithdrawPollCreated')[0];
-        const pollAddress = event.args.poll;
-
-        res.redirect('withdrawals/' + pollAddress);
     } catch (err) {
-        logger.error(err.toString());
-        res.status(500).json({ msg: err.toString() });
+        next(new HttpError(502, 'Gas Station call failed.', err));
     }
 };
 
@@ -189,16 +236,26 @@ export const postWithdrawal = async (req: Request, res: Response) => {
  *         required: true
  *         type: string
  *     responses:
- *       200:
- *         base64: data:image/jpeg;base64,...
+ *       '200':
+ *         description: OK
+ *         schema:
+ *            type: object
+ *            properties:
+ *               base64:
+ *                  type: string
+ *                  description: Base64 string representing function call*
+ *       '400':
+ *          description: Bad Request. Indicates incorrect body parameters.
+ *       '401':
+ *          description: Unauthorized. Authenticate your request please.
+ *       '403':
+ *          description: Forbidden. Your account does not have access to this pool.
+ *       '500':
+ *          description: Internal Server Error.
+ *       '502':
+ *          description: Bad Gateway. Received an invalid response from the network or database.
  */
-export const getWithdrawalWithdraw = async (req: Request, res: Response) => {
-    const errors = validationResult(req);
-
-    if (!errors.isEmpty()) {
-        return res.status(500).json(errors.array()).end();
-    }
-
+export const getWithdrawalWithdraw = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const base64 = await qrcode.toDataURL(
             JSON.stringify({
@@ -209,8 +266,7 @@ export const getWithdrawalWithdraw = async (req: Request, res: Response) => {
         );
         res.send({ base64 });
     } catch (err) {
-        logger.error(err.toString());
-        res.status(500).json({ msg: err.toString() });
+        next(new HttpError(500, 'QR code encoding failed.', err));
     }
 };
 
@@ -233,29 +289,39 @@ export const getWithdrawalWithdraw = async (req: Request, res: Response) => {
  *         required: true
  *         type: string
  *     responses:
- *       200:
+ *       '200':
  *         description: OK
+ *       '400':
+ *          description: Bad Request. Indicates incorrect body parameters.
+ *       '401':
+ *          description: Unauthorized. Authenticate your request please.
+ *       '403':
+ *          description: Forbidden. Your account does not have access to this pool.
+ *       '500':
+ *          description: Internal Server Error.
+ *       '502':
+ *          description: Bad Gateway. Received an invalid response from the network or database.
  */
-export const postWithdrawalWithdraw = async (req: Request, res: Response) => {
-    const errors = validationResult(req);
-
-    if (!errors.isEmpty()) {
-        return res.status(400).json(errors.array()).end();
-    }
-
+export const postWithdrawalWithdraw = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        let tx = await gasStation.call(req.body.call, req.params.address, req.body.nonce, req.body.sig);
-        tx = await tx.wait();
+        const tx = await (
+            await gasStation.call(req.body.call, req.params.address, req.body.nonce, req.body.sig)
+        ).wait();
 
-        const { error, logs } = await parseResultLog(ASSET_POOL.abi, tx.logs);
-        if (error) {
-            throw Error(error);
+        try {
+            const { error, logs } = await parseResultLog(ASSET_POOL.abi, tx.logs);
+
+            if (error) {
+                throw error;
+            }
+
+            const event = logs.filter((l) => l.name === 'Withdrawn')[0];
+
+            res.redirect(`/${VERSION}/members/${event.args.member}`);
+        } catch (error) {
+            next(new HttpError(500, 'Parse logs failed.', error));
         }
-        const event = logs.filter((l) => l.name === 'Withdrawn')[0];
-
-        res.redirect(`members/${event.args.member}`);
     } catch (err) {
-        logger.error(err.toString());
-        res.status(500).json({ msg: err.toString() });
+        next(new HttpError(502, 'Gas Station call failed.', err));
     }
 };

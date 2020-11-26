@@ -59,14 +59,14 @@ describe('Happy Flow', () => {
     });
 
     describe('POST /asset_pools', () => {
-        it('HTTP 200', async (done) => {
+        it('HTTP 201', async (done) => {
             user.post('/v1/asset_pools')
                 .send({
                     title: poolTitle,
                     token: testToken.address,
                 })
                 .end(async (err, res) => {
-                    expect(res.status).toBe(200);
+                    expect(res.status).toBe(201);
                     expect(res.body.address).toContain('0x');
                     poolAddress = res.body.address;
 
@@ -131,7 +131,7 @@ describe('Happy Flow', () => {
         });
 
         it('HTTP 200 after redirect', (done) => {
-            user.get('/v1/' + redirectURL)
+            user.get(redirectURL)
                 .set({ AssetPool: poolAddress })
                 .end(async (err, res) => {
                     expect(Number(res.body.proposeWithdrawPollDuration)).toEqual(10);
@@ -141,26 +141,26 @@ describe('Happy Flow', () => {
                 });
         });
 
-        it('HTTP 500 if incorrect rewardPollDuration value is sent ', (done) => {
+        it('HTTP 500 if incorrect rewardPollDuration type (string) sent ', (done) => {
             user.patch('/v1/asset_pools/' + poolAddress)
                 .set({ AssetPool: poolAddress })
                 .send({
                     rewardPollDuration: 'fivehundred',
                 })
                 .end(async (err, res) => {
-                    expect(res.status).toBe(500);
+                    expect(res.status).toBe(400);
                     done();
                 });
         });
 
-        it('HTTP 500 if incorrect proposeWithdrawPollDuration value is sent ', (done) => {
+        it('HTTP 500 if incorrect proposeWithdrawPollDuration type (string) is sent ', (done) => {
             user.patch('/v1/asset_pools/' + poolAddress)
                 .set({ AssetPool: poolAddress })
                 .send({
                     proposeWithdrawPollDuration: 'fivehundred',
                 })
                 .end(async (err, res) => {
-                    expect(res.status).toBe(500);
+                    expect(res.status).toBe(400);
                     done();
                 });
         });
@@ -197,7 +197,7 @@ describe('Happy Flow', () => {
         });
 
         it('HTTP 200 after redirect', (done) => {
-            user.get('/v1/' + redirectURL)
+            user.get(redirectURL)
                 .set({ AssetPool: poolAddress })
                 .end(async (err, res) => {
                     expect(Number(res.body.id)).toEqual(0);
@@ -237,7 +237,7 @@ describe('Happy Flow', () => {
             user.get('/v1/rewards/id_invalid')
                 .set({ AssetPool: poolAddress })
                 .end(async (err, res) => {
-                    expect(res.status).toBe(500);
+                    expect(res.status).toBe(400);
                     done();
                 });
         });
@@ -259,7 +259,7 @@ describe('Happy Flow', () => {
         });
 
         it('HTTP 200 for the redirect', (done) => {
-            user.get('/v1/' + redirectURL)
+            user.get(redirectURL)
                 .set({ AssetPool: poolAddress })
                 .end(async (err, res) => {
                     expect(res.body.isMember).toEqual(true);
@@ -339,7 +339,7 @@ describe('Happy Flow', () => {
         });
 
         it('HTTP 200 and increase yesCounter with 1', (done) => {
-            user.get(`/v1/${redirectURL}`)
+            user.get(redirectURL)
                 .set({ AssetPool: poolAddress })
                 .end(async (err, res) => {
                     expect(Number(res.body.totalVoted)).toEqual(1);
@@ -434,7 +434,7 @@ describe('Happy Flow', () => {
         });
 
         it('HTTP 200 after return state Pending', (done) => {
-            user.get(`/v1/${redirectURL}`)
+            user.get(redirectURL)
                 .set({ AssetPool: poolAddress })
                 .end(async (err, res) => {
                     withdrawPollAddress = res.body.address;
@@ -482,7 +482,7 @@ describe('Happy Flow', () => {
         });
 
         it('HTTP 200 and increase yesCounter with 1', (done) => {
-            user.get(`/v1/${redirectURL}`)
+            user.get(redirectURL)
                 .set({ AssetPool: poolAddress })
                 .end(async (err, res) => {
                     expect(Number(res.body.totalVoted)).toEqual(1);
@@ -549,7 +549,7 @@ describe('Happy Flow', () => {
         });
 
         it('HTTP 200 and have the minted amount balance again', (done) => {
-            user.get('/v1/' + redirectURL)
+            user.get(redirectURL)
                 .set({ AssetPool: poolAddress })
                 .end(async (err, res) => {
                     expect(Number(formatEther(res.body.token.balance))).toBe(Number(formatEther(mintAmount)));
@@ -613,7 +613,7 @@ describe('Happy Flow', () => {
         });
 
         it('HTTP 200 if OK', async (done) => {
-            user.get(`/v1/${redirectURL}`)
+            user.get(redirectURL)
                 .set({ AssetPool: poolAddress })
                 .end(async (err, res) => {
                     expect(res.status).toBe(200);
@@ -662,7 +662,7 @@ describe('Happy Flow', () => {
         });
 
         it('HTTP 200 and increase yesCounter with 1', (done) => {
-            user.get(`/v1/${redirectURL}`)
+            user.get(redirectURL)
                 .set({ AssetPool: poolAddress })
                 .end(async (err, res) => {
                     expect(Number(res.body.totalVoted)).toEqual(1);
@@ -715,7 +715,7 @@ describe('Happy Flow', () => {
         });
 
         it('HTTP 200 and increased balance', (done) => {
-            user.get('/v1/' + redirectURL)
+            user.get(redirectURL)
                 .set({ AssetPool: poolAddress })
                 .end(async (err, res) => {
                     expect(Number(formatEther(res.body.token.balance))).toBe(1000);

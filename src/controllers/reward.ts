@@ -3,18 +3,16 @@ import {
     assetPoolContract,
     ASSET_POOL,
     gasStation,
-    GAS_STATION,
     parseLogs,
     parseResultLog,
     rewardPollContract,
 } from '../util/network';
 import { Reward, RewardDocument } from '../models/Reward';
-import logger from '../util/logger';
+import { ethers } from 'ethers';
+import { HttpError } from '../models/Error';
+import { VERSION } from '../util/secrets';
+import qrcode from 'qrcode';
 import '../config/passport';
-import { validationResult } from 'express-validator';
-import { BigNumber } from 'ethers';
-
-const qrcode = require('qrcode');
 
 /**
  * @swagger
@@ -35,10 +33,13 @@ const qrcode = require('qrcode');
  *         required: true
  *         type: integer
  *     responses:
- *       200:
+ *       '200':
  *         schema:
  *           type: object
  *           properties:
+ *             id:
+ *               type: number
+ *               description: Unique identifier of the reward.
  *             title:
  *               type: string
  *               description:
@@ -47,18 +48,44 @@ const qrcode = require('qrcode');
  *               description: The description
  *             withdrawAmount:
  *               type: number
- *               description: Size of the reward
+ *               description: Current size of the reward
  *             withdrawDuration:
  *               type: number
- *               description: Default duration of the withdraw poll
+ *               description: Current duration of the withdraw poll
+ *             state:
+ *               type: number
+ *               description: Current state of the reward [Enabled, Disabled]
+ *             poll:
+ *               type: object
+ *               properties:
+ *                  address:
+ *                      type: string
+ *                      description: Address of the reward poll
+ *                  withdrawAmount:
+ *                      type: number
+ *                      description: Proposed size of the reward
+ *                  withdrawDuration:
+ *                      type: number
+ *                      description: Proposed duration of the withdraw poll
+ *       '302':
+ *          description: Redirect to `GET /rewards/:id`
+ *          headers:
+ *             Location:
+ *                type: string
+ *       '400':
+ *         description: Bad Request. Indicates incorrect body parameters.
+ *       '401':
+ *         description: Unauthorized. Authenticate your request please.
+ *       '403':
+ *         description: Forbidden. Your account does not have access to this pool.
+ *       '404':
+ *         description: Not Found. Reward not found for this asset pool.
+ *       '500':
+ *         description: Internal Server Error.
+ *       '502':
+ *         description: Bad Gateway. Received an invalid response from the network or database.
  */
 export const getReward = async (req: Request, res: Response, next: NextFunction) => {
-    const errors = validationResult(req);
-
-    if (!errors.isEmpty()) {
-        return res.status(400).json(errors.array()).end();
-    }
-
     try {
         const metaData = await Reward.findOne({ id: req.params.id });
 
@@ -75,7 +102,7 @@ export const getReward = async (req: Request, res: Response, next: NextFunction)
                 withdrawDuration: withdrawDuration.toNumber(),
                 state,
                 poll:
-                    poll !== '0x0000000000000000000000000000000000000000'
+                    ethers.utils.isAddress(poll) && poll !== '0x0000000000000000000000000000000000000000'
                         ? {
                               address: poll,
                               withdrawAmount: await pollInstance.withdrawAmount(),
@@ -86,12 +113,11 @@ export const getReward = async (req: Request, res: Response, next: NextFunction)
 
             res.json(reward);
         } catch (err) {
-            logger.error(err.toString());
-            res.status(404).json({ msg: err.toString() });
+            next(new HttpError(404, 'Asset Pool get reward failed.', err));
+            return;
         }
     } catch (err) {
-        logger.error(err.toString());
-        res.status(500).json({ msg: err.toString() });
+        next(new HttpError(502, 'Reward not found.', err));
     }
 };
 
@@ -126,40 +152,52 @@ export const getReward = async (req: Request, res: Response, next: NextFunction)
  *         required: true
  *         type: integer
  *     responses:
- *       302:
+ *       '200':
+ *          description: OK
+ *       '302':
  *          headers:
  *              Location:
  *                  type: string
  *                  description: Redirect route to /reward/:id
+ *       '400':
+ *         description: Bad Request. Indicates incorrect body parameters.
+ *       '401':
+ *         description: Unauthorized. Authenticate your request please.
+ *       '403':
+ *         description: Forbidden. Your account does not have access to this pool.
+ *       '500':
+ *         description: Internal Server Error.
+ *       '502':
+ *         description: Bad Gateway. Received an invalid response from the network or database.
  */
 export const postReward = async (req: Request, res: Response, next: NextFunction) => {
-    const errors = validationResult(req);
-
-    if (!errors.isEmpty()) {
-        return res.status(400).json(errors.array()).end();
-    }
-
     try {
         const poolInstance = assetPoolContract(req.header('AssetPool'));
         const tx = await (await poolInstance.addReward(req.body.withdrawAmount, req.body.withdrawDuration)).wait();
-        const events = await parseLogs(ASSET_POOL.abi, tx.logs);
-        const event = events.filter((e: { name: string }) => e.name === 'RewardPollCreated')[0];
-        const id = parseInt(event.args.id, 10);
 
-        new Reward({
-            id,
-            title: req.body.title,
-            description: req.body.description,
-        }).save(async (err) => {
-            if (err) {
-                throw new Error('Reward not saved');
-            }
+        try {
+            const events = await parseLogs(ASSET_POOL.abi, tx.logs);
+            const event = events.filter((e: { name: string }) => e.name === 'RewardPollCreated')[0];
+            const id = parseInt(event.args.id, 10);
 
-            res.redirect('rewards/' + id);
-        });
+            new Reward({
+                id,
+                title: req.body.title,
+                description: req.body.description,
+            }).save(async (err) => {
+                if (err) {
+                    next(new HttpError(502, 'Reward save failed.', err));
+                    return;
+                }
+
+                res.redirect(`/${VERSION}/rewards/${id}`);
+            });
+        } catch (err) {
+            next(new HttpError(502, 'Parse logs failed.', err));
+            return;
+        }
     } catch (err) {
-        logger.error(err.toString());
-        res.status(500).json({ msg: err.toString() });
+        next(new HttpError(502, 'Asset Pool addReward failed.', err));
     }
 };
 
@@ -182,16 +220,26 @@ export const postReward = async (req: Request, res: Response, next: NextFunction
  *         required: true
  *         type: integer
  *     responses:
- *       200:
- *         base64: data:image/jpeg;base64,...
+ *       '200':
+ *         description: OK
+ *         schema:
+ *            type: object
+ *            properties:
+ *               base64:
+ *                  type: string
+ *                  description: Base64 string representing function call
+ *       '400':
+ *         description: Bad Request. Indicates incorrect body parameters.
+ *       '401':
+ *         description: Unauthorized. Authenticate your request please.
+ *       '403':
+ *         description: Forbidden. Your account does not have access to this pool.
+ *       '500':
+ *         description: Internal Server Error.
+ *       '502':
+ *         description: Bad Gateway. Received an invalid response from the network or database.
  */
-export const getRewardClaim = async (req: Request, res: Response) => {
-    const errors = validationResult(req);
-
-    if (!errors.isEmpty()) {
-        res.status(400).json(errors.array()).end();
-    }
-
+export const getRewardClaim = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const base64 = await qrcode.toDataURL(
             JSON.stringify({
@@ -203,10 +251,9 @@ export const getRewardClaim = async (req: Request, res: Response) => {
                 },
             }),
         );
-        res.status(200).json({ base64 });
+        res.json({ base64 });
     } catch (err) {
-        logger.error(err);
-        res.status(500).end();
+        next(new HttpError(502, 'Gas Station call failed.', err));
     }
 };
 
@@ -229,31 +276,47 @@ export const getRewardClaim = async (req: Request, res: Response) => {
  *         required: true
  *         type: integer
  *     responses:
- *       302:
+ *       '200':
  *         description: OK
+ *       '302':
+ *          description: Redirect to `GET /members/:address`
+ *          headers:
+ *             Location:
+ *                type: string
+ *       '400':
+ *         description: Bad Request. Indicates incorrect body parameters.
+ *       '401':
+ *         description: Unauthorized. Authenticate your request please.
+ *       '403':
+ *         description: Forbidden. Your account does not have access to this pool.
+ *       '500':
+ *         description: Internal Server Error.
+ *       '502':
+ *         description: Bad Gateway. Received an invalid response from the network or database.
  */
-export const postRewardClaim = async (req: Request, res: Response) => {
-    const errors = validationResult(req);
-
-    if (!errors.isEmpty()) {
-        res.status(400).json(errors.array()).end();
-    }
-
+export const postRewardClaim = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        let tx = await gasStation.call(req.body.call, req.header('AssetPool'), req.body.nonce, req.body.sig);
-        tx = await tx.wait();
+        const tx = await (
+            await gasStation.call(req.body.call, req.header('AssetPool'), req.body.nonce, req.body.sig)
+        ).wait();
 
-        const { error, logs } = await parseResultLog(ASSET_POOL.abi, tx.logs);
-        if (error) {
-            throw Error(error);
+        try {
+            const { error, logs } = await parseResultLog(ASSET_POOL.abi, tx.logs);
+
+            if (error) {
+                throw error;
+            }
+
+            const event = logs.filter((e: { name: string }) => e.name === 'WithdrawPollCreated')[0];
+            const pollAddress = event.args.poll;
+
+            res.redirect(`/${VERSION}/withdrawals/${pollAddress}`);
+        } catch (error) {
+            next(new HttpError(500, 'Parse logs failed.', error));
+            return;
         }
-        const event = logs.filter((e: { name: string }) => e.name === 'WithdrawPollCreated')[0];
-        const pollAddress = event.args.poll;
-
-        res.redirect(`withdrawals/${pollAddress}`);
     } catch (err) {
-        logger.error(err.toString());
-        res.status(500).json({ msg: err.toString() });
+        next(new HttpError(502, 'Gas Station call failed.', err));
     }
 };
 
@@ -280,32 +343,48 @@ export const postRewardClaim = async (req: Request, res: Response) => {
  *         required: true
  *         type: string
  *     responses:
- *       200:
- *         base64: data:image/jpeg;base64,...
+ *       '200':
+ *         description: OK
+ *         schema:
+ *            type: object
+ *            properties:
+ *               withdrawPoll:
+ *                  type: string
+ *                  description: Address off the withdraw poll
+ *       '400':
+ *         description: Bad Request. Indicates incorrect body parameters.
+ *       '401':
+ *         description: Unauthorized. Authenticate your request please.
+ *       '403':
+ *         description: Forbidden. Your account does not have access to this pool.
+ *       '500':
+ *         description: Internal Server Error.
+ *       '502':
+ *         description: Bad Gateway. Received an invalid response from the network or database.
  */
-export const postRewardGive = async (req: Request, res: Response) => {
-    const errors = validationResult(req);
-
-    if (!errors.isEmpty()) {
-        res.status(400).json(errors.array()).end();
-    }
-
+export const postRewardGive = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const assetPoolInstance = assetPoolContract(req.header('AssetPool'));
-        let tx = assetPoolInstance.giveReward(req.body.member);
-        tx = await tx.wait();
+        const tx = await assetPoolInstance.giveReward(req.body.member).wait();
 
-        const { error, logs } = await parseResultLog(ASSET_POOL.abi, tx.logs);
-        if (error) {
-            throw Error(error);
+        try {
+            const { error, logs } = await parseResultLog(ASSET_POOL.abi, tx.logs);
+
+            if (error) {
+                next(new HttpError(502, 'Asset Pool giveReward failed.', new Error(error)));
+                return;
+            }
+
+            const event = logs.filter((e: { name: string }) => e.name === 'WithdrawPollCreated')[0];
+            const withdrawPoll = event.args.poll;
+
+            res.json({ withdrawPoll });
+        } catch (err) {
+            next(new HttpError(500, 'Parse logs failed.', err));
+            return;
         }
-        const event = logs.filter((e: { name: string }) => e.name === 'WithdrawPollCreated')[0];
-        const withdrawPoll = event.args.poll;
-
-        res.json({ withdrawPoll });
     } catch (err) {
-        logger.error(err.toString());
-        res.status(500).json({ msg: err.toString() });
+        next(new HttpError(502, 'Gas Station call failed.', err));
     }
 };
 
@@ -344,16 +423,26 @@ export const postRewardGive = async (req: Request, res: Response) => {
  *         required: true
  *         type: integer
  *     responses:
- *       200:
- *         base64: data:image/jpeg;base64,...
+ *       '200':
+ *         description: OK
+ *         schema:
+ *            type: object
+ *            properties:
+ *               base64:
+ *                  type: string
+ *                  description: Base64 string representing function call
+ *       '400':
+ *         description: Bad Request. Indicates incorrect body parameters.
+ *       '401':
+ *         description: Unauthorized. Authenticate your request please.
+ *       '403':
+ *         description: Forbidden. Your account does not have access to this pool.
+ *       '500':
+ *         description: Internal Server Error.
+ *       '502':
+ *         description: Bad Gateway. Received an invalid response from the network or database.
  */
 export const patchReward = async (req: Request, res: Response, next: NextFunction) => {
-    const errors = validationResult(req);
-
-    if (!errors.isEmpty()) {
-        return res.status(500).json(errors.array()).end();
-    }
-
     try {
         const metaData = await Reward.findOne({ id: req.params.id });
 
@@ -365,35 +454,48 @@ export const patchReward = async (req: Request, res: Response, next: NextFunctio
             metaData.description = req.body.description;
         }
 
-        metaData.save(async (err) => {
-            if (err) {
-                throw Error('Could not find reward in database');
-            }
+        try {
+            metaData.save(async (err) => {
+                if (err) {
+                    next(new HttpError(502, 'Reward metadata find failed.', err));
+                    return;
+                }
 
-            const instance = assetPoolContract(req.header('AssetPool'));
-            const { withdrawAmount, withdrawDuration } = await instance.rewards(req.params.id);
+                try {
+                    const instance = assetPoolContract(req.header('AssetPool'));
+                    let { withdrawAmount, withdrawDuration } = await instance.rewards(req.params.id);
 
-            if (withdrawAmount !== req.body.withdrawAmount || withdrawDuration !== req.body.withdrawDuration) {
-                const base64 = await qrcode.toDataURL(
-                    JSON.stringify({
-                        contractAddress: req.header('AssetPool'),
-                        contract: 'AssetPool',
-                        method: 'updateReward',
-                        params: {
-                            id: req.params.id,
-                            withdrawAmount: req.body.withdrawAmount,
-                            withdrawDuration: req.body.withdrawDuration,
-                        },
-                    }),
-                );
-                res.send({ base64 });
-            } else {
-                // TODO this one is not handled
-                throw Error('Proposed amount is equal to current amount');
-            }
-        });
-    } catch (err) {
-        logger.error(err.toString());
-        res.status(500).json({ msg: err.toString() });
+                    if (req.body.withdrawAmount && withdrawAmount !== req.body.withdrawAmount) {
+                        withdrawAmount = req.body.withdrawAmount;
+                    }
+
+                    if (req.body.withdrawDuration && withdrawDuration !== req.body.withdrawDuration) {
+                        withdrawDuration = req.body.withdrawDuration;
+                    }
+
+                    const base64 = await qrcode.toDataURL(
+                        JSON.stringify({
+                            contractAddress: req.header('AssetPool'),
+                            contract: 'AssetPool',
+                            method: 'updateReward',
+                            params: {
+                                id: req.params.id,
+                                withdrawAmount,
+                                withdrawDuration,
+                            },
+                        }),
+                    );
+                    res.json({ base64 });
+                } catch (error) {
+                    next(new HttpError(502, 'Asset Pool get reward failed.', err));
+                    return;
+                }
+            });
+        } catch (error) {
+            next(new HttpError(502, 'Reward metadata save failed.', error));
+            return;
+        }
+    } catch (error) {
+        next(new HttpError(502, 'Reward find failed.', error));
     }
 };

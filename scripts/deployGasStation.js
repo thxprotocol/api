@@ -11,8 +11,10 @@ dotenv.config({ path: process.env.NODE_ENV === 'test' ? '.env.test' : '.env' });
 
     web3.eth.accounts.wallet.add(admin);
 
-    await gasStationContract.deploy({ data: GAS_STATION.bytecode, arguments: [admin.address] }).send({
+    const tx = await gasStationContract.deploy({ data: GAS_STATION.bytecode, arguments: [admin.address] }).send({
         from: admin.address,
         gas: 6e6,
     });
+
+    console.log(tx.options.address);
 })();
