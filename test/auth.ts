@@ -37,7 +37,7 @@ describe('Authentication', () => {
             user.post('/v1/login')
                 .send({ email: 'test.auth.bot@thx.network', password: 'mellon' })
                 .end((err, res) => {
-                    expect(res.status).toBe(404);
+                    expect(res.status).toBe(502);
                     done();
                 });
         });
@@ -99,7 +99,7 @@ describe('Authentication', () => {
             user.post('/v1/login')
                 .send({ email: 'bad.bot@thx.network', password: 'mellon' })
                 .end((err, res) => {
-                    expect(res.status).toBe(404);
+                    expect(res.status).toBe(502);
                     done();
                 });
         });

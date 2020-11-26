@@ -391,7 +391,6 @@ describe('Happy Flow', () => {
             user.get('/v1/rewards/0')
                 .set({ AssetPool: poolAddress })
                 .end(async (err, res) => {
-                    console.log(res.body);
                     expect(Number(formatEther(res.body.withdrawAmount))).toEqual(
                         Number(formatEther(rewardWithdrawAmount)),
                     );
@@ -550,7 +549,7 @@ describe('Happy Flow', () => {
         });
 
         it('HTTP 200 and have the minted amount balance again', (done) => {
-            user.get('/v1/' + redirectURL)
+            user.get(redirectURL)
                 .set({ AssetPool: poolAddress })
                 .end(async (err, res) => {
                     expect(Number(formatEther(res.body.token.balance))).toBe(Number(formatEther(mintAmount)));
@@ -614,7 +613,7 @@ describe('Happy Flow', () => {
         });
 
         it('HTTP 200 if OK', async (done) => {
-            user.get(`/v1/${redirectURL}`)
+            user.get(redirectURL)
                 .set({ AssetPool: poolAddress })
                 .end(async (err, res) => {
                     expect(res.status).toBe(200);
@@ -716,7 +715,7 @@ describe('Happy Flow', () => {
         });
 
         it('HTTP 200 and increased balance', (done) => {
-            user.get('/v1/' + redirectURL)
+            user.get(redirectURL)
                 .set({ AssetPool: poolAddress })
                 .end(async (err, res) => {
                     expect(Number(formatEther(res.body.token.balance))).toBe(1000);

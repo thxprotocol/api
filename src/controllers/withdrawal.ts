@@ -1,11 +1,9 @@
 import { NextFunction, Request, Response } from 'express';
-import '../config/passport';
 import { assetPoolContract, ASSET_POOL, gasStation, parseResultLog, withdrawPollContract } from '../util/network';
-import { validationResult } from 'express-validator';
 import { HttpError } from '../models/Error';
 import { VERSION } from '../util/secrets';
-
-const qrcode = require('qrcode');
+import qrcode from 'qrcode';
+import '../config/passport';
 
 /**
  * @swagger
@@ -209,7 +207,7 @@ export const postWithdrawal = async (req: Request, res: Response, next: NextFunc
             const event = logs.filter((e: { name: string }) => e.name === 'WithdrawPollCreated')[0];
             const pollAddress = event.args.poll;
 
-            res.redirect(`${VERSION}/withdrawals/${pollAddress}`);
+            res.redirect(`/${VERSION}/withdrawals/${pollAddress}`);
         } catch (err) {
             next(new HttpError(500, 'Parse logs failed.', err));
             return;
@@ -319,7 +317,7 @@ export const postWithdrawalWithdraw = async (req: Request, res: Response, next: 
 
             const event = logs.filter((l) => l.name === 'Withdrawn')[0];
 
-            res.redirect(`${VERSION}/members/${event.args.member}`);
+            res.redirect(`/${VERSION}/members/${event.args.member}`);
         } catch (error) {
             next(new HttpError(500, 'Parse logs failed.', error));
         }

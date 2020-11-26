@@ -98,7 +98,7 @@ describe('Encryption', () => {
         });
 
         it('HTTP 200 with new addres and no privateKey', async (done) => {
-            user.get('/v1/' + redirectURL).end((err, res) => {
+            user.get(redirectURL).end((err, res) => {
                 expect(res.status).toBe(200);
                 expect(res.body.privateKey).toBe('');
                 expect(res.body.address).toBe(voter.address);

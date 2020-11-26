@@ -8,6 +8,7 @@ import { WriteError } from 'mongodb';
 import { validationResult } from 'express-validator';
 import { ethers } from 'ethers';
 import { HttpError } from '../models/Error';
+import { VERSION } from '../util/secrets';
 import '../config/passport';
 
 /**
@@ -70,7 +71,7 @@ export const postLogin = async (req: Request, res: Response, next: NextFunction)
                 next(new HttpError(502, 'Account login failed', error));
                 return;
             }
-            res.redirect('account');
+            res.redirect(`/${VERSION}/account`);
         });
     })(req, res, next);
 };
@@ -162,7 +163,7 @@ export const postSignup = async (req: Request, res: Response, next: NextFunction
                     return;
                 }
 
-                res.status(201).redirect('account');
+                res.status(201).redirect(`/${VERSION}/account`);
             });
         });
     } catch (err) {
@@ -325,7 +326,7 @@ export const patchAccount = async (req: Request, res: Response, next: NextFuncti
                 next(new HttpError(502, 'Account save failed', err));
                 return;
             }
-            res.redirect('account');
+            res.redirect(`/${VERSION}/account`);
         });
     });
 };
