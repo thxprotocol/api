@@ -1,7 +1,7 @@
 import { ethers } from 'ethers';
 import request from 'supertest';
-import app from '../src/app';
-import db from '../src/util/database';
+import app from '../../src/app';
+import db from '../../src/util/database';
 
 const user = request.agent(app);
 

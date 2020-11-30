@@ -10,5 +10,5 @@ module.exports = {
     },
     testMatch: ['**/test/**/*.test.(ts|js)'],
     testEnvironment: 'node',
-    setupFilesAfterEnv: ['<rootDir>/test/lib/setup.ts'],
+    setupFilesAfterEnv: ['<rootDir>/test/e2e/lib/setup.ts'],
 };

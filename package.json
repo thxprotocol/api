@@ -16,6 +16,13 @@
         "trailingComma": "all",
         "quoteProps": "consistent"
     },
+    "nodemonConfig": {
+        "ignore": [
+            "test/load/*",
+            "logs/*",
+            "scripts/*"
+        ]
+    },
     "scripts": {
         "serve": "node ./dist/server.js",
         "lint": "tsc --noEmit && eslint \"**/*.{js,ts}\" --quiet --fix",
@@ -26,7 +33,8 @@
         "watch-ts": "tsc -w",
         "watch-node": "nodemon dist/server.js",
         "watch": "concurrently -k -p \"[{name}]\" -n \"Sass,TypeScript,Node\" -c \"yellow.bold,cyan.bold,green.bold\" \"npm run watch-ts\" \"npm run watch-node\"",
-        "test": "NODE_ENV=test sh scripts/pretest.sh && jest --force-exit --verbose ./test/*.test.ts",
+        "test": "NODE_ENV=test sh scripts/pretest.sh && jest --force-exit --verbose ./test/e2e/*.test.ts",
+        "test:load": "",
         "watch-test": "npm run test -- --watchAll",
         "debug": "npm run build && npm run watch-debug",
         "serve-debug": "nodemon --inspect dist/server.js",

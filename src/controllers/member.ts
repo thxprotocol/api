@@ -43,26 +43,32 @@ import { VERSION } from '../util/secrets';
 export const postMember = async (req: Request, res: Response, next: NextFunction) => {
     const instance = assetPoolContract(req.header('AssetPool'));
 
-    if (await instance.isMember(req.body.address)) {
-        next(new HttpError(400, 'Address is member already.'));
-        return;
-    }
-
     try {
-        const tx = await (await instance.addMember(req.body.address)).wait();
+        const result = await instance.isMember(req.body.address);
 
-        try {
-            const events = await parseLogs(ASSET_POOL.abi, tx.logs);
-            const event = events.filter((e: { name: string }) => e.name === 'RoleGranted')[0];
-            const address = event.args.account;
-
-            res.redirect(`/${VERSION}/members/${address}`);
-        } catch (err) {
-            next(new HttpError(500, 'Parse logs failed.', err));
+        if (result) {
+            next(new HttpError(400, 'Address is member already.'));
             return;
         }
+
+        try {
+            const tx = await (await instance.addMember(req.body.address)).wait();
+
+            try {
+                const events = await parseLogs(ASSET_POOL.abi, tx.logs);
+                const event = events.filter((e: { name: string }) => e.name === 'RoleGranted')[0];
+                const address = event.args.account;
+
+                res.redirect(`/${VERSION}/members/${address}`);
+            } catch (err) {
+                next(new HttpError(500, 'Parse logs failed.', err));
+                return;
+            }
+        } catch (err) {
+            next(new HttpError(502, 'Asset Pool addMember failed.', err));
+        }
     } catch (err) {
-        next(new HttpError(502, 'Asset Pool addMember failed.', err));
+        next(new HttpError(502, 'Asset Pool isMember failed.', err));
     }
 };
 
@@ -88,7 +94,7 @@ export const postMember = async (req: Request, res: Response, next: NextFunction
  *       '200':
  *         description: OK
  *       '400':
- *         description: Bad Request. Indicates incorrect body parameters.
+ *         description: Bad Request. Indicates incorrect path parameters.
  *       '401':
  *         description: Unauthorized. Authenticate your request please.
  *       '403':

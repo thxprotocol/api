@@ -121,6 +121,7 @@ export const validations = {
         param('address')
             .exists()
             .custom((value) => {
+                console.log('isaddr', ethers.utils.isAddress(value));
                 return ethers.utils.isAddress(value);
             }),
     ],

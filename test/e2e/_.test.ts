@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import db from '../src/util/database';
+import db from '../../src/util/database';
 import { MongoMemoryServer } from 'mongodb-memory-server';
 
 beforeAll(async () => {

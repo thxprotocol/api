@@ -1,9 +1,9 @@
 import { ethers } from 'ethers';
 import request from 'supertest';
-import app from '../src/app';
-import db from '../src/util/database';
+import app from '../../src/app';
+import db from '../../src/util/database';
 import { decryptString } from './lib/decrypt';
-import { admin, provider } from '../src/util/network';
+import { admin, provider } from '../../src/util/network';
 import { voter } from './lib/network';
 
 const user = request.agent(app);
