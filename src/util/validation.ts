@@ -18,7 +18,7 @@ export const validate = (validations: any) => {
     };
 };
 
-const validateAssetPoolHeader = header('AssetPool')
+export const validateAssetPoolHeader = header('AssetPool')
     .exists()
     .custom((address, { req }) => {
         if (!(req.user as AccountDocument).profile.assetPools.includes(address)) {
@@ -27,7 +27,7 @@ const validateAssetPoolHeader = header('AssetPool')
         return true;
     });
 
-const confirmPassword = body('confirmPassword')
+export const confirmPassword = body('confirmPassword')
     .exists()
     .custom((confirmPassword, { req }) => {
         if (confirmPassword !== req.body.password) {

@@ -1,13 +1,19 @@
 import express from 'express';
 import swaggerUi from 'swagger-ui-express';
 import swaggerDocument from '../swagger.json';
-import * as accountController from '../controllers/account';
 import * as passportConfig from '../config/passport';
 import { validations, validate } from '../util/validation';
 
-import accountRouter from './routes/account';
-import assetPoolsRouter from './routes/assetPools';
-import membersRouter from './routes/members';
+import { postSignup } from '../controllers/account/signup.action';
+import { postForgot } from '../controllers/account/forget.action';
+import { postReset } from '../controllers/account/reset.action';
+import { postLogin } from '../controllers/account/login.action';
+import { getLogout } from '../controllers/account/logout.action';
+
+import accountRouter from '../controllers/account/account.routing';
+import assetPoolsRouter from '../controllers/asset_pools/asset_pools.routing';
+import membersRouter from '../controllers/members/members.routing';
+
 import rewardsRouter from './routes/rewards';
 import withdrawalsRouter from './routes/withdrawals';
 import pollsRouter from './routes/polls';
@@ -19,11 +25,11 @@ router.use('/docs', swaggerUi.serve);
 router.get('/docs', swaggerUi.setup(swaggerDocument));
 
 // Auth
-router.post('/signup', validate(validations.postSignup), accountController.postSignup);
-router.post('/forgot', validate(validations.postForgot), accountController.postForgot);
-router.post('/reset/:token', validate(validations.postReset), accountController.postReset);
-router.post('/login', validate(validations.postLogin), accountController.postLogin);
-router.get('/logout', accountController.logout);
+router.post('/signup', validate(validations.postSignup), postSignup);
+router.post('/forgot', validate(validations.postForgot), postForgot);
+router.post('/reset/:token', validate(validations.postReset), postReset);
+router.post('/login', validate(validations.postLogin), postLogin);
+router.get('/logout', getLogout);
 
 router.use(passportConfig.isAuthenticated);
 
