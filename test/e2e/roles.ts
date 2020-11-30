@@ -1,6 +1,6 @@
 import request from 'supertest';
-import app from '../src/app';
-import db from '../src/util/database';
+import app from '../../src/app';
+import db from '../../src/util/database';
 import { voter, admin, testTokenFactory } from './lib/network';
 import { poolTitle, mintAmount } from './lib/constants';
 import { formatEther } from 'ethers/lib/utils';

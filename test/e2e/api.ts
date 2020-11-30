@@ -1,7 +1,7 @@
 import request from 'supertest';
-import app from '../src/app';
-import db from '../src/util/database';
-import { ASSET_POOL, REWARD_POLL, WITHDRAW_POLL } from '../src/util/network';
+import app from '../../src/app';
+import db from '../../src/util/database';
+import { ASSET_POOL, REWARD_POLL, WITHDRAW_POLL } from '../../src/util/network';
 import { voter, timeTravel, signMethod, admin, testTokenFactory } from './lib/network';
 import {
     poolTitle,
