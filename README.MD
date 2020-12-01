@@ -5,16 +5,15 @@ This repository holds the source for the THX REST API.
 ## Index
 
 1. Prerequisites
-2. Installation
-3. Usage
-4. Debugging
+2. Debugging
+3. Running
+4. Testing
 5. Interface
 
 ## 1. Prerequisites
 
--   [Ganache](https://www.trufflesuite.com/ganache)
 -   Docker
--   nodejs 10.x
+-   Nodejs 10.x
 
 ## 2. Debugging
 
@@ -51,10 +50,23 @@ npm run build;
 npm run serve;
 ```
 
-## 4. Interface
+## 4. Testing
+
+```
+# Run end to end tests on inmemory database and ganache network
+npm run test
+
+# Run load tests in dockerized k6 container (open Grafana to visualize results)
+# Mind that it will target the development database that is currently active
+npm run test:load
+```
+
+## 5. Interface
 
 Swagger Documentation is provided in the controllers of the routes and lives at the following endpoints:
 
+-   [Local Mongo Express](http://localhost:8081)
+-   [Local Grafana](http://localhost:8082)
 -   [Local API Specs](https://localhost:3000/v1/docs/)
 -   [Staging API Specs](https://dev.api.thx.network/v1/docs/)
 -   [Production API Specs](https://api.thx.network/v1/docs/)

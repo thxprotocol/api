@@ -1,1 +1,0 @@
-pm2 start node ./dist/server.js --name api-dev
