@@ -1,29 +1,17 @@
-import express from 'express';
-import { validations, validate, validateAssetPoolHeader } from '../../util/validation';
-import { getMember } from './get.action';
-import { postMember } from './post.action';
-import { patchMember } from './patch.action';
-import { deleteMember } from './delete.action';
-import { body, param } from 'express-validator';
 import { ethers } from 'ethers';
+import { body, param } from 'express-validator';
+import { validateAssetPoolHeader } from '../../util/validation';
 
-const router = express.Router();
-
-router.post(
-    '/',
-    validate([
+export const validations = {
+    postMember: [
         validateAssetPoolHeader,
         body('address')
             .exists()
             .custom((value) => {
                 return ethers.utils.isAddress(value);
             }),
-    ]),
-    postMember,
-);
-router.patch(
-    '/:address',
-    validate([
+    ],
+    patchMember: [
         validateAssetPoolHeader,
         param('address')
             .exists()
@@ -32,33 +20,21 @@ router.patch(
             }),
         ,
         body('isManager').exists(),
-    ]),
-    patchMember,
-);
-router.delete(
-    '/:address',
-    validate([
-        validateAssetPoolHeader,
-        param('address')
-            .exists()
-            .custom((value) => {
-                console.log('isaddr', ethers.utils.isAddress(value));
-                return ethers.utils.isAddress(value);
-            }),
-    ]),
-    deleteMember,
-);
-router.get(
-    '/:address',
-    validate([
+    ],
+    deleteMember: [
         validateAssetPoolHeader,
         param('address')
             .exists()
             .custom((value) => {
                 return ethers.utils.isAddress(value);
             }),
-    ]),
-    getMember,
-);
-
-export default router;
+    ],
+    getMember: [
+        validateAssetPoolHeader,
+        param('address')
+            .exists()
+            .custom((value) => {
+                return ethers.utils.isAddress(value);
+            }),
+    ],
+};

@@ -1,5 +1,5 @@
 import { ORIGIN, VERSION, SESSION_SECRET, MONGODB_URI, ENVIRONMENT } from './util/secrets';
-import express, { Request, Response, NextFunction } from 'express';
+import express from 'express';
 import compression from 'compression';
 import session from 'express-session';
 import bodyParser from 'body-parser';
@@ -9,10 +9,10 @@ import path from 'path';
 import morgan from 'morgan';
 import logger from './util/logger';
 import cors from 'cors';
-import router from './router';
+import router from './controllers';
 import mongo from 'connect-mongo';
 import db from './util/database';
-import { HttpError } from './models/Error';
+import { errorHandler, notFoundHandler } from './util/error';
 
 const app = express();
 const MongoStore = mongo(session);
@@ -52,15 +52,7 @@ app.use(lusca.xframe('SAMEORIGIN'));
 app.use(lusca.xssProtection(true));
 app.use(express.static(path.join(__dirname, 'public'), { maxAge: 31557600000 }));
 app.use(`/${VERSION}`, router);
-app.use((req: Request, res: Response, next: NextFunction) => {
-    next(new HttpError(404, 'Route not found'));
-});
-app.use((error: HttpError, req: Request, res: Response, next: NextFunction) => {
-    res.status(error.status || 500);
-    res.json({
-        error: {
-            message: error.message,
-        },
-    });
-});
+app.use(notFoundHandler);
+app.use(errorHandler);
+
 export default app;

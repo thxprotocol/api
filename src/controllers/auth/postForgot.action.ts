@@ -5,7 +5,6 @@ import { Account, AccountDocument, AuthToken } from '../../models/Account';
 import { Request, Response, NextFunction } from 'express';
 import { WriteError } from 'mongodb';
 import { HttpError } from '../../models/Error';
-import '../../config/passport';
 
 /**
  * @swagger

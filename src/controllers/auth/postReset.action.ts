@@ -3,7 +3,6 @@ import nodemailer from 'nodemailer';
 import { Account, AccountDocument } from '../../models/Account';
 import { Request, Response, NextFunction } from 'express';
 import { HttpError } from '../../models/Error';
-import '../../config/passport';
 
 /**
  * @swagger
