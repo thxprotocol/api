@@ -7,7 +7,7 @@ import { HttpError } from '../../models/Error';
  * /withdrawals:
  *   get:
  *     tags:
- *       - withdrawals
+ *       - Withdrawals
  *     description: Get a list of withdrawals for the asset pool.
  *     produces:
  *       - application/json

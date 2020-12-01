@@ -7,7 +7,7 @@ import qrcode from 'qrcode';
  * /withdrawals/:address/withdraw:
  *   get:
  *     tags:
- *       - withdrawals
+ *       - Withdrawals
  *     description: Create a quick response image for withdrawing the reward.
  *     produces:
  *       - application/json

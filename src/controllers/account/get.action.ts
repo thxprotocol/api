@@ -52,7 +52,12 @@ export const getAccount = async (req: Request, res: Response, next: NextFunction
             return;
         }
         if (account) {
-            res.send({ address: account.address, privateKey: account.privateKey, ...account.profile });
+            res.send({
+                address: account.address,
+                privateKey: account.privateKey,
+                burnProofs: account.profile.burnProofs,
+                assetPools: account.profile.assetPools,
+            });
         }
     });
 };

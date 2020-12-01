@@ -1,6 +1,7 @@
 import express from 'express';
 import * as passportConfig from '../config/passport';
 
+import healthRouter from './health/_.routing';
 import authRouter from './auth/_.routing';
 import docsRouter from './docs/_.routing';
 import accountRouter from './account/_.routing';
@@ -13,6 +14,7 @@ import withdrawalsRouter from './withdrawals/_.routing';
 const router = express.Router();
 
 router.use('/', authRouter);
+router.use('/', healthRouter);
 router.use('/docs', docsRouter);
 router.use(passportConfig.isAuthenticated);
 router.use('/account', accountRouter);
