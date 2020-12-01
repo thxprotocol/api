@@ -5,7 +5,7 @@ import { Response, Request, NextFunction } from 'express';
 import { HttpError } from '../../models/Error';
 import { admin, provider } from '../../util/network';
 import { RPC } from '../../util/secrets';
-import * as PackageJSON from '../../../package.json';
+import { VERSION } from '../../util/secrets';
 
 /**
  * @swagger
@@ -22,13 +22,22 @@ import * as PackageJSON from '../../../package.json';
  *         schema:
  *            type: object
  *            properties:
+ *               name:
+ *                  type: string
+ *                  description: API name.
+ *               version:
+ *                  type: string
+ *                  description: API version.
+ *               license:
+ *                  type: string
+ *                  description: API license.
  *               RPC:
  *                  type: string
  *                  description: Active network RPC URL.
  *               address:
  *                  type: string
- *                  description: Address of the admin account.
- *               balance:
+ *                  description: Admin account address.
+ *               token:
  *                  type: object
  *                  properties:
  *                     name:
@@ -37,10 +46,7 @@ import * as PackageJSON from '../../../package.json';
  *                     symbol:
  *                        type: string
  *                        description: Network Gas Token symbol.
- *                     bignumber:
- *                        type: object
- *                        description: Admin BigNumber token balance.
- *                     number:
+ *                     balance:
  *                        type: number
  *                        description: Admin Number token balance.
  *       '500':
@@ -70,16 +76,15 @@ export const getHealth = async (req: Request, res: Response, next: NextFunction)
             }
         }
         res.json({
-            name: PackageJSON.name,
-            version: PackageJSON.version,
-            license: PackageJSON.license,
+            name: `${process.env.npm_package_name} (${VERSION})`,
+            version: process.env.npm_package_version,
+            license: process.env.npm_package_license,
             RPC: RPC,
             address,
-            balance: {
+            token: {
                 name: 'Matic Token',
                 symbol: 'MATIC',
-                bignumber,
-                number,
+                balance: number,
             },
         });
     } catch (error) {

@@ -14,7 +14,7 @@ import withdrawalsRouter from './withdrawals/_.routing';
 const router = express.Router();
 
 router.use('/', authRouter);
-router.use('/', healthRouter);
+router.use('/health', healthRouter);
 router.use('/docs', docsRouter);
 router.use(passportConfig.isAuthenticated);
 router.use('/account', accountRouter);

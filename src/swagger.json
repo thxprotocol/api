@@ -668,15 +668,27 @@
             "schema": {
               "type": "object",
               "properties": {
+                "name": {
+                  "type": "string",
+                  "description": "API name."
+                },
+                "version": {
+                  "type": "string",
+                  "description": "API version."
+                },
+                "license": {
+                  "type": "string",
+                  "description": "API license."
+                },
                 "RPC": {
                   "type": "string",
                   "description": "Active network RPC URL."
                 },
                 "address": {
                   "type": "string",
-                  "description": "Address of the admin account."
+                  "description": "Admin account address."
                 },
-                "balance": {
+                "token": {
                   "type": "object",
                   "properties": {
                     "name": {
@@ -687,11 +699,7 @@
                       "type": "string",
                       "description": "Network Gas Token symbol."
                     },
-                    "bignumber": {
-                      "type": "object",
-                      "description": "Admin BigNumber token balance."
-                    },
-                    "number": {
+                    "balance": {
                       "type": "number",
                       "description": "Admin Number token balance."
                     }
