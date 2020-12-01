@@ -16,15 +16,6 @@ import * as PackageJSON from '../../../package.json';
  *     description: Get status information about the API and admin account
  *     produces:
  *       - application/json
- *     parameters:
- *       - name: AssetPool
- *         in: header
- *         required: true
- *         type: string
- *       - name: address
- *         in: path
- *         required: true
- *         type: string
  *     responses:
  *       200:
  *         description: OK

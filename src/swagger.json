@@ -1,7 +1,7 @@
 {
   "info": {
     "title": "THX API Specification",
-    "version": "0.1.12"
+    "version": "0.2.0"
   },
   "basePath": "https://api.thx.network/v1",
   "swagger": "2.0",
@@ -661,20 +661,6 @@
         "description": "Get status information about the API and admin account",
         "produces": [
           "application/json"
-        ],
-        "parameters": [
-          {
-            "name": "AssetPool",
-            "in": "header",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "address",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          }
         ],
         "responses": {
           "200": {
