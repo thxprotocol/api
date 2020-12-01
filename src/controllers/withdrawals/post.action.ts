@@ -8,7 +8,7 @@ import { VERSION } from '../../util/secrets';
  * /withdrawals:
  *   post:
  *     tags:
- *       - withdrawals
+ *       - Withdrawals
  *     description: Propose a withdrawal in the asset pool.
  *     produces:
  *       - application/json

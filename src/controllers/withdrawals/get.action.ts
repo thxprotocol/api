@@ -7,7 +7,7 @@ import { HttpError } from '../../models/Error';
  * /withdrawals/:address:
  *   get:
  *     tags:
- *       - withdrawals
+ *       - Withdrawals
  *     description: Get information about a withdrawal
  *     produces:
  *       - application/json

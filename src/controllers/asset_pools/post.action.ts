@@ -1,9 +1,8 @@
 import { admin, assetPoolFactory } from '../../util/network';
-import { AssetPool, AssetPoolDocument } from '../../models/AssetPool';
+import { AssetPool } from '../../models/AssetPool';
 import { Account, AccountDocument } from '../../models/Account';
 import { Request, Response, NextFunction } from 'express';
-import { assetPoolContract, tokenContract } from '../../util/network';
-import { GAS_STATION_ADDRESS, VERSION } from '../../util/secrets';
+import { GAS_STATION_ADDRESS } from '../../util/secrets';
 import { HttpError } from '../../models/Error';
 
 /**
