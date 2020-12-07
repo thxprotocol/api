@@ -49,7 +49,7 @@ export const postWithdrawalWithdraw = async (req: Request, res: Response, next: 
                 throw error;
             }
 
-            const event = logs.filter((l) => l.name === 'Withdrawn')[0];
+            const event = logs.filter((e: any) => e && e.name === 'Withdrawn')[0];
 
             res.redirect(`/${VERSION}/members/${event.args.member}`);
         } catch (error) {

@@ -56,7 +56,7 @@ export const postMember = async (req: Request, res: Response, next: NextFunction
 
             try {
                 const events = await parseLogs(ASSET_POOL.abi, tx.logs);
-                const event = events.filter((e: { name: string }) => e.name === 'RoleGranted')[0];
+                const event = events.filter((e: { name: string }) => e && e.name === 'RoleGranted')[0];
                 const address = event.args.account;
 
                 res.redirect(`/${VERSION}/members/${address}`);

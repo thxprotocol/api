@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { assetPoolContract, ASSET_POOL, parseLogs } from '../../util/network';
+import { assetPoolContract, ASSET_POOL, parseLogs, parseResultLog } from '../../util/network';
 import { Reward } from '../../models/Reward';
 import { HttpError } from '../../models/Error';
 import { VERSION } from '../../util/secrets';
@@ -59,8 +59,8 @@ export const postReward = async (req: Request, res: Response, next: NextFunction
         const tx = await (await poolInstance.addReward(req.body.withdrawAmount, req.body.withdrawDuration)).wait();
 
         try {
-            const events = await parseLogs(ASSET_POOL.abi, tx.logs);
-            const event = events.filter((e: { name: string }) => e.name === 'RewardPollCreated')[0];
+            const logs = await parseLogs(ASSET_POOL.abi, tx.logs);
+            const event = logs.filter((e: { name: string }) => e && e.name === 'RewardPollCreated')[0];
             const id = parseInt(event.args.id, 10);
 
             new Reward({

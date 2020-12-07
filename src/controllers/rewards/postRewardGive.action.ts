@@ -53,11 +53,10 @@ export const postRewardGive = async (req: Request, res: Response, next: NextFunc
             const { error, logs } = await parseResultLog(ASSET_POOL.abi, tx.logs);
 
             if (error) {
-                next(new HttpError(502, 'Asset Pool giveReward failed.', new Error(error)));
-                return;
+                throw error;
             }
 
-            const event = logs.filter((e: { name: string }) => e.name === 'WithdrawPollCreated')[0];
+            const event = logs.filter((e: { name: string }) => e && e.name === 'WithdrawPollCreated')[0];
             const withdrawPoll = event.args.poll;
 
             res.json({ withdrawPoll });

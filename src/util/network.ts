@@ -53,7 +53,9 @@ export const tokenContract = (address: string = null) => {
 export function parseLogs(abi: any, logs: any = []) {
     return logs.map((log: any) => {
         const contractInterface = new ethers.utils.Interface(abi);
-        return contractInterface.parseLog(log);
+        try {
+            return contractInterface.parseLog(log);
+        } catch (e) {}
     });
 }
 export async function parseResultLog(abi: any, logs: any) {
