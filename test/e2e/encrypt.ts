@@ -92,7 +92,7 @@ describe('Encryption', () => {
                 .send({ address: voter.address })
                 .end((err, res) => {
                     redirectURL = res.header.location;
-                    expect(res.status).toBe(302);
+                    expect(res.status).toBe(303);
                     done();
                 });
         });

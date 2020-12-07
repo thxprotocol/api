@@ -6,7 +6,7 @@ import { HttpError } from '../../models/Error';
 import { admin, provider } from '../../util/network';
 import { RPC } from '../../util/secrets';
 import { VERSION } from '../../util/secrets';
-
+import { name, version, license } from '../../../package.json';
 /**
  * @swagger
  * /health:
@@ -76,9 +76,9 @@ export const getHealth = async (req: Request, res: Response, next: NextFunction)
             }
         }
         res.json({
-            name: `${process.env.npm_package_name} (${VERSION})`,
-            version: process.env.npm_package_version,
-            license: process.env.npm_package_license,
+            name: `${name} (${VERSION})`,
+            version: version,
+            license: license,
             RPC: RPC,
             address,
             token: {
