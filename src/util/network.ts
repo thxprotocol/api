@@ -33,22 +33,22 @@ export const GAS_STATION: Artifact = GasStation;
 
 export const provider = new ethers.providers.JsonRpcProvider(RPC);
 export const admin = new ethers.Wallet(PRIVATE_KEY, provider);
-export const gasStation = new ethers.Contract(GAS_STATION_ADDRESS, GAS_STATION.abi, provider.getSigner());
+export const gasStation = new ethers.Contract(GAS_STATION_ADDRESS, GAS_STATION.abi, admin);
 export const assetPoolFactory = new ethers.ContractFactory(ASSET_POOL.abi, ASSET_POOL.bytecode, admin);
 export const basePollContract = (address: string = null) => {
-    return new ethers.Contract(address, BASE_POLL.abi, provider.getSigner());
+    return new ethers.Contract(address, BASE_POLL.abi, admin);
 };
 export const rewardPollContract = (address: string = null) => {
-    return new ethers.Contract(address, REWARD_POLL.abi, provider.getSigner());
+    return new ethers.Contract(address, REWARD_POLL.abi, admin);
 };
 export const withdrawPollContract = (address: string = null) => {
-    return new ethers.Contract(address, WITHDRAW_POLL.abi, provider.getSigner());
+    return new ethers.Contract(address, WITHDRAW_POLL.abi, admin);
 };
 export const assetPoolContract = (address: string = null) => {
-    return new ethers.Contract(address, ASSET_POOL.abi, provider.getSigner());
+    return new ethers.Contract(address, ASSET_POOL.abi, admin);
 };
 export const tokenContract = (address: string = null) => {
-    return new ethers.Contract(address, ERC20.abi, provider.getSigner());
+    return new ethers.Contract(address, ERC20.abi, admin);
 };
 export function parseLogs(abi: any, logs: any = []) {
     return logs.map((log: any) => {

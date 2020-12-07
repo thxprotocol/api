@@ -24,20 +24,20 @@
         ]
     },
     "scripts": {
-        "serve": "node ./dist/server.js",
+        "serve": "node ./dist/src/server.js",
         "lint": "tsc --noEmit && eslint \"**/*.{js,ts}\" --quiet --fix",
         "build": "npm run build-ts",
         "build-ts": "tsc",
         "build-docs": "swagger-jsdoc -d ./src/swaggerDef.js -o ./src/swagger.json",
         "copy-contracts": "cd ./contracts; yarn; yarn buidler compile; cp -r ./artifacts ../src; cd ../",
         "watch-ts": "tsc -w",
-        "watch-node": "nodemon dist/server.js",
+        "watch-node": "nodemon dist/src/server.js",
         "watch": "concurrently -k -p \"[{name}]\" -n \"Sass,TypeScript,Node\" -c \"yellow.bold,cyan.bold,green.bold\" \"npm run watch-ts\" \"npm run watch-node\"",
         "test": "NODE_ENV=test sh scripts/pretest.sh && jest --force-exit --verbose ./test/e2e/*.test.ts",
         "test:load": "docker-compose run k6 run ./test/load/signup.js",
         "watch-test": "npm run test -- --watchAll",
         "debug": "npm run build && npm run watch-debug",
-        "serve-debug": "nodemon --inspect dist/server.js",
+        "serve-debug": "nodemon --inspect dist/src/server.js",
         "watch-debug": "concurrently -k -p \"[{name}]\" -n \"TypeScript,Node\" -c \"yellow.bold,cyan.bold,green.bold\" \"npm run watch-ts\" \"npm run serve-debug\""
     },
     "dependencies": {

@@ -60,12 +60,14 @@ export const getAssetPool = async (req: Request, res: Response, next: NextFuncti
     try {
         const assetPoolInstance = assetPoolContract(req.params.address);
         const tokenAddress = await assetPoolInstance.token();
+        const owner = await assetPoolInstance.owner();
 
         try {
             const tokenInstance = tokenContract(tokenAddress);
             const proposeWithdrawPollDuration = (await assetPoolInstance.proposeWithdrawPollDuration()).toNumber();
             const rewardPollDuration = (await assetPoolInstance.rewardPollDuration()).toNumber();
             const contractData = {
+                owner,
                 token: {
                     address: tokenInstance.address,
                     name: await tokenInstance.name(),
