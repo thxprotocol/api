@@ -4,7 +4,7 @@ import swaggerDocument from '../../swagger.json';
 
 const router = express.Router();
 
-router.use('/docs', swaggerUi.serve);
-router.get('/docs', swaggerUi.setup(swaggerDocument));
+router.use('/', swaggerUi.serve);
+router.get('/', swaggerUi.setup(swaggerDocument));
 
 export default router;

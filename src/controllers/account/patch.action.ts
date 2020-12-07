@@ -90,11 +90,6 @@ export const patchAccount = async (req: Request, res: Response, next: NextFuncti
         } else {
             account.address = account.address;
         }
-        account.profile.firstName = req.body.firstName || account.profile.firstName;
-        account.profile.lastName = req.body.lastName || account.profile.lastName;
-        account.profile.gender = req.body.gender || account.profile.gender;
-        account.profile.location = req.body.location || account.profile.location;
-        account.profile.picture = req.body.picture || req.body.picture;
         account.profile.burnProofs = req.body.burnProofs || account.profile.burnProofs;
         account.profile.assetPools = req.body.assetPools || account.profile.assetPools;
         account.save((err) => {
@@ -106,7 +101,7 @@ export const patchAccount = async (req: Request, res: Response, next: NextFuncti
                 next(new HttpError(502, 'Account save failed', err));
                 return;
             }
-            res.redirect(`/${VERSION}/account`);
+            res.redirect(303, `/${VERSION}/account`);
         });
     });
 };
