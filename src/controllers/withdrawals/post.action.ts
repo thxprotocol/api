@@ -44,10 +44,10 @@ import { VERSION } from '../../util/secrets';
  *       '502':
  *          description: Bad Gateway. Received an invalid response from the network or database.
  */
-export const postWithdrawal = async (req: Request, res: Response, next: NextFunction) => {
+export const postCallWithdrawal = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const tx = await (
-            await gasStation.call(req.body.call, req.header('AssetPool'), req.body.nonce, req.body.sig)
+            await gasStation.call(req.body.call, req.body.contractAddress, req.body.nonce, req.body.sig)
         ).wait();
 
         try {

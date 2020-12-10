@@ -26,4 +26,5 @@ export const validations = {
         body('nonce').exists(),
         body('sig').exists(),
     ],
+    postRewardClaimFor: [validateAssetPoolHeader, param('id').exists(), body('member').exists()],
 };

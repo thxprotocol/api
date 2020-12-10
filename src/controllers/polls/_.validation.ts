@@ -13,6 +13,7 @@ export const validations = {
     ],
     getVote: [validateAssetPoolHeader, param('agree').exists()],
     getRevokeVote: [validateAssetPoolHeader],
+    getPollFinalize: [validateAssetPoolHeader],
     postVote: [
         validateAssetPoolHeader,
         param('address').exists(),

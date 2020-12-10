@@ -39,5 +39,6 @@ export async function signMethod(
         call,
         nonce,
         sig,
+        contractAddress,
     };
 }

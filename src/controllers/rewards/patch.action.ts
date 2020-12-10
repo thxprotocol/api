@@ -91,6 +91,7 @@ export const patchReward = async (req: Request, res: Response, next: NextFunctio
 
                     const base64 = await qrcode.toDataURL(
                         JSON.stringify({
+                            assetPoolAddress: req.header('AssetPool'),
                             contractAddress: req.header('AssetPool'),
                             contract: 'AssetPool',
                             method: 'updateReward',

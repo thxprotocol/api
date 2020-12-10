@@ -44,16 +44,17 @@ export const getRewardClaim = async (req: Request, res: Response, next: NextFunc
     try {
         const base64 = await qrcode.toDataURL(
             JSON.stringify({
+                assetPoolAddress: req.header('AssetPool'),
                 contractAddress: req.header('AssetPool'),
                 contract: 'AssetPool',
-                method: 'claimWithdraw', // "claimReward" might be a better name
+                method: 'claimReward', // "claimReward" might be a better name
                 params: {
-                    reward_id: req.params.id,
+                    id: req.params.id,
                 },
             }),
         );
         res.json({ base64 });
     } catch (err) {
-        next(new HttpError(502, 'Gas Station call failed.', err));
+        next(new HttpError(502, 'QR encode failed.', err));
     }
 };

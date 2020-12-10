@@ -52,6 +52,7 @@ export const getVote = async (req: Request, res: Response, next: NextFunction) =
     try {
         const base64 = await qrcode.toDataURL(
             JSON.stringify({
+                assetPoolAddress: req.header('AssetPool'),
                 contractAddress: req.params.address,
                 contract: 'BasePoll',
                 method: 'vote',
