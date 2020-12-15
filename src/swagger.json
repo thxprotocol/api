@@ -541,7 +541,7 @@
     "/reset/:token": {
       "post": {
         "tags": [
-          "Account"
+          "Authentication"
         ],
         "description": "Resets your password based on token in url.",
         "produces": [
@@ -717,7 +717,7 @@
         }
       }
     },
-    "/members": {
+    "/members/:address": {
       "delete": {
         "tags": [
           "Members"
@@ -761,59 +761,6 @@
           }
         }
       },
-      "post": {
-        "tags": [
-          "Members"
-        ],
-        "description": "Add a member to the asset pool",
-        "produces": [
-          "application/json"
-        ],
-        "parameters": [
-          {
-            "name": "AssetPool",
-            "in": "header",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "address",
-            "in": "body",
-            "required": true,
-            "type": "string"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK"
-          },
-          "302": {
-            "description": "Redirect to `GET /members/:address`",
-            "headers": {
-              "Location": {
-                "type": "string"
-              }
-            }
-          },
-          "400": {
-            "description": "Bad Request. Indicates incorrect body parameters."
-          },
-          "401": {
-            "description": "Unauthorized. Authenticate your request please."
-          },
-          "403": {
-            "description": "Forbidden. Your account does not have access to this pool."
-          },
-          "500": {
-            "description": "Internal Server Error."
-          },
-          "502": {
-            "description": "Bad Gateway. Received an invalid response from the network or database."
-          }
-        }
-      }
-    },
-    "/members/:address": {
       "get": {
         "tags": [
           "Members"
@@ -927,6 +874,59 @@
           },
           "404": {
             "description": "Not Found. Address is not a member."
+          },
+          "500": {
+            "description": "Internal Server Error."
+          },
+          "502": {
+            "description": "Bad Gateway. Received an invalid response from the network or database."
+          }
+        }
+      }
+    },
+    "/members": {
+      "post": {
+        "tags": [
+          "Members"
+        ],
+        "description": "Add a member to the asset pool",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "AssetPool",
+            "in": "header",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "address",
+            "in": "body",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "302": {
+            "description": "Redirect to `GET /members/:address`",
+            "headers": {
+              "Location": {
+                "type": "string"
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request. Indicates incorrect body parameters."
+          },
+          "401": {
+            "description": "Unauthorized. Authenticate your request please."
+          },
+          "403": {
+            "description": "Forbidden. Your account does not have access to this pool."
           },
           "500": {
             "description": "Internal Server Error."

@@ -4,7 +4,7 @@ import { HttpError } from '../../models/Error';
 
 /**
  * @swagger
- * /members:
+ * /members/:address:
  *   delete:
  *     tags:
  *       - Members
