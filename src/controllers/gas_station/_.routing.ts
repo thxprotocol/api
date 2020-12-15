@@ -5,14 +5,14 @@ import {
     postCallAssetPool,
     postCallAssetPoolProposeWithdraw,
 } from './postCallAssetPool.action';
-import { postCallBasePoll } from './postCallBasePoll.action';
+import { postCallBasePoll, postCallBasePollFinalize } from './postCallBasePoll.action';
 import { postCallWithdrawalWithdraw } from './postCallWithdrawPoll.action';
 import { validations } from './_.validation';
 
 const router = express.Router();
 
 router.post('/base_poll', validate(validations.postCallBasePoll), postCallBasePoll);
-// router.post('/base_poll/finalize', validate(validations.postCallBasePoll), postCallBasePollFinalize);
+router.post('/base_poll/finalize', validate(validations.postCallBasePoll), postCallBasePollFinalize);
 // router.post('/base_poll/revoke_vote', validate(validations.postCallBasePoll), postCallBasePollRevokeVote);
 router.post('/asset_pool', validate(validations.postCallAssetPool), postCallAssetPool);
 router.post('/asset_pool/propose_withdraw', validate(validations.postCallAssetPool), postCallAssetPoolProposeWithdraw);

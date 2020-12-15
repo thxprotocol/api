@@ -1,7 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
-import { ASSET_POOL, gasStation, parseResultLog } from '../../util/network';
 import { HttpError } from '../../models/Error';
-import { VERSION } from '../../util/secrets';
+import qrcode from 'qrcode';
 
 /**
  * @swagger
@@ -24,11 +23,12 @@ import { VERSION } from '../../util/secrets';
  *     responses:
  *       '200':
  *         description: OK
- *       '302':
- *          description: Redirect to `GET /members/:address`
- *          headers:
- *             Location:
- *                type: string
+ *         schema:
+ *            type: object
+ *            properties:
+ *               base64:
+ *                  type: string
+ *                  description: Base64 string representing function call
  *       '400':
  *         description: Bad Request. Indicates incorrect body parameters.
  *       '401':
@@ -42,26 +42,19 @@ import { VERSION } from '../../util/secrets';
  */
 export const postRewardClaim = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const tx = await (
-            await gasStation.call(req.body.call, req.header('AssetPool'), req.body.nonce, req.body.sig)
-        ).wait();
-
-        try {
-            const { error, logs } = await parseResultLog(ASSET_POOL.abi, tx.logs);
-
-            if (error) {
-                throw error;
-            }
-
-            const event = logs.filter((e: { name: string }) => e.name === 'WithdrawPollCreated')[0];
-            const pollAddress = event.args.poll;
-
-            res.redirect(`/${VERSION}/withdrawals/${pollAddress}`);
-        } catch (error) {
-            next(new HttpError(500, 'Parse logs failed.', error));
-            return;
-        }
+        const base64 = await qrcode.toDataURL(
+            JSON.stringify({
+                assetPoolAddress: req.header('AssetPool'),
+                contractAddress: req.header('AssetPool'),
+                contract: 'AssetPool',
+                method: 'claimReward', // "claimReward" might be a better name
+                params: {
+                    id: req.params.id,
+                },
+            }),
+        );
+        res.json({ base64 });
     } catch (err) {
-        next(new HttpError(502, 'Gas Station call failed.', err));
+        next(new HttpError(502, 'QR encode failed.', err));
     }
 };

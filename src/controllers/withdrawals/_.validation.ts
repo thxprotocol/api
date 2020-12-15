@@ -19,15 +19,6 @@ export const validations = {
                 return ethers.utils.isAddress(value);
             }),
     ],
-    postWithdrawal: [validateAssetPoolHeader, body('call').exists(), body('nonce').exists(), body('sig').exists()],
-    getWithdrawalWithdraw: [
-        validateAssetPoolHeader,
-        param('address')
-            .exists()
-            .custom((value) => {
-                return ethers.utils.isAddress(value);
-            }),
-    ],
     postWithdrawalWithdraw: [
         validateAssetPoolHeader,
         param('address')

@@ -11,22 +11,7 @@ export const validations = {
                 return ethers.utils.isAddress(value);
             }),
     ],
-    getVote: [validateAssetPoolHeader, param('agree').exists()],
-    getRevokeVote: [validateAssetPoolHeader],
-    getPollFinalize: [validateAssetPoolHeader],
-    postVote: [
-        validateAssetPoolHeader,
-        param('address').exists(),
-        body('call').exists(),
-        body('nonce').exists(),
-        body('sig').exists(),
-    ],
-    deleteVote: [validateAssetPoolHeader],
-    postPollFinalize: [
-        validateAssetPoolHeader,
-        param('address').exists(),
-        body('call').exists(),
-        body('nonce').exists(),
-        body('sig').exists(),
-    ],
+    postVote: [validateAssetPoolHeader, body('agree').exists()],
+    deleteVote: [validateAssetPoolHeader, param('address').exists],
+    postPollFinalize: [validateAssetPoolHeader],
 };

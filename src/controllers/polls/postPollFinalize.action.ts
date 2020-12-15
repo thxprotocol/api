@@ -1,25 +1,34 @@
-import { gasStation } from '../../util/network';
 import { HttpError } from '../../models/Error';
 import { NextFunction, Request, Response } from 'express';
-import { VERSION } from '../../util/secrets';
+import { basePollContract } from '../../util/network';
 
 /**
  * @swagger
  * /polls/:address/finalize:
  *   post:
  *     tags:
- *       - Rewards
- *     description: Finalize the reward and update struct
+ *       - Polls
+ *     description: Finalize the poll contracts.
  *     produces:
  *       - application/json
+ *     parameters:
+ *       - name: AssetPool
+ *         in: header
+ *         required: true
+ *         type: string
+ *       - name: address
+ *         in: path
+ *         required: true
+ *         type: string
  *     responses:
  *       '200':
  *         description: OK
- *       '302':
- *          description: Redirect to `GET /polls/:address`
- *          headers:
- *             Location:
- *                type: string
+ *         schema:
+ *            type: object
+ *            properties:
+ *               base64:
+ *                  type: string
+ *                  description: Base64 string representing function call
  *       '400':
  *         description: Bad Request. Indicates incorrect body parameters.
  *       '401':
@@ -33,11 +42,11 @@ import { VERSION } from '../../util/secrets';
  */
 export const postPollFinalize = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const tx = await gasStation.call(req.body.call, req.params.address, req.body.nonce, req.body.sig);
-        await tx.wait();
+        const pollInstance = basePollContract(req.params.address);
+        const tx = await (await pollInstance.finalize()).wait();
 
-        res.redirect(`/${VERSION}/polls/${req.params.address}`);
+        res.json({ transactionHash: tx.transactionHash });
     } catch (err) {
-        next(new HttpError(502, 'Gas Station call failed.', err));
+        next(new HttpError(502, 'Asset Pool addReward failed.', err));
     }
 };

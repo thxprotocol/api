@@ -26,15 +26,6 @@ import { HttpError } from '../../models/Error';
  *         schema:
  *            type: object
  *            properties:
- *              startTime:
- *                  type: string
- *                  description: DateTime of the start of the poll
- *              endTime:
- *                  type: string
- *                  description: DateTime of the start of the poll
- *              withdrawal:
- *                  type: string
- *                  description: Address of the withdraw poll
  *              beneficiary:
  *                  type: string
  *                  description: Beneficiary of the withdraw poll
@@ -44,15 +35,12 @@ import { HttpError } from '../../models/Error';
  *              state:
  *                  type: string
  *                  description: WithdrawState [Pending, Approved, Rejected, Withdrawn]
- *              yesCounter:
- *                  type: string
- *                  description: Amount of yes votes
- *              noCounter:
- *                  type: string
- *                  description: Amount of no votes
- *              totalVotes:
- *                  type: string
- *                  description: Total amount of votes
+ *              poll:
+ *                  type: object
+ *                  properties:
+ *                     address:
+ *                        type: string
+ *                        description: Address of the reward poll
  *       '400':
  *         description: Bad Request. Indicates incorrect body parameters.
  *       '401':
@@ -69,29 +57,15 @@ export const getWithdrawal = async (req: Request, res: Response, next: NextFunct
         const withdrawal = withdrawPollContract(req.params.address);
         const beneficiary = await withdrawal.beneficiary();
         const amount = await withdrawal.amount();
-        const approvalState = await withdrawal.getCurrentApprovalState();
-        const startTime = (await withdrawal.startTime()).toNumber();
-        const endTime = (await withdrawal.endTime()).toNumber();
-        const yesCounter = (await withdrawal.yesCounter()).toNumber();
-        const noCounter = (await withdrawal.noCounter()).toNumber();
-        const totalVoted = (await withdrawal.totalVoted()).toNumber();
+        const state = await withdrawal.getCurrentApprovalState();
 
         res.json({
-            startTime: {
-                raw: startTime,
-                formatted: new Date(startTime * 1000),
-            },
-            endTime: {
-                raw: endTime,
-                formatted: new Date(endTime * 1000),
-            },
-            address: withdrawal.address,
             beneficiary,
             amount,
-            approvalState,
-            yesCounter,
-            noCounter,
-            totalVoted,
+            state,
+            poll: {
+                address: withdrawal.address,
+            },
         });
     } catch (err) {
         next(new HttpError(502, 'Withdraw Poll get data failed.', err));

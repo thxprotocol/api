@@ -1,7 +1,9 @@
-import { gasStation } from '../../util/network';
+import qrcode from 'qrcode';
+import logger from '../../util/logger';
+import { basePollContract, gasStation } from '../../util/network';
+import { validationResult } from 'express-validator';
 import { HttpError } from '../../models/Error';
 import { NextFunction, Request, Response } from 'express';
-import { VERSION } from '../../util/secrets';
 
 /**
  * @swagger
@@ -21,37 +23,45 @@ import { VERSION } from '../../util/secrets';
  *         in: path
  *         required: true
  *         type: string
- *       - name: voter
- *         in: body
- *         required: true
- *         type: string
  *       - name: agree
  *         in: body
  *         required: true
- *         type: boolean
- *       - name: nonce
- *         in: body
- *         required: true
  *         type: integer
- *       - name: sig
- *         in: body
- *         required: true
- *         type: string
  *     responses:
- *       302:
- *          headers:
- *              Location:
+ *       '200':
+ *         description: OK
+ *         schema:
+ *            type: object
+ *            properties:
+ *               base64:
  *                  type: string
- *                  description: Redirect route to /polls/:address
+ *                  description: Base64 string representing function call
+ *       '400':
+ *         description: Bad Request. Indicates incorrect body parameters.
+ *       '401':
+ *         description: Unauthorized. Authenticate your request please.
+ *       '403':
+ *         description: Forbidden. Your account does not have access to this pool.
+ *       '500':
+ *         description: Internal Server Error.
+ *       '502':
+ *         description: Bad Gateway. Received an invalid response from the network or database.
  */
 export const postVote = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const tx = await gasStation.call(req.body.call, req.params.address, req.body.nonce, req.body.sig);
-
-        await tx.wait();
-
-        res.redirect(`/${VERSION}/polls/${req.params.address}`);
+        const base64 = await qrcode.toDataURL(
+            JSON.stringify({
+                assetPoolAddress: req.header('AssetPool'),
+                contractAddress: req.params.address,
+                contract: 'BasePoll',
+                method: 'vote',
+                params: {
+                    agree: req.body.agree,
+                },
+            }),
+        );
+        res.json({ base64 });
     } catch (err) {
-        next(new HttpError(502, 'Gas Station call failed.', err));
+        next(new HttpError(500, 'QR data encoding failed.', err));
     }
 };

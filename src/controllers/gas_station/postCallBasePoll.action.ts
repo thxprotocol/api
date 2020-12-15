@@ -13,18 +13,18 @@ export const postCallBasePoll = async (req: Request, res: Response, next: NextFu
     }
 };
 
-// export const postCallBasePollFinalize = async (req: Request, res: Response, next: NextFunction) => {
-//     try {
-//         const tx = await gasStation.call(req.body.call, req.body.contractAddress, req.body.nonce, req.body.sig);
+export const postCallBasePollFinalize = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const tx = await gasStation.call(req.body.call, req.body.contractAddress, req.body.nonce, req.body.sig);
 
-//         await tx.wait();
+        await tx.wait();
 
-//         // AssetPool.onRewardPollFinish should cast an event containing the reward id.
-//         res.json({ message: 'OK' });
-//     } catch (err) {
-//         next(new HttpError(502, 'Gas Station call failed.', err));
-//     }
-// };
+        // AssetPool.onRewardPollFinish should cast an event containing the reward id.
+        res.json({ message: 'OK' });
+    } catch (err) {
+        next(new HttpError(502, 'Gas Station call failed.', err));
+    }
+};
 
 // export const postCallBasePollRevokeVote = async (req: Request, res: Response, next: NextFunction) => {
 //     try {

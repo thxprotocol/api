@@ -295,10 +295,13 @@ describe('Happy Flow', () => {
         });
     });
 
-    describe('GET /polls/:id/vote/:agree', () => {
+    describe('GET /polls/:id/vote', () => {
         it('HTTP 200 and base64 string for the yes vote', (done) => {
-            user.get(`/v1/polls/${pollAddress}/vote/1`)
+            user.post(`/v1/polls/${pollAddress}/vote`)
                 .set({ AssetPool: poolAddress })
+                .send({
+                    agree: true,
+                })
                 .end(async (err, res) => {
                     expect(res.body.base64).toContain('data:image/png;base64');
                     expect(res.status).toBe(200);
@@ -311,8 +314,11 @@ describe('Happy Flow', () => {
         let redirectURL = '';
 
         it('HTTP 200 and base64 string for the yes vote', (done) => {
-            user.get(`/v1/polls/${pollAddress}/vote/1`)
+            user.post(`/v1/polls/${pollAddress}/vote`)
                 .set({ AssetPool: poolAddress })
+                .send({
+                    agree: true,
+                })
                 .end(async (err, res) => {
                     expect(res.body.base64).toContain('data:image/png;base64');
                     expect(res.status).toBe(200);
@@ -421,7 +427,7 @@ describe('Happy Flow', () => {
         let redirectURL = '';
 
         it('HTTP 200 and base64 string for the claim', (done) => {
-            user.get(`/v1/rewards/0/claim`)
+            user.post(`/v1/rewards/0/claim`)
                 .set({ AssetPool: poolAddress })
                 .end(async (err, res) => {
                     expect(res.body.base64).toContain('data:image/png;base64');
@@ -488,8 +494,11 @@ describe('Happy Flow', () => {
         let redirectURL = '';
 
         it('HTTP 200 and base64 string for the yes vote', (done) => {
-            user.get(`/v1/polls/${withdrawPollAddress}/vote/1`)
+            user.post(`/v1/polls/${withdrawPollAddress}/vote`)
                 .set({ AssetPool: poolAddress })
+                .send({
+                    agree: true,
+                })
                 .end(async (err, res) => {
                     expect(res.body.base64).toContain('data:image/png;base64');
                     expect(res.status).toBe(200);
@@ -559,7 +568,7 @@ describe('Happy Flow', () => {
         });
 
         it('HTTP 200 and base64 string for the withdraw', (done) => {
-            user.get(`/v1/withdrawals/${withdrawPollAddress}/withdraw`)
+            user.post(`/v1/withdrawals/${withdrawPollAddress}/withdraw`)
                 .set({ AssetPool: poolAddress })
                 .end(async (err, res) => {
                     expect(res.body.base64).toContain('data:image/png;base64');
