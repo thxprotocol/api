@@ -1,6 +1,6 @@
 {
     "name": "thx-api",
-    "version": "0.2.3",
+    "version": "0.3.0",
     "description": "Public API for THX project",
     "repository": {
         "type": "git",
