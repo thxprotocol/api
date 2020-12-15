@@ -12,6 +12,6 @@ export const validations = {
             }),
     ],
     postVote: [validateAssetPoolHeader, body('agree').exists()],
-    deleteVote: [validateAssetPoolHeader, param('address').exists],
+    deleteVote: [validateAssetPoolHeader, param('address').exists()],
     postPollFinalize: [validateAssetPoolHeader],
 };

@@ -466,9 +466,9 @@ describe('Happy Flow', () => {
             user.get(redirectURL)
                 .set({ AssetPool: poolAddress })
                 .end(async (err, res) => {
-                    withdrawPollAddress = res.body.address;
+                    withdrawPollAddress = res.body.poll.address;
 
-                    expect(res.body.approvalState).toEqual(false);
+                    expect(res.body.state).toEqual(false);
                     expect(Number(formatEther(res.body.amount))).toEqual(Number(formatEther(rewardWithdrawAmount)));
                     expect(res.status).toBe(200);
                     done();
@@ -528,6 +528,7 @@ describe('Happy Flow', () => {
                 .set({ AssetPool: poolAddress })
                 .end(async (err, res) => {
                     redirectURL = res.headers.location;
+
                     expect(res.status).toBe(302);
                     done();
                 });
@@ -553,7 +554,7 @@ describe('Happy Flow', () => {
                 .end(async (err, res) => {
                     expect(Number(formatEther(res.body.amount))).toEqual(Number(formatEther(rewardWithdrawAmount)));
                     expect(res.body.beneficiary).toEqual(admin.address);
-                    expect(res.body.approvalState).toEqual(true);
+                    expect(res.body.state).toEqual(true);
                     expect(res.status).toBe(200);
                     done();
                 });
