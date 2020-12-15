@@ -295,10 +295,13 @@ describe('Happy Flow', () => {
         });
     });
 
-    describe('GET /polls/:id/vote/:agree', () => {
+    describe('GET /polls/:id/vote', () => {
         it('HTTP 200 and base64 string for the yes vote', (done) => {
-            user.get(`/v1/polls/${pollAddress}/vote/1`)
+            user.post(`/v1/polls/${pollAddress}/vote`)
                 .set({ AssetPool: poolAddress })
+                .send({
+                    agree: true,
+                })
                 .end(async (err, res) => {
                     expect(res.body.base64).toContain('data:image/png;base64');
                     expect(res.status).toBe(200);
@@ -311,8 +314,11 @@ describe('Happy Flow', () => {
         let redirectURL = '';
 
         it('HTTP 200 and base64 string for the yes vote', (done) => {
-            user.get(`/v1/polls/${pollAddress}/vote/1`)
+            user.post(`/v1/polls/${pollAddress}/vote`)
                 .set({ AssetPool: poolAddress })
+                .send({
+                    agree: true,
+                })
                 .end(async (err, res) => {
                     expect(res.body.base64).toContain('data:image/png;base64');
                     expect(res.status).toBe(200);
@@ -322,13 +328,21 @@ describe('Happy Flow', () => {
 
         it('HTTP 302 when tx is handled', async (done) => {
             // We assume QR decoding works as expected, will be tested in the wallet repo
-            const { call, nonce, sig } = await signMethod(voter, REWARD_POLL.abi, pollAddress, 'vote', [true]);
+            const { call, nonce, sig, contractAddress } = await signMethod(
+                voter,
+                REWARD_POLL.abi,
+                pollAddress,
+                'vote',
+                [true],
+            );
 
-            user.post(`/v1/polls/${pollAddress}/vote`)
+            user.post(`/v1/gas_station/base_poll`)
                 .send({
                     call,
                     nonce,
                     sig,
+                    contractAddress,
+                    redirect: `polls/${pollAddress}`,
                 })
                 .set({ AssetPool: poolAddress })
                 .end(async (err, res) => {
@@ -359,13 +373,21 @@ describe('Happy Flow', () => {
         });
 
         it('HTTP 302 after finalizing the poll', async (done) => {
-            const { call, nonce, sig } = await signMethod(voter, REWARD_POLL.abi, pollAddress, 'finalize', []);
+            const { call, nonce, sig, contractAddress } = await signMethod(
+                voter,
+                REWARD_POLL.abi,
+                pollAddress,
+                'finalize',
+                [],
+            );
 
-            user.post(`/v1/polls/${pollAddress}/finalize`)
+            user.post(`/v1/gas_station/base_poll`)
                 .send({
                     call,
                     nonce,
                     sig,
+                    contractAddress,
+                    redirect: `polls/${pollAddress}`,
                 })
                 .set({ AssetPool: poolAddress })
                 .end(async (err, res) => {
@@ -405,7 +427,7 @@ describe('Happy Flow', () => {
         let redirectURL = '';
 
         it('HTTP 200 and base64 string for the claim', (done) => {
-            user.get(`/v1/rewards/0/claim`)
+            user.post(`/v1/rewards/0/claim`)
                 .set({ AssetPool: poolAddress })
                 .end(async (err, res) => {
                     expect(res.body.base64).toContain('data:image/png;base64');
@@ -416,13 +438,20 @@ describe('Happy Flow', () => {
 
         it('HTTP 302 when tx is handled', async (done) => {
             // We assume QR decoding works as expected, will be tested in the wallet repo
-            const { call, nonce, sig } = await signMethod(admin, ASSET_POOL.abi, poolAddress, 'claimReward', [0]);
+            const { call, nonce, sig, contractAddress } = await signMethod(
+                admin,
+                ASSET_POOL.abi,
+                poolAddress,
+                'claimReward',
+                [0],
+            );
 
-            user.post(`/v1/rewards/0/claim`)
+            user.post(`/v1/gas_station/asset_pool/claim_reward`)
                 .send({
                     call,
                     nonce,
                     sig,
+                    contractAddress,
                 })
                 .set({ AssetPool: poolAddress })
                 .end(async (err, res) => {
@@ -437,11 +466,25 @@ describe('Happy Flow', () => {
             user.get(redirectURL)
                 .set({ AssetPool: poolAddress })
                 .end(async (err, res) => {
-                    withdrawPollAddress = res.body.address;
+                    withdrawPollAddress = res.body.poll.address;
 
-                    expect(res.body.approvalState).toEqual(false);
+                    expect(res.body.state).toEqual(false);
                     expect(Number(formatEther(res.body.amount))).toEqual(Number(formatEther(rewardWithdrawAmount)));
                     expect(res.status).toBe(200);
+                    done();
+                });
+        });
+    });
+
+    describe('POST /rewards/:id/give', () => {
+        it('HTTP 200 when tx is handled', async (done) => {
+            user.post(`/v1/rewards/0/give`)
+                .send({
+                    member: admin.address,
+                })
+                .set({ AssetPool: poolAddress })
+                .end(async (err, res) => {
+                    expect(res.body.withdrawPoll).toContain('0x');
                     done();
                 });
         });
@@ -451,8 +494,11 @@ describe('Happy Flow', () => {
         let redirectURL = '';
 
         it('HTTP 200 and base64 string for the yes vote', (done) => {
-            user.get(`/v1/polls/${withdrawPollAddress}/vote/1`)
+            user.post(`/v1/polls/${withdrawPollAddress}/vote`)
                 .set({ AssetPool: poolAddress })
+                .send({
+                    agree: true,
+                })
                 .end(async (err, res) => {
                     expect(res.body.base64).toContain('data:image/png;base64');
                     expect(res.status).toBe(200);
@@ -463,19 +509,26 @@ describe('Happy Flow', () => {
         it('HTTP 302 when tx is handled', async (done) => {
             // We assume QR decoding works as expected, will be tested in the wallet repo
             // Manager should vote for this poll
-            const { call, nonce, sig } = await signMethod(admin, WITHDRAW_POLL.abi, withdrawPollAddress, 'vote', [
-                true,
-            ]);
+            const { call, nonce, sig, contractAddress } = await signMethod(
+                admin,
+                WITHDRAW_POLL.abi,
+                withdrawPollAddress,
+                'vote',
+                [true],
+            );
 
-            user.post(`/v1/polls/${withdrawPollAddress}/vote`)
+            user.post(`/v1/gas_station/base_poll`)
                 .send({
                     call,
                     nonce,
                     sig,
+                    contractAddress,
+                    redirect: `polls/${withdrawPollAddress}`,
                 })
                 .set({ AssetPool: poolAddress })
                 .end(async (err, res) => {
                     redirectURL = res.headers.location;
+
                     expect(res.status).toBe(302);
                     done();
                 });
@@ -501,7 +554,7 @@ describe('Happy Flow', () => {
                 .end(async (err, res) => {
                     expect(Number(formatEther(res.body.amount))).toEqual(Number(formatEther(rewardWithdrawAmount)));
                     expect(res.body.beneficiary).toEqual(admin.address);
-                    expect(res.body.approvalState).toEqual(true);
+                    expect(res.body.state).toEqual(true);
                     expect(res.status).toBe(200);
                     done();
                 });
@@ -516,7 +569,7 @@ describe('Happy Flow', () => {
         });
 
         it('HTTP 200 and base64 string for the withdraw', (done) => {
-            user.get(`/v1/withdrawals/${withdrawPollAddress}/withdraw`)
+            user.post(`/v1/withdrawals/${withdrawPollAddress}/withdraw`)
                 .set({ AssetPool: poolAddress })
                 .end(async (err, res) => {
                     expect(res.body.base64).toContain('data:image/png;base64');
@@ -526,7 +579,7 @@ describe('Happy Flow', () => {
         });
 
         it('HTTP 302 and redirect to withdrawal', async (done) => {
-            const { call, nonce, sig } = await signMethod(
+            const { call, nonce, sig, contractAddress } = await signMethod(
                 admin,
                 WITHDRAW_POLL.abi,
                 withdrawPollAddress,
@@ -534,11 +587,12 @@ describe('Happy Flow', () => {
                 [],
             );
 
-            user.post(`/v1/withdrawals/${withdrawPollAddress}/withdraw`)
+            user.post(`/v1/gas_station/withdrawals/withdraw`)
                 .send({
                     call,
                     nonce,
                     sig,
+                    contractAddress,
                 })
                 .set({ AssetPool: poolAddress })
                 .end(async (err, res) => {
@@ -593,16 +647,20 @@ describe('Happy Flow', () => {
             // Deposit 1000 in the pool
             await testToken.transfer(poolAddress, parseEther('1000'));
 
-            const { call, nonce, sig } = await signMethod(voter, ASSET_POOL.abi, poolAddress, 'proposeWithdraw', [
-                parseEther('1000').toString(),
-                voter.address,
-            ]);
+            const { call, nonce, sig, contractAddress } = await signMethod(
+                voter,
+                ASSET_POOL.abi,
+                poolAddress,
+                'proposeWithdraw',
+                [parseEther('1000').toString(), voter.address],
+            );
 
-            user.post(`/v1/withdrawals`)
+            user.post(`/v1/gas_station/asset_pool/propose_withdraw`)
                 .send({
                     call,
                     nonce,
                     sig,
+                    contractAddress,
                 })
                 .set({ AssetPool: poolAddress })
                 .end(async (err, res) => {
@@ -643,15 +701,21 @@ describe('Happy Flow', () => {
         let redirectURL = '';
         it('HTTP 302 if vote OK', async (done) => {
             // We assume QR decoding works as expected, will be tested in the wallet repo
-            const { call, nonce, sig } = await signMethod(admin, WITHDRAW_POLL.abi, withdrawPollAddress, 'vote', [
-                true,
-            ]);
+            const { call, nonce, sig, contractAddress } = await signMethod(
+                admin,
+                WITHDRAW_POLL.abi,
+                withdrawPollAddress,
+                'vote',
+                [true],
+            );
 
-            user.post(`/v1/polls/${withdrawPollAddress}/vote`)
+            user.post(`/v1/gas_station/base_poll/`)
                 .send({
                     call,
                     nonce,
                     sig,
+                    contractAddress,
+                    redirect: `polls/${withdrawPollAddress}`,
                 })
                 .set({ AssetPool: poolAddress })
                 .end(async (err, res) => {
@@ -692,7 +756,7 @@ describe('Happy Flow', () => {
         });
 
         it('HTTP 302 and redirect to withdrawal', async (done) => {
-            const { call, nonce, sig } = await signMethod(
+            const { call, nonce, sig, contractAddress } = await signMethod(
                 voter,
                 WITHDRAW_POLL.abi,
                 withdrawPollAddress,
@@ -700,11 +764,12 @@ describe('Happy Flow', () => {
                 [],
             );
 
-            user.post(`/v1/withdrawals/${withdrawPollAddress}/withdraw`)
+            user.post(`/v1/gas_station/withdrawals/withdraw`)
                 .send({
                     call,
                     nonce,
                     sig,
+                    contractAddress,
                 })
                 .set({ AssetPool: poolAddress })
                 .end(async (err, res) => {

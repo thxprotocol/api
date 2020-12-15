@@ -1,9 +1,9 @@
 {
   "info": {
     "title": "THX API Specification",
-    "version": "0.2.2"
+    "version": "0.3.0"
   },
-  "basePath": "https://api.thx.network/v1",
+  "basePath": "https://dev.api.thx.network/v1",
   "swagger": "2.0",
   "paths": {
     "/account": {
@@ -541,7 +541,7 @@
     "/reset/:token": {
       "post": {
         "tags": [
-          "Account"
+          "Authentication"
         ],
         "description": "Resets your password based on token in url.",
         "produces": [
@@ -717,7 +717,7 @@
         }
       }
     },
-    "/members": {
+    "/members/:address": {
       "delete": {
         "tags": [
           "Members"
@@ -761,59 +761,6 @@
           }
         }
       },
-      "post": {
-        "tags": [
-          "Members"
-        ],
-        "description": "Add a member to the asset pool",
-        "produces": [
-          "application/json"
-        ],
-        "parameters": [
-          {
-            "name": "AssetPool",
-            "in": "header",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "address",
-            "in": "body",
-            "required": true,
-            "type": "string"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK"
-          },
-          "302": {
-            "description": "Redirect to `GET /members/:address`",
-            "headers": {
-              "Location": {
-                "type": "string"
-              }
-            }
-          },
-          "400": {
-            "description": "Bad Request. Indicates incorrect body parameters."
-          },
-          "401": {
-            "description": "Unauthorized. Authenticate your request please."
-          },
-          "403": {
-            "description": "Forbidden. Your account does not have access to this pool."
-          },
-          "500": {
-            "description": "Internal Server Error."
-          },
-          "502": {
-            "description": "Bad Gateway. Received an invalid response from the network or database."
-          }
-        }
-      }
-    },
-    "/members/:address": {
       "get": {
         "tags": [
           "Members"
@@ -937,12 +884,65 @@
         }
       }
     },
+    "/members": {
+      "post": {
+        "tags": [
+          "Members"
+        ],
+        "description": "Add a member to the asset pool",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "AssetPool",
+            "in": "header",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "address",
+            "in": "body",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "302": {
+            "description": "Redirect to `GET /members/:address`",
+            "headers": {
+              "Location": {
+                "type": "string"
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request. Indicates incorrect body parameters."
+          },
+          "401": {
+            "description": "Unauthorized. Authenticate your request please."
+          },
+          "403": {
+            "description": "Forbidden. Your account does not have access to this pool."
+          },
+          "500": {
+            "description": "Internal Server Error."
+          },
+          "502": {
+            "description": "Bad Gateway. Received an invalid response from the network or database."
+          }
+        }
+      }
+    },
     "/polls/:address/vote": {
       "delete": {
         "tags": [
           "Polls"
         ],
-        "description": "Cast a vote for a poll",
+        "description": "Revoke a vote for a poll",
         "produces": [
           "application/json"
         ],
@@ -958,35 +958,18 @@
             "in": "path",
             "required": true,
             "type": "string"
-          },
-          {
-            "name": "voter",
-            "in": "body",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "nonce",
-            "in": "body",
-            "required": true,
-            "type": "integer"
-          },
-          {
-            "name": "sig",
-            "in": "body",
-            "required": true,
-            "type": "string"
           }
         ],
         "responses": {
           "200": {
-            "description": "OK"
-          },
-          "302": {
-            "description": "Redirect to `GET /polls/:address`",
-            "headers": {
-              "Location": {
-                "type": "string"
+            "description": "OK",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "base64": {
+                  "type": "string",
+                  "description": "Base64 string representing function call"
+                }
               }
             }
           },
@@ -1029,68 +1012,8 @@
             "type": "string"
           },
           {
-            "name": "voter",
-            "in": "body",
-            "required": true,
-            "type": "string"
-          },
-          {
             "name": "agree",
             "in": "body",
-            "required": true,
-            "type": "boolean"
-          },
-          {
-            "name": "nonce",
-            "in": "body",
-            "required": true,
-            "type": "integer"
-          },
-          {
-            "name": "sig",
-            "in": "body",
-            "required": true,
-            "type": "string"
-          }
-        ],
-        "responses": {
-          "302": {
-            "headers": {
-              "Location": {
-                "type": "string",
-                "description": "Redirect route to /polls/:address"
-              }
-            }
-          }
-        }
-      }
-    },
-    "/polls/:address/vote/:agree": {
-      "get": {
-        "tags": [
-          "Polls"
-        ],
-        "description": "Get a quick response image to vote.",
-        "produces": [
-          "application/json"
-        ],
-        "parameters": [
-          {
-            "name": "AssetPool",
-            "in": "header",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "address",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "agree",
-            "description": "Provide 0 to disagree and 1 to agree",
-            "in": "path",
             "required": true,
             "type": "integer"
           }
@@ -1218,12 +1141,12 @@
         }
       }
     },
-    "/polls/:address/revoke_vote": {
-      "get": {
+    "/polls/:address/finalize": {
+      "post": {
         "tags": [
           "Polls"
         ],
-        "description": "Cast a vote for a poll",
+        "description": "Finalize the poll contracts.",
         "produces": [
           "application/json"
         ],
@@ -1251,45 +1174,6 @@
                   "type": "string",
                   "description": "Base64 string representing function call"
                 }
-              }
-            }
-          },
-          "400": {
-            "description": "Bad Request. Indicates incorrect body parameters."
-          },
-          "401": {
-            "description": "Unauthorized. Authenticate your request please."
-          },
-          "403": {
-            "description": "Forbidden. Your account does not have access to this pool."
-          },
-          "500": {
-            "description": "Internal Server Error."
-          },
-          "502": {
-            "description": "Bad Gateway. Received an invalid response from the network or database."
-          }
-        }
-      }
-    },
-    "/polls/:address/finalize": {
-      "post": {
-        "tags": [
-          "Rewards"
-        ],
-        "description": "Finalize the reward and update struct",
-        "produces": [
-          "application/json"
-        ],
-        "responses": {
-          "200": {
-            "description": "OK"
-          },
-          "302": {
-            "description": "Redirect to `GET /polls/:address`",
-            "headers": {
-              "Location": {
-                "type": "string"
               }
             }
           },
@@ -1402,111 +1286,6 @@
           },
           "404": {
             "description": "Not Found. Reward not found for this asset pool."
-          },
-          "500": {
-            "description": "Internal Server Error."
-          },
-          "502": {
-            "description": "Bad Gateway. Received an invalid response from the network or database."
-          }
-        }
-      }
-    },
-    "/rewards/:id/claim": {
-      "get": {
-        "tags": [
-          "Rewards"
-        ],
-        "description": "Create a quick response image to claim the reward.",
-        "produces": [
-          "application/json"
-        ],
-        "parameters": [
-          {
-            "name": "AssetPool",
-            "in": "header",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "type": "integer"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "schema": {
-              "type": "object",
-              "properties": {
-                "base64": {
-                  "type": "string",
-                  "description": "Base64 string representing function call"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Bad Request. Indicates incorrect body parameters."
-          },
-          "401": {
-            "description": "Unauthorized. Authenticate your request please."
-          },
-          "403": {
-            "description": "Forbidden. Your account does not have access to this pool."
-          },
-          "500": {
-            "description": "Internal Server Error."
-          },
-          "502": {
-            "description": "Bad Gateway. Received an invalid response from the network or database."
-          }
-        }
-      },
-      "post": {
-        "tags": [
-          "Rewards"
-        ],
-        "description": "Create a quick response image to claim the reward.",
-        "produces": [
-          "application/json"
-        ],
-        "parameters": [
-          {
-            "name": "AssetPool",
-            "in": "header",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "type": "integer"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK"
-          },
-          "302": {
-            "description": "Redirect to `GET /members/:address`",
-            "headers": {
-              "Location": {
-                "type": "string"
-              }
-            }
-          },
-          "400": {
-            "description": "Bad Request. Indicates incorrect body parameters."
-          },
-          "401": {
-            "description": "Unauthorized. Authenticate your request please."
-          },
-          "403": {
-            "description": "Forbidden. Your account does not have access to this pool."
           },
           "500": {
             "description": "Internal Server Error."
@@ -1666,6 +1445,60 @@
         }
       }
     },
+    "/rewards/:id/claim": {
+      "post": {
+        "tags": [
+          "Rewards"
+        ],
+        "description": "Create a quick response image to claim the reward.",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "AssetPool",
+            "in": "header",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "base64": {
+                  "type": "string",
+                  "description": "Base64 string representing function call"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request. Indicates incorrect body parameters."
+          },
+          "401": {
+            "description": "Unauthorized. Authenticate your request please."
+          },
+          "403": {
+            "description": "Forbidden. Your account does not have access to this pool."
+          },
+          "500": {
+            "description": "Internal Server Error."
+          },
+          "502": {
+            "description": "Bad Gateway. Received an invalid response from the network or database."
+          }
+        }
+      }
+    },
     "/rewards/:id/give": {
       "post": {
         "tags": [
@@ -1755,18 +1588,6 @@
             "schema": {
               "type": "object",
               "properties": {
-                "startTime": {
-                  "type": "string",
-                  "description": "DateTime of the start of the poll"
-                },
-                "endTime": {
-                  "type": "string",
-                  "description": "DateTime of the start of the poll"
-                },
-                "withdrawal": {
-                  "type": "string",
-                  "description": "Address of the withdraw poll"
-                },
                 "beneficiary": {
                   "type": "string",
                   "description": "Beneficiary of the withdraw poll"
@@ -1779,17 +1600,14 @@
                   "type": "string",
                   "description": "WithdrawState [Pending, Approved, Rejected, Withdrawn]"
                 },
-                "yesCounter": {
-                  "type": "string",
-                  "description": "Amount of yes votes"
-                },
-                "noCounter": {
-                  "type": "string",
-                  "description": "Amount of no votes"
-                },
-                "totalVotes": {
-                  "type": "string",
-                  "description": "Total amount of votes"
+                "poll": {
+                  "type": "object",
+                  "properties": {
+                    "address": {
+                      "type": "string",
+                      "description": "Address of the reward poll"
+                    }
+                  }
                 }
               }
             }
@@ -1857,67 +1675,10 @@
             "description": "Bad Gateway. Received an invalid response from the network or database."
           }
         }
-      },
-      "post": {
-        "tags": [
-          "Withdrawals"
-        ],
-        "description": "Propose a withdrawal in the asset pool.",
-        "produces": [
-          "application/json"
-        ],
-        "parameters": [
-          {
-            "name": "AssetPool",
-            "in": "header",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "amount",
-            "in": "body",
-            "required": true,
-            "type": "integer"
-          },
-          {
-            "name": "beneficiary",
-            "in": "body",
-            "required": true,
-            "type": "string"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK"
-          },
-          "302": {
-            "description": "Redirect to `GET /withdrawals/:address`",
-            "headers": {
-              "Location": {
-                "type": "string"
-              }
-            }
-          },
-          "400": {
-            "description": "Bad Request. Indicates incorrect body parameters."
-          },
-          "401": {
-            "description": "Unauthorized. Authenticate your request please."
-          },
-          "403": {
-            "description": "Forbidden. Your account does not have access to this pool."
-          },
-          "500": {
-            "description": "Internal Server Error."
-          },
-          "502": {
-            "description": "Bad Gateway. Received an invalid response from the network or database."
-          }
-        }
       }
     },
     "/withdrawals/:address/withdraw": {
-      "get": {
+      "post": {
         "tags": [
           "Withdrawals"
         ],
@@ -1951,49 +1712,6 @@
                 }
               }
             }
-          },
-          "400": {
-            "description": "Bad Request. Indicates incorrect body parameters."
-          },
-          "401": {
-            "description": "Unauthorized. Authenticate your request please."
-          },
-          "403": {
-            "description": "Forbidden. Your account does not have access to this pool."
-          },
-          "500": {
-            "description": "Internal Server Error."
-          },
-          "502": {
-            "description": "Bad Gateway. Received an invalid response from the network or database."
-          }
-        }
-      },
-      "post": {
-        "tags": [
-          "Withdrawals"
-        ],
-        "description": "Create a quick response image for withdrawing the reward.",
-        "produces": [
-          "application/json"
-        ],
-        "parameters": [
-          {
-            "name": "AssetPool",
-            "in": "header",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "address",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK"
           },
           "400": {
             "description": "Bad Request. Indicates incorrect body parameters."

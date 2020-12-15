@@ -1,10 +1,10 @@
-const packageJson = require('../package.json');
+const packageJSON = require('../package.json');
 
 module.exports = {
     info: {
         title: 'THX API Specification',
-        version: packageJson.version,
+        version: packageJSON.version,
     },
     apis: ['src/controllers/**/*.ts'],
-    basePath: 'https://api.thx.network/v1',
+    basePath: 'https://dev.api.thx.network/v1',
 };

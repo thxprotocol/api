@@ -1,8 +1,6 @@
 import { NextFunction, Request, Response } from 'express';
-import { ASSET_POOL, gasStation, parseResultLog } from '../../util/network';
 import { HttpError } from '../../models/Error';
-import { VERSION } from '../../util/secrets';
-import '../../config/passport';
+import qrcode from 'qrcode';
 
 /**
  * @swagger
@@ -25,6 +23,12 @@ import '../../config/passport';
  *     responses:
  *       '200':
  *         description: OK
+ *         schema:
+ *            type: object
+ *            properties:
+ *               base64:
+ *                  type: string
+ *                  description: Base64 string representing function call*
  *       '400':
  *          description: Bad Request. Indicates incorrect body parameters.
  *       '401':
@@ -38,24 +42,15 @@ import '../../config/passport';
  */
 export const postWithdrawalWithdraw = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const tx = await (
-            await gasStation.call(req.body.call, req.params.address, req.body.nonce, req.body.sig)
-        ).wait();
-
-        try {
-            const { error, logs } = await parseResultLog(ASSET_POOL.abi, tx.logs);
-
-            if (error) {
-                throw error;
-            }
-
-            const event = logs.filter((e: any) => e && e.name === 'Withdrawn')[0];
-
-            res.redirect(`/${VERSION}/members/${event.args.member}`);
-        } catch (error) {
-            next(new HttpError(500, 'Parse logs failed.', error));
-        }
+        const base64 = await qrcode.toDataURL(
+            JSON.stringify({
+                contractAddress: req.params.address,
+                contract: 'WithdrawPoll',
+                method: 'withdraw',
+            }),
+        );
+        res.send({ base64 });
     } catch (err) {
-        next(new HttpError(502, 'Gas Station call failed.', err));
+        next(new HttpError(500, 'QR code encoding failed.', err));
     }
 };

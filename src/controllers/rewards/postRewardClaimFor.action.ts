@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { assetPoolContract, ASSET_POOL, parseResultLog } from '../../util/network';
+import { assetPoolContract, ASSET_POOL, parseLogs, parseResultLog } from '../../util/network';
 import { HttpError } from '../../models/Error';
 
 /**
@@ -44,18 +44,13 @@ import { HttpError } from '../../models/Error';
  *       '502':
  *         description: Bad Gateway. Received an invalid response from the network or database.
  */
-export const postRewardGive = async (req: Request, res: Response, next: NextFunction) => {
+export const postRewardClaimFor = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const assetPoolInstance = assetPoolContract(req.header('AssetPool'));
-        const tx = await assetPoolInstance.giveReward(req.body.member).wait();
+        const tx = await (await assetPoolInstance.claimRewardFor(req.params.id, req.body.member)).wait();
 
         try {
-            const { error, logs } = await parseResultLog(ASSET_POOL.abi, tx.logs);
-
-            if (error) {
-                throw error;
-            }
-
+            const logs = await parseLogs(ASSET_POOL.abi, tx.logs);
             const event = logs.filter((e: { name: string }) => e && e.name === 'WithdrawPollCreated')[0];
             const withdrawPoll = event.args.poll;
 
@@ -65,6 +60,6 @@ export const postRewardGive = async (req: Request, res: Response, next: NextFunc
             return;
         }
     } catch (err) {
-        next(new HttpError(502, 'Gas Station call failed.', err));
+        next(new HttpError(502, 'Asset Pool claimRewardFor failed.', err));
     }
 };

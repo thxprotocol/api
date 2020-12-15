@@ -9,7 +9,7 @@ import { HttpError } from '../../models/Error';
  * /reset/:token:
  *   post:
  *     tags:
- *       - Account
+ *       - Authentication
  *     description: Resets your password based on token in url.
  *     produces:
  *       - application/json

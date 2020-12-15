@@ -1,17 +1,14 @@
 import qrcode from 'qrcode';
-import logger from '../../util/logger';
-import { basePollContract, gasStation } from '../../util/network';
-import { validationResult } from 'express-validator';
 import { HttpError } from '../../models/Error';
 import { NextFunction, Request, Response } from 'express';
 
 /**
  * @swagger
- * /polls/:address/vote/:agree:
- *   get:
+ * /polls/:address/vote:
+ *   delete:
  *     tags:
  *       - Polls
- *     description: Get a quick response image to vote.
+ *     description: Revoke a vote for a poll
  *     produces:
  *       - application/json
  *     parameters:
@@ -23,11 +20,6 @@ import { NextFunction, Request, Response } from 'express';
  *         in: path
  *         required: true
  *         type: string
- *       - name: agree
- *         description: Provide 0 to disagree and 1 to agree
- *         in: path
- *         required: true
- *         type: integer
  *     responses:
  *       '200':
  *         description: OK
@@ -48,19 +40,17 @@ import { NextFunction, Request, Response } from 'express';
  *       '502':
  *         description: Bad Gateway. Received an invalid response from the network or database.
  */
-export const getVote = async (req: Request, res: Response, next: NextFunction) => {
+export const deleteVote = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const base64 = await qrcode.toDataURL(
             JSON.stringify({
+                assetPoolAddress: req.header('AssetPool'),
                 contractAddress: req.params.address,
                 contract: 'BasePoll',
-                method: 'vote',
-                params: {
-                    agree: !!+req.params.agree,
-                },
+                method: 'revokeVote',
             }),
         );
-        res.json({ base64 });
+        res.send({ base64 });
     } catch (err) {
         next(new HttpError(500, 'QR data encoding failed.', err));
     }
