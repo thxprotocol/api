@@ -627,10 +627,7 @@ describe('Happy Flow', () => {
 
     describe('GET /withdrawals (before proposed withdrawal)', () => {
         it('HTTP 200 and return no items', async (done) => {
-            user.get(`/v1/withdrawals`)
-                .send({
-                    member: voter.address,
-                })
+            user.get(`/v1/withdrawals?member=${voter.address}`)
                 .set({ AssetPool: poolAddress })
                 .end(async (err, res) => {
                     expect(Number(res.body.withdrawPolls.length)).toBe(0);
@@ -682,10 +679,7 @@ describe('Happy Flow', () => {
 
     describe('GET /withdrawals (after proposed withdrawal)', () => {
         it('HTTP 200 and return a list of 1 item', async (done) => {
-            user.get(`/v1/withdrawals`)
-                .send({
-                    member: voter.address,
-                })
+            user.get(`/v1/withdrawals?member=${voter.address}`)
                 .set({ AssetPool: poolAddress })
                 .end(async (err, res) => {
                     withdrawPollAddress = res.body.withdrawPolls[0];

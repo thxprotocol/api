@@ -47,6 +47,6 @@ export const postPollFinalize = async (req: Request, res: Response, next: NextFu
 
         res.json({ transactionHash: tx.transactionHash });
     } catch (err) {
-        next(new HttpError(502, 'Asset Pool addReward failed.', err));
+        next(new HttpError(502, 'BasePoll finalize failed.', err));
     }
 };
