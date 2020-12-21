@@ -47,19 +47,29 @@ import { HttpError } from '../../models/Error';
 export const postRewardClaimFor = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const assetPoolInstance = assetPoolContract(req.header('AssetPool'));
-        const tx = await (await assetPoolInstance.claimRewardFor(req.params.id, req.body.member)).wait();
+        const result = await assetPoolInstance.rewards(req.params.id);
+
+        if (!result) {
+            throw new Error(result);
+        }
 
         try {
-            const logs = await parseLogs(ASSET_POOL.abi, tx.logs);
-            const event = logs.filter((e: { name: string }) => e && e.name === 'WithdrawPollCreated')[0];
-            const withdrawPoll = event.args.poll;
+            const tx = await (await assetPoolInstance.claimRewardFor(req.params.id, req.body.member)).wait();
 
-            res.json({ withdrawPoll });
+            try {
+                const logs = await parseLogs(ASSET_POOL.abi, tx.logs);
+                const event = logs.filter((e: { name: string }) => e && e.name === 'WithdrawPollCreated')[0];
+                const withdrawPoll = event.args.poll;
+
+                res.json({ withdrawPoll });
+            } catch (err) {
+                next(new HttpError(500, 'Parse logs failed.', err));
+                return;
+            }
         } catch (err) {
-            next(new HttpError(500, 'Parse logs failed.', err));
-            return;
+            next(new HttpError(502, 'Asset Pool claimRewardFor failed.', err));
         }
     } catch (err) {
-        next(new HttpError(502, 'Asset Pool claimRewardFor failed.', err));
+        next(new HttpError(502, 'Asset Pool reward does not exist.', err));
     }
 };

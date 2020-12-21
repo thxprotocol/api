@@ -4,7 +4,7 @@ import { HttpError } from '../../models/Error';
 
 /**
  * @swagger
- * /withdrawals:
+ * /withdrawals?filter=:address:
  *   get:
  *     tags:
  *       - Withdrawals
@@ -38,7 +38,7 @@ import { HttpError } from '../../models/Error';
 export const getWithdrawals = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const instance = assetPoolContract(req.header('AssetPool'));
-        const filter = instance.filters.WithdrawPollCreated(req.body.member, null);
+        const filter = instance.filters.WithdrawPollCreated(req.query.member, null);
         const logs = await instance.queryFilter(filter, 0, 'latest');
 
         res.json({
