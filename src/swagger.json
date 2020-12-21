@@ -1630,7 +1630,7 @@
         }
       }
     },
-    "/withdrawals": {
+    "/withdrawals?member=:address": {
       "get": {
         "tags": [
           "Withdrawals"
