@@ -3,7 +3,6 @@ import { AccountDocument } from '../../models/Account';
 import { Request, Response, NextFunction } from 'express';
 import { HttpError } from '../../models/Error';
 import { VERSION } from '../../util/secrets';
-import '../../config/passport';
 
 /**
  * @swagger

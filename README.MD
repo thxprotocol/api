@@ -37,6 +37,9 @@ RPC=http://ganache:8545
 ## 3. Running
 
 ```
+# Generate keys
+node ./scripts/generateKeys.js
+
 # Start all containers
 docker-compose up
 

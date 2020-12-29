@@ -12,17 +12,15 @@ export type AccountDocument = mongoose.Document & {
     privateKey: string;
     tokens: AuthToken[];
     profile: {
-        firstName: string;
-        lastName: string;
-        gender: string;
-        location: string;
+        // firstName: string;
+        // lastName: string;
+        // gender: string;
+        // location: string;
         picture: string;
         burnProofs: string[];
         assetPools: string[];
     };
-
     comparePassword: comparePasswordFunction;
-    gravatar: (size: number) => string;
 };
 
 type comparePasswordFunction = (candidatePassword: string, cb: (err: any, isMatch: any) => {}) => void;
@@ -42,10 +40,10 @@ const accountSchema = new mongoose.Schema(
         privateKey: String,
         tokens: Array,
         profile: {
-            firstName: String,
-            lastName: String,
-            gender: String,
-            location: String,
+            // firstName: String,
+            // lastName: String,
+            // gender: String,
+            // location: String,
             picture: String,
             burnProofs: Array,
             assetPools: Array,
@@ -93,16 +91,5 @@ const comparePassword: comparePasswordFunction = function (candidatePassword, cb
 };
 
 accountSchema.methods.comparePassword = comparePassword;
-
-/**
- * Helper method for getting user's gravatar.
- */
-accountSchema.methods.gravatar = function (size: number = 200) {
-    if (!this.email) {
-        return `https://gravatar.com/avatar/?s=${size}&d=retro`;
-    }
-    const md5 = crypto.createHash('md5').update(this.email).digest('hex');
-    return `https://gravatar.com/avatar/${md5}?s=${size}&d=retro`;
-};
 
 export const Account = mongoose.model<AccountDocument>('Account', accountSchema);

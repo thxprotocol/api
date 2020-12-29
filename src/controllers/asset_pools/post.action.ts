@@ -44,17 +44,21 @@ import { HttpError } from '../../models/Error';
  */
 export const postAssetPool = async (req: Request, res: Response, next: NextFunction) => {
     try {
+        const audience = (req.user as any).aud;
         const assetPool = await assetPoolFactory.deploy(admin.address, GAS_STATION_ADDRESS, req.body.token);
 
         try {
             await new AssetPool({
                 address: assetPool.address,
                 title: req.body.title,
-                uid: req.session.passport.user,
+                audience: audience,
             }).save();
 
             try {
-                const account: AccountDocument = await Account.findById((req.user as AccountDocument).id);
+                // We should get this information from the mongo adapter that manages
+                // oidc client connections
+                // const client: Client = await Client.findByAudience(audience);
+                const account: AccountDocument = await Account.findById(audience);
 
                 if (!account.profile.assetPools.includes(assetPool.address)) {
                     account.profile.assetPools.push(assetPool.address);

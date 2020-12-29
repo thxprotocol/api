@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en" class="h-100">
+
+<head>
+    <meta charset="UTF-8">
+    <title>THX | Identity Provider</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.5.2/css/bootstrap.min.css">
+</head>
+
+<body class="d-flex w-100 h-100 bg-light align-items-center justify-content-center">
+    <main class="card card-white">
+        <div class="card-body">
+            <h1 class="h2 text-center mb-3"><%= title %></h1>
+            <% if (flash) { %>
+            <div class="alert alert-warning"><%= flash %></div>
+            <% } %>
+            <form autocomplete="off" action="/interaction/<%= uid %>/login" method="post">
+            
+                <div class="form-group">
+                    <input class="form-control" required type="email" name="email" placeholder="Enter an email" <% if (!params.login_hint) { %>autofocus="on"<% } else { %> value="<%= params.login_hint %>" <% } %>>
+                </div>
+                <div class="form-group">
+                    <input class="form-control"  required type="password" name="password" placeholder="and password" <% if (params.login_hint) { %>autofocus="on"<% } %>>
+                </div>
+                <button type="submit" class="btn btn-primary btn-block">Sign-in</button>
+            </form>
+            <div class="login-help">
+                <a class="btn btn-block btn-link" href="/interaction/<%= uid %>/abort">Cancel</a>
+                <% if (client.tosUri) { %>
+                    <a href="<%= client.tosUri %>">[ Terms of Service ]</a>
+                <% } %>
+                <% if (client.policyUri) { %>
+                    <a href="<%= client.policyUri %>">[ Privacy Policy ]</a>
+                <% } %>
+            </div>
+        </div>
+    </main>
+</body>
+
+</html>

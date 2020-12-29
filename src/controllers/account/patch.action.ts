@@ -4,7 +4,6 @@ import { validationResult } from 'express-validator';
 import { ethers } from 'ethers';
 import { HttpError } from '../../models/Error';
 import { VERSION } from '../../util/secrets';
-import '../../config/passport';
 
 /**
  * @swagger
@@ -73,13 +72,9 @@ import '../../config/passport';
  *
  */
 export const patchAccount = async (req: Request, res: Response, next: NextFunction) => {
-    const errors = validationResult(req);
+    const sub = (req.user as any).sub;
 
-    if (!errors.isEmpty()) {
-        return res.status(400).json(errors.array()).end();
-    }
-
-    Account.findById((req.user as AccountDocument).id, (err, account: AccountDocument) => {
+    Account.findById(sub, (err, account: AccountDocument) => {
         if (err) {
             next(new HttpError(502, 'Account find failed.', err));
             return;

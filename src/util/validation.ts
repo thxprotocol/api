@@ -1,4 +1,4 @@
-import { AccountDocument } from '../models/Account';
+import { Account, AccountDocument } from '../models/Account';
 import { body, header, validationResult } from 'express-validator';
 import { Response, Request, NextFunction } from 'express';
 import { HttpError } from '../models/Error';
@@ -19,10 +19,13 @@ export const validate = (validations: any) => {
 
 export const validateAssetPoolHeader = header('AssetPool')
     .exists()
-    .custom((address, { req }) => {
-        if (!(req.user as AccountDocument).profile.assetPools.includes(address)) {
-            throw new HttpError(403, 'Access for this reward pool is not allowed.');
+    .custom(async (address, { req }) => {
+        const account: AccountDocument = await Account.findById(req.user.sub);
+
+        if (!account.profile.assetPools.includes(address)) {
+            throw new HttpError(403, 'Forbidden to access this asset pool.');
         }
+
         return true;
     });
 
