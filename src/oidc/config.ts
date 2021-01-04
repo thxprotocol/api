@@ -1,20 +1,19 @@
 import { Account } from '../models/Account';
 import { AccountDocument } from '../models/Account';
 import jwks from '../jwks.json';
+import adapter from './adapter';
 
 // Configuration defaults:
 // https://github.com/panva/node-oidc-provider/blob/master/lib/helpers/defaults.js
 export default {
     debug: true,
+    adapter,
     async findAccount(ctx: any, id: string) {
         const account: AccountDocument = await Account.findById(id);
 
         return {
             accountId: id,
             async claims(use: any, scope: any, claims: any, rejected: any) {
-                console.log(scope);
-                console.log(claims);
-                console.log(use);
                 return {
                     sub: id,
                     email: account.email,
@@ -75,6 +74,8 @@ export default {
         </body>
         </html>`;
     },
+    // TODO
+    // https://github.com/panva/node-oidc-provider/blob/master/docs/README.md#featuresrpinitiatedlogout
     async logoutSource(ctx: any, form: any) {
         ctx.body = `<!DOCTYPE html>
         <head>

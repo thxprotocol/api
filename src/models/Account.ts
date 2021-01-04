@@ -1,7 +1,8 @@
 import bcrypt from 'bcrypt-nodejs';
-import crypto from 'crypto';
 import mongoose from 'mongoose';
 import { encryptString } from '../util/encrypt';
+
+type comparePasswordFunction = (candidatePassword: string, cb: (err: any, isMatch: any) => {}) => void;
 
 export type AccountDocument = mongoose.Document & {
     email: string;
@@ -22,8 +23,6 @@ export type AccountDocument = mongoose.Document & {
     };
     comparePassword: comparePasswordFunction;
 };
-
-type comparePasswordFunction = (candidatePassword: string, cb: (err: any, isMatch: any) => {}) => void;
 
 export interface AuthToken {
     accessToken: string;

@@ -39,17 +39,6 @@ app.use(
 app.use(compression());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
-app.use(
-    session({
-        resave: true,
-        saveUninitialized: true,
-        secret: SESSION_SECRET,
-        store: new MongoStore({
-            url: MONGODB_URI,
-            autoReconnect: true,
-        }),
-    }),
-);
 app.use(lusca.xframe('SAMEORIGIN'));
 app.use(lusca.xssProtection(true));
 app.use(express.static(path.join(__dirname, 'public'), { maxAge: 31557600000 }));

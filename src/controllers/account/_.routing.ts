@@ -6,18 +6,29 @@ import { getAccount } from './get.action';
 import { patchAccount } from './patch.action';
 import { deleteAccount } from './delete.action';
 import { putPassword } from './putPassword.action';
+import checkScope from 'express-jwt-authz';
 
 const router = express.Router();
 
 /*
  * OAuth2 Scopes:
- * - admin.asset_pool:read
- * - admin.asset_pool:write
- * - user.asset_pool:read
+ * - admin.account:read
+ * - admin.account:write
+ * - user.me:read
+ * - user.me:write
  */
-router.get('/', getAccount);
-router.patch('/', patchAccount);
-router.delete('/', deleteAccount);
-router.post('/password', validate(validations.putPassword), putPassword);
+router.get('/', checkScope(['admin.account:read', 'user.me:read']), getAccount);
+router.patch(
+    '/',
+    checkScope(['admin.account:read', 'user.me:read', 'admin.account:write', 'user.me:write']),
+    patchAccount,
+);
+router.delete('/', checkScope(['admin.asset_pool:read', 'user.me:write']), deleteAccount);
+router.post(
+    '/password',
+    checkScope(['user.asset_pool:read', 'admin.asset_pool:read', 'user.asset_pool:write', 'admin.asset_pool:write']),
+    validate(validations.putPassword),
+    putPassword,
+);
 
 export default router;
