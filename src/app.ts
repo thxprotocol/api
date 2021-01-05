@@ -1,7 +1,6 @@
-import { ORIGIN, VERSION, SESSION_SECRET, MONGODB_URI, ENVIRONMENT } from './util/secrets';
+import { ORIGIN, VERSION, MONGODB_URI, ENVIRONMENT } from './util/secrets';
 import express from 'express';
 import compression from 'compression';
-import session from 'express-session';
 import bodyParser from 'body-parser';
 import lusca from 'lusca';
 import path from 'path';
@@ -9,14 +8,12 @@ import morgan from 'morgan';
 import logger from './util/logger';
 import cors from 'cors';
 import router from './controllers';
-import mongo from 'connect-mongo';
 import db from './util/database';
 import { errorHandler, notFoundHandler } from './util/error';
 import { oidc, router as oidcRouter } from './oidc';
 
 const port = process.env.PORT || 3000;
 const app = express();
-const MongoStore = mongo(session);
 
 db.connect(MONGODB_URI);
 

@@ -1,7 +1,7 @@
-import { Account, AccountDocument } from '../models/Account';
 import { body, header, validationResult } from 'express-validator';
 import { Response, Request, NextFunction } from 'express';
 import { HttpError } from '../models/Error';
+import MongoAdapter from '../oidc/adapter';
 
 export const validate = (validations: any) => {
     return async (req: Request, res: Response, next: NextFunction) => {
@@ -20,12 +20,12 @@ export const validate = (validations: any) => {
 export const validateAssetPoolHeader = header('AssetPool')
     .exists()
     .custom(async (address, { req }) => {
-        const account: AccountDocument = await Account.findById(req.user.sub);
+        const ClientModel = new MongoAdapter('client');
+        const client = await ClientModel.find(req.user.aud);
 
-        if (!account.profile.assetPools.includes(address)) {
+        if (!client.assetPools || !client.assetPools.includes(address)) {
             throw new HttpError(403, 'Forbidden to access this asset pool.');
         }
-
         return true;
     });
 

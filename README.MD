@@ -26,7 +26,6 @@ This repository holds the source for the THX REST API.
 PRIVATE_KEY=0x873c254263b17925b686f971d7724267710895f1585bb0533db8e693a2af32ff
 GAS_STATION_ADDRESS=0x278ff6d33826d906070ee938cdc9788003749e93
 MONGODB_URI=mongodb://root:root@mongo:27017/admin
-SESSION_SECRET=uoifubjhjfknbdkjhiluaerhrgja
 PORT=3000
 ORIGIN=https://localhost:8080
 RPC=http://ganache:8545

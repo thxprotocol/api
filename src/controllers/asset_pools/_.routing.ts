@@ -5,28 +5,19 @@ import { validations } from './_.validation';
 import { getAssetPool } from './get.action';
 import { postAssetPool } from './post.action';
 import { patchAssetPool } from './patch.action';
-import jwtAuthz from 'express-jwt-authz';
+import checkJwt from 'express-jwt-authz';
 
 const router = express.Router();
 
 /*
  * OAuth2 Scopes:
+ * - admin
  * - admin.asset_pool:read
  * - admin.asset_pool:write
  * - user.asset_pool:read
  */
-router.post('/', jwtAuthz(['admin.asset_pool:write']), validate(validations.postAssetPool), postAssetPool);
-router.get(
-    '/:address',
-    jwtAuthz(['user.asset_pool:read', 'admin.asset_pool:read']),
-    validate(validations.getAssetPool),
-    getAssetPool,
-);
-router.patch(
-    '/:address',
-    jwtAuthz(['admin.asset_pool:read', 'admin.asset_pool:write']),
-    validate(validations.patchAssetPool),
-    patchAssetPool,
-);
+router.post('/', checkJwt(['admin']), validate(validations.postAssetPool), postAssetPool);
+router.get('/:address', checkJwt(['admin']), validate(validations.getAssetPool), getAssetPool);
+router.patch('/:address', checkJwt(['admin']), validate(validations.patchAssetPool), patchAssetPool);
 
 export default router;

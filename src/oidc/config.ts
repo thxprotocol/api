@@ -1,13 +1,20 @@
 import { Account } from '../models/Account';
 import { AccountDocument } from '../models/Account';
 import jwks from '../jwks.json';
-import adapter from './adapter';
+import MongoAdapter from './adapter';
+
+(async () => {
+    await MongoAdapter.connect();
+})().catch((err) => {
+    console.error(err);
+    process.exitCode = 1;
+});
 
 // Configuration defaults:
 // https://github.com/panva/node-oidc-provider/blob/master/lib/helpers/defaults.js
 export default {
     debug: true,
-    adapter,
+    adapter: MongoAdapter,
     async findAccount(ctx: any, id: string) {
         const account: AccountDocument = await Account.findById(id);
 
@@ -27,32 +34,21 @@ export default {
     },
     claims: {
         openid: ['sub'],
+        admin: ['admin'],
+        user: ['user'],
         email: ['email'],
         address: ['address'],
         privateKey: ['privateKey'],
         profile: ['assetPools', 'burnProofs'],
-        asset_pools: ['read:asset_pools', 'write:asset_pools'],
+    },
+    ttl: {
+        AccessToken: 1 * 60 * 60, // 1 hour in seconds
+        AuthorizationCode: 10 * 60, // 10 minutes in seconds
+        IdToken: 1 * 60 * 60, // 1 hour in seconds
+        DeviceCode: 10 * 60, // 10 minutes in seconds
+        RefreshToken: 1 * 24 * 60 * 60, // 1 day in seconds
     },
     jwks,
-    clients: [
-        {
-            application_type: 'web',
-            client_id: 'dev.wallet.thx',
-            client_secret: 'mellon',
-            grant_types: ['authorization_code'],
-            response_types: ['code'],
-            redirect_uris: ['https://localhost:8080/signin-oidc'],
-            post_logout_redirect_uris: ['https://localhost:8080'],
-        },
-        {
-            application_type: 'web',
-            client_id: 'dev.opensocial.sparkblue',
-            client_secret: 'mellon',
-            grant_types: ['client_credentials'],
-            redirect_uris: [],
-            response_types: [],
-        },
-    ],
     formats: {
         AccessToken: 'jwt',
         ClientCredentials: 'jwt',
@@ -74,8 +70,7 @@ export default {
         </body>
         </html>`;
     },
-    // TODO
-    // https://github.com/panva/node-oidc-provider/blob/master/docs/README.md#featuresrpinitiatedlogout
+    // TODO https://github.com/panva/node-oidc-provider/blob/master/docs/README.md#featuresrpinitiatedlogout
     async logoutSource(ctx: any, form: any) {
         ctx.body = `<!DOCTYPE html>
         <head>
@@ -103,5 +98,6 @@ export default {
         clientCredentials: { enabled: true },
         encryption: { enabled: true },
         introspection: { enabled: true },
+        registration: { enabled: true },
     },
 };

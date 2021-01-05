@@ -1,10 +1,10 @@
 import Provider from 'oidc-provider';
 import express, { Request, Response, NextFunction } from 'express';
+import configuration from './config';
 import { set } from 'lodash';
 import { AccountDocument } from '../models/Account';
 import { Account } from '../models/Account';
 import { HttpError } from '../models/Error';
-import configuration from './config';
 
 if (process.env.NODE_ENV === 'production') {
     set(configuration, 'cookies.short.secure', true);
@@ -16,6 +16,7 @@ const router = express.Router();
 
 oidc.proxy = true;
 oidc.keys = process.env.SECURE_KEY.split(',');
+
 oidc.on('server_error', (ctx, error) => {
     console.log(error);
 });
@@ -30,7 +31,7 @@ const { invalidate: orig } = (oidc.Client as any).Schema.prototype;
 
 router.get('/interaction/:uid', async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const { uid, prompt, params, session } = await oidc.interactionDetails(req, res);
+        const { uid, prompt, params } = await oidc.interactionDetails(req, res);
         const client = await oidc.Client.find(params.client_id);
 
         switch (prompt.name) {
@@ -91,7 +92,6 @@ router.post('/interaction/:uid/login', async (req: Request, res: Response, next:
                 }
 
                 const result = {
-                    select_account: {}, // make sure its skipped by the interaction policy since we just logged in
                     login: {
                         account: account._id.toString(),
                     },
