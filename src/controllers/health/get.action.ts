@@ -60,21 +60,6 @@ export const getHealth = async (req: Request, res: Response, next: NextFunction)
         const bignumber = await provider.getBalance(address);
         const number = ethers.utils.formatEther(bignumber);
 
-        if (Number(number) < 1 && RPC.includes('mumbai')) {
-            try {
-                const res = await axios.post('https://api.faucet.matic.network/getTokens', {
-                    address,
-                    network: 'mumbai',
-                    token: 'maticToken',
-                });
-
-                if (res.data.hash) {
-                    logger.info('MATIC requested from faucet: ', res.data);
-                }
-            } catch (error) {
-                next(new HttpError(502, 'Matic getTokens failed', error));
-            }
-        }
         res.json({
             name: `${name} (${VERSION})`,
             version: version,
