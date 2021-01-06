@@ -5,12 +5,13 @@ import { getMember } from './get.action';
 import { postMember } from './post.action';
 import { patchMember } from './patch.action';
 import { deleteMember } from './delete.action';
+import checkScopes from 'express-jwt-authz';
 
 const router = express.Router();
 
-router.post('/', validate(validations.postMember), postMember);
-router.patch('/:address', validate(validations.patchMember), patchMember);
-router.delete('/:address', validate(validations.deleteMember), deleteMember);
-router.get('/:address', validate(validations.getMember), getMember);
+router.post('/', checkScopes(['admin']), validate(validations.postMember), postMember);
+router.patch('/:address', checkScopes(['admin']), validate(validations.patchMember), patchMember);
+router.delete('/:address', checkScopes(['admin']), validate(validations.deleteMember), deleteMember);
+router.get('/:address', checkScopes(['admin', 'user']), validate(validations.getMember), getMember);
 
 export default router;

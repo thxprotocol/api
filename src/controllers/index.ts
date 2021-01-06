@@ -11,7 +11,6 @@ import membersRouter from './members/_.routing';
 import rewardsRouter from './rewards/_.routing';
 import pollsRouter from './polls/_.routing';
 import withdrawalsRouter from './withdrawals/_.routing';
-import { Request, Response, NextFunction } from 'express';
 
 const checkJwt = jwt({
     secret: jwksRsa.expressJwtSecret({

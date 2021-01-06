@@ -20,14 +20,6 @@ import { HttpError } from '../../models/Error';
  *         in: body
  *         required: true
  *         type: string
- *       - name: password
- *         in: body
- *         required: true
- *         type: string
- *       - name: confirmPassword
- *         in: body
- *         required: true
- *         type: string
  *     responses:
  *       '200':
  *         description: OK

@@ -23,8 +23,11 @@ app.set('views', path.join(__dirname, '../../src/views'));
 app.set('port', port);
 app.use(
     cors({
-        credentials: true,
-        origin: ORIGIN,
+        credentials: false,
+        origin: (ctx: any) => {
+            console.log(ctx);
+            return ORIGIN;
+        },
     }),
 );
 app.use(

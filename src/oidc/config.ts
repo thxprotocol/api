@@ -20,7 +20,7 @@ export default {
 
         return {
             accountId: id,
-            async claims(use: any, scope: any, claims: any, rejected: any) {
+            async claims() {
                 return {
                     sub: id,
                     email: account.email,
@@ -52,6 +52,12 @@ export default {
     formats: {
         AccessToken: 'jwt',
         ClientCredentials: 'jwt',
+    },
+    clientBasedCORS(ctx: any, origin: any, client: any) {
+        console.log('CTX', ctx);
+        console.log('origin', origin);
+        console.log('client', client);
+        return true;
     },
     interactions: {
         url(ctx: any) {
