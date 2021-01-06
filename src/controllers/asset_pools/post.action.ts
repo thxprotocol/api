@@ -1,9 +1,9 @@
 import { admin, assetPoolFactory } from '../../util/network';
 import { AssetPool } from '../../models/AssetPool';
-import { Account, AccountDocument } from '../../models/Account';
 import { Request, Response, NextFunction } from 'express';
 import { GAS_STATION_ADDRESS } from '../../util/secrets';
 import { HttpError } from '../../models/Error';
+import MongoAdapter from '../../oidc/adapter';
 
 /**
  * @swagger
@@ -51,23 +51,24 @@ export const postAssetPool = async (req: Request, res: Response, next: NextFunct
             await new AssetPool({
                 address: assetPool.address,
                 title: req.body.title,
-                audience: audience,
+                client: audience,
             }).save();
 
             try {
-                // We should get this information from the mongo adapter that manages
-                // oidc client connections
-                // const client: Client = await Client.findByAudience(audience);
-                const account: AccountDocument = await Account.findById(audience);
+                const Client = new MongoAdapter('client');
+                const payload = await Client.find(audience);
 
-                if (!account.profile.assetPools.includes(assetPool.address)) {
-                    account.profile.assetPools.push(assetPool.address);
-                    await account.save();
+                if (payload.assetPools) {
+                    payload.assetPools.push(assetPool.address);
+                } else {
+                    payload.assetPools = [assetPool.address];
                 }
+
+                await Client.coll().updateOne({ _id: audience }, { $set: { payload } }, { upsert: false });
 
                 res.status(201).json({ address: assetPool.address });
             } catch (error) {
-                next(new HttpError(502, 'Account account update failed.', error));
+                next(new HttpError(502, 'Client account update failed.', error));
             }
         } catch (error) {
             next(new HttpError(502, 'Asset Pool database save failed.', error));

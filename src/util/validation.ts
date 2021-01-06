@@ -20,10 +20,10 @@ export const validate = (validations: any) => {
 export const validateAssetPoolHeader = header('AssetPool')
     .exists()
     .custom(async (address, { req }) => {
-        const ClientModel = new MongoAdapter('client');
-        const client = await ClientModel.find(req.user.aud);
+        const Client = new MongoAdapter('client');
+        const payload = await Client.find(req.user.aud);
 
-        if (!client.assetPools || !client.assetPools.includes(address)) {
+        if (!payload.assetPools || !payload.assetPools.includes(address)) {
             throw new HttpError(403, 'Forbidden to access this asset pool.');
         }
         return true;
