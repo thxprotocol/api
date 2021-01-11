@@ -1,5 +1,3 @@
-HARDHAT_NETWORK = 'mumbai';
-
 const hre = require('hardhat');
 const ethers = hre.ethers;
 const { utils } = require('ethers/lib');
@@ -131,9 +129,11 @@ async function main() {
             all.push(elem);
         }
     }
-    const { address } = await AssetPoolFactory.deploy(diamondCut);
+    const diamond = await AssetPoolFactory.deploy(diamondCut);
 
-    console.log('Diamond Address:', address);
+    await diamond.deployed();
+
+    console.log('Diamond Address:', diamond.address);
 }
 
 main()

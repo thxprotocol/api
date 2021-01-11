@@ -1,9 +1,6 @@
 import Web3 from 'web3';
-import { Artifact } from '../../../src/util/network';
 import { PRIVATE_KEY, RPC } from '../../../src/util/secrets';
 import { VOTER_PK } from './constants';
-import * as TestToken from '../../../src/artifacts/THXToken.json';
-import * as GasStation from '../../../src/artifacts/GasStation.json';
 import { ethers } from 'ethers';
 
 const TEST_TOKEN: Artifact = TestToken;

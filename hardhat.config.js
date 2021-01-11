@@ -1,16 +1,21 @@
+require('dotenv').config({ path: process.env.NODE_ENV === 'test' ? '.env.test' : '.env' });
 require('@nomiclabs/hardhat-waffle');
 require('@nomiclabs/hardhat-web3');
 
-const dotenv = require('dotenv');
-
-dotenv.config({ path: process.env.NODE_ENV === 'test' ? '.env.test' : '.env' });
-
 module.exports = {
-    defaultNetwork: 'mumbai',
+    defaultNetwork: 'default',
     networks: {
-        mumbai: {
-            url: 'https://rpc-mumbai.matic.today',
+        default: {
+            url: process.env.RPC,
             accounts: [process.env.PRIVATE_KEY],
+        },
+        hardhat: {
+            accounts: [
+                {
+                    privateKey: process.env.PRIVATE_KEY,
+                    balance: '1000000000000000000000000000000000000000',
+                },
+            ],
         },
     },
     paths: {
