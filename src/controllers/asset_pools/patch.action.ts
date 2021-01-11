@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { assetPoolContract } from '../../util/network';
+import { solutionContract } from '../../util/network';
 import { VERSION } from '../../util/secrets';
 import { HttpError } from '../../models/Error';
 
@@ -46,10 +46,11 @@ import { HttpError } from '../../models/Error';
  *         description: Bad Gateway. Received an invalid response from the network or database.
  */
 export const patchAssetPool = async (req: Request, res: Response, next: NextFunction) => {
-    const instance = assetPoolContract(req.header('AssetPool'));
+    const instance = solutionContract(req.header('AssetPool'));
+
     if (
         req.body.rewardPollDuration &&
-        (await instance.rewardPollDuration()).toString() !== req.body.rewardPollDuration.toString()
+        (await instance.getRewardPollDuration()).toString() !== req.body.rewardPollDuration.toString()
     ) {
         try {
             await instance.setRewardPollDuration(req.body.rewardPollDuration);
@@ -61,7 +62,7 @@ export const patchAssetPool = async (req: Request, res: Response, next: NextFunc
 
     if (
         req.body.proposeWithdrawPollDuration &&
-        (await instance.proposeWithdrawPollDuration()).toString() !== req.body.proposeWithdrawPollDuration.toString()
+        (await instance.getProposeWithdrawPollDuration()).toString() !== req.body.proposeWithdrawPollDuration.toString()
     ) {
         try {
             await instance.setProposeWithdrawPollDuration(req.body.proposeWithdrawPollDuration);

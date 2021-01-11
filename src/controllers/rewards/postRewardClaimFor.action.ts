@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { assetPoolContract, ASSET_POOL, parseLogs, parseResultLog } from '../../util/network';
+import { solutionContract, ASSET_POOL, parseLogs, parseResultLog } from '../../util/network';
 import { HttpError } from '../../models/Error';
 
 /**
@@ -46,7 +46,7 @@ import { HttpError } from '../../models/Error';
  */
 export const postRewardClaimFor = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const assetPoolInstance = assetPoolContract(req.header('AssetPool'));
+        const assetPoolInstance = solutionContract(req.header('AssetPool'));
         const result = await assetPoolInstance.rewards(req.params.id);
 
         if (!result) {

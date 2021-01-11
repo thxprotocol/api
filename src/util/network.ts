@@ -1,12 +1,15 @@
 import { ethers } from 'ethers';
-import { RPC, PRIVATE_KEY, GAS_STATION_ADDRESS } from '../util/secrets';
-import * as BasePoll from '../artifacts/BasePoll.json';
-import * as WithdrawPoll from '../artifacts/WithdrawPoll.json';
-import * as RewardPoll from '../artifacts/RewardPoll.json';
-import * as AssetPool from '../artifacts/AssetPool.json';
-import * as Erc20 from '../artifacts/ERC20.json';
-import * as GasStation from '../artifacts/GasStation.json';
+import { RPC, PRIVATE_KEY, ASSET_POOL_FACTORY_ADDRESS } from '../util/secrets';
+import AssetPoolFactoryArtifact from '../artifacts/contracts/contracts/factories/AssetPoolFactory.sol/AssetPoolFactory.json';
+import ISolutionArtifact from '../artifacts/contracts/contracts/interfaces/ISolution.sol/ISolution.json';
+import GasStationFacetArtifact from '../artifacts/contracts/contracts/facets/GasStationFacet/GasStation.sol/GasStationFacet.json';
+import ExampleTokenArtifact from '../artifacts/contracts/contracts/ExampleToken.sol/ExampleToken.json';
 
+export const events = async (tx: any) => {
+    tx = await tx;
+    tx = await tx.wait();
+    return tx.events;
+};
 function hex2a(hex: any) {
     var str = '';
     for (var i = 0; i < hex.length; i += 2) {
@@ -20,35 +23,14 @@ function hex2a(hex: any) {
     return str.trim();
 }
 
-export interface Artifact {
-    abi: any;
-    bytecode: any;
-}
-export const BASE_POLL: Artifact = BasePoll;
-export const WITHDRAW_POLL: Artifact = WithdrawPoll;
-export const REWARD_POLL: Artifact = RewardPoll;
-export const ASSET_POOL: Artifact = AssetPool;
-export const ERC20: Artifact = Erc20;
-export const GAS_STATION: Artifact = GasStation;
-
 export const provider = new ethers.providers.JsonRpcProvider(RPC);
 export const admin = new ethers.Wallet(PRIVATE_KEY, provider);
-export const gasStation = new ethers.Contract(GAS_STATION_ADDRESS, GAS_STATION.abi, admin);
-export const assetPoolFactory = new ethers.ContractFactory(ASSET_POOL.abi, ASSET_POOL.bytecode, admin);
-export const basePollContract = (address: string = null) => {
-    return new ethers.Contract(address, BASE_POLL.abi, admin);
-};
-export const rewardPollContract = (address: string = null) => {
-    return new ethers.Contract(address, REWARD_POLL.abi, admin);
-};
-export const withdrawPollContract = (address: string = null) => {
-    return new ethers.Contract(address, WITHDRAW_POLL.abi, admin);
-};
-export const assetPoolContract = (address: string = null) => {
-    return new ethers.Contract(address, ASSET_POOL.abi, admin);
+export const assetPoolFactory = new ethers.Contract(ASSET_POOL_FACTORY_ADDRESS, AssetPoolFactoryArtifact.abi, admin);
+export const solutionContract = (address: string = null) => {
+    return new ethers.Contract(address, ISolutionArtifact.abi, admin);
 };
 export const tokenContract = (address: string = null) => {
-    return new ethers.Contract(address, ERC20.abi, admin);
+    return new ethers.Contract(address, ExampleTokenArtifact.abi, admin);
 };
 export function parseLogs(abi: any, logs: any = []) {
     return logs.map((log: any) => {
@@ -59,7 +41,7 @@ export function parseLogs(abi: any, logs: any = []) {
     });
 }
 export async function parseResultLog(abi: any, logs: any) {
-    const gasStationInterface = new ethers.utils.Interface(GAS_STATION.abi);
+    const gasStationInterface = new ethers.utils.Interface(GasStationFacetArtifact.abi);
     const event = gasStationInterface.parseLog(logs[logs.length - 1]);
 
     if (event.args.success) {

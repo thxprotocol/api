@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from 'express';
-import { assetPoolContract } from '../../util/network';
+import { solutionContract } from '../../util/network';
 import { HttpError } from '../../models/Error';
 import { VERSION } from '../../util/secrets';
 
@@ -39,7 +39,7 @@ import { VERSION } from '../../util/secrets';
  */
 export const patchMember = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const instance = assetPoolContract(req.header('AssetPool'));
+        const instance = solutionContract(req.header('AssetPool'));
         const isMember = await instance.isMember(req.params.address);
 
         if (!isMember) {

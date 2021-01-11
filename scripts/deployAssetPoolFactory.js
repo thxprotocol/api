@@ -132,6 +132,7 @@ async function main() {
         }
     }
     const { address } = await AssetPoolFactory.deploy(diamondCut);
+
     console.log('Diamond Address:', address);
 }
 

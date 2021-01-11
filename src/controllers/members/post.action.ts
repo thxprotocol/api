@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from 'express';
-import { assetPoolContract, ASSET_POOL, parseLogs } from '../../util/network';
+import { solutionContract, ASSET_POOL, parseLogs } from '../../util/network';
 import { HttpError } from '../../models/Error';
 import { VERSION } from '../../util/secrets';
 
@@ -41,7 +41,7 @@ import { VERSION } from '../../util/secrets';
  *         description: Bad Gateway. Received an invalid response from the network or database.
  */
 export const postMember = async (req: Request, res: Response, next: NextFunction) => {
-    const instance = assetPoolContract(req.header('AssetPool'));
+    const instance = solutionContract(req.header('AssetPool'));
 
     try {
         const result = await instance.isMember(req.body.address);

@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { assetPoolContract, ASSET_POOL, parseLogs, parseResultLog } from '../../util/network';
+import { solutionContract, ASSET_POOL, parseLogs, parseResultLog } from '../../util/network';
 import { Reward } from '../../models/Reward';
 import { HttpError } from '../../models/Error';
 import { VERSION } from '../../util/secrets';
@@ -55,7 +55,7 @@ import { VERSION } from '../../util/secrets';
  */
 export const postReward = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const poolInstance = assetPoolContract(req.header('AssetPool'));
+        const poolInstance = solutionContract(req.header('AssetPool'));
         const tx = await (await poolInstance.addReward(req.body.withdrawAmount, req.body.withdrawDuration)).wait();
 
         try {

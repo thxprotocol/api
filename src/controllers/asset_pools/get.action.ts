@@ -1,6 +1,6 @@
 import { AssetPool, AssetPoolDocument } from '../../models/AssetPool';
 import { Request, Response, NextFunction } from 'express';
-import { assetPoolContract, tokenContract } from '../../util/network';
+import { solutionContract, tokenContract } from '../../util/network';
 import { HttpError } from '../../models/Error';
 
 /**
@@ -58,14 +58,14 @@ import { HttpError } from '../../models/Error';
  */
 export const getAssetPool = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const assetPoolInstance = assetPoolContract(req.params.address);
-        const tokenAddress = await assetPoolInstance.token();
-        const owner = await assetPoolInstance.owner();
+        const assetPoolInstance = solutionContract(req.params.address);
+        const tokenAddress = await assetPoolInstance.getToken();
+        const owner = await assetPoolInstance.getOwner();
 
         try {
             const tokenInstance = tokenContract(tokenAddress);
-            const proposeWithdrawPollDuration = (await assetPoolInstance.proposeWithdrawPollDuration()).toNumber();
-            const rewardPollDuration = (await assetPoolInstance.rewardPollDuration()).toNumber();
+            const proposeWithdrawPollDuration = (await assetPoolInstance.getProposeWithdrawPollDuration()).toNumber();
+            const rewardPollDuration = (await assetPoolInstance.getRewardPollDuration()).toNumber();
             const contractData = {
                 owner,
                 token: {

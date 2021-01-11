@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from 'express';
-import { assetPoolContract, tokenContract } from '../../util/network';
+import { solutionContract, tokenContract } from '../../util/network';
 import { HttpError } from '../../models/Error';
 
 /**
@@ -60,7 +60,7 @@ import { HttpError } from '../../models/Error';
  */
 export const getMember = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const assetPoolInstance = assetPoolContract(req.header('AssetPool'));
+        const assetPoolInstance = solutionContract(req.header('AssetPool'));
         const isMember = await assetPoolInstance.isMember(req.params.address);
 
         if (!isMember) {

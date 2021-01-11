@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { assetPoolContract } from '../../util/network';
+import { solutionContract } from '../../util/network';
 import { Reward } from '../../models/Reward';
 import { HttpError } from '../../models/Error';
 import qrcode from 'qrcode';
@@ -78,7 +78,7 @@ export const patchReward = async (req: Request, res: Response, next: NextFunctio
                 }
 
                 try {
-                    const instance = assetPoolContract(req.header('AssetPool'));
+                    const instance = solutionContract(req.header('AssetPool'));
                     let { withdrawAmount, withdrawDuration } = await instance.rewards(req.params.id);
 
                     if (req.body.withdrawAmount && withdrawAmount !== req.body.withdrawAmount) {

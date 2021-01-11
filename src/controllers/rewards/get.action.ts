@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { assetPoolContract, rewardPollContract } from '../../util/network';
+import { solutionContract, rewardPollContract } from '../../util/network';
 import { Reward, RewardDocument } from '../../models/Reward';
 import { ethers } from 'ethers';
 import { HttpError } from '../../models/Error';
@@ -80,7 +80,7 @@ export const getReward = async (req: Request, res: Response, next: NextFunction)
         const metaData = await Reward.findOne({ id: req.params.id });
 
         try {
-            const instance = assetPoolContract(req.header('AssetPool'));
+            const instance = solutionContract(req.header('AssetPool'));
             const { id, withdrawAmount, withdrawDuration, state, poll } = await instance.rewards(req.params.id);
             const pollInstance = rewardPollContract(poll);
 

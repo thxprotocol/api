@@ -1,11 +1,13 @@
 import { Response, Request, NextFunction } from 'express';
 import { VERSION } from '../../util/secrets';
 import { HttpError } from '../../models/Error';
-import { ASSET_POOL, gasStation, parseResultLog } from '../../util/network';
+import { solutionContract, parseResultLog } from '../../util/network';
 
 export const postCallAssetPool = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        await (await gasStation.call(req.body.call, req.body.contractAddress, req.body.nonce, req.body.sig)).wait();
+        const solution = solutionContract(req.header('AssetPool'));
+
+        await (await solution.call(req.body.call, req.body.contractAddress, req.body.nonce, req.body.sig)).wait();
 
         res.redirect(`/${VERSION}/${req.body.redirect}`);
     } catch (err) {
@@ -15,8 +17,9 @@ export const postCallAssetPool = async (req: Request, res: Response, next: NextF
 
 export const postAssetPoolClaimReward = async (req: Request, res: Response, next: NextFunction) => {
     try {
+        const solution = solutionContract(req.header('AssetPool'));
         const tx = await (
-            await gasStation.call(req.body.call, req.body.contractAddress, req.body.nonce, req.body.sig)
+            await solution.call(req.body.call, req.body.contractAddress, req.body.nonce, req.body.sig)
         ).wait();
 
         try {
@@ -41,8 +44,9 @@ export const postAssetPoolClaimReward = async (req: Request, res: Response, next
 
 export const postCallAssetPoolProposeWithdraw = async (req: Request, res: Response, next: NextFunction) => {
     try {
+        const solution = solutionContract(req.header('AssetPool'));
         const tx = await (
-            await gasStation.call(req.body.call, req.body.contractAddress, req.body.nonce, req.body.sig)
+            await solution.call(req.body.call, req.body.contractAddress, req.body.nonce, req.body.sig)
         ).wait();
 
         try {

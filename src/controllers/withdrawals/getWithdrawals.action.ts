@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from 'express';
-import { assetPoolContract } from '../../util/network';
+import { solutionContract } from '../../util/network';
 import { HttpError } from '../../models/Error';
 
 /**
@@ -37,7 +37,7 @@ import { HttpError } from '../../models/Error';
  */
 export const getWithdrawals = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const instance = assetPoolContract(req.header('AssetPool'));
+        const instance = solutionContract(req.header('AssetPool'));
         const filter = instance.filters.WithdrawPollCreated(req.query.member, null);
         const logs = await instance.queryFilter(filter, 0, 'latest');
 

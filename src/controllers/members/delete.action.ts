@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from 'express';
-import { assetPoolContract } from '../../util/network';
+import { solutionContract } from '../../util/network';
 import { HttpError } from '../../models/Error';
 
 /**
@@ -36,7 +36,7 @@ import { HttpError } from '../../models/Error';
  */
 export const deleteMember = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const instance = assetPoolContract(req.header('AssetPool'));
+        const instance = solutionContract(req.header('AssetPool'));
 
         await instance.removeMember(req.params.address);
 
