@@ -94,4 +94,5 @@ jobs:
                    --deployment-config-name CodeDeployDefault.OneAtATime \
                    --deployment-group-name ${{ matrix.deploy-group }} \
                    --file-exists-behavior OVERWRITE \
+                   --ignore-application-stop-failures
                    --s3-location bucket=${{ matrix.s3-bucket }},key=${{ matrix.s3-filename }}.zip,bundleType=zip \
