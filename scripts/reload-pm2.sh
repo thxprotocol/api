@@ -1,2 +1,2 @@
 #!/bin/bash
-pm2 startOrReload ecosystem.config.js --update-env
+pm2 kill && pm2 start ecosystem.config.js --update-env
