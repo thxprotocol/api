@@ -1,7 +1,4 @@
 import qrcode from 'qrcode';
-import logger from '../../util/logger';
-import { basePollContract, gasStation } from '../../util/network';
-import { validationResult } from 'express-validator';
 import { HttpError } from '../../models/Error';
 import { NextFunction, Request, Response } from 'express';
 

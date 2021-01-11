@@ -20,8 +20,8 @@ module.exports = {
     },
     paths: {
         sources: './contracts/contracts',
-        tests: './contracts/test',
-        cache: './contracts/cache',
+        tests: './test',
+        cache: './cache',
         artifacts: './src/artifacts',
     },
     solidity: '0.7.4',

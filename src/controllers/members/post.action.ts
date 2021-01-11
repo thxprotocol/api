@@ -1,7 +1,8 @@
 import { NextFunction, Request, Response } from 'express';
-import { solutionContract, ASSET_POOL, parseLogs } from '../../util/network';
+import { solutionContract, parseLogs } from '../../util/network';
 import { HttpError } from '../../models/Error';
 import { VERSION } from '../../util/secrets';
+import ISolutionArtifact from '../../../src/artifacts/contracts/contracts/interfaces/ISolution.sol/ISolution.json';
 
 /**
  * @swagger
@@ -55,7 +56,7 @@ export const postMember = async (req: Request, res: Response, next: NextFunction
             const tx = await (await instance.addMember(req.body.address)).wait();
 
             try {
-                const events = await parseLogs(ASSET_POOL.abi, tx.logs);
+                const events = await parseLogs(ISolutionArtifact.abi, tx.logs);
                 const event = events.filter((e: { name: string }) => e && e.name === 'RoleGranted')[0];
                 const address = event.args.account;
 

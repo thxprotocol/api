@@ -1,5 +1,5 @@
 import qrcode from 'qrcode';
-import { basePollContract } from '../../util/network';
+import { solutionContract } from '../../util/network';
 import { HttpError } from '../../models/Error';
 import { NextFunction, Request, Response } from 'express';
 
@@ -71,7 +71,7 @@ import { NextFunction, Request, Response } from 'express';
  */
 export const getPoll = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const poll = basePollContract(req.params.address);
+        const poll = solutionContract(req.params.address);
         const startTime = await poll.startTime();
         const endTime = await poll.endTime();
 

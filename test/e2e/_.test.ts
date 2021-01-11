@@ -21,7 +21,7 @@ afterAll(async () => {
 });
 
 require('./api.ts');
-require('./auth.ts');
-require('./roles.ts');
-require('./encrypt.ts');
-require('./gasStation.ts');
+// require('./auth.ts');
+// require('./roles.ts');
+// require('./encrypt.ts');
+// require('./gasStation.ts');

@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
-import { solutionContract, ASSET_POOL, parseLogs, parseResultLog } from '../../util/network';
+import { solutionContract, parseLogs, parseResultLog } from '../../util/network';
 import { HttpError } from '../../models/Error';
-
+import ISolutionArtifact from '../../../src/artifacts/contracts/contracts/interfaces/ISolution.sol/ISolution.json';
 /**
  * @swagger
  * /rewards/:id/give:
@@ -57,7 +57,7 @@ export const postRewardClaimFor = async (req: Request, res: Response, next: Next
             const tx = await (await assetPoolInstance.claimRewardFor(req.params.id, req.body.member)).wait();
 
             try {
-                const logs = await parseLogs(ASSET_POOL.abi, tx.logs);
+                const logs = await parseLogs(ISolutionArtifact.abi, tx.logs);
                 const event = logs.filter((e: { name: string }) => e && e.name === 'WithdrawPollCreated')[0];
                 const withdrawPoll = event.args.poll;
 

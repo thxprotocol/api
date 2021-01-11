@@ -2,6 +2,7 @@ import { Response, Request, NextFunction } from 'express';
 import { VERSION } from '../../util/secrets';
 import { HttpError } from '../../models/Error';
 import { solutionContract, parseResultLog } from '../../util/network';
+import ISolutionArtifact from '../../../src/artifacts/contracts/contracts/interfaces/ISolution.sol/ISolution.json';
 
 export const postCallAssetPool = async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -23,7 +24,7 @@ export const postAssetPoolClaimReward = async (req: Request, res: Response, next
         ).wait();
 
         try {
-            const { error, logs } = await parseResultLog(ASSET_POOL.abi, tx.logs);
+            const { error, logs } = await parseResultLog(ISolutionArtifact.abi, tx.logs);
 
             if (error) {
                 throw error;
@@ -50,7 +51,7 @@ export const postCallAssetPoolProposeWithdraw = async (req: Request, res: Respon
         ).wait();
 
         try {
-            const { error, logs } = await parseResultLog(ASSET_POOL.abi, tx.logs);
+            const { error, logs } = await parseResultLog(ISolutionArtifact.abi, tx.logs);
 
             if (error) {
                 throw error;

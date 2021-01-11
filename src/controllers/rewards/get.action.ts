@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { solutionContract, rewardPollContract } from '../../util/network';
+import { solutionContract } from '../../util/network';
 import { Reward, RewardDocument } from '../../models/Reward';
 import { ethers } from 'ethers';
 import { HttpError } from '../../models/Error';
@@ -81,8 +81,7 @@ export const getReward = async (req: Request, res: Response, next: NextFunction)
 
         try {
             const instance = solutionContract(req.header('AssetPool'));
-            const { id, withdrawAmount, withdrawDuration, state, poll } = await instance.rewards(req.params.id);
-            const pollInstance = rewardPollContract(poll);
+            const { id, withdrawAmount, withdrawDuration, state, pollId } = await instance.getReward(req.params.id);
 
             const reward = {
                 id: id.toNumber(),
@@ -91,14 +90,7 @@ export const getReward = async (req: Request, res: Response, next: NextFunction)
                 withdrawAmount: withdrawAmount,
                 withdrawDuration: withdrawDuration.toNumber(),
                 state,
-                poll:
-                    ethers.utils.isAddress(poll) && poll !== '0x0000000000000000000000000000000000000000'
-                        ? {
-                              address: poll,
-                              withdrawAmount: await pollInstance.withdrawAmount(),
-                              withdrawDuration: (await pollInstance.withdrawDuration()).toNumber(),
-                          }
-                        : null,
+                pollId,
             } as RewardDocument;
 
             res.json(reward);

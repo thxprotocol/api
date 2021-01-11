@@ -28,7 +28,7 @@ services:
         volumes:
             - ./:/usr/src/service
         working_dir: /usr/src/service
-        command: bash -c "npm install && node ./scripts/deployGasStation.js; node ./scripts/deployTestToken.js; npm run watch-debug"
+        command: bash -c "npm install && node ./scripts/deployAssetPoolFactory.js; node ./scripts/deployTestToken.js; npm run watch-debug"
         depends_on:
             - ganache
             - mongo

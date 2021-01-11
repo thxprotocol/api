@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from 'express';
-import { withdrawPollContract } from '../../util/network';
 import { HttpError } from '../../models/Error';
+import { solutionContract } from '../../util/network';
 
 /**
  * @swagger
@@ -54,7 +54,7 @@ import { HttpError } from '../../models/Error';
  */
 export const getWithdrawal = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const withdrawal = withdrawPollContract(req.params.address);
+        const withdrawal = solutionContract(req.header('AssetPool'));
         const beneficiary = await withdrawal.beneficiary();
         const amount = await withdrawal.amount();
         const state = await withdrawal.getCurrentApprovalState();
