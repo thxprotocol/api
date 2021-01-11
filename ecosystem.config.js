@@ -3,7 +3,6 @@ module.exports = {
         {
             name: 'api',
             script: 'dist/src/server.js',
-            interpreter: 'none',
             env: {
                 NODE_ENV: 'development',
             },
