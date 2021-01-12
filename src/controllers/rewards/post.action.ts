@@ -1,9 +1,10 @@
-import { Request, Response, NextFunction } from 'express';
-import { assetPoolContract, ASSET_POOL, parseLogs, parseResultLog } from '../../util/network';
+import { Response, NextFunction } from 'express';
+import { ISolutionRequest } from '../../util/network';
 import { Reward } from '../../models/Reward';
 import { HttpError } from '../../models/Error';
 import { VERSION } from '../../util/secrets';
-
+import ISolutionArtifact from '../../../src/artifacts/contracts/contracts/interfaces/ISolution.sol/ISolution.json';
+import { parseLogs } from '../../util/events';
 /**
  * @swagger
  * /rewards:
@@ -53,13 +54,12 @@ import { VERSION } from '../../util/secrets';
  *       '502':
  *         description: Bad Gateway. Received an invalid response from the network or database.
  */
-export const postReward = async (req: Request, res: Response, next: NextFunction) => {
+export const postReward = async (req: ISolutionRequest, res: Response, next: NextFunction) => {
     try {
-        const poolInstance = assetPoolContract(req.header('AssetPool'));
-        const tx = await (await poolInstance.addReward(req.body.withdrawAmount, req.body.withdrawDuration)).wait();
+        const tx = await (await req.solution.addReward(req.body.withdrawAmount, req.body.withdrawDuration)).wait();
 
         try {
-            const logs = await parseLogs(ASSET_POOL.abi, tx.logs);
+            const logs = await parseLogs(ISolutionArtifact.abi, tx.logs);
             const event = logs.filter((e: { name: string }) => e && e.name === 'RewardPollCreated')[0];
             const id = parseInt(event.args.id, 10);
 

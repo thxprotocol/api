@@ -1,7 +1,6 @@
-import { Request, Response, NextFunction } from 'express';
-import { assetPoolContract, rewardPollContract } from '../../util/network';
+import { Response, NextFunction } from 'express';
+import { ISolutionRequest } from '../../util/network';
 import { Reward, RewardDocument } from '../../models/Reward';
-import { ethers } from 'ethers';
 import { HttpError } from '../../models/Error';
 
 /**
@@ -75,30 +74,20 @@ import { HttpError } from '../../models/Error';
  *       '502':
  *         description: Bad Gateway. Received an invalid response from the network or database.
  */
-export const getReward = async (req: Request, res: Response, next: NextFunction) => {
+export const getReward = async (req: ISolutionRequest, res: Response, next: NextFunction) => {
     try {
         const metaData = await Reward.findOne({ id: req.params.id });
 
         try {
-            const instance = assetPoolContract(req.header('AssetPool'));
-            const { id, withdrawAmount, withdrawDuration, state, poll } = await instance.rewards(req.params.id);
-            const pollInstance = rewardPollContract(poll);
-
+            const { id, withdrawAmount, withdrawDuration, state, pollId } = await req.solution.getReward(req.params.id);
             const reward = {
                 id: id.toNumber(),
                 title: metaData.title,
                 description: metaData.description,
-                withdrawAmount: withdrawAmount,
+                withdrawAmount: withdrawAmount.toNumber(),
                 withdrawDuration: withdrawDuration.toNumber(),
                 state,
-                poll:
-                    ethers.utils.isAddress(poll) && poll !== '0x0000000000000000000000000000000000000000'
-                        ? {
-                              address: poll,
-                              withdrawAmount: await pollInstance.withdrawAmount(),
-                              withdrawDuration: (await pollInstance.withdrawDuration()).toNumber(),
-                          }
-                        : null,
+                pollId: pollId.toNumber(),
             } as RewardDocument;
 
             res.json(reward);

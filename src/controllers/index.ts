@@ -1,5 +1,4 @@
 import jwt from 'express-jwt';
-import jwtAuthz from 'express-jwt-authz';
 import jwksRsa from 'jwks-rsa';
 import express from 'express';
 import healthRouter from './health/_.routing';

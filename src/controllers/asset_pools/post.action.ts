@@ -1,7 +1,7 @@
-import { admin, assetPoolFactory } from '../../util/network';
+import { admin, assetPoolFactory, solutionContract } from '../../util/network';
+import { events } from '../../util/events';
 import { AssetPool } from '../../models/AssetPool';
 import { Request, Response, NextFunction } from 'express';
-import { GAS_STATION_ADDRESS } from '../../util/secrets';
 import { HttpError } from '../../models/Error';
 import MongoAdapter from '../../oidc/adapter';
 
@@ -45,7 +45,9 @@ import MongoAdapter from '../../oidc/adapter';
 export const postAssetPool = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const audience = (req.user as any).aud;
-        const assetPool = await assetPoolFactory.deploy(admin.address, GAS_STATION_ADDRESS, req.body.token);
+        const ev = await events(await assetPoolFactory.deployAssetPool(admin.address, admin.address, req.body.token));
+        const event = ev.find((e: { event: string }) => e.event === 'AssetPoolDeployed');
+        const assetPool = solutionContract(event.args.assetPool);
 
         try {
             await new AssetPool({

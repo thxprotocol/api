@@ -1,7 +1,7 @@
 {
   "info": {
     "title": "THX API Specification",
-    "version": "0.3.0"
+    "version": "0.3.2"
   },
   "basePath": "https://dev.api.thx.network/v1",
   "swagger": "2.0",
@@ -1630,7 +1630,7 @@
         }
       }
     },
-    "/withdrawals": {
+    "/withdrawals?member=:address": {
       "get": {
         "tags": [
           "Withdrawals"

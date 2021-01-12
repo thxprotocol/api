@@ -1,6 +1,6 @@
 const Web3 = require('web3');
 const dotenv = require('dotenv');
-const TEST_TOKEN = require('../src/artifacts/THXToken.json');
+const TEST_TOKEN = require('../src/artifacts/contracts/contracts/ExampleToken.sol/ExampleToken.json');
 
 //0x82F1DD84Dd720Db4A62646652Ed93FF73b6d8838
 

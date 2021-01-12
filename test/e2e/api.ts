@@ -1,8 +1,7 @@
 import request from 'supertest';
 import app from '../../src/app';
 import db from '../../src/util/database';
-import { ASSET_POOL, REWARD_POLL, WITHDRAW_POLL } from '../../src/util/network';
-import { voter, timeTravel, signMethod, admin, testTokenFactory } from './lib/network';
+import { voter, timeTravel, signMethod, admin, testTokenFactory, solution } from './lib/network';
 import {
     poolTitle,
     rewardPollDuration,
@@ -328,21 +327,13 @@ describe('Happy Flow', () => {
 
         it('HTTP 302 when tx is handled', async (done) => {
             // We assume QR decoding works as expected, will be tested in the wallet repo
-            const { call, nonce, sig, contractAddress } = await signMethod(
-                voter,
-                REWARD_POLL.abi,
-                pollAddress,
-                'vote',
-                [true],
-            );
+            const { call, nonce, sig } = await signMethod(solution, 'vote', [true], voter);
 
             user.post(`/v1/gas_station/base_poll`)
                 .send({
                     call,
                     nonce,
                     sig,
-                    contractAddress,
-                    redirect: `polls/${pollAddress}`,
                 })
                 .set({ AssetPool: poolAddress })
                 .end(async (err, res) => {
@@ -373,21 +364,13 @@ describe('Happy Flow', () => {
         });
 
         it('HTTP 302 after finalizing the poll', async (done) => {
-            const { call, nonce, sig, contractAddress } = await signMethod(
-                voter,
-                REWARD_POLL.abi,
-                pollAddress,
-                'finalize',
-                [],
-            );
+            const { call, nonce, sig } = await signMethod(solution, 'finalize', [], voter);
 
             user.post(`/v1/gas_station/base_poll`)
                 .send({
                     call,
                     nonce,
                     sig,
-                    contractAddress,
-                    redirect: `polls/${pollAddress}`,
                 })
                 .set({ AssetPool: poolAddress })
                 .end(async (err, res) => {
@@ -438,20 +421,13 @@ describe('Happy Flow', () => {
 
         it('HTTP 302 when tx is handled', async (done) => {
             // We assume QR decoding works as expected, will be tested in the wallet repo
-            const { call, nonce, sig, contractAddress } = await signMethod(
-                admin,
-                ASSET_POOL.abi,
-                poolAddress,
-                'claimReward',
-                [0],
-            );
+            const { call, nonce, sig } = await signMethod(solution, 'claimReward', [0], admin);
 
             user.post(`/v1/gas_station/asset_pool/claim_reward`)
                 .send({
                     call,
                     nonce,
                     sig,
-                    contractAddress,
                 })
                 .set({ AssetPool: poolAddress })
                 .end(async (err, res) => {
@@ -509,21 +485,13 @@ describe('Happy Flow', () => {
         it('HTTP 302 when tx is handled', async (done) => {
             // We assume QR decoding works as expected, will be tested in the wallet repo
             // Manager should vote for this poll
-            const { call, nonce, sig, contractAddress } = await signMethod(
-                admin,
-                WITHDRAW_POLL.abi,
-                withdrawPollAddress,
-                'vote',
-                [true],
-            );
+            const { call, nonce, sig } = await signMethod(solution, 'vote', [true], admin);
 
             user.post(`/v1/gas_station/base_poll`)
                 .send({
                     call,
                     nonce,
                     sig,
-                    contractAddress,
-                    redirect: `polls/${withdrawPollAddress}`,
                 })
                 .set({ AssetPool: poolAddress })
                 .end(async (err, res) => {
@@ -579,20 +547,13 @@ describe('Happy Flow', () => {
         });
 
         it('HTTP 302 and redirect to withdrawal', async (done) => {
-            const { call, nonce, sig, contractAddress } = await signMethod(
-                admin,
-                WITHDRAW_POLL.abi,
-                withdrawPollAddress,
-                'finalize',
-                [],
-            );
+            const { call, nonce, sig } = await signMethod(withdrawPollAddress, 'finalize', [], admin);
 
             user.post(`/v1/gas_station/withdrawals/withdraw`)
                 .send({
                     call,
                     nonce,
                     sig,
-                    contractAddress,
                 })
                 .set({ AssetPool: poolAddress })
                 .end(async (err, res) => {
@@ -627,10 +588,7 @@ describe('Happy Flow', () => {
 
     describe('GET /withdrawals (before proposed withdrawal)', () => {
         it('HTTP 200 and return no items', async (done) => {
-            user.get(`/v1/withdrawals`)
-                .send({
-                    member: voter.address,
-                })
+            user.get(`/v1/withdrawals?member=${voter.address}`)
                 .set({ AssetPool: poolAddress })
                 .end(async (err, res) => {
                     expect(Number(res.body.withdrawPolls.length)).toBe(0);
@@ -647,12 +605,11 @@ describe('Happy Flow', () => {
             // Deposit 1000 in the pool
             await testToken.transfer(poolAddress, parseEther('1000'));
 
-            const { call, nonce, sig, contractAddress } = await signMethod(
-                voter,
-                ASSET_POOL.abi,
-                poolAddress,
+            const { call, nonce, sig } = await signMethod(
+                solution,
                 'proposeWithdraw',
                 [parseEther('1000').toString(), voter.address],
+                voter,
             );
 
             user.post(`/v1/gas_station/asset_pool/propose_withdraw`)
@@ -660,7 +617,6 @@ describe('Happy Flow', () => {
                     call,
                     nonce,
                     sig,
-                    contractAddress,
                 })
                 .set({ AssetPool: poolAddress })
                 .end(async (err, res) => {
@@ -682,10 +638,7 @@ describe('Happy Flow', () => {
 
     describe('GET /withdrawals (after proposed withdrawal)', () => {
         it('HTTP 200 and return a list of 1 item', async (done) => {
-            user.get(`/v1/withdrawals`)
-                .send({
-                    member: voter.address,
-                })
+            user.get(`/v1/withdrawals?member=${voter.address}`)
                 .set({ AssetPool: poolAddress })
                 .end(async (err, res) => {
                     withdrawPollAddress = res.body.withdrawPolls[0];
@@ -701,21 +654,13 @@ describe('Happy Flow', () => {
         let redirectURL = '';
         it('HTTP 302 if vote OK', async (done) => {
             // We assume QR decoding works as expected, will be tested in the wallet repo
-            const { call, nonce, sig, contractAddress } = await signMethod(
-                admin,
-                WITHDRAW_POLL.abi,
-                withdrawPollAddress,
-                'vote',
-                [true],
-            );
+            const { call, nonce, sig } = await signMethod(solution, 'vote', [true], admin);
 
             user.post(`/v1/gas_station/base_poll/`)
                 .send({
                     call,
                     nonce,
                     sig,
-                    contractAddress,
-                    redirect: `polls/${withdrawPollAddress}`,
                 })
                 .set({ AssetPool: poolAddress })
                 .end(async (err, res) => {
@@ -756,20 +701,13 @@ describe('Happy Flow', () => {
         });
 
         it('HTTP 302 and redirect to withdrawal', async (done) => {
-            const { call, nonce, sig, contractAddress } = await signMethod(
-                voter,
-                WITHDRAW_POLL.abi,
-                withdrawPollAddress,
-                'finalize',
-                [],
-            );
+            const { call, nonce, sig } = await signMethod(withdrawPollAddress, 'finalize', [], voter);
 
             user.post(`/v1/gas_station/withdrawals/withdraw`)
                 .send({
                     call,
                     nonce,
                     sig,
-                    contractAddress,
                 })
                 .set({ AssetPool: poolAddress })
                 .end(async (err, res) => {
