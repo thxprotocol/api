@@ -82,15 +82,14 @@ export const getReward = async (req: Request, res: Response, next: NextFunction)
         try {
             const instance = solutionContract(req.header('AssetPool'));
             const { id, withdrawAmount, withdrawDuration, state, pollId } = await instance.getReward(req.params.id);
-
             const reward = {
                 id: id.toNumber(),
                 title: metaData.title,
                 description: metaData.description,
-                withdrawAmount: withdrawAmount,
+                withdrawAmount: withdrawAmount.toNumber(),
                 withdrawDuration: withdrawDuration.toNumber(),
                 state,
-                pollId,
+                pollId: pollId.toNumber(),
             } as RewardDocument;
 
             res.json(reward);

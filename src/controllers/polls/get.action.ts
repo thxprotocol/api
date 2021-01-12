@@ -1,5 +1,5 @@
 import qrcode from 'qrcode';
-import { solutionContract } from '../../util/network';
+import { ISolutionRequest, solutionContract } from '../../util/network';
 import { HttpError } from '../../models/Error';
 import { NextFunction, Request, Response } from 'express';
 
@@ -69,24 +69,14 @@ import { NextFunction, Request, Response } from 'express';
  *         description: Bad Gateway. Received an invalid response from the network or database.
  *
  */
-export const getPoll = async (req: Request, res: Response, next: NextFunction) => {
+export const getPoll = async (req: ISolutionRequest, res: Response, next: NextFunction) => {
     try {
-        const poll = solutionContract(req.params.address);
-        const startTime = await poll.startTime();
-        const endTime = await poll.endTime();
-
         res.json({
-            startTime: {
-                raw: startTime,
-                formatted: new Date(startTime * 1000),
-            },
-            endTime: {
-                raw: endTime,
-                formatted: new Date(endTime * 1000),
-            },
-            yesCounter: (await poll.yesCounter()).toNumber(),
-            noCounter: (await poll.noCounter()).toNumber(),
-            totalVoted: (await poll.totalVoted()).toNumber(),
+            startTime: (await req.solution.getStartTime(req.params.id)).toNumber(),
+            endTime: (await req.solution.getEndTime(req.params.id)).toNumber(),
+            yesCounter: (await req.solution.getYesCounter(req.params.id)).toNumber(),
+            noCounter: (await req.solution.getNoCounter(req.params.id)).toNumber(),
+            totalVoted: (await req.solution.getTotalVoted(req.params.id)).toNumber(),
         });
     } catch (err) {
         next(new HttpError(502, 'Base Poll get contract data failed.', err));

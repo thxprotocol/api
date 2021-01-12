@@ -1,8 +1,9 @@
 import { Response, Request, NextFunction } from 'express';
 import { VERSION } from '../../util/secrets';
 import { HttpError } from '../../models/Error';
-import { solutionContract, parseResultLog } from '../../util/network';
+import { solutionContract } from '../../util/network';
 import ISolutionArtifact from '../../../src/artifacts/contracts/contracts/interfaces/ISolution.sol/ISolution.json';
+import { parseResultLog } from '../../util/events';
 
 export const postCallAssetPool = async (req: Request, res: Response, next: NextFunction) => {
     try {

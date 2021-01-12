@@ -1,7 +1,8 @@
 import { Request, Response, NextFunction } from 'express';
-import { solutionContract, parseLogs, parseResultLog } from '../../util/network';
+import { solutionContract } from '../../util/network';
 import { HttpError } from '../../models/Error';
 import ISolutionArtifact from '../../../src/artifacts/contracts/contracts/interfaces/ISolution.sol/ISolution.json';
+import { parseLogs } from '../../util/events';
 /**
  * @swagger
  * /rewards/:id/give:

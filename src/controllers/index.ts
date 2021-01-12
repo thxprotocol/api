@@ -1,5 +1,5 @@
-import express from 'express';
 import * as passportConfig from '../config/passport';
+import express from 'express';
 
 import healthRouter from './health/_.routing';
 import authRouter from './auth/_.routing';
@@ -11,6 +11,7 @@ import membersRouter from './members/_.routing';
 import rewardsRouter from './rewards/_.routing';
 import pollsRouter from './polls/_.routing';
 import withdrawalsRouter from './withdrawals/_.routing';
+import { solutionContract } from '../util/network';
 
 const router = express.Router();
 

@@ -1,4 +1,5 @@
-import { admin, assetPoolFactory, solutionContract, events } from '../../util/network';
+import { admin, assetPoolFactory, solutionContract } from '../../util/network';
+import { events } from '../../util/events';
 import { AssetPool } from '../../models/AssetPool';
 import { Account, AccountDocument } from '../../models/Account';
 import { Request, Response, NextFunction } from 'express';
