@@ -6,10 +6,12 @@ import { getAssetPool } from './get.action';
 import { postAssetPool } from './post.action';
 import { patchAssetPool } from './patch.action';
 
+import { parseHeader } from '../../util/network';
+
 const router = express.Router();
 
-router.post('/', validate(validations.postAssetPool), postAssetPool);
-router.get('/:address', validate(validations.getAssetPool), getAssetPool);
-router.patch('/:address', validate(validations.patchAssetPool), patchAssetPool);
+router.post('/', validate(validations.postAssetPool), parseHeader, postAssetPool);
+router.get('/:address', validate(validations.getAssetPool), parseHeader, getAssetPool);
+router.patch('/:address', validate(validations.patchAssetPool), parseHeader, patchAssetPool);
 
 export default router;

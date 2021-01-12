@@ -76,12 +76,16 @@ export const getAssetPool = async (req: ISolutionRequest, res: Response, next: N
                 proposeWithdrawPollDuration,
                 rewardPollDuration,
             };
-            const { uid, address, title }: AssetPoolDocument = await AssetPool.findOne({
+            const assetPool: AssetPoolDocument = await AssetPool.findOne({
                 address: req.params.address,
             });
+            if (!assetPool) {
+                return next(new HttpError(404, 'Asset Pool is not found in database.'));
+            }
+            const { uid, address, title } = assetPool;
 
             if (!address) {
-                next(new HttpError(404, 'Asset Pool is not found in database.'));
+                return next(new HttpError(404, 'Asset Pool is not found in database.'));
             }
 
             res.json({ title, address, uid, ...contractData });
