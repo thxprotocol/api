@@ -47,7 +47,7 @@ export const postRewardClaim = async (req: Request, res: Response, next: NextFun
                 assetPoolAddress: req.header('AssetPool'),
                 contractAddress: req.header('AssetPool'),
                 contract: 'AssetPool',
-                method: 'claimReward', // "claimReward" might be a better name
+                method: 'claimReward',
                 params: {
                     id: req.params.id,
                 },

@@ -1,6 +1,6 @@
 import { HttpError } from '../../models/Error';
 import { NextFunction, Request, Response } from 'express';
-import { solutionContract } from '../../util/network';
+import { ISolutionRequest, solutionContract } from '../../util/network';
 
 /**
  * @swagger
@@ -40,10 +40,9 @@ import { solutionContract } from '../../util/network';
  *       '502':
  *         description: Bad Gateway. Received an invalid response from the network or database.
  */
-export const postPollFinalize = async (req: Request, res: Response, next: NextFunction) => {
+export const postPollFinalize = async (req: ISolutionRequest, res: Response, next: NextFunction) => {
     try {
-        const solution = solutionContract(req.header('AssetPool'));
-        const tx = await (await solution.rewardPollFinalize(req.params.address)).wait();
+        const tx = await (await req.solution.rewardPollFinalize(req.params.address)).wait();
 
         res.json({ transactionHash: tx.transactionHash });
     } catch (err) {

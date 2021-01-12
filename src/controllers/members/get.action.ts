@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from 'express';
-import { solutionContract, tokenContract } from '../../util/network';
+import { ISolutionRequest, solutionContract, tokenContract } from '../../util/network';
 import { HttpError } from '../../models/Error';
 
 /**
@@ -58,23 +58,22 @@ import { HttpError } from '../../models/Error';
  *         description: Bad Gateway. Received an invalid response from the network or database.
 
  */
-export const getMember = async (req: Request, res: Response, next: NextFunction) => {
+export const getMember = async (req: ISolutionRequest, res: Response, next: NextFunction) => {
     try {
-        const assetPoolInstance = solutionContract(req.header('AssetPool'));
-        const isMember = await assetPoolInstance.isMember(req.params.address);
+        const isMember = await req.solution.isMember(req.params.address);
 
         if (!isMember) {
             next(new HttpError(404, 'Address is not a member.'));
             return;
         }
 
-        const tokenAddress = await assetPoolInstance.token();
+        const tokenAddress = await req.solution.token();
         const tokenInstance = tokenContract(tokenAddress);
-        const balance = await tokenInstance.balanceOf(req.params.address);
+        const balance = await req.solution.balanceOf(req.params.address);
 
         res.json({
             isMember,
-            isManager: await assetPoolInstance.isManager(req.params.address),
+            isManager: await req.solution.isManager(req.params.address),
             token: {
                 name: await tokenInstance.name(),
                 symbol: await tokenInstance.symbol(),

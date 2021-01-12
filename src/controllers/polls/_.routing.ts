@@ -10,8 +10,8 @@ import { parseHeader } from '../../util/network';
 const router = express.Router();
 
 router.get('/:id', validate(validations.getPoll), parseHeader, getPoll);
-router.post('/:id/vote', validate(validations.postVote), postVote);
-router.delete('/:id/vote', validate(validations.deleteVote), deleteVote);
-router.post('/:id/finalize', validate(validations.postPollFinalize), postPollFinalize);
+router.post('/:id/vote', validate(validations.postVote), parseHeader, postVote);
+router.delete('/:id/vote', validate(validations.deleteVote), parseHeader, deleteVote);
+router.post('/:id/finalize', validate(validations.postPollFinalize), parseHeader, postPollFinalize);
 
 export default router;

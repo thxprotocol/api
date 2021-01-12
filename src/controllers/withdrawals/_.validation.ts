@@ -1,5 +1,5 @@
 import { ethers } from 'ethers';
-import { body, param, query } from 'express-validator';
+import { param, query } from 'express-validator';
 import { validateAssetPoolHeader } from '../../util/validation';
 
 export const validations = {

@@ -1,5 +1,5 @@
-import { Request, Response, NextFunction } from 'express';
-import { solutionContract } from '../../util/network';
+import { Response, NextFunction } from 'express';
+import { ISolutionRequest } from '../../util/network';
 import { HttpError } from '../../models/Error';
 import ISolutionArtifact from '../../../src/artifacts/contracts/contracts/interfaces/ISolution.sol/ISolution.json';
 import { parseLogs } from '../../util/events';
@@ -45,17 +45,16 @@ import { parseLogs } from '../../util/events';
  *       '502':
  *         description: Bad Gateway. Received an invalid response from the network or database.
  */
-export const postRewardClaimFor = async (req: Request, res: Response, next: NextFunction) => {
+export const postRewardClaimFor = async (req: ISolutionRequest, res: Response, next: NextFunction) => {
     try {
-        const assetPoolInstance = solutionContract(req.header('AssetPool'));
-        const result = await assetPoolInstance.rewards(req.params.id);
+        const result = await req.solution.rewards(req.params.id);
 
         if (!result) {
             throw new Error(result);
         }
 
         try {
-            const tx = await (await assetPoolInstance.claimRewardFor(req.params.id, req.body.member)).wait();
+            const tx = await (await req.solution.claimRewardFor(req.params.id, req.body.member)).wait();
 
             try {
                 const logs = await parseLogs(ISolutionArtifact.abi, tx.logs);

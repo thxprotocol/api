@@ -1,5 +1,5 @@
-import { Request, Response, NextFunction } from 'express';
-import { solutionContract } from '../../util/network';
+import { Response, NextFunction } from 'express';
+import { ISolutionRequest } from '../../util/network';
 import { Reward } from '../../models/Reward';
 import { HttpError } from '../../models/Error';
 import qrcode from 'qrcode';
@@ -58,7 +58,7 @@ import qrcode from 'qrcode';
  *       '502':
  *         description: Bad Gateway. Received an invalid response from the network or database.
  */
-export const patchReward = async (req: Request, res: Response, next: NextFunction) => {
+export const patchReward = async (req: ISolutionRequest, res: Response, next: NextFunction) => {
     try {
         const metaData = await Reward.findOne({ id: req.params.id });
 
@@ -78,8 +78,7 @@ export const patchReward = async (req: Request, res: Response, next: NextFunctio
                 }
 
                 try {
-                    const instance = solutionContract(req.header('AssetPool'));
-                    let { withdrawAmount, withdrawDuration } = await instance.rewards(req.params.id);
+                    let { withdrawAmount, withdrawDuration } = await req.solution.rewards(req.params.id);
 
                     if (req.body.withdrawAmount && withdrawAmount !== req.body.withdrawAmount) {
                         withdrawAmount = req.body.withdrawAmount;

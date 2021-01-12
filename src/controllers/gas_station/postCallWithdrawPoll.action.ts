@@ -1,14 +1,14 @@
-import { Response, Request, NextFunction } from 'express';
+import { Response, NextFunction } from 'express';
 import { VERSION } from '../../util/secrets';
 import { HttpError } from '../../models/Error';
-import { solutionContract } from '../../util/network';
+import { ISolutionRequest } from '../../util/network';
 import ISolutionArtifact from '../../../src/artifacts/contracts/contracts/interfaces/ISolution.sol/ISolution.json';
 import { parseResultLog } from '../../util/events';
 
-export const postCallWithdrawalWithdraw = async (req: Request, res: Response, next: NextFunction) => {
+export const postCallWithdrawalWithdraw = async (req: ISolutionRequest, res: Response, next: NextFunction) => {
     try {
         const tx = await (
-            await solutionContract.call(req.body.call, req.body.contractAddress, req.body.nonce, req.body.sig)
+            await req.solution.call(req.body.call, req.body.contractAddress, req.body.nonce, req.body.sig)
         ).wait();
 
         try {

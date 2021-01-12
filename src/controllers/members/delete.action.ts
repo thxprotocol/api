@@ -1,5 +1,5 @@
-import { NextFunction, Request, Response } from 'express';
-import { solutionContract } from '../../util/network';
+import { NextFunction, Response } from 'express';
+import { ISolutionRequest } from '../../util/network';
 import { HttpError } from '../../models/Error';
 
 /**
@@ -34,11 +34,9 @@ import { HttpError } from '../../models/Error';
  *       '502':
  *         description: Bad Gateway. Received an invalid response from the network or database.
  */
-export const deleteMember = async (req: Request, res: Response, next: NextFunction) => {
+export const deleteMember = async (req: ISolutionRequest, res: Response, next: NextFunction) => {
     try {
-        const instance = solutionContract(req.header('AssetPool'));
-
-        await instance.removeMember(req.params.address);
+        await req.solution.removeMember(req.params.address);
 
         res.end();
     } catch (err) {
