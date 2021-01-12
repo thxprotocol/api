@@ -53,11 +53,11 @@ export const postMember = async (req: ISolutionRequest, res: Response, next: Nex
 
         try {
             const tx = await (await req.solution.addMember(req.body.address)).wait();
-
             try {
                 const events = await parseLogs(ISolutionArtifact.abi, tx.logs);
                 const event = events.filter((e: { name: string }) => e && e.name === 'RoleGranted')[0];
-                const address = event.args.account;
+                const memberid = event.args.member;
+                const address = await req.solution.getAddressByMember(memberid);
 
                 res.redirect(`/${VERSION}/members/${address}`);
             } catch (err) {

@@ -79,7 +79,7 @@ export const getReward = async (req: ISolutionRequest, res: Response, next: Next
         const metaData = await Reward.findOne({ id: req.params.id });
 
         try {
-            const { id, withdrawAmount, withdrawDuration, state, pollId } = await req.solution.getReward(req.params.id);
+            const { id, withdrawAmount, withdrawDuration, pollId, state } = await req.solution.getReward(req.params.id);
             const reward = {
                 id: id.toNumber(),
                 title: metaData.title,
@@ -88,6 +88,15 @@ export const getReward = async (req: ISolutionRequest, res: Response, next: Next
                 withdrawDuration: withdrawDuration.toNumber(),
                 state,
                 pollId: pollId.toNumber(),
+                poll:
+                    pollId !== '0'
+                        ? {
+                              pollId: pollId.toNumber(),
+                              withdrawAmount: await req.solution.getWithdrawAmount(pollId),
+                              withdrawDuration: (await req.solution.getWithdrawDuration(pollId)).toNumber(),
+                          }
+                        : null,
+
             } as RewardDocument;
 
             res.json(reward);

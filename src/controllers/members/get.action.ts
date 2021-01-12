@@ -67,9 +67,9 @@ export const getMember = async (req: ISolutionRequest, res: Response, next: Next
             return;
         }
 
-        const tokenAddress = await req.solution.token();
+        const tokenAddress = await req.solution.getToken();
         const tokenInstance = tokenContract(tokenAddress);
-        const balance = await req.solution.balanceOf(req.params.address);
+        const balance = await tokenInstance.balanceOf(req.params.address);
 
         res.json({
             isMember,

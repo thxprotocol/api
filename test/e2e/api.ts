@@ -199,10 +199,10 @@ describe('Happy Flow', () => {
             user.get(redirectURL)
                 .set({ AssetPool: poolAddress })
                 .end(async (err, res) => {
-                    expect(Number(res.body.id)).toEqual(0);
+                    expect(Number(res.body.id)).toEqual(1);
                     expect(res.body.title).toEqual(rewardTitle);
                     expect(res.body.description).toEqual(rewardDescription);
-                    expect(res.body.poll.address).toContain('0x');
+                    expect(res.body.poll.pollId).toEqual(1);
                     expect(Number(res.body.poll.withdrawDuration)).toEqual(rewardWithdrawDuration);
                     expect(Number(formatEther(res.body.poll.withdrawAmount))).toEqual(
                         Number(formatEther(rewardWithdrawAmount)),
@@ -215,7 +215,7 @@ describe('Happy Flow', () => {
 
     describe('GET /rewards/:id', () => {
         it('HTTP 200 when successful', (done) => {
-            user.get('/v1/rewards/0')
+            user.get('/v1/rewards/1')
                 .set({ AssetPool: poolAddress })
                 .end(async (err, res) => {
                     expect(res.status).toBe(200);
@@ -224,7 +224,7 @@ describe('Happy Flow', () => {
         });
 
         it('HTTP 404 if reward can not be found', (done) => {
-            user.get('/v1/rewards/1')
+            user.get('/v1/rewards/2')
                 .set({ AssetPool: poolAddress })
                 .end(async (err, res) => {
                     expect(res.status).toBe(404);
@@ -261,10 +261,10 @@ describe('Happy Flow', () => {
             user.get(redirectURL)
                 .set({ AssetPool: poolAddress })
                 .end(async (err, res) => {
+                    expect(res.status).toBe(200);
                     expect(res.body.isMember).toEqual(true);
                     expect(res.body.isManager).toEqual(false);
                     expect(Number(formatEther(res.body.token.balance))).toEqual(0);
-                    expect(res.status).toBe(200);
                     done();
                 });
         });
