@@ -1,7 +1,6 @@
 const fs = require('fs');
 const path = require('path');
 const jose = require('jose');
-
 const keystore = new jose.JWKS.KeyStore();
 
 Promise.all([
