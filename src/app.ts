@@ -24,10 +24,7 @@ app.set('port', port);
 app.use(
     cors({
         credentials: false,
-        origin: (ctx: any) => {
-            console.log(ctx);
-            return ORIGIN;
-        },
+        origin: ORIGIN,
     }),
 );
 app.use(

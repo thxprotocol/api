@@ -1,9 +1,9 @@
 import { Account, AccountDocument } from '../../models/Account';
-import { Request, Response, NextFunction } from 'express';
-import { validationResult } from 'express-validator';
+import { Response, NextFunction } from 'express';
 import { ethers } from 'ethers';
-import { HttpError } from '../../models/Error';
+import { HttpError, HttpRequest } from '../../models/Error';
 import { VERSION } from '../../util/secrets';
+import { Error } from 'mongoose';
 
 /**
  * @swagger
@@ -71,10 +71,8 @@ import { VERSION } from '../../util/secrets';
  *         description: Bad Gateway. Received an invalid response from the network or database.
  *
  */
-export const patchAccount = async (req: Request, res: Response, next: NextFunction) => {
-    const sub = (req.user as any).sub;
-
-    Account.findById(sub, (err, account: AccountDocument) => {
+export const patchAccount = async (req: HttpRequest, res: Response, next: NextFunction) => {
+    Account.findById(req.user.sub, (err: Error, account: AccountDocument) => {
         if (err) {
             next(new HttpError(502, 'Account find failed.', err));
             return;
@@ -87,7 +85,7 @@ export const patchAccount = async (req: Request, res: Response, next: NextFuncti
         }
         account.profile.burnProofs = req.body.burnProofs || account.profile.burnProofs;
         account.profile.assetPools = req.body.assetPools || account.profile.assetPools;
-        account.save((err) => {
+        account.save((err: any) => {
             if (err) {
                 if (err.code === 11000) {
                     next(new HttpError(422, 'A user for this e-mail already exists.', err));

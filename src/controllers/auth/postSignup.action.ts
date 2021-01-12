@@ -84,15 +84,7 @@ export const postSignup = async (req: Request, res: Response, next: NextFunction
                 next(new HttpError(502, 'Account save failed.', error));
                 return;
             }
-
-            req.logIn(account, (error) => {
-                if (error) {
-                    next(new HttpError(502, 'Account login failed', error));
-                    return;
-                }
-
-                res.status(201).redirect(`/${VERSION}/account`);
-            });
+            res.status(201).redirect(`/${VERSION}/account`);
         });
     } catch (err) {
         next(new HttpError(500, 'Account signup failed.', err));

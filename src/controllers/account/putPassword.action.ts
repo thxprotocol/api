@@ -1,6 +1,6 @@
 import { Account, AccountDocument } from '../../models/Account';
 import { Request, Response, NextFunction } from 'express';
-import { HttpError } from '../../models/Error';
+import { HttpError, HttpRequest } from '../../models/Error';
 
 /**
  * @swagger
@@ -44,10 +44,8 @@ import { HttpError } from '../../models/Error';
  *       '502':
  *         description: Bad Gateway. Received an invalid response from the network or database.
  */
-export const putPassword = async (req: Request, res: Response, next: NextFunction) => {
-    const sub = (req.user as any).sub;
-
-    Account.findById(sub, (err, account: AccountDocument) => {
+export const putPassword = async (req: HttpRequest, res: Response, next: NextFunction) => {
+    Account.findById(req.user.sub, (err: Error, account: AccountDocument) => {
         if (err) {
             next(new HttpError(502, 'Account find failed.', err));
             return;

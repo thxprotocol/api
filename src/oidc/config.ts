@@ -44,9 +44,7 @@ export default {
     ttl: {
         AccessToken: 1 * 60 * 60, // 1 hour in seconds
         AuthorizationCode: 10 * 60, // 10 minutes in seconds
-        IdToken: 1 * 60 * 60, // 1 hour in seconds
-        DeviceCode: 10 * 60, // 10 minutes in seconds
-        RefreshToken: 1 * 24 * 60 * 60, // 1 day in seconds
+        ClientCredentials: 20, // 10 * 60,
     },
     jwks,
     formats: {

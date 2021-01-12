@@ -6,11 +6,12 @@ import { getAssetPool } from './get.action';
 import { postAssetPool } from './post.action';
 import { patchAssetPool } from './patch.action';
 import checkScopes from 'express-jwt-authz';
+import { parseHeader } from '../../util/network';
 
 const router = express.Router();
 
 router.post('/', checkScopes(['admin']), validate(validations.postAssetPool), postAssetPool);
-router.get('/:address', checkScopes(['admin', 'user']), validate(validations.getAssetPool), getAssetPool);
-router.patch('/:address', checkScopes(['admin']), validate(validations.patchAssetPool), patchAssetPool);
+router.get('/:address', checkScopes(['admin', 'user']), validate(validations.getAssetPool), parseHeader, getAssetPool);
+router.patch('/:address', checkScopes(['admin']), validate(validations.patchAssetPool), parseHeader, patchAssetPool);
 
 export default router;

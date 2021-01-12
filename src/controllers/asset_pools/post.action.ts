@@ -1,8 +1,8 @@
 import { admin, assetPoolFactory, solutionContract } from '../../util/network';
 import { events } from '../../util/events';
 import { AssetPool } from '../../models/AssetPool';
-import { Request, Response, NextFunction } from 'express';
-import { HttpError } from '../../models/Error';
+import { Response, NextFunction } from 'express';
+import { HttpError, HttpRequest } from '../../models/Error';
 import MongoAdapter from '../../oidc/adapter';
 
 /**
@@ -42,16 +42,16 @@ import MongoAdapter from '../../oidc/adapter';
  *       '502':
  *         description: Bad Gateway. Received an invalid response from the network or database.
  */
-export const postAssetPool = async (req: Request, res: Response, next: NextFunction) => {
+export const postAssetPool = async (req: HttpRequest, res: Response, next: NextFunction) => {
     try {
-        const audience = (req.user as any).aud;
+        const audience = req.user.aud;
         const ev = await events(await assetPoolFactory.deployAssetPool(admin.address, admin.address, req.body.token));
         const event = ev.find((e: { event: string }) => e.event === 'AssetPoolDeployed');
-        const assetPool = solutionContract(event.args.assetPool);
+        const solution = solutionContract(event.args.assetPool);
 
         try {
             await new AssetPool({
-                address: assetPool.address,
+                address: solution.address,
                 title: req.body.title,
                 client: audience,
             }).save();
@@ -61,14 +61,14 @@ export const postAssetPool = async (req: Request, res: Response, next: NextFunct
                 const payload = await Client.find(audience);
 
                 if (payload.assetPools) {
-                    payload.assetPools.push(assetPool.address);
+                    payload.assetPools.push(solution.address);
                 } else {
-                    payload.assetPools = [assetPool.address];
+                    payload.assetPools = [solution.address];
                 }
 
                 await Client.coll().updateOne({ _id: audience }, { $set: { payload } }, { upsert: false });
 
-                res.status(201).json({ address: assetPool.address });
+                res.status(201).json({ address: solution.address });
             } catch (error) {
                 next(new HttpError(502, 'Client account update failed.', error));
             }

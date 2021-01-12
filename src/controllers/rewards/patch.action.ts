@@ -71,7 +71,7 @@ export const patchReward = async (req: ISolutionRequest, res: Response, next: Ne
         }
 
         try {
-            metaData.save(async (err) => {
+            metaData.save(async (err: Error) => {
                 if (err) {
                     next(new HttpError(502, 'Reward metadata find failed.', err));
                     return;

@@ -1,4 +1,6 @@
+import { Contract } from 'ethers';
 import logger from '../util/logger';
+import { Request } from 'express';
 
 export class HttpError extends Error {
     timestamp: number;
@@ -17,4 +19,9 @@ export class HttpError extends Error {
         this.status = status;
         this.timestamp = Date.now();
     }
+}
+
+export interface HttpRequest extends Request {
+    user?: any;
+    solution?: Contract;
 }

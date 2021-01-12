@@ -8,7 +8,7 @@ export type AccountDocument = mongoose.Document & {
     email: string;
     password: string;
     passwordResetToken: string;
-    passwordResetExpires: Date;
+    passwordResetExpires: number;
     address: string;
     privateKey: string;
     tokens: AuthToken[];

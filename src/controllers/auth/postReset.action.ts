@@ -45,7 +45,7 @@ export const postReset = async (req: Request, res: Response, next: NextFunction)
                 Account.findOne({ passwordResetToken: req.params.token })
                     .where('passwordResetExpires')
                     .gt(Date.now())
-                    .exec((err, account: any) => {
+                    .exec((err: Error, account: AccountDocument) => {
                         if (err) {
                             next(new HttpError(502, 'Account find passwordResetExpires failed.', err));
                             return;
@@ -57,18 +57,12 @@ export const postReset = async (req: Request, res: Response, next: NextFunction)
                         account.password = req.body.password;
                         account.passwordResetToken = undefined;
                         account.passwordResetExpires = undefined;
-                        account.save((err: any) => {
+                        account.save((err: Error) => {
                             if (err) {
                                 next(new HttpError(502, 'Account save failed.', err));
                                 return;
                             }
-                            req.logIn(account, (err) => {
-                                if (err) {
-                                    next(new HttpError(502, 'Account login failed.', err));
-                                    return;
-                                }
-                                done(err, account);
-                            });
+                            done(err, account);
                         });
                     });
             },
