@@ -1,7 +1,15 @@
 import request from 'supertest';
 import app from '../../src/app';
 import db from '../../src/util/database';
-import { voter, timeTravel, signMethod, admin, testTokenFactory, solution } from './lib/network';
+import {
+    voter,
+    timeTravel,
+    signMethod,
+    admin,
+    testTokenFactory,
+    solution,
+    deployAssetPoolFactory,
+} from './lib/network';
 import {
     poolTitle,
     rewardPollDuration,
@@ -13,17 +21,27 @@ import {
     mintAmount,
 } from './lib/constants';
 import { formatEther, parseEther } from 'ethers/lib/utils';
+import { Contract } from 'ethers';
 
 const user = request.agent(app);
 
 describe('Happy Flow', () => {
-    let poolAddress: any, pollAddress: any, withdrawPollAddress: any, testToken: any;
+    let poolAddress: any, pollAddress: any, withdrawPollAddress: any, testToken: Contract, diamond: Contract;
 
     beforeAll(async () => {
         await db.truncate();
 
+        const { AssetPoolFactory, diamondCut } = await deployAssetPoolFactory();
+
+        // Deploy AssetPoolFactory
+        diamond = await AssetPoolFactory.deploy(diamondCut);
+        await diamond.deployed();
+        console.log('Diamond Address:', diamond.address);
+
+        // Deploy TestToken
         testToken = await testTokenFactory.deploy(admin.address, mintAmount);
         await testToken.deployed();
+        console.log('TestToken address', testToken.address);
     });
 
     describe('POST /signup', () => {
