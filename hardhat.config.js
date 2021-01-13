@@ -1,14 +1,13 @@
 require('dotenv').config({ path: process.env.NODE_ENV === 'test' ? '.env.test' : '.env' });
-require('@nomiclabs/hardhat-waffle');
-require('@nomiclabs/hardhat-web3');
 require('hardhat-jest-plugin');
+require('@nomiclabs/hardhat-ethers');
 
 module.exports = {
-    defaultNetwork: 'default',
     networks: {
         default: {
-            url: process.env.RPC,
+            url: process.env.PUBLIC_RPC,
             accounts: [process.env.PRIVATE_KEY],
+            gas: 6e6,
         },
         hardhat: {
             accounts: [

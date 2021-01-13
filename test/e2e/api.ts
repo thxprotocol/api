@@ -1,15 +1,8 @@
 import request from 'supertest';
 import app from '../../src/app';
 import db from '../../src/util/database';
-import {
-    voter,
-    timeTravel,
-    signMethod,
-    admin,
-    testTokenFactory,
-    solution,
-    deployAssetPoolFactory,
-} from './lib/network';
+import { voter, timeTravel, signMethod, admin, solution } from './lib/network';
+import { exampleTokenFactory } from './lib/contracts';
 import {
     poolTitle,
     rewardPollDuration,
@@ -26,22 +19,14 @@ import { Contract } from 'ethers';
 const user = request.agent(app);
 
 describe('Happy Flow', () => {
-    let poolAddress: any, pollAddress: any, withdrawPollAddress: any, testToken: Contract, diamond: Contract;
+    let poolAddress: string, pollAddress: string, withdrawPollAddress: string, testToken: Contract;
 
     beforeAll(async () => {
         await db.truncate();
 
-        const { AssetPoolFactory, diamondCut } = await deployAssetPoolFactory();
+        testToken = await exampleTokenFactory.deploy(admin.address, mintAmount);
 
-        // Deploy AssetPoolFactory
-        diamond = await AssetPoolFactory.deploy(diamondCut);
-        await diamond.deployed();
-        console.log('Diamond Address:', diamond.address);
-
-        // Deploy TestToken
-        testToken = await testTokenFactory.deploy(admin.address, mintAmount);
         await testToken.deployed();
-        console.log('TestToken address', testToken.address);
     });
 
     describe('POST /signup', () => {
@@ -565,7 +550,7 @@ describe('Happy Flow', () => {
         });
 
         it('HTTP 302 and redirect to withdrawal', async (done) => {
-            const { call, nonce, sig } = await signMethod(withdrawPollAddress, 'finalize', [], admin);
+            const { call, nonce, sig } = await signMethod(solution, 'finalize', [], admin);
 
             user.post(`/v1/gas_station/withdrawals/withdraw`)
                 .send({
@@ -719,7 +704,7 @@ describe('Happy Flow', () => {
         });
 
         it('HTTP 302 and redirect to withdrawal', async (done) => {
-            const { call, nonce, sig } = await signMethod(withdrawPollAddress, 'finalize', [], voter);
+            const { call, nonce, sig } = await signMethod(solution, 'finalize', [], voter);
 
             user.post(`/v1/gas_station/withdrawals/withdraw`)
                 .send({

@@ -28,7 +28,7 @@ services:
         volumes:
             - ./:/usr/src/service
         working_dir: /usr/src/service
-        command: bash -c "npm install && npm run watch-debug"
+        command: bash -c "npm install && npm run watch:debug"
         depends_on:
             - ganache
             - mongo
@@ -42,7 +42,7 @@ services:
         container_name: thx_ganache
         image: trufflesuite/ganache-cli:latest
         ports:
-            - '8545:8545'
+            - '8546:8545'
         volumes:
             - ./:/ganache_data
         command:
