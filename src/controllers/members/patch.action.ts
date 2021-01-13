@@ -1,6 +1,6 @@
-import { NextFunction, Response } from "express";
-import { HttpRequest, HttpError } from "../../models/Error";
-import { VERSION } from "../../util/secrets";
+import { NextFunction, Response } from 'express';
+import { HttpRequest, HttpError } from '../../models/Error';
+import { VERSION } from '../../util/secrets';
 
 /**
  * @swagger
@@ -41,14 +41,14 @@ export const patchMember = async (req: HttpRequest, res: Response, next: NextFun
         const isMember = await req.solution.isMember(req.params.address);
 
         if (!isMember) {
-            next(new HttpError(404, "Address is not a member."));
+            next(new HttpError(404, 'Address is not a member.'));
             return;
         }
 
-        await req.solution[req.body.isManager ? "addManager" : "removeManager"](req.params.address);
+        await req.solution[req.body.isManager ? 'addManager' : 'removeManager'](req.params.address);
 
         res.redirect(`/${VERSION}/members/${req.params.address}`);
     } catch (err) {
-        next(new HttpError(502, "Asset Pool add/remove Manager failed.", err));
+        next(new HttpError(502, 'Asset Pool add/remove Manager failed.', err));
     }
 };

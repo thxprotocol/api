@@ -1,5 +1,5 @@
-import { NextFunction, Response } from "express";
-import { HttpError, HttpRequest } from "../../models/Error";
+import { NextFunction, Response } from 'express';
+import { HttpError, HttpRequest } from '../../models/Error';
 
 /**
  * @swagger
@@ -37,7 +37,7 @@ import { HttpError, HttpRequest } from "../../models/Error";
 export const getWithdrawals = async (req: HttpRequest, res: Response, next: NextFunction) => {
     try {
         const filter = req.solution.filters.WithdrawPollCreated(req.query.member, null);
-        const logs = await req.solution.queryFilter(filter, 0, "latest");
+        const logs = await req.solution.queryFilter(filter, 0, 'latest');
 
         res.json({
             withdrawPolls: logs.map((log) => {
@@ -45,6 +45,6 @@ export const getWithdrawals = async (req: HttpRequest, res: Response, next: Next
             }),
         });
     } catch (err) {
-        next(new HttpError(502, "Get WithdrawPollCreated logs failed.", err));
+        next(new HttpError(502, 'Get WithdrawPollCreated logs failed.', err));
     }
 };

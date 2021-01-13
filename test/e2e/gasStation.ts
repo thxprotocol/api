@@ -1,8 +1,8 @@
-import request from "supertest";
-import app from "../../src/app";
-import db from "../../src/util/database";
-import { ASSET_POOL, BASE_POLL, REWARD_POLL, WITHDRAW_POLL } from "../../src/util/network";
-import { voter, timeTravel, signMethod, admin, testTokenFactory } from "./lib/network";
+import request from 'supertest';
+import app from '../../src/app';
+import db from '../../src/util/database';
+import { ASSET_POOL, BASE_POLL, REWARD_POLL, WITHDRAW_POLL } from '../../src/util/network';
+import { voter, timeTravel, signMethod, admin, testTokenFactory } from './lib/network';
 import {
     poolTitle,
     rewardPollDuration,
@@ -12,13 +12,13 @@ import {
     rewardWithdrawAmount,
     rewardWithdrawDuration,
     mintAmount,
-} from "./lib/constants";
-import { formatEther, parseEther } from "ethers/lib/utils";
-import { isError } from "lodash";
+} from './lib/constants';
+import { formatEther, parseEther } from 'ethers/lib/utils';
+import { isError } from 'lodash';
 
 const user = request.agent(app);
 
-describe("Gas Station", () => {
+describe('Gas Station', () => {
     let poolAddress: any, pollAddress: any, withdrawPollAddress: any, testToken: any;
 
     beforeAll(async () => {
@@ -30,14 +30,14 @@ describe("Gas Station", () => {
 
         // Create an account
         await user
-            .post("/v1/signup")
-            .send({ email: "test.api.bot@thx.network", password: "mellon", confirmPassword: "mellon" });
+            .post('/v1/signup')
+            .send({ email: 'test.api.bot@thx.network', password: 'mellon', confirmPassword: 'mellon' });
 
         // Login
-        await user.post("/v1/login").send({ email: "test.api.bot@thx.network", password: "mellon" });
+        await user.post('/v1/login').send({ email: 'test.api.bot@thx.network', password: 'mellon' });
 
         // Create an asset pool
-        const res = await user.post("/v1/asset_pools").send({
+        const res = await user.post('/v1/asset_pools').send({
             title: poolTitle,
             token: testToken.address,
         });
@@ -48,7 +48,7 @@ describe("Gas Station", () => {
 
         // Configure the default poll durations
         await user
-            .patch("/v1/asset_pools/" + poolAddress)
+            .patch('/v1/asset_pools/' + poolAddress)
             .set({ AssetPool: poolAddress })
             .send({
                 rewardPollDuration,
@@ -56,7 +56,7 @@ describe("Gas Station", () => {
             });
 
         // Create a reward
-        await user.post("/v1/rewards/").set({ AssetPool: poolAddress }).send({
+        await user.post('/v1/rewards/').set({ AssetPool: poolAddress }).send({
             withdrawAmount: rewardWithdrawAmount,
             withdrawDuration: rewardWithdrawDuration,
             title: rewardTitle,
@@ -64,25 +64,25 @@ describe("Gas Station", () => {
         });
 
         // Add a member
-        await user.post("/v1/members").set({ AssetPool: poolAddress }).send({ address: voter.address });
+        await user.post('/v1/members').set({ AssetPool: poolAddress }).send({ address: voter.address });
     });
 
-    describe("GET /accounts", () => {
-        it("HTTP 200", async (done) => {
-            const { body, status } = await user.get("/v1/rewards/0").set({ AssetPool: poolAddress });
+    describe('GET /accounts', () => {
+        it('HTTP 200', async (done) => {
+            const { body, status } = await user.get('/v1/rewards/0').set({ AssetPool: poolAddress });
             pollAddress = body.poll.address;
             expect(body.state).toBe(0);
             done();
         });
     });
 
-    describe("POST /gas_station/base_poll (vote)", () => {
-        let redirectURL = "";
+    describe('POST /gas_station/base_poll (vote)', () => {
+        let redirectURL = '';
 
-        it("HTTP 302 when call is ok", async (done) => {
-            const { call, nonce, sig } = await signMethod(voter, REWARD_POLL.abi, pollAddress, "vote", [true]);
+        it('HTTP 302 when call is ok', async (done) => {
+            const { call, nonce, sig } = await signMethod(voter, REWARD_POLL.abi, pollAddress, 'vote', [true]);
             const { headers, status } = await user
-                .post("/v1/gas_station/base_poll")
+                .post('/v1/gas_station/base_poll')
                 .set({ AssetPool: poolAddress })
                 .send({
                     call,
@@ -96,7 +96,7 @@ describe("Gas Station", () => {
             done();
         });
 
-        it("HTTP 200 when redirect is ok", async (done) => {
+        it('HTTP 200 when redirect is ok', async (done) => {
             const { status, body } = await user.get(redirectURL).set({ AssetPool: poolAddress });
 
             expect(status).toBe(200);
@@ -106,13 +106,13 @@ describe("Gas Station", () => {
         });
     });
 
-    describe("POST /gas_station/base_poll (revokeVote)", () => {
-        let redirectURL = "";
+    describe('POST /gas_station/base_poll (revokeVote)', () => {
+        let redirectURL = '';
 
-        it("HTTP 302 when revokeVote call is ok", async (done) => {
-            const { call, nonce, sig } = await signMethod(voter, REWARD_POLL.abi, pollAddress, "revokeVote", []);
+        it('HTTP 302 when revokeVote call is ok', async (done) => {
+            const { call, nonce, sig } = await signMethod(voter, REWARD_POLL.abi, pollAddress, 'revokeVote', []);
             const { headers, status } = await user
-                .post("/v1/gas_station/base_poll")
+                .post('/v1/gas_station/base_poll')
                 .set({ AssetPool: poolAddress })
                 .send({
                     call,
@@ -126,7 +126,7 @@ describe("Gas Station", () => {
             done();
         });
 
-        it("HTTP 200 when redirect is ok", async (done) => {
+        it('HTTP 200 when redirect is ok', async (done) => {
             user.get(redirectURL)
                 .set({ AssetPool: poolAddress })
                 .end(async (err, res) => {
@@ -137,13 +137,13 @@ describe("Gas Station", () => {
         });
     });
 
-    describe("POST /gas_station/base_poll (finalize)", () => {
-        let redirectURL = "";
+    describe('POST /gas_station/base_poll (finalize)', () => {
+        let redirectURL = '';
 
-        it("HTTP 302 when vote call is ok", async (done) => {
-            const { call, nonce, sig } = await signMethod(voter, REWARD_POLL.abi, pollAddress, "vote", [true]);
+        it('HTTP 302 when vote call is ok', async (done) => {
+            const { call, nonce, sig } = await signMethod(voter, REWARD_POLL.abi, pollAddress, 'vote', [true]);
             await user
-                .post("/v1/gas_station/base_poll")
+                .post('/v1/gas_station/base_poll')
                 .set({ AssetPool: poolAddress })
                 .send({
                     call,
@@ -155,26 +155,26 @@ describe("Gas Station", () => {
             done();
         });
 
-        it("HTTP 302 when finalize call is ok", async (done) => {
+        it('HTTP 302 when finalize call is ok', async (done) => {
             await timeTravel(rewardPollDuration);
 
-            const { call, nonce, sig } = await signMethod(voter, REWARD_POLL.abi, pollAddress, "finalize", []);
+            const { call, nonce, sig } = await signMethod(voter, REWARD_POLL.abi, pollAddress, 'finalize', []);
             const { headers, status } = await user
-                .post("/v1/gas_station/base_poll")
+                .post('/v1/gas_station/base_poll')
                 .set({ AssetPool: poolAddress })
                 .send({
                     call,
                     nonce,
                     sig,
                     contractAddress: pollAddress,
-                    redirect: "rewards/0",
+                    redirect: 'rewards/0',
                 });
             redirectURL = headers.location;
             expect(status).toBe(302);
             done();
         });
 
-        it("HTTP 200 when redirect is ok", async (done) => {
+        it('HTTP 200 when redirect is ok', async (done) => {
             user.get(redirectURL)
                 .set({ AssetPool: poolAddress })
                 .end(async (err, res) => {

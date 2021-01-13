@@ -1,5 +1,5 @@
-import { ethers } from "ethers";
-import GasStationFacetArtifact from "../artifacts/contracts/contracts/facets/GasStationFacet/GasStation.sol/GasStationFacet.json";
+import { ethers } from 'ethers';
+import GasStationFacetArtifact from '../artifacts/contracts/contracts/facets/GasStationFacet/GasStation.sol/GasStationFacet.json';
 
 export const events = async (tx: any) => {
     tx = await tx;
@@ -8,7 +8,7 @@ export const events = async (tx: any) => {
 };
 
 function hex2a(hex: any) {
-    let str = "";
+    let str = '';
     for (let i = 0; i < hex.length; i += 2) {
         const v = parseInt(hex.substr(i, 2), 16);
         if (v == 8) continue; // http://www.fileformat.info/info/unicode/char/0008/index.htm
@@ -25,7 +25,9 @@ export function parseLogs(abi: any, logs: any = []) {
         const contractInterface = new ethers.utils.Interface(abi);
         try {
             return contractInterface.parseLog(log);
-        } catch (e) {}
+        } catch (e) {
+            return;
+        }
     });
 }
 

@@ -1,5 +1,5 @@
-import { NextFunction, Response } from "express";
-import { HttpError, HttpRequest } from "../../models/Error";
+import { NextFunction, Response } from 'express';
+import { HttpError, HttpRequest } from '../../models/Error';
 
 /**
  * @swagger
@@ -39,6 +39,6 @@ export const deleteMember = async (req: HttpRequest, res: Response, next: NextFu
 
         res.end();
     } catch (err) {
-        next(new HttpError(502, "Asset Pool removeMember failed.", err));
+        next(new HttpError(502, 'Asset Pool removeMember failed.', err));
     }
 };

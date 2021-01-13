@@ -1,9 +1,9 @@
-import { admin, assetPoolFactory, solutionContract } from "../../util/network";
-import { events } from "../../util/events";
-import { AssetPool } from "../../models/AssetPool";
-import { Response, NextFunction } from "express";
-import { HttpError, HttpRequest } from "../../models/Error";
-import MongoAdapter from "../../oidc/adapter";
+import { admin, assetPoolFactory, solutionContract } from '../../util/network';
+import { events } from '../../util/events';
+import { AssetPool } from '../../models/AssetPool';
+import { Response, NextFunction } from 'express';
+import { HttpError, HttpRequest } from '../../models/Error';
+import MongoAdapter from '../../oidc/adapter';
 
 /**
  * @swagger
@@ -46,7 +46,7 @@ export const postAssetPool = async (req: HttpRequest, res: Response, next: NextF
     try {
         const audience = req.user.aud;
         const ev = await events(await assetPoolFactory.deployAssetPool(admin.address, admin.address, req.body.token));
-        const event = ev.find((e: { event: string }) => e.event === "AssetPoolDeployed");
+        const event = ev.find((e: { event: string }) => e.event === 'AssetPoolDeployed');
         const solution = solutionContract(event.args.assetPool);
 
         try {
@@ -57,7 +57,7 @@ export const postAssetPool = async (req: HttpRequest, res: Response, next: NextF
             }).save();
 
             try {
-                const Client = new MongoAdapter("client");
+                const Client = new MongoAdapter('client');
                 const payload = await Client.find(audience);
 
                 if (payload.assetPools) {
@@ -70,12 +70,12 @@ export const postAssetPool = async (req: HttpRequest, res: Response, next: NextF
 
                 res.status(201).json({ address: solution.address });
             } catch (error) {
-                next(new HttpError(502, "Client account update failed.", error));
+                next(new HttpError(502, 'Client account update failed.', error));
             }
         } catch (error) {
-            next(new HttpError(502, "Asset Pool database save failed.", error));
+            next(new HttpError(502, 'Asset Pool database save failed.', error));
         }
     } catch (error) {
-        next(new HttpError(502, "Asset Pool network deploy failed.", error));
+        next(new HttpError(502, 'Asset Pool network deploy failed.', error));
     }
 };

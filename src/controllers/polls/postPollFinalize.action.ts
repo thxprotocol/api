@@ -1,5 +1,5 @@
-import { HttpError, HttpRequest } from "../../models/Error";
-import { NextFunction, Response } from "express";
+import { HttpError, HttpRequest } from '../../models/Error';
+import { NextFunction, Response } from 'express';
 
 /**
  * @swagger
@@ -45,6 +45,6 @@ export const postPollFinalize = async (req: HttpRequest, res: Response, next: Ne
 
         res.json({ transactionHash: tx.transactionHash });
     } catch (err) {
-        next(new HttpError(502, "BasePoll finalize failed.", err));
+        next(new HttpError(502, 'BasePoll finalize failed.', err));
     }
 };

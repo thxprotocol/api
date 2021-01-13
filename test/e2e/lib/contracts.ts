@@ -1,21 +1,21 @@
-import { admin } from "./network";
-import { Contract, ethers, utils } from "ethers";
+import { admin } from './network';
+import { Contract, ethers, utils } from 'ethers';
 
-import ExampleTokenArtifact from "../../../src/artifacts/contracts/contracts/ExampleToken.sol/ExampleToken.json";
-import AssetPoolFacetArtifact from "../../../src/artifacts/contracts/contracts/facets/AssetPoolFacet/AssetPoolFacet.sol/AssetPoolFacet.json";
-import AssetPoolFacetViewArtifact from "../../../src/artifacts/contracts/contracts/facets/AssetPoolFacet/AssetPoolFacetView.sol/AssetPoolFacetView.json";
-import RolesFacetArtifact from "../../../src/artifacts/contracts/contracts/facets/RolesFacet/RolesFacet.sol/RolesFacet.json";
-import DiamondCutFacetArtifact from "../../../src/artifacts/diamond-2/contracts/facets/DiamondCutFacet.sol/DiamondCutFacet.json";
-import DiamondLoupeFacetArtifact from "../../../src/artifacts/diamond-2/contracts/facets/DiamondLoupeFacet.sol/DiamondLoupeFacet.json";
-import OwnershipFacetArtifact from "../../../src/artifacts/diamond-2/contracts/facets/OwnershipFacet.sol/OwnershipFacet.json";
-import GasStationFacetArtifact from "../../../src/artifacts/contracts/contracts/facets/GasStationFacet/GasStation.sol/GasStationFacet.json";
-import RewardPollFacetArtifact from "../../../src/artifacts/contracts/contracts/facets/PollFacet/RewardPollFacet.sol/RewardPollFacet.json";
-import RewardPollProxyFacetArtifact from "../../../src/artifacts/contracts/contracts/facets/PollFacet/RewardPollProxyFacet.sol/RewardPollProxyFacet.json";
-import WithdrawPollFacetArtifact from "../../../src/artifacts/contracts/contracts/facets/PollFacet/WithdrawPollFacet.sol/WithdrawPollFacet.json";
-import WithdrawPollProxyFacetArtifact from "../../../src/artifacts/contracts/contracts/facets/PollFacet/WithdrawPollProxyFacet.sol/WithdrawPollProxyFacet.json";
-import PollProxyFacetArtifact from "../../../src/artifacts/contracts/contracts/facets/PollFacet/PollProxyFacet.sol/PollProxyFacet.json";
-import UpdateDiamondFacetArtifact from "../../../src/artifacts/contracts/contracts/factories/UpdateDiamondFacet.sol/UpdateDiamondFacet.json";
-import AssetPoolFactoryArtifact from "../../../src/artifacts/contracts/contracts/factories/AssetPoolFactory.sol/AssetPoolFactory.json";
+import ExampleTokenArtifact from '../../../src/artifacts/contracts/contracts/ExampleToken.sol/ExampleToken.json';
+import AssetPoolFacetArtifact from '../../../src/artifacts/contracts/contracts/facets/AssetPoolFacet/AssetPoolFacet.sol/AssetPoolFacet.json';
+import AssetPoolFacetViewArtifact from '../../../src/artifacts/contracts/contracts/facets/AssetPoolFacet/AssetPoolFacetView.sol/AssetPoolFacetView.json';
+import RolesFacetArtifact from '../../../src/artifacts/contracts/contracts/facets/RolesFacet/RolesFacet.sol/RolesFacet.json';
+import DiamondCutFacetArtifact from '../../../src/artifacts/diamond-2/contracts/facets/DiamondCutFacet.sol/DiamondCutFacet.json';
+import DiamondLoupeFacetArtifact from '../../../src/artifacts/diamond-2/contracts/facets/DiamondLoupeFacet.sol/DiamondLoupeFacet.json';
+import OwnershipFacetArtifact from '../../../src/artifacts/diamond-2/contracts/facets/OwnershipFacet.sol/OwnershipFacet.json';
+import GasStationFacetArtifact from '../../../src/artifacts/contracts/contracts/facets/GasStationFacet/GasStation.sol/GasStationFacet.json';
+import RewardPollFacetArtifact from '../../../src/artifacts/contracts/contracts/facets/PollFacet/RewardPollFacet.sol/RewardPollFacet.json';
+import RewardPollProxyFacetArtifact from '../../../src/artifacts/contracts/contracts/facets/PollFacet/RewardPollProxyFacet.sol/RewardPollProxyFacet.json';
+import WithdrawPollFacetArtifact from '../../../src/artifacts/contracts/contracts/facets/PollFacet/WithdrawPollFacet.sol/WithdrawPollFacet.json';
+import WithdrawPollProxyFacetArtifact from '../../../src/artifacts/contracts/contracts/facets/PollFacet/WithdrawPollProxyFacet.sol/WithdrawPollProxyFacet.json';
+import PollProxyFacetArtifact from '../../../src/artifacts/contracts/contracts/facets/PollFacet/PollProxyFacet.sol/PollProxyFacet.json';
+import UpdateDiamondFacetArtifact from '../../../src/artifacts/contracts/contracts/factories/UpdateDiamondFacet.sol/UpdateDiamondFacet.json';
+import AssetPoolFactoryArtifact from '../../../src/artifacts/contracts/contracts/factories/AssetPoolFactory.sol/AssetPoolFactory.json';
 
 export const exampleTokenFactory = new ethers.ContractFactory(
     ExampleTokenArtifact.abi,
@@ -191,7 +191,7 @@ export const getAssetPoolFactory = async () => {
         for (const func in diamondCut[facet].functionSelectors) {
             const elem = diamondCut[facet].functionSelectors[func];
             if (all.includes(elem)) {
-                console.error("facet", facet, "func", elem);
+                console.error('facet', facet, 'func', elem);
                 for (const key of Object.keys(rewardPollFacet.functions)) {
                     console.error(key);
                     console.error(utils.keccak256(utils.toUtf8Bytes(key)).substr(0, 10));

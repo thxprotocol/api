@@ -1,6 +1,6 @@
-import { NextFunction, Request, Response } from "express";
-import { HttpError } from "../../models/Error";
-import qrcode from "qrcode";
+import { NextFunction, Request, Response } from 'express';
+import { HttpError } from '../../models/Error';
+import qrcode from 'qrcode';
 
 /**
  * @swagger
@@ -45,12 +45,12 @@ export const postWithdrawalWithdraw = async (req: Request, res: Response, next: 
         const base64 = await qrcode.toDataURL(
             JSON.stringify({
                 contractAddress: req.params.address,
-                contract: "WithdrawPoll",
-                method: "withdraw",
+                contract: 'WithdrawPoll',
+                method: 'withdraw',
             }),
         );
         res.send({ base64 });
     } catch (err) {
-        next(new HttpError(500, "QR code encoding failed.", err));
+        next(new HttpError(500, 'QR code encoding failed.', err));
     }
 };

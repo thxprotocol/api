@@ -1,6 +1,6 @@
-import { NextFunction, Response } from "express";
-import { tokenContract } from "../../util/network";
-import { HttpError, HttpRequest } from "../../models/Error";
+import { NextFunction, Response } from 'express';
+import { tokenContract } from '../../util/network';
+import { HttpError, HttpRequest } from '../../models/Error';
 
 /**
  * @swagger
@@ -63,7 +63,7 @@ export const getMember = async (req: HttpRequest, res: Response, next: NextFunct
         const isMember = await req.solution.isMember(req.params.address);
 
         if (!isMember) {
-            next(new HttpError(404, "Address is not a member."));
+            next(new HttpError(404, 'Address is not a member.'));
             return;
         }
 
@@ -81,6 +81,6 @@ export const getMember = async (req: HttpRequest, res: Response, next: NextFunct
             },
         });
     } catch (err) {
-        next(new HttpError(502, "Asset Pool get member failed.", err));
+        next(new HttpError(502, 'Asset Pool get member failed.', err));
     }
 };

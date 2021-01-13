@@ -1,9 +1,9 @@
-import { HttpError } from "../models/Error";
-import { snakeCase } from "lodash";
-import { MongoClient } from "mongodb";
-import { MONGODB_URI } from "../util/secrets";
+import { HttpError } from '../models/Error';
+import { snakeCase } from 'lodash';
+import { MongoClient } from 'mongodb';
+import { MONGODB_URI } from '../util/secrets';
 
-const grantable = new Set(["access_token", "authorization_code", "refresh_token", "device_code"]);
+const grantable = new Set(['access_token', 'authorization_code', 'refresh_token', 'device_code']);
 
 let DB: any;
 
@@ -17,22 +17,22 @@ class CollectionSet extends Set {
                     ...(grantable.has(name)
                         ? [
                               {
-                                  key: { "payload.grantId": 1 },
+                                  key: { 'payload.grantId': 1 },
                               },
                           ]
                         : []),
-                    ...(name === "device_code"
+                    ...(name === 'device_code'
                         ? [
                               {
-                                  key: { "payload.userCode": 1 },
+                                  key: { 'payload.userCode': 1 },
                                   unique: true,
                               },
                           ]
                         : []),
-                    ...(name === "session"
+                    ...(name === 'session'
                         ? [
                               {
-                                  key: { "payload.uid": 1 },
+                                  key: { 'payload.uid': 1 },
                                   unique: true,
                               },
                           ]
@@ -79,7 +79,7 @@ export default class MongoAdapter {
                 { upsert: true },
             );
         } catch (e) {
-            return new HttpError(502, "OIDC Model save failed.", e);
+            return new HttpError(502, 'OIDC Model save failed.', e);
         }
     }
 
@@ -89,14 +89,14 @@ export default class MongoAdapter {
         return result.payload;
     }
     async findByUserCode(userCode: string) {
-        const result = await this.coll().find({ "payload.userCode": userCode }, { payload: 1 }).limit(1).next();
+        const result = await this.coll().find({ 'payload.userCode': userCode }, { payload: 1 }).limit(1).next();
 
         if (!result) return undefined;
         return result.payload;
     }
 
     async findByUid(uid: string) {
-        const result = await this.coll().find({ "payload.uid": uid }, { payload: 1 }).limit(1).next();
+        const result = await this.coll().find({ 'payload.uid': uid }, { payload: 1 }).limit(1).next();
 
         if (!result) return undefined;
         return result.payload;
@@ -107,10 +107,10 @@ export default class MongoAdapter {
     }
 
     async revokeByGrantId(grantId: string) {
-        await this.coll().deleteMany({ "payload.grantId": grantId });
+        await this.coll().deleteMany({ 'payload.grantId': grantId });
     }
 
     async consume(_id: string) {
-        await this.coll().findOneAndUpdate({ _id }, { $set: { "payload.consumed": Math.floor(Date.now() / 1000) } });
+        await this.coll().findOneAndUpdate({ _id }, { $set: { 'payload.consumed': Math.floor(Date.now() / 1000) } });
     }
 }

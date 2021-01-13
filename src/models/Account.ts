@@ -1,6 +1,6 @@
-import bcrypt from "bcrypt-nodejs";
-import mongoose from "mongoose";
-import { encryptString } from "../util/encrypt";
+import bcrypt from 'bcrypt-nodejs';
+import mongoose from 'mongoose';
+import { encryptString } from '../util/encrypt';
 
 type comparePasswordFunction = (candidatePassword: string, cb: (err: any, isMatch: any) => {}) => void;
 
@@ -54,10 +54,10 @@ const accountSchema = new mongoose.Schema(
 /**
  * Password hash middleware.
  */
-accountSchema.pre("save", function save(next) {
+accountSchema.pre('save', function save(next) {
     const account = this as AccountDocument;
 
-    if (!account.isModified("password")) {
+    if (!account.isModified('password')) {
         return next();
     }
 
@@ -91,4 +91,4 @@ const comparePassword: comparePasswordFunction = function (candidatePassword, cb
 
 accountSchema.methods.comparePassword = comparePassword;
 
-export const Account = mongoose.model<AccountDocument>("Account", accountSchema);
+export const Account = mongoose.model<AccountDocument>('Account', accountSchema);

@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+import mongoose from 'mongoose';
 
 export type AssetPoolDocument = mongoose.Document & {
     address: string;
@@ -14,4 +14,4 @@ const assetPoolSchema = new mongoose.Schema(
     },
     { timestamps: true },
 );
-export const AssetPool = mongoose.model<AssetPoolDocument>("AssetPool", assetPoolSchema);
+export const AssetPool = mongoose.model<AssetPoolDocument>('AssetPool', assetPoolSchema);

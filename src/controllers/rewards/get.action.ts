@@ -1,6 +1,6 @@
-import { Response, NextFunction } from "express";
-import { Reward, RewardDocument } from "../../models/Reward";
-import { HttpError, HttpRequest } from "../../models/Error";
+import { Response, NextFunction } from 'express';
+import { Reward, RewardDocument } from '../../models/Reward';
+import { HttpError, HttpRequest } from '../../models/Error';
 
 /**
  * @swagger
@@ -88,7 +88,7 @@ export const getReward = async (req: HttpRequest, res: Response, next: NextFunct
                 state,
                 pollId: pollId.toNumber(),
                 poll:
-                    pollId !== "0"
+                    pollId !== '0'
                         ? {
                               pollId: pollId.toNumber(),
                               withdrawAmount: await req.solution.getWithdrawAmount(pollId),
@@ -99,10 +99,10 @@ export const getReward = async (req: HttpRequest, res: Response, next: NextFunct
 
             res.json(reward);
         } catch (err) {
-            next(new HttpError(404, "Asset Pool get reward failed.", err));
+            next(new HttpError(404, 'Asset Pool get reward failed.', err));
             return;
         }
     } catch (err) {
-        next(new HttpError(502, "Reward not found.", err));
+        next(new HttpError(502, 'Reward not found.', err));
     }
 };

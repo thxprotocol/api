@@ -1,7 +1,7 @@
-import { Response, NextFunction } from "express";
-import { Reward } from "../../models/Reward";
-import { HttpRequest, HttpError } from "../../models/Error";
-import qrcode from "qrcode";
+import { Response, NextFunction } from 'express';
+import { Reward } from '../../models/Reward';
+import { HttpRequest, HttpError } from '../../models/Error';
+import qrcode from 'qrcode';
 
 /**
  * @swagger
@@ -72,7 +72,7 @@ export const patchReward = async (req: HttpRequest, res: Response, next: NextFun
         try {
             metaData.save(async (err: Error) => {
                 if (err) {
-                    next(new HttpError(502, "Reward metadata find failed.", err));
+                    next(new HttpError(502, 'Reward metadata find failed.', err));
                     return;
                 }
 
@@ -89,10 +89,10 @@ export const patchReward = async (req: HttpRequest, res: Response, next: NextFun
 
                     const base64 = await qrcode.toDataURL(
                         JSON.stringify({
-                            assetPoolAddress: req.header("AssetPool"),
-                            contractAddress: req.header("AssetPool"),
-                            contract: "AssetPool",
-                            method: "updateReward",
+                            assetPoolAddress: req.header('AssetPool'),
+                            contractAddress: req.header('AssetPool'),
+                            contract: 'AssetPool',
+                            method: 'updateReward',
                             params: {
                                 id: req.params.id,
                                 withdrawAmount,
@@ -102,15 +102,15 @@ export const patchReward = async (req: HttpRequest, res: Response, next: NextFun
                     );
                     res.json({ base64 });
                 } catch (error) {
-                    next(new HttpError(502, "Asset Pool get reward failed.", err));
+                    next(new HttpError(502, 'Asset Pool get reward failed.', err));
                     return;
                 }
             });
         } catch (error) {
-            next(new HttpError(502, "Reward metadata save failed.", error));
+            next(new HttpError(502, 'Reward metadata save failed.', error));
             return;
         }
     } catch (error) {
-        next(new HttpError(502, "Reward find failed.", error));
+        next(new HttpError(502, 'Reward find failed.', error));
     }
 };

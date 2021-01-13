@@ -1,11 +1,11 @@
 // https://github.com/luke-park/SecureCompatibleEncryptionExamples/blob/master/JavaScript/SCEE-Node.js
-import crypto from "crypto";
+import crypto from 'crypto';
 
-const ALGORITHM_NAME = "aes-128-gcm";
+const ALGORITHM_NAME = 'aes-128-gcm';
 const ALGORITHM_NONCE_SIZE = 12;
 const ALGORITHM_TAG_SIZE = 16;
 const ALGORITHM_KEY_SIZE = 16;
-const PBKDF2_NAME = "sha256";
+const PBKDF2_NAME = 'sha256';
 const PBKDF2_SALT_SIZE = 16;
 const PBKDF2_ITERATIONS = 1000;
 
@@ -28,7 +28,7 @@ export function encryptString(plaintext: string, password: string) {
 
     // Derive a key using PBKDF2.
     const key = crypto.pbkdf2Sync(
-        Buffer.from(password, "utf8"),
+        Buffer.from(password, 'utf8'),
         salt,
         PBKDF2_ITERATIONS,
         ALGORITHM_KEY_SIZE,
@@ -36,8 +36,8 @@ export function encryptString(plaintext: string, password: string) {
     );
 
     // Encrypt and prepend salt.
-    const ciphertextAndNonceAndSalt = Buffer.concat([salt, encrypt(Buffer.from(plaintext, "utf8"), key)]);
+    const ciphertextAndNonceAndSalt = Buffer.concat([salt, encrypt(Buffer.from(plaintext, 'utf8'), key)]);
 
     // Return as base64 string.
-    return ciphertextAndNonceAndSalt.toString("base64");
+    return ciphertextAndNonceAndSalt.toString('base64');
 }

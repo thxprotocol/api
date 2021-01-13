@@ -1,14 +1,14 @@
-const hre = require("hardhat");
+const hre = require('hardhat');
 const ethers = hre.ethers;
 
 async function main() {
     const admin = (await ethers.getSigners())[0];
-    const ExampleTokenFactory = await ethers.getContractFactory("ExampleToken");
+    const ExampleTokenFactory = await ethers.getContractFactory('ExampleToken');
     const testToken = await ExampleTokenFactory.deploy(admin.address, 100000e10);
 
     await testToken.deployed();
 
-    console.log("TestToken Address:", testToken.address);
+    console.log('TestToken Address:', testToken.address);
 }
 
 main()

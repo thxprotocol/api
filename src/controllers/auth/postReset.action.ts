@@ -1,8 +1,8 @@
-import async from "async";
-import nodemailer from "nodemailer";
-import { Account, AccountDocument } from "../../models/Account";
-import { Request, Response, NextFunction } from "express";
-import { HttpError } from "../../models/Error";
+import async from 'async';
+import nodemailer from 'nodemailer';
+import { Account, AccountDocument } from '../../models/Account';
+import { Request, Response, NextFunction } from 'express';
+import { HttpError } from '../../models/Error';
 
 /**
  * @swagger
@@ -43,15 +43,15 @@ export const postReset = async (req: Request, res: Response, next: NextFunction)
         [
             function resetPassword(done: Function) {
                 Account.findOne({ passwordResetToken: req.params.token })
-                    .where("passwordResetExpires")
+                    .where('passwordResetExpires')
                     .gt(Date.now())
                     .exec((err: Error, account: AccountDocument) => {
                         if (err) {
-                            next(new HttpError(502, "Account find passwordResetExpires failed.", err));
+                            next(new HttpError(502, 'Account find passwordResetExpires failed.', err));
                             return;
                         }
                         if (!account) {
-                            next(new HttpError(403, "Password reset token is invalid or has expired.", err));
+                            next(new HttpError(403, 'Password reset token is invalid or has expired.', err));
                             return;
                         }
                         account.password = req.body.password;
@@ -59,7 +59,7 @@ export const postReset = async (req: Request, res: Response, next: NextFunction)
                         account.passwordResetExpires = undefined;
                         account.save((err: Error) => {
                             if (err) {
-                                next(new HttpError(502, "Account save failed.", err));
+                                next(new HttpError(502, 'Account save failed.', err));
                                 return;
                             }
                             done(err, account);
@@ -68,7 +68,7 @@ export const postReset = async (req: Request, res: Response, next: NextFunction)
             },
             function sendResetPasswordEmail(account: AccountDocument, done: Function) {
                 const transporter = nodemailer.createTransport({
-                    service: "SendGrid",
+                    service: 'SendGrid',
                     auth: {
                         user: process.env.SENDGRID_USER,
                         pass: process.env.SENDGRID_PASSWORD,
@@ -76,12 +76,12 @@ export const postReset = async (req: Request, res: Response, next: NextFunction)
                 });
                 const mailOptions = {
                     to: account.email,
-                    from: "peter@thxprotocol.com",
-                    subject: "Your password has been changed",
+                    from: 'peter@thxprotocol.com',
+                    subject: 'Your password has been changed',
                     text: `Hello,\n\nThis is a confirmation that the password for your account ${account.email} has just been changed.\n`,
                 };
                 transporter.sendMail(mailOptions, (err) => {
-                    res.json({ message: "Success! Your password has been changed." });
+                    res.json({ message: 'Success! Your password has been changed.' });
                     done(err);
                 });
             },
@@ -90,7 +90,7 @@ export const postReset = async (req: Request, res: Response, next: NextFunction)
             if (err) {
                 return next(err);
             }
-            return res.redirect("/");
+            return res.redirect('/');
         },
     );
 };

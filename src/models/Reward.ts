@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+import mongoose from 'mongoose';
 export type RewardDocument = mongoose.Document & {
     id: number;
     title: string;
@@ -25,4 +25,4 @@ const rewardSchema = new mongoose.Schema(
     { timestamps: true },
 );
 
-export const Reward = mongoose.model<RewardDocument>("Reward", rewardSchema);
+export const Reward = mongoose.model<RewardDocument>('Reward', rewardSchema);

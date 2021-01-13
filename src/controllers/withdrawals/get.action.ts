@@ -1,5 +1,5 @@
-import { NextFunction, Response } from "express";
-import { HttpRequest, HttpError } from "../../models/Error";
+import { NextFunction, Response } from 'express';
+import { HttpRequest, HttpError } from '../../models/Error';
 
 /**
  * @swagger
@@ -62,6 +62,6 @@ export const getWithdrawal = async (req: HttpRequest, res: Response, next: NextF
             pollId,
         });
     } catch (err) {
-        next(new HttpError(502, "Withdraw Poll get data failed.", err));
+        next(new HttpError(502, 'Withdraw Poll get data failed.', err));
     }
 };

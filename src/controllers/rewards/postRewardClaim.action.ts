@@ -1,6 +1,6 @@
-import { Request, Response, NextFunction } from "express";
-import { HttpError } from "../../models/Error";
-import qrcode from "qrcode";
+import { Request, Response, NextFunction } from 'express';
+import { HttpError } from '../../models/Error';
+import qrcode from 'qrcode';
 
 /**
  * @swagger
@@ -44,10 +44,10 @@ export const postRewardClaim = async (req: Request, res: Response, next: NextFun
     try {
         const base64 = await qrcode.toDataURL(
             JSON.stringify({
-                assetPoolAddress: req.header("AssetPool"),
-                contractAddress: req.header("AssetPool"),
-                contract: "AssetPool",
-                method: "claimReward",
+                assetPoolAddress: req.header('AssetPool'),
+                contractAddress: req.header('AssetPool'),
+                contract: 'AssetPool',
+                method: 'claimReward',
                 params: {
                     id: req.params.id,
                 },
@@ -55,6 +55,6 @@ export const postRewardClaim = async (req: Request, res: Response, next: NextFun
         );
         res.json({ base64 });
     } catch (err) {
-        next(new HttpError(502, "QR encode failed.", err));
+        next(new HttpError(502, 'QR encode failed.', err));
     }
 };

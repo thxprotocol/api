@@ -1,5 +1,5 @@
-import { HttpError, HttpRequest } from "../../models/Error";
-import { NextFunction, Response } from "express";
+import { HttpError, HttpRequest } from '../../models/Error';
+import { NextFunction, Response } from 'express';
 
 /**
  * @swagger
@@ -77,6 +77,6 @@ export const getPoll = async (req: HttpRequest, res: Response, next: NextFunctio
             totalVoted: (await req.solution.getTotalVoted(req.params.id)).toNumber(),
         });
     } catch (err) {
-        next(new HttpError(502, "Base Poll get contract data failed.", err));
+        next(new HttpError(502, 'Base Poll get contract data failed.', err));
     }
 };

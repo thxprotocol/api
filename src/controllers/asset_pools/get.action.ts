@@ -1,7 +1,7 @@
-import { AssetPool, AssetPoolDocument } from "../../models/AssetPool";
-import { Response, NextFunction } from "express";
-import { tokenContract } from "../../util/network";
-import { HttpError, HttpRequest } from "../../models/Error";
+import { AssetPool, AssetPoolDocument } from '../../models/AssetPool';
+import { Response, NextFunction } from 'express';
+import { tokenContract } from '../../util/network';
+import { HttpError, HttpRequest } from '../../models/Error';
 
 /**
  * @swagger
@@ -80,19 +80,19 @@ export const getAssetPool = async (req: HttpRequest, res: Response, next: NextFu
                 address: req.params.address,
             });
             if (!assetPool) {
-                return next(new HttpError(404, "Asset Pool is not found in database."));
+                return next(new HttpError(404, 'Asset Pool is not found in database.'));
             }
             const { uid, address, title } = assetPool;
 
             if (!address) {
-                return next(new HttpError(404, "Asset Pool is not found in database."));
+                return next(new HttpError(404, 'Asset Pool is not found in database.'));
             }
 
             res.json({ title, address, uid, ...contractData });
         } catch (error) {
-            next(new HttpError(500, "Asset Pool network data can not be obtained.", error));
+            next(new HttpError(500, 'Asset Pool network data can not be obtained.', error));
         }
     } catch (error) {
-        next(new HttpError(404, "Asset Pool is not found on network.", error));
+        next(new HttpError(404, 'Asset Pool is not found on network.', error));
     }
 };

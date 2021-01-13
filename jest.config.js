@@ -1,14 +1,14 @@
 module.exports = {
     globals: {
-        "ts-jest": {
-            tsConfig: "tsconfig.json",
+        'ts-jest': {
+            tsConfig: 'tsconfig.json',
         },
     },
-    moduleFileExtensions: ["ts", "js", "json"],
+    moduleFileExtensions: ['ts', 'js', 'json'],
     transform: {
-        "^.+\\.(ts|tsx)$": "ts-jest",
+        '^.+\\.(ts|tsx)$': 'ts-jest',
     },
-    testMatch: ["**/test/**/*.test.(ts|js)"],
-    testEnvironment: "node",
-    setupFilesAfterEnv: ["<rootDir>/test/e2e/lib/setup.ts"],
+    testMatch: ['**/test/**/*.test.(ts|js)'],
+    testEnvironment: 'node',
+    setupFilesAfterEnv: ['<rootDir>/test/e2e/lib/setup.ts'],
 };

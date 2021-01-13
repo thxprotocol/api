@@ -1,19 +1,19 @@
-import { body, param } from "express-validator";
-import { ethers } from "ethers";
-import { validateAssetPoolHeader } from "../../util/validation";
+import { body, param } from 'express-validator';
+import { ethers } from 'ethers';
+import { validateAssetPoolHeader } from '../../util/validation';
 
 export const validations = {
     postAssetPool: [
-        body("token")
+        body('token')
             .exists()
             .custom((value) => {
                 return ethers.utils.isAddress(value);
             }),
-        body("title").exists(),
+        body('title').exists(),
     ],
     getAssetPool: [
         validateAssetPoolHeader,
-        param("address")
+        param('address')
             .exists()
             .custom((value) => {
                 return ethers.utils.isAddress(value);
@@ -21,7 +21,7 @@ export const validations = {
     ],
     patchAssetPool: [
         validateAssetPoolHeader,
-        body("rewardPollDuration").optional().isNumeric(),
-        body("proposeWithdrawPollDuration").optional().isNumeric(),
+        body('rewardPollDuration').optional().isNumeric(),
+        body('proposeWithdrawPollDuration').optional().isNumeric(),
     ],
 };

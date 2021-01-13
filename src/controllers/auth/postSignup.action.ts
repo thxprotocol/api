@@ -1,8 +1,8 @@
-import { Account } from "../../models/Account";
-import { Request, Response, NextFunction } from "express";
-import { ethers } from "ethers";
-import { HttpError } from "../../models/Error";
-import { VERSION } from "../../util/secrets";
+import { Account } from '../../models/Account';
+import { Request, Response, NextFunction } from 'express';
+import { ethers } from 'ethers';
+import { HttpError } from '../../models/Error';
+import { VERSION } from '../../util/secrets';
 
 /**
  * @swagger
@@ -52,8 +52,8 @@ import { VERSION } from "../../util/secrets";
  *         description: Bad Gateway. Received an invalid response from the network or database.
  */
 export const postSignup = async (req: Request, res: Response, next: NextFunction) => {
-    let address = "",
-        privateKey = "";
+    let address = '',
+        privateKey = '';
 
     if (req.body.address) {
         address = req.body.address;
@@ -75,19 +75,19 @@ export const postSignup = async (req: Request, res: Response, next: NextFunction
         const existingUser = await Account.findOne({ email: req.body.email });
 
         if (existingUser) {
-            next(new HttpError(422, "A user for this e-mail already exists."));
+            next(new HttpError(422, 'A user for this e-mail already exists.'));
             return;
         }
 
         account.save((error) => {
             if (error) {
-                next(new HttpError(502, "Account save failed.", error));
+                next(new HttpError(502, 'Account save failed.', error));
                 return;
             }
             res.status(201).redirect(`/${VERSION}/account`);
         });
     } catch (err) {
-        next(new HttpError(500, "Account signup failed.", err));
+        next(new HttpError(500, 'Account signup failed.', err));
         return;
     }
 };
