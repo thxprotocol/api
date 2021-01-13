@@ -1,4 +1,4 @@
-import { ORIGIN, VERSION, MONGODB_URI, ENVIRONMENT } from './util/secrets';
+import { VERSION, MONGODB_URI, ENVIRONMENT } from './util/secrets';
 import express from 'express';
 import compression from 'compression';
 import bodyParser from 'body-parser';
@@ -6,7 +6,6 @@ import lusca from 'lusca';
 import path from 'path';
 import morgan from 'morgan';
 import logger from './util/logger';
-import cors from 'cors';
 import router from './controllers';
 import db from './util/database';
 import { errorHandler, notFoundHandler } from './util/error';
@@ -21,14 +20,6 @@ app.set('trust proxy', true);
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, '../../src/views'));
 app.set('port', port);
-app.use(
-    cors({
-        credentials: false,
-        origin: () => {
-            return ORIGIN;
-        },
-    }),
-);
 app.use(
     morgan('combined', {
         skip: () => ENVIRONMENT === 'test',
