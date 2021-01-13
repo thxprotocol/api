@@ -1,7 +1,6 @@
-import { Request, Response, NextFunction } from 'express';
-import { ISolutionRequest, solutionContract } from '../../util/network';
-import { VERSION } from '../../util/secrets';
-import { HttpError } from '../../models/Error';
+import { Response, NextFunction } from "express";
+import { VERSION } from "../../util/secrets";
+import { HttpRequest, HttpError } from "../../models/Error";
 
 /**
  * @swagger
@@ -45,7 +44,7 @@ import { HttpError } from '../../models/Error';
  *       '502':
  *         description: Bad Gateway. Received an invalid response from the network or database.
  */
-export const patchAssetPool = async (req: ISolutionRequest, res: Response, next: NextFunction) => {
+export const patchAssetPool = async (req: HttpRequest, res: Response, next: NextFunction) => {
     if (
         req.body.rewardPollDuration &&
         (await req.solution.getRewardPollDuration()).toString() !== req.body.rewardPollDuration.toString()
@@ -53,7 +52,7 @@ export const patchAssetPool = async (req: ISolutionRequest, res: Response, next:
         try {
             await req.solution.setRewardPollDuration(req.body.rewardPollDuration);
         } catch (error) {
-            next(new HttpError(502, 'Asset Pool setRewardPollDuration failed.', error));
+            next(new HttpError(502, "Asset Pool setRewardPollDuration failed.", error));
             return;
         }
     }
@@ -66,7 +65,7 @@ export const patchAssetPool = async (req: ISolutionRequest, res: Response, next:
         try {
             await req.solution.setProposeWithdrawPollDuration(req.body.proposeWithdrawPollDuration);
         } catch (error) {
-            next(new HttpError(502, 'Asset Pool setProposeWithdrawPollDuration failed.', error));
+            next(new HttpError(502, "Asset Pool setProposeWithdrawPollDuration failed.", error));
             return;
         }
     }

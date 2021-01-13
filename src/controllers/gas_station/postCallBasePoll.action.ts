@@ -1,26 +1,25 @@
-import { Response, NextFunction } from 'express';
-import { VERSION } from '../../util/secrets';
-import { HttpError } from '../../models/Error';
-import { ISolutionRequest } from '../../util/network';
+import { Response, NextFunction } from "express";
+import { VERSION } from "../../util/secrets";
+import { HttpError, HttpRequest } from "../../models/Error";
 
-export const postCallBasePoll = async (req: ISolutionRequest, res: Response, next: NextFunction) => {
+export const postCallBasePoll = async (req: HttpRequest, res: Response, next: NextFunction) => {
     try {
         await (await req.solution.call(req.body.call, req.body.contractAddress, req.body.nonce, req.body.sig)).wait();
 
         res.redirect(`/${VERSION}/${req.body.redirect}`);
     } catch (err) {
-        next(new HttpError(502, 'BasePoll Call failed.', err));
+        next(new HttpError(502, "BasePoll Call failed.", err));
     }
 };
 
-export const postCallBasePollFinalize = async (req: ISolutionRequest, res: Response, next: NextFunction) => {
+export const postCallBasePollFinalize = async (req: HttpRequest, res: Response, next: NextFunction) => {
     try {
         await (await req.solution.call(req.body.call, req.body.contractAddress, req.body.nonce, req.body.sig)).wait();
 
         // AssetPool.onRewardPollFinish should cast an event containing the reward id.
-        res.json({ message: 'OK' });
+        res.json({ message: "OK" });
     } catch (err) {
-        next(new HttpError(502, 'Gas Station call failed.', err));
+        next(new HttpError(502, "Gas Station call failed.", err));
     }
 };
 

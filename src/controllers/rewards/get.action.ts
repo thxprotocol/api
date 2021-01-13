@@ -1,7 +1,6 @@
-import { Response, NextFunction } from 'express';
-import { ISolutionRequest } from '../../util/network';
-import { Reward, RewardDocument } from '../../models/Reward';
-import { HttpError } from '../../models/Error';
+import { Response, NextFunction } from "express";
+import { Reward, RewardDocument } from "../../models/Reward";
+import { HttpError, HttpRequest } from "../../models/Error";
 
 /**
  * @swagger
@@ -74,12 +73,12 @@ import { HttpError } from '../../models/Error';
  *       '502':
  *         description: Bad Gateway. Received an invalid response from the network or database.
  */
-export const getReward = async (req: ISolutionRequest, res: Response, next: NextFunction) => {
+export const getReward = async (req: HttpRequest, res: Response, next: NextFunction) => {
     try {
         const metaData = await Reward.findOne({ id: req.params.id });
 
         try {
-            const { id, withdrawAmount, withdrawDuration, state, pollId } = await req.solution.getReward(req.params.id);
+            const { id, withdrawAmount, withdrawDuration, pollId, state } = await req.solution.getReward(req.params.id);
             const reward = {
                 id: id.toNumber(),
                 title: metaData.title,
@@ -88,14 +87,22 @@ export const getReward = async (req: ISolutionRequest, res: Response, next: Next
                 withdrawDuration: withdrawDuration.toNumber(),
                 state,
                 pollId: pollId.toNumber(),
+                poll:
+                    pollId !== "0"
+                        ? {
+                              pollId: pollId.toNumber(),
+                              withdrawAmount: await req.solution.getWithdrawAmount(pollId),
+                              withdrawDuration: (await req.solution.getWithdrawDuration(pollId)).toNumber(),
+                          }
+                        : null,
             } as RewardDocument;
 
             res.json(reward);
         } catch (err) {
-            next(new HttpError(404, 'Asset Pool get reward failed.', err));
+            next(new HttpError(404, "Asset Pool get reward failed.", err));
             return;
         }
     } catch (err) {
-        next(new HttpError(502, 'Reward not found.', err));
+        next(new HttpError(502, "Reward not found.", err));
     }
 };

@@ -1,6 +1,5 @@
-import { NextFunction, Response } from 'express';
-import { ISolutionRequest } from '../../util/network';
-import { HttpError } from '../../models/Error';
+import { NextFunction, Response } from "express";
+import { HttpError, HttpRequest } from "../../models/Error";
 
 /**
  * @swagger
@@ -35,10 +34,10 @@ import { HttpError } from '../../models/Error';
  *       '502':
  *          description: Bad Gateway. Received an invalid response from the network or database.
  */
-export const getWithdrawals = async (req: ISolutionRequest, res: Response, next: NextFunction) => {
+export const getWithdrawals = async (req: HttpRequest, res: Response, next: NextFunction) => {
     try {
         const filter = req.solution.filters.WithdrawPollCreated(req.query.member, null);
-        const logs = await req.solution.queryFilter(filter, 0, 'latest');
+        const logs = await req.solution.queryFilter(filter, 0, "latest");
 
         res.json({
             withdrawPolls: logs.map((log) => {
@@ -46,6 +45,6 @@ export const getWithdrawals = async (req: ISolutionRequest, res: Response, next:
             }),
         });
     } catch (err) {
-        next(new HttpError(502, 'Get WithdrawPollCreated logs failed.', err));
+        next(new HttpError(502, "Get WithdrawPollCreated logs failed.", err));
     }
 };

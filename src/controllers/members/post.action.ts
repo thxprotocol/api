@@ -1,9 +1,8 @@
-import { NextFunction, Request, Response } from 'express';
-import { ISolutionRequest, solutionContract } from '../../util/network';
-import { HttpError } from '../../models/Error';
-import { VERSION } from '../../util/secrets';
-import ISolutionArtifact from '../../../src/artifacts/contracts/contracts/interfaces/ISolution.sol/ISolution.json';
-import { parseLogs } from '../../util/events';
+import { NextFunction, Response } from "express";
+import { HttpRequest, HttpError } from "../../models/Error";
+import { VERSION } from "../../util/secrets";
+import ISolutionArtifact from "../../../src/artifacts/contracts/contracts/interfaces/ISolution.sol/ISolution.json";
+import { parseLogs } from "../../util/events";
 
 /**
  * @swagger
@@ -42,32 +41,32 @@ import { parseLogs } from '../../util/events';
  *       '502':
  *         description: Bad Gateway. Received an invalid response from the network or database.
  */
-export const postMember = async (req: ISolutionRequest, res: Response, next: NextFunction) => {
+export const postMember = async (req: HttpRequest, res: Response, next: NextFunction) => {
     try {
         const result = await req.solution.isMember(req.body.address);
 
         if (result) {
-            next(new HttpError(400, 'Address is member already.'));
+            next(new HttpError(400, "Address is member already."));
             return;
         }
 
         try {
             const tx = await (await req.solution.addMember(req.body.address)).wait();
-
             try {
                 const events = await parseLogs(ISolutionArtifact.abi, tx.logs);
-                const event = events.filter((e: { name: string }) => e && e.name === 'RoleGranted')[0];
-                const address = event.args.account;
+                const event = events.filter((e: { name: string }) => e && e.name === "RoleGranted")[0];
+                const memberid = event.args.member;
+                const address = await req.solution.getAddressByMember(memberid);
 
                 res.redirect(`/${VERSION}/members/${address}`);
             } catch (err) {
-                next(new HttpError(500, 'Parse logs failed.', err));
+                next(new HttpError(500, "Parse logs failed.", err));
                 return;
             }
         } catch (err) {
-            next(new HttpError(502, 'Asset Pool addMember failed.', err));
+            next(new HttpError(502, "Asset Pool addMember failed.", err));
         }
     } catch (err) {
-        next(new HttpError(502, 'Asset Pool isMember failed.', err));
+        next(new HttpError(502, "Asset Pool isMember failed.", err));
     }
 };

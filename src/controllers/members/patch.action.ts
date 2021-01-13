@@ -1,7 +1,6 @@
-import { NextFunction, Request, Response } from 'express';
-import { ISolutionRequest, solutionContract } from '../../util/network';
-import { HttpError } from '../../models/Error';
-import { VERSION } from '../../util/secrets';
+import { NextFunction, Response } from "express";
+import { HttpRequest, HttpError } from "../../models/Error";
+import { VERSION } from "../../util/secrets";
 
 /**
  * @swagger
@@ -37,19 +36,19 @@ import { VERSION } from '../../util/secrets';
  *       '502':
  *         description: Bad Gateway. Received an invalid response from the network or database.
  */
-export const patchMember = async (req: ISolutionRequest, res: Response, next: NextFunction) => {
+export const patchMember = async (req: HttpRequest, res: Response, next: NextFunction) => {
     try {
         const isMember = await req.solution.isMember(req.params.address);
 
         if (!isMember) {
-            next(new HttpError(404, 'Address is not a member.'));
+            next(new HttpError(404, "Address is not a member."));
             return;
         }
 
-        await req.solution[req.body.isManager ? 'addManager' : 'removeManager'](req.params.address);
+        await req.solution[req.body.isManager ? "addManager" : "removeManager"](req.params.address);
 
         res.redirect(`/${VERSION}/members/${req.params.address}`);
     } catch (err) {
-        next(new HttpError(502, 'Asset Pool add/remove Manager failed.', err));
+        next(new HttpError(502, "Asset Pool add/remove Manager failed.", err));
     }
 };

@@ -1,8 +1,8 @@
-import { Request, Response, NextFunction } from 'express';
-import { HttpError } from '../models/Error';
+import { Request, Response, NextFunction } from "express";
+import { HttpError } from "../models/Error";
 
 export const notFoundHandler = (req: Request, res: Response, next: NextFunction) => {
-    next(new HttpError(404, 'Route not found'));
+    next(new HttpError(404, "Route not found"));
 };
 
 export const errorHandler = (error: HttpError, req: Request, res: Response, next: NextFunction) => {

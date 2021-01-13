@@ -1,8 +1,7 @@
-import { Response, NextFunction } from 'express';
-import { ISolutionRequest } from '../../util/network';
-import { HttpError } from '../../models/Error';
-import ISolutionArtifact from '../../../src/artifacts/contracts/contracts/interfaces/ISolution.sol/ISolution.json';
-import { parseLogs } from '../../util/events';
+import { Response, NextFunction } from "express";
+import { HttpError, HttpRequest } from "../../models/Error";
+import ISolutionArtifact from "../../../src/artifacts/contracts/contracts/interfaces/ISolution.sol/ISolution.json";
+import { parseLogs } from "../../util/events";
 /**
  * @swagger
  * /rewards/:id/give:
@@ -45,7 +44,7 @@ import { parseLogs } from '../../util/events';
  *       '502':
  *         description: Bad Gateway. Received an invalid response from the network or database.
  */
-export const postRewardClaimFor = async (req: ISolutionRequest, res: Response, next: NextFunction) => {
+export const postRewardClaimFor = async (req: HttpRequest, res: Response, next: NextFunction) => {
     try {
         const result = await req.solution.rewards(req.params.id);
 
@@ -58,18 +57,18 @@ export const postRewardClaimFor = async (req: ISolutionRequest, res: Response, n
 
             try {
                 const logs = await parseLogs(ISolutionArtifact.abi, tx.logs);
-                const event = logs.filter((e: { name: string }) => e && e.name === 'WithdrawPollCreated')[0];
+                const event = logs.filter((e: { name: string }) => e && e.name === "WithdrawPollCreated")[0];
                 const withdrawPoll = event.args.poll;
 
                 res.json({ withdrawPoll });
             } catch (err) {
-                next(new HttpError(500, 'Parse logs failed.', err));
+                next(new HttpError(500, "Parse logs failed.", err));
                 return;
             }
         } catch (err) {
-            next(new HttpError(502, 'Asset Pool claimRewardFor failed.', err));
+            next(new HttpError(502, "Asset Pool claimRewardFor failed.", err));
         }
     } catch (err) {
-        next(new HttpError(502, 'Asset Pool reward does not exist.', err));
+        next(new HttpError(502, "Asset Pool reward does not exist.", err));
     }
 };

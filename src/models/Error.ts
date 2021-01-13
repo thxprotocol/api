@@ -1,6 +1,6 @@
-import { Contract } from 'ethers';
-import logger from '../util/logger';
-import { Request } from 'express';
+import { Contract } from "ethers";
+import logger from "../util/logger";
+import { Request } from "express";
 
 export class HttpError extends Error {
     timestamp: number;

@@ -1,6 +1,6 @@
-import { Account } from '../../models/Account';
-import { Response, NextFunction } from 'express';
-import { HttpRequest, HttpError } from '../../models/Error';
+import { Account } from "../../models/Account";
+import { Response, NextFunction } from "express";
+import { HttpRequest, HttpError } from "../../models/Error";
 
 /**
  * @swagger
@@ -30,6 +30,6 @@ export const deleteAccount = async (req: HttpRequest, res: Response, next: NextF
 
         res.status(204).end();
     } catch (e) {
-        next(new HttpError(502, 'Account remove failed.', e));
+        next(new HttpError(502, "Account remove failed.", e));
     }
 };

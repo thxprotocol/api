@@ -1,7 +1,8 @@
-import request from 'supertest';
-import app from '../../src/app';
-import db from '../../src/util/database';
-import { voter, timeTravel, signMethod, admin, testTokenFactory, solution } from './lib/network';
+import request from "supertest";
+import app from "../../src/app";
+import db from "../../src/util/database";
+import { voter, timeTravel, signMethod, admin, solution } from "./lib/network";
+import { exampleTokenFactory } from "./lib/contracts";
 import {
     poolTitle,
     rewardPollDuration,
@@ -11,25 +12,27 @@ import {
     rewardWithdrawAmount,
     rewardWithdrawDuration,
     mintAmount,
-} from './lib/constants';
-import { formatEther, parseEther } from 'ethers/lib/utils';
+} from "./lib/constants";
+import { formatEther, parseEther } from "ethers/lib/utils";
+import { Contract } from "ethers";
 
 const user = request.agent(app);
 
-describe('Happy Flow', () => {
-    let poolAddress: any, pollAddress: any, withdrawPollAddress: any, testToken: any;
+describe("Happy Flow", () => {
+    let poolAddress: string, pollAddress: string, withdrawPollAddress: string, testToken: Contract;
 
     beforeAll(async () => {
         await db.truncate();
 
-        testToken = await testTokenFactory.deploy(admin.address, mintAmount);
+        testToken = await exampleTokenFactory.deploy(admin.address, mintAmount);
+
         await testToken.deployed();
     });
 
-    describe('POST /signup', () => {
-        it('HTTP 302 if payload is correct', (done) => {
-            user.post('/v1/signup')
-                .send({ email: 'test.api.bot@thx.network', password: 'mellon', confirmPassword: 'mellon' })
+    describe("POST /signup", () => {
+        it("HTTP 302 if payload is correct", (done) => {
+            user.post("/v1/signup")
+                .send({ email: "test.api.bot@thx.network", password: "mellon", confirmPassword: "mellon" })
                 .end((err, res) => {
                     expect(res.status).toBe(302);
                     done();
@@ -37,10 +40,10 @@ describe('Happy Flow', () => {
         });
     });
 
-    describe('POST /login', () => {
-        it('HTTP 302 if credentials are correct', (done) => {
-            user.post('/v1/login')
-                .send({ email: 'test.api.bot@thx.network', password: 'mellon' })
+    describe("POST /login", () => {
+        it("HTTP 302 if credentials are correct", (done) => {
+            user.post("/v1/login")
+                .send({ email: "test.api.bot@thx.network", password: "mellon" })
                 .end((err, res) => {
                     expect(res.status).toBe(302);
                     done();
@@ -48,25 +51,25 @@ describe('Happy Flow', () => {
         });
     });
 
-    describe('GET /account', () => {
-        it('HTTP 200', async (done) => {
-            user.get('/v1/account').end((err, res) => {
+    describe("GET /account", () => {
+        it("HTTP 200", async (done) => {
+            user.get("/v1/account").end((err, res) => {
                 expect(res.status).toBe(200);
                 done();
             });
         });
     });
 
-    describe('POST /asset_pools', () => {
-        it('HTTP 201', async (done) => {
-            user.post('/v1/asset_pools')
+    describe("POST /asset_pools", () => {
+        it("HTTP 201", async (done) => {
+            user.post("/v1/asset_pools")
                 .send({
                     title: poolTitle,
                     token: testToken.address,
                 })
                 .end(async (err, res) => {
                     expect(res.status).toBe(201);
-                    expect(res.body.address).toContain('0x');
+                    expect(res.body.address).toContain("0x");
                     poolAddress = res.body.address;
 
                     done();
@@ -74,12 +77,12 @@ describe('Happy Flow', () => {
         });
     });
 
-    describe('GET /asset_pools/:address', () => {
-        it('HTTP 200 and expose pool information', async (done) => {
+    describe("GET /asset_pools/:address", () => {
+        it("HTTP 200 and expose pool information", async (done) => {
             // Transfer some tokens to the pool rewardWithdrawAmount tokens for the pool
             await testToken.transfer(poolAddress, rewardWithdrawAmount);
 
-            user.get('/v1/asset_pools/' + poolAddress)
+            user.get("/v1/asset_pools/" + poolAddress)
                 .set({ AssetPool: poolAddress })
                 .end(async (err, res) => {
                     const adminBalance = await testToken.balanceOf(admin.address);
@@ -102,8 +105,8 @@ describe('Happy Flow', () => {
                 });
         });
 
-        it('HTTP 404 if pool does not exist', (done) => {
-            user.get('/v1/asset_pools/0x0000000000000000000000000000000000000000')
+        it("HTTP 404 if pool does not exist", (done) => {
+            user.get("/v1/asset_pools/0x0000000000000000000000000000000000000000")
                 .set({ AssetPool: poolAddress })
                 .end(async (err, res) => {
                     expect(res.status).toBe(404);
@@ -112,10 +115,10 @@ describe('Happy Flow', () => {
         });
     });
 
-    describe('PATCH /asset_pools/:address', () => {
-        let redirectURL = '';
-        it('HTTP 302 ', (done) => {
-            user.patch('/v1/asset_pools/' + poolAddress)
+    describe("PATCH /asset_pools/:address", () => {
+        let redirectURL = "";
+        it("HTTP 302 ", (done) => {
+            user.patch("/v1/asset_pools/" + poolAddress)
                 .set({ AssetPool: poolAddress })
                 .send({
                     rewardPollDuration: 10,
@@ -129,7 +132,7 @@ describe('Happy Flow', () => {
                 });
         });
 
-        it('HTTP 200 after redirect', (done) => {
+        it("HTTP 200 after redirect", (done) => {
             user.get(redirectURL)
                 .set({ AssetPool: poolAddress })
                 .end(async (err, res) => {
@@ -140,11 +143,11 @@ describe('Happy Flow', () => {
                 });
         });
 
-        it('HTTP 500 if incorrect rewardPollDuration type (string) sent ', (done) => {
-            user.patch('/v1/asset_pools/' + poolAddress)
+        it("HTTP 500 if incorrect rewardPollDuration type (string) sent ", (done) => {
+            user.patch("/v1/asset_pools/" + poolAddress)
                 .set({ AssetPool: poolAddress })
                 .send({
-                    rewardPollDuration: 'fivehundred',
+                    rewardPollDuration: "fivehundred",
                 })
                 .end(async (err, res) => {
                     expect(res.status).toBe(400);
@@ -152,11 +155,11 @@ describe('Happy Flow', () => {
                 });
         });
 
-        it('HTTP 500 if incorrect proposeWithdrawPollDuration type (string) is sent ', (done) => {
-            user.patch('/v1/asset_pools/' + poolAddress)
+        it("HTTP 500 if incorrect proposeWithdrawPollDuration type (string) is sent ", (done) => {
+            user.patch("/v1/asset_pools/" + poolAddress)
                 .set({ AssetPool: poolAddress })
                 .send({
-                    proposeWithdrawPollDuration: 'fivehundred',
+                    proposeWithdrawPollDuration: "fivehundred",
                 })
                 .end(async (err, res) => {
                     expect(res.status).toBe(400);
@@ -164,8 +167,8 @@ describe('Happy Flow', () => {
                 });
         });
 
-        it('HTTP should still have the correct values', (done) => {
-            user.get('/v1/asset_pools/' + poolAddress)
+        it("HTTP should still have the correct values", (done) => {
+            user.get("/v1/asset_pools/" + poolAddress)
                 .set({ AssetPool: poolAddress })
                 .end(async (err, res) => {
                     expect(Number(res.body.proposeWithdrawPollDuration)).toEqual(proposeWithdrawPollDuration);
@@ -176,11 +179,11 @@ describe('Happy Flow', () => {
         });
     });
 
-    describe('POST /rewards/', () => {
-        let redirectURL = '';
+    describe("POST /rewards/", () => {
+        let redirectURL = "";
 
-        it('HTTP 302 when reward is added', (done) => {
-            user.post('/v1/rewards/')
+        it("HTTP 302 when reward is added", (done) => {
+            user.post("/v1/rewards/")
                 .set({ AssetPool: poolAddress })
                 .send({
                     withdrawAmount: rewardWithdrawAmount,
@@ -195,14 +198,14 @@ describe('Happy Flow', () => {
                 });
         });
 
-        it('HTTP 200 after redirect', (done) => {
+        it("HTTP 200 after redirect", (done) => {
             user.get(redirectURL)
                 .set({ AssetPool: poolAddress })
                 .end(async (err, res) => {
-                    expect(Number(res.body.id)).toEqual(0);
+                    expect(Number(res.body.id)).toEqual(1);
                     expect(res.body.title).toEqual(rewardTitle);
                     expect(res.body.description).toEqual(rewardDescription);
-                    expect(res.body.poll.address).toContain('0x');
+                    expect(res.body.poll.pollId).toEqual(1);
                     expect(Number(res.body.poll.withdrawDuration)).toEqual(rewardWithdrawDuration);
                     expect(Number(formatEther(res.body.poll.withdrawAmount))).toEqual(
                         Number(formatEther(rewardWithdrawAmount)),
@@ -213,9 +216,9 @@ describe('Happy Flow', () => {
         });
     });
 
-    describe('GET /rewards/:id', () => {
-        it('HTTP 200 when successful', (done) => {
-            user.get('/v1/rewards/0')
+    describe("GET /rewards/:id", () => {
+        it("HTTP 200 when successful", (done) => {
+            user.get("/v1/rewards/1")
                 .set({ AssetPool: poolAddress })
                 .end(async (err, res) => {
                     expect(res.status).toBe(200);
@@ -223,8 +226,8 @@ describe('Happy Flow', () => {
                 });
         });
 
-        it('HTTP 404 if reward can not be found', (done) => {
-            user.get('/v1/rewards/1')
+        it("HTTP 404 if reward can not be found", (done) => {
+            user.get("/v1/rewards/2")
                 .set({ AssetPool: poolAddress })
                 .end(async (err, res) => {
                     expect(res.status).toBe(404);
@@ -232,8 +235,8 @@ describe('Happy Flow', () => {
                 });
         });
 
-        it('HTTP 500 if the id parameter is invalid', (done) => {
-            user.get('/v1/rewards/id_invalid')
+        it("HTTP 500 if the id parameter is invalid", (done) => {
+            user.get("/v1/rewards/id_invalid")
                 .set({ AssetPool: poolAddress })
                 .end(async (err, res) => {
                     expect(res.status).toBe(400);
@@ -242,11 +245,11 @@ describe('Happy Flow', () => {
         });
     });
 
-    describe('POST /members/:address', () => {
-        let redirectURL = '';
+    describe("POST /members/:address", () => {
+        let redirectURL = "";
 
-        it('HTTP 302 when member is added', (done) => {
-            user.post('/v1/members/')
+        it("HTTP 302 when member is added", (done) => {
+            user.post("/v1/members/")
                 .send({ address: voter.address })
                 .set({ AssetPool: poolAddress })
                 .end(async (err, res) => {
@@ -257,26 +260,26 @@ describe('Happy Flow', () => {
                 });
         });
 
-        it('HTTP 200 for the redirect', (done) => {
+        it("HTTP 200 for the redirect", (done) => {
             user.get(redirectURL)
                 .set({ AssetPool: poolAddress })
                 .end(async (err, res) => {
+                    expect(res.status).toBe(200);
                     expect(res.body.isMember).toEqual(true);
                     expect(res.body.isManager).toEqual(false);
                     expect(Number(formatEther(res.body.token.balance))).toEqual(0);
-                    expect(res.status).toBe(200);
                     done();
                 });
         });
     });
 
-    describe('GET /polls/:id', () => {
-        it('HTTP 200 and expose poll address', (done) => {
-            user.get('/v1/rewards/0')
+    describe("GET /polls/:id", () => {
+        it("HTTP 200 and expose poll address", (done) => {
+            user.get("/v1/rewards/0")
                 .set({ AssetPool: poolAddress })
                 .end(async (err, res) => {
                     pollAddress = res.body.poll.address;
-                    expect(res.body.poll.address).toContain('0x');
+                    expect(res.body.poll.address).toContain("0x");
                     expect(Number(formatEther(res.body.withdrawAmount))).toEqual(0);
                     expect(Number(res.body.state)).toEqual(0);
                     expect(res.status).toBe(200);
@@ -284,8 +287,8 @@ describe('Happy Flow', () => {
                 });
         });
 
-        it('HTTP 200 if poll exists', (done) => {
-            user.get('/v1/polls/' + pollAddress)
+        it("HTTP 200 if poll exists", (done) => {
+            user.get("/v1/polls/" + pollAddress)
                 .set({ AssetPool: poolAddress })
                 .end(async (err, res) => {
                     expect(res.status).toBe(200);
@@ -294,42 +297,42 @@ describe('Happy Flow', () => {
         });
     });
 
-    describe('GET /polls/:id/vote', () => {
-        it('HTTP 200 and base64 string for the yes vote', (done) => {
+    describe("GET /polls/:id/vote", () => {
+        it("HTTP 200 and base64 string for the yes vote", (done) => {
             user.post(`/v1/polls/${pollAddress}/vote`)
                 .set({ AssetPool: poolAddress })
                 .send({
                     agree: true,
                 })
                 .end(async (err, res) => {
-                    expect(res.body.base64).toContain('data:image/png;base64');
+                    expect(res.body.base64).toContain("data:image/png;base64");
                     expect(res.status).toBe(200);
                     done();
                 });
         });
     });
 
-    describe('POST /polls/:address/vote (rewardPoll)', () => {
-        let redirectURL = '';
+    describe("POST /polls/:address/vote (rewardPoll)", () => {
+        let redirectURL = "";
 
-        it('HTTP 200 and base64 string for the yes vote', (done) => {
+        it("HTTP 200 and base64 string for the yes vote", (done) => {
             user.post(`/v1/polls/${pollAddress}/vote`)
                 .set({ AssetPool: poolAddress })
                 .send({
                     agree: true,
                 })
                 .end(async (err, res) => {
-                    expect(res.body.base64).toContain('data:image/png;base64');
+                    expect(res.body.base64).toContain("data:image/png;base64");
                     expect(res.status).toBe(200);
                     done();
                 });
         });
 
-        it('HTTP 302 when tx is handled', async (done) => {
+        it("HTTP 302 when tx is handled", async (done) => {
             // We assume QR decoding works as expected, will be tested in the wallet repo
-            const { call, nonce, sig } = await signMethod(solution, 'vote', [true], voter);
+            const { call, nonce, sig } = await signMethod(solution, "vote", [true], voter);
 
-            user.post(`/v1/gas_station/base_poll`)
+            user.post("/v1/gas_station/base_poll")
                 .send({
                     call,
                     nonce,
@@ -343,7 +346,7 @@ describe('Happy Flow', () => {
                 });
         });
 
-        it('HTTP 200 and increase yesCounter with 1', (done) => {
+        it("HTTP 200 and increase yesCounter with 1", (done) => {
             user.get(redirectURL)
                 .set({ AssetPool: poolAddress })
                 .end(async (err, res) => {
@@ -356,17 +359,17 @@ describe('Happy Flow', () => {
         });
     });
 
-    describe('POST /polls/:address/finalize (rewardPoll)', () => {
-        let redirectURL = '';
+    describe("POST /polls/:address/finalize (rewardPoll)", () => {
+        let redirectURL = "";
 
         beforeAll(async () => {
             await timeTravel(rewardPollDuration);
         });
 
-        it('HTTP 302 after finalizing the poll', async (done) => {
-            const { call, nonce, sig } = await signMethod(solution, 'finalize', [], voter);
+        it("HTTP 302 after finalizing the poll", async (done) => {
+            const { call, nonce, sig } = await signMethod(solution, "finalize", [], voter);
 
-            user.post(`/v1/gas_station/base_poll`)
+            user.post("/v1/gas_station/base_poll")
                 .send({
                     call,
                     nonce,
@@ -381,7 +384,7 @@ describe('Happy Flow', () => {
                 });
         });
 
-        it('HTTP 404 after getting the finalized poll', (done) => {
+        it("HTTP 404 after getting the finalized poll", (done) => {
             user.get(`/v1/${redirectURL}`)
                 .set({ AssetPool: poolAddress })
                 .end(async (err, res) => {
@@ -391,9 +394,9 @@ describe('Happy Flow', () => {
         });
     });
 
-    describe('GET /rewards/:id (after finalizing)', () => {
-        it('HTTP 200 and return updated withdrawAmount and state 1', (done) => {
-            user.get('/v1/rewards/0')
+    describe("GET /rewards/:id (after finalizing)", () => {
+        it("HTTP 200 and return updated withdrawAmount and state 1", (done) => {
+            user.get("/v1/rewards/0")
                 .set({ AssetPool: poolAddress })
                 .end(async (err, res) => {
                     expect(Number(formatEther(res.body.withdrawAmount))).toEqual(
@@ -406,24 +409,24 @@ describe('Happy Flow', () => {
         });
     });
 
-    describe('POST /rewards/:id/claim', () => {
-        let redirectURL = '';
+    describe("POST /rewards/:id/claim", () => {
+        let redirectURL = "";
 
-        it('HTTP 200 and base64 string for the claim', (done) => {
-            user.post(`/v1/rewards/0/claim`)
+        it("HTTP 200 and base64 string for the claim", (done) => {
+            user.post("/v1/rewards/0/claim")
                 .set({ AssetPool: poolAddress })
                 .end(async (err, res) => {
-                    expect(res.body.base64).toContain('data:image/png;base64');
+                    expect(res.body.base64).toContain("data:image/png;base64");
                     expect(res.status).toBe(200);
                     done();
                 });
         });
 
-        it('HTTP 302 when tx is handled', async (done) => {
+        it("HTTP 302 when tx is handled", async (done) => {
             // We assume QR decoding works as expected, will be tested in the wallet repo
-            const { call, nonce, sig } = await signMethod(solution, 'claimReward', [0], admin);
+            const { call, nonce, sig } = await signMethod(solution, "claimReward", [0], admin);
 
-            user.post(`/v1/gas_station/asset_pool/claim_reward`)
+            user.post("/v1/gas_station/asset_pool/claim_reward")
                 .send({
                     call,
                     nonce,
@@ -438,7 +441,7 @@ describe('Happy Flow', () => {
                 });
         });
 
-        it('HTTP 200 after return state Pending', (done) => {
+        it("HTTP 200 after return state Pending", (done) => {
             user.get(redirectURL)
                 .set({ AssetPool: poolAddress })
                 .end(async (err, res) => {
@@ -452,42 +455,42 @@ describe('Happy Flow', () => {
         });
     });
 
-    describe('POST /rewards/:id/give', () => {
-        it('HTTP 200 when tx is handled', async (done) => {
-            user.post(`/v1/rewards/0/give`)
+    describe("POST /rewards/:id/give", () => {
+        it("HTTP 200 when tx is handled", async (done) => {
+            user.post("/v1/rewards/0/give")
                 .send({
                     member: admin.address,
                 })
                 .set({ AssetPool: poolAddress })
                 .end(async (err, res) => {
-                    expect(res.body.withdrawPoll).toContain('0x');
+                    expect(res.body.withdrawPoll).toContain("0x");
                     done();
                 });
         });
     });
 
-    describe('POST /polls/:address/vote (withdrawPoll)', () => {
-        let redirectURL = '';
+    describe("POST /polls/:address/vote (withdrawPoll)", () => {
+        let redirectURL = "";
 
-        it('HTTP 200 and base64 string for the yes vote', (done) => {
+        it("HTTP 200 and base64 string for the yes vote", (done) => {
             user.post(`/v1/polls/${withdrawPollAddress}/vote`)
                 .set({ AssetPool: poolAddress })
                 .send({
                     agree: true,
                 })
                 .end(async (err, res) => {
-                    expect(res.body.base64).toContain('data:image/png;base64');
+                    expect(res.body.base64).toContain("data:image/png;base64");
                     expect(res.status).toBe(200);
                     done();
                 });
         });
 
-        it('HTTP 302 when tx is handled', async (done) => {
+        it("HTTP 302 when tx is handled", async (done) => {
             // We assume QR decoding works as expected, will be tested in the wallet repo
             // Manager should vote for this poll
-            const { call, nonce, sig } = await signMethod(solution, 'vote', [true], admin);
+            const { call, nonce, sig } = await signMethod(solution, "vote", [true], admin);
 
-            user.post(`/v1/gas_station/base_poll`)
+            user.post("/v1/gas_station/base_poll")
                 .send({
                     call,
                     nonce,
@@ -502,7 +505,7 @@ describe('Happy Flow', () => {
                 });
         });
 
-        it('HTTP 200 and increase yesCounter with 1', (done) => {
+        it("HTTP 200 and increase yesCounter with 1", (done) => {
             user.get(redirectURL)
                 .set({ AssetPool: poolAddress })
                 .end(async (err, res) => {
@@ -515,8 +518,8 @@ describe('Happy Flow', () => {
         });
     });
 
-    describe('GET /withdrawals/:address', () => {
-        it('HTTP 200 and return state Approved', (done) => {
+    describe("GET /withdrawals/:address", () => {
+        it("HTTP 200 and return state Approved", (done) => {
             user.get(`/v1/withdrawals/${withdrawPollAddress}`)
                 .set({ AssetPool: poolAddress })
                 .end(async (err, res) => {
@@ -529,27 +532,27 @@ describe('Happy Flow', () => {
         });
     });
 
-    describe('POST /withdrawals/:address/withdraw', () => {
-        let redirectURL = '';
+    describe("POST /withdrawals/:address/withdraw", () => {
+        let redirectURL = "";
 
         beforeAll(async () => {
             await timeTravel(rewardWithdrawDuration);
         });
 
-        it('HTTP 200 and base64 string for the withdraw', (done) => {
+        it("HTTP 200 and base64 string for the withdraw", (done) => {
             user.post(`/v1/withdrawals/${withdrawPollAddress}/withdraw`)
                 .set({ AssetPool: poolAddress })
                 .end(async (err, res) => {
-                    expect(res.body.base64).toContain('data:image/png;base64');
+                    expect(res.body.base64).toContain("data:image/png;base64");
                     expect(res.status).toBe(200);
                     done();
                 });
         });
 
-        it('HTTP 302 and redirect to withdrawal', async (done) => {
-            const { call, nonce, sig } = await signMethod(withdrawPollAddress, 'finalize', [], admin);
+        it("HTTP 302 and redirect to withdrawal", async (done) => {
+            const { call, nonce, sig } = await signMethod(solution, "finalize", [], admin);
 
-            user.post(`/v1/gas_station/withdrawals/withdraw`)
+            user.post("/v1/gas_station/withdrawals/withdraw")
                 .send({
                     call,
                     nonce,
@@ -563,7 +566,7 @@ describe('Happy Flow', () => {
                 });
         });
 
-        it('HTTP 200 and have the minted amount balance again', (done) => {
+        it("HTTP 200 and have the minted amount balance again", (done) => {
             user.get(redirectURL)
                 .set({ AssetPool: poolAddress })
                 .end(async (err, res) => {
@@ -574,8 +577,8 @@ describe('Happy Flow', () => {
         });
     });
 
-    describe('GET /asset_pools/:address (after withdaw)', () => {
-        it('HTTP 200 and have 0 balance', (done) => {
+    describe("GET /asset_pools/:address (after withdaw)", () => {
+        it("HTTP 200 and have 0 balance", (done) => {
             user.get(`/v1/asset_pools/${poolAddress}`)
                 .set({ AssetPool: poolAddress })
                 .end(async (err, res) => {
@@ -586,8 +589,8 @@ describe('Happy Flow', () => {
         });
     });
 
-    describe('GET /withdrawals (before proposed withdrawal)', () => {
-        it('HTTP 200 and return no items', async (done) => {
+    describe("GET /withdrawals (before proposed withdrawal)", () => {
+        it("HTTP 200 and return no items", async (done) => {
             user.get(`/v1/withdrawals?member=${voter.address}`)
                 .set({ AssetPool: poolAddress })
                 .end(async (err, res) => {
@@ -598,21 +601,21 @@ describe('Happy Flow', () => {
         });
     });
 
-    describe('POST /withdrawals', () => {
-        let redirectURL = '';
+    describe("POST /withdrawals", () => {
+        let redirectURL = "";
 
-        it('HTTP 302', async (done) => {
+        it("HTTP 302", async (done) => {
             // Deposit 1000 in the pool
-            await testToken.transfer(poolAddress, parseEther('1000'));
+            await testToken.transfer(poolAddress, parseEther("1000"));
 
             const { call, nonce, sig } = await signMethod(
                 solution,
-                'proposeWithdraw',
-                [parseEther('1000').toString(), voter.address],
+                "proposeWithdraw",
+                [parseEther("1000").toString(), voter.address],
                 voter,
             );
 
-            user.post(`/v1/gas_station/asset_pool/propose_withdraw`)
+            user.post("/v1/gas_station/asset_pool/propose_withdraw")
                 .send({
                     call,
                     nonce,
@@ -626,7 +629,7 @@ describe('Happy Flow', () => {
                 });
         });
 
-        it('HTTP 200 if OK', async (done) => {
+        it("HTTP 200 if OK", async (done) => {
             user.get(redirectURL)
                 .set({ AssetPool: poolAddress })
                 .end(async (err, res) => {
@@ -636,8 +639,8 @@ describe('Happy Flow', () => {
         });
     });
 
-    describe('GET /withdrawals (after proposed withdrawal)', () => {
-        it('HTTP 200 and return a list of 1 item', async (done) => {
+    describe("GET /withdrawals (after proposed withdrawal)", () => {
+        it("HTTP 200 and return a list of 1 item", async (done) => {
             user.get(`/v1/withdrawals?member=${voter.address}`)
                 .set({ AssetPool: poolAddress })
                 .end(async (err, res) => {
@@ -650,13 +653,13 @@ describe('Happy Flow', () => {
         });
     });
 
-    describe('POST /poll/:address/vote (proposed withdrawal)', () => {
-        let redirectURL = '';
-        it('HTTP 302 if vote OK', async (done) => {
+    describe("POST /poll/:address/vote (proposed withdrawal)", () => {
+        let redirectURL = "";
+        it("HTTP 302 if vote OK", async (done) => {
             // We assume QR decoding works as expected, will be tested in the wallet repo
-            const { call, nonce, sig } = await signMethod(solution, 'vote', [true], admin);
+            const { call, nonce, sig } = await signMethod(solution, "vote", [true], admin);
 
-            user.post(`/v1/gas_station/base_poll/`)
+            user.post("/v1/gas_station/base_poll/")
                 .send({
                     call,
                     nonce,
@@ -670,7 +673,7 @@ describe('Happy Flow', () => {
                 });
         });
 
-        it('HTTP 200 and increase yesCounter with 1', (done) => {
+        it("HTTP 200 and increase yesCounter with 1", (done) => {
             user.get(redirectURL)
                 .set({ AssetPool: poolAddress })
                 .end(async (err, res) => {
@@ -683,15 +686,15 @@ describe('Happy Flow', () => {
         });
     });
 
-    describe('POST /withdrawals/:address/withdraw (proposed withdrawal)', () => {
-        let redirectURL = '';
+    describe("POST /withdrawals/:address/withdraw (proposed withdrawal)", () => {
+        let redirectURL = "";
 
         beforeAll(async () => {
             await timeTravel(proposeWithdrawPollDuration);
         });
 
-        it('HTTP 200 and 0 balance', (done) => {
-            user.get('/v1/members/' + voter.address)
+        it("HTTP 200 and 0 balance", (done) => {
+            user.get("/v1/members/" + voter.address)
                 .set({ AssetPool: poolAddress })
                 .end(async (err, res) => {
                     expect(Number(formatEther(res.body.token.balance))).toBe(Number(formatEther(0)));
@@ -700,10 +703,10 @@ describe('Happy Flow', () => {
                 });
         });
 
-        it('HTTP 302 and redirect to withdrawal', async (done) => {
-            const { call, nonce, sig } = await signMethod(withdrawPollAddress, 'finalize', [], voter);
+        it("HTTP 302 and redirect to withdrawal", async (done) => {
+            const { call, nonce, sig } = await signMethod(solution, "finalize", [], voter);
 
-            user.post(`/v1/gas_station/withdrawals/withdraw`)
+            user.post("/v1/gas_station/withdrawals/withdraw")
                 .send({
                     call,
                     nonce,
@@ -717,7 +720,7 @@ describe('Happy Flow', () => {
                 });
         });
 
-        it('HTTP 200 and increased balance', (done) => {
+        it("HTTP 200 and increased balance", (done) => {
             user.get(redirectURL)
                 .set({ AssetPool: poolAddress })
                 .end(async (err, res) => {

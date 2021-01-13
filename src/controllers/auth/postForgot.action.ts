@@ -1,9 +1,9 @@
-import async from 'async';
-import crypto from 'crypto';
-import nodemailer from 'nodemailer';
-import { Account, AccountDocument, AuthToken } from '../../models/Account';
-import { Request, Response, NextFunction } from 'express';
-import { HttpError } from '../../models/Error';
+import async from "async";
+import crypto from "crypto";
+import nodemailer from "nodemailer";
+import { Account, AccountDocument, AuthToken } from "../../models/Account";
+import { Request, Response, NextFunction } from "express";
+import { HttpError } from "../../models/Error";
 
 /**
  * @swagger
@@ -38,18 +38,18 @@ export const postForgot = async (req: Request, res: Response, next: NextFunction
         [
             function createRandomToken(done: Function) {
                 crypto.randomBytes(16, (err, buf) => {
-                    const token = buf.toString('hex');
+                    const token = buf.toString("hex");
                     done(err, token);
                 });
             },
             function setRandomToken(token: AuthToken, done: Function) {
                 Account.findOne({ email: req.body.email }, (err: Error, account: AccountDocument) => {
                     if (err) {
-                        next(new HttpError(502, 'Account find failed.', err));
+                        next(new HttpError(502, "Account find failed.", err));
                         return;
                     }
                     if (!account) {
-                        next(new HttpError(404, 'Account does not exist.', err));
+                        next(new HttpError(404, "Account does not exist.", err));
                         return;
                     }
                     account.passwordResetToken = token.accessToken;
@@ -61,7 +61,7 @@ export const postForgot = async (req: Request, res: Response, next: NextFunction
             },
             function sendForgotPasswordEmail(token: AuthToken, account: AccountDocument, done: Function) {
                 const transporter = nodemailer.createTransport({
-                    service: 'SendGrid',
+                    service: "SendGrid",
                     auth: {
                         user: process.env.SENDGRID_USER,
                         pass: process.env.SENDGRID_PASSWORD,
@@ -73,8 +73,8 @@ export const postForgot = async (req: Request, res: Response, next: NextFunction
                 If you did not request this, please ignore this email and your password will remain unchanged.\n`;
                 const mailOptions = {
                     to: account.email,
-                    from: 'peter@thxprotocol.com',
-                    subject: 'Reset your THX password',
+                    from: "peter@thxprotocol.com",
+                    subject: "Reset your THX password",
                     text,
                 };
                 transporter.sendMail(mailOptions, (err) => {
@@ -87,7 +87,7 @@ export const postForgot = async (req: Request, res: Response, next: NextFunction
             if (err) {
                 return next(err);
             }
-            return res.redirect('/forgot');
+            return res.redirect("/forgot");
         },
     );
 };

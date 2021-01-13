@@ -1,12 +1,12 @@
-import axios from 'axios';
-import logger from '../../util/logger';
-import { ethers } from 'ethers';
-import { Response, Request, NextFunction } from 'express';
-import { HttpError } from '../../models/Error';
-import { admin, provider } from '../../util/network';
-import { RPC } from '../../util/secrets';
-import { VERSION } from '../../util/secrets';
-import { name, version, license } from '../../../package.json';
+import axios from "axios";
+import logger from "../../util/logger";
+import { ethers } from "ethers";
+import { Response, Request, NextFunction } from "express";
+import { HttpError } from "../../models/Error";
+import { admin, provider } from "../../util/network";
+import { RPC } from "../../util/secrets";
+import { VERSION } from "../../util/secrets";
+import { name, version, license } from "../../../package.json";
 /**
  * @swagger
  * /health:
@@ -67,12 +67,12 @@ export const getHealth = async (req: Request, res: Response, next: NextFunction)
             RPC: RPC,
             address,
             token: {
-                name: 'Matic Token',
-                symbol: 'MATIC',
+                name: "Matic Token",
+                symbol: "MATIC",
                 balance: number,
             },
         });
     } catch (error) {
-        next(new HttpError(502, 'Matic GetBalance failed', error));
+        next(new HttpError(502, "Matic GetBalance failed", error));
     }
 };

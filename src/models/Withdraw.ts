@@ -1,4 +1,4 @@
-import mongoose from 'mongoose';
+import mongoose from "mongoose";
 
 export enum WithdrawState {
     Pending = 0,
@@ -21,4 +21,4 @@ const withdrawSchema = new mongoose.Schema(
     },
     { timestamps: true },
 );
-export const Withdraw = mongoose.model<WithdrawDocument>('Withdraw', withdrawSchema);
+export const Withdraw = mongoose.model<WithdrawDocument>("Withdraw", withdrawSchema);

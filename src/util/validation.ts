@@ -1,8 +1,8 @@
-import { body, header, validationResult } from 'express-validator';
-import { Response, Request, NextFunction } from 'express';
-import { HttpError } from '../models/Error';
-import MongoAdapter from '../oidc/adapter';
-import { Account } from '../models/Account';
+import { body, header, validationResult } from "express-validator";
+import { Response, Request, NextFunction } from "express";
+import { HttpError } from "../models/Error";
+import MongoAdapter from "../oidc/adapter";
+import { Account } from "../models/Account";
 
 export const validate = (validations: any) => {
     return async (req: Request, res: Response, next: NextFunction) => {
@@ -18,7 +18,7 @@ export const validate = (validations: any) => {
     };
 };
 
-export const validateAssetPoolHeader = header('AssetPool')
+export const validateAssetPoolHeader = header("AssetPool")
     .exists()
     .custom(async (address, { req }) => {
         let assetPools;
@@ -28,24 +28,24 @@ export const validateAssetPoolHeader = header('AssetPool')
 
             assetPools = account.profile.assetPools;
         } else if (req.user.aud) {
-            const Client = new MongoAdapter('client');
+            const Client = new MongoAdapter("client");
             const payload = await Client.find(req.user.aud);
 
             assetPools = payload.assetPools;
         }
 
         if (!assetPools || !assetPools.includes(address)) {
-            throw new HttpError(403, 'Forbidden to access this asset pool.');
+            throw new HttpError(403, "Forbidden to access this asset pool.");
         }
 
         return true;
     });
 
-export const confirmPassword = body('confirmPassword')
+export const confirmPassword = body("confirmPassword")
     .exists()
     .custom((confirmPassword, { req }) => {
         if (confirmPassword !== req.body.password) {
-            throw new HttpError(400, 'Passwords are not identical');
+            throw new HttpError(400, "Passwords are not identical");
         }
         return true;
     });

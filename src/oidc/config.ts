@@ -1,7 +1,7 @@
-import { Account } from '../models/Account';
-import { AccountDocument } from '../models/Account';
-import jwks from '../jwks.json';
-import MongoAdapter from './adapter';
+import { Account } from "../models/Account";
+import { AccountDocument } from "../models/Account";
+import jwks from "../jwks.json";
+import MongoAdapter from "./adapter";
 
 (async () => {
     await MongoAdapter.connect();
@@ -33,13 +33,13 @@ export default {
         };
     },
     claims: {
-        openid: ['sub'],
-        admin: ['admin'],
-        user: ['user'],
-        email: ['email'],
-        address: ['address'],
-        privateKey: ['privateKey'],
-        profile: ['assetPools', 'burnProofs'],
+        openid: ["sub"],
+        admin: ["admin"],
+        user: ["user"],
+        email: ["email"],
+        address: ["address"],
+        privateKey: ["privateKey"],
+        profile: ["assetPools", "burnProofs"],
     },
     ttl: {
         AccessToken: 1 * 60 * 60, // 1 hour in seconds
@@ -48,13 +48,13 @@ export default {
     },
     jwks,
     formats: {
-        AccessToken: 'jwt',
-        ClientCredentials: 'jwt',
+        AccessToken: "jwt",
+        ClientCredentials: "jwt",
     },
     clientBasedCORS(ctx: any, origin: any, client: any) {
-        console.log('CTX', ctx);
-        console.log('origin', origin);
-        console.log('client', client);
+        console.log("CTX", ctx);
+        console.log("origin", origin);
+        console.log("client", client);
         return true;
     },
     interactions: {
@@ -63,7 +63,7 @@ export default {
         },
     },
     async renderError(ctx: any, error: any) {
-        ctx.type = 'html';
+        ctx.type = "html";
         ctx.body = `<!DOCTYPE html>
         <head>
         <title>Oops! Something went wrong...</title>

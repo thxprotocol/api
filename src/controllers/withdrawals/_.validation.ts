@@ -1,11 +1,11 @@
-import { ethers } from 'ethers';
-import { param, query } from 'express-validator';
-import { validateAssetPoolHeader } from '../../util/validation';
+import { ethers } from "ethers";
+import { param, query } from "express-validator";
+import { validateAssetPoolHeader } from "../../util/validation";
 
 export const validations = {
     getWithdrawal: [
         validateAssetPoolHeader,
-        param('address')
+        param("address")
             .exists()
             .custom((value) => {
                 return ethers.utils.isAddress(value);
@@ -13,7 +13,7 @@ export const validations = {
     ],
     getWithdrawals: [
         validateAssetPoolHeader,
-        query('member')
+        query("member")
             .exists()
             .custom((value) => {
                 return ethers.utils.isAddress(value);
@@ -21,7 +21,7 @@ export const validations = {
     ],
     postWithdrawalWithdraw: [
         validateAssetPoolHeader,
-        param('address')
+        param("address")
             .exists()
             .custom((value) => {
                 return ethers.utils.isAddress(value);

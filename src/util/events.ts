@@ -1,5 +1,5 @@
-import { ethers } from 'ethers';
-import GasStationFacetArtifact from '../artifacts/contracts/contracts/facets/GasStationFacet/GasStation.sol/GasStationFacet.json';
+import { ethers } from "ethers";
+import GasStationFacetArtifact from "../artifacts/contracts/contracts/facets/GasStationFacet/GasStation.sol/GasStationFacet.json";
 
 export const events = async (tx: any) => {
     tx = await tx;
@@ -8,9 +8,9 @@ export const events = async (tx: any) => {
 };
 
 function hex2a(hex: any) {
-    var str = '';
-    for (var i = 0; i < hex.length; i += 2) {
-        var v = parseInt(hex.substr(i, 2), 16);
+    let str = "";
+    for (let i = 0; i < hex.length; i += 2) {
+        const v = parseInt(hex.substr(i, 2), 16);
         if (v == 8) continue; // http://www.fileformat.info/info/unicode/char/0008/index.htm
         if (v == 15) continue;
         if (v == 16) continue; // http://www.fileformat.info/info/unicode/char/0010/index.htm

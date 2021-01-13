@@ -1,8 +1,7 @@
-import { Response, NextFunction } from 'express';
-import { ISolutionRequest } from '../../util/network';
-import { Reward } from '../../models/Reward';
-import { HttpError } from '../../models/Error';
-import qrcode from 'qrcode';
+import { Response, NextFunction } from "express";
+import { Reward } from "../../models/Reward";
+import { HttpRequest, HttpError } from "../../models/Error";
+import qrcode from "qrcode";
 
 /**
  * @swagger
@@ -58,7 +57,7 @@ import qrcode from 'qrcode';
  *       '502':
  *         description: Bad Gateway. Received an invalid response from the network or database.
  */
-export const patchReward = async (req: ISolutionRequest, res: Response, next: NextFunction) => {
+export const patchReward = async (req: HttpRequest, res: Response, next: NextFunction) => {
     try {
         const metaData = await Reward.findOne({ id: req.params.id });
 
@@ -73,7 +72,7 @@ export const patchReward = async (req: ISolutionRequest, res: Response, next: Ne
         try {
             metaData.save(async (err: Error) => {
                 if (err) {
-                    next(new HttpError(502, 'Reward metadata find failed.', err));
+                    next(new HttpError(502, "Reward metadata find failed.", err));
                     return;
                 }
 
@@ -90,10 +89,10 @@ export const patchReward = async (req: ISolutionRequest, res: Response, next: Ne
 
                     const base64 = await qrcode.toDataURL(
                         JSON.stringify({
-                            assetPoolAddress: req.header('AssetPool'),
-                            contractAddress: req.header('AssetPool'),
-                            contract: 'AssetPool',
-                            method: 'updateReward',
+                            assetPoolAddress: req.header("AssetPool"),
+                            contractAddress: req.header("AssetPool"),
+                            contract: "AssetPool",
+                            method: "updateReward",
                             params: {
                                 id: req.params.id,
                                 withdrawAmount,
@@ -103,15 +102,15 @@ export const patchReward = async (req: ISolutionRequest, res: Response, next: Ne
                     );
                     res.json({ base64 });
                 } catch (error) {
-                    next(new HttpError(502, 'Asset Pool get reward failed.', err));
+                    next(new HttpError(502, "Asset Pool get reward failed.", err));
                     return;
                 }
             });
         } catch (error) {
-            next(new HttpError(502, 'Reward metadata save failed.', error));
+            next(new HttpError(502, "Reward metadata save failed.", error));
             return;
         }
     } catch (error) {
-        next(new HttpError(502, 'Reward find failed.', error));
+        next(new HttpError(502, "Reward find failed.", error));
     }
 };

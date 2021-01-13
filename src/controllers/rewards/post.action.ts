@@ -1,10 +1,9 @@
-import { Response, NextFunction } from 'express';
-import { ISolutionRequest } from '../../util/network';
-import { Reward } from '../../models/Reward';
-import { HttpError } from '../../models/Error';
-import { VERSION } from '../../util/secrets';
-import ISolutionArtifact from '../../../src/artifacts/contracts/contracts/interfaces/ISolution.sol/ISolution.json';
-import { parseLogs } from '../../util/events';
+import { Response, NextFunction } from "express";
+import { Reward } from "../../models/Reward";
+import { HttpError, HttpRequest } from "../../models/Error";
+import { VERSION } from "../../util/secrets";
+import ISolutionArtifact from "../../../src/artifacts/contracts/contracts/interfaces/ISolution.sol/ISolution.json";
+import { parseLogs } from "../../util/events";
 /**
  * @swagger
  * /rewards:
@@ -54,13 +53,13 @@ import { parseLogs } from '../../util/events';
  *       '502':
  *         description: Bad Gateway. Received an invalid response from the network or database.
  */
-export const postReward = async (req: ISolutionRequest, res: Response, next: NextFunction) => {
+export const postReward = async (req: HttpRequest, res: Response, next: NextFunction) => {
     try {
         const tx = await (await req.solution.addReward(req.body.withdrawAmount, req.body.withdrawDuration)).wait();
 
         try {
             const logs = await parseLogs(ISolutionArtifact.abi, tx.logs);
-            const event = logs.filter((e: { name: string }) => e && e.name === 'RewardPollCreated')[0];
+            const event = logs.filter((e: { name: string }) => e && e.name === "RewardPollCreated")[0];
             const id = parseInt(event.args.id, 10);
 
             new Reward({
@@ -69,17 +68,17 @@ export const postReward = async (req: ISolutionRequest, res: Response, next: Nex
                 description: req.body.description,
             }).save(async (err) => {
                 if (err) {
-                    next(new HttpError(502, 'Reward save failed.', err));
+                    next(new HttpError(502, "Reward save failed.", err));
                     return;
                 }
 
                 res.redirect(`/${VERSION}/rewards/${id}`);
             });
         } catch (err) {
-            next(new HttpError(502, 'Parse logs failed.', err));
+            next(new HttpError(502, "Parse logs failed.", err));
             return;
         }
     } catch (err) {
-        next(new HttpError(502, 'Asset Pool addReward failed.', err));
+        next(new HttpError(502, "Asset Pool addReward failed.", err));
     }
 };

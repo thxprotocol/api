@@ -1,6 +1,6 @@
-import mongoose from 'mongoose';
-import bluebird from 'bluebird';
-import logger from './logger';
+import mongoose from "mongoose";
+import bluebird from "bluebird";
+import logger from "./logger";
 
 (mongoose as any).Promise = bluebird;
 
@@ -16,18 +16,18 @@ const connect = async (url: string) => {
         await mongoose.connect(url, mongooseOpts);
     }
 
-    mongoose.connection.on('error', (err) => {
+    mongoose.connection.on("error", (err) => {
         if (err) {
             logger.error(`${url}: ${err}`);
         }
-        if (err.message.code === 'ETIMEDOUT') {
+        if (err.message.code === "ETIMEDOUT") {
             mongoose.connect(url, mongooseOpts);
         }
         logger.error(`MongoDB connection error. Please make sure MongoDB is running. ${err}`);
         process.exit();
     });
 
-    mongoose.connection.once('open', () => {
+    mongoose.connection.once("open", () => {
         logger.info(`MongoDB successfully connected to ${url}`);
     });
 };

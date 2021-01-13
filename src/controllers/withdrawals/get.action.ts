@@ -1,6 +1,5 @@
-import { NextFunction, Request, Response } from 'express';
-import { HttpError } from '../../models/Error';
-import { ISolutionRequest, solutionContract } from '../../util/network';
+import { NextFunction, Response } from "express";
+import { HttpRequest, HttpError } from "../../models/Error";
 
 /**
  * @swagger
@@ -52,7 +51,7 @@ import { ISolutionRequest, solutionContract } from '../../util/network';
  *       '502':
  *         description: Bad Gateway. Received an invalid response from the network or database.
  */
-export const getWithdrawal = async (req: ISolutionRequest, res: Response, next: NextFunction) => {
+export const getWithdrawal = async (req: HttpRequest, res: Response, next: NextFunction) => {
     try {
         const { beneficiary, amount, state, pollId } = await req.solution.getWithdrawPoll(req.params.id);
 
@@ -63,6 +62,6 @@ export const getWithdrawal = async (req: ISolutionRequest, res: Response, next: 
             pollId,
         });
     } catch (err) {
-        next(new HttpError(502, 'Withdraw Poll get data failed.', err));
+        next(new HttpError(502, "Withdraw Poll get data failed.", err));
     }
 };

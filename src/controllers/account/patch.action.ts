@@ -1,9 +1,9 @@
-import { Account, AccountDocument } from '../../models/Account';
-import { Response, NextFunction } from 'express';
-import { ethers } from 'ethers';
-import { HttpError, HttpRequest } from '../../models/Error';
-import { VERSION } from '../../util/secrets';
-import { Error } from 'mongoose';
+import { Account, AccountDocument } from "../../models/Account";
+import { Response, NextFunction } from "express";
+import { ethers } from "ethers";
+import { HttpError, HttpRequest } from "../../models/Error";
+import { VERSION } from "../../util/secrets";
+import { Error } from "mongoose";
 
 /**
  * @swagger
@@ -74,12 +74,12 @@ import { Error } from 'mongoose';
 export const patchAccount = async (req: HttpRequest, res: Response, next: NextFunction) => {
     Account.findById(req.user.sub, (err: Error, account: AccountDocument) => {
         if (err) {
-            next(new HttpError(502, 'Account find failed.', err));
+            next(new HttpError(502, "Account find failed.", err));
             return;
         }
         if (req.body.address && ethers.utils.isAddress(req.body.address)) {
             account.address = req.body.address;
-            account.privateKey = '';
+            account.privateKey = "";
         } else {
             account.address = account.address;
         }
@@ -88,10 +88,10 @@ export const patchAccount = async (req: HttpRequest, res: Response, next: NextFu
         account.save((err: any) => {
             if (err) {
                 if (err.code === 11000) {
-                    next(new HttpError(422, 'A user for this e-mail already exists.', err));
+                    next(new HttpError(422, "A user for this e-mail already exists.", err));
                     return;
                 }
-                next(new HttpError(502, 'Account save failed', err));
+                next(new HttpError(502, "Account save failed", err));
                 return;
             }
             res.redirect(303, `/${VERSION}/account`);

@@ -1,6 +1,6 @@
-import { NextFunction, Request, Response } from 'express';
-import { ISolutionRequest, solutionContract, tokenContract } from '../../util/network';
-import { HttpError } from '../../models/Error';
+import { NextFunction, Response } from "express";
+import { tokenContract } from "../../util/network";
+import { HttpError, HttpRequest } from "../../models/Error";
 
 /**
  * @swagger
@@ -58,18 +58,18 @@ import { HttpError } from '../../models/Error';
  *         description: Bad Gateway. Received an invalid response from the network or database.
 
  */
-export const getMember = async (req: ISolutionRequest, res: Response, next: NextFunction) => {
+export const getMember = async (req: HttpRequest, res: Response, next: NextFunction) => {
     try {
         const isMember = await req.solution.isMember(req.params.address);
 
         if (!isMember) {
-            next(new HttpError(404, 'Address is not a member.'));
+            next(new HttpError(404, "Address is not a member."));
             return;
         }
 
-        const tokenAddress = await req.solution.token();
+        const tokenAddress = await req.solution.getToken();
         const tokenInstance = tokenContract(tokenAddress);
-        const balance = await req.solution.balanceOf(req.params.address);
+        const balance = await tokenInstance.balanceOf(req.params.address);
 
         res.json({
             isMember,
@@ -81,6 +81,6 @@ export const getMember = async (req: ISolutionRequest, res: Response, next: Next
             },
         });
     } catch (err) {
-        next(new HttpError(502, 'Asset Pool get member failed.', err));
+        next(new HttpError(502, "Asset Pool get member failed.", err));
     }
 };

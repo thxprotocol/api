@@ -1,6 +1,6 @@
-const hre = require('hardhat');
+const hre = require("hardhat");
 const ethers = hre.ethers;
-const { utils } = require('ethers/lib');
+const { utils } = require("ethers/lib");
 
 async function main() {
     FacetCutAction = {
@@ -17,21 +17,21 @@ async function main() {
         return signatures;
     };
 
-    AssetPoolFacet = await ethers.getContractFactory('AssetPoolFacet');
-    AssetPoolFacetView = await ethers.getContractFactory('AssetPoolFacetView');
-    RolesFacet = await ethers.getContractFactory('RolesFacet');
-    DiamondCutFacet = await ethers.getContractFactory('DiamondCutFacet');
-    DiamondLoupeFacet = await ethers.getContractFactory('DiamondLoupeFacet');
-    OwnershipFacet = await ethers.getContractFactory('OwnershipFacet');
-    GasStationFacet = await ethers.getContractFactory('GasStationFacet');
-    RewardPollFacet = await ethers.getContractFactory('RewardPollFacet');
-    RewardPollProxyFacet = await ethers.getContractFactory('RewardPollProxyFacet');
-    WithdrawPollFacet = await ethers.getContractFactory('WithdrawPollFacet');
-    WithdrawPollProxyFacet = await ethers.getContractFactory('WithdrawPollProxyFacet');
-    PollProxyFacet = await ethers.getContractFactory('PollProxyFacet');
+    AssetPoolFacet = await ethers.getContractFactory("AssetPoolFacet");
+    AssetPoolFacetView = await ethers.getContractFactory("AssetPoolFacetView");
+    RolesFacet = await ethers.getContractFactory("RolesFacet");
+    DiamondCutFacet = await ethers.getContractFactory("DiamondCutFacet");
+    DiamondLoupeFacet = await ethers.getContractFactory("DiamondLoupeFacet");
+    OwnershipFacet = await ethers.getContractFactory("OwnershipFacet");
+    GasStationFacet = await ethers.getContractFactory("GasStationFacet");
+    RewardPollFacet = await ethers.getContractFactory("RewardPollFacet");
+    RewardPollProxyFacet = await ethers.getContractFactory("RewardPollProxyFacet");
+    WithdrawPollFacet = await ethers.getContractFactory("WithdrawPollFacet");
+    WithdrawPollProxyFacet = await ethers.getContractFactory("WithdrawPollProxyFacet");
+    PollProxyFacet = await ethers.getContractFactory("PollProxyFacet");
 
-    UpdateDiamondFacet = await ethers.getContractFactory('UpdateDiamondFacet');
-    AssetPoolFactory = await ethers.getContractFactory('AssetPoolFactory');
+    UpdateDiamondFacet = await ethers.getContractFactory("UpdateDiamondFacet");
+    AssetPoolFactory = await ethers.getContractFactory("AssetPoolFactory");
 
     assetPoolFacet = await AssetPoolFacet.deploy();
     updateDiamondFacet = await UpdateDiamondFacet.deploy();
@@ -119,7 +119,7 @@ async function main() {
         for (func in diamondCut[facet].functionSelectors) {
             const elem = diamondCut[facet].functionSelectors[func];
             if (all.includes(elem)) {
-                console.error('facet', facet, 'func', elem);
+                console.error("facet", facet, "func", elem);
                 for (const key of Object.keys(rewardPollFacet.functions)) {
                     console.error(key);
                     console.error(utils.keccak256(utils.toUtf8Bytes(key)).substr(0, 10));
@@ -133,7 +133,7 @@ async function main() {
 
     await diamond.deployed();
 
-    console.log('Diamond Address:', diamond.address);
+    console.log("Diamond Address:", diamond.address);
 }
 
 main()
