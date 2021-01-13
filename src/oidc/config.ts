@@ -44,18 +44,13 @@ export default {
     ttl: {
         AccessToken: 1 * 60 * 60, // 1 hour in seconds
         AuthorizationCode: 10 * 60, // 10 minutes in seconds
-        ClientCredentials: 20, // 10 * 60,
+        ClientCredentials: 10 * 60, // 10 minutes in seconds
     },
     jwks,
     formats: {
         AccessToken: 'jwt',
+        AuthorizationCode: 'jwt',
         ClientCredentials: 'jwt',
-    },
-    clientBasedCORS(ctx: any, origin: any, client: any) {
-        console.log('CTX', ctx);
-        console.log('origin', origin);
-        console.log('client', client);
-        return true;
     },
     interactions: {
         url(ctx: any) {
