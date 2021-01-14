@@ -73,6 +73,28 @@
             }
         ]
     },
+    "jest": {
+        "globals": {
+            "ts-jest": {
+                "tsConfig": "tsconfig.json"
+            }
+        },
+        "moduleFileExtensions": [
+            "ts",
+            "js",
+            "json"
+        ],
+        "transform": {
+            "^.+\\.(ts|tsx)$": "ts-jest"
+        },
+        "testMatch": [
+            "**/test/**/*.test.(ts|js)"
+        ],
+        "testEnvironment": "node",
+        "setupFilesAfterEnv": [
+            "<rootDir>/test/e2e/lib/setup.ts"
+        ]
+    },
     "nodemonConfig": {
         "ignore": [
             "test/load/*",
