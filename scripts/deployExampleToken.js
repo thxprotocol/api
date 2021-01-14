@@ -4,11 +4,11 @@ const ethers = hre.ethers;
 async function main() {
     const admin = (await ethers.getSigners())[0];
     const ExampleTokenFactory = await ethers.getContractFactory('ExampleToken');
-    const testToken = await ExampleTokenFactory.deploy(admin.address, 100000e10);
+    const exampleToken = await ExampleTokenFactory.deploy(admin.address, 100000e10);
 
-    await testToken.deployed();
+    await exampleToken.deployed();
 
-    console.log('TestToken Address:', testToken.address);
+    console.log('ExampleToken Address:', exampleToken.address);
 }
 
 main()

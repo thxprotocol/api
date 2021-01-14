@@ -2,7 +2,7 @@ import { ethers } from 'ethers';
 import { Response, Request, NextFunction } from 'express';
 import { HttpError } from '../../models/Error';
 import { admin, assetPoolFactory, provider } from '../../util/network';
-import { RPC } from '../../util/secrets';
+import { ASSET_POOL_FACTORY_ADDRESS, RPC } from '../../util/secrets';
 import { VERSION } from '../../util/secrets';
 import { name, version, license } from '../../../package.json';
 /**
@@ -59,7 +59,7 @@ export const getHealth = async (req: Request, res: Response, next: NextFunction)
     try {
         const address = await admin.getAddress();
         const balance = await provider.getBalance(address);
-        const code = await provider.getCode(address);
+        const code = await provider.getCode(ASSET_POOL_FACTORY_ADDRESS);
 
         res.json({
             name: `${name} (${VERSION})`,

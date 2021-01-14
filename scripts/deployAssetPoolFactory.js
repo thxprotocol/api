@@ -133,7 +133,7 @@ async function main() {
 
     await diamond.deployed();
 
-    console.log('Diamond Address:', diamond.address);
+    console.log('Asset Pool Factory Address:', diamond.address);
 }
 
 main()
