@@ -2,7 +2,6 @@ import { Account } from '../../models/Account';
 import { Request, Response, NextFunction } from 'express';
 import { ethers } from 'ethers';
 import { HttpError } from '../../models/Error';
-import { VERSION } from '../../util/secrets';
 
 /**
  * @swagger
