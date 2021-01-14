@@ -10,6 +10,7 @@ import membersRouter from './members/_.routing';
 import rewardsRouter from './rewards/_.routing';
 import pollsRouter from './polls/_.routing';
 import withdrawalsRouter from './withdrawals/_.routing';
+import authRouter from './auth/_.routing';
 
 const checkJwt = jwt({
     secret: jwksRsa.expressJwtSecret({
@@ -27,6 +28,7 @@ const router = express.Router();
 router.use('/health', healthRouter);
 router.use('/docs', docsRouter);
 router.use(checkJwt);
+router.use('/', authRouter);
 router.use('/account', accountRouter);
 router.use('/gas_station', gasStationRouter);
 router.use('/asset_pools', assetPoolsRouter);
