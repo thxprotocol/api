@@ -1,5 +1,4 @@
 require('dotenv').config({ path: process.env.NODE_ENV === 'test' ? '.env.test' : '.env' });
-require('hardhat-jest-plugin');
 require('@nomiclabs/hardhat-ethers');
 
 module.exports = {

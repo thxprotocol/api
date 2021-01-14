@@ -1,7 +1,7 @@
 import request from 'supertest';
 import app from '../../src/app';
 import db from '../../src/util/database';
-import { voter, timeTravel, signMethod, admin, solution } from './lib/network';
+import { voter, timeTravel, signMethod, admin } from './lib/network';
 import { exampleTokenFactory } from './lib/contracts';
 import {
     poolTitle,
@@ -328,11 +328,10 @@ describe('Happy Flow', () => {
                 });
         });
 
-        it('HTTP 302 when tx is handled', async (done) => {
+        it('HTTP 302 when tx is handled 1', async (done) => {
             // We assume QR decoding works as expected, will be tested in the wallet repo
             // @TODO base_poll, why base_poll? remove or rename
-            console.log('hereee');
-            const { call, nonce, sig } = await signMethod(solution, 'rewardPollVote', [1, true], voter);
+            const { call, nonce, sig } = await signMethod(poolAddress, 'rewardPollVote', [1, true], voter);
 
             user.post(`/v1/gas_station/base_poll`)
                 .send({
@@ -369,7 +368,7 @@ describe('Happy Flow', () => {
         });
 
         it('HTTP 302 after finalizing the poll', async (done) => {
-            const { call, nonce, sig } = await signMethod(solution, 'finalize', [], voter);
+            const { call, nonce, sig } = await signMethod(poolAddress, 'finalize', [], voter);
 
             user.post(`/v1/gas_station/base_poll`)
                 .send({
@@ -426,7 +425,7 @@ describe('Happy Flow', () => {
 
         it('HTTP 302 when tx is handled', async (done) => {
             // We assume QR decoding works as expected, will be tested in the wallet repo
-            const { call, nonce, sig } = await signMethod(solution, 'claimReward', [0], admin);
+            const { call, nonce, sig } = await signMethod(poolAddress, 'claimReward', [0], admin);
 
             user.post(`/v1/gas_station/asset_pool/claim_reward`)
                 .send({
@@ -490,7 +489,7 @@ describe('Happy Flow', () => {
         it('HTTP 302 when tx is handled', async (done) => {
             // We assume QR decoding works as expected, will be tested in the wallet repo
             // Manager should vote for this poll
-            const { call, nonce, sig } = await signMethod(solution, 'vote', [true], admin);
+            const { call, nonce, sig } = await signMethod(poolAddress, 'vote', [true], admin);
 
             user.post(`/v1/gas_station/base_poll`)
                 .send({
@@ -552,7 +551,7 @@ describe('Happy Flow', () => {
         });
 
         it('HTTP 302 and redirect to withdrawal', async (done) => {
-            const { call, nonce, sig } = await signMethod(solution, 'finalize', [], admin);
+            const { call, nonce, sig } = await signMethod(poolAddress, 'finalize', [], admin);
 
             user.post(`/v1/gas_station/withdrawals/withdraw`)
                 .send({
@@ -611,7 +610,7 @@ describe('Happy Flow', () => {
             await testToken.transfer(poolAddress, parseEther('1000'));
 
             const { call, nonce, sig } = await signMethod(
-                solution,
+                poolAddress,
                 'proposeWithdraw',
                 [parseEther('1000').toString(), voter.address],
                 voter,
@@ -659,7 +658,7 @@ describe('Happy Flow', () => {
         let redirectURL = '';
         it('HTTP 302 if vote OK', async (done) => {
             // We assume QR decoding works as expected, will be tested in the wallet repo
-            const { call, nonce, sig } = await signMethod(solution, 'vote', [true], admin);
+            const { call, nonce, sig } = await signMethod(poolAddress, 'vote', [true], admin);
 
             user.post(`/v1/gas_station/base_poll/`)
                 .send({
@@ -706,7 +705,7 @@ describe('Happy Flow', () => {
         });
 
         it('HTTP 302 and redirect to withdrawal', async (done) => {
-            const { call, nonce, sig } = await signMethod(solution, 'finalize', [], voter);
+            const { call, nonce, sig } = await signMethod(poolAddress, 'finalize', [], voter);
 
             user.post(`/v1/gas_station/withdrawals/withdraw`)
                 .send({
