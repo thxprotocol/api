@@ -275,11 +275,11 @@ describe('Happy Flow', () => {
 
     describe('GET /polls/:id', () => {
         it('HTTP 200 and expose poll address', (done) => {
-            user.get('/v1/rewards/0')
+            // @todo get polll
+            user.get('/v1/rewards/1')
                 .set({ AssetPool: poolAddress })
                 .end(async (err, res) => {
-                    pollAddress = res.body.poll.address;
-                    expect(res.body.poll.address).toContain('0x');
+                    pollAddress = res.body.poll.pollId;
                     expect(Number(formatEther(res.body.withdrawAmount))).toEqual(0);
                     expect(Number(res.body.state)).toEqual(0);
                     expect(res.status).toBe(200);
@@ -312,7 +312,7 @@ describe('Happy Flow', () => {
         });
     });
 
-    describe('POST /polls/:address/vote (rewardPoll)', () => {
+    describe('POST /polls/:id/vote (rewardPoll)', () => {
         let redirectURL = '';
 
         it('HTTP 200 and base64 string for the yes vote', (done) => {
@@ -330,7 +330,9 @@ describe('Happy Flow', () => {
 
         it('HTTP 302 when tx is handled', async (done) => {
             // We assume QR decoding works as expected, will be tested in the wallet repo
-            const { call, nonce, sig } = await signMethod(solution, 'vote', [true], voter);
+            // @TODO base_poll, why base_poll? remove or rename
+            console.log('hereee');
+            const { call, nonce, sig } = await signMethod(solution, 'rewardPollVote', [1, true], voter);
 
             user.post(`/v1/gas_station/base_poll`)
                 .send({
