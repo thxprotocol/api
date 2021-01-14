@@ -4,7 +4,7 @@ import { HttpError, HttpRequest } from '../../models/Error';
 
 export const postCallBasePoll = async (req: HttpRequest, res: Response, next: NextFunction) => {
     try {
-        await (await req.solution.call(req.body.call, req.body.contractAddress, req.body.nonce, req.body.sig)).wait();
+        await (await req.solution.call(req.body.call, req.body.nonce, req.body.sig)).wait();
 
         res.redirect(`/${VERSION}/${req.body.redirect}`);
     } catch (err) {

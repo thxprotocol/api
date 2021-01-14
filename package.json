@@ -95,7 +95,7 @@
         "watch:node": "nodemon dist/src/server.js",
         "watch:test": "npx test -- --watchAll",
         "watch:debug": "concurrently -k -p \"[{name}]\" -n \"TypeScript,Node\" -c \"yellow.bold,cyan.bold,green.bold\" \"npm run watch:ts\" \"npm run serve:debug\"",
-        "test": "NODE_ENV=test npx hardhat node > /dev/null & sleep 1; NODE_ENV=test npx hardhat test:jest --network localhost; kill $(lsof -t -i :8545);",
+        "test": "NODE_ENV=test npx hardhat node > /dev/null & sleep 1; NODE_ENV=test npx jest --force-exit --verbose; kill $(lsof -t -i :8545);",
         "test:load": "docker-compose run k6 run ./test/load/signup.js",
         "deploy:factory": "npx hardhat run scripts/deployAssetPoolFactory.js --network default",
         "deploy:token": "npx hardhat run scripts/deployExampleToken.js --network default"
@@ -162,7 +162,6 @@
         "eslint-config-prettier": "^7.1.0",
         "eslint-plugin-prettier": "^3.3.1",
         "hardhat": "^2.0.7",
-        "hardhat-jest-plugin": "0.0.3",
         "jest": "^24.9.0",
         "mongodb-memory-server": "^6.9.0",
         "nodemon": "^1.19.2",
