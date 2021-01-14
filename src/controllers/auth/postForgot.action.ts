@@ -4,6 +4,7 @@ import nodemailer from 'nodemailer';
 import { Account, AccountDocument, AuthToken } from '../../models/Account';
 import { Request, Response, NextFunction } from 'express';
 import { HttpError } from '../../models/Error';
+import { SENDGRID_USER, SENDGRID_PASSWORD } from '../../util/secrets';
 
 /**
  * @swagger
@@ -63,8 +64,8 @@ export const postForgot = async (req: Request, res: Response, next: NextFunction
                 const transporter = nodemailer.createTransport({
                     service: 'SendGrid',
                     auth: {
-                        user: process.env.SENDGRID_USER,
-                        pass: process.env.SENDGRID_PASSWORD,
+                        user: SENDGRID_USER,
+                        pass: SENDGRID_PASSWORD,
                     },
                 });
                 const text = `You are receiving this email because you (or someone else) have requested the reset of the password for your account.\n\n

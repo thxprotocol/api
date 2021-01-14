@@ -89,6 +89,36 @@ npm run deploy:factory
 npm run deploy:token
 ```
 
+## 6. Register clients
+
+### 6.1 client_credentials example
+
+```
+POST http://localhost:3000/reg
+{
+    "application_type": "web",
+    "client_name": "SparkBlue",
+    "grant_types": ["client_credentials"],
+    "redirect_uris": [],
+    "response_types": [],
+    "scope": "openid admin"
+}
+```
+
+### 6.2 authorization_code example
+
+```
+POST http://localhost:3000/reg
+{
+    "application_type": "web",
+    "client_name": "Postman",
+    "grant_types": ["authorization_code"],
+    "redirect_uris": ["https://oauth.pstmn.io/v1/callback"],
+    "response_types": ["code"],
+    "scope": "openid user",
+}
+```
+
 ## 6. Interface
 
 Swagger Documentation is provided in the controllers of the routes and lives at the following endpoints:

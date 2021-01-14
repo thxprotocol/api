@@ -1,33 +1,23 @@
 import Provider from 'oidc-provider';
 import express, { Request, Response, NextFunction } from 'express';
 import configuration from './config';
-import { set } from 'lodash';
 import { AccountDocument } from '../models/Account';
 import { Account } from '../models/Account';
 import { HttpError } from '../models/Error';
+import { ISSUER, SECURE_KEY } from '../util/secrets';
 
-if (process.env.NODE_ENV === 'production') {
-    set(configuration, 'cookies.short.secure', true);
-    set(configuration, 'cookies.long.secure', true);
-}
-
-const oidc = new Provider(`http://localhost:${process.env.PORT || 3000}`, configuration as any);
+const oidc = new Provider(ISSUER, configuration as any);
 const router = express.Router();
 
 oidc.proxy = true;
-oidc.keys = process.env.SECURE_KEY.split(',');
+oidc.keys = SECURE_KEY.split(',');
 
-oidc.on('server_error', (ctx, error) => {
-    console.log(error);
-});
-
-// HACK: REMOVE THIS IN PROD
+// TODO: REMOVE THIS IN PROD
 const { invalidate: orig } = (oidc.Client as any).Schema.prototype;
 (oidc.Client as any).Schema.prototype.invalidate = function invalidate(message: any, code: any) {
     if (code === 'implicit-force-https' || code === 'implicit-forbid-localhost') return;
     orig.call(this, message);
 };
-// HACK: END
 
 router.get('/interaction/:uid', async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -75,7 +65,7 @@ router.get('/interaction/:uid', async (req: Request, res: Response, next: NextFu
     }
 });
 
-router.post('/interaction/:uid/login', async (req: Request, res: Response, next: NextFunction) => {
+router.post('/interaction/:uid/login', async (req: Request, res: Response) => {
     try {
         const account: AccountDocument = await Account.findOne({ email: req.body.email });
 

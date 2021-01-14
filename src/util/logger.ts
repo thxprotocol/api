@@ -1,4 +1,6 @@
+import morgan from 'morgan';
 import winston from 'winston';
+import { ENVIRONMENT } from './secrets';
 
 const options: winston.LoggerOptions = {
     level: 'info',
@@ -9,7 +11,12 @@ const options: winston.LoggerOptions = {
     ],
 };
 
-const logger = winston.createLogger(options);
+export const logger = winston.createLogger(options);
+
+export const requestLogger = morgan('combined', {
+    skip: () => ENVIRONMENT === 'test',
+    stream: { write: (message: any) => logger.info(message) },
+});
 
 if (process.env.NODE_ENV !== 'production') {
     logger.add(

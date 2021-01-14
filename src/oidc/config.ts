@@ -1,7 +1,7 @@
-import { Account } from '../models/Account';
-import { AccountDocument } from '../models/Account';
 import jwks from '../jwks.json';
 import MongoAdapter from './adapter';
+import { Account } from '../models/Account';
+import { AccountDocument } from '../models/Account';
 
 (async () => {
     await MongoAdapter.connect();
@@ -13,9 +13,10 @@ import MongoAdapter from './adapter';
 // Configuration defaults:
 // https://github.com/panva/node-oidc-provider/blob/master/lib/helpers/defaults.js
 export default {
-    debug: true,
-    adapter: MongoAdapter,
-    async findAccount(ctx: any, id: string) {
+    'debug': false, // TODO Set to false in prod
+    jwks,
+    'adapter': MongoAdapter,
+    async 'findAccount'(ctx: any, id: string) {
         const account: AccountDocument = await Account.findById(id);
 
         return {
@@ -32,7 +33,7 @@ export default {
             },
         };
     },
-    claims: {
+    'claims': {
         openid: ['sub'],
         admin: ['admin'],
         user: ['user'],
@@ -41,36 +42,44 @@ export default {
         privateKey: ['privateKey'],
         profile: ['assetPools', 'burnProofs'],
     },
-    ttl: {
+    'ttl': {
         AccessToken: 1 * 60 * 60, // 1 hour in seconds
         AuthorizationCode: 10 * 60, // 10 minutes in seconds
         ClientCredentials: 10 * 60, // 10 minutes in seconds
     },
-    jwks,
-    formats: {
+    'formats': {
         AccessToken: 'jwt',
         AuthorizationCode: 'jwt',
         ClientCredentials: 'jwt',
     },
-    interactions: {
+    'interactions': {
         url(ctx: any) {
             return `/interaction/${ctx.oidc.uid}`;
         },
     },
-    async renderError(ctx: any, error: any) {
+    'features': {
+        devInteractions: { enabled: false },
+        clientCredentials: { enabled: true },
+        encryption: { enabled: true },
+        introspection: { enabled: true },
+        registration: { enabled: true },
+    },
+    'cookies.short.secure': true,
+    'cookies.long.secure': true,
+    async 'renderError'(ctx: any, error: any) {
         ctx.type = 'html';
         ctx.body = `<!DOCTYPE html>
         <head>
         <title>Oops! Something went wrong...</title>
         </head>
         <body>
-        <h1>oops! something went wrong</h1>
+        <h1>Oops! something went wrong</h1>
         <pre>${JSON.stringify(error, null, 4)}</pre>
         </body>
         </html>`;
     },
     // TODO https://github.com/panva/node-oidc-provider/blob/master/docs/README.md#featuresrpinitiatedlogout
-    async logoutSource(ctx: any, form: any) {
+    async 'logoutSource'(ctx: any, form: any) {
         ctx.body = `<!DOCTYPE html>
         <head>
         <title>Logout</title>
@@ -91,12 +100,5 @@ export default {
         </script>
         </body>
         </html>`;
-    },
-    features: {
-        devInteractions: { enabled: false },
-        clientCredentials: { enabled: true },
-        encryption: { enabled: true },
-        introspection: { enabled: true },
-        registration: { enabled: true },
     },
 };
