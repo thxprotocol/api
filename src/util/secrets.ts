@@ -3,11 +3,19 @@ import logger from './logger';
 
 export const VERSION = 'v1';
 export const ENVIRONMENT = process.env.NODE_ENV;
-export const PORT = process.env.PORT;
 
 dotenv.config({ path: ENVIRONMENT === 'test' ? '.env.test' : '.env' });
 
-const required = ['ISSUER', 'ASSET_POOL_FACTORY_ADDRESS', 'SECURE_KEY', 'ORIGIN', 'RPC', 'MONGODB_URI', 'PRIVATE_KEY'];
+const required = [
+    'PORT',
+    'ISSUER',
+    'ASSET_POOL_FACTORY_ADDRESS',
+    'SECURE_KEY',
+    'ORIGIN',
+    'RPC',
+    'MONGODB_URI',
+    'PRIVATE_KEY',
+];
 
 required.forEach((value: string) => {
     if (!process.env[value]) {
@@ -16,6 +24,7 @@ required.forEach((value: string) => {
     }
 });
 
+export const PORT = process.env.PORT;
 export const ISSUER = process.env.ISSUER;
 export const ASSET_POOL_FACTORY_ADDRESS = process.env.ASSET_POOL_FACTORY_ADDRESS;
 export const ORIGIN = process.env.ORIGIN;

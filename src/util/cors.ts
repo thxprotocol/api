@@ -1,12 +1,12 @@
 import cors from 'cors';
-import { ISSUER } from './secrets';
+import { ISSUER, ORIGIN } from './secrets';
 
 export const corsHandler = cors({
     credentials: true,
     origin: (origin: string, callback: Function) => {
         // TODO Create this array of origins based on registered client records
         // only affects clients that call the API from a browser
-        const allowedOrigins = [ISSUER, origin];
+        const allowedOrigins = [ISSUER, ORIGIN];
 
         if (!origin || allowedOrigins.indexOf(origin) > -1) {
             callback(null, true);
