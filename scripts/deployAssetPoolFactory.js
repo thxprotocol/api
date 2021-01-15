@@ -129,11 +129,9 @@ async function main() {
             all.push(elem);
         }
     }
-    const diamond = await AssetPoolFactory.deploy(diamondCut);
+    const factory = await AssetPoolFactory.deploy(diamondCut);
 
-    await diamond.deployed();
-
-    console.log('Diamond Address:', diamond.address);
+    console.log('Factory Address:', factory.address);
 }
 
 main()

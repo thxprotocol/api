@@ -47,6 +47,7 @@ export const postAssetPool = async (req: Request, res: Response, next: NextFunct
         const ev = await events(await assetPoolFactory.deployAssetPool(admin.address, admin.address, req.body.token));
         const event = ev.find((e: { event: string }) => e.event === 'AssetPoolDeployed');
         const assetPool = solutionContract(event.args.assetPool);
+        await assetPool.setSigning(true);
 
         try {
             await new AssetPool({
