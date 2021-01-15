@@ -54,7 +54,11 @@ import { ISolutionRequest, solutionContract } from '../../util/network';
  */
 export const getWithdrawal = async (req: ISolutionRequest, res: Response, next: NextFunction) => {
     try {
-        const { beneficiary, amount, state, pollId } = await req.solution.getWithdrawPoll(req.params.id);
+        const beneficiaryId = await req.solution.getBeneficiary(req.params.id);
+        const beneficiary = await req.solution.getAddressByMember(beneficiaryId);
+        const amount = await req.solution.getAmount(req.params.id);
+        const state = await req.solution.withdrawPollApprovalState(req.params.id);
+        const pollId = req.params.id;
 
         res.json({
             beneficiary,

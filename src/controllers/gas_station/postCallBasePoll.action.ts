@@ -15,7 +15,7 @@ export const postCallBasePoll = async (req: ISolutionRequest, res: Response, nex
 
 export const postCallBasePollFinalize = async (req: ISolutionRequest, res: Response, next: NextFunction) => {
     try {
-        await (await req.solution.call(req.body.call, req.body.contractAddress, req.body.nonce, req.body.sig)).wait();
+        await (await req.solution.call(req.body.call, req.body.nonce, req.body.sig)).wait();
 
         // AssetPool.onRewardPollFinish should cast an event containing the reward id.
         res.json({ message: 'OK' });

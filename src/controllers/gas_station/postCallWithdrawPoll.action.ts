@@ -8,7 +8,7 @@ import { parseResultLog } from '../../util/events';
 export const postCallWithdrawalWithdraw = async (req: ISolutionRequest, res: Response, next: NextFunction) => {
     try {
         const tx = await (
-            await req.solution.call(req.body.call, req.body.contractAddress, req.body.nonce, req.body.sig)
+            await req.solution.call(req.body.call, req.body.nonce, req.body.sig)
         ).wait();
 
         try {

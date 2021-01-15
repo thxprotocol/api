@@ -10,7 +10,7 @@ import { parseHeader } from '../../util/network';
 const router = express.Router();
 
 router.get('/', validate(validations.getWithdrawals), parseHeader, getWithdrawals);
-router.get('/:address', validate(validations.getWithdrawal), parseHeader, getWithdrawal);
-router.post('/:address/withdraw', validate(validations.postWithdrawalWithdraw), parseHeader, postWithdrawalWithdraw);
+router.get('/:id', validate(validations.getWithdrawal), parseHeader, getWithdrawal);
+router.post('/:id/withdraw', validate(validations.postWithdrawalWithdraw), parseHeader, postWithdrawalWithdraw);
 
 export default router;

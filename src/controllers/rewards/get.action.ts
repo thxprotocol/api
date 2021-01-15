@@ -84,7 +84,7 @@ export const getReward = async (req: ISolutionRequest, res: Response, next: Next
                 id: id.toNumber(),
                 title: metaData.title,
                 description: metaData.description,
-                withdrawAmount: withdrawAmount.toNumber(),
+                withdrawAmount: withdrawAmount,
                 withdrawDuration: withdrawDuration.toNumber(),
                 state,
                 pollId: pollId.toNumber(),
@@ -96,7 +96,6 @@ export const getReward = async (req: ISolutionRequest, res: Response, next: Next
                               withdrawDuration: (await req.solution.getWithdrawDuration(pollId)).toNumber(),
                           }
                         : null,
-
             } as RewardDocument;
 
             res.json(reward);

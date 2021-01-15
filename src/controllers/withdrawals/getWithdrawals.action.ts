@@ -37,12 +37,12 @@ import { HttpError } from '../../models/Error';
  */
 export const getWithdrawals = async (req: ISolutionRequest, res: Response, next: NextFunction) => {
     try {
-        const filter = req.solution.filters.WithdrawPollCreated(req.query.member, null);
+        const memberID = await req.solution.getMemberByAddress(req.query.member);
+        const filter = req.solution.filters.WithdrawPollCreated(null, memberID);
         const logs = await req.solution.queryFilter(filter, 0, 'latest');
-
         res.json({
             withdrawPolls: logs.map((log) => {
-                return log.args.poll;
+                return log.args.id.toNumber();
             }),
         });
     } catch (err) {
