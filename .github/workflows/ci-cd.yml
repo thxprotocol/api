@@ -15,8 +15,6 @@ jobs:
 
         steps:
             - uses: actions/checkout@v2
-              with:
-                  submodules: recursive
 
             # Initialize Node.js
             - name: Install Node.js ${{ matrix.node-version }}
