@@ -6,7 +6,7 @@ import { mintAmount, poolTitle } from './lib/constants';
 import { exampleTokenFactory } from './lib/contracts';
 import { Contract } from 'ethers';
 
-const user = request.agent(app);
+const http = request(app);
 
 describe('OAuth2', () => {
     let authHeader: string, accessToken: string, assetPoolAddress: string, testToken: Contract;
@@ -21,7 +21,7 @@ describe('OAuth2', () => {
 
     describe('GET /.well-known/openid-configuration', () => {
         it('HTTP 401', async (done) => {
-            const res = await user.get('/.well-known/openid-configuration');
+            const res = await http.get('/.well-known/openid-configuration');
             expect(res.status).toBe(200);
             done();
         });
@@ -29,7 +29,7 @@ describe('OAuth2', () => {
 
     describe('GET /accounts', () => {
         it('HTTP 401', async (done) => {
-            const res = await user.get('/v1/account');
+            const res = await http.get('/v1/account');
             expect(res.status).toBe(401);
             done();
         });
@@ -37,7 +37,7 @@ describe('OAuth2', () => {
 
     describe('GET /reg', () => {
         it('HTTP 201', async (done) => {
-            const res = await user.post('/reg').send({
+            const res = await http.post('/reg').send({
                 application_type: 'web',
                 client_name: 'TestClient',
                 grant_types: ['client_credentials'],
@@ -54,7 +54,7 @@ describe('OAuth2', () => {
 
     describe('GET /token', () => {
         it('HTTP 200', async (done) => {
-            const res = await user
+            const res = await http
                 .post('/token')
                 .set({
                     'Content-Type': 'application/x-www-form-urlencoded',
@@ -71,33 +71,12 @@ describe('OAuth2', () => {
         });
     });
 
-    describe('POST /health', () => {
-        it('HTTP 201', async (done) => {
-            const res = await user.get('/v1/health');
-            expect(res.status).toBe(200);
-            done();
-        });
-    });
-
-    describe('GET /jwks', () => {
-        it('HTTP 200', async (done) => {
-            const res = await user.get('/jwks');
-            expect(res.status).toBe(200);
-            done();
-        });
-    });
-
     describe('POST /asset_pools', () => {
         it('HTTP 201', async (done) => {
-            const res = await user
-                .post('/v1/asset_pools')
-                .set({
-                    Authorization: `Bearer ${accessToken}`,
-                })
-                .send({
-                    title: poolTitle,
-                    token: testToken.address,
-                });
+            const res = await http.post('/v1/asset_pools').set('Authorization', `Bearer ${accessToken}`).send({
+                title: poolTitle,
+                token: testToken.address,
+            });
             assetPoolAddress = res.body.address;
             expect(res.status).toBe(201);
             done();
@@ -106,7 +85,7 @@ describe('OAuth2', () => {
 
     describe('GET /asset_pools', () => {
         it('HTTP 200', async (done) => {
-            const res = await user.get(`/v1/asset_pools/${assetPoolAddress}`).set({
+            const res = await http.get(`/v1/asset_pools/${assetPoolAddress}`).set({
                 AssetPool: assetPoolAddress,
                 Authorization: `Bearer ${accessToken}`,
             });
