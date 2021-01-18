@@ -129,7 +129,7 @@ async function main() {
             all.push(elem);
         }
     }
-    const diamond = await AssetPoolFactory.deploy(diamondCut);
+    const factory = await AssetPoolFactory.deploy(diamondCut);
 
     await diamond.deployed();
 

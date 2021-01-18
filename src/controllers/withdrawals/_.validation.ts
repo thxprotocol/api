@@ -5,10 +5,11 @@ import { validateAssetPoolHeader } from '../../util/validation';
 export const validations = {
     getWithdrawal: [
         validateAssetPoolHeader,
-        param('address')
+        param('id')
             .exists()
             .custom((value) => {
-                return ethers.utils.isAddress(value);
+                // todo
+                return true;
             }),
     ],
     getWithdrawals: [
@@ -21,10 +22,11 @@ export const validations = {
     ],
     postWithdrawalWithdraw: [
         validateAssetPoolHeader,
-        param('address')
+        param('id')
             .exists()
             .custom((value) => {
-                return ethers.utils.isAddress(value);
+                // todo
+                return true;
             }),
     ],
 };

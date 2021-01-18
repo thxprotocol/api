@@ -46,7 +46,7 @@ import { parseLogs } from '../../util/events';
  */
 export const postRewardClaimFor = async (req: HttpRequest, res: Response, next: NextFunction) => {
     try {
-        const result = await req.solution.rewards(req.params.id);
+        const result = await req.solution.getReward(req.params.id);
 
         if (!result) {
             throw new Error(result);
@@ -58,7 +58,7 @@ export const postRewardClaimFor = async (req: HttpRequest, res: Response, next: 
             try {
                 const logs = await parseLogs(ISolutionArtifact.abi, tx.logs);
                 const event = logs.filter((e: { name: string }) => e && e.name === 'WithdrawPollCreated')[0];
-                const withdrawPoll = event.args.poll;
+                const withdrawPoll = event.args.id.toNumber();
 
                 res.json({ withdrawPoll });
             } catch (err) {

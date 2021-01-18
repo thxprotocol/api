@@ -6,7 +6,7 @@ import { parseResultLog } from '../../util/events';
 
 export const postCallAssetPool = async (req: HttpRequest, res: Response, next: NextFunction) => {
     try {
-        await (await req.solution.call(req.body.call, req.body.contractAddress, req.body.nonce, req.body.sig)).wait();
+        await (await req.solution.call(req.body.call, req.body.nonce, req.body.sig)).wait();
 
         res.redirect(`/${VERSION}/${req.body.redirect}`);
     } catch (err) {
@@ -17,7 +17,7 @@ export const postCallAssetPool = async (req: HttpRequest, res: Response, next: N
 export const postAssetPoolClaimReward = async (req: HttpRequest, res: Response, next: NextFunction) => {
     try {
         const tx = await (
-            await req.solution.call(req.body.call, req.body.contractAddress, req.body.nonce, req.body.sig)
+            await req.solution.call(req.body.call, req.body.nonce, req.body.sig)
         ).wait();
 
         try {
@@ -28,9 +28,9 @@ export const postAssetPoolClaimReward = async (req: HttpRequest, res: Response, 
             }
 
             const event = logs.filter((e: { name: string }) => e.name === 'WithdrawPollCreated')[0];
-            const pollAddress = event.args.poll;
+            const pollID = event.args.id;
 
-            res.redirect(`/${VERSION}/withdrawals/${pollAddress}`);
+            res.redirect(`/${VERSION}/withdrawals/${pollID}`);
         } catch (error) {
             next(new HttpError(500, 'Parse logs failed.', error));
             return;
@@ -43,7 +43,7 @@ export const postAssetPoolClaimReward = async (req: HttpRequest, res: Response, 
 export const postCallAssetPoolProposeWithdraw = async (req: HttpRequest, res: Response, next: NextFunction) => {
     try {
         const tx = await (
-            await req.solution.call(req.body.call, req.body.contractAddress, req.body.nonce, req.body.sig)
+            await req.solution.call(req.body.call, req.body.nonce, req.body.sig)
         ).wait();
 
         try {
@@ -54,9 +54,9 @@ export const postCallAssetPoolProposeWithdraw = async (req: HttpRequest, res: Re
             }
 
             const event = logs.filter((e: { name: string }) => e.name === 'WithdrawPollCreated')[0];
-            const pollAddress = event.args.poll;
+            const pollID = event.args.id;
 
-            res.redirect(`/${VERSION}/withdrawals/${pollAddress}`);
+            res.redirect(`/${VERSION}/withdrawals/${pollID}`);
         } catch (err) {
             next(new HttpError(500, 'Parse logs failed.', err));
             return;

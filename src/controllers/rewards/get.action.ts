@@ -83,7 +83,7 @@ export const getReward = async (req: HttpRequest, res: Response, next: NextFunct
                 id: id.toNumber(),
                 title: metaData.title,
                 description: metaData.description,
-                withdrawAmount: withdrawAmount.toNumber(),
+                withdrawAmount: withdrawAmount,
                 withdrawDuration: withdrawDuration.toNumber(),
                 state,
                 pollId: pollId.toNumber(),

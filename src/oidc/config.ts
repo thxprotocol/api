@@ -2,6 +2,7 @@ import jwks from '../jwks.json';
 import MongoAdapter from './adapter';
 import { Account } from '../models/Account';
 import { AccountDocument } from '../models/Account';
+import { SECURE_KEY } from '../util/secrets';
 
 (async () => {
     await MongoAdapter.connect();
@@ -13,10 +14,10 @@ import { AccountDocument } from '../models/Account';
 // Configuration defaults:
 // https://github.com/panva/node-oidc-provider/blob/master/lib/helpers/defaults.js
 export default {
-    'debug': false, // TODO Set to false in prod
+    debug: true, // TODO Set to false in prod
     jwks,
-    'adapter': MongoAdapter,
-    async 'findAccount'(ctx: any, id: string) {
+    adapter: MongoAdapter,
+    async findAccount(ctx: any, id: string) {
         const account: AccountDocument = await Account.findById(id);
 
         return {
@@ -33,7 +34,7 @@ export default {
             },
         };
     },
-    'claims': {
+    claims: {
         openid: ['sub'],
         admin: ['admin'],
         user: ['user'],
@@ -42,31 +43,34 @@ export default {
         privateKey: ['privateKey'],
         profile: ['assetPools', 'burnProofs'],
     },
-    'ttl': {
+    ttl: {
         AccessToken: 1 * 60 * 60, // 1 hour in seconds
         AuthorizationCode: 10 * 60, // 10 minutes in seconds
         ClientCredentials: 10 * 60, // 10 minutes in seconds
     },
-    'formats': {
+    formats: {
         AccessToken: 'jwt',
         AuthorizationCode: 'jwt',
         ClientCredentials: 'jwt',
     },
-    'interactions': {
+    interactions: {
         url(ctx: any) {
             return `/interaction/${ctx.oidc.uid}`;
         },
     },
-    'features': {
+    features: {
         devInteractions: { enabled: false },
         clientCredentials: { enabled: true },
         encryption: { enabled: true },
         introspection: { enabled: true },
         registration: { enabled: true },
     },
-    'cookies.short.secure': true,
-    'cookies.long.secure': true,
-    async 'renderError'(ctx: any, error: any) {
+    cookies: {
+        long: { signed: true, maxAge: 1 * 24 * 60 * 60 * 1000 },
+        short: { signed: true },
+        keys: [SECURE_KEY.split(',')[0], SECURE_KEY.split(',')[1]],
+    },
+    async renderError(ctx: any, error: any) {
         ctx.type = 'html';
         ctx.body = `<!DOCTYPE html>
         <head>
@@ -79,7 +83,7 @@ export default {
         </html>`;
     },
     // TODO https://github.com/panva/node-oidc-provider/blob/master/docs/README.md#featuresrpinitiatedlogout
-    async 'logoutSource'(ctx: any, form: any) {
+    async logoutSource(ctx: any, form: any) {
         ctx.body = `<!DOCTYPE html>
         <head>
         <title>Logout</title>
