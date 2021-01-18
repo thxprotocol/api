@@ -1,4 +1,4 @@
-import { Response, Request, NextFunction } from 'express';
+import { Response, NextFunction } from 'express';
 import { VERSION } from '../../util/secrets';
 import { HttpError, HttpRequest } from '../../models/Error';
 import ISolutionArtifact from '../../../src/artifacts/contracts/contracts/interfaces/ISolution.sol/ISolution.json';
@@ -16,9 +16,7 @@ export const postCallAssetPool = async (req: HttpRequest, res: Response, next: N
 
 export const postAssetPoolClaimReward = async (req: HttpRequest, res: Response, next: NextFunction) => {
     try {
-        const tx = await (
-            await req.solution.call(req.body.call, req.body.nonce, req.body.sig)
-        ).wait();
+        const tx = await (await req.solution.call(req.body.call, req.body.nonce, req.body.sig)).wait();
 
         try {
             const { error, logs } = await parseResultLog(ISolutionArtifact.abi, tx.logs);
@@ -42,9 +40,7 @@ export const postAssetPoolClaimReward = async (req: HttpRequest, res: Response, 
 
 export const postCallAssetPoolProposeWithdraw = async (req: HttpRequest, res: Response, next: NextFunction) => {
     try {
-        const tx = await (
-            await req.solution.call(req.body.call, req.body.nonce, req.body.sig)
-        ).wait();
+        const tx = await (await req.solution.call(req.body.call, req.body.nonce, req.body.sig)).wait();
 
         try {
             const { error, logs } = await parseResultLog(ISolutionArtifact.abi, tx.logs);
