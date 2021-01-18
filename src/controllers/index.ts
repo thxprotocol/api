@@ -1,3 +1,4 @@
+import { ISSUER } from '../util/secrets';
 import jwt from 'express-jwt';
 import jwksRsa from 'jwks-rsa';
 import express from 'express';
@@ -12,18 +13,17 @@ import pollsRouter from './polls/_.routing';
 import withdrawalsRouter from './withdrawals/_.routing';
 import authRouter from './auth/_.routing';
 
+const router = express.Router();
 const checkJwt = jwt({
     secret: jwksRsa.expressJwtSecret({
         cache: true,
         rateLimit: true,
         jwksRequestsPerMinute: 5,
-        jwksUri: 'http://localhost:3000/jwks',
+        jwksUri: `${ISSUER}/jwks`,
     }),
-    issuer: 'http://localhost:3000',
+    issuer: ISSUER,
     algorithms: ['RS256'],
 });
-
-const router = express.Router();
 
 router.use('/health', healthRouter);
 router.use('/docs', docsRouter);

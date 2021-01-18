@@ -115,9 +115,9 @@
         "watch": "concurrently -k -p \"[{name}]\" -n \"Sass,TypeScript,Node\" -c \"yellow.bold,cyan.bold,green.bold\" \"npm run watch:ts\" \"npm run watch:node\"",
         "watch:ts": "tsc -w",
         "watch:node": "nodemon dist/src/server.js",
-        "watch:test": "npx test -- --watchAll",
+        "watch:test": "npm run test -- --watchAll",
         "watch:debug": "concurrently -k -p \"[{name}]\" -n \"TypeScript,Node\" -c \"yellow.bold,cyan.bold,green.bold\" \"npm run watch:ts\" \"npm run serve:debug\"",
-        "test": "NODE_ENV=test npx hardhat node > /dev/null & sleep 1; NODE_ENV=test npx jest --runInBand --force-exit --verbose; kill $(lsof -t -i :8545);",
+        "test": "NODE_ENV=test npx hardhat node > /dev/null & sleep 1; NODE_ENV=test npx jest --runInBand --force-exit --useStderr; kill $(lsof -t -i :8545);",
         "test:load": "docker-compose run k6 run ./test/load/signup.js",
         "deploy:factory": "npx hardhat run scripts/deployAssetPoolFactory.js --network default",
         "deploy:token": "npx hardhat run scripts/deployExampleToken.js --network default"

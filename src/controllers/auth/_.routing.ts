@@ -9,7 +9,7 @@ import checkScopes from 'express-jwt-authz';
 
 const router = express.Router();
 
-router.post('/signup', validate(validations.postSignup), checkScopes(['admin', 'user'], {}), postSignup);
+router.post('/signup', validate(validations.postSignup), checkScopes(['admin', 'user']), postSignup);
 router.post('/forgot', validate(validations.postForgot), checkScopes(['user']), postForgot);
 router.post('/reset/:token', validate(validations.postReset), checkScopes(['user']), postReset);
 

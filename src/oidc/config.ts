@@ -2,10 +2,12 @@ import jwks from '../jwks.json';
 import MongoAdapter from './adapter';
 import { Account } from '../models/Account';
 import { AccountDocument } from '../models/Account';
-import { SECURE_KEY } from '../util/secrets';
+import { ENVIRONMENT, SECURE_KEY } from '../util/secrets';
 
 (async () => {
-    await MongoAdapter.connect();
+    if (ENVIRONMENT !== 'test') {
+        await MongoAdapter.connect();
+    }
 })().catch((err) => {
     console.error(err);
     process.exitCode = 1;

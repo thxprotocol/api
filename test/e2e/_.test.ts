@@ -2,6 +2,7 @@ import mongoose from 'mongoose';
 import db from '../../src/util/database';
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import { getAssetPoolFactory } from './lib/contracts';
+import MongoAdapter from '../../src/oidc/adapter';
 
 beforeAll(async () => {
     const server = new MongoMemoryServer({
@@ -15,6 +16,8 @@ beforeAll(async () => {
 
     await server.ensureInstance();
 
+    await MongoAdapter.connect();
+
     const { AssetPoolFactory, diamondCut } = await getAssetPoolFactory();
     const diamond = await AssetPoolFactory.deploy(diamondCut);
 
@@ -26,7 +29,8 @@ afterAll(async () => {
     await mongoose.disconnect();
 });
 
-require('./api.ts');
+require('./oauth2.ts');
+// require('./api.ts');
 // require('./auth.ts');
 // require('./roles.ts');
 // require('./encrypt.ts');
