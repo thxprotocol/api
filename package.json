@@ -108,7 +108,7 @@
         "debug": "npm run build && npm run watch:debug",
         "publish": "npx test; npm version patch; npx build-docs;",
         "lint": "npx tsc --noEmit && npx eslint \"src/**/*.ts\" \"test/**/*.ts\" --quiet --fix",
-        "build": "npm run build:docs && npm run build:contracts; npx tsc",
+        "build": "npm run build:docs; npx tsc",
         "build:docs": "swagger-jsdoc -d ./src/swaggerDef.js -o ./src/swagger.json",
         "build:contracts": "npx hardhat compile",
         "build:keys": "node ./scripts/generateKeys.js",
