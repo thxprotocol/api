@@ -1,8 +1,8 @@
 import request from 'supertest';
 import app from '../../src/app';
 import db from '../../src/util/database';
-import { ASSET_POOL, BASE_POLL, REWARD_POLL, WITHDRAW_POLL } from '../../src/util/network';
-import { voter, timeTravel, signMethod, admin, testTokenFactory } from './lib/network';
+import { voter, timeTravel, signMethod, admin } from './lib/network';
+import { exampleTokenFactory } from './lib/contracts';
 import {
     poolTitle,
     rewardPollDuration,
@@ -13,18 +13,16 @@ import {
     rewardWithdrawDuration,
     mintAmount,
 } from './lib/constants';
-import { formatEther, parseEther } from 'ethers/lib/utils';
-import { isError } from 'lodash';
 
 const user = request.agent(app);
 
 describe('Gas Station', () => {
-    let poolAddress: any, pollAddress: any, withdrawPollAddress: any, testToken: any;
+    let poolAddress: any, pollId: any, withdrawPollAddress: any, testToken: any;
 
     beforeAll(async () => {
         await db.truncate();
 
-        testToken = await testTokenFactory.deploy(admin.address, mintAmount);
+        testToken = await exampleTokenFactory.deploy(admin.address, mintAmount);
 
         await testToken.deployed();
 
@@ -69,8 +67,8 @@ describe('Gas Station', () => {
 
     describe('GET /accounts', () => {
         it('HTTP 200', async (done) => {
-            const { body, status } = await user.get('/v1/rewards/0').set({ AssetPool: poolAddress });
-            pollAddress = body.poll.address;
+            const { body, status } = await user.get('/v1/rewards/1').set({ AssetPool: poolAddress });
+            pollId = body.poll.pollId;
             expect(body.state).toBe(0);
             done();
         });
@@ -80,7 +78,7 @@ describe('Gas Station', () => {
         let redirectURL = '';
 
         it('HTTP 302 when call is ok', async (done) => {
-            const { call, nonce, sig } = await signMethod(voter, REWARD_POLL.abi, pollAddress, 'vote', [true]);
+            const { call, nonce, sig } = await signMethod(poolAddress, 'rewardPollVote', [1, true], voter);
             const { headers, status } = await user
                 .post('/v1/gas_station/base_poll')
                 .set({ AssetPool: poolAddress })
@@ -88,8 +86,7 @@ describe('Gas Station', () => {
                     call,
                     nonce,
                     sig,
-                    contractAddress: pollAddress,
-                    redirect: `polls/${pollAddress}`,
+                    redirect: `polls/${pollId}`,
                 });
             expect(status).toBe(302);
             redirectURL = headers.location;
@@ -110,7 +107,7 @@ describe('Gas Station', () => {
         let redirectURL = '';
 
         it('HTTP 302 when revokeVote call is ok', async (done) => {
-            const { call, nonce, sig } = await signMethod(voter, REWARD_POLL.abi, pollAddress, 'revokeVote', []);
+            const { call, nonce, sig } = await signMethod(poolAddress, 'rewardPollRevokeVote', [1], voter);
             const { headers, status } = await user
                 .post('/v1/gas_station/base_poll')
                 .set({ AssetPool: poolAddress })
@@ -118,8 +115,7 @@ describe('Gas Station', () => {
                     call,
                     nonce,
                     sig,
-                    contractAddress: pollAddress,
-                    redirect: `polls/${pollAddress}`,
+                    redirect: `polls/${pollId}`,
                 });
             redirectURL = headers.location;
             expect(status).toBe(302);
@@ -141,7 +137,7 @@ describe('Gas Station', () => {
         let redirectURL = '';
 
         it('HTTP 302 when vote call is ok', async (done) => {
-            const { call, nonce, sig } = await signMethod(voter, REWARD_POLL.abi, pollAddress, 'vote', [true]);
+            const { call, nonce, sig } = await signMethod(poolAddress, 'rewardPollVote', [1, true], voter);
             await user
                 .post('/v1/gas_station/base_poll')
                 .set({ AssetPool: poolAddress })
@@ -149,8 +145,7 @@ describe('Gas Station', () => {
                     call,
                     nonce,
                     sig,
-                    contractAddress: pollAddress,
-                    redirect: `polls/${pollAddress}`,
+                    redirect: `polls/${pollId}`,
                 });
             done();
         });
@@ -158,7 +153,7 @@ describe('Gas Station', () => {
         it('HTTP 302 when finalize call is ok', async (done) => {
             await timeTravel(rewardPollDuration);
 
-            const { call, nonce, sig } = await signMethod(voter, REWARD_POLL.abi, pollAddress, 'finalize', []);
+            const { call, nonce, sig } = await signMethod(poolAddress, 'rewardPollFinalize', [1], voter);
             const { headers, status } = await user
                 .post('/v1/gas_station/base_poll')
                 .set({ AssetPool: poolAddress })
@@ -166,8 +161,7 @@ describe('Gas Station', () => {
                     call,
                     nonce,
                     sig,
-                    contractAddress: pollAddress,
-                    redirect: 'rewards/0',
+                    redirect: 'rewards/1',
                 });
             redirectURL = headers.location;
             expect(status).toBe(302);
