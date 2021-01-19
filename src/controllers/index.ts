@@ -1,6 +1,3 @@
-import { ISSUER } from '../util/secrets';
-import jwt from 'express-jwt';
-import jwksRsa from 'jwks-rsa';
 import express from 'express';
 import healthRouter from './health/_.routing';
 import docsRouter from './docs/_.routing';
@@ -12,22 +9,9 @@ import rewardsRouter from './rewards/_.routing';
 import pollsRouter from './polls/_.routing';
 import withdrawalsRouter from './withdrawals/_.routing';
 import authRouter from './auth/_.routing';
-import jwks from '../jwks.json';
+import { checkJwt } from '../util/jwt';
 
 const router = express.Router();
-const checkJwt = jwt({
-    secret: jwksRsa.expressJwtSecret({
-        cache: true,
-        rateLimit: true,
-        jwksRequestsPerMinute: 5,
-        jwksUri: `${ISSUER}/jwks`,
-        getKeysInterceptor: (cb) => {
-            return cb(null, jwks.keys as any);
-        },
-    }),
-    issuer: ISSUER,
-    algorithms: ['RS256'],
-});
 
 router.use('/health', healthRouter);
 router.use('/docs', docsRouter);

@@ -1,5 +1,5 @@
 import request from 'supertest';
-import app from '../../src/app';
+import server from '../../src/server';
 import db from '../../src/util/database';
 import { voter, timeTravel, signMethod, admin } from './lib/network';
 import { exampleTokenFactory } from './lib/contracts';
@@ -15,14 +15,17 @@ import {
 } from './lib/constants';
 import { formatEther, parseEther } from 'ethers/lib/utils';
 import { Contract } from 'ethers';
+import { registerClient } from './lib/registerClient';
 
-const user = request.agent(app);
+const user = request.agent(server);
 
 describe('Happy Flow', () => {
-    let poolAddress: string, pollID: string, withdrawPollID: string, testToken: Contract;
+    let authHeader: string, poolAddress: string, pollID: string, withdrawPollID: string, testToken: Contract;
 
     beforeAll(async () => {
         await db.truncate();
+
+        authHeader = await registerClient(user);
 
         testToken = await exampleTokenFactory.deploy(admin.address, mintAmount);
 
@@ -40,29 +43,30 @@ describe('Happy Flow', () => {
         });
     });
 
-    describe('POST /login', () => {
-        it('HTTP 302 if credentials are correct', (done) => {
-            user.post('/v1/login')
-                .send({ email: 'test.api.bot@thx.network', password: 'mellon' })
-                .end((err, res) => {
-                    expect(res.status).toBe(302);
-                    done();
-                });
-        });
-    });
+    // describe('POST /login', () => {
+    //     it('HTTP 302 if credentials are correct', (done) => {
+    //         user.post('/v1/login')
+    //             .send({ email: 'test.api.bot@thx.network', password: 'mellon' })
+    //             .end((err, res) => {
+    //                 expect(res.status).toBe(302);
+    //                 done();
+    //             });
+    //     });
+    // });
 
-    describe('GET /account', () => {
-        it('HTTP 200', async (done) => {
-            user.get('/v1/account').end((err, res) => {
-                expect(res.status).toBe(200);
-                done();
-            });
-        });
-    });
+    // describe('GET /account', () => {
+    //     it('HTTP 200', async (done) => {
+    //         user.get('/v1/account').end((err, res) => {
+    //             expect(res.status).toBe(200);
+    //             done();
+    //         });
+    //     });
+    // });
 
     describe('POST /asset_pools', () => {
         it('HTTP 201', async (done) => {
             user.post('/v1/asset_pools')
+                .set('Authorization', authHeader)
                 .send({
                     title: poolTitle,
                     token: testToken.address,
@@ -83,7 +87,7 @@ describe('Happy Flow', () => {
             await testToken.transfer(poolAddress, rewardWithdrawAmount);
 
             user.get('/v1/asset_pools/' + poolAddress)
-                .set({ AssetPool: poolAddress })
+                .set({ AssetPool: poolAddress, Authorization: authHeader })
                 .end(async (err, res) => {
                     const adminBalance = await testToken.balanceOf(admin.address);
 
@@ -107,7 +111,7 @@ describe('Happy Flow', () => {
 
         it('HTTP 404 if pool does not exist', (done) => {
             user.get('/v1/asset_pools/0x0000000000000000000000000000000000000000')
-                .set({ AssetPool: poolAddress })
+                .set({ AssetPool: poolAddress, Authorization: authHeader })
                 .end(async (err, res) => {
                     expect(res.status).toBe(404);
                     done();
@@ -119,7 +123,7 @@ describe('Happy Flow', () => {
         let redirectURL = '';
         it('HTTP 302 ', (done) => {
             user.patch('/v1/asset_pools/' + poolAddress)
-                .set({ AssetPool: poolAddress })
+                .set({ AssetPool: poolAddress, Authorization: authHeader })
                 .send({
                     rewardPollDuration: 10,
                     proposeWithdrawPollDuration: 10,
@@ -134,7 +138,7 @@ describe('Happy Flow', () => {
 
         it('HTTP 200 after redirect', (done) => {
             user.get(redirectURL)
-                .set({ AssetPool: poolAddress })
+                .set({ AssetPool: poolAddress, Authorization: authHeader })
                 .end(async (err, res) => {
                     expect(Number(res.body.proposeWithdrawPollDuration)).toEqual(10);
                     expect(Number(res.body.rewardPollDuration)).toEqual(10);
@@ -145,7 +149,7 @@ describe('Happy Flow', () => {
 
         it('HTTP 500 if incorrect rewardPollDuration type (string) sent ', (done) => {
             user.patch('/v1/asset_pools/' + poolAddress)
-                .set({ AssetPool: poolAddress })
+                .set({ AssetPool: poolAddress, Authorization: authHeader })
                 .send({
                     rewardPollDuration: 'fivehundred',
                 })
@@ -157,7 +161,7 @@ describe('Happy Flow', () => {
 
         it('HTTP 500 if incorrect proposeWithdrawPollDuration type (string) is sent ', (done) => {
             user.patch('/v1/asset_pools/' + poolAddress)
-                .set({ AssetPool: poolAddress })
+                .set({ AssetPool: poolAddress, Authorization: authHeader })
                 .send({
                     proposeWithdrawPollDuration: 'fivehundred',
                 })
@@ -169,7 +173,7 @@ describe('Happy Flow', () => {
 
         it('HTTP should still have the correct values', (done) => {
             user.get('/v1/asset_pools/' + poolAddress)
-                .set({ AssetPool: poolAddress })
+                .set({ AssetPool: poolAddress, Authorization: authHeader })
                 .end(async (err, res) => {
                     expect(Number(res.body.proposeWithdrawPollDuration)).toEqual(proposeWithdrawPollDuration);
                     expect(Number(res.body.rewardPollDuration)).toEqual(rewardPollDuration);
@@ -184,7 +188,7 @@ describe('Happy Flow', () => {
 
         it('HTTP 302 when reward is added', (done) => {
             user.post('/v1/rewards/')
-                .set({ AssetPool: poolAddress })
+                .set({ AssetPool: poolAddress, Authorization: authHeader })
                 .send({
                     withdrawAmount: rewardWithdrawAmount,
                     withdrawDuration: rewardWithdrawDuration,
@@ -200,7 +204,7 @@ describe('Happy Flow', () => {
 
         it('HTTP 200 after redirect', (done) => {
             user.get(redirectURL)
-                .set({ AssetPool: poolAddress })
+                .set({ AssetPool: poolAddress, Authorization: authHeader })
                 .end(async (err, res) => {
                     expect(Number(res.body.id)).toEqual(1);
                     expect(res.body.title).toEqual(rewardTitle);

@@ -5,7 +5,7 @@ import { getAssetPoolFactory } from './lib/contracts';
 import MongoAdapter from '../../src/oidc/adapter';
 
 beforeAll(async () => {
-    const server = new MongoMemoryServer({
+    const memServer = new MongoMemoryServer({
         instance: {
             ip: 'localhost',
             port: 27027,
@@ -14,7 +14,7 @@ beforeAll(async () => {
         autoStart: true,
     });
 
-    await server.ensureInstance();
+    await memServer.ensureInstance();
 
     await MongoAdapter.connect();
 
@@ -29,8 +29,8 @@ afterAll(async () => {
     await mongoose.disconnect();
 });
 
-require('./oauth2.ts');
-// require('./api.ts');
+require('./oidc.ts');
+require('./api.ts');
 // require('./auth.ts');
 // require('./roles.ts');
 // require('./encrypt.ts');
