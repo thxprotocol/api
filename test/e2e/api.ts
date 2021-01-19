@@ -14,18 +14,18 @@ import {
     mintAmount,
 } from './lib/constants';
 import { formatEther, parseEther } from 'ethers/lib/utils';
-import { Contract } from 'ethers';
-import { registerClient } from './lib/registerClient';
+import { Contract, ethers } from 'ethers';
+import { registerClientCredentialsClient } from './lib/registerClient';
 
 const user = request.agent(server);
 
 describe('Happy Flow', () => {
-    let authHeader: string, poolAddress: string, pollID: string, withdrawPollID: string, testToken: Contract;
+    let accessToken: string, poolAddress: string, pollID: string, withdrawPollID: string, testToken: Contract;
 
     beforeAll(async () => {
         await db.truncate();
 
-        authHeader = await registerClient(user);
+        accessToken = await registerClientCredentialsClient(user);
 
         testToken = await exampleTokenFactory.deploy(admin.address, mintAmount);
 
@@ -35,9 +35,11 @@ describe('Happy Flow', () => {
     describe('POST /signup', () => {
         it('HTTP 302 if payload is correct', (done) => {
             user.post('/v1/signup')
+                .set('Authorization', accessToken)
                 .send({ email: 'test.api.bot@thx.network', password: 'mellon', confirmPassword: 'mellon' })
                 .end((err, res) => {
-                    expect(res.status).toBe(302);
+                    expect(ethers.utils.isAddress(res.body.address)).toBe(true);
+                    expect(res.status).toBe(201);
                     done();
                 });
         });
@@ -64,16 +66,16 @@ describe('Happy Flow', () => {
     // });
 
     describe('POST /asset_pools', () => {
-        it('HTTP 201', async (done) => {
+        it('HTTP 201 (sucecess)', async (done) => {
             user.post('/v1/asset_pools')
-                .set('Authorization', authHeader)
+                .set('Authorization', accessToken)
                 .send({
                     title: poolTitle,
                     token: testToken.address,
                 })
                 .end(async (err, res) => {
                     expect(res.status).toBe(201);
-                    expect(res.body.address).toContain('0x');
+                    expect(ethers.utils.isAddress(res.body.address)).toBe(true);
                     poolAddress = res.body.address;
 
                     done();
@@ -87,7 +89,7 @@ describe('Happy Flow', () => {
             await testToken.transfer(poolAddress, rewardWithdrawAmount);
 
             user.get('/v1/asset_pools/' + poolAddress)
-                .set({ AssetPool: poolAddress, Authorization: authHeader })
+                .set({ AssetPool: poolAddress, Authorization: accessToken })
                 .end(async (err, res) => {
                     const adminBalance = await testToken.balanceOf(admin.address);
 
@@ -96,12 +98,10 @@ describe('Happy Flow', () => {
                     );
                     expect(res.body.title).toEqual(poolTitle);
                     expect(res.body.address).toEqual(poolAddress);
-
                     expect(res.body.token.address).toEqual(testToken.address);
                     expect(res.body.token.name).toEqual(await testToken.name());
                     expect(res.body.token.symbol).toEqual(await testToken.symbol());
                     expect(Number(formatEther(res.body.token.balance))).toBe(Number(formatEther(rewardWithdrawAmount)));
-
                     expect(Number(res.body.proposeWithdrawPollDuration)).toEqual(0);
                     expect(Number(res.body.rewardPollDuration)).toEqual(0);
                     expect(res.status).toBe(200);
@@ -111,7 +111,7 @@ describe('Happy Flow', () => {
 
         it('HTTP 404 if pool does not exist', (done) => {
             user.get('/v1/asset_pools/0x0000000000000000000000000000000000000000')
-                .set({ AssetPool: poolAddress, Authorization: authHeader })
+                .set({ AssetPool: poolAddress, Authorization: accessToken })
                 .end(async (err, res) => {
                     expect(res.status).toBe(404);
                     done();
@@ -123,7 +123,7 @@ describe('Happy Flow', () => {
         let redirectURL = '';
         it('HTTP 302 ', (done) => {
             user.patch('/v1/asset_pools/' + poolAddress)
-                .set({ AssetPool: poolAddress, Authorization: authHeader })
+                .set({ AssetPool: poolAddress, Authorization: accessToken })
                 .send({
                     rewardPollDuration: 10,
                     proposeWithdrawPollDuration: 10,
@@ -138,7 +138,7 @@ describe('Happy Flow', () => {
 
         it('HTTP 200 after redirect', (done) => {
             user.get(redirectURL)
-                .set({ AssetPool: poolAddress, Authorization: authHeader })
+                .set({ AssetPool: poolAddress, Authorization: accessToken })
                 .end(async (err, res) => {
                     expect(Number(res.body.proposeWithdrawPollDuration)).toEqual(10);
                     expect(Number(res.body.rewardPollDuration)).toEqual(10);
@@ -149,7 +149,7 @@ describe('Happy Flow', () => {
 
         it('HTTP 500 if incorrect rewardPollDuration type (string) sent ', (done) => {
             user.patch('/v1/asset_pools/' + poolAddress)
-                .set({ AssetPool: poolAddress, Authorization: authHeader })
+                .set({ AssetPool: poolAddress, Authorization: accessToken })
                 .send({
                     rewardPollDuration: 'fivehundred',
                 })
@@ -161,7 +161,7 @@ describe('Happy Flow', () => {
 
         it('HTTP 500 if incorrect proposeWithdrawPollDuration type (string) is sent ', (done) => {
             user.patch('/v1/asset_pools/' + poolAddress)
-                .set({ AssetPool: poolAddress, Authorization: authHeader })
+                .set({ AssetPool: poolAddress, Authorization: accessToken })
                 .send({
                     proposeWithdrawPollDuration: 'fivehundred',
                 })
@@ -173,7 +173,7 @@ describe('Happy Flow', () => {
 
         it('HTTP should still have the correct values', (done) => {
             user.get('/v1/asset_pools/' + poolAddress)
-                .set({ AssetPool: poolAddress, Authorization: authHeader })
+                .set({ AssetPool: poolAddress, Authorization: accessToken })
                 .end(async (err, res) => {
                     expect(Number(res.body.proposeWithdrawPollDuration)).toEqual(proposeWithdrawPollDuration);
                     expect(Number(res.body.rewardPollDuration)).toEqual(rewardPollDuration);
@@ -188,7 +188,7 @@ describe('Happy Flow', () => {
 
         it('HTTP 302 when reward is added', (done) => {
             user.post('/v1/rewards/')
-                .set({ AssetPool: poolAddress, Authorization: authHeader })
+                .set({ AssetPool: poolAddress, Authorization: accessToken })
                 .send({
                     withdrawAmount: rewardWithdrawAmount,
                     withdrawDuration: rewardWithdrawDuration,
@@ -204,7 +204,7 @@ describe('Happy Flow', () => {
 
         it('HTTP 200 after redirect', (done) => {
             user.get(redirectURL)
-                .set({ AssetPool: poolAddress, Authorization: authHeader })
+                .set({ AssetPool: poolAddress, Authorization: accessToken })
                 .end(async (err, res) => {
                     expect(Number(res.body.id)).toEqual(1);
                     expect(res.body.title).toEqual(rewardTitle);
@@ -223,7 +223,7 @@ describe('Happy Flow', () => {
     describe('GET /rewards/:id', () => {
         it('HTTP 200 when successful', (done) => {
             user.get('/v1/rewards/1')
-                .set({ AssetPool: poolAddress })
+                .set({ AssetPool: poolAddress, Authorization: accessToken })
                 .end(async (err, res) => {
                     expect(res.status).toBe(200);
                     done();
@@ -232,7 +232,7 @@ describe('Happy Flow', () => {
 
         it('HTTP 404 if reward can not be found', (done) => {
             user.get('/v1/rewards/2')
-                .set({ AssetPool: poolAddress })
+                .set({ AssetPool: poolAddress, Authorization: accessToken })
                 .end(async (err, res) => {
                     expect(res.status).toBe(404);
                     done();
@@ -241,7 +241,7 @@ describe('Happy Flow', () => {
 
         it('HTTP 500 if the id parameter is invalid', (done) => {
             user.get('/v1/rewards/id_invalid')
-                .set({ AssetPool: poolAddress })
+                .set({ AssetPool: poolAddress, Authorization: accessToken })
                 .end(async (err, res) => {
                     expect(res.status).toBe(400);
                     done();
@@ -255,7 +255,7 @@ describe('Happy Flow', () => {
         it('HTTP 302 when member is added', (done) => {
             user.post('/v1/members/')
                 .send({ address: voter.address })
-                .set({ AssetPool: poolAddress })
+                .set({ AssetPool: poolAddress, Authorization: accessToken })
                 .end(async (err, res) => {
                     redirectURL = res.headers.location;
 
@@ -266,7 +266,7 @@ describe('Happy Flow', () => {
 
         it('HTTP 200 for the redirect', (done) => {
             user.get(redirectURL)
-                .set({ AssetPool: poolAddress })
+                .set({ AssetPool: poolAddress, Authorization: accessToken })
                 .end(async (err, res) => {
                     expect(res.status).toBe(200);
                     expect(res.body.isMember).toEqual(true);
@@ -281,7 +281,7 @@ describe('Happy Flow', () => {
         it('HTTP 200 and expose poll address', (done) => {
             // @todo get polll
             user.get('/v1/rewards/1')
-                .set({ AssetPool: poolAddress })
+                .set({ AssetPool: poolAddress, Authorization: accessToken })
                 .end(async (err, res) => {
                     pollID = res.body.poll.pollId;
                     expect(Number(formatEther(res.body.withdrawAmount))).toEqual(0);
@@ -293,7 +293,7 @@ describe('Happy Flow', () => {
 
         it('HTTP 200 if poll exists', (done) => {
             user.get('/v1/polls/' + pollID)
-                .set({ AssetPool: poolAddress })
+                .set({ AssetPool: poolAddress, Authorization: accessToken })
                 .end(async (err, res) => {
                     expect(res.status).toBe(200);
                     done();
@@ -304,7 +304,7 @@ describe('Happy Flow', () => {
     describe('GET /polls/:id/vote', () => {
         it('HTTP 200 and base64 string for the yes vote', (done) => {
             user.post(`/v1/polls/${pollID}/vote`)
-                .set({ AssetPool: poolAddress })
+                .set({ AssetPool: poolAddress, Authorization: accessToken })
                 .send({
                     agree: true,
                 })
@@ -321,7 +321,7 @@ describe('Happy Flow', () => {
 
         it('HTTP 200 and base64 string for the yes vote', (done) => {
             user.post(`/v1/polls/${pollID}/vote`)
-                .set({ AssetPool: poolAddress })
+                .set({ AssetPool: poolAddress, Authorization: accessToken })
                 .send({
                     agree: true,
                 })
@@ -332,7 +332,7 @@ describe('Happy Flow', () => {
                 });
         });
 
-        it('HTTP 302 when tx is handled 1', async (done) => {
+        it('HTTP 302 when tx is handled', async (done) => {
             // We assume QR decoding works as expected, will be tested in the wallet repo
             // @TODO base_poll, why base_poll? remove or rename
             const { call, nonce, sig } = await signMethod(poolAddress, 'rewardPollVote', [1, true], voter);
@@ -344,7 +344,7 @@ describe('Happy Flow', () => {
                     sig,
                     redirect: `polls/${pollID}`,
                 })
-                .set({ AssetPool: poolAddress })
+                .set({ AssetPool: poolAddress, Authorization: accessToken })
                 .end(async (err, res) => {
                     redirectURL = res.headers.location;
                     expect(res.status).toBe(302);
@@ -354,7 +354,7 @@ describe('Happy Flow', () => {
 
         it('HTTP 200 and increase yesCounter with 1', (done) => {
             user.get(redirectURL)
-                .set({ AssetPool: poolAddress })
+                .set({ AssetPool: poolAddress, Authorization: accessToken })
                 .end(async (err, res) => {
                     expect(Number(res.body.totalVoted)).toEqual(1);
                     expect(Number(res.body.yesCounter)).toEqual(1);
@@ -381,7 +381,7 @@ describe('Happy Flow', () => {
                     nonce,
                     sig,
                 })
-                .set({ AssetPool: poolAddress })
+                .set({ AssetPool: poolAddress, Authorization: accessToken })
                 .end(async (err, res) => {
                     redirectURL = res.header.location;
 
@@ -392,7 +392,7 @@ describe('Happy Flow', () => {
 
         it('HTTP 404 after getting the finalized poll', (done) => {
             user.get(`/v1/${redirectURL}`)
-                .set({ AssetPool: poolAddress })
+                .set({ AssetPool: poolAddress, Authorization: accessToken })
                 .end(async (err, res) => {
                     expect(res.status).toBe(404);
                     done();
@@ -403,7 +403,7 @@ describe('Happy Flow', () => {
     describe('GET /rewards/:id (after finalizing)', () => {
         it('HTTP 200 and return updated withdrawAmount and state 1', (done) => {
             user.get('/v1/rewards/1')
-                .set({ AssetPool: poolAddress })
+                .set({ AssetPool: poolAddress, Authorization: accessToken })
                 .end(async (err, res) => {
                     expect(Number(formatEther(res.body.withdrawAmount))).toEqual(
                         Number(formatEther(rewardWithdrawAmount)),
@@ -420,7 +420,7 @@ describe('Happy Flow', () => {
 
         it('HTTP 200 and base64 string for the claim', (done) => {
             user.post('/v1/rewards/1/claim')
-                .set({ AssetPool: poolAddress })
+                .set({ AssetPool: poolAddress, Authorization: accessToken })
                 .end(async (err, res) => {
                     expect(res.body.base64).toContain('data:image/png;base64');
                     expect(res.status).toBe(200);
@@ -438,7 +438,7 @@ describe('Happy Flow', () => {
                     nonce,
                     sig,
                 })
-                .set({ AssetPool: poolAddress })
+                .set({ AssetPool: poolAddress, Authorization: accessToken })
                 .end(async (err, res) => {
                     redirectURL = res.headers.location;
 
@@ -449,7 +449,7 @@ describe('Happy Flow', () => {
 
         it('HTTP 200 after return state Pending', (done) => {
             user.get(redirectURL)
-                .set({ AssetPool: poolAddress })
+                .set({ AssetPool: poolAddress, Authorization: accessToken })
                 .end(async (err, res) => {
                     withdrawPollID = res.body.pollId;
                     expect(res.body.state).toEqual(false);
@@ -466,7 +466,7 @@ describe('Happy Flow', () => {
                 .send({
                     member: admin.address,
                 })
-                .set({ AssetPool: poolAddress })
+                .set({ AssetPool: poolAddress, Authorization: accessToken })
                 .end(async (err, res) => {
                     expect(res.body.withdrawPoll).toEqual(3);
                     done();
@@ -479,7 +479,7 @@ describe('Happy Flow', () => {
 
         it('HTTP 200 and base64 string for the yes vote', (done) => {
             user.post(`/v1/polls/${withdrawPollID}/vote`)
-                .set({ AssetPool: poolAddress })
+                .set({ AssetPool: poolAddress, Authorization: accessToken })
                 .send({
                     agree: true,
                 })
@@ -507,7 +507,7 @@ describe('Happy Flow', () => {
                     sig,
                     redirect: `polls/${withdrawPollID}`,
                 })
-                .set({ AssetPool: poolAddress })
+                .set({ AssetPool: poolAddress, Authorization: accessToken })
                 .end(async (err, res) => {
                     redirectURL = res.headers.location;
 
@@ -518,7 +518,7 @@ describe('Happy Flow', () => {
 
         it('HTTP 200 and increase yesCounter with 1', (done) => {
             user.get(redirectURL)
-                .set({ AssetPool: poolAddress })
+                .set({ AssetPool: poolAddress, Authorization: accessToken })
                 .end(async (err, res) => {
                     expect(Number(res.body.totalVoted)).toEqual(1);
                     expect(Number(res.body.yesCounter)).toEqual(1);
@@ -532,7 +532,7 @@ describe('Happy Flow', () => {
     describe('GET /withdrawals/:address', () => {
         it('HTTP 200 and return state Approved', (done) => {
             user.get(`/v1/withdrawals/${withdrawPollID}`)
-                .set({ AssetPool: poolAddress })
+                .set({ AssetPool: poolAddress, Authorization: accessToken })
                 .end(async (err, res) => {
                     expect(Number(formatEther(res.body.amount))).toEqual(Number(formatEther(rewardWithdrawAmount)));
                     expect(res.body.beneficiary).toEqual(admin.address);
@@ -552,7 +552,7 @@ describe('Happy Flow', () => {
 
         it('HTTP 200 and base64 string for the withdraw', (done) => {
             user.post(`/v1/withdrawals/${withdrawPollID}/withdraw`)
-                .set({ AssetPool: poolAddress })
+                .set({ AssetPool: poolAddress, Authorization: accessToken })
                 .end(async (err, res) => {
                     expect(res.body.base64).toContain('data:image/png;base64');
                     expect(res.status).toBe(200);
@@ -569,7 +569,7 @@ describe('Happy Flow', () => {
                     nonce,
                     sig,
                 })
-                .set({ AssetPool: poolAddress })
+                .set({ AssetPool: poolAddress, Authorization: accessToken })
                 .end(async (err, res) => {
                     redirectURL = res.headers.location;
                     expect(res.status).toBe(302);
@@ -579,7 +579,7 @@ describe('Happy Flow', () => {
 
         it('HTTP 200 and have the minted amount balance again', (done) => {
             user.get(redirectURL)
-                .set({ AssetPool: poolAddress })
+                .set({ AssetPool: poolAddress, Authorization: accessToken })
                 .end(async (err, res) => {
                     expect(Number(formatEther(res.body.token.balance))).toBe(Number(formatEther(mintAmount)));
                     expect(res.status).toBe(200);
@@ -591,7 +591,7 @@ describe('Happy Flow', () => {
     describe('GET /asset_pools/:address (after withdaw)', () => {
         it('HTTP 200 and have 0 balance', (done) => {
             user.get(`/v1/asset_pools/${poolAddress}`)
-                .set({ AssetPool: poolAddress })
+                .set({ AssetPool: poolAddress, Authorization: accessToken })
                 .end(async (err, res) => {
                     expect(Number(formatEther(res.body.token.balance))).toBe(0);
                     expect(res.status).toBe(200);
@@ -603,7 +603,7 @@ describe('Happy Flow', () => {
     describe('GET /withdrawals (before proposed withdrawal)', () => {
         it('HTTP 200 and return no items', async (done) => {
             user.get(`/v1/withdrawals?member=${voter.address}`)
-                .set({ AssetPool: poolAddress })
+                .set({ AssetPool: poolAddress, Authorization: accessToken })
                 .end(async (err, res) => {
                     expect(Number(res.body.withdrawPolls.length)).toBe(0);
                     expect(res.status).toBe(200);
@@ -632,7 +632,7 @@ describe('Happy Flow', () => {
                     nonce,
                     sig,
                 })
-                .set({ AssetPool: poolAddress })
+                .set({ AssetPool: poolAddress, Authorization: accessToken })
                 .end(async (err, res) => {
                     expect(res.status).toBe(302);
                     redirectURL = res.header.location;
@@ -642,7 +642,7 @@ describe('Happy Flow', () => {
 
         it('HTTP 200 if OK', async (done) => {
             user.get(redirectURL)
-                .set({ AssetPool: poolAddress })
+                .set({ AssetPool: poolAddress, Authorization: accessToken })
                 .end(async (err, res) => {
                     expect(res.status).toBe(200);
                     done();
@@ -653,7 +653,7 @@ describe('Happy Flow', () => {
     describe('GET /withdrawals (after proposed withdrawal)', () => {
         it('HTTP 200 and return a list of 1 item', async (done) => {
             user.get(`/v1/withdrawals?member=${voter.address}`)
-                .set({ AssetPool: poolAddress })
+                .set({ AssetPool: poolAddress, Authorization: accessToken })
                 .end(async (err, res) => {
                     withdrawPollID = res.body.withdrawPolls[0];
 
@@ -681,7 +681,7 @@ describe('Happy Flow', () => {
                     sig,
                     redirect: `polls/${withdrawPollID}`,
                 })
-                .set({ AssetPool: poolAddress })
+                .set({ AssetPool: poolAddress, Authorization: accessToken })
                 .end(async (err, res) => {
                     redirectURL = res.headers.location;
                     expect(res.status).toBe(302);
@@ -691,7 +691,7 @@ describe('Happy Flow', () => {
 
         it('HTTP 200 and increase yesCounter with 1', (done) => {
             user.get(redirectURL)
-                .set({ AssetPool: poolAddress })
+                .set({ AssetPool: poolAddress, Authorization: accessToken })
                 .end(async (err, res) => {
                     expect(Number(res.body.totalVoted)).toEqual(1);
                     expect(Number(res.body.yesCounter)).toEqual(1);
@@ -711,7 +711,7 @@ describe('Happy Flow', () => {
 
         it('HTTP 200 and 0 balance', (done) => {
             user.get('/v1/members/' + voter.address)
-                .set({ AssetPool: poolAddress })
+                .set({ AssetPool: poolAddress, Authorization: accessToken })
                 .end(async (err, res) => {
                     expect(Number(formatEther(res.body.token.balance))).toBe(Number(formatEther(0)));
                     expect(res.status).toBe(200);
@@ -728,7 +728,7 @@ describe('Happy Flow', () => {
                     nonce,
                     sig,
                 })
-                .set({ AssetPool: poolAddress })
+                .set({ AssetPool: poolAddress, Authorization: accessToken })
                 .end(async (err, res) => {
                     redirectURL = res.headers.location;
                     expect(res.status).toBe(302);
@@ -738,7 +738,7 @@ describe('Happy Flow', () => {
 
         it('HTTP 200 and increased balance', (done) => {
             user.get(redirectURL)
-                .set({ AssetPool: poolAddress })
+                .set({ AssetPool: poolAddress, Authorization: accessToken })
                 .end(async (err, res) => {
                     expect(Number(formatEther(res.body.token.balance))).toBe(1000);
                     expect(res.status).toBe(200);
