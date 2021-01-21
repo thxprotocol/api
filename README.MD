@@ -44,6 +44,9 @@ docker-compose up
 
 # 7. Provide the asset pool factory address from the output your .env file
 npm run deploy:factory
+
+# 8. Rebuild the API project
+npm run build
 ```
 
 ## 3. Running
