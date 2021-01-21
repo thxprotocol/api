@@ -28,18 +28,21 @@ git submodule update
 #    uncomment the Docker settings and provide the factory address
 cp .env.test .env
 
+# 4. Install packages
+npm install
+
 # 4. Compile the smart contracts
 npm run build:contracts
 
-# 5. Copy the address from the output
-#    Provide the copied factory diamond address in the .env file
-npm run deploy:factory
-
-# 6. Start the containers
+# 5. Start the containers
 npm run build:keys
 
-# 7. Start the containers
+# 6. Start the containers
 docker-compose up
+
+# 7. Provide the asset pool factory address from the output your .env file
+npm run deploy:factory
+
 ```
 
 ## 3. Running
