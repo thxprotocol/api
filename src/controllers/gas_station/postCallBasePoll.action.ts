@@ -1,9 +1,8 @@
 import { Response, NextFunction } from 'express';
 import { VERSION } from '../../util/secrets';
-import { HttpError } from '../../models/Error';
-import { ISolutionRequest } from '../../util/network';
+import { HttpError, HttpRequest } from '../../models/Error';
 
-export const postCallBasePoll = async (req: ISolutionRequest, res: Response, next: NextFunction) => {
+export const postCallBasePoll = async (req: HttpRequest, res: Response, next: NextFunction) => {
     try {
         await (await req.solution.call(req.body.call, req.body.nonce, req.body.sig)).wait();
 
@@ -13,7 +12,7 @@ export const postCallBasePoll = async (req: ISolutionRequest, res: Response, nex
     }
 };
 
-export const postCallBasePollFinalize = async (req: ISolutionRequest, res: Response, next: NextFunction) => {
+export const postCallBasePollFinalize = async (req: HttpRequest, res: Response, next: NextFunction) => {
     try {
         await (await req.solution.call(req.body.call, req.body.nonce, req.body.sig)).wait();
 

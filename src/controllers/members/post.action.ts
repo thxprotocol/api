@@ -1,9 +1,26 @@
-import { NextFunction, Request, Response } from 'express';
-import { ISolutionRequest, solutionContract } from '../../util/network';
-import { HttpError } from '../../models/Error';
+import { NextFunction, Response } from 'express';
+import { HttpRequest, HttpError } from '../../models/Error';
 import { VERSION } from '../../util/secrets';
 import ISolutionArtifact from '../../../src/artifacts/contracts/contracts/interfaces/ISolution.sol/ISolution.json';
 import { parseLogs } from '../../util/events';
+import { Account } from '../../models/Account';
+
+async function updateMemberProfile(address: string, poolAddress: string) {
+    const account = await Account.findOne({ address: address });
+
+    if (account.profile.assetPools) {
+        const index = account.profile.assetPools.indexOf(poolAddress);
+
+        if (index > -1) {
+            return;
+        }
+        account.profile.assetPools.push(poolAddress);
+    } else {
+        account.profile.assetPools = [poolAddress];
+    }
+
+    await account.save();
+}
 
 /**
  * @swagger
@@ -42,24 +59,34 @@ import { parseLogs } from '../../util/events';
  *       '502':
  *         description: Bad Gateway. Received an invalid response from the network or database.
  */
-export const postMember = async (req: ISolutionRequest, res: Response, next: NextFunction) => {
+export const postMember = async (req: HttpRequest, res: Response, next: NextFunction) => {
     try {
         const result = await req.solution.isMember(req.body.address);
 
         if (result) {
+            await updateMemberProfile(req.body.address, req.solution.address);
+
             next(new HttpError(400, 'Address is member already.'));
             return;
         }
 
         try {
             const tx = await (await req.solution.addMember(req.body.address)).wait();
+
             try {
                 const events = await parseLogs(ISolutionArtifact.abi, tx.logs);
                 const event = events.filter((e: { name: string }) => e && e.name === 'RoleGranted')[0];
                 const memberid = event.args.member;
                 const address = await req.solution.getAddressByMember(memberid);
 
-                res.redirect(`/${VERSION}/members/${address}`);
+                try {
+                    await updateMemberProfile(req.body.address, req.solution.address);
+
+                    res.redirect(`/${VERSION}/members/${address}`);
+                } catch (err) {
+                    next(new HttpError(502, 'Account profile update failed.', err));
+                    return;
+                }
             } catch (err) {
                 next(new HttpError(500, 'Parse logs failed.', err));
                 return;

@@ -1,7 +1,5 @@
-import qrcode from 'qrcode';
-import { ISolutionRequest, solutionContract } from '../../util/network';
-import { HttpError } from '../../models/Error';
-import { NextFunction, Request, Response } from 'express';
+import { HttpError, HttpRequest } from '../../models/Error';
+import { NextFunction, Response } from 'express';
 
 /**
  * @swagger
@@ -69,7 +67,7 @@ import { NextFunction, Request, Response } from 'express';
  *         description: Bad Gateway. Received an invalid response from the network or database.
  *
  */
-export const getPoll = async (req: ISolutionRequest, res: Response, next: NextFunction) => {
+export const getPoll = async (req: HttpRequest, res: Response, next: NextFunction) => {
     try {
         res.json({
             startTime: (await req.solution.getStartTime(req.params.id)).toNumber(),

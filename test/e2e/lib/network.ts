@@ -23,7 +23,6 @@ export async function signMethod(poolAddress: string, name: string, args: any[],
     const call = solution.interface.encodeFunctionData(name, args);
     const hash = Web3.utils.soliditySha3(call, nonce);
     const sig = await account.signMessage(ethers.utils.arrayify(hash));
-
     return {
         call,
         nonce,

@@ -1,6 +1,5 @@
 import { NextFunction, Response } from 'express';
-import { ISolutionRequest } from '../../util/network';
-import { HttpError } from '../../models/Error';
+import { HttpError, HttpRequest } from '../../models/Error';
 
 /**
  * @swagger
@@ -35,7 +34,7 @@ import { HttpError } from '../../models/Error';
  *       '502':
  *          description: Bad Gateway. Received an invalid response from the network or database.
  */
-export const getWithdrawals = async (req: ISolutionRequest, res: Response, next: NextFunction) => {
+export const getWithdrawals = async (req: HttpRequest, res: Response, next: NextFunction) => {
     try {
         const memberID = await req.solution.getMemberByAddress(req.query.member);
         const filter = req.solution.filters.WithdrawPollCreated(null, memberID);

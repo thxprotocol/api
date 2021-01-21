@@ -3,8 +3,8 @@ import crypto from 'crypto';
 import nodemailer from 'nodemailer';
 import { Account, AccountDocument, AuthToken } from '../../models/Account';
 import { Request, Response, NextFunction } from 'express';
-import { WriteError } from 'mongodb';
 import { HttpError } from '../../models/Error';
+import { SENDGRID_USER, SENDGRID_PASSWORD } from '../../util/secrets';
 
 /**
  * @swagger
@@ -17,14 +17,6 @@ import { HttpError } from '../../models/Error';
  *       - application/json
  *     parameters:
  *       - name: email
- *         in: body
- *         required: true
- *         type: string
- *       - name: password
- *         in: body
- *         required: true
- *         type: string
- *       - name: confirmPassword
  *         in: body
  *         required: true
  *         type: string
@@ -52,7 +44,7 @@ export const postForgot = async (req: Request, res: Response, next: NextFunction
                 });
             },
             function setRandomToken(token: AuthToken, done: Function) {
-                Account.findOne({ email: req.body.email }, (err, account: any) => {
+                Account.findOne({ email: req.body.email }, (err: Error, account: AccountDocument) => {
                     if (err) {
                         next(new HttpError(502, 'Account find failed.', err));
                         return;
@@ -61,9 +53,9 @@ export const postForgot = async (req: Request, res: Response, next: NextFunction
                         next(new HttpError(404, 'Account does not exist.', err));
                         return;
                     }
-                    account.passwordResetToken = token;
+                    account.passwordResetToken = token.accessToken;
                     account.passwordResetExpires = Date.now() + 3600000; // 1 hour
-                    account.save((err: WriteError) => {
+                    account.save((err: Error) => {
                         done(err, token, account);
                     });
                 });
@@ -72,18 +64,19 @@ export const postForgot = async (req: Request, res: Response, next: NextFunction
                 const transporter = nodemailer.createTransport({
                     service: 'SendGrid',
                     auth: {
-                        user: process.env.SENDGRID_USER,
-                        pass: process.env.SENDGRID_PASSWORD,
+                        user: SENDGRID_USER,
+                        pass: SENDGRID_PASSWORD,
                     },
                 });
+                const text = `You are receiving this email because you (or someone else) have requested the reset of the password for your account.\n\n
+                Please click on the following link, or paste this into your browser to complete the process:\n\n
+                http://${req.headers.host}/v1/reset/${token}\n\n
+                If you did not request this, please ignore this email and your password will remain unchanged.\n`;
                 const mailOptions = {
                     to: account.email,
                     from: 'peter@thxprotocol.com',
                     subject: 'Reset your THX password',
-                    text: `You are receiving this email because you (or someone else) have requested the reset of the password for your account.\n\n
-          Please click on the following link, or paste this into your browser to complete the process:\n\n
-          http://${req.headers.host}/v1/reset/${token}\n\n
-          If you did not request this, please ignore this email and your password will remain unchanged.\n`,
+                    text,
                 };
                 transporter.sendMail(mailOptions, (err) => {
                     res.send({ message: `An e-mail has been sent to ${account.email} with further instructions.` });

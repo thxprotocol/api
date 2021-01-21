@@ -1,7 +1,6 @@
-import { Request, Response, NextFunction } from 'express';
-import { solutionContract } from '../../util/network';
+import { Response, NextFunction } from 'express';
 import { VERSION } from '../../util/secrets';
-import { HttpError } from '../../models/Error';
+import { HttpRequest, HttpError } from '../../models/Error';
 
 /**
  * @swagger
@@ -45,15 +44,13 @@ import { HttpError } from '../../models/Error';
  *       '502':
  *         description: Bad Gateway. Received an invalid response from the network or database.
  */
-export const patchAssetPool = async (req: Request, res: Response, next: NextFunction) => {
-    const instance = solutionContract(req.header('AssetPool'));
-
+export const patchAssetPool = async (req: HttpRequest, res: Response, next: NextFunction) => {
     if (
         req.body.rewardPollDuration &&
-        (await instance.getRewardPollDuration()).toString() !== req.body.rewardPollDuration.toString()
+        (await req.solution.getRewardPollDuration()).toString() !== req.body.rewardPollDuration.toString()
     ) {
         try {
-            await instance.setRewardPollDuration(req.body.rewardPollDuration);
+            await req.solution.setRewardPollDuration(req.body.rewardPollDuration);
         } catch (error) {
             next(new HttpError(502, 'Asset Pool setRewardPollDuration failed.', error));
             return;
@@ -62,10 +59,11 @@ export const patchAssetPool = async (req: Request, res: Response, next: NextFunc
 
     if (
         req.body.proposeWithdrawPollDuration &&
-        (await instance.getProposeWithdrawPollDuration()).toString() !== req.body.proposeWithdrawPollDuration.toString()
+        (await req.solution.getProposeWithdrawPollDuration()).toString() !==
+            req.body.proposeWithdrawPollDuration.toString()
     ) {
         try {
-            await instance.setProposeWithdrawPollDuration(req.body.proposeWithdrawPollDuration);
+            await req.solution.setProposeWithdrawPollDuration(req.body.proposeWithdrawPollDuration);
         } catch (error) {
             next(new HttpError(502, 'Asset Pool setProposeWithdrawPollDuration failed.', error));
             return;

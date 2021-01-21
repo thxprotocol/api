@@ -1,7 +1,6 @@
-import { Account, AccountDocument } from '../../models/Account';
-import { Request, Response, NextFunction } from 'express';
-import { HttpError } from '../../models/Error';
-import '../../config/passport';
+import { Account } from '../../models/Account';
+import { Response, NextFunction } from 'express';
+import { HttpRequest, HttpError } from '../../models/Error';
 
 /**
  * @swagger
@@ -25,15 +24,12 @@ import '../../config/passport';
  *       '502':
  *         description: Bad Gateway. Received an invalid response from the network or database.
  */
-export const deleteAccount = (req: Request, res: Response, next: NextFunction) => {
-    const account = req.user as AccountDocument;
+export const deleteAccount = async (req: HttpRequest, res: Response, next: NextFunction) => {
+    try {
+        await Account.remove({ _id: req.user.sub });
 
-    Account.remove({ _id: account.id }, (err) => {
-        if (err) {
-            next(new HttpError(502, 'Account remove failed.', err));
-            return;
-        }
-        req.logout();
-        res.redirect('login');
-    });
+        res.status(204).end();
+    } catch (e) {
+        next(new HttpError(502, 'Account remove failed.', e));
+    }
 };

@@ -131,7 +131,9 @@ async function main() {
     }
     const factory = await AssetPoolFactory.deploy(diamondCut);
 
-    console.log('Factory Address:', factory.address);
+    await factory.deployed();
+
+    console.log('Asset Pool Factory Address:', factory.address);
 }
 
 main()

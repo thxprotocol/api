@@ -1,7 +1,6 @@
 import { Response, NextFunction } from 'express';
-import { ISolutionRequest } from '../../util/network';
 import { Reward, RewardDocument } from '../../models/Reward';
-import { HttpError } from '../../models/Error';
+import { HttpError, HttpRequest } from '../../models/Error';
 
 /**
  * @swagger
@@ -74,7 +73,7 @@ import { HttpError } from '../../models/Error';
  *       '502':
  *         description: Bad Gateway. Received an invalid response from the network or database.
  */
-export const getReward = async (req: ISolutionRequest, res: Response, next: NextFunction) => {
+export const getReward = async (req: HttpRequest, res: Response, next: NextFunction) => {
     try {
         const metaData = await Reward.findOne({ id: req.params.id });
 

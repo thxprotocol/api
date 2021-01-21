@@ -24,23 +24,29 @@ git submodule init
 # 2. Update the submodule
 git submodule update
 
-# 3. Compile the smart contracts
-npm run build:contracts
-
-# 4. Start the containers
-docker-compose up
-
-# 5. Copy the address from the output
-npm run deploy:factory
-
-# 6. Duplicate .env.test and remove the Hardhat Config section,
-#    uncomment the Docker settings and provide the factory address
+# 3. Duplicate .env.test and
+#    1. remove the Hardhat Config section,
+#    2. uncomment the Docker settings
+#    3. replace localhost with Docker IP if required
 cp .env.test .env
 
-# 7. Provide the copied factory diamond address in the .env file
+# 4. Install packages
+npm install
 
-# 8. Initialize the .env file
-docker restart thx_node
+# 4. Compile the smart contracts
+npm run build:contracts
+
+# 5. Start the containers
+npm run build:keys
+
+# 6. Start the containers
+docker-compose up
+
+# 7. Provide the asset pool factory address from the output your .env file
+npm run deploy:factory
+
+# 8. Rebuild the API project
+npm run build
 ```
 
 ## 3. Running
@@ -84,6 +90,36 @@ npm run deploy:factory
 
 # Deploys TestToken on the RPC set in .env
 npm run deploy:token
+```
+
+## 6. Register clients
+
+### 6.1 client_credentials example
+
+```
+POST http://localhost:3000/reg
+{
+    "application_type": "web",
+    "client_name": "SparkBlue",
+    "grant_types": ["client_credentials"],
+    "redirect_uris": [],
+    "response_types": [],
+    "scope": "openid admin"
+}
+```
+
+### 6.2 authorization_code example
+
+```
+POST http://localhost:3000/reg
+{
+    "application_type": "web",
+    "client_name": "Postman",
+    "grant_types": ["authorization_code"],
+    "redirect_uris": ["https://oauth.pstmn.io/v1/callback"],
+    "response_types": ["code"],
+    "scope": "openid user",
+}
 ```
 
 ## 6. Interface

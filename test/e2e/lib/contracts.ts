@@ -186,9 +186,9 @@ export const getAssetPoolFactory = async () => {
             functionSelectors: getSelectors(updateDiamondFacet),
         },
     ];
-    let all: any[] = [];
-    for (let facet in diamondCut) {
-        for (let func in diamondCut[facet].functionSelectors) {
+    const all: any[] = [];
+    for (const facet in diamondCut) {
+        for (const func in diamondCut[facet].functionSelectors) {
             const elem = diamondCut[facet].functionSelectors[func];
             if (all.includes(elem)) {
                 console.error('facet', facet, 'func', elem);

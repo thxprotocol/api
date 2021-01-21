@@ -1,6 +1,5 @@
 import { Response, NextFunction } from 'express';
-import { ISolutionRequest } from '../../util/network';
-import { HttpError } from '../../models/Error';
+import { HttpError, HttpRequest } from '../../models/Error';
 import ISolutionArtifact from '../../../src/artifacts/contracts/contracts/interfaces/ISolution.sol/ISolution.json';
 import { parseLogs } from '../../util/events';
 /**
@@ -45,7 +44,7 @@ import { parseLogs } from '../../util/events';
  *       '502':
  *         description: Bad Gateway. Received an invalid response from the network or database.
  */
-export const postRewardClaimFor = async (req: ISolutionRequest, res: Response, next: NextFunction) => {
+export const postRewardClaimFor = async (req: HttpRequest, res: Response, next: NextFunction) => {
     try {
         const result = await req.solution.getReward(req.params.id);
 

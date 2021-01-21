@@ -1,9 +1,9 @@
 import { admin, assetPoolFactory, solutionContract } from '../../util/network';
 import { events } from '../../util/events';
 import { AssetPool } from '../../models/AssetPool';
-import { Account, AccountDocument } from '../../models/Account';
-import { Request, Response, NextFunction } from 'express';
-import { HttpError } from '../../models/Error';
+import { Response, NextFunction } from 'express';
+import { HttpError, HttpRequest } from '../../models/Error';
+import MongoAdapter from '../../oidc/adapter';
 
 /**
  * @swagger
@@ -42,31 +42,36 @@ import { HttpError } from '../../models/Error';
  *       '502':
  *         description: Bad Gateway. Received an invalid response from the network or database.
  */
-export const postAssetPool = async (req: Request, res: Response, next: NextFunction) => {
+export const postAssetPool = async (req: HttpRequest, res: Response, next: NextFunction) => {
     try {
+        const audience = req.user.aud;
         const ev = await events(await assetPoolFactory.deployAssetPool(admin.address, admin.address, req.body.token));
         const event = ev.find((e: { event: string }) => e.event === 'AssetPoolDeployed');
-        const assetPool = solutionContract(event.args.assetPool);
-        await assetPool.setSigning(true);
+        const solution = solutionContract(event.args.assetPool);
+        await solution.setSigning(true);
 
         try {
             await new AssetPool({
-                address: assetPool.address,
+                address: solution.address,
                 title: req.body.title,
-                uid: req.session.passport.user,
+                client: audience,
             }).save();
 
             try {
-                const account: AccountDocument = await Account.findById((req.user as AccountDocument).id);
+                const Client = new MongoAdapter('client');
+                const payload = await Client.find(audience);
 
-                if (!account.profile.assetPools.includes(assetPool.address)) {
-                    account.profile.assetPools.push(assetPool.address);
-                    await account.save();
+                if (payload.assetPools) {
+                    payload.assetPools.push(solution.address);
+                } else {
+                    payload.assetPools = [solution.address];
                 }
 
-                res.status(201).json({ address: assetPool.address });
+                await Client.coll().updateOne({ _id: audience }, { $set: { payload } }, { upsert: false });
+
+                res.status(201).json({ address: solution.address });
             } catch (error) {
-                next(new HttpError(502, 'Account account update failed.', error));
+                next(new HttpError(502, 'Client account update failed.', error));
             }
         } catch (error) {
             next(new HttpError(502, 'Asset Pool database save failed.', error));

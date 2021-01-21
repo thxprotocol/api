@@ -24,11 +24,11 @@ services:
 
     node:
         container_name: thx_node
-        image: node:10
+        image: node:12
         volumes:
             - ./:/usr/src/service
         working_dir: /usr/src/service
-        command: bash -c "npm install && npm run watch:debug"
+        command: bash -c "npm install; npm run build; npm run watch:debug"
         depends_on:
             - ganache
             - mongo

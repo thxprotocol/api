@@ -2,7 +2,7 @@ import mongoose from 'mongoose';
 import bluebird from 'bluebird';
 import logger from './logger';
 
-mongoose.Promise = bluebird;
+(mongoose as any).Promise = bluebird;
 
 const connect = async (url: string) => {
     const mongooseOpts = {

@@ -1,58 +1,36 @@
-import { ORIGIN, VERSION, SESSION_SECRET, MONGODB_URI, ENVIRONMENT } from './util/secrets';
 import express from 'express';
 import compression from 'compression';
-import session from 'express-session';
 import bodyParser from 'body-parser';
-import passport from 'passport';
 import lusca from 'lusca';
 import path from 'path';
-import morgan from 'morgan';
-import logger from './util/logger';
-import cors from 'cors';
 import router from './controllers';
-import mongo from 'connect-mongo';
 import db from './util/database';
+import { requestLogger } from './util/logger';
 import { errorHandler, notFoundHandler } from './util/error';
+import { corsHandler } from './util/cors';
+import { oidc, router as oidcRouter } from './oidc';
+import { PORT, VERSION, MONGODB_URI } from './util/secrets';
 
 const app = express();
-const MongoStore = mongo(session);
 
 db.connect(MONGODB_URI);
 
-app.set('port', process.env.PORT || 3000);
-app.use(
-    cors({
-        credentials: true,
-        origin: ORIGIN,
-    }),
-);
-app.use(
-    morgan('combined', {
-        skip: () => ENVIRONMENT === 'test',
-        stream: { write: (message: any) => logger.info(message) },
-    }),
-);
+app.set('trust proxy', true);
+app.set('view engine', 'ejs');
+app.set('views', path.join(__dirname, '../../src/views'));
+app.set('port', PORT);
+app.use(corsHandler);
+app.use(requestLogger);
 app.use(compression());
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
-app.use(
-    session({
-        resave: true,
-        saveUninitialized: true,
-        secret: SESSION_SECRET,
-        store: new MongoStore({
-            url: MONGODB_URI,
-            autoReconnect: true,
-        }),
-    }),
-);
-app.use(passport.initialize());
-app.use(passport.session());
 app.use(lusca.xframe('SAMEORIGIN'));
 app.use(lusca.xssProtection(true));
 app.use(express.static(path.join(__dirname, 'public'), { maxAge: 31557600000 }));
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use('/', oidcRouter);
 app.use(`/${VERSION}`, router);
-app.use(notFoundHandler);
+app.use('/', oidc.callback);
 app.use(errorHandler);
+app.use(notFoundHandler);
 
 export default app;

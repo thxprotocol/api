@@ -2,7 +2,6 @@ import { Account } from '../../models/Account';
 import { Request, Response, NextFunction } from 'express';
 import { ethers } from 'ethers';
 import { HttpError } from '../../models/Error';
-import { VERSION } from '../../util/secrets';
 
 /**
  * @swagger
@@ -53,13 +52,13 @@ import { VERSION } from '../../util/secrets';
  */
 export const postSignup = async (req: Request, res: Response, next: NextFunction) => {
     let address = '',
-        privateKey = '';
+        privateKey = '',
+        wallet;
 
     if (req.body.address) {
         address = req.body.address;
     } else {
-        const wallet = ethers.Wallet.createRandom();
-
+        wallet = ethers.Wallet.createRandom();
         privateKey = wallet.privateKey;
         address = await wallet.getAddress();
     }
@@ -84,15 +83,7 @@ export const postSignup = async (req: Request, res: Response, next: NextFunction
                 next(new HttpError(502, 'Account save failed.', error));
                 return;
             }
-
-            req.logIn(account, (error) => {
-                if (error) {
-                    next(new HttpError(502, 'Account login failed', error));
-                    return;
-                }
-
-                res.status(201).redirect(`/${VERSION}/account`);
-            });
+            res.status(201).json({ address: account.address });
         });
     } catch (err) {
         next(new HttpError(500, 'Account signup failed.', err));

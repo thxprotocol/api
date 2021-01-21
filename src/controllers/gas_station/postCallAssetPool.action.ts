@@ -1,11 +1,10 @@
-import { Response, Request, NextFunction } from 'express';
+import { Response, NextFunction } from 'express';
 import { VERSION } from '../../util/secrets';
-import { HttpError } from '../../models/Error';
-import { ISolutionRequest, solutionContract } from '../../util/network';
+import { HttpError, HttpRequest } from '../../models/Error';
 import ISolutionArtifact from '../../../src/artifacts/contracts/contracts/interfaces/ISolution.sol/ISolution.json';
 import { parseResultLog } from '../../util/events';
 
-export const postCallAssetPool = async (req: ISolutionRequest, res: Response, next: NextFunction) => {
+export const postCallAssetPool = async (req: HttpRequest, res: Response, next: NextFunction) => {
     try {
         await (await req.solution.call(req.body.call, req.body.nonce, req.body.sig)).wait();
 
@@ -15,11 +14,9 @@ export const postCallAssetPool = async (req: ISolutionRequest, res: Response, ne
     }
 };
 
-export const postAssetPoolClaimReward = async (req: ISolutionRequest, res: Response, next: NextFunction) => {
+export const postAssetPoolClaimReward = async (req: HttpRequest, res: Response, next: NextFunction) => {
     try {
-        const tx = await (
-            await req.solution.call(req.body.call, req.body.nonce, req.body.sig)
-        ).wait();
+        const tx = await (await req.solution.call(req.body.call, req.body.nonce, req.body.sig)).wait();
 
         try {
             const { error, logs } = await parseResultLog(ISolutionArtifact.abi, tx.logs);
@@ -41,11 +38,9 @@ export const postAssetPoolClaimReward = async (req: ISolutionRequest, res: Respo
     }
 };
 
-export const postCallAssetPoolProposeWithdraw = async (req: ISolutionRequest, res: Response, next: NextFunction) => {
+export const postCallAssetPoolProposeWithdraw = async (req: HttpRequest, res: Response, next: NextFunction) => {
     try {
-        const tx = await (
-            await req.solution.call(req.body.call, req.body.nonce, req.body.sig)
-        ).wait();
+        const tx = await (await req.solution.call(req.body.call, req.body.nonce, req.body.sig)).wait();
 
         try {
             const { error, logs } = await parseResultLog(ISolutionArtifact.abi, tx.logs);

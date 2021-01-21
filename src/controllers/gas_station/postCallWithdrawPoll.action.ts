@@ -1,15 +1,12 @@
 import { Response, NextFunction } from 'express';
 import { VERSION } from '../../util/secrets';
-import { HttpError } from '../../models/Error';
-import { ISolutionRequest } from '../../util/network';
+import { HttpError, HttpRequest } from '../../models/Error';
 import ISolutionArtifact from '../../../src/artifacts/contracts/contracts/interfaces/ISolution.sol/ISolution.json';
 import { parseResultLog } from '../../util/events';
 
-export const postCallWithdrawalWithdraw = async (req: ISolutionRequest, res: Response, next: NextFunction) => {
+export const postCallWithdrawalWithdraw = async (req: HttpRequest, res: Response, next: NextFunction) => {
     try {
-        const tx = await (
-            await req.solution.call(req.body.call, req.body.nonce, req.body.sig)
-        ).wait();
+        const tx = await (await req.solution.call(req.body.call, req.body.nonce, req.body.sig)).wait();
 
         try {
             const { error, logs } = await parseResultLog(ISolutionArtifact.abi, tx.logs);

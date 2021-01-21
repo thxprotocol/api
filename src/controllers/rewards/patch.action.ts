@@ -1,7 +1,6 @@
 import { Response, NextFunction } from 'express';
-import { ISolutionRequest } from '../../util/network';
 import { Reward } from '../../models/Reward';
-import { HttpError } from '../../models/Error';
+import { HttpRequest, HttpError } from '../../models/Error';
 import qrcode from 'qrcode';
 
 /**
@@ -58,7 +57,7 @@ import qrcode from 'qrcode';
  *       '502':
  *         description: Bad Gateway. Received an invalid response from the network or database.
  */
-export const patchReward = async (req: ISolutionRequest, res: Response, next: NextFunction) => {
+export const patchReward = async (req: HttpRequest, res: Response, next: NextFunction) => {
     try {
         const metaData = await Reward.findOne({ id: req.params.id });
 
@@ -71,7 +70,7 @@ export const patchReward = async (req: ISolutionRequest, res: Response, next: Ne
         }
 
         try {
-            metaData.save(async (err) => {
+            metaData.save(async (err: Error) => {
                 if (err) {
                     next(new HttpError(502, 'Reward metadata find failed.', err));
                     return;

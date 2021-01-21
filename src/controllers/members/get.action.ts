@@ -1,6 +1,6 @@
-import { NextFunction, Request, Response } from 'express';
-import { ISolutionRequest, solutionContract, tokenContract } from '../../util/network';
-import { HttpError } from '../../models/Error';
+import { NextFunction, Response } from 'express';
+import { tokenContract } from '../../util/network';
+import { HttpError, HttpRequest } from '../../models/Error';
 
 /**
  * @swagger
@@ -58,7 +58,7 @@ import { HttpError } from '../../models/Error';
  *         description: Bad Gateway. Received an invalid response from the network or database.
 
  */
-export const getMember = async (req: ISolutionRequest, res: Response, next: NextFunction) => {
+export const getMember = async (req: HttpRequest, res: Response, next: NextFunction) => {
     try {
         const isMember = await req.solution.isMember(req.params.address);
 
