@@ -89,15 +89,13 @@ router.post('/interaction/:uid/login', async (req: Request, res: Response) => {
                     },
                 };
 
-                await oidc.interactionFinished(req, res, result, { mergeWithLastSubmission: false });
+                await oidc.interactionFinished(req, res, result, { mergeWithLastSubmission: true });
             });
         } catch (err) {
             throw new HttpError(502, 'Comparing passwords failed.', err);
         }
     } catch (err) {
         throw new HttpError(502, 'Account read failed.', err);
-    } finally {
-        await oidc.interactionFinished(req, res, {}, { mergeWithLastSubmission: false });
     }
 });
 

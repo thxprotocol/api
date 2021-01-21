@@ -1,7 +1,7 @@
 {
     "name": "thx-api",
     "version": "0.3.2",
-    "description": "Public API for THX project",
+    "description": "Public API for THX protocol.",
     "repository": {
         "type": "git",
         "url": "https://github.com/thxprotocol/api"
