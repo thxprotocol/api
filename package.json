@@ -107,7 +107,7 @@
         "serve:debug": "nodemon --inspect dist/src/server.js",
         "serve:hardhat": "kill $(lsof -t -i :8545); NODE_ENV=test npx hardhat node > /dev/null & sleep 1",
         "debug": "npm run build && npm run watch:debug",
-        "publish": "npx test; npm version patch; npx build-docs;",
+        "publish": "npm run test; npm version patch;",
         "lint": "npx tsc --noEmit && npx eslint \"src/**/*.ts\" \"test/**/*.ts\" --quiet --fix",
         "build": "npm run build:docs; npm run build:keys; npx tsc",
         "build:docs": "swagger-jsdoc -d ./src/swaggerDef.js -o ./src/swagger.json",
