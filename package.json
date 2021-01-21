@@ -118,7 +118,7 @@
         "watch:node": "nodemon dist/src/server.js",
         "watch:test": "npm run test -- --watchAll",
         "watch:debug": "concurrently -k -p \"[{name}]\" -n \"TypeScript,Node\" -c \"yellow.bold,cyan.bold,green.bold\" \"npm run watch:ts\" \"npm run serve:debug\"",
-        "test": "npm run serve:hardhat; NODE_ENV=test jest --detectOpenHandles --forceExit --runInBand",
+        "test": "npm run serve:hardhat; NODE_ENV=test jest --forceExit --runInBand",
         "test:load": "docker-compose run k6 run ./test/load/signup.js",
         "deploy:factory": "npx hardhat run scripts/deployAssetPoolFactory.js --network default",
         "deploy:token": "npx hardhat run scripts/deployExampleToken.js --network default"

@@ -32,6 +32,6 @@ afterAll(async () => {
 require('./oidc.ts');
 require('./api.ts');
 // require('./auth.ts');
-// require('./roles.ts');
-// require('./encrypt.ts');
-// require('./gasStation.ts');
+require('./roles.ts');
+require('./encrypt.ts');
+require('./gasStation.ts');

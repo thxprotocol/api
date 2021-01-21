@@ -1,6 +1,3 @@
-import axios from 'axios';
-import { request } from 'express';
-import { SuperAgentTest, SuperTest } from 'supertest';
 import { ISSUER } from '../../../src/util/secrets';
 
 export const registerClientCredentialsClient = async (http: any) => {

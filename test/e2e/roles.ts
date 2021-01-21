@@ -1,18 +1,21 @@
 import request from 'supertest';
-import app from '../../src/app';
+import server from '../../src/server';
 import db from '../../src/util/database';
 import { voter, admin } from './lib/network';
 import { exampleTokenFactory } from './lib/contracts';
-import { poolTitle, mintAmount } from './lib/constants';
+import { poolTitle, mintAmount, userEmail, userPassword } from './lib/constants';
 import { formatEther } from 'ethers/lib/utils';
+import { registerClientCredentialsClient } from './lib/registerClient';
 
-const user = request.agent(app);
+const user = request(server);
 
 describe('Roles', () => {
-    let poolAddress: any, testToken: any;
+    let poolAddress: any, testToken: any, adminAccessToken: string, userAddress1: string, userAddress2: string;
 
     beforeAll(async () => {
         await db.truncate();
+
+        adminAccessToken = await registerClientCredentialsClient(user);
 
         testToken = await exampleTokenFactory.deploy(admin.address, mintAmount);
 
@@ -20,11 +23,21 @@ describe('Roles', () => {
     });
 
     describe('POST /signup', () => {
-        it('HTTP 302 if OK', (done) => {
+        it('HTTP 201 if OK', (done) => {
             user.post('/v1/signup')
-                .send({ email: 'test.roles.bot@thx.network', password: 'mellon', confirmPassword: 'mellon' })
+                .set({ Authorization: adminAccessToken })
+                .send({ email: userEmail, password: userPassword, confirmPassword: userPassword })
                 .end((err, res) => {
-                    expect(res.status).toBe(302);
+                    userAddress1 = res.body.address;
+                    expect(res.status).toBe(201);
+                    done();
+                });
+            user.post('/v1/signup')
+                .set({ Authorization: adminAccessToken })
+                .send({ email: 'test.api.bot2@thx.network', password: userPassword, confirmPassword: userPassword })
+                .end((err, res) => {
+                    userAddress2 = res.body.address;
+                    expect(res.status).toBe(201);
                     done();
                 });
         });
@@ -33,6 +46,7 @@ describe('Roles', () => {
     describe('POST /asset_pools', () => {
         it('HTTP 200', async (done) => {
             user.post('/v1/asset_pools')
+                .set({ Authorization: adminAccessToken })
                 .send({
                     title: poolTitle,
                     token: testToken.address,
@@ -48,7 +62,7 @@ describe('Roles', () => {
     describe('GET /members/:address', () => {
         it('HTTP 200 if OK', (done) => {
             user.get('/v1/members/' + admin.address)
-                .set({ AssetPool: poolAddress })
+                .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
                 .end(async (err, res) => {
                     expect(res.status).toBe(200);
                     done();
@@ -56,7 +70,7 @@ describe('Roles', () => {
         });
         it('HTTP 404 if not found', (done) => {
             user.get('/v1/members/' + voter.address)
-                .set({ AssetPool: poolAddress })
+                .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
                 .end(async (err, res) => {
                     expect(res.status).toBe(404);
                     done();
@@ -69,8 +83,8 @@ describe('Roles', () => {
 
         it('HTTP 302 if OK', (done) => {
             user.post('/v1/members/')
-                .send({ address: voter.address })
-                .set({ AssetPool: poolAddress })
+                .send({ address: userAddress2 })
+                .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
                 .end(async (err, res) => {
                     redirectURL = res.headers.location;
 
@@ -81,7 +95,7 @@ describe('Roles', () => {
 
         it('HTTP 200 for redirect', (done) => {
             user.get(redirectURL)
-                .set({ AssetPool: poolAddress })
+                .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
                 .end(async (err, res) => {
                     expect(res.body.isMember).toEqual(true);
                     expect(res.body.isManager).toEqual(false);
@@ -96,9 +110,9 @@ describe('Roles', () => {
         let redirectURL = '';
 
         it('HTTP 302 if OK', (done) => {
-            user.patch('/v1/members/' + voter.address)
+            user.patch('/v1/members/' + userAddress2)
                 .send({ isManager: true })
-                .set({ AssetPool: poolAddress })
+                .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
                 .end(async (err, res) => {
                     redirectURL = res.headers.location;
                     expect(res.status).toBe(302);
@@ -108,7 +122,7 @@ describe('Roles', () => {
 
         it('HTTP 200 and isManager true', (done) => {
             user.get(redirectURL)
-                .set({ AssetPool: poolAddress })
+                .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
                 .end(async (err, res) => {
                     expect(res.body.isMember).toEqual(true);
                     expect(res.body.isManager).toEqual(true);
@@ -123,9 +137,9 @@ describe('Roles', () => {
         let redirectURL = '';
 
         it('HTTP 302 if OK', (done) => {
-            user.patch('/v1/members/' + voter.address)
+            user.patch('/v1/members/' + userAddress2)
                 .send({ isManager: false })
-                .set({ AssetPool: poolAddress })
+                .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
                 .end(async (err, res) => {
                     redirectURL = res.headers.location;
                     expect(res.status).toBe(302);
@@ -135,7 +149,7 @@ describe('Roles', () => {
 
         it('HTTP 200 and isManager: false', (done) => {
             user.get(redirectURL)
-                .set({ AssetPool: poolAddress })
+                .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
                 .end(async (err, res) => {
                     expect(res.body.isMember).toEqual(true);
                     expect(res.body.isManager).toEqual(false);
@@ -148,8 +162,8 @@ describe('Roles', () => {
 
     describe('DELETE /members/:address', () => {
         it('HTTP 200 if OK', (done) => {
-            user.delete('/v1/members/' + voter.address)
-                .set({ AssetPool: poolAddress })
+            user.delete('/v1/members/' + userAddress2)
+                .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
                 .end(async (err, res) => {
                     expect(res.status).toBe(200);
                     done();
@@ -159,8 +173,8 @@ describe('Roles', () => {
 
     describe('GET /members/:address (after DELETE)', () => {
         it('HTTP 404 if not found', (done) => {
-            user.get('/v1/members/' + voter.address)
-                .set({ AssetPool: poolAddress })
+            user.get('/v1/members/' + userAddress2)
+                .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
                 .end(async (err, res) => {
                     expect(res.status).toBe(404);
                     done();

@@ -6,11 +6,18 @@ import { getWithdrawal } from './get.action';
 import { getWithdrawals } from './getWithdrawals.action';
 import { postWithdrawalWithdraw } from './postWithdrawalWithdraw.action';
 import { parseHeader } from '../../util/network';
+import checkScopes from 'express-jwt-authz';
 
 const router = express.Router();
 
-router.get('/', validate(validations.getWithdrawals), parseHeader, getWithdrawals);
-router.get('/:id', validate(validations.getWithdrawal), parseHeader, getWithdrawal);
-router.post('/:id/withdraw', validate(validations.postWithdrawalWithdraw), parseHeader, postWithdrawalWithdraw);
+router.get('/', checkScopes(['admin', 'user']), validate(validations.getWithdrawals), parseHeader, getWithdrawals);
+router.get('/:id', checkScopes(['admin', 'user']), validate(validations.getWithdrawal), parseHeader, getWithdrawal);
+router.post(
+    '/:id/withdraw',
+    checkScopes(['admin']),
+    validate(validations.postWithdrawalWithdraw),
+    parseHeader,
+    postWithdrawalWithdraw,
+);
 
 export default router;

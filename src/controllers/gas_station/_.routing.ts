@@ -48,6 +48,7 @@ router.post(
     '/withdrawals/withdraw',
     checkScopes(['user']),
     validate(validations.postCallAssetPool),
+    parseHeader,
     postCallWithdrawalWithdraw,
 );
 
