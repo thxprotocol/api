@@ -1,4 +1,5 @@
 import { NextFunction, Response } from 'express';
+import { Account } from '../../models/Account';
 import { HttpError, HttpRequest } from '../../models/Error';
 
 /**
@@ -37,7 +38,18 @@ export const deleteMember = async (req: HttpRequest, res: Response, next: NextFu
     try {
         await req.solution.removeMember(req.params.address);
 
-        res.end();
+        try {
+            const account = await Account.findOne({ address: req.params.address });
+
+            if (account.profile.assetPools) {
+                const index = req.solution.address.indexOf(req.solution.address);
+                account.profile.assetPools.splice(index, 1);
+            }
+
+            res.end();
+        } catch (err) {
+            next(new HttpError(502, 'Account profile update failed.', err));
+        }
     } catch (err) {
         next(new HttpError(502, 'Asset Pool removeMember failed.', err));
     }

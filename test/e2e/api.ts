@@ -305,7 +305,6 @@ describe('Happy Flow', () => {
 
     describe('GET /polls/:id', () => {
         it('HTTP 200 and expose poll address', (done) => {
-            // @todo get polll
             user.get('/v1/rewards/1')
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
                 .end(async (err, res) => {
@@ -377,53 +376,53 @@ describe('Happy Flow', () => {
                 });
         });
 
-        // it('HTTP 200 and increase yesCounter with 1', (done) => {
-        //     user.get(redirectURL)
-        //         .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
-        //         .end(async (err, res) => {
-        //             expect(Number(res.body.totalVoted)).toEqual(1);
-        //             expect(Number(res.body.yesCounter)).toEqual(1);
-        //             expect(Number(res.body.noCounter)).toEqual(0);
-        //             expect(res.status).toBe(200);
-        //             done();
-        //         });
-        // });
+        it('HTTP 200 and increase yesCounter with 1', (done) => {
+            user.get(redirectURL)
+                .set({ AssetPool: poolAddress, Authorization: userAccessToken })
+                .end(async (err, res) => {
+                    expect(Number(res.body.totalVoted)).toEqual(1);
+                    expect(Number(res.body.yesCounter)).toEqual(1);
+                    expect(Number(res.body.noCounter)).toEqual(0);
+                    expect(res.status).toBe(200);
+                    done();
+                });
+        });
     });
 
-    // describe('POST /polls/:address/finalize (rewardPoll)', () => {
-    //     let redirectURL = '';
+    describe('POST /polls/:address/finalize (rewardPoll)', () => {
+        let redirectURL = '';
 
-    //     beforeAll(async () => {
-    //         await timeTravel(rewardPollDuration);
-    //     });
+        beforeAll(async () => {
+            await timeTravel(rewardPollDuration);
+        });
 
-    //     it('HTTP 302 after finalizing the poll', async (done) => {
-    //         const { call, nonce, sig } = await signMethod(poolAddress, 'rewardPollFinalize', [1], voter);
+        it('HTTP 302 after finalizing the poll', async (done) => {
+            const { call, nonce, sig } = await signMethod(poolAddress, 'rewardPollFinalize', [1], voter);
 
-    //         user.post('/v1/gas_station/base_poll')
-    //             .send({
-    //                 call,
-    //                 nonce,
-    //                 sig,
-    //             })
-    //             .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
-    //             .end(async (err, res) => {
-    //                 redirectURL = res.header.location;
+            user.post('/v1/gas_station/base_poll')
+                .send({
+                    call,
+                    nonce,
+                    sig,
+                })
+                .set({ AssetPool: poolAddress, Authorization: userAccessToken })
+                .end(async (err, res) => {
+                    redirectURL = res.header.location;
 
-    //                 expect(res.status).toBe(302);
-    //                 done();
-    //             });
-    //     });
+                    expect(res.status).toBe(302);
+                    done();
+                });
+        });
 
-    //     it('HTTP 404 after getting the finalized poll', (done) => {
-    //         user.get(`/v1/${redirectURL}`)
-    //             .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
-    //             .end(async (err, res) => {
-    //                 expect(res.status).toBe(404);
-    //                 done();
-    //             });
-    //     });
-    // });
+        it('HTTP 404 after getting the finalized poll', (done) => {
+            user.get(`/v1/${redirectURL}`)
+                .set({ AssetPool: poolAddress, Authorization: userAccessToken })
+                .end(async (err, res) => {
+                    expect(res.status).toBe(404);
+                    done();
+                });
+        });
+    });
 
     // describe('GET /rewards/:id (after finalizing)', () => {
     //     it('HTTP 200 and return updated withdrawAmount and state 1', (done) => {

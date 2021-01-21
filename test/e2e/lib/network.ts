@@ -20,13 +20,9 @@ export async function signMethod(poolAddress: string, name: string, args: any[],
     const solution = solutionContract(poolAddress);
     let nonce = await solution.getLatestNonce(await account.getAddress());
     nonce = parseInt(nonce) + 1;
-    console.log(nonce);
     const call = solution.interface.encodeFunctionData(name, args);
-    console.log(call);
     const hash = Web3.utils.soliditySha3(call, nonce);
-    console.log(hash);
     const sig = await account.signMessage(ethers.utils.arrayify(hash));
-    console.log(sig);
     return {
         call,
         nonce,
