@@ -24,8 +24,10 @@ git submodule init
 # 2. Update the submodule
 git submodule update
 
-# 3. Duplicate .env.test and remove the Hardhat Config section,
-#    uncomment the Docker settings and provide the factory address
+# 3. Duplicate .env.test and
+#    1. remove the Hardhat Config section,
+#    2. uncomment the Docker settings
+#    3. replace localhost with Docker IP if required
 cp .env.test .env
 
 # 4. Install packages
@@ -42,7 +44,6 @@ docker-compose up
 
 # 7. Provide the asset pool factory address from the output your .env file
 npm run deploy:factory
-
 ```
 
 ## 3. Running
