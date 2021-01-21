@@ -1,7 +1,9 @@
 import { NextFunction, Request, Response } from 'express';
-import { assetPoolContract, ASSET_POOL, parseLogs } from '../../util/network';
+import { ISolutionRequest, solutionContract } from '../../util/network';
 import { HttpError } from '../../models/Error';
 import { VERSION } from '../../util/secrets';
+import ISolutionArtifact from '../../../src/artifacts/contracts/contracts/interfaces/ISolution.sol/ISolution.json';
+import { parseLogs } from '../../util/events';
 
 /**
  * @swagger
@@ -40,11 +42,9 @@ import { VERSION } from '../../util/secrets';
  *       '502':
  *         description: Bad Gateway. Received an invalid response from the network or database.
  */
-export const postMember = async (req: Request, res: Response, next: NextFunction) => {
-    const instance = assetPoolContract(req.header('AssetPool'));
-
+export const postMember = async (req: ISolutionRequest, res: Response, next: NextFunction) => {
     try {
-        const result = await instance.isMember(req.body.address);
+        const result = await req.solution.isMember(req.body.address);
 
         if (result) {
             next(new HttpError(400, 'Address is member already.'));
@@ -52,12 +52,12 @@ export const postMember = async (req: Request, res: Response, next: NextFunction
         }
 
         try {
-            const tx = await (await instance.addMember(req.body.address)).wait();
-
+            const tx = await (await req.solution.addMember(req.body.address)).wait();
             try {
-                const events = await parseLogs(ASSET_POOL.abi, tx.logs);
+                const events = await parseLogs(ISolutionArtifact.abi, tx.logs);
                 const event = events.filter((e: { name: string }) => e && e.name === 'RoleGranted')[0];
-                const address = event.args.account;
+                const memberid = event.args.member;
+                const address = await req.solution.getAddressByMember(memberid);
 
                 res.redirect(`/${VERSION}/members/${address}`);
             } catch (err) {

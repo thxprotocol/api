@@ -1,6 +1,6 @@
 import { AssetPool, AssetPoolDocument } from '../../models/AssetPool';
 import { Request, Response, NextFunction } from 'express';
-import { assetPoolContract, tokenContract } from '../../util/network';
+import { ISolutionRequest, solutionContract, tokenContract } from '../../util/network';
 import { HttpError } from '../../models/Error';
 
 /**
@@ -56,16 +56,15 @@ import { HttpError } from '../../models/Error';
  *       '502':
  *         description: Bad Gateway. Received an invalid response from the network or database.
  */
-export const getAssetPool = async (req: Request, res: Response, next: NextFunction) => {
+export const getAssetPool = async (req: ISolutionRequest, res: Response, next: NextFunction) => {
     try {
-        const assetPoolInstance = assetPoolContract(req.params.address);
-        const tokenAddress = await assetPoolInstance.token();
-        const owner = await assetPoolInstance.owner();
+        const tokenAddress = await req.solution.getToken();
+        const owner = await req.solution.getOwner();
 
         try {
             const tokenInstance = tokenContract(tokenAddress);
-            const proposeWithdrawPollDuration = (await assetPoolInstance.proposeWithdrawPollDuration()).toNumber();
-            const rewardPollDuration = (await assetPoolInstance.rewardPollDuration()).toNumber();
+            const proposeWithdrawPollDuration = (await req.solution.getProposeWithdrawPollDuration()).toNumber();
+            const rewardPollDuration = (await req.solution.getRewardPollDuration()).toNumber();
             const contractData = {
                 owner,
                 token: {
@@ -77,12 +76,16 @@ export const getAssetPool = async (req: Request, res: Response, next: NextFuncti
                 proposeWithdrawPollDuration,
                 rewardPollDuration,
             };
-            const { uid, address, title }: AssetPoolDocument = await AssetPool.findOne({
+            const assetPool: AssetPoolDocument = await AssetPool.findOne({
                 address: req.params.address,
             });
+            if (!assetPool) {
+                return next(new HttpError(404, 'Asset Pool is not found in database.'));
+            }
+            const { uid, address, title } = assetPool;
 
             if (!address) {
-                next(new HttpError(404, 'Asset Pool is not found in database.'));
+                return next(new HttpError(404, 'Asset Pool is not found in database.'));
             }
 
             res.json({ title, address, uid, ...contractData });

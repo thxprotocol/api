@@ -1,7 +1,8 @@
 import request from 'supertest';
 import app from '../../src/app';
 import db from '../../src/util/database';
-import { voter, admin, testTokenFactory } from './lib/network';
+import { voter, admin } from './lib/network';
+import { exampleTokenFactory } from './lib/contracts';
 import { poolTitle, mintAmount } from './lib/constants';
 import { formatEther } from 'ethers/lib/utils';
 
@@ -13,7 +14,7 @@ describe('Roles', () => {
     beforeAll(async () => {
         await db.truncate();
 
-        testToken = await testTokenFactory.deploy(admin.address, mintAmount);
+        testToken = await exampleTokenFactory.deploy(admin.address, mintAmount);
 
         await testToken.deployed();
     });

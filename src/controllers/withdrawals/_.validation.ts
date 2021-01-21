@@ -1,14 +1,15 @@
 import { ethers } from 'ethers';
-import { body, param, query } from 'express-validator';
+import { param, query } from 'express-validator';
 import { validateAssetPoolHeader } from '../../util/validation';
 
 export const validations = {
     getWithdrawal: [
         validateAssetPoolHeader,
-        param('address')
+        param('id')
             .exists()
             .custom((value) => {
-                return ethers.utils.isAddress(value);
+                // todo
+                return true;
             }),
     ],
     getWithdrawals: [
@@ -21,10 +22,11 @@ export const validations = {
     ],
     postWithdrawalWithdraw: [
         validateAssetPoolHeader,
-        param('address')
+        param('id')
             .exists()
             .custom((value) => {
-                return ethers.utils.isAddress(value);
+                // todo
+                return true;
             }),
     ],
 };

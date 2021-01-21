@@ -1,5 +1,5 @@
-import express from 'express';
 import * as passportConfig from '../config/passport';
+import express from 'express';
 
 import healthRouter from './health/_.routing';
 import authRouter from './auth/_.routing';

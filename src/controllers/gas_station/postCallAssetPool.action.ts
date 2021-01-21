@@ -1,11 +1,13 @@
 import { Response, Request, NextFunction } from 'express';
 import { VERSION } from '../../util/secrets';
 import { HttpError } from '../../models/Error';
-import { ASSET_POOL, gasStation, parseResultLog } from '../../util/network';
+import { ISolutionRequest, solutionContract } from '../../util/network';
+import ISolutionArtifact from '../../../src/artifacts/contracts/contracts/interfaces/ISolution.sol/ISolution.json';
+import { parseResultLog } from '../../util/events';
 
-export const postCallAssetPool = async (req: Request, res: Response, next: NextFunction) => {
+export const postCallAssetPool = async (req: ISolutionRequest, res: Response, next: NextFunction) => {
     try {
-        await (await gasStation.call(req.body.call, req.body.contractAddress, req.body.nonce, req.body.sig)).wait();
+        await (await req.solution.call(req.body.call, req.body.nonce, req.body.sig)).wait();
 
         res.redirect(`/${VERSION}/${req.body.redirect}`);
     } catch (err) {
@@ -13,23 +15,23 @@ export const postCallAssetPool = async (req: Request, res: Response, next: NextF
     }
 };
 
-export const postAssetPoolClaimReward = async (req: Request, res: Response, next: NextFunction) => {
+export const postAssetPoolClaimReward = async (req: ISolutionRequest, res: Response, next: NextFunction) => {
     try {
         const tx = await (
-            await gasStation.call(req.body.call, req.body.contractAddress, req.body.nonce, req.body.sig)
+            await req.solution.call(req.body.call, req.body.nonce, req.body.sig)
         ).wait();
 
         try {
-            const { error, logs } = await parseResultLog(ASSET_POOL.abi, tx.logs);
+            const { error, logs } = await parseResultLog(ISolutionArtifact.abi, tx.logs);
 
             if (error) {
                 throw error;
             }
 
             const event = logs.filter((e: { name: string }) => e.name === 'WithdrawPollCreated')[0];
-            const pollAddress = event.args.poll;
+            const pollID = event.args.id;
 
-            res.redirect(`/${VERSION}/withdrawals/${pollAddress}`);
+            res.redirect(`/${VERSION}/withdrawals/${pollID}`);
         } catch (error) {
             next(new HttpError(500, 'Parse logs failed.', error));
             return;
@@ -39,23 +41,23 @@ export const postAssetPoolClaimReward = async (req: Request, res: Response, next
     }
 };
 
-export const postCallAssetPoolProposeWithdraw = async (req: Request, res: Response, next: NextFunction) => {
+export const postCallAssetPoolProposeWithdraw = async (req: ISolutionRequest, res: Response, next: NextFunction) => {
     try {
         const tx = await (
-            await gasStation.call(req.body.call, req.body.contractAddress, req.body.nonce, req.body.sig)
+            await req.solution.call(req.body.call, req.body.nonce, req.body.sig)
         ).wait();
 
         try {
-            const { error, logs } = await parseResultLog(ASSET_POOL.abi, tx.logs);
+            const { error, logs } = await parseResultLog(ISolutionArtifact.abi, tx.logs);
 
             if (error) {
                 throw error;
             }
 
             const event = logs.filter((e: { name: string }) => e.name === 'WithdrawPollCreated')[0];
-            const pollAddress = event.args.poll;
+            const pollID = event.args.id;
 
-            res.redirect(`/${VERSION}/withdrawals/${pollAddress}`);
+            res.redirect(`/${VERSION}/withdrawals/${pollID}`);
         } catch (err) {
             next(new HttpError(500, 'Parse logs failed.', err));
             return;

@@ -1,8 +1,8 @@
-import { admin, assetPoolFactory } from '../../util/network';
+import { admin, assetPoolFactory, solutionContract } from '../../util/network';
+import { events } from '../../util/events';
 import { AssetPool } from '../../models/AssetPool';
 import { Account, AccountDocument } from '../../models/Account';
 import { Request, Response, NextFunction } from 'express';
-import { GAS_STATION_ADDRESS } from '../../util/secrets';
 import { HttpError } from '../../models/Error';
 
 /**
@@ -44,7 +44,10 @@ import { HttpError } from '../../models/Error';
  */
 export const postAssetPool = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const assetPool = await assetPoolFactory.deploy(admin.address, GAS_STATION_ADDRESS, req.body.token);
+        const ev = await events(await assetPoolFactory.deployAssetPool(admin.address, admin.address, req.body.token));
+        const event = ev.find((e: { event: string }) => e.event === 'AssetPoolDeployed');
+        const assetPool = solutionContract(event.args.assetPool);
+        await assetPool.setSigning(true);
 
         try {
             await new AssetPool({

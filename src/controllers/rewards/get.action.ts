@@ -1,7 +1,6 @@
-import { Request, Response, NextFunction } from 'express';
-import { assetPoolContract, rewardPollContract } from '../../util/network';
+import { Response, NextFunction } from 'express';
+import { ISolutionRequest } from '../../util/network';
 import { Reward, RewardDocument } from '../../models/Reward';
-import { ethers } from 'ethers';
 import { HttpError } from '../../models/Error';
 
 /**
@@ -75,15 +74,12 @@ import { HttpError } from '../../models/Error';
  *       '502':
  *         description: Bad Gateway. Received an invalid response from the network or database.
  */
-export const getReward = async (req: Request, res: Response, next: NextFunction) => {
+export const getReward = async (req: ISolutionRequest, res: Response, next: NextFunction) => {
     try {
         const metaData = await Reward.findOne({ id: req.params.id });
 
         try {
-            const instance = assetPoolContract(req.header('AssetPool'));
-            const { id, withdrawAmount, withdrawDuration, state, poll } = await instance.rewards(req.params.id);
-            const pollInstance = rewardPollContract(poll);
-
+            const { id, withdrawAmount, withdrawDuration, pollId, state } = await req.solution.getReward(req.params.id);
             const reward = {
                 id: id.toNumber(),
                 title: metaData.title,
@@ -91,12 +87,13 @@ export const getReward = async (req: Request, res: Response, next: NextFunction)
                 withdrawAmount: withdrawAmount,
                 withdrawDuration: withdrawDuration.toNumber(),
                 state,
+                pollId: pollId.toNumber(),
                 poll:
-                    ethers.utils.isAddress(poll) && poll !== '0x0000000000000000000000000000000000000000'
+                    pollId !== '0'
                         ? {
-                              address: poll,
-                              withdrawAmount: await pollInstance.withdrawAmount(),
-                              withdrawDuration: (await pollInstance.withdrawDuration()).toNumber(),
+                              pollId: pollId.toNumber(),
+                              withdrawAmount: await req.solution.getWithdrawAmount(pollId),
+                              withdrawDuration: (await req.solution.getWithdrawDuration(pollId)).toNumber(),
                           }
                         : null,
             } as RewardDocument;
