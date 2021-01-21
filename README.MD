@@ -24,26 +24,22 @@ git submodule init
 # 2. Update the submodule
 git submodule update
 
-# 3. Compile the smart contracts
-npm run build:contracts
-
-# 4. Start the containers
-docker-compose up
-
-# 5. Start the containers
-npm run build:keys
-
-# 6. Copy the address from the output
-npm run deploy:factory
-
-# 7. Duplicate .env.test and remove the Hardhat Config section,
+# 3. Duplicate .env.test and remove the Hardhat Config section,
 #    uncomment the Docker settings and provide the factory address
 cp .env.test .env
 
-# 8. Provide the copied factory diamond address in the .env file
+# 4. Compile the smart contracts
+npm run build:contracts
 
-# 9. Initialize the .env file
-docker restart thx_node
+# 5. Copy the address from the output
+#    Provide the copied factory diamond address in the .env file
+npm run deploy:factory
+
+# 6. Start the containers
+npm run build:keys
+
+# 7. Start the containers
+docker-compose up
 ```
 
 ## 3. Running

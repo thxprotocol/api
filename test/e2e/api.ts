@@ -62,8 +62,10 @@ describe('Happy Flow', () => {
                     done();
                 });
         });
+    });
 
-        afterAll(async () => {
+    describe('GET /account', () => {
+        beforeAll(async () => {
             const client = await registerAuthorizationCodeClient(user);
             const headers = await getAuthHeaders(http2, client);
             const authCode = await getAuthCode(http2, headers, client, {
@@ -73,9 +75,7 @@ describe('Happy Flow', () => {
 
             userAccessToken = await getAccessToken(http2, client, authCode);
         });
-    });
 
-    describe('GET /account', () => {
         it('HTTP 200', async (done) => {
             user.get('/v1/account')
                 .set({
@@ -290,13 +290,25 @@ describe('Happy Flow', () => {
                 });
         });
 
+        it('HTTP 302 when member is added', (done) => {
+            user.patch(`/v1/members/${userAddress}`)
+                .send({ isManager: true })
+                .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
+                .end(async (err, res) => {
+                    redirectURL = res.headers.location;
+
+                    expect(res.status).toBe(302);
+                    done();
+                });
+        });
+
         it('HTTP 200 for the redirect', (done) => {
             user.get(redirectURL)
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
                 .end(async (err, res) => {
                     expect(res.status).toBe(200);
                     expect(res.body.isMember).toEqual(true);
-                    expect(res.body.isManager).toEqual(false);
+                    expect(res.body.isManager).toEqual(true);
                     expect(Number(formatEther(res.body.token.balance))).toEqual(0);
                     done();
                 });
@@ -320,21 +332,6 @@ describe('Happy Flow', () => {
             user.get('/v1/polls/' + pollID)
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
                 .end(async (err, res) => {
-                    expect(res.status).toBe(200);
-                    done();
-                });
-        });
-    });
-
-    describe('POST /polls/:id/vote', () => {
-        it('HTTP 200 and base64 string for the yes vote', (done) => {
-            user.post(`/v1/polls/${pollID}/vote`)
-                .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
-                .send({
-                    agree: true,
-                })
-                .end(async (err, res) => {
-                    expect(res.body.base64).toContain('data:image/png;base64');
                     expect(res.status).toBe(200);
                     done();
                 });
@@ -397,7 +394,7 @@ describe('Happy Flow', () => {
         });
 
         it('HTTP 302 after finalizing the poll', async (done) => {
-            const { call, nonce, sig } = await signMethod(poolAddress, 'rewardPollFinalize', [1], voter);
+            const { call, nonce, sig } = await signMethod(poolAddress, 'rewardPollFinalize', [1], admin);
 
             user.post('/v1/gas_station/base_poll')
                 .send({
@@ -424,148 +421,146 @@ describe('Happy Flow', () => {
         });
     });
 
-    // describe('GET /rewards/:id (after finalizing)', () => {
-    //     it('HTTP 200 and return updated withdrawAmount and state 1', (done) => {
-    //         user.get('/v1/rewards/1')
-    //             .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
-    //             .end(async (err, res) => {
-    //                 expect(Number(formatEther(res.body.withdrawAmount))).toEqual(
-    //                     Number(formatEther(rewardWithdrawAmount)),
-    //                 );
-    //                 expect(Number(res.body.state)).toEqual(1);
-    //                 expect(res.status).toBe(200);
-    //                 done();
-    //             });
-    //     });
-    // });
+    describe('GET /rewards/:id (after finalizing)', () => {
+        it('HTTP 200 and return updated withdrawAmount and state 1', (done) => {
+            user.get('/v1/rewards/1')
+                .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
+                .end(async (err, res) => {
+                    expect(Number(formatEther(res.body.withdrawAmount))).toEqual(
+                        Number(formatEther(rewardWithdrawAmount)),
+                    );
+                    expect(Number(res.body.state)).toEqual(1);
+                    expect(res.status).toBe(200);
+                    done();
+                });
+        });
+    });
 
-    // describe('POST /rewards/:id/claim', () => {
-    //     let redirectURL = '';
+    describe('POST /rewards/:id/claim', () => {
+        let redirectURL = '';
 
-    //     it('HTTP 200 and base64 string for the claim', (done) => {
-    //         user.post('/v1/rewards/1/claim')
-    //             .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
-    //             .end(async (err, res) => {
-    //                 expect(res.body.base64).toContain('data:image/png;base64');
-    //                 expect(res.status).toBe(200);
-    //                 done();
-    //             });
-    //     });
+        it('HTTP 200 and base64 string for the claim', (done) => {
+            user.post('/v1/rewards/1/claim')
+                .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
+                .end(async (err, res) => {
+                    expect(res.body.base64).toContain('data:image/png;base64');
+                    expect(res.status).toBe(200);
+                    done();
+                });
+        });
 
-    //     it('HTTP 302 when tx is handled', async (done) => {
-    //         // We assume QR decoding works as expected, will be tested in the wallet repo
-    //         const { call, nonce, sig } = await signMethod(poolAddress, 'claimReward', [1], admin);
+        it('HTTP 302 when tx is handled', async (done) => {
+            const { call, nonce, sig } = await signMethod(poolAddress, 'claimReward', [1], userWallet);
 
-    //         user.post('/v1/gas_station/asset_pool/claim_reward')
-    //             .send({
-    //                 call,
-    //                 nonce,
-    //                 sig,
-    //             })
-    //             .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
-    //             .end(async (err, res) => {
-    //                 redirectURL = res.headers.location;
+            user.post('/v1/gas_station/asset_pool/claim_reward')
+                .send({
+                    call,
+                    nonce,
+                    sig,
+                })
+                .set({ AssetPool: poolAddress, Authorization: userAccessToken })
+                .end(async (err, res) => {
+                    redirectURL = res.headers.location;
 
-    //                 expect(res.status).toBe(302);
-    //                 done();
-    //             });
-    //     });
+                    expect(res.status).toBe(302);
+                    done();
+                });
+        });
 
-    //     it('HTTP 200 after return state Pending', (done) => {
-    //         user.get(redirectURL)
-    //             .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
-    //             .end(async (err, res) => {
-    //                 withdrawPollID = res.body.pollId;
-    //                 expect(res.body.state).toEqual(false);
-    //                 expect(Number(formatEther(res.body.amount))).toEqual(Number(formatEther(rewardWithdrawAmount)));
-    //                 expect(res.status).toBe(200);
-    //                 done();
-    //             });
-    //     });
-    // });
+        it('HTTP 200 after return state Pending', (done) => {
+            user.get(redirectURL)
+                .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
+                .end(async (err, res) => {
+                    withdrawPollID = res.body.pollId;
+                    expect(res.body.state).toEqual(false);
+                    expect(Number(formatEther(res.body.amount))).toEqual(Number(formatEther(rewardWithdrawAmount)));
+                    expect(res.status).toBe(200);
+                    done();
+                });
+        });
+    });
 
-    // describe('POST /rewards/:id/give', () => {
-    //     it('HTTP 200 when tx is handled', async (done) => {
-    //         user.post('/v1/rewards/1/give')
-    //             .send({
-    //                 member: admin.address,
-    //             })
-    //             .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
-    //             .end(async (err, res) => {
-    //                 expect(res.body.withdrawPoll).toEqual(3);
-    //                 done();
-    //             });
-    //     });
-    // });
+    describe('POST /rewards/:id/give', () => {
+        it('HTTP 200 when tx is handled', async (done) => {
+            user.post('/v1/rewards/1/give')
+                .send({
+                    member: admin.address,
+                })
+                .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
+                .end(async (err, res) => {
+                    expect(res.body.withdrawPoll).toEqual(3);
+                    done();
+                });
+        });
+    });
 
-    // describe('POST /polls/:address/vote (withdrawPoll)', () => {
-    //     let redirectURL = '';
+    describe('POST /polls/:address/vote (withdrawPoll)', () => {
+        let redirectURL = '';
 
-    //     it('HTTP 200 and base64 string for the yes vote', (done) => {
-    //         user.post(`/v1/polls/${withdrawPollID}/vote`)
-    //             .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
-    //             .send({
-    //                 agree: true,
-    //             })
-    //             .end(async (err, res) => {
-    //                 expect(res.body.base64).toContain('data:image/png;base64');
-    //                 expect(res.status).toBe(200);
-    //                 done();
-    //             });
-    //     });
+        it('HTTP 200 and base64 string for the yes vote', (done) => {
+            user.post(`/v1/polls/${withdrawPollID}/vote`)
+                .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
+                .send({
+                    agree: true,
+                })
+                .end(async (err, res) => {
+                    expect(res.body.base64).toContain('data:image/png;base64');
+                    expect(res.status).toBe(200);
+                    done();
+                });
+        });
 
-    //     it('HTTP 302 when tx is handled', async (done) => {
-    //         // We assume QR decoding works as expected, will be tested in the wallet repo
-    //         // Manager should vote for this poll
-    //         const { call, nonce, sig } = await signMethod(
-    //             poolAddress,
-    //             'withdrawPollVote',
-    //             [withdrawPollID, true],
-    //             admin,
-    //         );
+        it('HTTP 302 when tx is handled', async (done) => {
+            // Manager should vote for this poll
+            const { call, nonce, sig } = await signMethod(
+                poolAddress,
+                'withdrawPollVote',
+                [withdrawPollID, true],
+                userWallet,
+            );
 
-    //         user.post('/v1/gas_station/base_poll')
-    //             .send({
-    //                 call,
-    //                 nonce,
-    //                 sig,
-    //                 redirect: `polls/${withdrawPollID}`,
-    //             })
-    //             .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
-    //             .end(async (err, res) => {
-    //                 redirectURL = res.headers.location;
+            user.post('/v1/gas_station/base_poll')
+                .send({
+                    call,
+                    nonce,
+                    sig,
+                    redirect: `polls/${withdrawPollID}`,
+                })
+                .set({ AssetPool: poolAddress, Authorization: userAccessToken })
+                .end(async (err, res) => {
+                    redirectURL = res.headers.location;
 
-    //                 expect(res.status).toBe(302);
-    //                 done();
-    //             });
-    //     });
+                    expect(res.status).toBe(302);
+                    done();
+                });
+        });
 
-    //     it('HTTP 200 and increase yesCounter with 1', (done) => {
-    //         user.get(redirectURL)
-    //             .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
-    //             .end(async (err, res) => {
-    //                 expect(Number(res.body.totalVoted)).toEqual(1);
-    //                 expect(Number(res.body.yesCounter)).toEqual(1);
-    //                 expect(Number(res.body.noCounter)).toEqual(0);
-    //                 expect(res.status).toBe(200);
-    //                 done();
-    //             });
-    //     });
-    // });
+        it('HTTP 200 and increase yesCounter with 1', (done) => {
+            user.get(redirectURL)
+                .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
+                .end(async (err, res) => {
+                    expect(Number(res.body.totalVoted)).toEqual(1);
+                    expect(Number(res.body.yesCounter)).toEqual(1);
+                    expect(Number(res.body.noCounter)).toEqual(0);
+                    expect(res.status).toBe(200);
+                    done();
+                });
+        });
+    });
 
-    // describe('GET /withdrawals/:address', () => {
-    //     it('HTTP 200 and return state Approved', (done) => {
-    //         user.get(`/v1/withdrawals/${withdrawPollID}`)
-    //             .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
-    //             .end(async (err, res) => {
-    //                 expect(Number(formatEther(res.body.amount))).toEqual(Number(formatEther(rewardWithdrawAmount)));
-    //                 expect(res.body.beneficiary).toEqual(admin.address);
-    //                 expect(res.body.state).toEqual(true);
-    //                 expect(res.status).toBe(200);
-    //                 done();
-    //             });
-    //     });
-    // });
+    describe('GET /withdrawals/:id', () => {
+        it('HTTP 200 and return state Approved', (done) => {
+            user.get(`/v1/withdrawals/${withdrawPollID}`)
+                .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
+                .end(async (err, res) => {
+                    expect(Number(formatEther(res.body.amount))).toEqual(Number(formatEther(rewardWithdrawAmount)));
+                    expect(res.body.beneficiary).toEqual(userWallet.address);
+                    expect(res.body.state).toEqual(true);
+                    expect(res.status).toBe(200);
+                    done();
+                });
+        });
+    });
 
     // describe('POST /withdrawals/:address/withdraw', () => {
     //     let redirectURL = '';
