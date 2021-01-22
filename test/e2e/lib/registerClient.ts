@@ -90,7 +90,6 @@ export async function getAuthCode(
     },
 ) {
     async function postInteraction(url: string) {
-        // /interaction/274csQ0M6h1qMfXRycgtq
         const r = await http
             .post(url + '/login')
             .set({
@@ -101,9 +100,9 @@ export async function getAuthCode(
                 email: user.email,
                 password: user.password,
             });
-        // console.log('POST URL: ', url, r.status, r.headers.location);
         return r.headers.location;
     }
+
     function getPath(url: string) {
         return '/' + url.split('/')[3] + '/' + url.split('/')[4];
     }
@@ -112,22 +111,17 @@ export async function getAuthCode(
         let url = await postInteraction(headers.location);
 
         try {
-            // /auth/274csQ0M6h1qMfXRycgtq
             const path = getPath(url);
             const r = await http.get(path).withCredentials();
             url = r.headers.location;
-            // console.log('GET1 URL: ', path, r.status, r.headers.location, r.headers, r.body, r.text);
 
             try {
-                // /interaction/274csQ0M6h1qMfXRycgtq
                 const r = await http.get(url).withCredentials();
                 url = r.headers.location;
-                // console.log('GET2 URL: ', url, r.status, r.headers.location, r.headers, r.body, r.text);
 
                 try {
                     const path = getPath(url);
                     const r = await http.get(path).withCredentials();
-                    // console.log('GET3 URL: ', path, r.status, r.headers.location, r.headers, r.body, r.text);
 
                     return r.headers.location.split('code=')[1].split('&')[0];
                 } catch (e) {

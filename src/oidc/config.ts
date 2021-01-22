@@ -66,6 +66,31 @@ export default {
         encryption: { enabled: true },
         introspection: { enabled: true },
         registration: { enabled: true },
+        rpInitiatedLogout: {
+            enabled: true,
+            logoutSource: async (ctx: any, form: any) => {
+                ctx.body = `<!DOCTYPE html>
+                <head>
+                <title>Logout</title>
+                </head>
+                <body>
+                ${form}
+                <script>
+                    function logout() {
+                    var form = document.forms[0];
+                    var input = document.createElement('input');
+                    input.type = 'hidden';
+                    input.name = 'logout';
+                    input.value = 'yes';
+                    form.appendChild(input);
+                    form.submit();
+                    }
+                    logout()
+                </script>
+                </body>
+                </html>`;
+            },
+        },
     },
     cookies: {
         long: { signed: true, maxAge: 1 * 24 * 60 * 60 * 1000 },
@@ -81,29 +106,6 @@ export default {
         <body>
         <h1>Oops! something went wrong</h1>
         <pre>${JSON.stringify(error, null, 4)}</pre>
-        </body>
-        </html>`;
-    },
-    // TODO https://github.com/panva/node-oidc-provider/blob/master/docs/README.md#featuresrpinitiatedlogout
-    async logoutSource(ctx: any, form: any) {
-        ctx.body = `<!DOCTYPE html>
-        <head>
-        <title>Logout</title>
-        </head>
-        <body>
-        ${form}
-        <script>
-            function logout() {
-            var form = document.forms[0];
-            var input = document.createElement('input');
-            input.type = 'hidden';
-            input.name = 'logout';
-            input.value = 'yes';
-            form.appendChild(input);
-            form.submit();
-            }
-            logout()
-        </script>
         </body>
         </html>`;
     },
