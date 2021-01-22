@@ -93,6 +93,9 @@ export async function getAuthCode(
         // /interaction/274csQ0M6h1qMfXRycgtq
         const r = await http
             .post(url + '/login')
+            .set({
+                'Content-Type': 'application/x-www-form-urlencoded',
+            })
             .withCredentials()
             .send({
                 email: user.email,

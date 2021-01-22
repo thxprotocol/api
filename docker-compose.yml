@@ -53,39 +53,3 @@ services:
                 "--account='0x447b6475b1170c4edd9521ba4960bbcf4252cec02b14e0564c87ec00624033a8,100000000000000000000'",
                 "--account='0x1b8242ac13eb24f83479b3d9d83eabf484844de02708758c27142d0ed98aec2c,100000000000000000000'",
             ]
-    influxdb:
-        container_name: thx_influxdb
-        build:
-            context: .
-            dockerfile: ./docker/Dockerfile.influxdb
-        logging:
-            driver: none
-        ports:
-            - '8086:8086'
-    grafana:
-        container_name: thx_grafana
-        build:
-            context: .
-            dockerfile: ./docker/Dockerfile.grafana
-        logging:
-            driver: none
-        links:
-            - influxdb
-        environment:
-            - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
-            - GF_AUTH_ANONYMOUS_ENABLED=true
-            - GF_AUTH_BASIC_ENABLED=false
-        ports:
-            - '8082:3000'
-    k6:
-        container_name: thx_k6
-        build:
-            context: .
-            dockerfile: ./docker/Dockerfile.k6
-        ports:
-            - '6565:6565'
-        volumes:
-            - './test/load:/test/load'
-        environment:
-            - K6_OUT=influxdb=http://influxdb:8086/k6
-        command: 'version'

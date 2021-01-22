@@ -1,5 +1,5 @@
 import Provider from 'oidc-provider';
-import express, { Request, Response, NextFunction } from 'express';
+import express, { Request, Response, NextFunction, urlencoded } from 'express';
 import configuration from './config';
 import { AccountDocument } from '../models/Account';
 import { Account } from '../models/Account';
@@ -65,7 +65,7 @@ router.get('/interaction/:uid', async (req: Request, res: Response, next: NextFu
     }
 });
 
-router.post('/interaction/:uid/login', async (req: Request, res: Response) => {
+router.post('/interaction/:uid/login', urlencoded({ extended: false }), async (req: Request, res: Response) => {
     try {
         const account: AccountDocument = await Account.findOne({ email: req.body.email });
 

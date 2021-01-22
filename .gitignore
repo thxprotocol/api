@@ -21,6 +21,8 @@ coverage
 
 # API keys and secrets
 .env
+.env.staging
+.env.production
 
 # Dependency directory
 node_modules

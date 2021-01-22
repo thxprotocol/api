@@ -13,7 +13,7 @@ This repository holds the source for the THX REST API.
 ## 1. Prerequisites
 
 -   Docker
--   Nodejs 10.x
+-   Nodejs 12.x
 
 ## 2. Installing
 
@@ -24,11 +24,11 @@ git submodule init
 # 2. Update the submodule
 git submodule update
 
-# 3. Duplicate .env.test and
+# 3. Duplicate .env.example and
 #    1. remove the Hardhat Config section,
 #    2. uncomment the Docker settings
 #    3. replace localhost with Docker IP if required
-cp .env.test .env
+cp .env.example .env
 
 # 4. Install packages
 npm install

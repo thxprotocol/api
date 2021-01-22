@@ -107,7 +107,7 @@
         "serve:debug": "nodemon --inspect dist/src/server.js",
         "serve:hardhat": "kill $(lsof -t -i :8545); NODE_ENV=test npx hardhat node > /dev/null & sleep 1",
         "debug": "npm run build && npm run watch:debug",
-        "publish": "npm run test; npm version patch;",
+        "publish": "npm version patch; npm run build",
         "lint": "npx tsc --noEmit && npx eslint \"src/**/*.ts\" \"test/**/*.ts\" --quiet --fix",
         "build": "npm run build:docs; npm run build:keys; npx tsc",
         "build:docs": "swagger-jsdoc -d ./src/swaggerDef.js -o ./src/swagger.json",
@@ -119,7 +119,6 @@
         "watch:test": "npm run test -- --watchAll",
         "watch:debug": "concurrently -k -p \"[{name}]\" -n \"TypeScript,Node\" -c \"yellow.bold,cyan.bold,green.bold\" \"npm run watch:ts\" \"npm run serve:debug\"",
         "test": "npm run serve:hardhat; NODE_ENV=test jest --forceExit --runInBand",
-        "test:load": "docker-compose run k6 run ./test/load/signup.js",
         "deploy:factory": "npx hardhat run scripts/deployAssetPoolFactory.js --network default",
         "deploy:token": "npx hardhat run scripts/deployExampleToken.js --network default"
     },
