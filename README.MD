@@ -1,93 +1,133 @@
 # THX API
 
-## Description
-
-This repository holds the source for the THX API and the Slack Proxy that is used by the THX Slack App.
+This repository holds the source for the THX REST API.
 
 ## Index
 
 1. Prerequisites
-2. Register
-3. Installation
-4. Usage
-5. API Endpoints
-6. Slack Proxy Endpoints
+2. Debugging
+3. Running
+4. Testing
+5. Interface
 
 ## 1. Prerequisites
 
--   nodejs 10.x
--   nvm 0.35.2
--   solc 0.6.4
+-   Docker
+-   Nodejs 12.x
 
-## 2. Register
-
-1. Create THX account at https://wallet.thxprotocol.com/register
-2. Connect the wallet to the networks
-3. Join or create a reward pool
-
-## 3. Installation
-
-1. `nvm install 10`
-2. `nvm use 10`
-3. `npm install`
-4. `git submodule init` (deprecated)
-5. `git submodule update` (deprecated)
-6. `npm run contracts:compile` (deprecated)
-
-## 4. Running
-
-1. `npm run serve`
-
-## 5. API Endpoints
-
-The THX API exposes endpoints for reward and reward rule management for your pool. When targeting the development environment endpoints use `http://ec2-35-180-251-50.eu-west-3.compute.amazonaws.com:8443` as a domain for your API url.
-
-### GET RewardRules:
+## 2. Installing
 
 ```
-curl "https://api.thxprotocol.com/v1/rules" \
-    -X GET \
-    -H "RewardPool: 0xAF856BE68391f2703216d286F00B1608F1fae4E1"
+# 1. Initialize the submodule
+git submodule init
+
+# 2. Update the submodule
+git submodule update
+
+# 3. Duplicate .env.example and
+#    1. remove the Hardhat Config section,
+#    2. uncomment the Docker settings
+#    3. replace localhost with Docker IP if required
+cp .env.example .env
+
+# 4. Install packages
+npm install
+
+# 4. Compile the smart contracts
+npm run build:contracts
+
+# 5. Start the containers
+npm run build:keys
+
+# 6. Start the containers
+docker-compose up
+
+# 7. Provide the asset pool factory address from the output your .env file
+npm run deploy:factory
+
+# 8. Rebuild the API project
+npm run build
 ```
 
-### GET RewardRule 0:
+## 3. Running
 
 ```
-curl "https://api.thxprotocol.com/v1/rules/0" \
-    -X GET \
-    -H "RewardPool: 0xAF856BE68391f2703216d286F00B1608F1fae4E1"
+# Start containers
+docker-compose up
+
+# Start containers and suppress logging
+docker-compose up -d
 ```
 
-### POST Reward:
+The thx_ganache container will start with 4 prefilled accounts:
 
 ```
-curl "https://api.thxprotocol.com/v1/rewards" \
-    -X POST \
-    -H "RewardPool: 0xAF856BE68391f2703216d286F00B1608F1fae4E1" \
-    -H "Content-Type: application/json" \
-    -d '{"rule": "0", "address": "0x2d7ab3737030959489f9b5880a6ea78942570151"}'
+0x873c254263b17925b686f971d7724267710895f1585bb0533db8e693a2af32ff
+0xe9793d9246355c0f9fd3b330c0ee0aebdb24c813d47a27c1df87d6656c691d37
+0x447b6475b1170c4edd9521ba4960bbcf4252cec02b14e0564c87ec00624033a8
+0x1b8242ac13eb24f83479b3d9d83eabf484844de02708758c27142d0ed98aec2c
 ```
 
-### GET QR Connect:
+## 4. Testing
 
 ```
-curl --output qr.png "https://api.thxprotocol.com/v1/qr/connect/0xAF856BE68391f2703216d286F00B1608F1fae4E1/XXXXXXXX" \
-    -X GET
+# Run e2e tests on MemoryMongoDB and temporary Hardhat node
+npm run test
+
+# Run load tests in dockerized k6 container (open Grafana to visualize results)
+# Mind that it will target the MONGODB_URI set in .env
+npm run test:load
 ```
 
-### GET QR Reward:
+## 5. Development
 
 ```
-curl --output qr.png "https://api.thxprotocol.com/v1/qr/reward/0xAF856BE68391f2703216d286F00B1608F1fae4E1/0/-Ww34AsIY91" \
-    -X GET
+# Builds artifacts for the solidity files in the submodule
+npm run build:contracts
+
+# Deploys AssetPoolFactory (diamond) on the RPC set in .env
+npm run deploy:factory
+
+# Deploys TestToken on the RPC set in .env
+npm run deploy:token
 ```
 
-## 6. Slack Proxy Endpoints
+## 6. Register clients
 
-The THX Slack Proxy exposes endpoints to be called by Slack slash commands.
+### 6.1 client_credentials example
 
 ```
-https://api.thxprotocol.com/v1/slack/connect
-https://api.thxprotocol.com/v1/slack/rules
-https://api.thxprotocol.com/v1/slack/reward
+POST http://localhost:3000/reg
+{
+    "application_type": "web",
+    "client_name": "SparkBlue",
+    "grant_types": ["client_credentials"],
+    "redirect_uris": [],
+    "response_types": [],
+    "scope": "openid admin"
+}
 ```
+
+### 6.2 authorization_code example
+
+```
+POST http://localhost:3000/reg
+{
+    "application_type": "web",
+    "client_name": "Postman",
+    "grant_types": ["authorization_code"],
+    "redirect_uris": ["https://oauth.pstmn.io/v1/callback"],
+    "response_types": ["code"],
+    "scope": "openid user",
+}
+```
+
+## 6. Interface
+
+Swagger Documentation is provided in the controllers of the routes and lives at the following endpoints:
+
+-   [Local Mongo Express](http://localhost:8081)
+-   [Local Grafana](http://localhost:8082)
+-   [Local API Specs](https://localhost:3000/v1/docs/)
+-   [Staging API Specs](https://dev.api.thx.network/v1/docs/)
+-   [Production API Specs](https://api.thx.network/v1/docs/)

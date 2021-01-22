@@ -1,27 +1,37 @@
-import logger from "./logger";
-import dotenv from "dotenv";
+import dotenv from 'dotenv';
+import logger from './logger';
 
+export const VERSION = 'v1';
 export const ENVIRONMENT = process.env.NODE_ENV;
-export const VERSION = "v1";
 
-switch (ENVIRONMENT) {
-    case "production":
-        dotenv.config({ path: ".env.production" });
-        break;
-    case "development":
-        dotenv.config({ path: ".env.development" });
-        break;
-    case "local":
-        dotenv.config({ path: ".env.local" });
-        break;
-    default:
-        dotenv.config({ path: ".env" })
-        break;
-}
+dotenv.config({ path: ENVIRONMENT === 'test' ? '.env.example' : '.env' });
 
-export const SESSION_SECRET = process.env["SESSION_SECRET"];
+const required = [
+    'PORT',
+    'ISSUER',
+    'ASSET_POOL_FACTORY_ADDRESS',
+    'SECURE_KEY',
+    'ORIGIN',
+    'RPC',
+    'MONGODB_URI',
+    'PRIVATE_KEY',
+];
 
-if (!SESSION_SECRET) {
-    logger.error("No client secret. Set SESSION_SECRET environment variable.");
-    process.exit(1);
-}
+required.forEach((value: string) => {
+    if (!process.env[value]) {
+        console.log(value);
+        logger.error(`Set ${value} environment variable.`);
+        process.exit(1);
+    }
+});
+
+export const PORT = process.env.PORT;
+export const ISSUER = process.env.ISSUER;
+export const ASSET_POOL_FACTORY_ADDRESS = process.env.ASSET_POOL_FACTORY_ADDRESS;
+export const ORIGIN = process.env.ORIGIN;
+export const RPC = process.env.RPC;
+export const MONGODB_URI = process.env.MONGODB_URI;
+export const PRIVATE_KEY = process.env.PRIVATE_KEY;
+export const SECURE_KEY = process.env.SECURE_KEY;
+export const SENDGRID_USER = process.env.SENDGRID_USER;
+export const SENDGRID_PASSWORD = process.env.SENDGRID_PASSWORD;

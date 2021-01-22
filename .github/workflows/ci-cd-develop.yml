@@ -1,4 +1,4 @@
-name: CI/CD Develop
+name: CI/CD Staging
 
 on:
     push:
@@ -11,7 +11,7 @@ jobs:
         runs-on: ubuntu-latest
         strategy:
             matrix:
-                node-version: ['10.x']
+                node-version: ['12.x']
 
         steps:
             - uses: actions/checkout@v2
@@ -36,7 +36,7 @@ jobs:
         strategy:
             matrix:
                 python-version: [3.8]
-                node-version: ['10.x']
+                node-version: ['12.x']
                 appname: ['api']
                 deploy-group: ['develop']
                 s3-bucket: ['aws-deployments-api-develop']
@@ -95,3 +95,4 @@ jobs:
                    --deployment-group-name ${{ matrix.deploy-group }} \
                    --file-exists-behavior OVERWRITE \
                    --s3-location bucket=${{ matrix.s3-bucket }},key=${{ matrix.s3-filename }}.zip,bundleType=zip \
+                   --ignore-application-stop-failures \

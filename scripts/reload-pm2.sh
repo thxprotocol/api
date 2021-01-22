@@ -1,3 +1,2 @@
 #!/bin/bash
-cd ~/api
-pm2 start dist/server.js --name api
+pm2 kill && pm2 start ecosystem.config.js --update-env

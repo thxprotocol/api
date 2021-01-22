@@ -1,64 +1,36 @@
-import express from "express";
-import compression from "compression";
-import session from "express-session";
-import bodyParser from "body-parser";
-import lusca from "lusca";
-import flash from "express-flash";
-import path from "path";
-import { VERSION, SESSION_SECRET } from "./util/secrets";
-
-import * as apiController from "./controllers/api";
-import * as slackController from "./controllers/slack";
-import { RewardRule } from "./util/network";
+import express from 'express';
+import compression from 'compression';
+import bodyParser from 'body-parser';
+import lusca from 'lusca';
+import path from 'path';
+import router from './controllers';
+import db from './util/database';
+import { requestLogger } from './util/logger';
+import { errorHandler, notFoundHandler } from './util/error';
+import { corsHandler } from './util/cors';
+import { oidc, router as oidcRouter } from './oidc';
+import { PORT, VERSION, MONGODB_URI } from './util/secrets';
 
 const app = express();
 
-app.set("port", process.env.PORT || 3000);
-app.set("views", path.join(__dirname, "../views"));
-app.set("view engine", "pug");
+db.connect(MONGODB_URI);
+
+app.set('trust proxy', true);
+app.set('view engine', 'ejs');
+app.set('views', path.join(__dirname, '../../src/views'));
+app.set('port', PORT);
+app.use(corsHandler);
+app.use(requestLogger);
 app.use(compression());
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
-app.use(
-    session({
-        resave: true,
-        saveUninitialized: true,
-        secret: SESSION_SECRET,
-    }),
-);
-app.use(flash());
-app.use(lusca.xframe("SAMEORIGIN"));
+app.use(lusca.xframe('SAMEORIGIN'));
 app.use(lusca.xssProtection(true));
-
-app.use(express.static(path.join(__dirname, "public"), { maxAge: 31557600000 }));
-
-function auth(req: any, res: any, next: any) {
-    if (!req.headers["x-api-key"]) {
-        return res.status(403).json({ error: "No API Key provided!" });
-    } else if (req.headers["x-api-key"] !== process.env.API_KEY) {
-        return res.status(403).json({ error: "Incorrect API Key provided." });
-    }
-    next();
-};
-
-/**
- * Slack Proxy routes.
- */
-app.get(`/${VERSION}/proxy/slack`, slackController.getSlack);
-app.post(`/${VERSION}/proxy/slack/connect`, slackController.connectAccount);
-app.post(`/${VERSION}/proxy/slack/rules`, slackController.getRewardRules);
-app.post(`/${VERSION}/proxy/slack/reward`, slackController.sendReward);
-app.get(`/${VERSION}/qr/reward/:pool/:rule/:key`, apiController.getQRReward);
-app.get(`/${VERSION}/qr/connect/:pool/:slack`, apiController.getQRConnect);
-
-/**
- * API routes.
- */
-app.post(`/${VERSION}/rewards`, apiController.postReward);
-app.get(`/${VERSION}`, apiController.getAPI);
-app.get(`/${VERSION}/rules`, apiController.getRewardRules);
-app.get(`/${VERSION}/rules/:id`, apiController.getRewardRule);
-app.get(`/${VERSION}/members`, apiController.getMembers);
-app.get(`/${VERSION}/members/:id`, apiController.getMember);
+app.use(express.static(path.join(__dirname, 'public'), { maxAge: 31557600000 }));
+app.use('/', oidcRouter);
+app.use(`/${VERSION}`, bodyParser.json());
+app.use(`/${VERSION}`, bodyParser.urlencoded({ extended: false }));
+app.use(`/${VERSION}`, router);
+app.use('/', oidc.callback);
+app.use(errorHandler);
+app.use(notFoundHandler);
 
 export default app;

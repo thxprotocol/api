@@ -14,5 +14,4 @@ interface Flash {
     flash(type: string, message: any): void;
 }
 
-declare module "express-flash";
-
+declare module 'express-flash';
