@@ -15,10 +15,10 @@ import { NextFunction, Response } from 'express';
  *         in: header
  *         required: true
  *         type: string
- *       - name: address
+ *       - name: id
  *         in: path
  *         required: true
- *         type: string
+ *         type: number
  *     responses:
  *       '200':
  *         description: OK
@@ -41,7 +41,7 @@ import { NextFunction, Response } from 'express';
  */
 export const postPollFinalize = async (req: HttpRequest, res: Response, next: NextFunction) => {
     try {
-        const tx = await (await req.solution.rewardPollFinalize(req.params.address)).wait();
+        const tx = await (await req.solution.rewardPollFinalize(req.params.id)).wait();
 
         res.json({ transactionHash: tx.transactionHash });
     } catch (err) {

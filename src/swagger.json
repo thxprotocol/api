@@ -888,10 +888,10 @@
             "type": "string"
           },
           {
-            "name": "address",
+            "name": "id",
             "in": "path",
             "required": true,
-            "type": "string"
+            "type": "number"
           }
         ],
         "responses": {
@@ -940,16 +940,16 @@
             "type": "string"
           },
           {
-            "name": "address",
+            "name": "id",
             "in": "path",
             "required": true,
-            "type": "string"
+            "type": "integer"
           },
           {
             "name": "agree",
             "in": "body",
             "required": true,
-            "type": "integer"
+            "type": "boolean"
           }
         ],
         "responses": {
@@ -1000,10 +1000,10 @@
             "type": "string"
           },
           {
-            "name": "address",
+            "name": "id",
             "in": "path",
             "required": true,
-            "type": "string"
+            "type": "number"
           }
         ],
         "responses": {
@@ -1092,10 +1092,10 @@
             "type": "string"
           },
           {
-            "name": "address",
+            "name": "id",
             "in": "path",
             "required": true,
-            "type": "string"
+            "type": "number"
           }
         ],
         "responses": {

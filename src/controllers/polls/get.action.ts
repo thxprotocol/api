@@ -15,10 +15,10 @@ import { NextFunction, Response } from 'express';
  *         in: header
  *         required: true
  *         type: string
- *       - name: address
+ *       - name: id
  *         in: path
  *         required: true
- *         type: string
+ *         type: number
  *     responses:
  *       '200':
  *         description: OK

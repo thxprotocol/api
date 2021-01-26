@@ -16,14 +16,14 @@ import { NextFunction, Request, Response } from 'express';
  *         in: header
  *         required: true
  *         type: string
- *       - name: address
+ *       - name: id
  *         in: path
  *         required: true
- *         type: string
+ *         type: integer
  *       - name: agree
  *         in: body
  *         required: true
- *         type: integer
+ *         type: boolean
  *     responses:
  *       '200':
  *         description: OK
@@ -49,10 +49,10 @@ export const postVote = async (req: Request, res: Response, next: NextFunction) 
         const base64 = await qrcode.toDataURL(
             JSON.stringify({
                 assetPoolAddress: req.header('AssetPool'),
-                contractAddress: req.params.address,
                 contract: 'BasePoll',
                 method: 'vote',
                 params: {
+                    id: req.params.id,
                     agree: req.body.agree,
                 },
             }),
