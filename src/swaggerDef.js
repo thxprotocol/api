@@ -6,5 +6,5 @@ module.exports = {
         version: packageJSON.version,
     },
     apis: ['src/controllers/**/*.ts'],
-    basePath: 'https://dev.api.thx.network/v1',
+    basePath: 'https://api.thx.network/v1',
 };

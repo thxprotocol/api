@@ -1,5 +1,13 @@
-require('dotenv').config({ path: process.env.NODE_ENV === 'test' ? '.env.example' : '.env' });
-require('@nomiclabs/hardhat-ethers');
+import dotenv from 'dotenv';
+import '@nomiclabs/hardhat-ethers';
+
+const env = process.env.NODE_ENV;
+
+if (env) {
+    dotenv.config({ path: `.env.${env === 'test' ? 'example' : env}` });
+} else {
+    dotenv.config({ path: '.env' });
+}
 
 module.exports = {
     networks: {
@@ -7,6 +15,7 @@ module.exports = {
             url: process.env.PUBLIC_RPC,
             accounts: [process.env.PRIVATE_KEY],
             gas: 6e6,
+            gasPrice: 1000000000,
         },
         hardhat: {
             accounts: [

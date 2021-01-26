@@ -1,6 +1,6 @@
 {
     "name": "thx-api",
-    "version": "0.4.2",
+    "version": "1.0.0-beta.0",
     "description": "Public API for THX protocol.",
     "repository": {
         "type": "git",
@@ -107,20 +107,20 @@
         "serve:debug": "nodemon --inspect dist/src/server.js",
         "serve:hardhat": "kill $(lsof -t -i :8545); NODE_ENV=test npx hardhat node > /dev/null & sleep 1",
         "debug": "npm run build && npm run watch:debug",
-        "publish": "npm version patch; npm run build",
+        "publish": "npm version prerelease; npm run build",
         "lint": "npx tsc --noEmit && npx eslint \"src/**/*.ts\" \"test/**/*.ts\" --quiet --fix",
         "build": "npm run build:docs; npx tsc",
         "build:docs": "swagger-jsdoc -d ./src/swaggerDef.js -o ./src/swagger.json",
         "build:contracts": "npx hardhat compile",
-        "build:keys": "node ./scripts/generateKeys.js",
+        "build:keys": "node ./scripts/generateKeys.ts",
         "watch": "concurrently -k -p \"[{name}]\" -n \"Sass,TypeScript,Node\" -c \"yellow.bold,cyan.bold,green.bold\" \"npm run watch:ts\" \"npm run watch:node\"",
         "watch:ts": "tsc -w",
         "watch:node": "nodemon dist/src/server.js",
         "watch:test": "npm run test -- --watchAll",
         "watch:debug": "concurrently -k -p \"[{name}]\" -n \"TypeScript,Node\" -c \"yellow.bold,cyan.bold,green.bold\" \"npm run watch:ts\" \"npm run serve:debug\"",
         "test": "npm run serve:hardhat; NODE_ENV=test jest --forceExit --runInBand",
-        "deploy:factory": "npx hardhat run scripts/deployAssetPoolFactory.js --network default",
-        "deploy:token": "npx hardhat run scripts/deployExampleToken.js --network default"
+        "deploy:factory": "npx hardhat run scripts/deployAssetPoolFactory.ts --network default",
+        "deploy:token": "npx hardhat run scripts/deployExampleToken.ts --network default"
     },
     "dependencies": {
         "async": "^3.1.0",
