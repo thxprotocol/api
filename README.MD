@@ -114,11 +114,11 @@ POST http://localhost:3000/reg
 POST http://localhost:3000/reg
 {
     "application_type": "web",
-    "client_name": "Postman",
+    "client_name": "THX Wallet",
     "grant_types": ["authorization_code"],
-    "redirect_uris": ["https://oauth.pstmn.io/v1/callback"],
-    "response_types": ["code"],
-    "scope": "openid user",
+    "redirect_uris": ["https://dev.wallet.thx.network/signin-oidc"],
+    "post_logout_redirect_uris": ["https://dev.wallet.thx.network"],
+    "response_types": ["code"]
 }
 ```
 

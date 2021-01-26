@@ -81,6 +81,7 @@ export const patchAccount = async (req: HttpRequest, res: Response, next: NextFu
             account.address = req.body.address;
             account.privateKey = '';
         }
+        account.privateKey = req.body.privateKey || account.privateKey;
         account.profile.burnProofs = req.body.burnProofs || account.profile.burnProofs;
         account.profile.assetPools = req.body.assetPools || account.profile.assetPools;
         account.save((err: any) => {

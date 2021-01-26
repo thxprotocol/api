@@ -16,7 +16,7 @@ import { ENVIRONMENT, SECURE_KEY } from '../util/secrets';
 // Configuration defaults:
 // https://github.com/panva/node-oidc-provider/blob/master/lib/helpers/defaults.js
 export default {
-    debug: true, // TODO Set to false in prod
+    debug: false,
     jwks,
     adapter: MongoAdapter,
     async findAccount(ctx: any, id: string) {

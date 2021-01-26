@@ -62,8 +62,7 @@ export const getHealth = async (req: Request, res: Response, next: NextFunction)
         const address = await admin.getAddress();
         const balance = await provider.getBalance(address);
         const code = await provider.getCode(ASSET_POOL_FACTORY_ADDRESS);
-
-        res.json({
+        const jsonData = {
             name: `${name} (${VERSION})`,
             version: version,
             license: license,
@@ -77,7 +76,9 @@ export const getHealth = async (req: Request, res: Response, next: NextFunction)
                 address: assetPoolFactory.address,
                 network: RPC,
             },
-        });
+        };
+
+        res.header('Content-Type', 'application/json').send(JSON.stringify(jsonData, null, 4));
     } catch (error) {
         next(new HttpError(502, 'Matic GetBalance failed', error));
     }
