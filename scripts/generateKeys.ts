@@ -1,6 +1,7 @@
-const fs = require('fs');
-const path = require('path');
-const jose = require('jose');
+import fs from 'fs';
+import path from 'path';
+import jose from 'jose';
+
 const keystore = new jose.JWKS.KeyStore();
 
 Promise.all([

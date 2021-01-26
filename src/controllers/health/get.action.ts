@@ -5,6 +5,7 @@ import { admin, assetPoolFactory, provider } from '../../util/network';
 import { ASSET_POOL_FACTORY_ADDRESS, RPC } from '../../util/secrets';
 import { VERSION } from '../../util/secrets';
 import { name, version, license } from '../../../package.json';
+import AssetPoolFactoryArtifact from '../../artifacts/contracts/contracts/factories/AssetPoolFactory.sol/AssetPoolFactory.json';
 
 /**
  * @swagger
@@ -72,6 +73,7 @@ export const getHealth = async (req: Request, res: Response, next: NextFunction)
             },
             factory: {
                 deployed: code !== '0x',
+                healthy: AssetPoolFactoryArtifact.deployedBytecode === code,
                 address: assetPoolFactory.address,
                 network: RPC,
             },

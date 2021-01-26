@@ -112,15 +112,15 @@
         "build": "npm run build:docs; npx tsc",
         "build:docs": "swagger-jsdoc -d ./src/swaggerDef.js -o ./src/swagger.json",
         "build:contracts": "npx hardhat compile",
-        "build:keys": "node ./scripts/generateKeys.js",
+        "build:keys": "node ./scripts/generateKeys.ts",
         "watch": "concurrently -k -p \"[{name}]\" -n \"Sass,TypeScript,Node\" -c \"yellow.bold,cyan.bold,green.bold\" \"npm run watch:ts\" \"npm run watch:node\"",
         "watch:ts": "tsc -w",
         "watch:node": "nodemon dist/src/server.js",
         "watch:test": "npm run test -- --watchAll",
         "watch:debug": "concurrently -k -p \"[{name}]\" -n \"TypeScript,Node\" -c \"yellow.bold,cyan.bold,green.bold\" \"npm run watch:ts\" \"npm run serve:debug\"",
         "test": "npm run serve:hardhat; NODE_ENV=test jest --forceExit --runInBand",
-        "deploy:factory": "npx hardhat run scripts/deployAssetPoolFactory.js --network default",
-        "deploy:token": "npx hardhat run scripts/deployExampleToken.js --network default"
+        "deploy:factory": "npx hardhat run scripts/deployAssetPoolFactory.ts --network default",
+        "deploy:token": "npx hardhat run scripts/deployExampleToken.ts --network default"
     },
     "dependencies": {
         "async": "^3.1.0",
