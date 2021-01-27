@@ -1,3 +1,6 @@
+![CI/CD Staging](https://github.com/thxprotocol/api/workflows/CI/CD%20Staging/badge.svg)
+![CI/CD Staging](https://github.com/thxprotocol/api/workflows/CI/CD%20Staging/badge.svg)
+
 # THX API
 
 This repository holds the source for the THX REST API.

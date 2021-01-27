@@ -4,23 +4,43 @@
 <head>
     <meta charset="UTF-8">
     <title>THX | Identity Provider</title>
+    <meta name="viewport"
+          content="width=device-width,initial-scale=1,shrink-to-fit=no,user-scalable=no,maximum-scale=1">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css?family=Exo+2:200,400,400i,700,700i,900,900i');
+        @import url('https://fonts.googleapis.com/css?family=Ubuntu:200,400,400i,700,700i,900,900i');
+
+        html,
+        body {
+            height: 100%;
+            font-family: 'Ubuntu';
+            font-size: 1rem;
+        }
+
+        h1,
+        h2,
+        h3 {
+            font-family: 'Exo 2';
+            font-size: 1.5rem;
+        }
+    </style>
 </head>
 
 <body class="d-flex w-100 h-100 bg-light align-items-center justify-content-center">
-    <main class="card card-white">
+    <main class="card card-white w-100" style="max-width: 300px">
         <div class="card-body">
-            <h1 class="h2 text-center mb-3">
-                Login
+            <h1 class="h4 text-center mb-3">
+                <strong>Login to THX</strong>
             </h1>
             <form autocomplete="off" action="/interaction/<%= uid %>/login" method="post">
-
                 <div class="form-group">
-                    <input class="form-control" required type="email" name="email" placeholder="Enter an email">
+                    <input class="form-control" required type="email" name="email" placeholder="Enter e-mail">
                 </div>
                 <div class="form-group">
-                    <input class="form-control" required type="password" name="password" placeholder="and password">
+                    <input class="form-control" required type="password" name="password" placeholder="Enter password">
                 </div>
+                <hr>
                 <button type="submit" class="btn btn-primary btn-block">Sign-in</button>
             </form>
             <div class="login-help">
