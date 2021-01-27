@@ -56,30 +56,31 @@ export const postAuthenticationToken = async (req: Request, res: Response, next:
             return;
         }
 
-        account.comparePassword(req.body.password, async (err: string, isMatch) => {
-            if (err) {
-                throw err;
-            }
+        const { error, isMatch } = account.comparePassword(req.body.password);
 
-            if (!isMatch) {
-                next(new HttpError(500, 'Password is incorrect'));
-                return;
-            }
+        if (error) {
+            next(new HttpError(500, 'Password comparison failed'));
+            return;
+        }
 
-            try {
-                const authenticationToken = createRandomToken();
+        if (!isMatch) {
+            next(new HttpError(500, 'Password is incorrect'));
+            return;
+        }
 
-                account.authenticationToken = authenticationToken;
-                account.authenticationTokenExpires = Date.now() + 10 * 60 * 1000; // 10 minutes
+        try {
+            const authenticationToken = createRandomToken();
 
-                await account.save();
+            account.authenticationToken = authenticationToken;
+            account.authenticationTokenExpires = Date.now() + 10 * 60 * 1000; // 10 minutes
 
-                res.json({ url: `${ORIGIN}/login?authentication_token=${account.authenticationToken}` });
-            } catch (err) {
-                next(new HttpError(500, 'Account save token failed.', err));
-                return;
-            }
-        });
+            await account.save();
+
+            res.json({ url: `${ORIGIN}/login?authentication_token=${account.authenticationToken}` });
+        } catch (err) {
+            next(new HttpError(500, 'Account save token failed.', err));
+            return;
+        }
     } catch (err) {
         next(new HttpError(502, 'Account find failed.', err));
 

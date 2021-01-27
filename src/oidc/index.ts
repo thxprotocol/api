@@ -93,17 +93,17 @@ router.post('/interaction/:uid/login', urlencoded({ extended: false }), async (r
         }
 
         try {
-            account.comparePassword(password, async (err: Error, isMatch: boolean) => {
-                if (err) {
-                    throw err;
-                }
+            const { error, isMatch } = account.comparePassword(password);
 
-                if (!isMatch) {
-                    throw isMatch;
-                }
+            if (error) {
+                throw error;
+            }
 
-                return account._id.toString();
-            });
+            if (!isMatch) {
+                throw isMatch;
+            }
+
+            return account._id.toString();
         } catch (err) {
             throw new HttpError(502, 'Comparing passwords failed.', err);
         }

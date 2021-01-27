@@ -1,8 +1,6 @@
 import bcrypt from 'bcrypt-nodejs';
-import mongoose from 'mongoose';
+import mongoose, { Error } from 'mongoose';
 import { encryptString } from '../util/encrypt';
-
-type comparePasswordFunction = (candidatePassword: string, cb: (err: any, isMatch: any) => {}) => void;
 
 export type AccountDocument = mongoose.Document & {
     email: string;
@@ -19,7 +17,7 @@ export type AccountDocument = mongoose.Document & {
         burnProofs: string[];
         assetPools: string[];
     };
-    comparePassword: comparePasswordFunction;
+    comparePassword: Function;
 };
 
 export interface AuthToken {
@@ -79,10 +77,13 @@ accountSchema.pre('save', function save(next) {
     });
 });
 
-const comparePassword: comparePasswordFunction = function (candidatePassword, cb) {
-    bcrypt.compare(candidatePassword, this.password, (err: mongoose.Error, isMatch: boolean) => {
-        cb(err, isMatch);
-    });
+const comparePassword = function (candidatePassword: string) {
+    try {
+        const isMatch = bcrypt.compareSync(candidatePassword, this.password);
+        return { isMatch };
+    } catch (error) {
+        return { error };
+    }
 };
 
 accountSchema.methods.comparePassword = comparePassword;
