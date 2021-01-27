@@ -36,6 +36,7 @@ export default {
             },
         };
     },
+    extraParams: ['authentication_token'],
     claims: {
         openid: ['sub'],
         admin: ['admin'],

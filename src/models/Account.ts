@@ -7,16 +7,14 @@ type comparePasswordFunction = (candidatePassword: string, cb: (err: any, isMatc
 export type AccountDocument = mongoose.Document & {
     email: string;
     password: string;
+    authenticationToken: string;
+    authenticationTokenExpires: number;
     passwordResetToken: string;
     passwordResetExpires: number;
     address: string;
     privateKey: string;
     tokens: AuthToken[];
     profile: {
-        // firstName: string;
-        // lastName: string;
-        // gender: string;
-        // location: string;
         picture: string;
         burnProofs: string[];
         assetPools: string[];
@@ -35,14 +33,12 @@ const accountSchema = new mongoose.Schema(
         password: String,
         passwordResetToken: String,
         passwordResetExpires: Date,
+        authenticationToken: String,
+        authenticationTokenExpires: String,
         address: String,
         privateKey: String,
         tokens: Array,
         profile: {
-            // firstName: String,
-            // lastName: String,
-            // gender: String,
-            // location: String,
             picture: String,
             burnProofs: Array,
             assetPools: Array,

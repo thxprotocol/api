@@ -34,14 +34,20 @@
                 <strong>Login to THX</strong>
             </h1>
             <form autocomplete="off" action="/interaction/<%= uid %>/login" method="post">
-                <div class="form-group">
-                    <input class="form-control" required type="email" name="email" placeholder="Enter e-mail">
-                </div>
-                <div class="form-group">
-                    <input class="form-control" required type="password" name="password" placeholder="Enter password">
-                </div>
-                <hr>
-                <button type="submit" class="btn btn-primary btn-block">Sign-in</button>
+                <% if (!params.authentication_token) { %>
+                    <div class="form-group">
+                        <input class="form-control" required type="email" name="email" placeholder="Enter e-mail">
+                    </div>
+                    <div class="form-group">
+                        <input class="form-control" required type="password" name="password"
+                               placeholder="Enter password">
+
+                    </div>
+                    <hr>
+                    <% } else { %>
+                        <input type="hidden" name="token" value="<%= params.authentication_token %>" />
+                        <% } %>
+                            <button type="submit" class="btn btn-primary btn-block">Sign-in</button>
             </form>
             <div class="login-help">
                 <a class="btn btn-block btn-link" href="/interaction/<%= uid %>/abort">Cancel</a>

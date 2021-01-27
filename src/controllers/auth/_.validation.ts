@@ -31,4 +31,10 @@ export const validations = {
         check('password', 'Password cannot be blank').isLength({ min: 1 }),
     ],
     postForgot: [check('email').exists(), check('email', 'Email is not valid').isEmail()],
+    postAuthenticationToken: [
+        body('email').exists(),
+        body('email', 'Email is not valid').isEmail(),
+        body('password').exists(),
+        body('password', 'Password must be at least 4 characters long').isLength({ min: 4 }),
+    ],
 };

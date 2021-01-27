@@ -5,6 +5,8 @@ import { AccountDocument } from '../models/Account';
 import { Account } from '../models/Account';
 import { HttpError } from '../models/Error';
 import { ISSUER, SECURE_KEY } from '../util/secrets';
+import { stringify } from 'querystring';
+import { Error } from 'mongoose';
 
 const oidc = new Provider(ISSUER, configuration as any);
 const router = express.Router();
@@ -66,15 +68,32 @@ router.get('/interaction/:uid', async (req: Request, res: Response, next: NextFu
 });
 
 router.post('/interaction/:uid/login', urlencoded({ extended: false }), async (req: Request, res: Response) => {
-    try {
-        const account: AccountDocument = await Account.findOne({ email: req.body.email });
+    async function getSubForToken(token: string) {
+        try {
+            const account: AccountDocument = await Account.findOne({ authenticationToken: token })
+                .where('authenticationTokenExpires')
+                .gt(Date.now())
+                .exec();
+
+            if (!account) {
+                throw account;
+            }
+
+            return account._id.toString();
+        } catch (err) {
+            throw new HttpError(502, 'Token is invalid or expired.', err);
+        }
+    }
+
+    async function getSubForCredentials(email: string, password: string) {
+        const account: AccountDocument = await Account.findOne({ email });
 
         if (!account) {
             throw account;
         }
 
         try {
-            account.comparePassword(req.body.password, async (err: Error, isMatch: boolean) => {
+            account.comparePassword(password, async (err: Error, isMatch: boolean) => {
                 if (err) {
                     throw err;
                 }
@@ -83,17 +102,23 @@ router.post('/interaction/:uid/login', urlencoded({ extended: false }), async (r
                     throw isMatch;
                 }
 
-                const result = {
-                    login: {
-                        account: account._id.toString(),
-                    },
-                };
-
-                await oidc.interactionFinished(req, res, result, { mergeWithLastSubmission: true });
+                return account._id.toString();
             });
         } catch (err) {
             throw new HttpError(502, 'Comparing passwords failed.', err);
         }
+    }
+
+    try {
+        const result = {
+            login: {
+                account: req.body.token
+                    ? await getSubForToken(req.body.token)
+                    : await getSubForCredentials(req.body.email, req.body.password),
+            },
+        };
+
+        await oidc.interactionFinished(req, res, result, { mergeWithLastSubmission: true });
     } catch (err) {
         throw new HttpError(502, 'Account read failed.', err);
     }
