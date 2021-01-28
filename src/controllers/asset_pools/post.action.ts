@@ -1,4 +1,4 @@
-import { admin, assetPoolFactory, solutionContract } from '../../util/network';
+import { admin, assetPoolFactory, provider, solutionContract, updateToBypassPolls } from '../../util/network';
 import { events } from '../../util/events';
 import { AssetPool } from '../../models/AssetPool';
 import { Response, NextFunction } from 'express';
@@ -44,11 +44,20 @@ import MongoAdapter from '../../oidc/adapter';
  */
 export const postAssetPool = async (req: HttpRequest, res: Response, next: NextFunction) => {
     try {
+        const code = await provider.getCode(req.body.token);
+
+        if (code === '0x') {
+            return next(new HttpError(404, `No data found at ERC20 address ${req.body.token}`));
+        }
+
         const audience = req.user.aud;
         const ev = await events(await assetPoolFactory.deployAssetPool(admin.address, admin.address, req.body.token));
         const event = ev.find((e: { event: string }) => e.event === 'AssetPoolDeployed');
         const solution = solutionContract(event.args.assetPool);
+
         await solution.setSigning(true);
+
+        await updateToBypassPolls(solution);
 
         try {
             await new AssetPool({

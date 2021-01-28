@@ -69,7 +69,14 @@ import { NextFunction, Response } from 'express';
  */
 export const getPoll = async (req: HttpRequest, res: Response, next: NextFunction) => {
     try {
+        const index = await req.solution.getRewardIndex(req.params.id);
+
+        if (!index) {
+            next(new HttpError(404, 'No reward exists for this poll.'));
+        }
+
         res.json({
+            index,
             startTime: (await req.solution.getStartTime(req.params.id)).toNumber(),
             endTime: (await req.solution.getEndTime(req.params.id)).toNumber(),
             yesCounter: (await req.solution.getYesCounter(req.params.id)).toNumber(),

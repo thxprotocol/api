@@ -1,7 +1,19 @@
-import hre from 'hardhat';
-import { Contract, utils } from 'ethers/lib';
-
-const ethers = hre.ethers;
+import { Contract, ContractFactory, utils } from 'ethers/lib';
+import AssetPoolFacetArtifact from '../src/artifacts/contracts/contracts/facets/AssetPoolFacet/AssetPoolFacet.sol/AssetPoolFacet.json';
+import AssetPoolFacetViewArtifact from '../src/artifacts/contracts/contracts/facets/AssetPoolFacet/AssetPoolFacetView.sol/AssetPoolFacetView.json';
+import RolesFacetArtifact from '../src/artifacts/contracts/contracts/facets/RolesFacet/RolesFacet.sol/RolesFacet.json';
+import DiamondCutFacetArtifact from '../src/artifacts/diamond-2/contracts/facets/DiamondCutFacet.sol/DiamondCutFacet.json';
+import DiamondLoupeFacetArtifact from '../src/artifacts/diamond-2/contracts/facets/DiamondLoupeFacet.sol/DiamondLoupeFacet.json';
+import OwnershipFacetArtifact from '../src/artifacts/diamond-2/contracts/facets/OwnershipFacet.sol/OwnershipFacet.json';
+import GasStationFacetArtifact from '../src/artifacts/contracts/contracts/facets/GasStationFacet/GasStation.sol/GasStationFacet.json';
+import RewardPollFacetArtifact from '../src/artifacts/contracts/contracts/facets/PollFacet/RewardPollFacet.sol/RewardPollFacet.json';
+import RewardPollProxyFacetArtifact from '../src/artifacts/contracts/contracts/facets/PollFacet/RewardPollProxyFacet.sol/RewardPollProxyFacet.json';
+import WithdrawPollFacetArtifact from '../src/artifacts/contracts/contracts/facets/PollFacet/WithdrawPollFacet.sol/WithdrawPollFacet.json';
+import WithdrawPollProxyFacetArtifact from '../src/artifacts/contracts/contracts/facets/PollFacet/WithdrawPollProxyFacet.sol/WithdrawPollProxyFacet.json';
+import PollProxyFacetArtifact from '../src/artifacts/contracts/contracts/facets/PollFacet/PollProxyFacet.sol/PollProxyFacet.json';
+import UpdateDiamondFacetArtifact from '../src/artifacts/contracts/contracts/factories/UpdateDiamondFacet.sol/UpdateDiamondFacet.json';
+import AssetPoolFactoryArtifact from '../src/artifacts/contracts/contracts/factories/AssetPoolFactory.sol/AssetPoolFactory.json';
+import { admin } from '../src/util/network';
 
 async function main() {
     const FacetCutAction = {
@@ -18,21 +30,48 @@ async function main() {
         return signatures;
     };
 
-    const AssetPoolFacet = await ethers.getContractFactory('AssetPoolFacet');
-    const AssetPoolFacetView = await ethers.getContractFactory('AssetPoolFacetView');
-    const RolesFacet = await ethers.getContractFactory('RolesFacet');
-    const DiamondCutFacet = await ethers.getContractFactory('DiamondCutFacet');
-    const DiamondLoupeFacet = await ethers.getContractFactory('DiamondLoupeFacet');
-    const OwnershipFacet = await ethers.getContractFactory('OwnershipFacet');
-    const GasStationFacet = await ethers.getContractFactory('GasStationFacet');
-    const RewardPollFacet = await ethers.getContractFactory('RewardPollFacet');
-    const RewardPollProxyFacet = await ethers.getContractFactory('RewardPollProxyFacet');
-    const WithdrawPollFacet = await ethers.getContractFactory('WithdrawPollFacet');
-    const WithdrawPollProxyFacet = await ethers.getContractFactory('WithdrawPollProxyFacet');
-    const PollProxyFacet = await ethers.getContractFactory('PollProxyFacet');
-
-    const UpdateDiamondFacet = await ethers.getContractFactory('UpdateDiamondFacet');
-    const AssetPoolFactory = await ethers.getContractFactory('AssetPoolFactory');
+    const AssetPoolFacet = new ContractFactory(AssetPoolFacetArtifact.abi, AssetPoolFacetArtifact.bytecode, admin);
+    const AssetPoolFacetView = new ContractFactory(
+        AssetPoolFacetViewArtifact.abi,
+        AssetPoolFacetViewArtifact.bytecode,
+        admin,
+    );
+    const RolesFacet = new ContractFactory(RolesFacetArtifact.abi, RolesFacetArtifact.bytecode, admin);
+    const DiamondCutFacet = new ContractFactory(DiamondCutFacetArtifact.abi, DiamondCutFacetArtifact.bytecode, admin);
+    const DiamondLoupeFacet = new ContractFactory(
+        DiamondLoupeFacetArtifact.abi,
+        DiamondLoupeFacetArtifact.bytecode,
+        admin,
+    );
+    const OwnershipFacet = new ContractFactory(OwnershipFacetArtifact.abi, OwnershipFacetArtifact.bytecode, admin);
+    const GasStationFacet = new ContractFactory(GasStationFacetArtifact.abi, GasStationFacetArtifact.bytecode, admin);
+    const RewardPollFacet = new ContractFactory(RewardPollFacetArtifact.abi, RewardPollFacetArtifact.bytecode, admin);
+    const RewardPollProxyFacet = new ContractFactory(
+        RewardPollProxyFacetArtifact.abi,
+        RewardPollProxyFacetArtifact.bytecode,
+        admin,
+    );
+    const WithdrawPollFacet = new ContractFactory(
+        WithdrawPollFacetArtifact.abi,
+        WithdrawPollFacetArtifact.bytecode,
+        admin,
+    );
+    const WithdrawPollProxyFacet = new ContractFactory(
+        WithdrawPollProxyFacetArtifact.abi,
+        WithdrawPollProxyFacetArtifact.bytecode,
+        admin,
+    );
+    const PollProxyFacet = new ContractFactory(PollProxyFacetArtifact.abi, PollProxyFacetArtifact.bytecode, admin);
+    const UpdateDiamondFacet = new ContractFactory(
+        UpdateDiamondFacetArtifact.abi,
+        UpdateDiamondFacetArtifact.bytecode,
+        admin,
+    );
+    const AssetPoolFactory = new ContractFactory(
+        AssetPoolFactoryArtifact.abi,
+        AssetPoolFactoryArtifact.bytecode,
+        admin,
+    );
 
     const assetPoolFacet = await AssetPoolFacet.deploy();
     const updateDiamondFacet = await UpdateDiamondFacet.deploy();

@@ -1,6 +1,6 @@
 import { AssetPool, AssetPoolDocument } from '../../models/AssetPool';
 import { Response, NextFunction } from 'express';
-import { tokenContract } from '../../util/network';
+import { provider, tokenContract } from '../../util/network';
 import { HttpError, HttpRequest } from '../../models/Error';
 
 /**
@@ -59,6 +59,12 @@ import { HttpError, HttpRequest } from '../../models/Error';
 export const getAssetPool = async (req: HttpRequest, res: Response, next: NextFunction) => {
     try {
         const tokenAddress = await req.solution.getToken();
+        const code = await provider.getCode(tokenAddress);
+
+        if (code === '0x') {
+            return next(new HttpError(404, `No data found at ERC20 address ${tokenAddress}`));
+        }
+
         const owner = await req.solution.getOwner();
 
         try {
