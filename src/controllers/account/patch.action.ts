@@ -15,37 +15,19 @@ import { Error } from 'mongoose';
  *     produces:
  *       - application/json
  *     parameters:
- *       - name: address
- *         in: body
- *         required: false
- *         type: string
- *       - name: firstName
- *         in: body
- *         required: false
- *         type: string
- *       - name: lastName
- *         in: body
- *         required: false
- *         type: string
- *       - name: gender
- *         in: body
- *         required: false
- *         type: string
- *       - name: location
- *         in: body
- *         required: false
- *         type: string
- *       - name: picture
- *         in: body
- *         required: false
- *         type: string
  *       - name: burnProofs
  *         in: body
  *         required: false
  *         type: array
  *         items:
  *          type: string
- *       - name: assetPools
+ *       - name: memberships
+ *         in: body
+ *         required: false
+ *         type: array
+ *         items:
+ *          type: string
+ *       - name: privateKeys
  *         in: body
  *         required: false
  *         type: array
@@ -77,13 +59,11 @@ export const patchAccount = async (req: HttpRequest, res: Response, next: NextFu
             next(new HttpError(502, 'Account find failed.', err));
             return;
         }
-        if (req.body.address && ethers.utils.isAddress(req.body.address)) {
-            account.address = req.body.address;
-            account.privateKey = '';
-        }
-        account.privateKey = req.body.privateKey || account.privateKey;
-        account.profile.burnProofs = req.body.burnProofs || account.profile.burnProofs;
-        account.profile.assetPools = req.body.assetPools || account.profile.assetPools;
+
+        account.memberships = req.body.assetPools || account.memberships;
+        account.privateKeys = req.body.privateKeys || account.privateKeys;
+        account.burnProofs = req.body.burnProofs || account.burnProofs;
+
         account.save((err: any) => {
             if (err) {
                 if (err.code === 11000) {

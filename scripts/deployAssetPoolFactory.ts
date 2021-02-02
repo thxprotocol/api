@@ -1,4 +1,7 @@
-import { Contract, ContractFactory, utils } from 'ethers/lib';
+import dotenv from 'dotenv';
+
+import { Contract, ContractFactory, ethers, utils } from 'ethers/lib';
+
 import AssetPoolFacetArtifact from '../src/artifacts/contracts/contracts/facets/AssetPoolFacet/AssetPoolFacet.sol/AssetPoolFacet.json';
 import AssetPoolFacetViewArtifact from '../src/artifacts/contracts/contracts/facets/AssetPoolFacet/AssetPoolFacetView.sol/AssetPoolFacetView.json';
 import RolesFacetArtifact from '../src/artifacts/contracts/contracts/facets/RolesFacet/RolesFacet.sol/RolesFacet.json';
@@ -13,7 +16,17 @@ import WithdrawPollProxyFacetArtifact from '../src/artifacts/contracts/contracts
 import PollProxyFacetArtifact from '../src/artifacts/contracts/contracts/facets/PollFacet/PollProxyFacet.sol/PollProxyFacet.json';
 import UpdateDiamondFacetArtifact from '../src/artifacts/contracts/contracts/factories/UpdateDiamondFacet.sol/UpdateDiamondFacet.json';
 import AssetPoolFactoryArtifact from '../src/artifacts/contracts/contracts/factories/AssetPoolFactory.sol/AssetPoolFactory.json';
-import { admin } from '../src/util/network';
+
+const env = process.env.NODE_ENV;
+
+if (env) {
+    dotenv.config({ path: `.env.${env === 'test' ? 'example' : env}` });
+} else {
+    dotenv.config({ path: '.env' });
+}
+
+const provider = new ethers.providers.JsonRpcProvider(process.env.PUBLIC_RPC);
+const admin = new ethers.Wallet(process.env.PRIVATE_KEY, provider);
 
 async function main() {
     const FacetCutAction = {

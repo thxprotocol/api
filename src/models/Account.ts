@@ -12,11 +12,9 @@ export type AccountDocument = mongoose.Document & {
     address: string;
     privateKey: string;
     tokens: AuthToken[];
-    profile: {
-        picture: string;
-        burnProofs: string[];
-        assetPools: string[];
-    };
+    burnProofs: string[];
+    memberships: { [poolAddress: string]: string };
+    privateKeys: { [address: string]: string };
     comparePassword: Function;
 };
 
@@ -36,11 +34,9 @@ const accountSchema = new mongoose.Schema(
         address: String,
         privateKey: String,
         tokens: Array,
-        profile: {
-            picture: String,
-            burnProofs: Array,
-            assetPools: Array,
-        },
+        burnProofs: Array,
+        memberships: Map,
+        privateKeys: Map,
     },
     { timestamps: true },
 );

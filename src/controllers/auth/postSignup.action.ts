@@ -13,10 +13,6 @@ import { HttpError } from '../../models/Error';
  *     produces:
  *       - application/json
  *     parameters:
- *       - name: address
- *         in: body
- *         required: false
- *         type: string
  *       - name: email
  *         description: Email to use for login.
  *         in: body
@@ -51,20 +47,10 @@ import { HttpError } from '../../models/Error';
  *         description: Bad Gateway. Received an invalid response from the network or database.
  */
 export const postSignup = async (req: Request, res: Response, next: NextFunction) => {
-    let address = '',
-        privateKey = '',
-        wallet;
-
-    if (req.body.address) {
-        address = req.body.address;
-    } else {
-        wallet = ethers.Wallet.createRandom();
-        privateKey = wallet.privateKey;
-        address = await wallet.getAddress();
-    }
-
+    const wallet = ethers.Wallet.createRandom();
+    const privateKey = wallet.privateKey;
+    const address = await wallet.getAddress();
     const account = new Account({
-        address,
         privateKey,
         email: req.body.email,
         password: req.body.password,
@@ -83,7 +69,7 @@ export const postSignup = async (req: Request, res: Response, next: NextFunction
                 next(new HttpError(502, 'Account save failed.', error));
                 return;
             }
-            res.status(201).json({ address: account.address });
+            res.status(201).json({ address });
         });
     } catch (err) {
         next(new HttpError(500, 'Account signup failed.', err));

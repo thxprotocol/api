@@ -5,8 +5,6 @@ import { AccountDocument } from '../models/Account';
 import { Account } from '../models/Account';
 import { HttpError } from '../models/Error';
 import { ISSUER, SECURE_KEY } from '../util/secrets';
-import { stringify } from 'querystring';
-import { Error } from 'mongoose';
 
 const oidc = new Provider(ISSUER, configuration as any);
 const router = express.Router();
@@ -84,7 +82,7 @@ router.post(
 
                 return account._id.toString();
             } catch (err) {
-                next(new HttpError(502, 'Token is invalid or expired.', err));
+                next(new HttpError(401, 'Token is invalid or expired.', err));
                 return;
             }
         }
@@ -109,7 +107,7 @@ router.post(
 
                 return account._id.toString();
             } catch (err) {
-                next(new HttpError(502, 'Comparing passwords failed.', err));
+                next(new HttpError(400, 'Comparing passwords failed.', err));
                 return;
             }
         }

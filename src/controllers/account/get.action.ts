@@ -52,10 +52,10 @@ export const getAccount = async (req: HttpRequest, res: Response, next: NextFunc
         }
         if (account) {
             res.send({
-                address: account.address,
                 privateKey: account.privateKey,
-                burnProofs: account.profile.burnProofs,
-                assetPools: account.profile.assetPools,
+                memberships: account.memberships,
+                privateKeys: account.privateKeys,
+                burnProofs: account.burnProofs,
             });
         }
     });

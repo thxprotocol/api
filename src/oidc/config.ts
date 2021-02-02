@@ -28,10 +28,6 @@ export default {
                 return {
                     sub: id,
                     email: account.email,
-                    assetPools: account.profile.assetPools,
-                    burnProofs: account.profile.burnProofs,
-                    address: account.address,
-                    privateKey: account.privateKey,
                 };
             },
         };
@@ -42,9 +38,6 @@ export default {
         admin: ['admin'],
         user: ['user'],
         email: ['email'],
-        address: ['address'],
-        privateKey: ['privateKey'],
-        profile: ['assetPools', 'burnProofs'],
     },
     ttl: {
         AccessToken: 1 * 60 * 60, // 1 hour in seconds
