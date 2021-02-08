@@ -1,7 +1,7 @@
 {
   "info": {
     "title": "THX API Specification",
-    "version": "1.0.0-beta.1"
+    "version": "1.0.0-beta.2"
   },
   "basePath": "https://api.thx.network/v1",
   "swagger": "2.0",
@@ -413,12 +413,6 @@
         "parameters": [
           {
             "name": "email",
-            "in": "body",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "password",
             "in": "body",
             "required": true,
             "type": "string"
