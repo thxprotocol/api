@@ -33,7 +33,7 @@ export const registerAuthorizationCodeClient = async (http: any) => {
             redirect_uris: ['http://localhost:3002/signin-oidc'],
             response_types: ['code'],
             response_modes: ['query'],
-            scope: 'openid user profile email address privateKey offline_access',
+            scope: 'openid user email offline_access',
         });
         return {
             client_id: res.body.client_id,
@@ -57,10 +57,9 @@ export async function getAuthHeaders(http: any, client: { client_id: string; cli
             grant_type: 'authorization_grant',
             authority: ISSUER,
             response_type: 'code',
-            scope: 'openid user profile email address privateKey offline_access',
+            scope: 'openid user email offline_access',
             response_mode: 'query',
             redirect_uri: 'http://localhost:3002/signin-oidc',
-            state: '493ce369e1704035888b7620f2bebb35',
             id_token_signed_response_alg: 'RS256',
         });
     return r.headers;

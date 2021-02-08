@@ -1,5 +1,5 @@
 import { Account, AccountDocument } from '../../models/Account';
-import { Request, Response, NextFunction } from 'express';
+import { Response, NextFunction } from 'express';
 import { HttpError, HttpRequest } from '../../models/Error';
 
 /**
@@ -22,7 +22,7 @@ import { HttpError, HttpRequest } from '../../models/Error';
  *                  items:
  *                      type: string
  *                      description: Burnproof transaction hash
- *              assetPools:
+ *              memberships:
  *                  type: array
  *                  items:
  *                      type: string
@@ -52,9 +52,9 @@ export const getAccount = async (req: HttpRequest, res: Response, next: NextFunc
         }
         if (account) {
             res.send({
+                address: account.address,
                 privateKey: account.privateKey,
                 memberships: account.memberships,
-                privateKeys: account.privateKeys,
                 burnProofs: account.burnProofs,
             });
         }

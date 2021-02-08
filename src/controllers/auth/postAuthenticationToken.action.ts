@@ -3,6 +3,7 @@ import { Account, AccountDocument } from '../../models/Account';
 import { Request, Response, NextFunction } from 'express';
 import { HttpError } from '../../models/Error';
 import { ORIGIN } from '../../util/secrets';
+import { sendMail } from '../../util/mail';
 
 function createRandomToken() {
     const buf = crypto.randomBytes(16);
@@ -76,14 +77,23 @@ export const postAuthenticationToken = async (req: Request, res: Response, next:
 
             await account.save();
 
-            res.json({ url: `${ORIGIN}/login?authentication_token=${account.authenticationToken}` });
+            try {
+                await sendMail(
+                    account.email,
+                    'Your one-time login link.',
+                    `<p>Hi!</p><p>This is a one-time login link you can use to access the temporary THX wallet setup to hold the assets for account <strong>${account.email}</strong>.</p><p><a href="${ORIGIN}/login?authentication_token=${account.authenticationToken}">${ORIGIN}/login?authentication_token=${account.authenticationToken}</a></p><p><strong>Valid for 10 minutes</strong></p><p>You will be prompted to provide a new password during authentication.</p><p>Sincerly,<br>The THX team.</p>`,
+                );
+                return res.json({ message: `E-mail sent to ${account.email}` });
+            } catch (err) {
+                next(new HttpError(502, 'E-mail sent failed.', err));
+                return;
+            }
         } catch (err) {
             next(new HttpError(500, 'Account save token failed.', err));
             return;
         }
     } catch (err) {
         next(new HttpError(502, 'Account find failed.', err));
-
         return;
     }
 };

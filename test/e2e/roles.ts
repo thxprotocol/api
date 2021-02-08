@@ -165,7 +165,7 @@ describe('Roles', () => {
             user.delete('/v1/members/' + userAddress2)
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
                 .end(async (err, res) => {
-                    expect(res.status).toBe(200);
+                    expect(res.status).toBe(204);
                     done();
                 });
         });

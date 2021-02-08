@@ -1,5 +1,5 @@
 import bcrypt from 'bcrypt-nodejs';
-import mongoose, { Error } from 'mongoose';
+import mongoose from 'mongoose';
 import { encryptString } from '../util/encrypt';
 
 export type AccountDocument = mongoose.Document & {
@@ -13,7 +13,7 @@ export type AccountDocument = mongoose.Document & {
     privateKey: string;
     tokens: AuthToken[];
     burnProofs: string[];
-    memberships: { [poolAddress: string]: string };
+    memberships: string[];
     privateKeys: { [address: string]: string };
     comparePassword: Function;
 };
@@ -35,7 +35,7 @@ const accountSchema = new mongoose.Schema(
         privateKey: String,
         tokens: Array,
         burnProofs: Array,
-        memberships: Map,
+        memberships: Array,
         privateKeys: Map,
     },
     { timestamps: true },

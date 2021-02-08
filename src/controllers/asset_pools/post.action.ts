@@ -53,6 +53,11 @@ export const postAssetPool = async (req: HttpRequest, res: Response, next: NextF
         const audience = req.user.aud;
         const ev = await events(await assetPoolFactory.deployAssetPool(admin.address, admin.address, req.body.token));
         const event = ev.find((e: { event: string }) => e.event === 'AssetPoolDeployed');
+
+        if (!event) {
+            return next(new HttpError(502, 'Check API health status.'));
+        }
+
         const solution = solutionContract(event.args.assetPool);
 
         await solution.setSigning(true);

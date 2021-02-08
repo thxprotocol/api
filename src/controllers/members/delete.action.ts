@@ -41,12 +41,17 @@ export const deleteMember = async (req: HttpRequest, res: Response, next: NextFu
         try {
             const account = await Account.findOne({ address: req.params.address });
 
-            if (account.profile.assetPools) {
-                const index = req.solution.address.indexOf(req.solution.address);
-                account.profile.assetPools.splice(index, 1);
+            if (account && account.memberships) {
+                const index = account.memberships.indexOf(req.solution.address);
+
+                if (index > -1) {
+                    account.memberships.splice(index, 1);
+
+                    await account.save();
+                }
             }
 
-            res.end();
+            res.status(204).end();
         } catch (err) {
             next(new HttpError(502, 'Account profile update failed.', err));
         }

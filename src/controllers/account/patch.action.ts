@@ -60,7 +60,7 @@ export const patchAccount = async (req: HttpRequest, res: Response, next: NextFu
             return;
         }
 
-        account.memberships = req.body.assetPools || account.memberships;
+        account.memberships = req.body.memberships || account.memberships;
         account.privateKeys = req.body.privateKeys || account.privateKeys;
         account.burnProofs = req.body.burnProofs || account.burnProofs;
 

@@ -56,7 +56,7 @@
                     "description": "Burnproof transaction hash"
                   }
                 },
-                "assetPools": {
+                "memberships": {
                   "type": "array",
                   "items": {
                     "type": "string",
@@ -98,42 +98,6 @@
         ],
         "parameters": [
           {
-            "name": "address",
-            "in": "body",
-            "required": false,
-            "type": "string"
-          },
-          {
-            "name": "firstName",
-            "in": "body",
-            "required": false,
-            "type": "string"
-          },
-          {
-            "name": "lastName",
-            "in": "body",
-            "required": false,
-            "type": "string"
-          },
-          {
-            "name": "gender",
-            "in": "body",
-            "required": false,
-            "type": "string"
-          },
-          {
-            "name": "location",
-            "in": "body",
-            "required": false,
-            "type": "string"
-          },
-          {
-            "name": "picture",
-            "in": "body",
-            "required": false,
-            "type": "string"
-          },
-          {
             "name": "burnProofs",
             "in": "body",
             "required": false,
@@ -143,7 +107,16 @@
             }
           },
           {
-            "name": "assetPools",
+            "name": "memberships",
+            "in": "body",
+            "required": false,
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "privateKeys",
             "in": "body",
             "required": false,
             "type": "array",
@@ -579,12 +552,6 @@
           "application/json"
         ],
         "parameters": [
-          {
-            "name": "address",
-            "in": "body",
-            "required": false,
-            "type": "string"
-          },
           {
             "name": "email",
             "description": "Email to use for login.",

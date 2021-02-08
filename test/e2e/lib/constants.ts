@@ -11,3 +11,4 @@ export const VOTER_PK = '0x97093724e1748ebfa6aa2d2ec4ec68df8678423ab9a12eb2d27dd
 export const mintAmount = parseEther('1000000');
 export const userEmail = 'test.api.bot@thx.network';
 export const userPassword = 'mellon';
+export const newAddress = '0x253ca584af3e458392982ef246066a6750fa0735';

@@ -1,10 +1,10 @@
-import { ethers } from 'ethers';
+import { ethers, Wallet } from 'ethers';
 import request from 'supertest';
 import server from '../../src/server';
 import db from '../../src/util/database';
 import { decryptString } from './lib/decrypt';
 import { admin, provider } from '../../src/util/network';
-import { voter } from './lib/network';
+import { signMethod, voter } from './lib/network';
 import {
     getAuthCode,
     getAuthHeaders,
@@ -13,14 +13,19 @@ import {
     registerClientCredentialsClient,
 } from './lib/registerClient';
 import { exampleTokenFactory } from './lib/contracts';
-import { mintAmount } from './lib/constants';
+import { mintAmount, poolTitle, newAddress } from './lib/constants';
 
 const user = request(server);
 const http2 = request.agent(server);
 const http3 = request.agent(server);
 
 describe('Encryption', () => {
-    let testToken: any, adminAccessToken: string, userAccessToken: string, user2AccessToken: string;
+    let testToken: any,
+        adminAccessToken: string,
+        userAccessToken: string,
+        poolAddress: string,
+        decryptedWallet: Wallet,
+        tempAddress: string;
 
     beforeAll(async () => {
         await db.truncate();
@@ -30,55 +35,14 @@ describe('Encryption', () => {
         testToken = await exampleTokenFactory.deploy(admin.address, mintAmount);
 
         await testToken.deployed();
-    });
 
-    describe('POST /signup (with address)', () => {
-        it('HTTP 201 (success)', (done) => {
-            user.post('/v1/signup')
-                .set({ Authorization: adminAccessToken })
-                .send({
-                    address: voter.address,
-                    email: 'test.address.bot@thx.network',
-                    password: 'mellon',
-                    confirmPassword: 'mellon',
-                })
-                .end((err, res) => {
-                    expect(res.status).toBe(201);
-                    done();
-                });
+        // Create an asset pool
+        const res = await user.post('/v1/asset_pools').set({ Authorization: adminAccessToken }).send({
+            title: poolTitle,
+            token: testToken.address,
         });
-    });
 
-    describe('GET /account', () => {
-        beforeAll(async () => {
-            const client = await registerAuthorizationCodeClient(user);
-            const headers = await getAuthHeaders(http2, client);
-            const authCode = await getAuthCode(http2, headers, client, {
-                email: 'test.address.bot@thx.network',
-                password: 'mellon',
-            });
-
-            userAccessToken = await getAccessToken(http2, client, authCode);
-        });
-        it('HTTP 200 and no privateKey', async (done) => {
-            user.get('/v1/account')
-                .set({ Authorization: userAccessToken })
-                .end((err, res) => {
-                    expect(res.status).toBe(200);
-                    expect(res.body.privateKey).toBe('');
-                    expect(res.body.address).toBe(voter.address);
-                    done();
-                });
-        });
-    });
-
-    describe('GET /logout', () => {
-        it('HTTP 200 if OK', (done) => {
-            user.get('/session/end').end((err, res) => {
-                expect(res.status).toBe(200);
-                done();
-            });
-        });
+        poolAddress = res.body.address;
     });
 
     describe('POST /signup (without address)', () => {
@@ -91,7 +55,19 @@ describe('Encryption', () => {
                     confirmPassword: 'mellon',
                 })
                 .end((err, res) => {
+                    tempAddress = res.body.address;
                     expect(res.status).toBe(201);
+                    done();
+                });
+        });
+    });
+    describe('POST /members/:address', () => {
+        it('HTTP 302 when member is added', (done) => {
+            user.post('/v1/members/')
+                .send({ address: tempAddress })
+                .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
+                .end(async (err, res) => {
+                    expect(res.status).toBe(302);
                     done();
                 });
         });
@@ -106,16 +82,16 @@ describe('Encryption', () => {
                 password: 'mellon',
             });
 
-            user2AccessToken = await getAccessToken(http3, client, authCode);
+            userAccessToken = await getAccessToken(http3, client, authCode);
         });
 
         it('HTTP 200 with address and encrypted private key', async (done) => {
             user.get('/v1/account')
-                .set({ Authorization: user2AccessToken })
+                .set({ Authorization: userAccessToken })
                 .end((err, res) => {
                     const pKey = decryptString(res.body.privateKey, 'mellon');
-                    const account = new ethers.Wallet(pKey, provider);
-                    const isAddress = ethers.utils.isAddress(account.address);
+
+                    decryptedWallet = new ethers.Wallet(pKey, provider);
 
                     try {
                         decryptString(res.body.privateKey, 'wrongpassword');
@@ -124,33 +100,33 @@ describe('Encryption', () => {
                     }
 
                     expect(res.status).toBe(200);
-                    expect(isAddress).toBe(true);
-                    expect(res.body.address).toBe(account.address);
+                    expect(ethers.utils.isAddress(decryptedWallet.address)).toBe(true);
+                    expect(res.body.address).toBe(decryptedWallet.address);
                     done();
                 });
         });
     });
-    describe('PATCH /account ', () => {
-        let redirectURL = '';
 
-        it('HTTP 302 with address: voter.address', async (done) => {
-            user.patch('/v1/account')
-                .set({ Authorization: user2AccessToken })
-                .send({ address: voter.address })
+    describe('POST /gas_station/upgrade_address ', () => {
+        it('HTTP 200 success', async (done) => {
+            const { call, nonce, sig } = await signMethod(poolAddress, 'upgradeAddress', [newAddress], decryptedWallet);
+
+            user.post('/v1/gas_station/upgrade_address')
+                .set({ AssetPool: poolAddress, Authorization: userAccessToken })
+                .send({ oldAddress: tempAddress, newAddress, call, nonce, sig })
                 .end((err, res) => {
-                    redirectURL = res.header.location;
-                    expect(res.status).toBe(303);
+                    expect(res.status).toBe(200);
                     done();
                 });
         });
 
         it('HTTP 200 with new addres and no privateKey', async (done) => {
-            user.get(redirectURL)
-                .set({ Authorization: user2AccessToken })
+            user.get('/v1/account')
+                .set({ Authorization: userAccessToken })
                 .end((err, res) => {
                     expect(res.status).toBe(200);
                     expect(res.body.privateKey).toBe('');
-                    expect(res.body.address).toBe(voter.address);
+                    expect(res.body.address).toBe(newAddress);
                     done();
                 });
         });

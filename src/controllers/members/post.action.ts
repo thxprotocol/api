@@ -1,25 +1,30 @@
 import { NextFunction, Response } from 'express';
 import { HttpRequest, HttpError } from '../../models/Error';
 import { VERSION } from '../../util/secrets';
-import ISolutionArtifact from '../../../src/artifacts/contracts/contracts/interfaces/ISolution.sol/ISolution.json';
 import { parseLogs } from '../../util/events';
 import { Account } from '../../models/Account';
+import ISolutionArtifact from '../../../src/artifacts/contracts/contracts/interfaces/ISolution.sol/ISolution.json';
 
 async function updateMemberProfile(address: string, poolAddress: string) {
-    const account = await Account.findOne({ address: address });
+    try {
+        const account = await Account.findOne({ address: address });
 
-    if (account.profile.assetPools) {
-        const index = account.profile.assetPools.indexOf(poolAddress);
-
-        if (index > -1) {
+        if (!account) {
             return;
         }
-        account.profile.assetPools.push(poolAddress);
-    } else {
-        account.profile.assetPools = [poolAddress];
-    }
+        if (!account.memberships) {
+            account.memberships = [];
+        }
+        if (account.memberships.indexOf(poolAddress) > -1) {
+            return;
+        }
 
-    await account.save();
+        account.memberships.push(poolAddress);
+
+        return account.save();
+    } catch (e) {
+        console.log(e);
+    }
 }
 
 /**
@@ -65,7 +70,6 @@ export const postMember = async (req: HttpRequest, res: Response, next: NextFunc
 
         if (result) {
             await updateMemberProfile(req.body.address, req.solution.address);
-
             next(new HttpError(400, 'Address is member already.'));
             return;
         }
@@ -79,14 +83,9 @@ export const postMember = async (req: HttpRequest, res: Response, next: NextFunc
                 const memberid = event.args.member;
                 const address = await req.solution.getAddressByMember(memberid);
 
-                try {
-                    await updateMemberProfile(req.body.address, req.solution.address);
+                await updateMemberProfile(req.body.address, req.solution.address);
 
-                    res.redirect(`/${VERSION}/members/${address}`);
-                } catch (err) {
-                    next(new HttpError(502, 'Account profile update failed.', err));
-                    return;
-                }
+                res.redirect(`/${VERSION}/members/${address}`);
             } catch (err) {
                 next(new HttpError(500, 'Parse logs failed.', err));
                 return;

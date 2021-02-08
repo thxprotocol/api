@@ -123,6 +123,7 @@
         "deploy:token": "npx hardhat run scripts/deployExampleToken.ts --network default"
     },
     "dependencies": {
+        "@sendgrid/mail": "^7.4.2",
         "async": "^3.1.0",
         "axios": "^0.21.1",
         "bcrypt-nodejs": "^0.0.3",

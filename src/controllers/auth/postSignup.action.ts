@@ -51,6 +51,7 @@ export const postSignup = async (req: Request, res: Response, next: NextFunction
     const privateKey = wallet.privateKey;
     const address = await wallet.getAddress();
     const account = new Account({
+        address,
         privateKey,
         email: req.body.email,
         password: req.body.password,
