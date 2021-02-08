@@ -51,10 +51,6 @@ accountSchema.pre('save', function save(next) {
         return next();
     }
 
-    // Skip if the password has not been mofified. This will
-    // not be the case when save is executed first time
-    // Make sure to decrypt private key and encrypt again using
-    // new password if still stored in db
     if (account.privateKey.length) {
         account.privateKey = encryptString(account.privateKey, account.password);
     }

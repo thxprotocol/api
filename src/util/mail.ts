@@ -8,7 +8,10 @@ if (SENDGRID_API_KEY) {
 export const sendMail = (to: string, subject: string, html: string) => {
     const options = {
         to,
-        from: 'peter@thxprotocol.com',
+        from: {
+            email: 'peter@thxprotocol.com',
+            name: 'Peter Polman',
+        },
         subject,
         html,
     };

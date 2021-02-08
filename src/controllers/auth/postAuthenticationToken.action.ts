@@ -24,10 +24,6 @@ function createRandomToken() {
  *         in: body
  *         required: true
  *         type: string
- *       - name: password
- *         in: body
- *         required: true
- *         type: string
  *     responses:
  *       '200':
  *         description: OK
@@ -57,18 +53,6 @@ export const postAuthenticationToken = async (req: Request, res: Response, next:
             return;
         }
 
-        const { error, isMatch } = account.comparePassword(req.body.password);
-
-        if (error) {
-            next(new HttpError(500, 'Password comparison failed'));
-            return;
-        }
-
-        if (!isMatch) {
-            next(new HttpError(500, 'Password is incorrect'));
-            return;
-        }
-
         try {
             const authenticationToken = createRandomToken();
 
@@ -80,8 +64,21 @@ export const postAuthenticationToken = async (req: Request, res: Response, next:
             try {
                 await sendMail(
                     account.email,
-                    'Your one-time login link.',
-                    `<p>Hi!</p><p>This is a one-time login link you can use to access the temporary THX wallet setup to hold the assets for account <strong>${account.email}</strong>.</p><p><a href="${ORIGIN}/login?authentication_token=${account.authenticationToken}">${ORIGIN}/login?authentication_token=${account.authenticationToken}</a></p><p><strong>Valid for 10 minutes</strong></p><p>You will be prompted to provide a new password during authentication.</p><p>Sincerly,<br>The THX team.</p>`,
+                    'Get access to your THX wallet!',
+                    `
+                    <p style="font-size: 14px; color: black;">Hi!</p>
+                    <p style="font-size: 14px; color: black;">This link you can use to access the temporary THX wallet setup to hold the assets for account <strong>${account.email}</strong>.</p>
+                    <p></p>
+                    <p style="font-size: 14px; color: black;">
+                        <a style="display: inline-block; text-decoration: none; background-color: #ffe500; border: 1px solid #ffe500; padding: .7rem 1rem; font-size: 14px; border-radius: 3px; color: black; line-height: 1;" 
+                        href="${ORIGIN}/login?authentication_token=${account.authenticationToken}">
+                        Click here and enter code: <strong>${req.body.password}</strong>
+                        </a>
+                    </p>
+                    <p style="font-size: 12px; color: black;">Or copy this link (valid for 10 minutes):<br>
+                        <code>${ORIGIN}/login?authentication_token=${account.authenticationToken}</code>
+                    </p>
+                    `,
                 );
                 return res.json({ message: `E-mail sent to ${account.email}` });
             } catch (err) {

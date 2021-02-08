@@ -5,6 +5,7 @@ import { AccountDocument } from '../models/Account';
 import { Account } from '../models/Account';
 import { HttpError } from '../models/Error';
 import { ISSUER, SECURE_KEY } from '../util/secrets';
+import { decryptString } from '../util/decrypt';
 
 const oidc = new Provider(ISSUER, configuration as any);
 const router = express.Router();
@@ -80,7 +81,20 @@ router.post(
                     throw account;
                 }
 
-                return account._id.toString();
+                try {
+                    if (req.body.password !== req.body.passwordConfirm) {
+                        throw 'Passwords not equal.';
+                    }
+
+                    account.privateKey = decryptString(account.privateKey, req.body.accessCode);
+                    account.password = req.body.password;
+
+                    await account.save();
+
+                    return account._id.toString();
+                } catch (err) {
+                    return next(new HttpError(401, 'Private key can not be decrypted', err));
+                }
             } catch (err) {
                 next(new HttpError(401, 'Token is invalid or expired.', err));
                 return;

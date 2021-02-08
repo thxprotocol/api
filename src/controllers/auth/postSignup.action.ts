@@ -1,11 +1,7 @@
 import { Account } from '../../models/Account';
-import { Request, Response, NextFunction } from 'express';
+import { Response, NextFunction } from 'express';
 import { ethers } from 'ethers';
 import { HttpError, HttpRequest } from '../../models/Error';
-import { callAddMember, updateMemberProfile } from '../members/post.action';
-import { parseLogs } from 'src/util/events';
-import ISolutionArtifact from '../../../src/artifacts/contracts/contracts/interfaces/ISolution.sol/ISolution.json';
-import { VERSION } from 'src/util/secrets';
 
 /**
  * @swagger

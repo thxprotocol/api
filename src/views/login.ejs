@@ -31,7 +31,9 @@
     <main class="card card-white w-100" style="max-width: 300px">
         <div class="card-body">
             <h1 class="h4 text-center mb-3">
-                <strong>Login to THX</strong>
+                <% if (!params.authentication_token) { %>
+                    <strong>Login to THX</strong>
+                    <% } %>
             </h1>
             <form autocomplete="off" action="/interaction/<%= uid %>/login" method="post">
                 <% if (!params.authentication_token) { %>
@@ -41,13 +43,31 @@
                     <div class="form-group">
                         <input class="form-control" required type="password" name="password"
                                placeholder="Enter password">
-
                     </div>
                     <hr>
                     <% } else { %>
+                        <h1 class="h4 text-center mb-3">
+                            <strong>Personal code</strong>
+                        </h1>
+                        <div class="form-group">
+                            <input class="form-control" autocomplete="off" required type="text" name="accessCode"
+                                   placeholder="Enter code">
+                        </div>
+                        <hr>
+                        <h1 class="h4 text-center mb-3">
+                            <strong>Set a password</strong>
+                        </h1>
+                        <div class="form-group">
+                            <input class="form-control" autocomplete="off" required type="password" name="password"
+                                   placeholder="Enter password">
+                        </div>
+                        <div class="form-group">
+                            <input class="form-control" autocomplete="off" required type="password"
+                                   name="passwordConfirm" placeholder="Repeat password">
+                        </div>
                         <input type="hidden" name="token" value="<%= params.authentication_token %>" />
                         <% } %>
-                            <button type="submit" class="btn btn-primary btn-block">Sign-in</button>
+                            <button type="submit" class="btn btn-primary btn-block">Save</button>
             </form>
             <div class="login-help">
                 <a class="btn btn-block btn-link" href="/interaction/<%= uid %>/abort">Cancel</a>
