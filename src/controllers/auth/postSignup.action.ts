@@ -1,7 +1,11 @@
 import { Account } from '../../models/Account';
 import { Request, Response, NextFunction } from 'express';
 import { ethers } from 'ethers';
-import { HttpError } from '../../models/Error';
+import { HttpError, HttpRequest } from '../../models/Error';
+import { callAddMember, updateMemberProfile } from '../members/post.action';
+import { parseLogs } from 'src/util/events';
+import ISolutionArtifact from '../../../src/artifacts/contracts/contracts/interfaces/ISolution.sol/ISolution.json';
+import { VERSION } from 'src/util/secrets';
 
 /**
  * @swagger
@@ -46,7 +50,7 @@ import { HttpError } from '../../models/Error';
  *       '502':
  *         description: Bad Gateway. Received an invalid response from the network or database.
  */
-export const postSignup = async (req: Request, res: Response, next: NextFunction) => {
+export const postSignup = async (req: HttpRequest, res: Response, next: NextFunction) => {
     const wallet = ethers.Wallet.createRandom();
     const privateKey = wallet.privateKey;
     const address = await wallet.getAddress();
@@ -55,7 +59,16 @@ export const postSignup = async (req: Request, res: Response, next: NextFunction
         privateKey,
         email: req.body.email,
         password: req.body.password,
+        memberships: req.solution ? [req.solution.address] : [],
     });
+
+    if (req.solution) {
+        try {
+            await (await req.solution.addMember(address)).wait();
+        } catch (err) {
+            next(new HttpError(502, 'Asset Pool addMember failed.', err));
+        }
+    }
 
     try {
         const existingUser = await Account.findOne({ email: req.body.email });

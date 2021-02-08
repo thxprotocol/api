@@ -7,10 +7,11 @@ import { postForgot } from './postForgot.action';
 import { postReset } from './postReset.action';
 import { postAuthenticationToken } from './postAuthenticationToken.action';
 import checkScopes from 'express-jwt-authz';
+import { parseHeader } from '../../util/network';
 
 const router = express.Router();
 
-router.post('/signup', validate(validations.postSignup), checkScopes(['admin', 'user']), postSignup);
+router.post('/signup', validate(validations.postSignup), checkScopes(['admin', 'user']), parseHeader, postSignup);
 router.post(
     '/authentication_token',
     validate(validations.postAuthenticationToken),

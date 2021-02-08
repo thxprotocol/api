@@ -5,7 +5,7 @@ import { parseLogs } from '../../util/events';
 import { Account } from '../../models/Account';
 import ISolutionArtifact from '../../../src/artifacts/contracts/contracts/interfaces/ISolution.sol/ISolution.json';
 
-async function updateMemberProfile(address: string, poolAddress: string) {
+export async function updateMemberProfile(address: string, poolAddress: string) {
     try {
         const account = await Account.findOne({ address: address });
 
