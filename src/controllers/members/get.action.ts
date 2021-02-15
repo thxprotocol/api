@@ -1,6 +1,7 @@
 import { NextFunction, Response } from 'express';
 import { tokenContract } from '../../util/network';
 import { HttpError, HttpRequest } from '../../models/Error';
+import { ethers } from 'ethers';
 
 /**
  * @swagger
@@ -60,7 +61,8 @@ import { HttpError, HttpRequest } from '../../models/Error';
  */
 export const getMember = async (req: HttpRequest, res: Response, next: NextFunction) => {
     try {
-        const isMember = await req.solution.isMember(req.params.address);
+        const address = req.params.address;
+        const isMember = await req.solution.isMember(address);
 
         if (!isMember) {
             next(new HttpError(404, 'Address is not a member.'));
@@ -72,6 +74,7 @@ export const getMember = async (req: HttpRequest, res: Response, next: NextFunct
         const balance = await tokenInstance.balanceOf(req.params.address);
 
         res.json({
+            address,
             isMember,
             isManager: await req.solution.isManager(req.params.address),
             token: {

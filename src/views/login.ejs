@@ -30,13 +30,11 @@
 <body class="d-flex w-100 h-100 bg-light align-items-center justify-content-center">
     <main class="card card-white w-100" style="max-width: 300px">
         <div class="card-body">
-            <h1 class="h4 text-center mb-3">
-                <% if (!params.authentication_token) { %>
-                    <strong>Login to THX</strong>
-                    <% } %>
-            </h1>
             <form autocomplete="off" action="/interaction/<%= uid %>/login" method="post">
                 <% if (!params.authentication_token) { %>
+                    <h1 class="h4 text-center mb-3">
+                        <strong>Login to THX</strong>
+                    </h1>
                     <div class="form-group">
                         <input class="form-control" required type="email" name="email" placeholder="Enter e-mail">
                     </div>
@@ -46,14 +44,6 @@
                     </div>
                     <hr>
                     <% } else { %>
-                        <h1 class="h4 text-center mb-3">
-                            <strong>Personal code</strong>
-                        </h1>
-                        <div class="form-group">
-                            <input class="form-control" autocomplete="off" required type="text" name="accessCode"
-                                   placeholder="Enter code">
-                        </div>
-                        <hr>
                         <h1 class="h4 text-center mb-3">
                             <strong>Set a password</strong>
                         </h1>
@@ -65,7 +55,8 @@
                             <input class="form-control" autocomplete="off" required type="password"
                                    name="passwordConfirm" placeholder="Repeat password">
                         </div>
-                        <input type="hidden" name="token" value="<%= params.authentication_token %>" />
+                        <input type="hidden" name="authenticationToken" value="<%= params.authentication_token %>" />
+                        <input type="hidden" name="secureKey" value="<%= params.secure_key %>" />
                         <% } %>
                             <button type="submit" class="btn btn-primary btn-block">Save</button>
             </form>

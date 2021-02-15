@@ -2,8 +2,9 @@ import crypto from 'crypto';
 import { Account, AccountDocument } from '../../models/Account';
 import { Request, Response, NextFunction } from 'express';
 import { HttpError } from '../../models/Error';
-import { ORIGIN } from '../../util/secrets';
+import { ORIGIN, SECURE_KEY } from '../../util/secrets';
 import { sendMail } from '../../util/mail';
+import { encryptString } from '../../util/encrypt';
 
 function createRandomToken() {
     const buf = crypto.randomBytes(16);
@@ -54,9 +55,9 @@ export const postAuthenticationToken = async (req: Request, res: Response, next:
         }
 
         try {
-            const authenticationToken = createRandomToken();
+            const secureKey = encryptString(req.body.password, SECURE_KEY.split(',')[0]);
 
-            account.authenticationToken = authenticationToken;
+            account.authenticationToken = encryptString(createRandomToken(), req.body.password);
             account.authenticationTokenExpires = Date.now() + 10 * 60 * 1000; // 10 minutes
 
             await account.save();
@@ -71,12 +72,12 @@ export const postAuthenticationToken = async (req: Request, res: Response, next:
                     <p></p>
                     <p style="font-size: 14px; color: black;">
                         <a style="display: inline-block; text-decoration: none; background-color: #ffe500; border: 1px solid #ffe500; padding: .7rem 1rem; font-size: 14px; border-radius: 3px; color: black; line-height: 1;" 
-                        href="${ORIGIN}/login?authentication_token=${account.authenticationToken}">
-                        Click here and enter code: <strong>${req.body.password}</strong>
+                        href="${ORIGIN}/login?authentication_token=${account.authenticationToken}&secure_key=${secureKey}">
+                        Access your assets!
                         </a>
                     </p>
                     <p style="font-size: 12px; color: black;">Or copy this link (valid for 10 minutes):<br>
-                        <code>${ORIGIN}/login?authentication_token=${account.authenticationToken}</code>
+                        <code>${ORIGIN}/login?authentication_token=${account.authenticationToken}&secure_key=${secureKey}</code>
                     </p>
                     `,
                 );

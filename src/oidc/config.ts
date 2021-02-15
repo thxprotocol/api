@@ -32,7 +32,7 @@ export default {
             },
         };
     },
-    extraParams: ['authentication_token'],
+    extraParams: ['authentication_token', 'secure_key'],
     claims: {
         openid: ['sub'],
         admin: ['admin'],

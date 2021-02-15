@@ -70,9 +70,9 @@ router.post(
     '/interaction/:uid/login',
     urlencoded({ extended: false }),
     async (req: Request, res: Response, next: NextFunction) => {
-        async function getSubForToken(token: string) {
+        async function getSubForToken(authenticationToken: string, secureKey: string) {
             try {
-                const account: AccountDocument = await Account.findOne({ authenticationToken: token })
+                const account: AccountDocument = await Account.findOne({ authenticationToken })
                     .where('authenticationTokenExpires')
                     .gt(Date.now())
                     .exec();
@@ -86,7 +86,9 @@ router.post(
                         throw 'Passwords not equal.';
                     }
 
-                    account.privateKey = decryptString(account.privateKey, req.body.accessCode);
+                    const oldPassword = decryptString(secureKey, SECURE_KEY.split(',')[0]);
+
+                    account.privateKey = decryptString(account.privateKey, oldPassword);
                     account.password = req.body.password;
 
                     await account.save();
@@ -96,8 +98,7 @@ router.post(
                     return next(new HttpError(401, 'Private key can not be decrypted', err));
                 }
             } catch (err) {
-                next(new HttpError(401, 'Token is invalid or expired.', err));
-                return;
+                return next(new HttpError(401, 'Token is invalid or expired.', err));
             }
         }
 
@@ -121,23 +122,22 @@ router.post(
 
                 return account._id.toString();
             } catch (err) {
-                next(new HttpError(400, 'Comparing passwords failed.', err));
-                return;
+                return next(new HttpError(400, 'Comparing passwords failed.', err));
             }
         }
 
         try {
             const result = {
                 login: {
-                    account: req.body.token
-                        ? await getSubForToken(req.body.token)
+                    account: req.body.authenticationToken
+                        ? await getSubForToken(req.body.authenticationToken, req.body.secureKey)
                         : await getSubForCredentials(req.body.email, req.body.password),
                 },
             };
 
             await oidc.interactionFinished(req, res, result, { mergeWithLastSubmission: true });
         } catch (err) {
-            next(new HttpError(502, 'Account read failed.', err));
+            return next(new HttpError(502, 'Account read failed.', err));
         }
     },
 );
