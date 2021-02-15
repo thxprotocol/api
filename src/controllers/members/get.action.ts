@@ -65,8 +65,7 @@ export const getMember = async (req: HttpRequest, res: Response, next: NextFunct
         const isMember = await req.solution.isMember(address);
 
         if (!isMember) {
-            next(new HttpError(404, 'Address is not a member.'));
-            return;
+            return next(new HttpError(404, 'Address is not a member.'));
         }
 
         const tokenAddress = await req.solution.getToken();
