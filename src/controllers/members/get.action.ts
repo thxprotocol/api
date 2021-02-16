@@ -1,7 +1,8 @@
 import { NextFunction, Response } from 'express';
-import { tokenContract } from '../../util/network';
+import { provider, tokenContract } from '../../util/network';
 import { HttpError, HttpRequest } from '../../models/Error';
-import { ethers } from 'ethers';
+import { parseLogs } from '../../util/events';
+import IDefaultDiamondArtifact from '../../artifacts/contracts/contracts/IDefaultDiamond.sol/IDefaultDiamond.json';
 
 /**
  * @swagger
@@ -61,14 +62,19 @@ import { ethers } from 'ethers';
  */
 export const getMember = async (req: HttpRequest, res: Response, next: NextFunction) => {
     try {
-        const address = req.params.address;
+        let address = req.params.address;
         const isMember = await req.solution.isMember(address);
 
         if (!isMember) {
-            // search for MemberAddressChanged event
-            // return if no result
-            return next(new HttpError(404, 'Address is not a member.'));
-            // else override address const
+            const filter = req.solution.filters.MemberAddressChanged(null, req.params.address, null);
+            const logs = await provider.getLogs(filter);
+            const events = await parseLogs(IDefaultDiamondArtifact.abi, logs);
+
+            if (!events.length) {
+                return next(new HttpError(404, 'Address is not a member.'));
+            }
+
+            address = events[events.length - 1].args.newAddress;
         }
 
         const tokenAddress = await req.solution.getToken();

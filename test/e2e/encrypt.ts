@@ -135,5 +135,15 @@ describe('Encryption', () => {
                     done();
                 });
         });
+
+        it('HTTP 200 show new member address for old member address', async (done) => {
+            user.get('/v1/members/' + tempAddress)
+                .set({ AssetPool: poolAddress, Authorization: userAccessToken })
+                .end((err, res) => {
+                    expect(res.status).toBe(200);
+                    expect(res.body.address).toBe(newAddress);
+                    done();
+                });
+        });
     });
 });
