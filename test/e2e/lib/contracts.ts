@@ -1,21 +1,41 @@
-import { admin } from './network';
-import { Contract, ethers, utils } from 'ethers';
+import dotenv from 'dotenv';
 
-import ExampleTokenArtifact from '../../../src/artifacts/contracts/contracts/ExampleToken.sol/ExampleToken.json';
-import AssetPoolFacetArtifact from '../../../src/artifacts/contracts/contracts/facets/AssetPoolFacet/AssetPoolFacet.sol/AssetPoolFacet.json';
-import AssetPoolFacetViewArtifact from '../../../src/artifacts/contracts/contracts/facets/AssetPoolFacet/AssetPoolFacetView.sol/AssetPoolFacetView.json';
-import RolesFacetArtifact from '../../../src/artifacts/contracts/contracts/facets/RolesFacet/RolesFacet.sol/RolesFacet.json';
+import { Contract, ethers, utils } from 'ethers/lib';
+
+import AccessControlArtifact from '../../../src/artifacts/contracts/contracts/01-AccessControl/AccessControl.sol/AccessControl.json';
+import MemberAccessArtifact from '../../../src/artifacts/contracts/contracts/03-MemberAccess/MemberAccess.sol/MemberAccess.json';
+import TokenArtifact from '../../../src/artifacts/contracts/contracts/04-Token/Token.sol/Token.json';
+import BasePollProxyArtifact from '../../../src/artifacts/contracts/contracts/08-BasePoll/BasePollProxy.sol/BasePollProxy.json';
+import GasStationArtifact from '../../../src/artifacts/contracts/contracts/07-GasStation/GasStation.sol/GasStationFacet.json';
+import WithdrawArtifact from '../../../src/artifacts/contracts/contracts/05-Withdraw/Withdraw.sol/Withdraw.json';
+import WithdrawPollArtifact from '../../../src/artifacts/contracts/contracts/05-Withdraw/WithdrawPoll.sol/WithdrawPoll.json';
+import WithdrawPollProxyArtifact from '../../../src/artifacts/contracts/contracts/05-Withdraw/WithdrawPollProxy.sol/WithdrawPollProxy.json';
+import WithdrawByArtifact from '../../../src/artifacts/contracts/contracts/09-WithdrawBypass/WithdrawBy.sol/WithdrawBy.json';
+import WithdrawByPollArtifact from '../../../src/artifacts/contracts/contracts/09-WithdrawBypass/WithdrawByPoll.sol/WithdrawByPoll.json';
+import WithdrawByPollProxyArtifact from '../../../src/artifacts/contracts/contracts/09-WithdrawBypass/WithdrawByPollProxy.sol/WithdrawByPollProxy.json';
+import RewardArtifact from '../../../src/artifacts/contracts/contracts/06-Reward/Reward.sol/Reward.json';
+import RewardPollArtifact from '../../../src/artifacts/contracts/contracts/06-Reward/RewardPoll.sol/RewardPoll.json';
+import RewardPollProxyArtifact from '../../../src/artifacts/contracts/contracts/06-Reward/RewardPollProxy.sol/RewardPollProxy.json';
+import RewardByArtifact from '../../../src/artifacts/contracts/contracts/10-RewardBypass/RewardBy.sol/RewardBy.json';
+import RewardByPollArtifact from '../../../src/artifacts/contracts/contracts/10-RewardBypass/RewardByPoll.sol/RewardByPoll.json';
+import RewardByPollProxyArtifact from '../../../src/artifacts/contracts/contracts/10-RewardBypass/RewardByPollProxy.sol/RewardByPollProxy.json';
 import DiamondCutFacetArtifact from '../../../src/artifacts/diamond-2/contracts/facets/DiamondCutFacet.sol/DiamondCutFacet.json';
 import DiamondLoupeFacetArtifact from '../../../src/artifacts/diamond-2/contracts/facets/DiamondLoupeFacet.sol/DiamondLoupeFacet.json';
 import OwnershipFacetArtifact from '../../../src/artifacts/diamond-2/contracts/facets/OwnershipFacet.sol/OwnershipFacet.json';
-import GasStationFacetArtifact from '../../../src/artifacts/contracts/contracts/facets/GasStationFacet/GasStation.sol/GasStationFacet.json';
-import RewardPollFacetArtifact from '../../../src/artifacts/contracts/contracts/facets/PollFacet/RewardPollFacet.sol/RewardPollFacet.json';
-import RewardPollProxyFacetArtifact from '../../../src/artifacts/contracts/contracts/facets/PollFacet/RewardPollProxyFacet.sol/RewardPollProxyFacet.json';
-import WithdrawPollFacetArtifact from '../../../src/artifacts/contracts/contracts/facets/PollFacet/WithdrawPollFacet.sol/WithdrawPollFacet.json';
-import WithdrawPollProxyFacetArtifact from '../../../src/artifacts/contracts/contracts/facets/PollFacet/WithdrawPollProxyFacet.sol/WithdrawPollProxyFacet.json';
-import PollProxyFacetArtifact from '../../../src/artifacts/contracts/contracts/facets/PollFacet/PollProxyFacet.sol/PollProxyFacet.json';
-import UpdateDiamondFacetArtifact from '../../../src/artifacts/contracts/contracts/factories/UpdateDiamondFacet.sol/UpdateDiamondFacet.json';
-import AssetPoolFactoryArtifact from '../../../src/artifacts/contracts/contracts/factories/AssetPoolFactory.sol/AssetPoolFactory.json';
+import UpdateDiamondFacetArtifact from '../../../src/artifacts/contracts/contracts/11-UpdateDiamond/UpdateDiamond.sol/UpdateDiamond.json';
+import AssetPoolFactoryArtifact from '../../../src/artifacts/contracts/contracts/AssetPoolFactory.sol/AssetPoolFactory.json';
+import ExampleTokenArtifact from '../../../src/artifacts/contracts/contracts/util/ExampleToken.sol/ExampleToken.json';
+
+const env = process.env.NODE_ENV;
+
+if (env) {
+    dotenv.config({ path: `.env.${env === 'test' ? 'example' : env}` });
+} else {
+    dotenv.config({ path: '.env' });
+}
+
+const provider = new ethers.providers.JsonRpcProvider(process.env.PUBLIC_RPC);
+const admin = new ethers.Wallet(process.env.PRIVATE_KEY, provider);
 
 export const exampleTokenFactory = new ethers.ContractFactory(
     ExampleTokenArtifact.abi,
@@ -24,183 +44,140 @@ export const exampleTokenFactory = new ethers.ContractFactory(
 );
 
 export const getAssetPoolFactory = async () => {
+    const GasStation = new ethers.ContractFactory(GasStationArtifact.abi, GasStationArtifact.bytecode, admin);
+    const GasStationFacet = await GasStation.deploy();
+
+    const AccessControl = new ethers.ContractFactory(AccessControlArtifact.abi, AccessControlArtifact.bytecode, admin);
+    const AccessControlFacet = await AccessControl.deploy();
+
+    const MemberAccess = new ethers.ContractFactory(MemberAccessArtifact.abi, MemberAccessArtifact.bytecode, admin);
+    const MemberAccessFacet = await MemberAccess.deploy();
+
+    const Token = new ethers.ContractFactory(TokenArtifact.abi, TokenArtifact.bytecode, admin);
+    const TokenFacet = await Token.deploy();
+
+    const BasePollProxy = new ethers.ContractFactory(BasePollProxyArtifact.abi, BasePollProxyArtifact.bytecode, admin);
+    const BasePollProxyFacet = await BasePollProxy.deploy();
+
+    const Withdraw = new ethers.ContractFactory(WithdrawArtifact.abi, WithdrawArtifact.bytecode, admin);
+    const WithdrawFacet = await Withdraw.deploy();
+
+    const WithdrawPoll = new ethers.ContractFactory(WithdrawPollArtifact.abi, WithdrawPollArtifact.bytecode, admin);
+    const WithdrawPollFacet = await WithdrawPoll.deploy();
+
+    const WithdrawPollProxy = new ethers.ContractFactory(
+        WithdrawPollProxyArtifact.abi,
+        WithdrawPollProxyArtifact.bytecode,
+        admin,
+    );
+    const WithdrawPollProxyFacet = await WithdrawPollProxy.deploy();
+
+    const WithdrawBy = new ethers.ContractFactory(WithdrawByArtifact.abi, WithdrawByArtifact.bytecode, admin);
+    const WithdrawByFacet = await WithdrawBy.deploy();
+
+    const WithdrawByPoll = new ethers.ContractFactory(
+        WithdrawByPollArtifact.abi,
+        WithdrawByPollArtifact.bytecode,
+        admin,
+    );
+    const WithdrawByPollFacet = await WithdrawByPoll.deploy();
+
+    const WithdrawByPollProxy = new ethers.ContractFactory(
+        WithdrawByPollProxyArtifact.abi,
+        WithdrawByPollProxyArtifact.bytecode,
+        admin,
+    );
+    const WithdrawByPollProxyFacet = await WithdrawByPollProxy.deploy();
+
+    const Reward = new ethers.ContractFactory(RewardArtifact.abi, RewardArtifact.bytecode, admin);
+    const RewardFacet = await Reward.deploy();
+
+    const RewardPoll = new ethers.ContractFactory(RewardPollArtifact.abi, RewardPollArtifact.bytecode, admin);
+    const RewardPollFacet = await RewardPoll.deploy();
+
+    const RewardPollProxy = new ethers.ContractFactory(
+        RewardPollProxyArtifact.abi,
+        RewardPollProxyArtifact.bytecode,
+        admin,
+    );
+    const RewardPollProxyFacet = await RewardPollProxy.deploy();
+
+    const RewardBy = new ethers.ContractFactory(RewardByArtifact.abi, RewardByArtifact.bytecode, admin);
+    const RewardByFacet = await RewardBy.deploy();
+
+    const RewardByPoll = new ethers.ContractFactory(RewardByPollArtifact.abi, RewardByPollArtifact.bytecode, admin);
+    const RewardByPollFacet = await RewardByPoll.deploy();
+
+    const RewardByPollProxy = new ethers.ContractFactory(
+        RewardByPollProxyArtifact.abi,
+        RewardByPollProxyArtifact.bytecode,
+        admin,
+    );
+    const RewardByPollProxyFacet = await RewardByPollProxy.deploy();
+
+    const DiamondCut = new ethers.ContractFactory(DiamondCutFacetArtifact.abi, DiamondCutFacetArtifact.bytecode, admin);
+    const DiamondCutFacet = await DiamondCut.deploy();
+
+    const DiamondLoupe = new ethers.ContractFactory(
+        DiamondLoupeFacetArtifact.abi,
+        DiamondLoupeFacetArtifact.bytecode,
+        admin,
+    );
+    const DiamondLoupeFacet = await DiamondLoupe.deploy();
+
+    const Ownership = new ethers.ContractFactory(OwnershipFacetArtifact.abi, OwnershipFacetArtifact.bytecode, admin);
+    const OwnershipFacet = await Ownership.deploy();
+
+    const UpdateDiamond = new ethers.ContractFactory(
+        UpdateDiamondFacetArtifact.abi,
+        UpdateDiamondFacetArtifact.bytecode,
+        admin,
+    );
+    const UpdateDiamondFacet = await UpdateDiamond.deploy();
+
     const FacetCutAction = {
         Add: 0,
         Replace: 1,
         Remove: 2,
     };
+
     const getSelectors = function (contract: Contract) {
         const signatures = [];
         for (const key of Object.keys(contract.functions)) {
             signatures.push(utils.keccak256(utils.toUtf8Bytes(key)).substr(0, 10));
         }
-
         return signatures;
     };
 
-    const AssetPoolFacet = new ethers.ContractFactory(
-        AssetPoolFacetArtifact.abi,
-        AssetPoolFacetArtifact.bytecode,
-        admin,
-    );
-    const AssetPoolFacetView = new ethers.ContractFactory(
-        AssetPoolFacetViewArtifact.abi,
-        AssetPoolFacetViewArtifact.bytecode,
-        admin,
-    );
-    const RolesFacet = new ethers.ContractFactory(RolesFacetArtifact.abi, RolesFacetArtifact.bytecode, admin);
-    const DiamondCutFacet = new ethers.ContractFactory(
-        DiamondCutFacetArtifact.abi,
-        DiamondCutFacetArtifact.bytecode,
-        admin,
-    );
-    const DiamondLoupeFacet = new ethers.ContractFactory(
-        DiamondLoupeFacetArtifact.abi,
-        DiamondLoupeFacetArtifact.bytecode,
-        admin,
-    );
-    const OwnershipFacet = new ethers.ContractFactory(
-        OwnershipFacetArtifact.abi,
-        OwnershipFacetArtifact.bytecode,
-        admin,
-    );
-    const GasStationFacet = new ethers.ContractFactory(
-        GasStationFacetArtifact.abi,
-        GasStationFacetArtifact.bytecode,
-        admin,
-    );
-    const RewardPollFacet = new ethers.ContractFactory(
-        RewardPollFacetArtifact.abi,
-        RewardPollFacetArtifact.bytecode,
-        admin,
-    );
-    const RewardPollProxyFacet = new ethers.ContractFactory(
-        RewardPollProxyFacetArtifact.abi,
-        RewardPollProxyFacetArtifact.bytecode,
-        admin,
-    );
-    const WithdrawPollFacet = new ethers.ContractFactory(
-        WithdrawPollFacetArtifact.abi,
-        WithdrawPollFacetArtifact.bytecode,
-        admin,
-    );
-    const WithdrawPollProxyFacet = new ethers.ContractFactory(
-        WithdrawPollProxyFacetArtifact.abi,
-        WithdrawPollProxyFacetArtifact.bytecode,
-        admin,
-    );
-    const PollProxyFacet = new ethers.ContractFactory(
-        PollProxyFacetArtifact.abi,
-        PollProxyFacetArtifact.bytecode,
-        admin,
-    );
-    const UpdateDiamondFacet = new ethers.ContractFactory(
-        UpdateDiamondFacetArtifact.abi,
-        UpdateDiamondFacetArtifact.bytecode,
-        admin,
-    );
+    const facets = [
+        AccessControlFacet,
+        MemberAccessFacet,
+        TokenFacet,
+        BasePollProxyFacet,
+        WithdrawFacet,
+        WithdrawPollFacet,
+        WithdrawPollProxyFacet,
+        RewardFacet,
+        RewardPollFacet,
+        RewardPollProxyFacet,
+        DiamondCutFacet,
+        DiamondLoupeFacet,
+        OwnershipFacet,
+        GasStationFacet,
+        UpdateDiamondFacet,
+    ];
+    const diamondCut: any[] = [];
+    facets.forEach((facet) => {
+        diamondCut.push({
+            action: FacetCutAction.Add,
+            facetAddress: facet.address,
+            functionSelectors: getSelectors(facet),
+        });
+    });
     const AssetPoolFactory = new ethers.ContractFactory(
         AssetPoolFactoryArtifact.abi,
         AssetPoolFactoryArtifact.bytecode,
         admin,
     );
-
-    const assetPoolFacet = await AssetPoolFacet.deploy();
-    const updateDiamondFacet = await UpdateDiamondFacet.deploy();
-    const assetPoolFacetView = await AssetPoolFacetView.deploy();
-    const rolesFacet = await RolesFacet.deploy();
-    const diamondCutFacet = await DiamondCutFacet.deploy();
-    const diamondLoupeFacet = await DiamondLoupeFacet.deploy();
-    const ownershipFacet = await OwnershipFacet.deploy();
-    const gasStationFacet = await GasStationFacet.deploy();
-    const rewardPollFacet = await RewardPollFacet.deploy();
-    const rewardPollProxyFacet = await RewardPollProxyFacet.deploy();
-    const withdrawPollFacet = await WithdrawPollFacet.deploy();
-    const withdrawPollProxyFacet = await WithdrawPollProxyFacet.deploy();
-    const pollProxyFacet = await PollProxyFacet.deploy();
-
-    const diamondCut = [
-        {
-            action: FacetCutAction.Add,
-            facetAddress: assetPoolFacet.address,
-            functionSelectors: getSelectors(assetPoolFacet),
-        },
-        {
-            action: FacetCutAction.Add,
-            facetAddress: diamondCutFacet.address,
-            functionSelectors: getSelectors(diamondCutFacet),
-        },
-        {
-            action: FacetCutAction.Add,
-            facetAddress: diamondLoupeFacet.address,
-            functionSelectors: getSelectors(diamondLoupeFacet),
-        },
-        {
-            action: FacetCutAction.Add,
-            facetAddress: ownershipFacet.address,
-            functionSelectors: getSelectors(ownershipFacet),
-        },
-        {
-            action: FacetCutAction.Add,
-            facetAddress: gasStationFacet.address,
-            functionSelectors: getSelectors(gasStationFacet),
-        },
-        {
-            action: FacetCutAction.Add,
-            facetAddress: rewardPollFacet.address,
-            functionSelectors: getSelectors(rewardPollFacet),
-        },
-        {
-            action: FacetCutAction.Add,
-            facetAddress: rewardPollProxyFacet.address,
-            functionSelectors: getSelectors(rewardPollProxyFacet),
-        },
-        {
-            action: FacetCutAction.Add,
-            facetAddress: withdrawPollProxyFacet.address,
-            functionSelectors: getSelectors(withdrawPollProxyFacet),
-        },
-        {
-            action: FacetCutAction.Add,
-            facetAddress: withdrawPollFacet.address,
-            functionSelectors: getSelectors(withdrawPollFacet),
-        },
-        {
-            action: FacetCutAction.Add,
-            facetAddress: pollProxyFacet.address,
-            functionSelectors: getSelectors(pollProxyFacet),
-        },
-        {
-            action: FacetCutAction.Add,
-            facetAddress: assetPoolFacetView.address,
-            functionSelectors: getSelectors(assetPoolFacetView),
-        },
-        {
-            action: FacetCutAction.Add,
-            facetAddress: rolesFacet.address,
-            functionSelectors: getSelectors(rolesFacet),
-        },
-        {
-            action: FacetCutAction.Add,
-            facetAddress: updateDiamondFacet.address,
-            functionSelectors: getSelectors(updateDiamondFacet),
-        },
-    ];
-    const all: any[] = [];
-    for (const facet in diamondCut) {
-        for (const func in diamondCut[facet].functionSelectors) {
-            const elem = diamondCut[facet].functionSelectors[func];
-            if (all.includes(elem)) {
-                console.error('facet', facet, 'func', elem);
-                for (const key of Object.keys(rewardPollFacet.functions)) {
-                    console.error(key);
-                    console.error(utils.keccak256(utils.toUtf8Bytes(key)).substr(0, 10));
-                }
-                break;
-            }
-            all.push(elem);
-        }
-    }
-
     return { AssetPoolFactory, diamondCut };
 };

@@ -1,12 +1,12 @@
-import ISolutionArtifact from '../../../src/artifacts/contracts/contracts/interfaces/ISolution.sol/ISolution.json';
-
+import IDefaultDiamondArtifact from '../../../src/artifacts/contracts/contracts/IDefaultDiamond.sol/IDefaultDiamond.json';
 import Web3 from 'web3';
 import { ethers, Wallet } from 'ethers';
 import { PRIVATE_KEY, RPC } from '../../../src/util/secrets';
 import { VOTER_PK } from './constants';
 
 const provider = new ethers.providers.JsonRpcProvider(RPC);
-const solutionContract = (address: string) => new ethers.Contract(address, ISolutionArtifact.abi, provider.getSigner());
+const solutionContract = (address: string) =>
+    new ethers.Contract(address, IDefaultDiamondArtifact.abi, provider.getSigner());
 
 export const admin = new ethers.Wallet(PRIVATE_KEY, provider);
 export const voter = new ethers.Wallet(VOTER_PK, provider);

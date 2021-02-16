@@ -1,5 +1,6 @@
 import { ethers } from 'ethers';
-import GasStationFacetArtifact from '../artifacts/contracts/contracts/facets/GasStationFacet/GasStation.sol/GasStationFacet.json';
+
+import IDefaultDiamondArtifact from '../artifacts/contracts/contracts/IDefaultDiamond.sol/IDefaultDiamond.json';
 
 export const events = async (tx: any) => {
     tx = await tx;
@@ -32,7 +33,7 @@ export function parseLogs(abi: any, logs: any = []) {
 }
 
 export async function parseResultLog(abi: any, logs: any) {
-    const gasStationInterface = new ethers.utils.Interface(GasStationFacetArtifact.abi);
+    const gasStationInterface = new ethers.utils.Interface(IDefaultDiamondArtifact.abi);
     const event = gasStationInterface.parseLog(logs[logs.length - 1]);
 
     if (event.args.success) {

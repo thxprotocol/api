@@ -65,7 +65,10 @@ export const getMember = async (req: HttpRequest, res: Response, next: NextFunct
         const isMember = await req.solution.isMember(address);
 
         if (!isMember) {
+            // search for MemberAddressChanged event
+            // return if no result
             return next(new HttpError(404, 'Address is not a member.'));
+            // else override address const
         }
 
         const tokenAddress = await req.solution.getToken();

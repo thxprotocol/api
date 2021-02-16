@@ -52,8 +52,7 @@ export const patchAssetPool = async (req: HttpRequest, res: Response, next: Next
         try {
             await req.solution.setRewardPollDuration(req.body.rewardPollDuration);
         } catch (error) {
-            next(new HttpError(502, 'Asset Pool setRewardPollDuration failed.', error));
-            return;
+            return next(new HttpError(502, 'Asset Pool setRewardPollDuration failed.', error));
         }
     }
 
@@ -65,8 +64,7 @@ export const patchAssetPool = async (req: HttpRequest, res: Response, next: Next
         try {
             await req.solution.setProposeWithdrawPollDuration(req.body.proposeWithdrawPollDuration);
         } catch (error) {
-            next(new HttpError(502, 'Asset Pool setProposeWithdrawPollDuration failed.', error));
-            return;
+            return next(new HttpError(502, 'Asset Pool setProposeWithdrawPollDuration failed.', error));
         }
     }
 

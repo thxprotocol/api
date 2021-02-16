@@ -3,7 +3,7 @@ import { HttpRequest, HttpError } from '../../models/Error';
 import { VERSION } from '../../util/secrets';
 import { parseLogs } from '../../util/events';
 import { Account } from '../../models/Account';
-import ISolutionArtifact from '../../../src/artifacts/contracts/contracts/interfaces/ISolution.sol/ISolution.json';
+import IDefaultDiamondArtifact from '../../../src/artifacts/contracts/contracts/IDefaultDiamond.sol/IDefaultDiamond.json';
 
 export async function updateMemberProfile(address: string, poolAddress: string) {
     try {
@@ -70,30 +70,27 @@ export const postMember = async (req: HttpRequest, res: Response, next: NextFunc
 
         if (result) {
             await updateMemberProfile(req.body.address, req.solution.address);
-            next(new HttpError(400, 'Address is member already.'));
-            return;
+            return next(new HttpError(400, 'Address is member already.'));
         }
 
         try {
             const tx = await (await req.solution.addMember(req.body.address)).wait();
 
             try {
-                const events = await parseLogs(ISolutionArtifact.abi, tx.logs);
+                const events = await parseLogs(IDefaultDiamondArtifact.abi, tx.logs);
                 const event = events.filter((e: { name: string }) => e && e.name === 'RoleGranted')[0];
-                const memberid = event.args.member;
-                const address = await req.solution.getAddressByMember(memberid);
+                const address = event.args.account;
 
                 await updateMemberProfile(req.body.address, req.solution.address);
 
                 res.redirect(`/${VERSION}/members/${address}`);
             } catch (err) {
-                next(new HttpError(500, 'Parse logs failed.', err));
-                return;
+                return next(new HttpError(500, 'Parse logs failed.', err));
             }
         } catch (err) {
-            next(new HttpError(502, 'Asset Pool addMember failed.', err));
+            return next(new HttpError(502, 'Asset Pool addMember failed.', err));
         }
     } catch (err) {
-        next(new HttpError(502, 'Asset Pool isMember failed.', err));
+        return next(new HttpError(502, 'Asset Pool isMember failed.', err));
     }
 };

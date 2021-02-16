@@ -51,7 +51,7 @@ export const postAssetPool = async (req: HttpRequest, res: Response, next: NextF
         }
 
         const audience = req.user.aud;
-        const ev = await events(await assetPoolFactory.deployAssetPool(admin.address, admin.address, req.body.token));
+        const ev = await events(await assetPoolFactory.deployAssetPool());
         const event = ev.find((e: { event: string }) => e.event === 'AssetPoolDeployed');
 
         if (!event) {
@@ -60,7 +60,10 @@ export const postAssetPool = async (req: HttpRequest, res: Response, next: NextF
 
         const solution = solutionContract(event.args.assetPool);
 
-        await solution.setSigning(true);
+        await (await solution.initializeRoles(await admin.getAddress())).wait();
+        await (await solution.initializeGasStation(await admin.getAddress())).wait();
+        await (await solution.addToken(req.body.token)).wait();
+        await (await solution.setSigning(true)).wait();
 
         await updateToBypassPolls(solution);
 

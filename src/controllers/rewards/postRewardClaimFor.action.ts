@@ -1,7 +1,8 @@
 import { Response, NextFunction } from 'express';
 import { HttpError, HttpRequest } from '../../models/Error';
-import ISolutionArtifact from '../../../src/artifacts/contracts/contracts/interfaces/ISolution.sol/ISolution.json';
+import IDefaultDiamondArtifact from '../../../src/artifacts/contracts/contracts/IDefaultDiamond.sol/IDefaultDiamond.json';
 import { parseLogs } from '../../util/events';
+
 /**
  * @swagger
  * /rewards/:id/give:
@@ -56,7 +57,7 @@ export const postRewardClaimFor = async (req: HttpRequest, res: Response, next: 
             const tx = await (await req.solution.claimRewardFor(req.params.id, req.body.member)).wait();
 
             try {
-                const logs = await parseLogs(ISolutionArtifact.abi, tx.logs);
+                const logs = await parseLogs(IDefaultDiamondArtifact.abi, tx.logs);
                 const event = logs.filter((e: { name: string }) => e && e.name === 'WithdrawPollCreated')[0];
                 const withdrawPoll = event.args.id.toNumber();
 

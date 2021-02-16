@@ -4,13 +4,14 @@ import { Contract, ContractFactory, ethers, utils } from 'ethers';
 import { isAddress } from 'ethers/lib/utils';
 import { HttpRequest } from '../models/Error';
 
-import AssetPoolFactoryArtifact from '../artifacts/contracts/contracts/factories/AssetPoolFactory.sol/AssetPoolFactory.json';
-import ISolutionArtifact from '../artifacts/contracts/contracts/interfaces/ISolution.sol/ISolution.json';
+import AssetPoolFactoryArtifact from '../artifacts/contracts/contracts/AssetPoolFactory.sol/AssetPoolFactory.json';
+import ISolutionArtifact from '../artifacts/contracts/contracts/IDefaultDiamond.sol/IDefaultDiamond.json';
 import ERC20Artifact from '../artifacts/@openzeppelin/contracts/token/ERC20/ERC20.sol/ERC20.json';
-import WithdrawPollFacetBypassArtifact from '../artifacts/contracts/contracts/facets/PollFacet/WithdrawPollFacetBypass.sol/WithdrawPollFacetBypass.json';
-import RewardPollFacetBypassArtifact from '../artifacts/contracts/contracts/facets/PollFacet/RewardPollFacetBypass.sol/RewardPollFacetBypass.json';
-import WithdrawPollFacetArtifact from '../artifacts/contracts/contracts/facets/PollFacet/WithdrawPollFacet.sol/WithdrawPollFacet.json';
-import RewardPollFacetArtifact from '../artifacts/contracts/contracts/facets/PollFacet/RewardPollFacet.sol/RewardPollFacet.json';
+
+import WithdrawPollFacetBypassArtifact from '../artifacts/contracts/contracts/09-WithdrawBypass/WithdrawByPoll.sol/WithdrawByPoll.json';
+import RewardPollFacetBypassArtifact from '../artifacts/contracts/contracts/10-RewardBypass/RewardByPoll.sol/RewardByPoll.json';
+import WithdrawPollFacetArtifact from '../artifacts/contracts/contracts/05-Withdraw/WithdrawPoll.sol/WithdrawPoll.json';
+import RewardPollFacetArtifact from '../artifacts/contracts/contracts/06-Reward/Reward.sol/Reward.json';
 
 export const provider = new ethers.providers.JsonRpcProvider(RPC);
 export const admin = new ethers.Wallet(PRIVATE_KEY, provider);

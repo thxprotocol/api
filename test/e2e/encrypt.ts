@@ -109,7 +109,12 @@ describe('Encryption', () => {
 
     describe('POST /gas_station/upgrade_address ', () => {
         it('HTTP 200 success', async (done) => {
-            const { call, nonce, sig } = await signMethod(poolAddress, 'upgradeAddress', [newAddress], decryptedWallet);
+            const { call, nonce, sig } = await signMethod(
+                poolAddress,
+                'upgradeAddress',
+                [tempAddress, newAddress],
+                decryptedWallet,
+            );
 
             user.post('/v1/gas_station/upgrade_address')
                 .set({ AssetPool: poolAddress, Authorization: userAccessToken })

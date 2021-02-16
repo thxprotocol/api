@@ -1,7 +1,7 @@
 import { Response, NextFunction } from 'express';
 import { VERSION } from '../../util/secrets';
 import { HttpError, HttpRequest } from '../../models/Error';
-import ISolutionArtifact from '../../../src/artifacts/contracts/contracts/interfaces/ISolution.sol/ISolution.json';
+import IDefaultDiamondArtifact from '../../../src/artifacts/contracts/contracts/IDefaultDiamond.sol/IDefaultDiamond.json';
 import { parseResultLog } from '../../util/events';
 
 export const postCallWithdrawalWithdraw = async (req: HttpRequest, res: Response, next: NextFunction) => {
@@ -9,7 +9,7 @@ export const postCallWithdrawalWithdraw = async (req: HttpRequest, res: Response
         const tx = await (await req.solution.call(req.body.call, req.body.nonce, req.body.sig)).wait();
 
         try {
-            const { error, logs } = await parseResultLog(ISolutionArtifact.abi, tx.logs);
+            const { error, logs } = await parseResultLog(IDefaultDiamondArtifact.abi, tx.logs);
 
             if (error) {
                 throw error;

@@ -2,7 +2,8 @@ import { Response, NextFunction } from 'express';
 import { Reward } from '../../models/Reward';
 import { HttpError, HttpRequest } from '../../models/Error';
 import { VERSION } from '../../util/secrets';
-import ISolutionArtifact from '../../../src/artifacts/contracts/contracts/interfaces/ISolution.sol/ISolution.json';
+import IDefaultDiamondArtifact from '../../../src/artifacts/contracts/contracts/IDefaultDiamond.sol/IDefaultDiamond.json';
+
 import { parseLogs } from '../../util/events';
 /**
  * @swagger
@@ -58,7 +59,7 @@ export const postReward = async (req: HttpRequest, res: Response, next: NextFunc
         const tx = await (await req.solution.addReward(req.body.withdrawAmount, req.body.withdrawDuration)).wait();
 
         try {
-            const logs = await parseLogs(ISolutionArtifact.abi, tx.logs);
+            const logs = await parseLogs(IDefaultDiamondArtifact.abi, tx.logs);
             const event = logs.filter((e: { name: string }) => e && e.name === 'RewardPollCreated')[0];
             const id = parseInt(event.args.id, 10);
 
