@@ -10,7 +10,7 @@ import IDefaultDiamondArtifact from '../../artifacts/contracts/contracts/IDefaul
  *   get:
  *     tags:
  *       - Members
- *     description: Get information about a member in the asset pool
+ *     description: Get information about a member in the asset pool. 
  *     produces:
  *       - application/json
  *     parameters:
@@ -28,6 +28,9 @@ import IDefaultDiamondArtifact from '../../artifacts/contracts/contracts/IDefaul
  *         schema:
  *            type: object
  *            properties:
+ *               address:
+ *                  type: string
+ *                  description: The most recent address known for this member
  *               token:
  *                  type: object
  *                  properties:
