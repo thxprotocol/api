@@ -1,7 +1,7 @@
 {
   "info": {
     "title": "THX API Specification",
-    "version": "1.0.0-beta.3"
+    "version": "1.0.0-beta.4"
   },
   "basePath": "https://api.thx.network/v1",
   "swagger": "2.0",
@@ -39,7 +39,7 @@
         "tags": [
           "Account"
         ],
-        "description": "Get profile information for your account",
+        "description": "Get latest nonce for this account",
         "produces": [
           "application/json"
         ],
@@ -49,27 +49,9 @@
             "schema": {
               "type": "object",
               "properties": {
-                "burnProofs": {
-                  "type": "array",
-                  "items": {
-                    "type": "string",
-                    "description": "Burnproof transaction hash"
-                  }
-                },
-                "memberships": {
-                  "type": "array",
-                  "items": {
-                    "type": "string",
-                    "description": "Asset pool address"
-                  }
-                },
-                "address": {
-                  "type": "string",
-                  "description": "Current wallet address for the logged in user."
-                },
-                "privateKey": {
-                  "type": "string",
-                  "description": "If no wallet address is provided during signup this field will contain a password encrypted base64 string for the private key of the random wallet address."
+                "nonce": {
+                  "type": "number",
+                  "description": "Current nonce for this address"
                 }
               }
             }
@@ -1148,6 +1130,170 @@
         }
       }
     },
+    "/rewards": {
+      "get": {
+        "tags": [
+          "Rewards"
+        ],
+        "description": "Get information about a reward in the asset pool",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "AssetPool",
+            "in": "header",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "number",
+                  "description": "Unique identifier of the reward."
+                },
+                "title": {
+                  "type": "string",
+                  "description": null
+                },
+                "description": {
+                  "type": "string",
+                  "description": "The description"
+                },
+                "withdrawAmount": {
+                  "type": "number",
+                  "description": "Current size of the reward"
+                },
+                "withdrawDuration": {
+                  "type": "number",
+                  "description": "Current duration of the withdraw poll"
+                },
+                "state": {
+                  "type": "number",
+                  "description": "Current state of the reward [Enabled, Disabled]"
+                },
+                "poll": {
+                  "type": "object",
+                  "properties": {
+                    "address": {
+                      "type": "string",
+                      "description": "Address of the reward poll"
+                    },
+                    "withdrawAmount": {
+                      "type": "number",
+                      "description": "Proposed size of the reward"
+                    },
+                    "withdrawDuration": {
+                      "type": "number",
+                      "description": "Proposed duration of the withdraw poll"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "302": {
+            "description": "Redirect to `GET /rewards/:id`",
+            "headers": {
+              "Location": {
+                "type": "string"
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request. Indicates incorrect body parameters."
+          },
+          "401": {
+            "description": "Unauthorized. Authenticate your request please."
+          },
+          "403": {
+            "description": "Forbidden. Your account does not have access to this pool."
+          },
+          "404": {
+            "description": "Not Found. Reward not found for this asset pool."
+          },
+          "500": {
+            "description": "Internal Server Error."
+          },
+          "502": {
+            "description": "Bad Gateway. Received an invalid response from the network or database."
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Rewards"
+        ],
+        "description": "Create a new reward in the asset pool",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "AssetPool",
+            "in": "header",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "title",
+            "in": "body",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "description",
+            "in": "body",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "withdrawAmount",
+            "in": "body",
+            "required": true,
+            "type": "integer"
+          },
+          {
+            "name": "withdrawDuration",
+            "in": "body",
+            "required": true,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "302": {
+            "headers": {
+              "Location": {
+                "type": "string",
+                "description": "Redirect route to /reward/:id"
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request. Indicates incorrect body parameters."
+          },
+          "401": {
+            "description": "Unauthorized. Authenticate your request please."
+          },
+          "403": {
+            "description": "Forbidden. Your account does not have access to this pool."
+          },
+          "500": {
+            "description": "Internal Server Error."
+          },
+          "502": {
+            "description": "Bad Gateway. Received an invalid response from the network or database."
+          }
+        }
+      }
+    },
     "/rewards/:id/": {
       "get": {
         "tags": [
@@ -1327,77 +1473,6 @@
         }
       }
     },
-    "/rewards": {
-      "post": {
-        "tags": [
-          "Rewards"
-        ],
-        "description": "Create a new reward in the asset pool",
-        "produces": [
-          "application/json"
-        ],
-        "parameters": [
-          {
-            "name": "AssetPool",
-            "in": "header",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "title",
-            "in": "body",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "description",
-            "in": "body",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "withdrawAmount",
-            "in": "body",
-            "required": true,
-            "type": "integer"
-          },
-          {
-            "name": "withdrawDuration",
-            "in": "body",
-            "required": true,
-            "type": "integer"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK"
-          },
-          "302": {
-            "headers": {
-              "Location": {
-                "type": "string",
-                "description": "Redirect route to /reward/:id"
-              }
-            }
-          },
-          "400": {
-            "description": "Bad Request. Indicates incorrect body parameters."
-          },
-          "401": {
-            "description": "Unauthorized. Authenticate your request please."
-          },
-          "403": {
-            "description": "Forbidden. Your account does not have access to this pool."
-          },
-          "500": {
-            "description": "Internal Server Error."
-          },
-          "502": {
-            "description": "Bad Gateway. Received an invalid response from the network or database."
-          }
-        }
-      }
-    },
     "/rewards/:id/claim": {
       "post": {
         "tags": [
@@ -1549,7 +1624,7 @@
                   "type": "string",
                   "description": "Rewarded amount for the beneficiary"
                 },
-                "state": {
+                "approved": {
                   "type": "string",
                   "description": "WithdrawState [Pending, Approved, Rejected, Withdrawn]"
                 },
