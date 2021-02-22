@@ -5,8 +5,10 @@ export const postCall = async (req: HttpRequest, res: Response, next: NextFuncti
     try {
         const tx = await (await req.solution.call(req.body.call, req.body.nonce, req.body.sig)).wait();
 
-        res.json({ tx });
+        console.log(tx);
+
+        res.json({ tx: tx.transactionHash });
     } catch (err) {
-        next(new HttpError(502, 'GasStation Call failed.', err));
+        return next(new HttpError(502, 'gas_station/call WRITE failed.', err));
     }
 };

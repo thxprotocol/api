@@ -4,7 +4,7 @@ import { HttpError, HttpRequest } from '../../models/Error';
 
 /**
  * @swagger
- * /rewards:
+ * /rewards/:id/:
  *   get:
  *     tags:
  *       - Rewards
@@ -16,6 +16,10 @@ import { HttpError, HttpRequest } from '../../models/Error';
  *         in: header
  *         required: true
  *         type: string
+ *       - name: id
+ *         in: path
+ *         required: true
+ *         type: integer
  *     responses:
  *       '200':
  *         schema:
@@ -69,10 +73,31 @@ import { HttpError, HttpRequest } from '../../models/Error';
  *       '502':
  *         description: Bad Gateway. Received an invalid response from the network or database.
  */
-export const getRewards = async (req: HttpRequest, res: Response, next: NextFunction) => {
+export const getReward = async (req: HttpRequest, res: Response, next: NextFunction) => {
     try {
+        const metaData = await Reward.findOne({ id: req.params.id });
+
         try {
-            res.json({ rewards: [] });
+            const { id, withdrawAmount, withdrawDuration, pollId, state } = await req.solution.getReward(req.params.id);
+            const reward = {
+                id: id.toNumber(),
+                title: metaData.title,
+                description: metaData.description,
+                withdrawAmount: withdrawAmount,
+                withdrawDuration: withdrawDuration.toNumber(),
+                state,
+                pollId: pollId.toNumber(),
+                poll:
+                    pollId !== '0'
+                        ? {
+                              pollId: pollId.toNumber(),
+                              withdrawAmount: await req.solution.getWithdrawAmount(pollId),
+                              withdrawDuration: (await req.solution.getWithdrawDuration(pollId)).toNumber(),
+                          }
+                        : null,
+            } as RewardDocument;
+
+            res.json(reward);
         } catch (err) {
             next(new HttpError(404, 'Asset Pool get reward failed.', err));
             return;

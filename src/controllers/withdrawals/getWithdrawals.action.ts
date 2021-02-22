@@ -1,5 +1,25 @@
+import { Contract } from 'ethers';
 import { NextFunction, Response } from 'express';
 import { HttpError, HttpRequest } from '../../models/Error';
+
+async function getWithdrawPoll(solution: Contract, id: number) {
+    try {
+        const beneficiaryId = await solution.getBeneficiary(id);
+        const beneficiary = await solution.getAddressByMember(beneficiaryId);
+        const amount = await solution.getAmount(id);
+        const approved = await solution.withdrawPollApprovalState(id);
+
+        return {
+            id,
+            beneficiary,
+            amount,
+            approved,
+        };
+    } catch (err) {
+        new HttpError(502, 'WithdrawPoll READ failed.', err);
+        return;
+    }
+}
 
 /**
  * @swagger
@@ -37,12 +57,37 @@ import { HttpError, HttpRequest } from '../../models/Error';
 export const getWithdrawals = async (req: HttpRequest, res: Response, next: NextFunction) => {
     try {
         const memberID = await req.solution.getMemberByAddress(req.query.member);
-        const filter = req.solution.filters.WithdrawPollCreated(null, memberID);
-        const logs = await req.solution.queryFilter(filter, 0, 'latest');
+        const withdrawPollCreatedLogs = await req.solution.queryFilter(
+            req.solution.filters.WithdrawPollCreated(null, memberID),
+            0,
+            'latest',
+        );
+        const withdrawnLogs = await req.solution.queryFilter(
+            req.solution.filters.Withdrawn(null, req.query.member, null),
+            0,
+            'latest',
+        );
+
+        // Get WithdrawPolls
+        const withdrawPolls = [];
+        const filteredLogs = withdrawPollCreatedLogs.filter(
+            (log) => !withdrawnLogs.find((l) => l.args.id.toNumber() === log.args.id.toNumber()),
+        );
+
+        for (const log of filteredLogs) {
+            const withdrawPoll = await getWithdrawPoll(req.solution, log.args.id.toNumber());
+            withdrawPolls.push(withdrawPoll);
+        }
+
         res.json({
-            withdrawPolls: logs.map((log) => {
-                return log.args.id.toNumber();
+            withdrawn: withdrawnLogs.map((log) => {
+                return {
+                    id: log.args.id.toNumber(),
+                    member: log.args.member,
+                    reward: log.args.reward,
+                };
             }),
+            withdrawPolls,
         });
     } catch (err) {
         next(new HttpError(502, 'Get WithdrawPollCreated logs failed.', err));

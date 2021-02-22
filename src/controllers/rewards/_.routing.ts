@@ -2,7 +2,8 @@ import express from 'express';
 import { validate } from '../../util/validation';
 import { validations } from './_.validation';
 
-import { getReward } from './get.action';
+import { getRewards } from './get.action';
+import { getReward } from './getReward.action';
 import { postReward } from './post.action';
 import { patchReward } from './patch.action';
 import { postRewardClaim } from './postRewardClaim.action';
@@ -12,6 +13,7 @@ import checkScopes from 'express-jwt-authz';
 
 const router = express.Router();
 
+router.get('/', checkScopes(['admin', 'user']), validate(validations.getRewards), parseHeader, getRewards);
 router.get('/:id', checkScopes(['admin', 'user']), validate(validations.getReward), parseHeader, getReward);
 router.post('/', checkScopes(['admin']), validate(validations.postReward), parseHeader, postReward);
 router.patch('/:id', checkScopes(['admin']), validate(validations.patchReward), parseHeader, patchReward);

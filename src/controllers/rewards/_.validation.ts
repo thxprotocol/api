@@ -9,6 +9,7 @@ export const validations = {
         body('withdrawAmount').exists(),
         body('withdrawDuration').exists(),
     ],
+    getRewards: [validateAssetPoolHeader],
     getReward: [validateAssetPoolHeader, param('id').exists().isNumeric()],
     patchReward: [validateAssetPoolHeader, param('id').exists().isNumeric()],
     postRewardClaim: [validateAssetPoolHeader, param('id').exists().isNumeric()],

@@ -31,7 +31,7 @@ import { HttpRequest, HttpError } from '../../models/Error';
  *              amount:
  *                  type: string
  *                  description: Rewarded amount for the beneficiary
- *              state:
+ *              approved:
  *                  type: string
  *                  description: WithdrawState [Pending, Approved, Rejected, Withdrawn]
  *              poll:
@@ -56,13 +56,13 @@ export const getWithdrawal = async (req: HttpRequest, res: Response, next: NextF
         const beneficiaryId = await req.solution.getBeneficiary(req.params.id);
         const beneficiary = await req.solution.getAddressByMember(beneficiaryId);
         const amount = await req.solution.getAmount(req.params.id);
-        const state = await req.solution.withdrawPollApprovalState(req.params.id);
+        const approved = await req.solution.withdrawPollApprovalState(req.params.id);
         const pollId = req.params.id;
 
         res.json({
             beneficiary,
             amount,
-            state,
+            approved,
             pollId,
         });
     } catch (err) {

@@ -403,7 +403,7 @@ describe('Happy Flow', () => {
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
                 .end(async (err, res) => {
                     withdrawPollID = res.body.pollId;
-                    expect(res.body.state).toEqual(true); // polls are bypassed by defailt
+                    expect(res.body.approved).toEqual(true); // polls are bypassed by defailt
                     expect(Number(formatEther(res.body.amount))).toEqual(Number(formatEther(rewardWithdrawAmount)));
                     expect(res.status).toBe(200);
                     done();
@@ -432,7 +432,7 @@ describe('Happy Flow', () => {
                 .end(async (err, res) => {
                     expect(Number(formatEther(res.body.amount))).toEqual(Number(formatEther(rewardWithdrawAmount)));
                     expect(res.body.beneficiary).toEqual(userWallet.address);
-                    expect(res.body.state).toEqual(true);
+                    expect(res.body.approved).toEqual(true);
                     expect(res.status).toBe(200);
                     done();
                 });
