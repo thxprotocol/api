@@ -88,13 +88,13 @@ export const getAssetPool = async (req: HttpRequest, res: Response, next: NextFu
             if (!assetPool) {
                 return next(new HttpError(404, 'Asset Pool is not found in database.'));
             }
-            const { uid, address, title } = assetPool;
+            const { address, title } = assetPool;
 
             if (!address) {
                 return next(new HttpError(404, 'Asset Pool is not found in database.'));
             }
 
-            res.json({ title, address, uid, ...contractData });
+            res.json({ title, address, ...contractData });
         } catch (error) {
             next(new HttpError(500, 'Asset Pool network data can not be obtained.', error));
         }

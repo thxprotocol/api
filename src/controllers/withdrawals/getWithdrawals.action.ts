@@ -1,5 +1,7 @@
 import { Contract } from 'ethers';
 import { NextFunction, Response } from 'express';
+import { AssetPoolDocument } from '../../models/AssetPool';
+import { AssetPool } from '../../models/AssetPool';
 import { HttpError, HttpRequest } from '../../models/Error';
 
 async function getWithdrawPoll(solution: Contract, id: number) {
@@ -56,15 +58,18 @@ async function getWithdrawPoll(solution: Contract, id: number) {
  */
 export const getWithdrawals = async (req: HttpRequest, res: Response, next: NextFunction) => {
     try {
+        const assetPool: AssetPoolDocument = await AssetPool.findOne({
+            address: req.solution.address,
+        });
         const memberID = await req.solution.getMemberByAddress(req.query.member);
         const withdrawPollCreatedLogs = await req.solution.queryFilter(
             req.solution.filters.WithdrawPollCreated(null, memberID),
-            0,
+            assetPool.blockNumber || 0,
             'latest',
         );
         const withdrawnLogs = await req.solution.queryFilter(
             req.solution.filters.Withdrawn(null, req.query.member, null),
-            0,
+            assetPool.blockNumber || 0,
             'latest',
         );
 

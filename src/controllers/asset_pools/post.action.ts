@@ -72,6 +72,8 @@ export const postAssetPool = async (req: HttpRequest, res: Response, next: NextF
                 address: solution.address,
                 title: req.body.title,
                 client: audience,
+                blockNumber: event.blockNumber,
+                transactionHash: event.transactionHash,
             }).save();
 
             try {

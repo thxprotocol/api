@@ -3,14 +3,18 @@ import mongoose from 'mongoose';
 export type AssetPoolDocument = mongoose.Document & {
     address: string;
     title: string;
-    uid: string;
+    client: string;
+    blockNumber: number;
+    transactionHash: string;
 };
 
 const assetPoolSchema = new mongoose.Schema(
     {
         address: String,
         title: String,
-        uid: String,
+        client: String,
+        blockNumber: Number,
+        transactionHash: String,
     },
     { timestamps: true },
 );

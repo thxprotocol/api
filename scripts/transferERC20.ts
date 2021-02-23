@@ -4,8 +4,8 @@ import { formatEther } from 'ethers/lib/utils';
 
 const ethers = hre.ethers;
 
-const ERC20_ADDRESS = '0x61297A68F23689Aa396b2f3BD3ea37A1B480d8eB';
-const RECIPIENT = '0x140a6433FF900eAD0CEE96c244784Ea40A86335F';
+const ERC20_ADDRESS = '0x08E86719240f7b5500F2d22F54D7BdFeb124475E';
+const RECIPIENT = '0x911A524926a61c5111C9d125419cb4ABC8Ed5115';
 
 function tokenContract(address: string, signer: any) {
     return new ethers.Contract(address, ERC20Artifact.abi, signer);
