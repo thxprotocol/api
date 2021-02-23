@@ -44,13 +44,9 @@ export const postRewardClaim = async (req: Request, res: Response, next: NextFun
     try {
         const base64 = await qrcode.toDataURL(
             JSON.stringify({
-                assetPoolAddress: req.header('AssetPool'),
-                contractAddress: req.header('AssetPool'),
-                contract: 'AssetPool',
-                method: 'claimReward',
-                params: {
-                    id: req.params.id,
-                },
+                poolAddress: req.header('AssetPool'),
+                name: 'claimReward',
+                args: [req.params.id],
             }),
         );
         res.json({ base64 });
