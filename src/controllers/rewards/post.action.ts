@@ -61,7 +61,7 @@ export const postReward = async (req: HttpRequest, res: Response, next: NextFunc
         try {
             const logs = await parseLogs(IDefaultDiamondArtifact.abi, tx.logs);
             const event = logs.filter((e: { name: string }) => e && e.name === 'RewardPollCreated')[0];
-            const id = parseInt(event.args.id, 10);
+            const id = parseInt(event.args.withdrawID, 10);
 
             new Reward({
                 id,
