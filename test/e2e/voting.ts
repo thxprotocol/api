@@ -6,16 +6,13 @@ import { exampleTokenFactory } from './lib/contracts';
 import {
     poolTitle,
     rewardPollDuration,
-    proposeWithdrawPollDuration,
-    rewardTitle,
-    rewardDescription,
     rewardWithdrawAmount,
     rewardWithdrawDuration,
     mintAmount,
     userEmail,
     userPassword,
 } from './lib/constants';
-import { formatEther, parseEther } from 'ethers/lib/utils';
+import { parseEther } from 'ethers/lib/utils';
 import { Contract, ethers, Wallet } from 'ethers';
 import {
     getAccessToken,
@@ -35,8 +32,8 @@ describe('Voting', () => {
         userAccessToken: string,
         poolAddress: string,
         pollID: string,
+        // withdrawPollID: number,
         userAddress: string,
-        withdrawPollID: string,
         userWallet: Wallet,
         testToken: Contract;
 
@@ -153,8 +150,6 @@ describe('Voting', () => {
                 .send({
                     withdrawAmount: rewardWithdrawAmount,
                     withdrawDuration: rewardWithdrawDuration,
-                    title: rewardTitle,
-                    description: rewardDescription,
                 })
                 .end(async (err, res) => {
                     expect(res.status).toBe(302);
@@ -297,7 +292,7 @@ describe('Voting', () => {
                 .end(async (err, res) => {
                     // one claimRewardFor and one proposeWithdraw
                     expect(Number(res.body.withdrawPolls.length)).toBe(1);
-                    withdrawPollID = res.body.withdrawPolls[0];
+                    // withdrawPollID = res.body.withdrawPolls[0];
                     expect(res.status).toBe(200);
                     done();
                 });

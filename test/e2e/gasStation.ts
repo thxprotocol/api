@@ -7,8 +7,6 @@ import {
     poolTitle,
     rewardPollDuration,
     proposeWithdrawPollDuration,
-    rewardTitle,
-    rewardDescription,
     rewardWithdrawAmount,
     rewardWithdrawDuration,
     mintAmount,
@@ -25,12 +23,7 @@ const user = request(server);
 const http2 = request.agent(server);
 
 describe('Gas Station', () => {
-    let poolAddress: any,
-        pollId: any,
-        withdrawPollAddress: any,
-        adminAccessToken: string,
-        userAccessToken: string,
-        testToken: any;
+    let poolAddress: any, pollId: any, adminAccessToken: string, userAccessToken: string, testToken: any;
 
     beforeAll(async () => {
         await db.truncate();
@@ -82,8 +75,6 @@ describe('Gas Station', () => {
         await user.post('/v1/rewards/').set({ AssetPool: poolAddress, Authorization: adminAccessToken }).send({
             withdrawAmount: rewardWithdrawAmount,
             withdrawDuration: rewardWithdrawDuration,
-            title: rewardTitle,
-            description: rewardDescription,
         });
 
         // Add a member
