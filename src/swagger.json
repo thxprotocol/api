@@ -1159,14 +1159,6 @@
                       "type": "number",
                       "description": "Unique identifier of the reward."
                     },
-                    "title": {
-                      "type": "string",
-                      "description": null
-                    },
-                    "description": {
-                      "type": "string",
-                      "description": "The description"
-                    },
                     "withdrawAmount": {
                       "type": "number",
                       "description": "Current size of the reward"
@@ -1177,14 +1169,14 @@
                     },
                     "state": {
                       "type": "number",
-                      "description": "Current state of the reward [Enabled, Disabled]"
+                      "description": "Current state of the reward [Disabled, Enabled]"
                     },
                     "poll": {
                       "type": "object",
                       "properties": {
-                        "address": {
-                          "type": "string",
-                          "description": "Address of the reward poll"
+                        "id": {
+                          "type": "number",
+                          "description": "Unique identifier of the reward poll"
                         },
                         "withdrawAmount": {
                           "type": "number",
@@ -1198,14 +1190,6 @@
                     }
                   }
                 }
-              }
-            }
-          },
-          "302": {
-            "description": "Redirect to `GET /rewards/:id`",
-            "headers": {
-              "Location": {
-                "type": "string"
               }
             }
           },
@@ -1318,14 +1302,6 @@
                   "type": "number",
                   "description": "Unique identifier of the reward."
                 },
-                "title": {
-                  "type": "string",
-                  "description": null
-                },
-                "description": {
-                  "type": "string",
-                  "description": "The description"
-                },
                 "withdrawAmount": {
                   "type": "number",
                   "description": "Current size of the reward"
@@ -1341,9 +1317,9 @@
                 "poll": {
                   "type": "object",
                   "properties": {
-                    "address": {
-                      "type": "string",
-                      "description": "Address of the reward poll"
+                    "id": {
+                      "type": "number",
+                      "description": "Unique identifier of the reward poll"
                     },
                     "withdrawAmount": {
                       "type": "number",
@@ -1408,18 +1384,6 @@
             "in": "path",
             "required": true,
             "type": "integer"
-          },
-          {
-            "name": "title",
-            "in": "body",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "description",
-            "in": "body",
-            "required": true,
-            "type": "string"
           },
           {
             "name": "withdrawAmount",

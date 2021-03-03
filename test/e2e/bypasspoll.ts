@@ -69,9 +69,9 @@ describe('Bypass Polls', () => {
                 })
                 .end((err, res) => {
                     expect(res.status).toBe(200);
-                    expect(res.body.pollId).toBe(1);
+                    expect(res.body.poll.id).toBe(1);
                     expect(res.body.state).toBe(0);
-                    pollID = res.body.pollId;
+                    pollID = res.body.poll.id;
                     done();
                 });
         });
@@ -100,7 +100,7 @@ describe('Bypass Polls', () => {
                 })
                 .end((err, res) => {
                     expect(res.status).toBe(200);
-                    expect(res.body.pollId).toBe(0);
+                    expect(res.body.poll).toBeUndefined();
                     expect(res.body.state).toBe(0);
 
                     done();
@@ -139,9 +139,9 @@ describe('Bypass Polls', () => {
                 })
                 .end((err, res) => {
                     expect(res.status).toBe(200);
-                    expect(res.body.pollId).toBe(2);
+                    expect(res.body.poll.id).toBe(2);
                     expect(res.body.state).toBe(0);
-                    pollID = res.body.pollId;
+                    pollID = res.body.poll.id;
                     done();
                 });
         });
@@ -170,7 +170,7 @@ describe('Bypass Polls', () => {
                 })
                 .end((err, res) => {
                     expect(res.status).toBe(200);
-                    expect(res.body.pollId).toBe(0);
+                    expect(res.body.poll).toBeUndefined();
                     expect(res.body.state).toBe(1);
 
                     done();
@@ -209,9 +209,9 @@ describe('Bypass Polls', () => {
                 })
                 .end((err, res) => {
                     expect(res.status).toBe(200);
-                    expect(res.body.pollId).toBe(3);
+                    expect(res.body.poll.id).toBe(3);
                     expect(res.body.state).toBe(0);
-                    pollID = res.body.pollId;
+                    pollID = res.body.poll.id;
                     done();
                 });
         });
@@ -244,7 +244,7 @@ describe('Bypass Polls', () => {
                 })
                 .end((err, res) => {
                     expect(res.status).toBe(200);
-                    expect(res.body.pollId).toBe(0);
+                    expect(res.body.poll).toBeUndefined();
                     expect(res.body.state).toBe(1);
 
                     done();

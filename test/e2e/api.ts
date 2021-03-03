@@ -229,13 +229,11 @@ describe('Happy Flow', () => {
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
                 .end(async (err, res) => {
                     expect(res.status).toBe(200);
-                    expect(Number(res.body.id)).toEqual(1);
-                    expect(res.body.poll.pollId).toEqual(1);
-                    expect(Number(res.body.poll.withdrawDuration)).toEqual(rewardWithdrawDuration);
-                    expect(Number(formatEther(res.body.poll.withdrawAmount))).toEqual(
-                        Number(formatEther(rewardWithdrawAmount)),
-                    );
-                    pollID = res.body.poll.pollId;
+                    expect(res.body.id).toEqual(1);
+                    expect(res.body.poll.id).toEqual(1);
+                    expect(res.body.poll.withdrawDuration).toEqual(rewardWithdrawDuration);
+                    expect(res.body.poll.withdrawAmount).toEqual(Number(formatEther(rewardWithdrawAmount)));
+                    pollID = res.body.poll.id;
 
                     done();
                 });
@@ -316,11 +314,11 @@ describe('Happy Flow', () => {
             await timeTravel(rewardPollDuration);
         });
 
-        it('HTTP 200  reward.pollId = 1', (done) => {
+        it('HTTP 200  reward.id = 1', (done) => {
             user.get('/v1/rewards/1')
                 .set({ AssetPool: poolAddress, Authorization: userAccessToken })
                 .end(async (err, res) => {
-                    expect(res.body.pollId).toBe(1);
+                    expect(res.body.poll.id).toBe(1);
                     expect(res.status).toBe(200);
                     done();
                 });
@@ -339,7 +337,7 @@ describe('Happy Flow', () => {
             user.get('/v1/rewards/1')
                 .set({ AssetPool: poolAddress, Authorization: userAccessToken })
                 .end(async (err, res) => {
-                    expect(res.body.pollId).toBe(0);
+                    expect(res.body.poll).toBeUndefined();
                     expect(res.status).toBe(200);
                     done();
                 });
@@ -351,10 +349,8 @@ describe('Happy Flow', () => {
             user.get('/v1/rewards/1')
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
                 .end(async (err, res) => {
-                    expect(Number(formatEther(res.body.withdrawAmount))).toEqual(
-                        Number(formatEther(rewardWithdrawAmount)),
-                    );
-                    expect(Number(res.body.state)).toEqual(1);
+                    expect(res.body.withdrawAmount).toEqual(Number(formatEther(rewardWithdrawAmount)));
+                    expect(res.body.state).toEqual(1);
                     expect(res.status).toBe(200);
                     done();
                 });

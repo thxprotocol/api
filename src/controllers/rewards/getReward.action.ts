@@ -42,7 +42,7 @@ import { formatEther } from 'ethers/lib/utils';
  *               type: object
  *               properties:
  *                  id:
- *                      type: string
+ *                      type: number
  *                      description: Unique identifier of the reward poll
  *                  withdrawAmount:
  *                      type: number

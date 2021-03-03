@@ -163,8 +163,8 @@ describe('Voting', () => {
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
                 .end(async (err, res) => {
                     expect(res.status).toBe(200);
-                    expect(res.body.poll.pollId).toEqual(1);
-                    pollID = res.body.poll.pollId;
+                    expect(res.body.poll.id).toEqual(1);
+                    pollID = res.body.poll.id;
                     done();
                 });
         });
