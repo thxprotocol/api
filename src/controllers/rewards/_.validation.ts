@@ -2,13 +2,7 @@ import { body, param } from 'express-validator';
 import { validateAssetPoolHeader } from '../../util/validation';
 
 export const validations = {
-    postReward: [
-        validateAssetPoolHeader,
-        body('title').exists(),
-        body('description').exists(),
-        body('withdrawAmount').exists(),
-        body('withdrawDuration').exists(),
-    ],
+    postReward: [validateAssetPoolHeader, body('withdrawAmount').exists(), body('withdrawDuration').exists()],
     getRewards: [validateAssetPoolHeader],
     getReward: [validateAssetPoolHeader, param('id').exists().isNumeric()],
     patchReward: [validateAssetPoolHeader, param('id').exists().isNumeric()],

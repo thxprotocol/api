@@ -52,8 +52,6 @@ describe('Bypass Polls', () => {
                 .send({
                     withdrawAmount: '20000000000000000000',
                     withdrawDuration: '0',
-                    title: 'Complete your profile!',
-                    description: 'You should do this and that...',
                 })
                 .end((err, res) => {
                     expect(res.status).toBe(302);
@@ -124,8 +122,6 @@ describe('Bypass Polls', () => {
                 .send({
                     withdrawAmount: '20000000000000000000',
                     withdrawDuration: '0',
-                    title: 'Complete your profile!',
-                    description: 'You should do this and that...',
                 })
                 .end((err, res) => {
                     expect(res.status).toBe(302);
@@ -196,8 +192,6 @@ describe('Bypass Polls', () => {
                 .send({
                     withdrawAmount: '20000000000000000000',
                     withdrawDuration: '0',
-                    title: 'Complete your profile!',
-                    description: 'You should do this and that...',
                 })
                 .end((err, res) => {
                     expect(res.status).toBe(302);

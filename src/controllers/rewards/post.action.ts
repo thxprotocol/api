@@ -11,20 +11,11 @@ import { parseLogs } from '../../util/events';
  *   post:
  *     tags:
  *       - Rewards
- *     description: Create a new reward in the asset pool
  *     produces:
  *       - application/json
  *     parameters:
  *       - name: AssetPool
  *         in: header
- *         required: true
- *         type: string
- *       - name: title
- *         in: body
- *         required: true
- *         type: string
- *       - name: description
- *         in: body
  *         required: true
  *         type: string
  *       - name: withdrawAmount
@@ -61,25 +52,21 @@ export const postReward = async (req: HttpRequest, res: Response, next: NextFunc
         try {
             const logs = await parseLogs(IDefaultDiamondArtifact.abi, tx.logs);
             const event = logs.filter((e: { name: string }) => e && e.name === 'RewardPollCreated')[0];
-            const id = parseInt(event.args.withdrawID, 10);
+            const id = parseInt(event.args.withdrawID, 10); // TODO Event output will be renamed to rewardID.
 
             new Reward({
                 id,
-                title: req.body.title,
-                description: req.body.description,
             }).save(async (err) => {
                 if (err) {
-                    next(new HttpError(502, 'Reward save failed.', err));
-                    return;
+                    return next(new HttpError(502, 'Reward save failed.', err));
                 }
 
                 res.redirect(`/${VERSION}/rewards/${id}`);
             });
         } catch (err) {
-            next(new HttpError(502, 'Parse logs failed.', err));
-            return;
+            return next(new HttpError(502, 'Parse logs failed.', err));
         }
     } catch (err) {
-        next(new HttpError(502, 'Asset Pool addReward failed.', err));
+        return next(new HttpError(502, 'Asset Pool addReward failed.', err));
     }
 };

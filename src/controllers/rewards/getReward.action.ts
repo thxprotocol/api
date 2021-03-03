@@ -75,14 +75,10 @@ import { HttpError, HttpRequest } from '../../models/Error';
  */
 export const getReward = async (req: HttpRequest, res: Response, next: NextFunction) => {
     try {
-        const metaData = await Reward.findOne({ id: req.params.id });
-
         try {
             const { id, withdrawAmount, withdrawDuration, pollId, state } = await req.solution.getReward(req.params.id);
             const reward = {
                 id: id.toNumber(),
-                title: metaData.title,
-                description: metaData.description,
                 withdrawAmount: withdrawAmount,
                 withdrawDuration: withdrawDuration.toNumber(),
                 state,

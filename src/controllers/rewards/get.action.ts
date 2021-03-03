@@ -1,6 +1,7 @@
 import { Response, NextFunction } from 'express';
 import { Reward, RewardDocument } from '../../models/Reward';
 import { HttpError, HttpRequest } from '../../models/Error';
+import { formatEther } from 'ethers/lib/utils';
 
 /**
  * @swagger
@@ -72,9 +73,26 @@ import { HttpError, HttpRequest } from '../../models/Error';
 export const getRewards = async (req: HttpRequest, res: Response, next: NextFunction) => {
     try {
         try {
-            res.json({ rewards: [] });
+            const rewards = [];
+            let i = 1;
+            while (i >= 1) {
+                try {
+                    const { id, withdrawAmount, withdrawDuration, pollId, state } = await req.solution.getReward(i);
+                    rewards.push({
+                        id: id.toNumber(),
+                        withdrawAmount: formatEther(withdrawAmount),
+                        withdrawDuration: withdrawDuration.toNumber(),
+                        pollId: pollId.toNumber(),
+                        state,
+                    });
+                } catch (e) {
+                    break;
+                }
+                i++;
+            }
+            res.json({ rewards });
         } catch (err) {
-            next(new HttpError(404, 'Asset Pool get reward failed.', err));
+            next(new HttpError(404, 'Asset Pool get rewards failed.', err));
             return;
         }
     } catch (err) {
