@@ -89,7 +89,7 @@ describe('Gas Station', () => {
             const { body, status } = await user
                 .get('/v1/rewards/1')
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken });
-            pollId = body.poll.poll.id;
+            pollId = body.poll.id;
             expect(body.state).toBe(0);
             done();
         });
