@@ -20,43 +20,35 @@ import { formatEther } from 'ethers/lib/utils';
  *     responses:
  *       '200':
  *         schema:
- *           type: object
- *           properties:
- *             id:
- *               type: number
- *               description: Unique identifier of the reward.
- *             title:
- *               type: string
- *               description:
- *             description:
- *               type: string
- *               description: The description
- *             withdrawAmount:
- *               type: number
- *               description: Current size of the reward
- *             withdrawDuration:
- *               type: number
- *               description: Current duration of the withdraw poll
- *             state:
- *               type: number
- *               description: Current state of the reward [Enabled, Disabled]
- *             poll:
- *               type: object
- *               properties:
- *                  address:
- *                      type: string
- *                      description: Address of the reward poll
- *                  withdrawAmount:
- *                      type: number
- *                      description: Proposed size of the reward
- *                  withdrawDuration:
- *                      type: number
- *                      description: Proposed duration of the withdraw poll
- *       '302':
- *          description: Redirect to `GET /rewards/:id`
- *          headers:
- *             Location:
- *                type: string
+ *           rewards:
+ *              type: array
+ *              items:
+ *                 type: object
+ *                 properties:
+ *                   id:
+ *                     type: number
+ *                     description: Unique identifier of the reward.
+ *                   withdrawAmount:
+ *                     type: number
+ *                     description: Current size of the reward
+ *                   withdrawDuration:
+ *                     type: number
+ *                     description: Current duration of the withdraw poll
+ *                   state:
+ *                     type: number
+ *                     description: Current state of the reward [Disabled, Enabled]
+ *                   poll:
+ *                     type: object
+ *                     properties:
+ *                        id:
+ *                            type: number
+ *                            description: Unique identifier of the reward poll
+ *                        withdrawAmount:
+ *                            type: number
+ *                            description: Proposed size of the reward
+ *                        withdrawDuration:
+ *                            type: number
+ *                            description: Proposed duration of the withdraw poll
  *       '400':
  *         description: Bad Request. Indicates incorrect body parameters.
  *       '401':
@@ -78,13 +70,23 @@ export const getRewards = async (req: HttpRequest, res: Response, next: NextFunc
             while (i >= 1) {
                 try {
                     const { id, withdrawAmount, withdrawDuration, pollId, state } = await req.solution.getReward(i);
-                    rewards.push({
+                    const pid = pollId.toNumber();
+                    const reward = {
                         id: id.toNumber(),
-                        withdrawAmount: formatEther(withdrawAmount),
+                        withdrawAmount: Number(formatEther(withdrawAmount)),
                         withdrawDuration: withdrawDuration.toNumber(),
-                        pollId: pollId.toNumber(),
                         state,
-                    });
+                    } as RewardDocument;
+
+                    if (pid) {
+                        reward.poll = {
+                            id: pid,
+                            withdrawAmount: Number(formatEther(await req.solution.getWithdrawAmount(pid))),
+                            withdrawDuration: (await req.solution.getWithdrawDuration(pid)).toNumber(),
+                        };
+                    }
+
+                    rewards.push(reward);
                 } catch (e) {
                     break;
                 }

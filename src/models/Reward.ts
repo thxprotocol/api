@@ -4,14 +4,11 @@ export type RewardDocument = mongoose.Document & {
     withdrawAmount: number;
     withdrawDuration: number;
     state: number;
-    pollId: number;
     poll: {
-        pollId: number;
-        finalized: boolean;
+        id: number;
         withdrawAmount: number;
         withdrawDuration: number;
-    } | null;
-    updated: string;
+    };
 };
 
 const rewardSchema = new mongoose.Schema(

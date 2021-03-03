@@ -1,7 +1,7 @@
 {
   "info": {
     "title": "THX API Specification",
-    "version": "1.0.0-beta.4"
+    "version": "1.0.0-beta.5"
   },
   "basePath": "https://api.thx.network/v1",
   "swagger": "2.0",
@@ -1150,46 +1150,51 @@
         "responses": {
           "200": {
             "schema": {
-              "type": "object",
-              "properties": {
-                "id": {
-                  "type": "number",
-                  "description": "Unique identifier of the reward."
-                },
-                "title": {
-                  "type": "string",
-                  "description": null
-                },
-                "description": {
-                  "type": "string",
-                  "description": "The description"
-                },
-                "withdrawAmount": {
-                  "type": "number",
-                  "description": "Current size of the reward"
-                },
-                "withdrawDuration": {
-                  "type": "number",
-                  "description": "Current duration of the withdraw poll"
-                },
-                "state": {
-                  "type": "number",
-                  "description": "Current state of the reward [Enabled, Disabled]"
-                },
-                "poll": {
+              "rewards": {
+                "type": "array",
+                "items": {
                   "type": "object",
                   "properties": {
-                    "address": {
+                    "id": {
+                      "type": "number",
+                      "description": "Unique identifier of the reward."
+                    },
+                    "title": {
                       "type": "string",
-                      "description": "Address of the reward poll"
+                      "description": null
+                    },
+                    "description": {
+                      "type": "string",
+                      "description": "The description"
                     },
                     "withdrawAmount": {
                       "type": "number",
-                      "description": "Proposed size of the reward"
+                      "description": "Current size of the reward"
                     },
                     "withdrawDuration": {
                       "type": "number",
-                      "description": "Proposed duration of the withdraw poll"
+                      "description": "Current duration of the withdraw poll"
+                    },
+                    "state": {
+                      "type": "number",
+                      "description": "Current state of the reward [Enabled, Disabled]"
+                    },
+                    "poll": {
+                      "type": "object",
+                      "properties": {
+                        "address": {
+                          "type": "string",
+                          "description": "Address of the reward poll"
+                        },
+                        "withdrawAmount": {
+                          "type": "number",
+                          "description": "Proposed size of the reward"
+                        },
+                        "withdrawDuration": {
+                          "type": "number",
+                          "description": "Proposed duration of the withdraw poll"
+                        }
+                      }
                     }
                   }
                 }
@@ -1228,7 +1233,6 @@
         "tags": [
           "Rewards"
         ],
-        "description": "Create a new reward in the asset pool",
         "produces": [
           "application/json"
         ],
@@ -1236,18 +1240,6 @@
           {
             "name": "AssetPool",
             "in": "header",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "title",
-            "in": "body",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "description",
-            "in": "body",
             "required": true,
             "type": "string"
           },

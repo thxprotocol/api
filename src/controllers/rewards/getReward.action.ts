@@ -1,6 +1,7 @@
 import { Response, NextFunction } from 'express';
 import { Reward, RewardDocument } from '../../models/Reward';
 import { HttpError, HttpRequest } from '../../models/Error';
+import { formatEther } from 'ethers/lib/utils';
 
 /**
  * @swagger
@@ -28,12 +29,6 @@ import { HttpError, HttpRequest } from '../../models/Error';
  *             id:
  *               type: number
  *               description: Unique identifier of the reward.
- *             title:
- *               type: string
- *               description:
- *             description:
- *               type: string
- *               description: The description
  *             withdrawAmount:
  *               type: number
  *               description: Current size of the reward
@@ -46,9 +41,9 @@ import { HttpError, HttpRequest } from '../../models/Error';
  *             poll:
  *               type: object
  *               properties:
- *                  address:
+ *                  id:
  *                      type: string
- *                      description: Address of the reward poll
+ *                      description: Unique identifier of the reward poll
  *                  withdrawAmount:
  *                      type: number
  *                      description: Proposed size of the reward
@@ -77,21 +72,21 @@ export const getReward = async (req: HttpRequest, res: Response, next: NextFunct
     try {
         try {
             const { id, withdrawAmount, withdrawDuration, pollId, state } = await req.solution.getReward(req.params.id);
+            const pid = pollId.toNumber();
             const reward = {
                 id: id.toNumber(),
-                withdrawAmount: withdrawAmount,
+                withdrawAmount: Number(formatEther(withdrawAmount)),
                 withdrawDuration: withdrawDuration.toNumber(),
                 state,
-                pollId: pollId.toNumber(),
-                poll:
-                    pollId !== '0'
-                        ? {
-                              pollId: pollId.toNumber(),
-                              withdrawAmount: await req.solution.getWithdrawAmount(pollId),
-                              withdrawDuration: (await req.solution.getWithdrawDuration(pollId)).toNumber(),
-                          }
-                        : null,
             } as RewardDocument;
+
+            if (pid) {
+                reward.poll = {
+                    id: pid,
+                    withdrawAmount: Number(formatEther(await req.solution.getWithdrawAmount(pollId))),
+                    withdrawDuration: (await req.solution.getWithdrawDuration(pollId)).toNumber(),
+                };
+            }
 
             res.json(reward);
         } catch (err) {
