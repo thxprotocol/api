@@ -21,14 +21,6 @@ import qrcode from 'qrcode';
  *         in: path
  *         required: true
  *         type: integer
- *       - name: title
- *         in: body
- *         required: true
- *         type: string
- *       - name: description
- *         in: body
- *         required: true
- *         type: string
  *       - name: withdrawAmount
  *         in: body
  *         required: true
@@ -59,58 +51,32 @@ import qrcode from 'qrcode';
  */
 export const patchReward = async (req: HttpRequest, res: Response, next: NextFunction) => {
     try {
-        const metaData = await Reward.findOne({ id: req.params.id });
+        let { withdrawAmount, withdrawDuration } = await req.solution.rewards(req.params.id);
 
-        if (!req.body.title || req.body.title !== metaData.title) {
-            metaData.title = req.body.title;
+        if (req.body.withdrawAmount && withdrawAmount !== req.body.withdrawAmount) {
+            withdrawAmount = req.body.withdrawAmount;
         }
 
-        if (!req.body.description || req.body.description !== metaData.description) {
-            metaData.description = req.body.description;
+        if (req.body.withdrawDuration && withdrawDuration !== req.body.withdrawDuration) {
+            withdrawDuration = req.body.withdrawDuration;
         }
 
-        try {
-            metaData.save(async (err: Error) => {
-                if (err) {
-                    next(new HttpError(502, 'Reward metadata find failed.', err));
-                    return;
-                }
-
-                try {
-                    let { withdrawAmount, withdrawDuration } = await req.solution.rewards(req.params.id);
-
-                    if (req.body.withdrawAmount && withdrawAmount !== req.body.withdrawAmount) {
-                        withdrawAmount = req.body.withdrawAmount;
-                    }
-
-                    if (req.body.withdrawDuration && withdrawDuration !== req.body.withdrawDuration) {
-                        withdrawDuration = req.body.withdrawDuration;
-                    }
-
-                    const base64 = await qrcode.toDataURL(
-                        JSON.stringify({
-                            assetPoolAddress: req.header('AssetPool'),
-                            contractAddress: req.header('AssetPool'),
-                            contract: 'AssetPool',
-                            method: 'updateReward',
-                            params: {
-                                id: req.params.id,
-                                withdrawAmount,
-                                withdrawDuration,
-                            },
-                        }),
-                    );
-                    res.json({ base64 });
-                } catch (error) {
-                    next(new HttpError(502, 'Asset Pool get reward failed.', err));
-                    return;
-                }
-            });
-        } catch (error) {
-            next(new HttpError(502, 'Reward metadata save failed.', error));
-            return;
-        }
+        const base64 = await qrcode.toDataURL(
+            JSON.stringify({
+                assetPoolAddress: req.header('AssetPool'),
+                contractAddress: req.header('AssetPool'),
+                contract: 'AssetPool',
+                method: 'updateReward',
+                params: {
+                    id: req.params.id,
+                    withdrawAmount,
+                    withdrawDuration,
+                },
+            }),
+        );
+        res.json({ base64 });
     } catch (error) {
-        next(new HttpError(502, 'Reward find failed.', error));
+        next(new HttpError(502, 'Asset Pool get reward failed.', error));
+        return;
     }
 };

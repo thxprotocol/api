@@ -1,26 +1,19 @@
 import mongoose from 'mongoose';
 export type RewardDocument = mongoose.Document & {
     id: number;
-    title: string;
-    description: string;
     withdrawAmount: number;
     withdrawDuration: number;
     state: number;
-    pollId: number;
     poll: {
-        pollId: number;
-        finalized: boolean;
+        id: number;
         withdrawAmount: number;
         withdrawDuration: number;
-    } | null;
-    updated: string;
+    };
 };
 
 const rewardSchema = new mongoose.Schema(
     {
         id: Number,
-        title: String,
-        description: String,
     },
     { timestamps: true },
 );
