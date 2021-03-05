@@ -1,6 +1,8 @@
 import { NextFunction, Request, Response } from 'express';
 import { RPC, PRIVATE_KEY, ASSET_POOL_FACTORY_ADDRESS } from '../util/secrets';
-import { Contract, ContractFactory, ethers, utils } from 'ethers';
+import { BigNumber, Contract, ContractFactory, ethers, utils } from 'ethers';
+import { logger } from '../util/logger';
+
 import { isAddress } from 'ethers/lib/utils';
 import { HttpRequest } from '../models/Error';
 
@@ -27,6 +29,11 @@ import RewardByPollProxyArtifact from '../artifacts/contracts/contracts/10-Rewar
 export const provider = new ethers.providers.JsonRpcProvider(RPC);
 export const admin = new ethers.Wallet(PRIVATE_KEY, provider);
 export const assetPoolFactory = new ethers.Contract(ASSET_POOL_FACTORY_ADDRESS, AssetPoolFactoryArtifact.abi, admin);
+
+export const logTransaction = (tx: { from: string; to: string; transactionHash: string; gasUsed: BigNumber }) => {
+    logger.info(`From: ${tx.from} To: ${tx.to} Gas: ${tx.gasUsed.toNumber()} TX:${tx.transactionHash}`);
+    return tx;
+};
 
 export const solutionContract = (address?: string) => {
     return new ethers.Contract(address, ISolutionArtifact.abi, admin);
@@ -124,13 +131,27 @@ export const updateToBypassPolls = async (solution: Contract) => {
     const rewardByPollFacet = await rewardByPollFacetFactory.deploy();
     const rewardByPollProxyFacet = await rewardByPollProxyFacetFactory.deploy();
 
-    await solution.updateAssetPool(getSelectors(withdrawByFacet), withdrawByFacet.address);
-    await solution.updateAssetPool(getSelectors(withdrawByPollFacet), withdrawByPollFacet.address);
-    await solution.updateAssetPool(getSelectors(withdrawByPollProxyFacet), withdrawByPollProxyFacet.address);
+    logTransaction(
+        await (await solution.updateAssetPool(getSelectors(withdrawByFacet), withdrawByFacet.address)).wait(),
+    );
+    logTransaction(
+        await (await solution.updateAssetPool(getSelectors(withdrawByPollFacet), withdrawByPollFacet.address)).wait(),
+    );
+    logTransaction(
+        await (
+            await solution.updateAssetPool(getSelectors(withdrawByPollProxyFacet), withdrawByPollProxyFacet.address)
+        ).wait(),
+    );
 
-    await solution.updateAssetPool(getSelectors(rewardByFacet), rewardByFacet.address);
-    await solution.updateAssetPool(getSelectors(rewardByPollFacet), rewardByPollFacet.address);
-    await solution.updateAssetPool(getSelectors(rewardByPollProxyFacet), rewardByPollProxyFacet.address);
+    logTransaction(await (await solution.updateAssetPool(getSelectors(rewardByFacet), rewardByFacet.address)).wait());
+    logTransaction(
+        await (await solution.updateAssetPool(getSelectors(rewardByPollFacet), rewardByPollFacet.address)).wait(),
+    );
+    logTransaction(
+        await (
+            await solution.updateAssetPool(getSelectors(rewardByPollProxyFacet), rewardByPollProxyFacet.address)
+        ).wait(),
+    );
 };
 
 // export const updateToBypassPolls = async (solution: Contract) => {

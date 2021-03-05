@@ -13,6 +13,7 @@ import { checkJwt } from '../util/jwt';
 
 const router = express.Router();
 
+router.use('/ping', (req, res) => res.send('pong'));
 router.use('/health', healthRouter);
 router.use('/docs', docsRouter);
 router.use(checkJwt);

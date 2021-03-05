@@ -1,4 +1,11 @@
-import { admin, assetPoolFactory, provider, solutionContract, updateToBypassPolls } from '../../util/network';
+import {
+    admin,
+    assetPoolFactory,
+    provider,
+    logTransaction,
+    solutionContract,
+    updateToBypassPolls,
+} from '../../util/network';
 import { events } from '../../util/events';
 import { AssetPool } from '../../models/AssetPool';
 import { Response, NextFunction } from 'express';
@@ -60,10 +67,10 @@ export const postAssetPool = async (req: HttpRequest, res: Response, next: NextF
 
         const solution = solutionContract(event.args.assetPool);
 
-        await (await solution.initializeRoles(await admin.getAddress())).wait();
-        await (await solution.initializeGasStation(await admin.getAddress())).wait();
-        await (await solution.addToken(req.body.token)).wait();
-        await (await solution.setSigning(true)).wait();
+        logTransaction(await (await solution.initializeRoles(await admin.getAddress())).wait());
+        logTransaction(await (await solution.initializeGasStation(await admin.getAddress())).wait());
+        logTransaction(await (await solution.addToken(req.body.token)).wait());
+        logTransaction(await (await solution.setSigning(true)).wait());
 
         await updateToBypassPolls(solution);
 

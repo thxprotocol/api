@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 import bluebird from 'bluebird';
-import logger from './logger';
+import { logger } from './logger';
 
 (mongoose as any).Promise = bluebird;
 
