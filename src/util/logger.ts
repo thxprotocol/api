@@ -1,6 +1,6 @@
-import { Request } from 'express';
 import morgan from 'morgan';
 import winston from 'winston';
+import { Request } from 'express';
 import { ENVIRONMENT, VERSION } from './secrets';
 
 const format = winston.format.combine(
@@ -9,24 +9,28 @@ const format = winston.format.combine(
     winston.format.splat(),
     winston.format.printf((info) => `${info.timestamp} [${info.level}]: ${info.message}`),
 );
-const error = new winston.transports.File({ filename: 'logs/error.log', level: 'error' });
-const combined = new winston.transports.File({ filename: 'logs/combined.log' });
-const options: winston.LoggerOptions = {
+
+const instance = winston.createLogger({
     level: 'info',
     format,
-    transports: [new winston.transports.Console(), error, combined],
-};
+    transports: [
+        new winston.transports.File({ filename: 'logs/error.log', level: 'error' }),
+        new winston.transports.File({ filename: 'logs/combined.log' }),
+    ],
+});
 
-export const logger = winston.createLogger(options);
+if (ENVIRONMENT !== 'production' && ENVIRONMENT !== 'development') {
+    instance.add(new winston.transports.Console());
+    instance.debug('Logging initialized at debug level');
+}
 
+export const logger = instance;
 export const requestLogger = morgan(
     ':remote-addr - :remote-user ":method :url HTTP/:http-version" :status :res[content-length] ":referrer" ":user-agent"',
     {
         skip: (req: Request) => ENVIRONMENT === 'test' || req.baseUrl.startsWith(`/${VERSION}/ping`),
         stream: {
-            write: (message: string) => {
-                logger.info(message.substring(0, message.lastIndexOf('\n')));
-            },
+            write: (message: string) => instance.info(message.substring(0, message.lastIndexOf('\n'))),
         },
     },
 );
