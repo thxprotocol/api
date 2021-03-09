@@ -392,10 +392,11 @@ describe('Happy Flow', () => {
             user.get(redirectURL)
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
                 .end(async (err, res) => {
-                    withdrawPollID = res.body.pollId;
-                    expect(res.body.approved).toEqual(true); // polls are bypassed by defailt
-                    expect(Number(formatEther(res.body.amount))).toEqual(Number(formatEther(rewardWithdrawAmount)));
                     expect(res.status).toBe(200);
+                    expect(res.body.approved).toEqual(true); // polls are bypassed by defailt
+                    expect(res.body.amount).toEqual(formatEther(rewardWithdrawAmount));
+                    withdrawPollID = res.body.id;
+
                     done();
                 });
         });
@@ -420,10 +421,11 @@ describe('Happy Flow', () => {
             user.get(`/v1/withdrawals/${withdrawPollID}`)
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
                 .end(async (err, res) => {
-                    expect(Number(formatEther(res.body.amount))).toEqual(Number(formatEther(rewardWithdrawAmount)));
+                    expect(res.status).toBe(200);
+                    expect(res.body.amount).toEqual(formatEther(rewardWithdrawAmount));
                     expect(res.body.beneficiary).toEqual(userWallet.address);
                     expect(res.body.approved).toEqual(true);
-                    expect(res.status).toBe(200);
+
                     done();
                 });
         });
@@ -440,8 +442,8 @@ describe('Happy Flow', () => {
             user.post(`/v1/withdrawals/${withdrawPollID}/withdraw`)
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
                 .end(async (err, res) => {
-                    expect(res.body.base64).toContain('data:image/png;base64');
                     expect(res.status).toBe(200);
+                    expect(res.body.base64).toContain('data:image/png;base64');
                     done();
                 });
         });
@@ -462,8 +464,8 @@ describe('Happy Flow', () => {
                 })
                 .set({ AssetPool: poolAddress, Authorization: userAccessToken })
                 .end(async (err, res) => {
-                    redirectURL = res.headers.location;
                     expect(res.status).toBe(302);
+                    redirectURL = res.headers.location;
                     done();
                 });
         });
@@ -472,8 +474,8 @@ describe('Happy Flow', () => {
             user.get(redirectURL)
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
                 .end(async (err, res) => {
-                    expect(Number(formatEther(res.body.token.balance))).toBe(Number(formatEther(rewardWithdrawAmount)));
                     expect(res.status).toBe(200);
+                    expect(Number(formatEther(res.body.token.balance))).toBe(Number(formatEther(rewardWithdrawAmount)));
                     done();
                 });
         });
@@ -496,7 +498,7 @@ describe('Happy Flow', () => {
             user.get(`/v1/withdrawals?member=${admin.address}`)
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
                 .end(async (err, res) => {
-                    expect(Number(res.body.withdrawPolls.length)).toBe(1);
+                    expect(res.body.withdrawPolls.length).toBe(1);
                     expect(res.status).toBe(200);
                     done();
                 });

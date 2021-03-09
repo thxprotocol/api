@@ -1,3 +1,4 @@
+import { formatEther } from 'ethers/lib/utils';
 import { NextFunction, Response } from 'express';
 import { HttpRequest, HttpError } from '../../models/Error';
 
@@ -57,13 +58,12 @@ export const getWithdrawal = async (req: HttpRequest, res: Response, next: NextF
         const beneficiary = await req.solution.getAddressByMember(beneficiaryId);
         const amount = await req.solution.getAmount(req.params.id);
         const approved = await req.solution.withdrawPollApprovalState(req.params.id);
-        const pollId = req.params.id;
 
         res.json({
+            id: req.params.id,
             beneficiary,
-            amount,
+            amount: formatEther(amount),
             approved,
-            pollId,
         });
     } catch (err) {
         next(new HttpError(502, 'Withdraw Poll get data failed.', err));

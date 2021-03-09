@@ -6,7 +6,6 @@ import {
     solutionContract,
     updateToBypassPolls,
 } from '../../util/network';
-import { events } from '../../util/events';
 import { AssetPool } from '../../models/AssetPool';
 import { Response, NextFunction } from 'express';
 import { HttpError, HttpRequest } from '../../models/Error';
@@ -58,8 +57,10 @@ export const postAssetPool = async (req: HttpRequest, res: Response, next: NextF
         }
 
         const audience = req.user.aud;
-        const ev = await events(await assetPoolFactory.deployAssetPool());
-        const event = ev.find((e: { event: string }) => e.event === 'AssetPoolDeployed');
+        const tx = await (await assetPoolFactory.deployAssetPool()).wait();
+        const event = tx.events.find((e: { event: string }) => e.event === 'AssetPoolDeployed');
+
+        logTransaction(tx);
 
         if (!event) {
             return next(new HttpError(502, 'Check API health status.'));
@@ -67,10 +68,10 @@ export const postAssetPool = async (req: HttpRequest, res: Response, next: NextF
 
         const solution = solutionContract(event.args.assetPool);
 
-        logTransaction(await (await solution.initializeRoles(await admin.getAddress())).wait());
-        logTransaction(await (await solution.initializeGasStation(await admin.getAddress())).wait());
-        logTransaction(await (await solution.addToken(req.body.token)).wait());
-        logTransaction(await (await solution.setSigning(true)).wait());
+        await solution.initializeRoles(await admin.getAddress());
+        await solution.initializeGasStation(await admin.getAddress());
+        await solution.addToken(req.body.token);
+        await solution.setSigning(true);
 
         await updateToBypassPolls(solution);
 

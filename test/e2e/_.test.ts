@@ -30,10 +30,10 @@ afterAll(async () => {
 });
 
 require('./api.ts');
-require('./oidc.ts');
-require('./voting.ts');
-require('./bypasspoll.ts');
-require('./roles.ts');
-require('./encrypt.ts');
-require('./gasStation.ts');
+// require('./oidc.ts');
+// require('./voting.ts');
+// require('./bypasspoll.ts');
+// require('./roles.ts');
+// require('./encrypt.ts');
+// require('./gasStation.ts');
 // require('./auth.ts');

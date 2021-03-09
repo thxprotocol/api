@@ -1,7 +1,8 @@
-import { Contract } from 'ethers';
+import { BigNumber, Contract } from 'ethers';
+import { formatEther } from 'ethers/lib/utils';
 import { NextFunction, Response } from 'express';
-import { AssetPoolDocument } from '../../models/AssetPool';
-import { AssetPool } from '../../models/AssetPool';
+import { ContractEventDocument } from '../../models/ContractEvent';
+import { ContractEvent } from '../../models/ContractEvent';
 import { HttpError, HttpRequest } from '../../models/Error';
 
 async function getWithdrawPoll(solution: Contract, id: number) {
@@ -14,7 +15,7 @@ async function getWithdrawPoll(solution: Contract, id: number) {
         return {
             id,
             beneficiary,
-            amount,
+            amount: formatEther(amount),
             approved,
         };
     } catch (err) {
@@ -58,38 +59,43 @@ async function getWithdrawPoll(solution: Contract, id: number) {
  */
 export const getWithdrawals = async (req: HttpRequest, res: Response, next: NextFunction) => {
     try {
-        const assetPool: AssetPoolDocument = await AssetPool.findOne({
-            address: req.solution.address,
-        });
         const memberID = await req.solution.getMemberByAddress(req.query.member);
-        const withdrawPollCreatedLogs = await req.solution.queryFilter(
-            req.solution.filters.WithdrawPollCreated(null, memberID),
-            assetPool.blockNumber || 0,
-            'latest',
-        );
-        const withdrawnLogs = await req.solution.queryFilter(
-            req.solution.filters.Withdrawn(null, req.query.member, null),
-            assetPool.blockNumber || 0,
-            'latest',
-        );
+        const withdrawnEvents = await ContractEvent.find({
+            'contractAddress': req.solution.address,
+            'name': 'Withdrawn',
+            'args.member': req.query.member,
+        });
+        const withdrawPollCreatedEvents = await ContractEvent.find({
+            'contractAddress': req.solution.address,
+            'name': 'WithdrawPollCreated',
+            'args.member': memberID,
+        });
+        const filteredEvents = withdrawPollCreatedEvents.filter((withdrawPollCreatedEvent: ContractEventDocument) => {
+            const res = withdrawnEvents.find((withdrawnEvent: ContractEventDocument) => {
+                const withdrawnEventID = BigNumber.from(withdrawnEvent.args.id).toNumber();
+                const withdrawPollCreatedID = BigNumber.from(withdrawPollCreatedEvent.args.id).toNumber();
 
-        // Get WithdrawPolls
+                return withdrawnEventID === withdrawPollCreatedID;
+            });
+            return !res;
+        });
         const withdrawPolls = [];
-        const filteredLogs = withdrawPollCreatedLogs.filter(
-            (log) => !withdrawnLogs.find((l) => l.args.id.toNumber() === log.args.id.toNumber()),
-        );
 
-        for (const log of filteredLogs) {
-            const withdrawPoll = await getWithdrawPoll(req.solution, log.args.id.toNumber());
+        for (const event of filteredEvents) {
+            const id = BigNumber.from(event.args.id).toNumber();
+            const withdrawPoll = await getWithdrawPoll(req.solution, id);
+
             withdrawPolls.push(withdrawPoll);
         }
 
+        console.log(withdrawPolls);
+
         res.json({
-            withdrawn: withdrawnLogs.map((log) => {
+            withdrawn: withdrawnEvents.map((log: ContractEventDocument) => {
                 return {
-                    id: log.args.id.toNumber(),
+                    id: BigNumber.from(log.args.id).toNumber(),
                     member: log.args.member,
-                    reward: log.args.reward,
+                    amount: formatEther(BigNumber.from(log.args.reward)),
                 };
             }),
             withdrawPolls,
