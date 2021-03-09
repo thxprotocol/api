@@ -1,5 +1,5 @@
 import { Response, NextFunction } from 'express';
-import { Reward, RewardDocument } from '../../models/Reward';
+import { RewardDocument } from '../../models/Reward';
 import { HttpError, HttpRequest } from '../../models/Error';
 import { formatEther } from 'ethers/lib/utils';
 
@@ -37,7 +37,7 @@ import { formatEther } from 'ethers/lib/utils';
  *               description: Current duration of the withdraw poll
  *             state:
  *               type: number
- *               description: Current state of the reward [Enabled, Disabled]
+ *               description: Current state of the reward [Disabled, Enabled]
  *             poll:
  *               type: object
  *               properties:

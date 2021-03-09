@@ -1,7 +1,7 @@
 {
   "info": {
     "title": "THX API Specification",
-    "version": "1.0.0-beta.6"
+    "version": "1.0.0-beta.7"
   },
   "basePath": "https://api.thx.network/v1",
   "swagger": "2.0",
@@ -276,7 +276,7 @@
         "tags": [
           "Asset Pools"
         ],
-        "description": "Update the configuration for this asset pool",
+        "description": "Update the configuration for this asset pool. RewardPollDuration and ProposeWithdrawPollDuration are set in seconds. BypassPolls will upgrade the contracts reward module.",
         "produces": [
           "application/json"
         ],
@@ -294,15 +294,21 @@
             "type": "string"
           },
           {
+            "name": "bypassPolls",
+            "in": "body",
+            "required": false,
+            "type": "boolean"
+          },
+          {
             "name": "rewardPollDuration",
             "in": "body",
-            "required": true,
+            "required": false,
             "type": "integer"
           },
           {
             "name": "proposeWithdrawPollDuration",
             "in": "body",
-            "required": true,
+            "required": false,
             "type": "integer"
           }
         ],
@@ -1312,7 +1318,7 @@
                 },
                 "state": {
                   "type": "number",
-                  "description": "Current state of the reward [Enabled, Disabled]"
+                  "description": "Current state of the reward [Disabled, Enabled]"
                 },
                 "poll": {
                   "type": "object",
