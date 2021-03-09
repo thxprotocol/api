@@ -42,7 +42,6 @@ import { NextFunction, Response } from 'express';
 export const postPollFinalize = async (req: HttpRequest, res: Response, next: NextFunction) => {
     try {
         const tx = await (await req.solution.rewardPollFinalize(req.params.id)).wait();
-
         res.json({ transactionHash: tx.transactionHash });
     } catch (err) {
         next(new HttpError(502, 'BasePoll finalize failed.', err));

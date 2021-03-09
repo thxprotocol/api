@@ -131,27 +131,13 @@ export const updateToBypassPolls = async (solution: Contract) => {
     const rewardByPollFacet = await rewardByPollFacetFactory.deploy();
     const rewardByPollProxyFacet = await rewardByPollProxyFacetFactory.deploy();
 
-    logTransaction(
-        await (await solution.updateAssetPool(getSelectors(withdrawByFacet), withdrawByFacet.address)).wait(),
-    );
-    logTransaction(
-        await (await solution.updateAssetPool(getSelectors(withdrawByPollFacet), withdrawByPollFacet.address)).wait(),
-    );
-    logTransaction(
-        await (
-            await solution.updateAssetPool(getSelectors(withdrawByPollProxyFacet), withdrawByPollProxyFacet.address)
-        ).wait(),
-    );
+    await solution.updateAssetPool(getSelectors(withdrawByFacet), withdrawByFacet.address);
+    await solution.updateAssetPool(getSelectors(withdrawByPollFacet), withdrawByPollFacet.address);
+    await solution.updateAssetPool(getSelectors(withdrawByPollProxyFacet), withdrawByPollProxyFacet.address);
 
-    logTransaction(await (await solution.updateAssetPool(getSelectors(rewardByFacet), rewardByFacet.address)).wait());
-    logTransaction(
-        await (await solution.updateAssetPool(getSelectors(rewardByPollFacet), rewardByPollFacet.address)).wait(),
-    );
-    logTransaction(
-        await (
-            await solution.updateAssetPool(getSelectors(rewardByPollProxyFacet), rewardByPollProxyFacet.address)
-        ).wait(),
-    );
+    await solution.updateAssetPool(getSelectors(rewardByFacet), rewardByFacet.address);
+    await solution.updateAssetPool(getSelectors(rewardByPollFacet), rewardByPollFacet.address);
+    await solution.updateAssetPool(getSelectors(rewardByPollProxyFacet), rewardByPollProxyFacet.address);
 };
 
 // export const updateToBypassPolls = async (solution: Contract) => {

@@ -6,6 +6,7 @@ export type AssetPoolDocument = mongoose.Document & {
     client: string;
     blockNumber: number;
     transactionHash: string;
+    bypassPolls: boolean;
 };
 
 const assetPoolSchema = new mongoose.Schema(
@@ -15,6 +16,7 @@ const assetPoolSchema = new mongoose.Schema(
         client: String,
         blockNumber: Number,
         transactionHash: String,
+        bypassPolls: Boolean,
     },
     { timestamps: true },
 );
