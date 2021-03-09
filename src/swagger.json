@@ -1,7 +1,7 @@
 {
   "info": {
     "title": "THX API Specification",
-    "version": "1.0.0-beta.6"
+    "version": "1.0.0-beta.7"
   },
   "basePath": "https://api.thx.network/v1",
   "swagger": "2.0",
@@ -1312,7 +1312,7 @@
                 },
                 "state": {
                   "type": "number",
-                  "description": "Current state of the reward [Enabled, Disabled]"
+                  "description": "Current state of the reward [Disabled, Enabled]"
                 },
                 "poll": {
                   "type": "object",
