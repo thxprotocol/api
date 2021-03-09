@@ -10,7 +10,7 @@ import { AssetPool } from '../../models/AssetPool';
  *   patch:
  *     tags:
  *       - Asset Pools
- *     description: Update the configuration for this asset pool
+ *     description: Update the configuration for this asset pool. RewardPollDuration and ProposeWithdrawPollDuration are set in seconds. BypassPolls will upgrade the contracts reward module.
  *     produces:
  *       - application/json
  *     parameters:
@@ -22,13 +22,17 @@ import { AssetPool } from '../../models/AssetPool';
  *         in: path
  *         required: true
  *         type: string
+ *       - name: bypassPolls
+ *         in: body
+ *         required: false
+ *         type: boolean
  *       - name: rewardPollDuration
  *         in: body
- *         required: true
+ *         required: false
  *         type: integer
  *       - name: proposeWithdrawPollDuration
  *         in: body
- *         required: true
+ *         required: false
  *         type: integer
  *     responses:
  *       '200':
