@@ -5,6 +5,7 @@ import { VERSION } from '../../util/secrets';
 import IDefaultDiamondArtifact from '../../../src/artifacts/contracts/contracts/IDefaultDiamond.sol/IDefaultDiamond.json';
 
 import { parseLogs } from '../../util/events';
+import { parseEther } from 'ethers/lib/utils';
 /**
  * @swagger
  * /rewards:
@@ -47,12 +48,13 @@ import { parseLogs } from '../../util/events';
  */
 export const postReward = async (req: HttpRequest, res: Response, next: NextFunction) => {
     try {
-        const tx = await (await req.solution.addReward(req.body.withdrawAmount, req.body.withdrawDuration)).wait();
+        const withdrawAmount = parseEther(req.body.withdrawAmount.toString());
+        const tx = await (await req.solution.addReward(withdrawAmount, req.body.withdrawDuration)).wait();
 
         try {
             const logs = await parseLogs(IDefaultDiamondArtifact.abi, tx.logs);
             const event = logs.filter((e: { name: string }) => e && e.name === 'RewardPollCreated')[0];
-            const id = parseInt(event.args.withdrawID, 10); // TODO Event output will be renamed to rewardID.
+            const id = parseInt(event.args.withdrawID, 10);
 
             new Reward({
                 id,

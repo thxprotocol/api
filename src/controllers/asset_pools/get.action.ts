@@ -85,16 +85,14 @@ export const getAssetPool = async (req: HttpRequest, res: Response, next: NextFu
             const assetPool: AssetPoolDocument = await AssetPool.findOne({
                 address: req.params.address,
             });
+
             if (!assetPool) {
                 return next(new HttpError(404, 'Asset Pool is not found in database.'));
             }
-            const { address, title } = assetPool;
 
-            if (!address) {
-                return next(new HttpError(404, 'Asset Pool is not found in database.'));
-            }
+            const { address, title, bypassPolls } = assetPool;
 
-            res.json({ title, address, ...contractData });
+            res.json({ title, address, bypassPolls, ...contractData });
         } catch (error) {
             next(new HttpError(500, 'Asset Pool network data can not be obtained.', error));
         }

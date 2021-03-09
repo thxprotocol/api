@@ -1,6 +1,8 @@
+import { downgradeFromBypassPolls, updateToBypassPolls } from '../../util/network';
 import { Response, NextFunction } from 'express';
 import { VERSION } from '../../util/secrets';
 import { HttpRequest, HttpError } from '../../models/Error';
+import { AssetPool } from '../../models/AssetPool';
 
 /**
  * @swagger
@@ -8,7 +10,7 @@ import { HttpRequest, HttpError } from '../../models/Error';
  *   patch:
  *     tags:
  *       - Asset Pools
- *     description: Update the configuration for this asset pool
+ *     description: Update the configuration for this asset pool. RewardPollDuration and ProposeWithdrawPollDuration are set in seconds. BypassPolls will upgrade the contracts reward module.
  *     produces:
  *       - application/json
  *     parameters:
@@ -20,13 +22,17 @@ import { HttpRequest, HttpError } from '../../models/Error';
  *         in: path
  *         required: true
  *         type: string
+ *       - name: bypassPolls
+ *         in: body
+ *         required: false
+ *         type: boolean
  *       - name: rewardPollDuration
  *         in: body
- *         required: true
+ *         required: false
  *         type: integer
  *       - name: proposeWithdrawPollDuration
  *         in: body
- *         required: true
+ *         required: false
  *         type: integer
  *     responses:
  *       '200':
@@ -45,6 +51,31 @@ import { HttpRequest, HttpError } from '../../models/Error';
  *         description: Bad Gateway. Received an invalid response from the network or database.
  */
 export const patchAssetPool = async (req: HttpRequest, res: Response, next: NextFunction) => {
+    const assetPool = await AssetPool.findOne({
+        address: req.solution.address,
+    });
+
+    if (req.body.bypassPolls === true && assetPool.bypassPolls === false) {
+        try {
+            await updateToBypassPolls(req.solution);
+            assetPool.bypassPolls = req.body.bypassPolls;
+
+            await assetPool.save();
+        } catch (error) {
+            return next(new HttpError(502, 'Asset Pool updateToBypassPolls failed.', error));
+        }
+    }
+
+    if (req.body.bypassPolls === false && assetPool.bypassPolls === true) {
+        try {
+            await downgradeFromBypassPolls(req.solution);
+            assetPool.bypassPolls = req.body.bypassPolls;
+            await assetPool.save();
+        } catch (error) {
+            return next(new HttpError(502, 'Asset Pool downgradeFromBypassPolls failed.', error));
+        }
+    }
+
     if (
         req.body.rewardPollDuration &&
         (await req.solution.getRewardPollDuration()).toString() !== req.body.rewardPollDuration.toString()
@@ -67,6 +98,5 @@ export const patchAssetPool = async (req: HttpRequest, res: Response, next: Next
             return next(new HttpError(502, 'Asset Pool setProposeWithdrawPollDuration failed.', error));
         }
     }
-
     res.redirect(`/${VERSION}/asset_pools/${req.params.address}`);
 };

@@ -73,8 +73,6 @@ export const postAssetPool = async (req: HttpRequest, res: Response, next: NextF
         await solution.addToken(req.body.token);
         await solution.setSigning(true);
 
-        await updateToBypassPolls(solution);
-
         try {
             await new AssetPool({
                 address: solution.address,
@@ -82,6 +80,7 @@ export const postAssetPool = async (req: HttpRequest, res: Response, next: NextF
                 client: audience,
                 blockNumber: event.blockNumber,
                 transactionHash: event.transactionHash,
+                bypassPolls: false,
             }).save();
 
             try {

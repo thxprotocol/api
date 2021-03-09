@@ -3,7 +3,7 @@ import { VERSION } from '../../util/secrets';
 import { HttpError, HttpRequest } from '../../models/Error';
 import IDefaultDiamondArtifact from '../../../src/artifacts/contracts/contracts/IDefaultDiamond.sol/IDefaultDiamond.json';
 
-import { parseResultLog } from '../../util/events';
+import { events, parseResultLog } from '../../util/events';
 
 export const postCallAssetPool = async (req: HttpRequest, res: Response, next: NextFunction) => {
     try {
@@ -17,19 +17,19 @@ export const postCallAssetPool = async (req: HttpRequest, res: Response, next: N
 
 export const postAssetPoolClaimReward = async (req: HttpRequest, res: Response, next: NextFunction) => {
     try {
-        const tx = await (await req.solution.call(req.body.call, req.body.nonce, req.body.sig)).wait();
+        const ev = await events(req.solution.call(req.body.call, req.body.nonce, req.body.sig));
 
         try {
-            const { error, logs } = await parseResultLog(IDefaultDiamondArtifact.abi, tx.logs);
+            const { error, logs } = await parseResultLog(IDefaultDiamondArtifact.abi, ev);
 
             if (error) {
                 throw error;
             }
 
-            const event = logs.filter((e: { name: string }) => e.name === 'WithdrawPollCreated')[0];
-            const pollID = event.args.id;
+            const event = logs.filter((e: { name: string }) => e && e.name === 'WithdrawPollCreated')[0];
+            const withdrawPoll = event.args.id.toNumber();
 
-            res.redirect(`/${VERSION}/withdrawals/${pollID}`);
+            res.redirect(`/${VERSION}/withdrawals/${withdrawPoll}`);
         } catch (error) {
             next(new HttpError(500, 'Parse logs failed.', error));
             return;

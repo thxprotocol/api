@@ -51,7 +51,7 @@ import qrcode from 'qrcode';
  */
 export const patchReward = async (req: HttpRequest, res: Response, next: NextFunction) => {
     try {
-        let { withdrawAmount, withdrawDuration } = await req.solution.rewards(req.params.id);
+        let { withdrawAmount, withdrawDuration } = await req.solution.getReward(req.params.id);
 
         if (req.body.withdrawAmount && withdrawAmount !== req.body.withdrawAmount) {
             withdrawAmount = req.body.withdrawAmount;

@@ -39,10 +39,6 @@ describe('Bypass Polls', () => {
     });
 
     describe('POST /rewards 1 (bypass disabled)', () => {
-        beforeAll(async () => {
-            await downgradeFromBypassPolls(solutionContract(poolAddress));
-        });
-
         it('HTTP 302 redirect OK', (done) => {
             user.post('/v1/rewards')
                 .set({
