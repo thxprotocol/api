@@ -2,6 +2,7 @@ import { AssetPool, AssetPoolDocument } from '../../models/AssetPool';
 import { Response, NextFunction } from 'express';
 import { provider, tokenContract } from '../../util/network';
 import { HttpError, HttpRequest } from '../../models/Error';
+import { formatEther } from 'ethers/lib/utils';
 
 /**
  * @swagger
@@ -27,24 +28,36 @@ import { HttpError, HttpRequest } from '../../models/Error';
  *          schema:
  *              type: object
  *              properties:
+ *                 title
+ *                    type: string
+ *                    description: The title of the asset pool.
+ *                 address
+ *                    type: string
+ *                    description: The address of the asset pool.
+ *                 bypassPolls
+ *                    type: boolean
+ *                    description: Approve polls by default.
+ *                 address
+ *                    type: string
+ *                    description: The address of the owner of the pool. Among other things the owner is responsible for paying all gas costs.
  *                 token:
  *                    type: object
  *                    properties:
  *                       name:
  *                          type: string
- *                          description: The name of the token configured for this asset pool
+ *                          description: The name of the token configured for this asset pool.
  *                       symbol:
  *                          type: string
- *                          description: The symbol of the token configured for this asset pool
+ *                          description: The symbol of the token configured for this asset pool.
  *                       balance:
  *                          type: number
- *                          description: The token balance of the asset pool for this token
+ *                          description: The token balance of the asset pool for this token.
  *                 proposeWithdrawPollDuration:
  *                    type: number
- *                    description: The default duration of the withdraw polls
+ *                    description: The default duration of the withdraw polls.
  *                 rewardPollDuration:
  *                    type: number
- *                    description: The default duration of the reward polls
+ *                    description: The default duration of the reward polls.
  *       '400':
  *         description: Bad Request. Could indicate incorrect rewardPollDuration or proposeWithdrawPollDuration values.
  *       '401':
@@ -77,7 +90,7 @@ export const getAssetPool = async (req: HttpRequest, res: Response, next: NextFu
                     address: tokenInstance.address,
                     name: await tokenInstance.name(),
                     symbol: await tokenInstance.symbol(),
-                    balance: await tokenInstance.balanceOf(req.params.address),
+                    balance: Number(formatEther(await tokenInstance.balanceOf(req.params.address))),
                 },
                 proposeWithdrawPollDuration,
                 rewardPollDuration,

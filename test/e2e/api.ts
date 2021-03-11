@@ -139,7 +139,7 @@ describe('Happy Flow', () => {
                     expect(res.body.token.address).toEqual(testToken.address);
                     expect(res.body.token.name).toEqual(await testToken.name());
                     expect(res.body.token.symbol).toEqual(await testToken.symbol());
-                    expect(Number(formatEther(res.body.token.balance))).toBe(rewardWithdrawAmount);
+                    expect(res.body.token.balance).toBe(rewardWithdrawAmount);
                     expect(Number(res.body.proposeWithdrawPollDuration)).toEqual(0);
                     expect(Number(res.body.rewardPollDuration)).toEqual(0);
                     expect(res.status).toBe(200);
