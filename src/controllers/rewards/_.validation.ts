@@ -12,4 +12,7 @@ export const validations = {
     patchReward: [validateAssetPoolHeader, param('id').exists().isNumeric()],
     postRewardClaim: [validateAssetPoolHeader, param('id').exists().isNumeric()],
     postRewardClaimFor: [validateAssetPoolHeader, param('id').exists(), body('member').exists()],
+    postVote: [validateAssetPoolHeader, param('id').exists().isNumeric(), body('agree').exists()],
+    deleteVote: [validateAssetPoolHeader, param('id').exists().isNumeric(), param('address').exists()],
+    postPollFinalize: [validateAssetPoolHeader, param('id').exists().isNumeric()],
 };

@@ -3,6 +3,7 @@ import { provider, tokenContract } from '../../util/network';
 import { HttpError, HttpRequest } from '../../models/Error';
 import { parseLogs } from '../../util/events';
 import IDefaultDiamondArtifact from '../../artifacts/contracts/contracts/IDefaultDiamond.sol/IDefaultDiamond.json';
+import { formatEther } from 'ethers/lib/utils';
 
 /**
  * @swagger
@@ -10,7 +11,7 @@ import IDefaultDiamondArtifact from '../../artifacts/contracts/contracts/IDefaul
  *   get:
  *     tags:
  *       - Members
- *     description: Get information about a member in the asset pool. 
+ *     description: Provides information about a membership for the pool.
  *     produces:
  *       - application/json
  *     parameters:
@@ -88,10 +89,10 @@ export const getMember = async (req: HttpRequest, res: Response, next: NextFunct
             address,
             isMember,
             isManager: await req.solution.isManager(req.params.address),
-            token: {
+            balance: {
                 name: await tokenInstance.name(),
                 symbol: await tokenInstance.symbol(),
-                balance,
+                amount: Number(formatEther(balance)),
             },
         });
     } catch (err) {

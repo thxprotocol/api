@@ -1,13 +1,14 @@
-import { HttpError, HttpRequest } from '../../models/Error';
-import { NextFunction, Response } from 'express';
+import qrcode from 'qrcode';
+import { HttpError } from '../../models/Error';
+import { NextFunction, Request, Response } from 'express';
 
 /**
  * @swagger
- * /polls/:address/finalize:
- *   post:
+ * /rewards/:id/poll/vote:
+ *   delete:
  *     tags:
- *       - Polls
- *     description: Finalize the poll contracts.
+ *       - Rewards
+ *     description: Revokes a vote for a poll.
  *     produces:
  *       - application/json
  *     parameters:
@@ -27,7 +28,7 @@ import { NextFunction, Response } from 'express';
  *            properties:
  *               base64:
  *                  type: string
- *                  description: Base64 string representing function call
+ *                  description: Base64 string representing function call.
  *       '400':
  *         description: Bad Request. Indicates incorrect body parameters.
  *       '401':
@@ -39,11 +40,18 @@ import { NextFunction, Response } from 'express';
  *       '502':
  *         description: Bad Gateway. Received an invalid response from the network or database.
  */
-export const postPollFinalize = async (req: HttpRequest, res: Response, next: NextFunction) => {
+export const deleteVote = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const tx = await (await req.solution.rewardPollFinalize(req.params.id)).wait();
-        res.json({ transactionHash: tx.transactionHash });
+        const base64 = await qrcode.toDataURL(
+            JSON.stringify({
+                assetPoolAddress: req.header('AssetPool'),
+                contractAddress: req.params.address,
+                contract: 'BasePoll',
+                method: 'revokeVote',
+            }),
+        );
+        res.send({ base64 });
     } catch (err) {
-        next(new HttpError(502, 'BasePoll finalize failed.', err));
+        next(new HttpError(500, 'QR data encoding failed.', err));
     }
 };

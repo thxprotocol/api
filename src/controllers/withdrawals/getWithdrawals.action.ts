@@ -1,27 +1,8 @@
-import { Contract } from 'ethers';
 import { NextFunction, Response } from 'express';
 import { AssetPoolDocument } from '../../models/AssetPool';
 import { AssetPool } from '../../models/AssetPool';
 import { HttpError, HttpRequest } from '../../models/Error';
-
-async function getWithdrawPoll(solution: Contract, id: number) {
-    try {
-        const beneficiaryId = await solution.getBeneficiary(id);
-        const beneficiary = await solution.getAddressByMember(beneficiaryId);
-        const amount = await solution.getAmount(id);
-        const approved = await solution.withdrawPollApprovalState(id);
-
-        return {
-            id,
-            beneficiary,
-            amount,
-            approved,
-        };
-    } catch (err) {
-        new HttpError(502, 'WithdrawPoll READ failed.', err);
-        return;
-    }
-}
+import { getWithdrawalData } from './get.action';
 
 /**
  * @swagger
@@ -74,14 +55,14 @@ export const getWithdrawals = async (req: HttpRequest, res: Response, next: Next
         );
 
         // Get WithdrawPolls
-        const withdrawPolls = [];
+        const withdrawals = [];
         const filteredLogs = withdrawPollCreatedLogs.filter(
             (log) => !withdrawnLogs.find((l) => l.args.id.toNumber() === log.args.id.toNumber()),
         );
 
         for (const log of filteredLogs) {
-            const withdrawPoll = await getWithdrawPoll(req.solution, log.args.id.toNumber());
-            withdrawPolls.push(withdrawPoll);
+            const withdrawal = await getWithdrawalData(req.solution, log.args.id.toNumber());
+            withdrawals.push(withdrawal);
         }
 
         res.json({
@@ -92,9 +73,9 @@ export const getWithdrawals = async (req: HttpRequest, res: Response, next: Next
                     reward: log.args.reward,
                 };
             }),
-            withdrawPolls,
+            withdrawals,
         });
     } catch (err) {
-        next(new HttpError(502, 'Get WithdrawPollCreated logs failed.', err));
+        next(new HttpError(502, 'Could not get all withdrawal information from the network.', err));
     }
 };

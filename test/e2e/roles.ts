@@ -99,7 +99,7 @@ describe('Roles', () => {
                 .end(async (err, res) => {
                     expect(res.body.isMember).toEqual(true);
                     expect(res.body.isManager).toEqual(false);
-                    expect(Number(formatEther(res.body.token.balance))).toEqual(0);
+                    expect(res.body.balance.amount).toEqual(0);
                     expect(res.status).toBe(200);
                     done();
                 });
@@ -126,7 +126,7 @@ describe('Roles', () => {
                 .end(async (err, res) => {
                     expect(res.body.isMember).toEqual(true);
                     expect(res.body.isManager).toEqual(true);
-                    expect(Number(formatEther(res.body.token.balance))).toEqual(0);
+                    expect(res.body.balance.amount).toEqual(0);
                     expect(res.status).toBe(200);
                     done();
                 });
@@ -153,7 +153,7 @@ describe('Roles', () => {
                 .end(async (err, res) => {
                     expect(res.body.isMember).toEqual(true);
                     expect(res.body.isManager).toEqual(false);
-                    expect(Number(formatEther(res.body.token.balance))).toEqual(0);
+                    expect(res.body.balance.amount).toEqual(0);
                     expect(res.status).toBe(200);
                     done();
                 });

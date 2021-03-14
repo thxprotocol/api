@@ -10,7 +10,7 @@ import { formatEther } from 'ethers/lib/utils';
  *   get:
  *     tags:
  *       - Asset Pools
- *     description: Get information about a specific asset pool.
+ *     description: Provides information about the configuration and balance of an asset pool.
  *     produces:
  *       - application/json
  *     parameters:
@@ -23,21 +23,21 @@ import { formatEther } from 'ethers/lib/utils';
  *         required: true
  *         type: string
  *     responses:
- *       200:
+ *       '200':
  *          description: An asset pool object exposing the configuration and balance.
  *          schema:
- *              type: object
- *              properties:
- *                 title
+ *             type: object
+ *             properties:
+ *                 title:
  *                    type: string
  *                    description: The title of the asset pool.
- *                 address
+ *                 address:
  *                    type: string
  *                    description: The address of the asset pool.
- *                 bypassPolls
+ *                 bypassPolls:
  *                    type: boolean
  *                    description: Approve polls by default.
- *                 address
+ *                 owner:
  *                    type: string
  *                    description: The address of the owner of the pool. Among other things the owner is responsible for paying all gas costs.
  *                 token:

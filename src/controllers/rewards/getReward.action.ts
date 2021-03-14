@@ -2,10 +2,40 @@ import { Response, NextFunction } from 'express';
 import { RewardDocument } from '../../models/Reward';
 import { HttpError, HttpRequest } from '../../models/Error';
 import { formatEther } from 'ethers/lib/utils';
+import { Contract } from '@ethersproject/contracts';
+
+export async function getRewardData(solution: Contract, rewardID: number) {
+    try {
+        const { id, withdrawAmount, withdrawDuration, pollId, state } = await solution.getReward(rewardID);
+        const pid = pollId.toNumber();
+        const reward = {
+            id: id.toNumber(),
+            withdrawAmount: Number(formatEther(withdrawAmount)),
+            withdrawDuration: withdrawDuration.toNumber(),
+            state,
+        } as RewardDocument;
+
+        if (pid) {
+            reward.poll = {
+                id: pid,
+                withdrawAmount: Number(formatEther(await solution.getWithdrawAmount(pollId))),
+                withdrawDuration: (await solution.getWithdrawDuration(pollId)).toNumber(),
+                startTime: (await solution.getStartTime(pollId)).toNumber(),
+                endTime: (await solution.getEndTime(pollId)).toNumber(),
+                yesCounter: (await solution.getYesCounter(pollId)).toNumber(),
+                noCounter: (await solution.getNoCounter(pollId)).toNumber(),
+                totalVoted: (await solution.getTotalVoted(pollId)).toNumber(),
+            };
+        }
+        return reward;
+    } catch (e) {
+        return;
+    }
+}
 
 /**
  * @swagger
- * /rewards/:id/:
+ * /rewards/:id:
  *   get:
  *     tags:
  *       - Rewards
@@ -70,30 +100,15 @@ import { formatEther } from 'ethers/lib/utils';
  */
 export const getReward = async (req: HttpRequest, res: Response, next: NextFunction) => {
     try {
-        try {
-            const { id, withdrawAmount, withdrawDuration, pollId, state } = await req.solution.getReward(req.params.id);
-            const pid = pollId.toNumber();
-            const reward = {
-                id: id.toNumber(),
-                withdrawAmount: Number(formatEther(withdrawAmount)),
-                withdrawDuration: withdrawDuration.toNumber(),
-                state,
-            } as RewardDocument;
+        const reward = await getRewardData(req.solution, Number(req.params.id));
 
-            if (pid) {
-                reward.poll = {
-                    id: pid,
-                    withdrawAmount: Number(formatEther(await req.solution.getWithdrawAmount(pollId))),
-                    withdrawDuration: (await req.solution.getWithdrawDuration(pollId)).toNumber(),
-                };
-            }
-
-            res.json(reward);
-        } catch (err) {
-            next(new HttpError(404, 'Asset Pool get reward failed.', err));
-            return;
+        if (!reward) {
+            return next(new HttpError(404, 'Asset Pool reward not found.'));
         }
+
+        res.json(reward);
     } catch (err) {
-        next(new HttpError(502, 'Reward not found.', err));
+        next(new HttpError(402, 'Asset Pool get reward failed.', err));
+        return;
     }
 };

@@ -6,34 +6,6 @@ import { Request, Response, NextFunction } from 'express';
 import { HttpError } from '../../models/Error';
 import { SENDGRID_USER, SENDGRID_PASSWORD } from '../../util/secrets';
 
-/**
- * @swagger
- * /forgot:
- *   post:
- *     tags:
- *       - Authentication
- *     description: E-mails a link to reset the password.
- *     produces:
- *       - application/json
- *     parameters:
- *       - name: email
- *         in: body
- *         required: true
- *         type: string
- *     responses:
- *       '200':
- *         description: OK
- *       '401':
- *         description: Unauthorized. Authenticate your request please.
- *       '403':
- *         description: Forbidden. Password reset token is invalid or has expired.
- *       '404':
- *         description: Not Found. Account does not exist.
- *       '500':
- *         description: Internal Server Error.
- *       '502':
- *         description: Bad Gateway. Received an invalid response from the network or database.
- */
 export const postForgot = async (req: Request, res: Response, next: NextFunction) => {
     async.waterfall(
         [

@@ -6,11 +6,11 @@ import { AssetPool } from '../../models/AssetPool';
 
 /**
  * @swagger
- * /asset_pools/:address/:
+ * /asset_pools/:address:
  *   patch:
  *     tags:
  *       - Asset Pools
- *     description: Update the configuration for this asset pool. RewardPollDuration and ProposeWithdrawPollDuration are set in seconds. BypassPolls will upgrade the contracts reward module.
+ *     description: Updates the configuration for this asset pool. RewardPollDuration and ProposeWithdrawPollDuration are set in seconds. BypassPolls will upgrade or downgrade the asset pool with governance logic.
  *     produces:
  *       - application/json
  *     parameters:
@@ -54,6 +54,10 @@ export const patchAssetPool = async (req: HttpRequest, res: Response, next: Next
     const assetPool = await AssetPool.findOne({
         address: req.solution.address,
     });
+
+    if (!assetPool) {
+        return next(new HttpError(404, 'Could not find an asset pool for this address.'));
+    }
 
     if (req.body.bypassPolls === true && assetPool.bypassPolls === false) {
         try {

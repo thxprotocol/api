@@ -3,15 +3,14 @@ import server from '../../src/server';
 import db from '../../src/util/database';
 import { admin } from './lib/network';
 import { exampleTokenFactory } from './lib/contracts';
-import { poolTitle, mintAmount } from './lib/constants';
+import { poolTitle, mintAmount, rewardWithdrawAmount, rewardWithdrawDuration } from './lib/constants';
 import { Contract, ethers } from 'ethers';
 import { registerClientCredentialsClient } from './lib/registerClient';
-import { downgradeFromBypassPolls, updateToBypassPolls, solutionContract } from '../../src/util/network';
 
 const user = request(server);
 
 describe('Bypass Polls', () => {
-    let adminAccessToken: string, poolAddress: string, pollID: string, redirectURL: string, testToken: Contract;
+    let adminAccessToken: string, redirectURL: string, poolAddress: string, testToken: Contract;
 
     beforeAll(async () => {
         await db.truncate();
@@ -33,6 +32,21 @@ describe('Bypass Polls', () => {
                     expect(ethers.utils.isAddress(res.body.address)).toBe(true);
 
                     poolAddress = res.body.address;
+
+                    done();
+                });
+        });
+
+        it('HTTP 200 response OK', (done) => {
+            user.get('/v1/asset_pools/' + poolAddress)
+                .set({
+                    AssetPool: poolAddress,
+                    Authorization: adminAccessToken,
+                })
+                .end(async (err, res) => {
+                    expect(res.status).toBe(200);
+                    expect(res.body.bypassPolls).toBe(false);
+
                     done();
                 });
         });
@@ -46,13 +60,14 @@ describe('Bypass Polls', () => {
                     Authorization: adminAccessToken,
                 })
                 .send({
-                    withdrawAmount: '20000000000000000000',
-                    withdrawDuration: '0',
+                    withdrawAmount: rewardWithdrawAmount,
+                    withdrawDuration: rewardWithdrawDuration,
                 })
                 .end((err, res) => {
                     expect(res.status).toBe(302);
 
                     redirectURL = res.headers.location;
+
                     done();
                 });
         });
@@ -65,39 +80,57 @@ describe('Bypass Polls', () => {
                 })
                 .end((err, res) => {
                     expect(res.status).toBe(200);
-                    expect(res.body.poll.id).toBe(1);
                     expect(res.body.state).toBe(0);
-                    pollID = res.body.poll.id;
+
                     done();
                 });
         });
     });
 
     describe('POST /rewards/1/finalize (bypass disabled)', () => {
-        it('HTTP 200 response OK', (done) => {
-            user.post(`/v1/polls/${pollID}/finalize`)
+        it('HTTP 200 reward storage OK', (done) => {
+            user.post('/v1/rewards/1/poll/finalize')
                 .set({
                     AssetPool: poolAddress,
                     Authorization: adminAccessToken,
                 })
                 .end((err, res) => {
                     expect(res.status).toBe(200);
-                    expect(res.body.transactionHash).toContain('0x');
+                    expect(res.body.state).toBe(0);
+                    expect(res.body.poll).toBeUndefined();
+                    expect(res.body.withdrawAmount).toBe(0);
+
+                    done();
+                });
+        });
+    });
+
+    describe('PATCH /asset_pools/:address (bypassPolls = true)', () => {
+        it('HTTP 302 redirect to pool', (done) => {
+            user.patch('/v1/asset_pools/' + poolAddress)
+                .set({
+                    AssetPool: poolAddress,
+                    Authorization: adminAccessToken,
+                })
+                .send({ bypassPolls: true })
+                .end(async (err, res) => {
+                    expect(res.status).toBe(302);
+
+                    redirectURL = res.headers.location;
 
                     done();
                 });
         });
 
-        it('HTTP 200 reward storage OK ', (done) => {
+        it('HTTP 200 response OK', (done) => {
             user.get(redirectURL)
                 .set({
                     AssetPool: poolAddress,
                     Authorization: adminAccessToken,
                 })
-                .end((err, res) => {
+                .end(async (err, res) => {
                     expect(res.status).toBe(200);
-                    expect(res.body.poll).toBeUndefined();
-                    expect(res.body.state).toBe(0);
+                    expect(res.body.bypassPolls).toBe(true);
 
                     done();
                 });
@@ -105,10 +138,6 @@ describe('Bypass Polls', () => {
     });
 
     describe('POST /rewards 2 (bypass enabled)', () => {
-        beforeAll(async () => {
-            await updateToBypassPolls(solutionContract(poolAddress));
-        });
-
         it('HTTP 302 redirect OK', (done) => {
             user.post('/v1/rewards')
                 .set({
@@ -116,8 +145,8 @@ describe('Bypass Polls', () => {
                     Authorization: adminAccessToken,
                 })
                 .send({
-                    withdrawAmount: '20000000000000000000',
-                    withdrawDuration: '0',
+                    withdrawAmount: rewardWithdrawAmount,
+                    withdrawDuration: rewardWithdrawDuration,
                 })
                 .end((err, res) => {
                     expect(res.status).toBe(302);
@@ -135,9 +164,10 @@ describe('Bypass Polls', () => {
                 })
                 .end((err, res) => {
                     expect(res.status).toBe(200);
-                    expect(res.body.poll.id).toBe(2);
                     expect(res.body.state).toBe(0);
-                    pollID = res.body.poll.id;
+                    expect(res.body.withdrawAmount).toBe(0);
+                    expect(res.body.poll.withdrawAmount).toBe(rewardWithdrawAmount);
+
                     done();
                 });
         });
@@ -145,103 +175,48 @@ describe('Bypass Polls', () => {
 
     describe('POST /rewards/2/finalize (bypass enabled)', () => {
         it('HTTP 200 response OK', (done) => {
-            user.post(`/v1/polls/${pollID}/finalize`)
+            user.post('/v1/rewards/2/poll/finalize')
                 .set({
                     AssetPool: poolAddress,
                     Authorization: adminAccessToken,
                 })
                 .end((err, res) => {
                     expect(res.status).toBe(200);
-                    expect(res.body.transactionHash).toContain('0x');
-
-                    done();
-                });
-        });
-
-        it('HTTP 200 reward storage OK ', (done) => {
-            user.get(redirectURL)
-                .set({
-                    AssetPool: poolAddress,
-                    Authorization: adminAccessToken,
-                })
-                .end((err, res) => {
-                    expect(res.status).toBe(200);
-                    expect(res.body.poll).toBeUndefined();
                     expect(res.body.state).toBe(1);
+                    expect(res.body.withdrawAmount).toBe(rewardWithdrawAmount);
+                    expect(res.body.poll).toBeUndefined();
 
                     done();
                 });
         });
     });
 
-    describe('POST /rewards 3 (bypass disabled)', () => {
-        beforeAll(async () => {
-            await downgradeFromBypassPolls(solutionContract(poolAddress));
-        });
-
-        it('HTTP 302 redirect OK', (done) => {
-            user.post('/v1/rewards')
+    describe('PATCH /asset_pools/:address (bypassPolls = false)', () => {
+        it('HTTP 302 redirect to pool', (done) => {
+            user.patch('/v1/asset_pools/' + poolAddress)
                 .set({
                     AssetPool: poolAddress,
                     Authorization: adminAccessToken,
                 })
-                .send({
-                    withdrawAmount: '20000000000000000000',
-                    withdrawDuration: '0',
-                })
-                .end((err, res) => {
+                .send({ bypassPolls: false })
+                .end(async (err, res) => {
                     expect(res.status).toBe(302);
 
                     redirectURL = res.headers.location;
+
                     done();
                 });
-        });
-
-        it('HTTP 200 reward storage OK ', (done) => {
-            user.get(redirectURL)
-                .set({
-                    AssetPool: poolAddress,
-                    Authorization: adminAccessToken,
-                })
-                .end((err, res) => {
-                    expect(res.status).toBe(200);
-                    expect(res.body.poll.id).toBe(3);
-                    expect(res.body.state).toBe(0);
-                    pollID = res.body.poll.id;
-                    done();
-                });
-        });
-    });
-
-    describe('POST /rewards/3/finalize (bypass enabled)', () => {
-        beforeAll(async () => {
-            await updateToBypassPolls(solutionContract(poolAddress));
         });
 
         it('HTTP 200 response OK', (done) => {
-            user.post(`/v1/polls/${pollID}/finalize`)
-                .set({
-                    AssetPool: poolAddress,
-                    Authorization: adminAccessToken,
-                })
-                .end((err, res) => {
-                    expect(res.status).toBe(200);
-                    expect(res.body.transactionHash).toContain('0x');
-
-                    done();
-                });
-        });
-
-        it('HTTP 200 reward storage OK ', (done) => {
             user.get(redirectURL)
                 .set({
                     AssetPool: poolAddress,
                     Authorization: adminAccessToken,
                 })
-                .end((err, res) => {
+                .end(async (err, res) => {
                     expect(res.status).toBe(200);
-                    expect(res.body.poll).toBeUndefined();
-                    expect(res.body.state).toBe(1);
+                    expect(res.body.bypassPolls).toBe(false);
 
                     done();
                 });

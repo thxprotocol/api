@@ -4,40 +4,6 @@ import { Account, AccountDocument } from '../../models/Account';
 import { Request, Response, NextFunction } from 'express';
 import { HttpError } from '../../models/Error';
 
-/**
- * @swagger
- * /reset/:token:
- *   post:
- *     tags:
- *       - Authentication
- *     description: Resets your password based on token in url.
- *     produces:
- *       - application/json
- *     parameters:
- *       - name: token
- *         in: body
- *         required: true
- *         type: string
- *       - name: password
- *         in: body
- *         required: true
- *         type: string
- *       - name: confirmPassword
- *         in: body
- *         required: true
- *         type: string
- *     responses:
- *       '200':
- *         description: OK
- *       '401':
- *         description: Unauthorized. Authenticate your request please.
- *       '403':
- *         description: Forbidden. Password reset token is invalid or has expired.
- *       '500':
- *         description: Internal Server Error.
- *       '502':
- *         description: Bad Gateway. Received an invalid response from the network or database.
- */
 export const postReset = async (req: Request, res: Response, next: NextFunction) => {
     async.waterfall(
         [

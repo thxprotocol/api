@@ -317,13 +317,13 @@ describe('Happy Flow', () => {
                     expect(res.status).toBe(200);
                     expect(res.body.isMember).toEqual(true);
                     expect(res.body.isManager).toEqual(true);
-                    expect(Number(formatEther(res.body.token.balance))).toEqual(0);
+                    expect(res.body.balance.amount).toEqual(0);
                     done();
                 });
         });
     });
 
-    describe('POST /polls/:id/finalize (rewardPoll)', () => {
+    describe('POST /rewards/:id/poll/finalize (rewardPoll)', () => {
         beforeAll(async () => {
             await timeTravel(rewardPollDuration);
         });
@@ -333,15 +333,16 @@ describe('Happy Flow', () => {
                 .set({ AssetPool: poolAddress, Authorization: userAccessToken })
                 .end(async (err, res) => {
                     expect(res.status).toBe(200);
-                    expect(res.body.poll.id).toBe(1);
+                    expect(res.body.state).toEqual(0);
+                    expect(res.body.poll.withdrawAmount).toEqual(rewardWithdrawAmount);
 
                     done();
                 });
         });
 
         it('HTTP 302 after finalizing the poll', async (done) => {
-            user.post('/v1/polls/' + pollID + '/finalize')
-                .set({ AssetPool: poolAddress, Authorization: userAccessToken })
+            user.post('/v1/rewards/1/poll/finalize')
+                .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
                 .end(async (err, res) => {
                     expect(res.status).toBe(200);
                     done();
@@ -352,8 +353,8 @@ describe('Happy Flow', () => {
             user.get('/v1/rewards/1')
                 .set({ AssetPool: poolAddress, Authorization: userAccessToken })
                 .end(async (err, res) => {
-                    expect(res.body.poll).toBeUndefined();
                     expect(res.status).toBe(200);
+                    expect(res.body.poll).toBeUndefined();
                     done();
                 });
         });
@@ -365,8 +366,8 @@ describe('Happy Flow', () => {
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
                 .end(async (err, res) => {
                     expect(res.status).toBe(200);
-                    expect(res.body.withdrawAmount).toEqual(rewardWithdrawAmount);
                     expect(res.body.state).toEqual(1);
+                    expect(res.body.withdrawAmount).toEqual(rewardWithdrawAmount);
 
                     done();
                 });
@@ -374,14 +375,13 @@ describe('Happy Flow', () => {
     });
 
     describe('POST /rewards/:id/claim', () => {
-        let redirectURL = '';
-
         it('HTTP 200 and base64 string for the claim', (done) => {
             user.post('/v1/rewards/1/claim')
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
                 .end(async (err, res) => {
-                    expect(res.body.base64).toContain('data:image/png;base64');
                     expect(res.status).toBe(200);
+                    expect(res.body.base64).toContain('data:image/png;base64');
+
                     done();
                 });
         });
@@ -389,7 +389,7 @@ describe('Happy Flow', () => {
         it('HTTP 302 when tx is handled', async (done) => {
             const { call, nonce, sig } = await signMethod(poolAddress, 'claimReward', [1], userWallet);
 
-            user.post('/v1/gas_station/asset_pool/claim_reward')
+            user.post('/v1/gas_station/call')
                 .send({
                     call,
                     nonce,
@@ -397,20 +397,24 @@ describe('Happy Flow', () => {
                 })
                 .set({ AssetPool: poolAddress, Authorization: userAccessToken })
                 .end(async (err, res) => {
-                    expect(res.status).toBe(302);
-                    redirectURL = res.headers.location;
+                    expect(res.status).toBe(200);
+
                     done();
                 });
         });
 
         it('HTTP 200 after return state Pending', (done) => {
-            user.get(redirectURL)
+            user.get('/v1/withdrawals?member=' + userWallet.address)
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
                 .end(async (err, res) => {
-                    withdrawPollID = res.body.pollId;
-                    expect(res.body.approved).toEqual(true); // polls are bypassed by defailt
-                    expect(Number(formatEther(res.body.amount))).toEqual(rewardWithdrawAmount);
                     expect(res.status).toBe(200);
+
+                    const index = res.body.withdrawals.length - 1;
+                    const withdrawal = res.body.withdrawals[index];
+
+                    expect(withdrawal.approved).toEqual(true);
+                    expect(withdrawal.amount).toEqual(rewardWithdrawAmount);
+
                     done();
                 });
         });
@@ -420,11 +424,15 @@ describe('Happy Flow', () => {
         it('HTTP 200 when tx is handled', async (done) => {
             user.post('/v1/rewards/1/give')
                 .send({
-                    member: admin.address,
+                    member: userWallet.address,
                 })
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
                 .end(async (err, res) => {
-                    expect(res.body.withdrawPoll).toEqual(3);
+                    expect(res.status).toBe(200);
+                    expect(res.body.withdrawal).toEqual(3);
+
+                    withdrawPollID = res.body.withdrawal;
+
                     done();
                 });
         });
@@ -435,30 +443,19 @@ describe('Happy Flow', () => {
             user.get(`/v1/withdrawals/${withdrawPollID}`)
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
                 .end(async (err, res) => {
-                    expect(Number(formatEther(res.body.amount))).toEqual(rewardWithdrawAmount);
+                    expect(res.status).toBe(200);
+                    expect(res.body.amount).toEqual(rewardWithdrawAmount);
                     expect(res.body.beneficiary).toEqual(userWallet.address);
                     expect(res.body.approved).toEqual(true);
-                    expect(res.status).toBe(200);
+
                     done();
                 });
         });
     });
 
-    describe('POST /withdrawals/:address/withdraw', () => {
-        let redirectURL = '';
-
+    describe('POST /withdrawals/:id/withdraw', () => {
         beforeAll(async () => {
             await timeTravel(rewardWithdrawDuration);
-        });
-
-        it('HTTP 200 and base64 string for the withdraw', (done) => {
-            user.post(`/v1/withdrawals/${withdrawPollID}/withdraw`)
-                .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
-                .end(async (err, res) => {
-                    expect(res.body.base64).toContain('data:image/png;base64');
-                    expect(res.status).toBe(200);
-                    done();
-                });
         });
 
         it('HTTP 302 and redirect to withdrawal', async (done) => {
@@ -469,7 +466,7 @@ describe('Happy Flow', () => {
                 userWallet,
             );
 
-            user.post('/v1/gas_station/withdrawals/withdraw')
+            user.post('/v1/gas_station/call')
                 .send({
                     call,
                     nonce,
@@ -477,18 +474,19 @@ describe('Happy Flow', () => {
                 })
                 .set({ AssetPool: poolAddress, Authorization: userAccessToken })
                 .end(async (err, res) => {
-                    redirectURL = res.headers.location;
-                    expect(res.status).toBe(302);
+                    expect(res.status).toBe(200);
+
                     done();
                 });
         });
 
         it('HTTP 200 and have the minted amount balance again', (done) => {
-            user.get(redirectURL)
+            user.get('/v1/members/' + userWallet.address)
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
                 .end(async (err, res) => {
-                    expect(Number(formatEther(res.body.token.balance))).toBe(rewardWithdrawAmount);
                     expect(res.status).toBe(200);
+                    expect(res.body.balance.amount).toBe(rewardWithdrawAmount);
+
                     done();
                 });
         });
@@ -499,8 +497,9 @@ describe('Happy Flow', () => {
             user.get(`/v1/asset_pools/${poolAddress}`)
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
                 .end(async (err, res) => {
-                    expect(Number(formatEther(res.body.token.balance))).toBe(0);
                     expect(res.status).toBe(200);
+                    expect(res.body.token.balance).toBe(0);
+
                     done();
                 });
         });
@@ -508,17 +507,18 @@ describe('Happy Flow', () => {
 
     describe('GET /withdrawals (before proposed withdrawal)', () => {
         it('HTTP 200 and return no items', async (done) => {
-            user.get(`/v1/withdrawals?member=${admin.address}`)
+            user.get(`/v1/withdrawals?member=${userWallet.address}`)
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
                 .end(async (err, res) => {
-                    expect(Number(res.body.withdrawPolls.length)).toBe(1);
                     expect(res.status).toBe(200);
+                    expect(res.body.withdrawn.length).toBe(1); // Closed withdrawal from claimed rewards
+                    expect(res.body.withdrawals.length).toBe(1); // Open withdrawal from reward given
+
                     done();
                 });
         });
     });
 
-    // Describe flow for reward give
     // Describe flow for rejected withdraw poll
     // Describe flow for rejected reward poll
 });
