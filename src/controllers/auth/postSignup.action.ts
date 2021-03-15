@@ -9,7 +9,7 @@ import { HttpError, HttpRequest } from '../../models/Error';
  *   post:
  *     tags:
  *       - Authentication
- *     description: Create an account using email and password.
+ *     description: Creates an account using email and password.
  *     produces:
  *       - application/json
  *     parameters:
@@ -31,12 +31,12 @@ import { HttpError, HttpRequest } from '../../models/Error';
  *     responses:
  *       '201':
  *         description: Created
- *       '302':
- *          description: Redirect. Redirects to `GET /account`
- *          headers:
- *             Location:
- *                schema:
- *                  type: string
+ *         schema:
+ *             type: object
+ *             properties:
+ *                address:
+ *                   type: string
+ *                   description: The address for the new account.
  *       '400':
  *         description: Bad Request. Indicated incorrect body parameters.
  *       '422':

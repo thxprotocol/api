@@ -1,28 +1,10 @@
-import { BigNumber, Contract } from 'ethers';
+import { BigNumber } from 'ethers/lib/ethers';
 import { formatEther } from 'ethers/lib/utils';
 import { NextFunction, Response } from 'express';
 import { ContractEventDocument } from '../../models/ContractEvent';
 import { ContractEvent } from '../../models/ContractEvent';
 import { HttpError, HttpRequest } from '../../models/Error';
-
-async function getWithdrawPoll(solution: Contract, id: number) {
-    try {
-        const beneficiaryId = await solution.getBeneficiary(id);
-        const beneficiary = await solution.getAddressByMember(beneficiaryId);
-        const amount = await solution.getAmount(id);
-        const approved = await solution.withdrawPollApprovalState(id);
-
-        return {
-            id,
-            beneficiary,
-            amount: formatEther(amount),
-            approved,
-        };
-    } catch (err) {
-        new HttpError(502, 'WithdrawPoll READ failed.', err);
-        return;
-    }
-}
+import { getWithdrawalData } from './get.action';
 
 /**
  * @swagger
@@ -74,21 +56,19 @@ export const getWithdrawals = async (req: HttpRequest, res: Response, next: Next
             const res = withdrawnEvents.find((withdrawnEvent: ContractEventDocument) => {
                 const withdrawnEventID = BigNumber.from(withdrawnEvent.args.id).toNumber();
                 const withdrawPollCreatedID = BigNumber.from(withdrawPollCreatedEvent.args.id).toNumber();
-
-                return withdrawnEventID === withdrawPollCreatedID;
+                return withdrawnEventID !== withdrawPollCreatedID;
             });
-            return !res;
         });
-        const withdrawPolls = [];
 
-        for (const event of filteredEvents) {
-            const id = BigNumber.from(event.args.id).toNumber();
-            const withdrawPoll = await getWithdrawPoll(req.solution, id);
+        // Get WithdrawPolls
+        const withdrawals = [];
 
-            withdrawPolls.push(withdrawPoll);
+        for (const log of filteredEvents) {
+            const withdrawal = await getWithdrawalData(req.solution, log.args.id.toNumber());
+            withdrawals.push(withdrawal);
         }
 
-        console.log(withdrawPolls);
+        console.log(withdrawals);
 
         res.json({
             withdrawn: withdrawnEvents.map((log: ContractEventDocument) => {
@@ -98,9 +78,9 @@ export const getWithdrawals = async (req: HttpRequest, res: Response, next: Next
                     amount: formatEther(BigNumber.from(log.args.reward)),
                 };
             }),
-            withdrawPolls,
+            withdrawals,
         });
     } catch (err) {
-        next(new HttpError(502, 'Get WithdrawPollCreated logs failed.', err));
+        next(new HttpError(502, 'Could not get all withdrawal information from the network.', err));
     }
 };

@@ -33,7 +33,7 @@ export async function updateMemberProfile(address: string, poolAddress: string) 
  *   post:
  *     tags:
  *       - Members
- *     description: Add a member to the asset pool
+ *     description: Adds a membership to the asset pool and updates the account with the address.
  *     produces:
  *       - application/json
  *     parameters:

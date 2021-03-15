@@ -9,6 +9,9 @@ import { patchReward } from './patch.action';
 import { postRewardClaim } from './postRewardClaim.action';
 import { postRewardClaimFor } from './postRewardClaimFor.action';
 import { parseHeader } from '../../util/network';
+import { postVote } from './postVote.action';
+import { deleteVote } from './deleteVote.action';
+import { postPollFinalize } from './postPollFinalize.action';
 import checkScopes from 'express-jwt-authz';
 
 const router = express.Router();
@@ -24,6 +27,16 @@ router.post(
     validate(validations.postRewardClaimFor),
     parseHeader,
     postRewardClaimFor,
+);
+
+router.post('/:id/poll/vote', checkScopes(['admin']), validate(validations.postVote), parseHeader, postVote);
+router.delete('/:id/poll/vote', checkScopes(['admin']), validate(validations.deleteVote), parseHeader, deleteVote);
+router.post(
+    '/:id/poll/finalize',
+    checkScopes(['admin']),
+    validate(validations.postPollFinalize),
+    parseHeader,
+    postPollFinalize,
 );
 
 export default router;

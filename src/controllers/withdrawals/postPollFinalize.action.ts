@@ -1,14 +1,14 @@
-import qrcode from 'qrcode';
-import { HttpError } from '../../models/Error';
-import { NextFunction, Request, Response } from 'express';
+import { HttpError, HttpRequest } from '../../models/Error';
+import { NextFunction, Response } from 'express';
+import { getWithdrawalData } from './get.action';
 
 /**
  * @swagger
- * /polls/:address/vote:
+ * /withdrawals/:id/finalize:
  *   post:
  *     tags:
- *       - Polls
- *     description: Get a quick response image to vote.
+ *       - Withdrawals
+ *     description: Finalizes the reward poll.
  *     produces:
  *       - application/json
  *     parameters:
@@ -19,11 +19,7 @@ import { NextFunction, Request, Response } from 'express';
  *       - name: id
  *         in: path
  *         required: true
- *         type: integer
- *       - name: agree
- *         in: body
- *         required: true
- *         type: boolean
+ *         type: number
  *     responses:
  *       '200':
  *         description: OK
@@ -44,21 +40,22 @@ import { NextFunction, Request, Response } from 'express';
  *       '502':
  *         description: Bad Gateway. Received an invalid response from the network or database.
  */
-export const postVote = async (req: Request, res: Response, next: NextFunction) => {
+export const postPollFinalize = async (req: HttpRequest, res: Response, next: NextFunction) => {
     try {
-        const base64 = await qrcode.toDataURL(
-            JSON.stringify({
-                assetPoolAddress: req.header('AssetPool'),
-                contract: 'BasePoll',
-                method: 'vote',
-                params: {
-                    id: req.params.id,
-                    agree: req.body.agree,
-                },
-            }),
-        );
-        res.json({ base64 });
-    } catch (err) {
-        next(new HttpError(500, 'QR data encoding failed.', err));
+        await (await req.solution.withdrawPollFinalize(req.params.id)).wait();
+
+        try {
+            const withdrawal = await getWithdrawalData(req.solution, Number(req.params.id));
+
+            if (!withdrawal) {
+                return next(new HttpError(404, 'No withdrawal found for this ID.'));
+            }
+
+            res.json(withdrawal);
+        } catch (e) {
+            return next(new HttpError(502, 'Could not get withdrawal data from the network.', e));
+        }
+    } catch (e) {
+        next(new HttpError(502, 'Could not finalize the withdraw poll.', e));
     }
 };

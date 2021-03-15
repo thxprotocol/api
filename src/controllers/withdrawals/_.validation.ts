@@ -1,18 +1,10 @@
 import { ethers } from 'ethers';
-import { param, query } from 'express-validator';
+import { body, param, query } from 'express-validator';
 import { validateAssetPoolHeader } from '../../util/validation';
 
 export const validations = {
-    getWithdrawal: [
-        validateAssetPoolHeader,
-        param('id')
-            .exists()
-            .custom((value) => {
-                // todo
-                return true;
-            }),
-    ],
-    getWithdrawals: [
+    getWithdrawals: [validateAssetPoolHeader],
+    getWithdrawalsForMember: [
         validateAssetPoolHeader,
         query('member')
             .exists()
@@ -20,13 +12,9 @@ export const validations = {
                 return ethers.utils.isAddress(value);
             }),
     ],
-    postWithdrawalWithdraw: [
-        validateAssetPoolHeader,
-        param('id')
-            .exists()
-            .custom((value) => {
-                // todo
-                return true;
-            }),
-    ],
+    getWithdrawal: [validateAssetPoolHeader, param('id').exists().isNumeric()],
+    postWithdrawalWithdraw: [validateAssetPoolHeader, param('id').exists().isNumeric()],
+    postVote: [validateAssetPoolHeader, param('id').exists().isNumeric(), body('agree').exists()],
+    deleteVote: [validateAssetPoolHeader, param('id').exists().isNumeric(), param('address').exists()],
+    postPollFinalize: [validateAssetPoolHeader, param('id').exists().isNumeric()],
 };

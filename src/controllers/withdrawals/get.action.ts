@@ -1,6 +1,29 @@
 import { formatEther } from 'ethers/lib/utils';
 import { NextFunction, Response } from 'express';
 import { HttpRequest, HttpError } from '../../models/Error';
+import { Contract } from '@ethersproject/contracts';
+
+export async function getWithdrawalData(solution: Contract, id: number) {
+    try {
+        const beneficiaryId = await solution.getBeneficiary(id);
+
+        return {
+            id,
+            beneficiary: await solution.getAddressByMember(beneficiaryId),
+            amount: Number(formatEther(await solution.getAmount(id))),
+            approved: await solution.withdrawPollApprovalState(id),
+            poll: {
+                startTime: (await solution.getStartTime(id)).toNumber(),
+                endTime: (await solution.getEndTime(id)).toNumber(),
+                yesCounter: (await solution.getYesCounter(id)).toNumber(),
+                noCounter: (await solution.getNoCounter(id)).toNumber(),
+                totalVoted: (await solution.getTotalVoted(id)).toNumber(),
+            },
+        };
+    } catch (e) {
+        return;
+    }
+}
 
 /**
  * @swagger
@@ -54,18 +77,14 @@ import { HttpRequest, HttpError } from '../../models/Error';
  */
 export const getWithdrawal = async (req: HttpRequest, res: Response, next: NextFunction) => {
     try {
-        const beneficiaryId = await req.solution.getBeneficiary(req.params.id);
-        const beneficiary = await req.solution.getAddressByMember(beneficiaryId);
-        const amount = await req.solution.getAmount(req.params.id);
-        const approved = await req.solution.withdrawPollApprovalState(req.params.id);
+        const withdrawal = await getWithdrawalData(req.solution, Number(req.params.id));
 
-        res.json({
-            id: req.params.id,
-            beneficiary,
-            amount: formatEther(amount),
-            approved,
-        });
+        if (!withdrawal) {
+            return next(new HttpError(404, 'Could not find a withdrawal for this ID.'));
+        }
+
+        res.json(withdrawal);
     } catch (err) {
-        next(new HttpError(502, 'Withdraw Poll get data failed.', err));
+        next(new HttpError(502, 'Could not get all withdrawal information from the network.', err));
     }
 };

@@ -4,11 +4,11 @@ import { NextFunction, Request, Response } from 'express';
 
 /**
  * @swagger
- * /polls/:address/vote:
- *   delete:
+ * /rewards/:id/poll/vote:
+ *   post:
  *     tags:
- *       - Polls
- *     description: Revoke a vote for a poll
+ *       - Rewards
+ *     description: Provides a QR image that can be used to vote.
  *     produces:
  *       - application/json
  *     parameters:
@@ -19,7 +19,11 @@ import { NextFunction, Request, Response } from 'express';
  *       - name: id
  *         in: path
  *         required: true
- *         type: number
+ *         type: integer
+ *       - name: agree
+ *         in: body
+ *         required: true
+ *         type: boolean
  *     responses:
  *       '200':
  *         description: OK
@@ -37,21 +41,22 @@ import { NextFunction, Request, Response } from 'express';
  *         description: Forbidden. Your account does not have access to this pool.
  *       '500':
  *         description: Internal Server Error.
- *       '502':
- *         description: Bad Gateway. Received an invalid response from the network or database.
  */
-export const deleteVote = async (req: Request, res: Response, next: NextFunction) => {
+export const postVote = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const base64 = await qrcode.toDataURL(
             JSON.stringify({
                 assetPoolAddress: req.header('AssetPool'),
-                contractAddress: req.params.address,
                 contract: 'BasePoll',
-                method: 'revokeVote',
+                method: 'vote',
+                params: {
+                    id: req.params.id,
+                    agree: req.body.agree,
+                },
             }),
         );
-        res.send({ base64 });
+        res.json({ base64 });
     } catch (err) {
-        next(new HttpError(500, 'QR data encoding failed.', err));
+        next(new HttpError(500, 'Could not encode the QR image properly.', err));
     }
 };

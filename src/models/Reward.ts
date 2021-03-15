@@ -8,6 +8,11 @@ export type RewardDocument = mongoose.Document & {
         id: number;
         withdrawAmount: number;
         withdrawDuration: number;
+        startTime: number;
+        endTime: number;
+        yesCounter: number;
+        noCounter: number;
+        totalVoted: number;
     };
 };
 

@@ -17,7 +17,7 @@ import MongoAdapter from '../../oidc/adapter';
  *   post:
  *     tags:
  *       - Asset Pools
- *     description: Create a new asset pool, deploy it on the network and retrieve the address.
+ *     description: Deploys a new asset pool with an ERC20 token configured for it.
  *     produces:
  *       - application/json
  *     parameters:
@@ -26,7 +26,7 @@ import MongoAdapter from '../../oidc/adapter';
  *         required: true
  *         type: string
  *       - name: token
- *         description: Address of the ERC20 token used for this pool.
+ *         description: Contract address of the ERC20 configured for this pool.
  *         in: body
  *         required: true
  *         type: string

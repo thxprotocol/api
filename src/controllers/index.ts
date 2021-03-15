@@ -6,7 +6,6 @@ import assetPoolsRouter from './asset_pools/_.routing';
 import gasStationRouter from './gas_station/_.routing';
 import membersRouter from './members/_.routing';
 import rewardsRouter from './rewards/_.routing';
-import pollsRouter from './polls/_.routing';
 import withdrawalsRouter from './withdrawals/_.routing';
 import authRouter from './auth/_.routing';
 import { checkJwt } from '../util/jwt';
@@ -24,6 +23,5 @@ router.use('/asset_pools', assetPoolsRouter);
 router.use('/members', membersRouter);
 router.use('/rewards', rewardsRouter);
 router.use('/withdrawals', withdrawalsRouter);
-router.use('/polls', pollsRouter);
 
 export default router;

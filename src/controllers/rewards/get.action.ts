@@ -2,6 +2,7 @@ import { Response, NextFunction } from 'express';
 import { Reward, RewardDocument } from '../../models/Reward';
 import { HttpError, HttpRequest } from '../../models/Error';
 import { formatEther } from 'ethers/lib/utils';
+import { getReward, getRewardData } from './getReward.action';
 
 /**
  * @swagger
@@ -69,28 +70,13 @@ export const getRewards = async (req: HttpRequest, res: Response, next: NextFunc
             let i = 1;
             while (i >= 1) {
                 try {
-                    const { id, withdrawAmount, withdrawDuration, pollId, state } = await req.solution.getReward(i);
-                    const pid = pollId.toNumber();
-                    const reward = {
-                        id: id.toNumber(),
-                        withdrawAmount: Number(formatEther(withdrawAmount)),
-                        withdrawDuration: withdrawDuration.toNumber(),
-                        state,
-                    } as RewardDocument;
-
-                    if (pid) {
-                        reward.poll = {
-                            id: pid,
-                            withdrawAmount: Number(formatEther(await req.solution.getWithdrawAmount(pid))),
-                            withdrawDuration: (await req.solution.getWithdrawDuration(pid)).toNumber(),
-                        };
-                    }
+                    const reward = getRewardData(req.solution, i);
 
                     rewards.push(reward);
+                    i++;
                 } catch (e) {
                     break;
                 }
-                i++;
             }
             res.json({ rewards });
         } catch (err) {

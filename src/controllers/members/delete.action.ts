@@ -8,7 +8,7 @@ import { HttpError, HttpRequest } from '../../models/Error';
  *   delete:
  *     tags:
  *       - Members
- *     description: Remove a member from the asset pool
+ *     description: Revokes a membership from the asset pool
  *     produces:
  *       - application/json
  *     parameters:

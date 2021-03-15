@@ -59,9 +59,9 @@ export const postRewardClaimFor = async (req: HttpRequest, res: Response, next: 
             try {
                 const logs = await parseLogs(IDefaultDiamondArtifact.abi, tx.logs);
                 const event = logs.filter((e: { name: string }) => e && e.name === 'WithdrawPollCreated')[0];
-                const withdrawPoll = event.args.id.toNumber();
+                const withdrawal = event.args.id.toNumber();
 
-                res.json({ withdrawPoll });
+                res.json({ withdrawal });
             } catch (err) {
                 next(new HttpError(500, 'Parse logs failed.', err));
                 return;

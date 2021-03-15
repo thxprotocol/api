@@ -21,6 +21,7 @@ export const validations = {
     ],
     patchAssetPool: [
         validateAssetPoolHeader,
+        body('bypassPolls').optional().isBoolean(),
         body('rewardPollDuration').optional().isNumeric(),
         body('proposeWithdrawPollDuration').optional().isNumeric(),
     ],
