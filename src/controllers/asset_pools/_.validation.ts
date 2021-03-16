@@ -7,7 +7,15 @@ export const validations = {
         body('token')
             .exists()
             .custom((value) => {
-                return ethers.utils.isAddress(value);
+                if (value.address) {
+                    return ethers.utils.isAddress(value.address);
+                }
+
+                if (!value.address && value.name && value.symbol) {
+                    return true;
+                }
+
+                return false;
             }),
         body('title').exists(),
     ],
@@ -26,3 +34,4 @@ export const validations = {
         body('proposeWithdrawPollDuration').optional().isNumeric(),
     ],
 };
+// "address": "0x278Ff6d33826D906070eE938CDc9788003749e93",
