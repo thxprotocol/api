@@ -40,8 +40,6 @@ describe('Voting', () => {
         await db.truncate();
 
         adminAccessToken = await registerClientCredentialsClient(user);
-
-        await testToken.deployed();
     });
 
     describe('POST /signup', () => {
@@ -80,8 +78,10 @@ describe('Voting', () => {
                 .end((err, res) => {
                     expect(res.status).toBe(200);
                     expect(res.body.privateKey).toBeTruthy();
+
                     const pKey = decryptString(res.body.privateKey, userPassword);
                     userWallet = new ethers.Wallet(pKey, provider);
+
                     done();
                 });
         });
@@ -242,10 +242,6 @@ describe('Voting', () => {
     });
 
     describe('POST /rewards/:id/give', () => {
-        beforeAll(async () => {
-            await testToken.transfer(poolAddress, parseEther('1000'));
-        });
-
         it('HTTP 200 after giving a reward', async (done) => {
             user.post(`/v1/rewards/${rewardID}/give`)
                 .send({
