@@ -33,8 +33,7 @@ describe('Voting', () => {
         rewardID: string,
         withdrawalID: number,
         userAddress: string,
-        userWallet: Wallet,
-        testToken: Contract;
+        userWallet: Wallet;
 
     beforeAll(async () => {
         await db.truncate();

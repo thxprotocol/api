@@ -13,6 +13,7 @@ export const postCallUpgradeAddress = async (req: HttpRequest, res: Response, ne
             account.privateKey = '';
 
             await account.save();
+
             res.json({ tx });
         } catch (err) {
             next(new HttpError(502, 'GasStation UpgradeAddress failed.', err));

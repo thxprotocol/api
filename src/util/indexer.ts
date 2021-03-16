@@ -26,7 +26,7 @@ const events = [
 ];
 
 class EventIndexer {
-    assetPools: string[] = ['0x2033a07563Ea7c404b1f408CFE6d5d65F08F4b48'];
+    assetPools: string[] = [];
 
     async start() {
         try {
@@ -38,7 +38,7 @@ class EventIndexer {
 
             try {
                 for (const address of this.assetPools) {
-                    this.add(address);
+                    this.addListener(address);
                 }
                 logger.info('EventIndexer started.');
             } catch (e) {
@@ -68,7 +68,7 @@ class EventIndexer {
         debugger;
     }
 
-    add(address: string) {
+    addListener(address: string) {
         if (!address) return;
 
         try {
@@ -104,7 +104,8 @@ class EventIndexer {
     async onWithdrawPollVoted(address: string, args: any) {
         try {
             const id = BigNumber.from(args.id).toNumber();
-            const withdrawal = await Withdrawal.findOne({ id });
+            const solution = solutionContract(address);
+            const withdrawal = await Withdrawal.findOne({ id, poolAddress: address });
 
             if (args.vote === true) {
                 withdrawal.poll.yesCounter += 1;
@@ -112,6 +113,7 @@ class EventIndexer {
                 withdrawal.poll.noCounter += 1;
             }
 
+            withdrawal.approved = await solution.withdrawPollApprovalState(id);
             withdrawal.poll.totalVoted += 1;
 
             await withdrawal.save();
@@ -123,7 +125,7 @@ class EventIndexer {
     async onWithdrawPollRevokedVote(address: string, args: any) {
         try {
             const id = BigNumber.from(args.id).toNumber();
-            const withdrawal = await Withdrawal.findOne({ id });
+            const withdrawal = await Withdrawal.findOne({ id, poolAddress: address });
             const solution = solutionContract(address);
             const vote = solution.votesByAddress(args.member);
 
@@ -133,6 +135,7 @@ class EventIndexer {
                 withdrawal.poll.noCounter -= 1;
             }
 
+            withdrawal.approved = await solution.withdrawPollApprovalState(id);
             withdrawal.poll.totalVoted -= 1;
 
             await withdrawal.save();
@@ -144,6 +147,14 @@ class EventIndexer {
     async onWithdrawPollCreated(address: string, args: any) {
         try {
             const id = BigNumber.from(args.id).toNumber();
+            const existingWithdrawal = await Withdrawal.findOne({ id, poolAddress: address });
+
+            console.log(existingWithdrawal);
+
+            if (existingWithdrawal) {
+                return;
+            }
+
             const solution = solutionContract(address);
             const amount = Number(formatEther(await solution.getAmount(id)));
             const withdrawal = new Withdrawal({
@@ -182,4 +193,4 @@ class EventIndexer {
     }
 }
 
-export const indexer = new EventIndexer();
+export const eventIndexer = new EventIndexer();

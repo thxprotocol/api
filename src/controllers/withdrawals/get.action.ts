@@ -1,34 +1,10 @@
-import { formatEther } from 'ethers/lib/utils';
 import { NextFunction, Response } from 'express';
 import { HttpRequest, HttpError } from '../../models/Error';
-import { Contract } from '@ethersproject/contracts';
 import { Withdrawal } from '../../models/Withdrawal';
-
-export async function getWithdrawalData(solution: Contract, id: number) {
-    try {
-        const beneficiaryId = await solution.getBeneficiary(id);
-
-        return {
-            id,
-            beneficiary: await solution.getAddressByMember(beneficiaryId),
-            amount: Number(formatEther(await solution.getAmount(id))),
-            approved: await solution.withdrawPollApprovalState(id),
-            poll: {
-                startTime: (await solution.getStartTime(id)).toNumber(),
-                endTime: (await solution.getEndTime(id)).toNumber(),
-                yesCounter: (await solution.getYesCounter(id)).toNumber(),
-                noCounter: (await solution.getNoCounter(id)).toNumber(),
-                totalVoted: (await solution.getTotalVoted(id)).toNumber(),
-            },
-        };
-    } catch (e) {
-        return;
-    }
-}
 
 /**
  * @swagger
- * /withdrawals/:address:
+ * /withdrawals/:id:
  *   get:
  *     tags:
  *       - Withdrawals
@@ -50,21 +26,39 @@ export async function getWithdrawalData(solution: Contract, id: number) {
  *         schema:
  *            type: object
  *            properties:
+ *              id:
+ *                  type: string
+ *                  description: ID of the withdrawal.
  *              beneficiary:
  *                  type: string
- *                  description: Beneficiary of the withdraw poll
+ *                  description: Beneficiary of the reward.
  *              amount:
  *                  type: string
  *                  description: Rewarded amount for the beneficiary
  *              approved:
  *                  type: string
- *                  description: WithdrawState [Pending, Approved, Rejected, Withdrawn]
+ *                  description: Boolean reflecting the approved state of the withdrawal.
+ *              state:
+ *                  type: number
+ *                  description: WithdrawState [Pending, Withdrawn]
  *              poll:
  *                  type: object
  *                  properties:
- *                     address:
- *                        type: string
- *                        description: Address of the reward poll
+ *                     startTime:
+ *                        type: number
+ *                        description: Timestamp for the start time of the poll.
+ *                     endTime:
+ *                        type: number
+ *                        description: Timestamp for the end time of the poll.
+ *                     yesCounter:
+ *                        type: number
+ *                        description: Amount of yes votes for the poll.
+ *                     noCounter:
+ *                        type: number
+ *                        description: Amount of no votes for the poll.
+ *                     totalVoted:
+ *                        type: number
+ *                        description: Total amount of votes for the poll.
  *       '400':
  *         description: Bad Request. Indicates incorrect body parameters.
  *       '401':
@@ -84,7 +78,20 @@ export const getWithdrawal = async (req: HttpRequest, res: Response, next: NextF
             return next(new HttpError(404, 'Could not find a withdrawal for this ID.'));
         }
 
-        res.json(withdrawal);
+        res.json({
+            id: withdrawal.id,
+            beneficiary: withdrawal.beneficiary,
+            amount: withdrawal.amount,
+            approved: withdrawal.approved,
+            state: withdrawal.state,
+            poll: {
+                startTime: withdrawal.poll.startTime,
+                endTime: withdrawal.poll.endTime,
+                yesCounter: withdrawal.poll.yesCounter,
+                noCounter: withdrawal.poll.noCounter,
+                totalVoted: withdrawal.poll.totalVoted,
+            },
+        });
     } catch (err) {
         next(new HttpError(502, 'Could not get all withdrawal information from the network.', err));
     }

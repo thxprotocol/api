@@ -32,7 +32,13 @@ import { formatEther } from 'ethers/lib/utils';
  *               address:
  *                  type: string
  *                  description: The most recent address known for this member
- *               token:
+ *               isMember:
+ *                  type: boolean
+ *                  description: If this address is known as member of the asset pool
+ *               isManager:
+ *                  type: boolean
+ *                  description: If this address is known as manager of the asset pool
+ *               balance:
  *                  type: object
  *                  properties:
  *                     name:
@@ -41,15 +47,9 @@ import { formatEther } from 'ethers/lib/utils';
  *                     symbol:
  *                        type: string
  *                        description: The symbol of the token configured for this asset pool
- *                     balance:
+ *                     amount:
  *                        type: number
  *                        description: The token balance of the asset pool for this token
- *               isMember:
- *                  type: boolean
- *                  description: If this address is known as member of the asset pool
- *               isManager:
- *                  type: boolean
- *                  description: If this address is known as manager of the asset pool
  *       '400':
  *         description: Bad Request. Indicates incorrect body parameters.
  *       '401':

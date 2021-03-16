@@ -4,13 +4,12 @@ import db from '../../src/util/database';
 import { voter, admin } from './lib/network';
 import { exampleTokenFactory } from './lib/contracts';
 import { poolTitle, mintAmount, userEmail, userPassword } from './lib/constants';
-import { formatEther } from 'ethers/lib/utils';
 import { registerClientCredentialsClient } from './lib/registerClient';
 
 const user = request(server);
 
 describe('Roles', () => {
-    let poolAddress: any, testToken: any, adminAccessToken: string, userAddress1: string, userAddress2: string;
+    let poolAddress: any, testToken: any, adminAccessToken: string, userAddress: string;
 
     beforeAll(async () => {
         await db.truncate();
@@ -28,7 +27,6 @@ describe('Roles', () => {
                 .set({ Authorization: adminAccessToken })
                 .send({ email: userEmail, password: userPassword, confirmPassword: userPassword })
                 .end((err, res) => {
-                    userAddress1 = res.body.address;
                     expect(res.status).toBe(201);
                     done();
                 });
@@ -36,7 +34,7 @@ describe('Roles', () => {
                 .set({ Authorization: adminAccessToken })
                 .send({ email: 'test.api.bot2@thx.network', password: userPassword, confirmPassword: userPassword })
                 .end((err, res) => {
-                    userAddress2 = res.body.address;
+                    userAddress = res.body.address;
                     expect(res.status).toBe(201);
                     done();
                 });
@@ -85,7 +83,7 @@ describe('Roles', () => {
 
         it('HTTP 302 if OK', (done) => {
             user.post('/v1/members/')
-                .send({ address: userAddress2 })
+                .send({ address: userAddress })
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
                 .end(async (err, res) => {
                     redirectURL = res.headers.location;
@@ -112,7 +110,7 @@ describe('Roles', () => {
         let redirectURL = '';
 
         it('HTTP 302 if OK', (done) => {
-            user.patch('/v1/members/' + userAddress2)
+            user.patch('/v1/members/' + userAddress)
                 .send({ isManager: true })
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
                 .end(async (err, res) => {
@@ -139,7 +137,7 @@ describe('Roles', () => {
         let redirectURL = '';
 
         it('HTTP 302 if OK', (done) => {
-            user.patch('/v1/members/' + userAddress2)
+            user.patch('/v1/members/' + userAddress)
                 .send({ isManager: false })
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
                 .end(async (err, res) => {
@@ -164,7 +162,7 @@ describe('Roles', () => {
 
     describe('DELETE /members/:address', () => {
         it('HTTP 200 if OK', (done) => {
-            user.delete('/v1/members/' + userAddress2)
+            user.delete('/v1/members/' + userAddress)
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
                 .end(async (err, res) => {
                     expect(res.status).toBe(204);
@@ -175,7 +173,7 @@ describe('Roles', () => {
 
     describe('GET /members/:address (after DELETE)', () => {
         it('HTTP 404 if not found', (done) => {
-            user.get('/v1/members/' + userAddress2)
+            user.get('/v1/members/' + userAddress)
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
                 .end(async (err, res) => {
                     expect(res.status).toBe(404);

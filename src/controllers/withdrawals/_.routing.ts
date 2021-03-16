@@ -17,7 +17,7 @@ router.get('/:id', checkScopes(['admin', 'user']), validate(validations.getWithd
 router.post('/:id/vote', checkScopes(['admin']), validate(validations.postVote), parseHeader, postVote);
 router.delete('/:id/vote', checkScopes(['admin']), validate(validations.deleteVote), parseHeader, deleteVote);
 router.post(
-    '/:id/finalize',
+    '/:id/withdraw',
     checkScopes(['admin']),
     validate(validations.postPollFinalize),
     parseHeader,

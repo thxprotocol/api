@@ -12,7 +12,7 @@ import { Response, NextFunction } from 'express';
 import { HttpError, HttpRequest } from '../../models/Error';
 import MongoAdapter from '../../oidc/adapter';
 import { Error } from 'mongoose';
-import { indexer } from '../../util/indexer';
+import { eventIndexer } from '../../util/indexer';
 
 async function getTokenAddress(token: any, poolAddress: string) {
     if (token.address) {
@@ -54,10 +54,22 @@ async function getTokenAddress(token: any, poolAddress: string) {
  *         required: true
  *         type: string
  *       - name: token
- *         description: Contract address of the ERC20 configured for this pool.
  *         in: body
  *         required: true
- *         type: string
+ *         type: object
+ *         properties:
+ *           address:
+ *             type: string
+ *             description: Required for using an existing ERC20 token contract.
+ *           name:
+ *             type: string
+ *             description: Required for using a new ERC20 token contract with a limited or unlimited supply.
+ *           symbol:
+ *             type: string
+ *             description: Required for using a new ERC20 token contract with a limited or unlimited supply.
+ *           totalSupply:
+ *             type: number
+ *             description: Required for using a new ERC20 token contract with a limited supply.
  *     responses:
  *       '200':
  *         description: OK.
@@ -86,7 +98,12 @@ export const postAssetPool = async (req: HttpRequest, res: Response, next: NextF
         logTransaction(tx);
 
         if (!event) {
-            return next(new HttpError(502, 'Check API health status.'));
+            return next(
+                new HttpError(
+                    502,
+                    'Could not find a confirmation event in factory transaction. Check API health status at /v1/health.',
+                ),
+            );
         }
 
         const solution = solutionContract(event.args.assetPool);
@@ -96,14 +113,16 @@ export const postAssetPool = async (req: HttpRequest, res: Response, next: NextF
         await solution.setSigning(true);
 
         try {
-            await new AssetPool({
+            const assetPool = new AssetPool({
                 address: solution.address,
                 title: req.body.title,
                 client: audience,
                 blockNumber: event.blockNumber,
                 transactionHash: event.transactionHash,
                 bypassPolls: false,
-            }).save();
+            });
+
+            await assetPool.save();
 
             try {
                 const Client = new MongoAdapter('client');
@@ -122,19 +141,19 @@ export const postAssetPool = async (req: HttpRequest, res: Response, next: NextF
 
                     await solution.addToken(tokenAddress);
                 } catch (e) {
-                    return next(new HttpError(502, 'Asset Pool addToken() failed.'));
+                    return next(new HttpError(502, 'Could not add a token to the asset pool.'));
                 }
 
-                indexer.add(solution.address);
+                eventIndexer.addListener(solution.address);
 
                 res.status(201).json({ address: solution.address });
             } catch (error) {
-                next(new HttpError(502, 'Client account update failed.', error));
+                next(new HttpError(502, 'Could not update the client information.', error));
             }
         } catch (error) {
-            next(new HttpError(502, 'Asset Pool database save failed.', error));
+            next(new HttpError(502, 'Could not save the asset pool in the database..', error));
         }
     } catch (error) {
-        next(new HttpError(502, 'Asset Pool network deploy failed.', error));
+        next(new HttpError(502, 'Could not deploy the asset pool on the network.', error));
     }
 };

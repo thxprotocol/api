@@ -29,14 +29,12 @@ import { AssetPool } from '../../models/AssetPool';
  *       - name: rewardPollDuration
  *         in: body
  *         required: false
- *         type: integer
+ *         type: number
  *       - name: proposeWithdrawPollDuration
  *         in: body
  *         required: false
- *         type: integer
+ *         type: number
  *     responses:
- *       '200':
- *         description: OK
  *       '302':
  *         description: Redirect. Redirects to `GET /asset_pools/:address`
  *       '400':

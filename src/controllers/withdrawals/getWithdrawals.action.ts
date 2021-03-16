@@ -23,7 +23,41 @@ import { HttpError, HttpRequest } from '../../models/Error';
  *              withdrawPolls:
  *                  type: array
  *                  items:
- *                      type: string
+ *                      type: object
+ *                      properties:
+ *                        id:
+ *                            type: string
+ *                            description: ID of the withdrawal.
+ *                        beneficiary:
+ *                            type: string
+ *                            description: Beneficiary of the reward.
+ *                        amount:
+ *                            type: string
+ *                            description: Rewarded amount for the beneficiary
+ *                        approved:
+ *                            type: string
+ *                            description: Boolean reflecting the approved state of the withdrawal.
+ *                        state:
+ *                            type: number
+ *                            description: WithdrawState [Pending, Withdrawn]
+ *                        poll:
+ *                            type: object
+ *                            properties:
+ *                               startTime:
+ *                                  type: number
+ *                                  description: Timestamp for the start time of the poll.
+ *                               endTime:
+ *                                  type: number
+ *                                  description: Timestamp for the end time of the poll.
+ *                               yesCounter:
+ *                                  type: number
+ *                                  description: Amount of yes votes for the poll.
+ *                               noCounter:
+ *                                  type: number
+ *                                  description: Amount of no votes for the poll.
+ *                               totalVoted:
+ *                                  type: number
+ *                                  description: Total amount of votes for the poll.
  *       '400':
  *          description: Bad Request. Indicates incorrect body parameters.
  *       '401':
