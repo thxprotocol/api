@@ -29,12 +29,12 @@ afterAll(async () => {
     await mongoose.disconnect();
 });
 
-// require('./api.ts');
-// require('./oidc.ts');
-// require('./voting.ts');
+require('./api.ts');
+require('./oidc.ts');
+require('./voting.ts');
 require('./unlimitedToken.ts');
-// require('./bypasspoll.ts');
-// require('./roles.ts');
-// require('./encrypt.ts');
-// require('./gasStation.ts');
+require('./bypasspoll.ts');
+require('./roles.ts');
+require('./encrypt.ts');
+require('./gasStation.ts');
 // require('./auth.ts');
