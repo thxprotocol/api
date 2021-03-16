@@ -7,7 +7,15 @@ export const validations = {
         body('token')
             .exists()
             .custom((value) => {
-                return ethers.utils.isAddress(value);
+                if (value.address) {
+                    return ethers.utils.isAddress(value.address);
+                }
+
+                if (!value.address && value.name && value.symbol) {
+                    return true;
+                }
+
+                return false;
             }),
         body('title').exists(),
     ],

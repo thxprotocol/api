@@ -26,7 +26,12 @@ describe('Bypass Polls', () => {
         it('HTTP 201 response OK', (done) => {
             user.post('/v1/asset_pools')
                 .set('Authorization', adminAccessToken)
-                .send({ title: poolTitle, token: testToken.address })
+                .send({
+                    title: poolTitle,
+                    token: {
+                        address: testToken.address,
+                    },
+                })
                 .end(async (err, res) => {
                     expect(res.status).toBe(201);
                     expect(ethers.utils.isAddress(res.body.address)).toBe(true);

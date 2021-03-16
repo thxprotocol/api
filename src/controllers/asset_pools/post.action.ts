@@ -1,9 +1,43 @@
-import { admin, assetPoolFactory, provider, logTransaction, solutionContract } from '../../util/network';
+import {
+    admin,
+    assetPoolFactory,
+    provider,
+    logTransaction,
+    solutionContract,
+    unlimitedSupplyERC20Factory,
+    limitedSupplyERC20Factory,
+} from '../../util/network';
 import { AssetPool } from '../../models/AssetPool';
 import { Response, NextFunction } from 'express';
 import { HttpError, HttpRequest } from '../../models/Error';
 import MongoAdapter from '../../oidc/adapter';
+import { Error } from 'mongoose';
 import { indexer } from '../../util/indexer';
+
+async function getTokenAddress(token: any, poolAddress: string) {
+    if (token.address) {
+        const code = await provider.getCode(token.address);
+
+        if (code === '0x') {
+            return new Error(`No data found at ERC20 address ${token.address}`);
+        }
+
+        return token.address;
+    } else if (token.name && token.symbol && token.totalSupply) {
+        const tokenInstance = await limitedSupplyERC20Factory.deploy(
+            token.name,
+            token.symbol,
+            poolAddress,
+            token.totalSupply,
+        );
+
+        return tokenInstance.address;
+    } else if (token.name && token.symbol && poolAddress) {
+        const tokenInstance = await unlimitedSupplyERC20Factory.deploy(token.name, token.symbol, poolAddress);
+
+        return tokenInstance.address;
+    }
+}
 
 /**
  * @swagger
@@ -44,12 +78,7 @@ import { indexer } from '../../util/indexer';
  */
 export const postAssetPool = async (req: HttpRequest, res: Response, next: NextFunction) => {
     try {
-        const code = await provider.getCode(req.body.token);
-
-        if (code === '0x') {
-            return next(new HttpError(404, `No data found at ERC20 address ${req.body.token}`));
-        }
-
+        const token = req.body.token;
         const audience = req.user.aud;
         const tx = await (await assetPoolFactory.deployAssetPool()).wait();
         const event = tx.events.find((e: { event: string }) => e.event === 'AssetPoolDeployed');
@@ -64,7 +93,6 @@ export const postAssetPool = async (req: HttpRequest, res: Response, next: NextF
 
         await solution.initializeRoles(await admin.getAddress());
         await solution.initializeGasStation(await admin.getAddress());
-        await solution.addToken(req.body.token);
         await solution.setSigning(true);
 
         try {
@@ -88,6 +116,14 @@ export const postAssetPool = async (req: HttpRequest, res: Response, next: NextF
                 }
 
                 await Client.coll().updateOne({ _id: audience }, { $set: { payload } }, { upsert: false });
+
+                try {
+                    const tokenAddress = getTokenAddress(token, solution.address);
+
+                    await solution.addToken(tokenAddress);
+                } catch (e) {
+                    return next(new HttpError(502, 'Asset Pool addToken() failed.'));
+                }
 
                 indexer.add(solution.address);
 

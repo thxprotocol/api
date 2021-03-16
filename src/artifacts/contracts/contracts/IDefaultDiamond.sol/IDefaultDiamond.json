@@ -126,7 +126,7 @@
         {
           "indexed": false,
           "internalType": "uint256",
-          "name": "withdrawID",
+          "name": "rewardID",
           "type": "uint256"
         },
         {

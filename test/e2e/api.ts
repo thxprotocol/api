@@ -94,7 +94,9 @@ describe('Happy Flow', () => {
                 .set('Authorization', adminAccessToken)
                 .send({
                     title: poolTitle,
-                    token: testToken.address,
+                    token: {
+                        address: testToken.address,
+                    },
                 })
                 .end(async (err, res) => {
                     expect(res.status).toBe(201);

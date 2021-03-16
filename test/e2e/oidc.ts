@@ -138,10 +138,15 @@ describe('OAuth2', () => {
 
     describe('POST /asset_pools', () => {
         it('HTTP 201', async (done) => {
-            const res = await http.post('/v1/asset_pools').set('Authorization', `Bearer ${accessToken}`).send({
-                title: poolTitle,
-                token: testToken.address,
-            });
+            const res = await http
+                .post('/v1/asset_pools')
+                .set('Authorization', `Bearer ${accessToken}`)
+                .send({
+                    title: poolTitle,
+                    token: {
+                        address: testToken.address,
+                    },
+                });
             assetPoolAddress = res.body.address;
             expect(res.status).toBe(201);
             done();

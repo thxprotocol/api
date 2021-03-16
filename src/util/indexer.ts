@@ -114,8 +114,6 @@ class EventIndexer {
 
             withdrawal.poll.totalVoted += 1;
 
-            console.log(withdrawal);
-
             await withdrawal.save();
         } catch (e) {
             logger.error('EventIndexer.onWithdrawPollVoted() failed.');
@@ -136,8 +134,6 @@ class EventIndexer {
             }
 
             withdrawal.poll.totalVoted -= 1;
-
-            console.log(withdrawal);
 
             await withdrawal.save();
         } catch (e) {
