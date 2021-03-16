@@ -5,13 +5,10 @@ import { utils } from 'ethers/lib';
 import { parseArgs, parseLog } from './events';
 import { ContractEvent } from '../models/ContractEvent';
 
-const eventListeners = [
-    [utils.id('WithdrawPollCreated(uint256,uint256)')],
-    [utils.id('Withdrawn(uint256,address,uint256)')],
-];
+const events = [[utils.id('WithdrawPollCreated(uint256,uint256)')], [utils.id('Withdrawn(uint256,address,uint256)')]];
 
-export default class EventIndexer {
-    assetPools: string[];
+class EventIndexer {
+    assetPools: string[] = ['0x2033a07563Ea7c404b1f408CFE6d5d65F08F4b48'];
 
     async start() {
         try {
@@ -23,15 +20,7 @@ export default class EventIndexer {
 
             try {
                 for (const address of this.assetPools) {
-                    for (const topics of eventListeners) {
-                        provider.on(
-                            {
-                                address,
-                                topics,
-                            },
-                            this.save,
-                        );
-                    }
+                    this.add(address);
                 }
                 logger.info('EventIndexer started.');
             } catch (e) {
@@ -45,7 +34,7 @@ export default class EventIndexer {
     async stop() {
         try {
             for (const address of this.assetPools) {
-                for (const topics of eventListeners) {
+                for (const topics of events) {
                     provider.off({
                         address,
                         topics,
@@ -62,8 +51,10 @@ export default class EventIndexer {
     }
 
     add(address: string) {
+        if (!address) return;
+
         try {
-            for (const topics of eventListeners) {
+            for (const topics of events) {
                 provider.on(
                     {
                         address,
@@ -94,9 +85,9 @@ export default class EventIndexer {
                 await event.save();
 
                 logger.info(
-                    `Block #${log.blockNumber} - ${event.name} [ ${JSON.stringify(event.args)} ] - Hash: ${
+                    `Block #${log.blockNumber} - ${event.name} - ${JSON.stringify(event.args)} Hash=${
                         event.transactionHash
-                    } - Contract: ${event.contractAddress}`,
+                    }`,
                 );
             } catch (e) {
                 logger.error('EventIndexer save() failed.');
@@ -106,3 +97,5 @@ export default class EventIndexer {
         }
     }
 }
+
+export const indexer = new EventIndexer();

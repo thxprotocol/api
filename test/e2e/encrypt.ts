@@ -2,7 +2,7 @@ import { ethers, Wallet } from 'ethers';
 import request from 'supertest';
 import server from '../../src/server';
 import db from '../../src/util/database';
-import { decryptString } from './lib/decrypt';
+import { decryptString } from '../../src/util/decrypt';
 import { admin, provider } from '../../src/util/network';
 import { signMethod, voter } from './lib/network';
 import {

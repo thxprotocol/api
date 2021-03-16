@@ -1,15 +1,9 @@
-import {
-    admin,
-    assetPoolFactory,
-    provider,
-    logTransaction,
-    solutionContract,
-    updateToBypassPolls,
-} from '../../util/network';
+import { admin, assetPoolFactory, provider, logTransaction, solutionContract } from '../../util/network';
 import { AssetPool } from '../../models/AssetPool';
 import { Response, NextFunction } from 'express';
 import { HttpError, HttpRequest } from '../../models/Error';
 import MongoAdapter from '../../oidc/adapter';
+import { indexer } from '../../util/indexer';
 
 /**
  * @swagger
@@ -94,6 +88,8 @@ export const postAssetPool = async (req: HttpRequest, res: Response, next: NextF
                 }
 
                 await Client.coll().updateOne({ _id: audience }, { $set: { payload } }, { upsert: false });
+
+                indexer.add(solution.address);
 
                 res.status(201).json({ address: solution.address });
             } catch (error) {

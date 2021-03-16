@@ -6,6 +6,20 @@ import { ContractEvent } from '../../models/ContractEvent';
 import { HttpError, HttpRequest } from '../../models/Error';
 import { getWithdrawalData } from './get.action';
 
+function getFilteredEvents(
+    withdrawnEvents: ContractEventDocument[],
+    withdrawPollCreatedEvents: ContractEventDocument[],
+) {
+    return withdrawPollCreatedEvents.filter((withdrawPollCreatedEvent: ContractEventDocument) => {
+        const withdrawPollCreatedID = BigNumber.from(withdrawPollCreatedEvent.args.id).toNumber();
+        const withdrawn = withdrawnEvents.find((withdrawnEvent: ContractEventDocument) => {
+            const withdrawnEventID = BigNumber.from(withdrawnEvent.args.id).toNumber();
+            return withdrawnEventID === withdrawPollCreatedID;
+        });
+        return !withdrawn;
+    });
+}
+
 /**
  * @swagger
  * /withdrawals?member=:address:
@@ -52,30 +66,20 @@ export const getWithdrawals = async (req: HttpRequest, res: Response, next: Next
             'name': 'WithdrawPollCreated',
             'args.member': memberID,
         });
-        const filteredEvents = withdrawPollCreatedEvents.filter((withdrawPollCreatedEvent: ContractEventDocument) => {
-            const res = withdrawnEvents.find((withdrawnEvent: ContractEventDocument) => {
-                const withdrawnEventID = BigNumber.from(withdrawnEvent.args.id).toNumber();
-                const withdrawPollCreatedID = BigNumber.from(withdrawPollCreatedEvent.args.id).toNumber();
-                return withdrawnEventID !== withdrawPollCreatedID;
-            });
-        });
-
-        // Get WithdrawPolls
+        const filteredEvents = getFilteredEvents(withdrawnEvents, withdrawPollCreatedEvents);
         const withdrawals = [];
 
         for (const log of filteredEvents) {
-            const withdrawal = await getWithdrawalData(req.solution, log.args.id.toNumber());
+            const withdrawal = await getWithdrawalData(req.solution, BigNumber.from(log.args.id).toNumber());
             withdrawals.push(withdrawal);
         }
-
-        console.log(withdrawals);
 
         res.json({
             withdrawn: withdrawnEvents.map((log: ContractEventDocument) => {
                 return {
                     id: BigNumber.from(log.args.id).toNumber(),
                     member: log.args.member,
-                    amount: formatEther(BigNumber.from(log.args.reward)),
+                    amount: Number(formatEther(BigNumber.from(log.args.reward))),
                 };
             }),
             withdrawals,

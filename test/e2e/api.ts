@@ -22,7 +22,7 @@ import {
     registerAuthorizationCodeClient,
     registerClientCredentialsClient,
 } from './lib/registerClient';
-import { decryptString } from './lib/decrypt';
+import { decryptString } from '../../src/util/decrypt';
 import { provider } from '../../src/util/network';
 
 const user = request(server);

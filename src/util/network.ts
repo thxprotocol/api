@@ -1,5 +1,8 @@
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+import ganache from 'ganache-cli';
+
 import { NextFunction, Request, Response } from 'express';
-import { RPC, PRIVATE_KEY, ASSET_POOL_FACTORY_ADDRESS } from '../util/secrets';
+import { RPC, PRIVATE_KEY, ASSET_POOL_FACTORY_ADDRESS, ENVIRONMENT } from '../util/secrets';
 import { BigNumber, Contract, ContractFactory, ethers, utils } from 'ethers';
 import { logger } from '../util/logger';
 
@@ -29,6 +32,7 @@ import RewardByPollProxyArtifact from '../artifacts/contracts/contracts/10-Rewar
 export const SolutionArtifact = ISolutionArtifact;
 export const provider = new ethers.providers.WebSocketProvider(RPC);
 export const admin = new ethers.Wallet(PRIVATE_KEY, provider);
+
 export const assetPoolFactory = new ethers.Contract(ASSET_POOL_FACTORY_ADDRESS, AssetPoolFactoryArtifact.abi, admin);
 
 export const logTransaction = (tx: { from: string; to: string; transactionHash: string; gasUsed: BigNumber }) => {
