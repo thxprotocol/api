@@ -2,6 +2,7 @@ import { formatEther } from 'ethers/lib/utils';
 import { NextFunction, Response } from 'express';
 import { HttpRequest, HttpError } from '../../models/Error';
 import { Contract } from '@ethersproject/contracts';
+import { Withdrawal } from '../../models/Withdrawal';
 
 export async function getWithdrawalData(solution: Contract, id: number) {
     try {
@@ -77,7 +78,7 @@ export async function getWithdrawalData(solution: Contract, id: number) {
  */
 export const getWithdrawal = async (req: HttpRequest, res: Response, next: NextFunction) => {
     try {
-        const withdrawal = await getWithdrawalData(req.solution, Number(req.params.id));
+        const withdrawal = await Withdrawal.findOne({ id: Number(req.params.id), poolAddress: req.solution.address });
 
         if (!withdrawal) {
             return next(new HttpError(404, 'Could not find a withdrawal for this ID.'));

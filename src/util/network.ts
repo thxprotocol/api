@@ -1,8 +1,5 @@
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-import ganache from 'ganache-cli';
-
 import { NextFunction, Request, Response } from 'express';
-import { RPC, PRIVATE_KEY, ASSET_POOL_FACTORY_ADDRESS, ENVIRONMENT } from '../util/secrets';
+import { RPC, PRIVATE_KEY, ASSET_POOL_FACTORY_ADDRESS } from '../util/secrets';
 import { BigNumber, Contract, ContractFactory, ethers, utils } from 'ethers';
 import { logger } from '../util/logger';
 

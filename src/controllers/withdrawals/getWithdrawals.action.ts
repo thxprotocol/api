@@ -1,24 +1,6 @@
-import { BigNumber } from 'ethers/lib/ethers';
-import { formatEther } from 'ethers/lib/utils';
 import { NextFunction, Response } from 'express';
-import { ContractEventDocument } from '../../models/ContractEvent';
-import { ContractEvent } from '../../models/ContractEvent';
+import { Withdrawal, WithdrawalDocument } from '../../models/Withdrawal';
 import { HttpError, HttpRequest } from '../../models/Error';
-import { getWithdrawalData } from './get.action';
-
-function getFilteredEvents(
-    withdrawnEvents: ContractEventDocument[],
-    withdrawPollCreatedEvents: ContractEventDocument[],
-) {
-    return withdrawPollCreatedEvents.filter((withdrawPollCreatedEvent: ContractEventDocument) => {
-        const withdrawPollCreatedID = BigNumber.from(withdrawPollCreatedEvent.args.id).toNumber();
-        const withdrawn = withdrawnEvents.find((withdrawnEvent: ContractEventDocument) => {
-            const withdrawnEventID = BigNumber.from(withdrawnEvent.args.id).toNumber();
-            return withdrawnEventID === withdrawPollCreatedID;
-        });
-        return !withdrawn;
-    });
-}
 
 /**
  * @swagger
@@ -55,35 +37,29 @@ function getFilteredEvents(
  */
 export const getWithdrawals = async (req: HttpRequest, res: Response, next: NextFunction) => {
     try {
-        const memberID = await req.solution.getMemberByAddress(req.query.member);
-        const withdrawnEvents = await ContractEvent.find({
-            'contractAddress': req.solution.address,
-            'name': 'Withdrawn',
-            'args.member': req.query.member,
+        const withdrawals = await Withdrawal.find({
+            beneficiary: req.query.member as string,
+            poolAddress: req.solution.address,
         });
-        const withdrawPollCreatedEvents = await ContractEvent.find({
-            'contractAddress': req.solution.address,
-            'name': 'WithdrawPollCreated',
-            'args.member': memberID,
-        });
-        const filteredEvents = getFilteredEvents(withdrawnEvents, withdrawPollCreatedEvents);
-        const withdrawals = [];
 
-        for (const log of filteredEvents) {
-            const withdrawal = await getWithdrawalData(req.solution, BigNumber.from(log.args.id).toNumber());
-            withdrawals.push(withdrawal);
-        }
-
-        res.json({
-            withdrawn: withdrawnEvents.map((log: ContractEventDocument) => {
+        res.json(
+            withdrawals.map((w: WithdrawalDocument) => {
                 return {
-                    id: BigNumber.from(log.args.id).toNumber(),
-                    member: log.args.member,
-                    amount: Number(formatEther(BigNumber.from(log.args.reward))),
+                    id: w.id,
+                    beneficiary: w.beneficiary,
+                    amount: w.amount,
+                    approved: w.approved,
+                    state: w.state,
+                    poll: {
+                        startTime: w.poll.startTime,
+                        endTime: w.poll.endTime,
+                        yesCounter: w.poll.yesCounter,
+                        noCounter: w.poll.noCounter,
+                        totalVoted: w.poll.totalVoted,
+                    },
                 };
             }),
-            withdrawals,
-        });
+        );
     } catch (err) {
         next(new HttpError(502, 'Could not get all withdrawal information from the network.', err));
     }
