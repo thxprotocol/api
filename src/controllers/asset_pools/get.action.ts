@@ -90,6 +90,7 @@ export const getAssetPool = async (req: HttpRequest, res: Response, next: NextFu
                     address: tokenInstance.address,
                     name: await tokenInstance.name(),
                     symbol: await tokenInstance.symbol(),
+                    totalSupply: Number(formatEther(await tokenInstance.totalSupply())),
                     balance: Number(formatEther(await tokenInstance.balanceOf(req.params.address))),
                 },
                 proposeWithdrawPollDuration,

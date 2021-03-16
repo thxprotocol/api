@@ -118,7 +118,7 @@ export const postAssetPool = async (req: HttpRequest, res: Response, next: NextF
                 await Client.coll().updateOne({ _id: audience }, { $set: { payload } }, { upsert: false });
 
                 try {
-                    const tokenAddress = getTokenAddress(token, solution.address);
+                    const tokenAddress = await getTokenAddress(token, solution.address);
 
                     await solution.addToken(tokenAddress);
                 } catch (e) {
