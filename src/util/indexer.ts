@@ -149,8 +149,6 @@ class EventIndexer {
             const id = BigNumber.from(args.id).toNumber();
             const existingWithdrawal = await Withdrawal.findOne({ id, poolAddress: address });
 
-            console.log(existingWithdrawal);
-
             if (existingWithdrawal) {
                 return;
             }

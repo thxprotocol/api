@@ -33,7 +33,7 @@ if (env) {
     dotenv.config({ path: '.env' });
 }
 
-const provider = new ethers.providers.JsonRpcProvider(process.env.PUBLIC_RPC);
+const provider = new ethers.providers.WebSocketProvider(process.env.PUBLIC_RPC);
 const admin = new ethers.Wallet(process.env.PRIVATE_KEY, provider);
 
 async function main() {

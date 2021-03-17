@@ -93,12 +93,18 @@ export const downgradeFromBypassPolls = async (solution: Contract) => {
     );
 
     const withdrawFacet = await withdrawFacetFactory.deploy();
+    await withdrawFacet.deployTransaction.wait();
     const withdrawPollFacet = await withdrawPollFacetFactory.deploy();
+    await withdrawPollFacet.deployTransaction.wait();
     const withdrawPollProxyFacet = await withdrawPollProxyFacetFactory.deploy();
+    await withdrawPollProxyFacet.deployTransaction.wait();
 
     const rewardFacet = await rewardFacetFactory.deploy();
+    await rewardFacet.deployTransaction.wait();
     const rewardPollFacet = await rewardPollFacetFactory.deploy();
+    await rewardPollFacet.deployTransaction.wait();
     const rewardPollProxyFacet = await rewardPollProxyFacetFactory.deploy();
+    await rewardPollProxyFacet.deployTransaction.wait();
 
     await solution.updateAssetPool(getSelectors(withdrawFacet), withdrawFacet.address);
     await solution.updateAssetPool(getSelectors(withdrawPollFacet), withdrawPollFacet.address);
@@ -135,12 +141,18 @@ export const updateToBypassPolls = async (solution: Contract) => {
     );
 
     const withdrawByFacet = await withdrawByFacetFactory.deploy();
+    await withdrawByFacet.deployTransaction.wait();
     const withdrawByPollFacet = await withdrawByPollFacetFactory.deploy();
+    await withdrawByPollFacet.deployTransaction.wait();
     const withdrawByPollProxyFacet = await withdrawByPollProxyFacetFactory.deploy();
+    await withdrawByPollProxyFacet.deployTransaction.wait();
 
     const rewardByFacet = await rewardByFacetFactory.deploy();
+    await rewardByFacet.deployTransaction.wait();
     const rewardByPollFacet = await rewardByPollFacetFactory.deploy();
+    await rewardByPollFacet.deployTransaction.wait();
     const rewardByPollProxyFacet = await rewardByPollProxyFacetFactory.deploy();
+    await rewardByPollProxyFacet.deployTransaction.wait();
 
     await solution.updateAssetPool(getSelectors(withdrawByFacet), withdrawByFacet.address);
     await solution.updateAssetPool(getSelectors(withdrawByPollFacet), withdrawByPollFacet.address);
@@ -150,21 +162,3 @@ export const updateToBypassPolls = async (solution: Contract) => {
     await solution.updateAssetPool(getSelectors(rewardByPollFacet), rewardByPollFacet.address);
     await solution.updateAssetPool(getSelectors(rewardByPollProxyFacet), rewardByPollProxyFacet.address);
 };
-
-// export const updateToBypassPolls = async (solution: Contract) => {
-//     const withdrawPollFacetBypassFactory = new ContractFactory(
-//         WithdrawPollFacetBypassArtifact.abi,
-//         WithdrawPollFacetBypassArtifact.bytecode,
-//         admin,
-//     );
-//     const rewardPollFacetBypassFactory = new ContractFactory(
-//         RewardPollFacetBypassArtifact.abi,
-//         RewardPollFacetBypassArtifact.bytecode,
-//         admin,
-//     );
-//     const withdrawPollFacetBypass = await withdrawPollFacetBypassFactory.deploy();
-//     const rewardPollFacetBypass = await rewardPollFacetBypassFactory.deploy();
-
-//     await solution.updateAssetPool(getSelectors(withdrawPollFacetBypass), withdrawPollFacetBypass.address);
-//     await solution.updateAssetPool(getSelectors(rewardPollFacetBypass), rewardPollFacetBypass.address);
-// };
