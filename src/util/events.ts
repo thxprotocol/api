@@ -52,7 +52,7 @@ export function parseLogs(abi: any, logs: any = []) {
     });
 }
 
-export async function parseResultLog(abi: any, logs: any) {
+export async function parseResultLog(logs: any) {
     const gasStationInterface = new ethers.utils.Interface(IDefaultDiamondArtifact.abi);
     const event = gasStationInterface.parseLog(logs[logs.length - 1]);
 
@@ -61,7 +61,7 @@ export async function parseResultLog(abi: any, logs: any) {
         for (const log of logs) {
             let event;
             try {
-                const contractInterface = new ethers.utils.Interface(abi);
+                const contractInterface = new ethers.utils.Interface(IDefaultDiamondArtifact.abi);
                 event = contractInterface.parseLog(log);
             } catch (err) {
                 continue;

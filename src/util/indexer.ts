@@ -12,6 +12,10 @@ const events = [
         callback: 'onWithdrawPollCreated',
     },
     {
+        topics: [utils.id('WithdrawPollFinalized(uint256,bool')],
+        callback: 'onWithdrawPollFinalized',
+    },
+    {
         topics: [utils.id('Withdrawn(uint256,address,uint256)')],
         callback: 'onWithdrawn',
     },
@@ -180,13 +184,26 @@ class EventIndexer {
     async onWithdrawn(address: string, args: any) {
         try {
             const id = BigNumber.from(args.id).toNumber();
-            const withdrawal = await Withdrawal.findOne({ id });
+            const withdrawal = await Withdrawal.findOne({ id, poolAddress: address });
 
             withdrawal.state = WithdrawalState.Withdrawn;
 
             await withdrawal.save();
         } catch (e) {
             logger.error('EventIndexer.onWithdrawn() failed.');
+        }
+    }
+
+    async onWithdrawPollFinalized(address: string, args: any) {
+        try {
+            const id = BigNumber.from(args.id).toNumber();
+            const withdrawal = await Withdrawal.findOne({ id, poolAddress: address });
+
+            withdrawal.poll = {};
+
+            await withdrawal.save();
+        } catch (e) {
+            logger.error('EventIndexer.onWithdrawPollFinalized() failed.');
         }
     }
 }
