@@ -13,6 +13,7 @@ import { HttpError, HttpRequest } from '../../models/Error';
 import MongoAdapter from '../../oidc/adapter';
 import { Error } from 'mongoose';
 import { eventIndexer } from '../../util/indexer';
+import { parseEther } from 'ethers/lib/utils';
 
 async function getTokenAddress(token: any, poolAddress: string) {
     if (token.address) {
@@ -28,7 +29,7 @@ async function getTokenAddress(token: any, poolAddress: string) {
             token.name,
             token.symbol,
             poolAddress,
-            token.totalSupply,
+            parseEther(token.totalSupply),
         );
 
         return tokenInstance.address;

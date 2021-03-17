@@ -42,7 +42,9 @@ import { getRewardData } from './getReward.action';
  */
 export const postPollFinalize = async (req: HttpRequest, res: Response, next: NextFunction) => {
     try {
-        await (await req.solution.rewardPollFinalize(req.params.id)).wait();
+        const { pollId } = await req.solution.getReward(req.params.id);
+
+        await (await req.solution.rewardPollFinalize(pollId)).wait();
 
         try {
             const reward = await getRewardData(req.solution, Number(req.params.id));
