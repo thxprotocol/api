@@ -2,13 +2,11 @@ import request from 'supertest';
 import server from '../../src/server';
 import db from '../../src/util/database';
 import { timeTravel, signMethod, admin } from './lib/network';
-import { exampleTokenFactory } from './lib/contracts';
 import {
     poolTitle,
     rewardPollDuration,
     rewardWithdrawAmount,
     rewardWithdrawDuration,
-    mintAmount,
     userEmail,
     userPassword,
     proposeWithdrawPollDuration,
@@ -22,7 +20,7 @@ import {
     registerAuthorizationCodeClient,
     registerClientCredentialsClient,
 } from './lib/registerClient';
-import { decryptString } from './lib/decrypt';
+import { decryptString } from '../../src/util/decrypt';
 import { provider } from '../../src/util/network';
 
 const user = request(server);
@@ -35,17 +33,12 @@ describe('Voting', () => {
         rewardID: string,
         withdrawalID: number,
         userAddress: string,
-        userWallet: Wallet,
-        testToken: Contract;
+        userWallet: Wallet;
 
     beforeAll(async () => {
         await db.truncate();
 
         adminAccessToken = await registerClientCredentialsClient(user);
-
-        testToken = await exampleTokenFactory.deploy(admin.address, mintAmount);
-
-        await testToken.deployed();
     });
 
     describe('POST /signup', () => {
@@ -54,9 +47,11 @@ describe('Voting', () => {
                 .set('Authorization', adminAccessToken)
                 .send({ email: userEmail, password: userPassword, confirmPassword: userPassword })
                 .end((err, res) => {
-                    userAddress = res.body.address;
-                    expect(ethers.utils.isAddress(res.body.address)).toBe(true);
                     expect(res.status).toBe(201);
+                    expect(ethers.utils.isAddress(res.body.address)).toBe(true);
+
+                    userAddress = res.body.address;
+
                     done();
                 });
         });
@@ -82,8 +77,10 @@ describe('Voting', () => {
                 .end((err, res) => {
                     expect(res.status).toBe(200);
                     expect(res.body.privateKey).toBeTruthy();
+
                     const pKey = decryptString(res.body.privateKey, userPassword);
                     userWallet = new ethers.Wallet(pKey, provider);
+
                     done();
                 });
         });
@@ -95,11 +92,15 @@ describe('Voting', () => {
                 .set('Authorization', adminAccessToken)
                 .send({
                     title: poolTitle,
-                    token: testToken.address,
+                    token: {
+                        name: 'SparkBlue Token',
+                        symbol: 'SPARK',
+                    },
                 })
                 .end(async (err, res) => {
                     expect(res.status).toBe(201);
                     expect(ethers.utils.isAddress(res.body.address)).toBe(true);
+
                     poolAddress = res.body.address;
 
                     done();
@@ -155,7 +156,9 @@ describe('Voting', () => {
                 })
                 .end(async (err, res) => {
                     expect(res.status).toBe(302);
+
                     redirectURL = res.headers.location;
+
                     done();
                 });
         });
@@ -174,7 +177,7 @@ describe('Voting', () => {
         });
     });
 
-    describe('POST /polls/:id/vote (rewardPoll)', () => {
+    describe('POST /rewards/:id/poll/vote', () => {
         it('HTTP 200 and base64 string for the yes vote', (done) => {
             user.post(`/v1/rewards/${rewardID}/poll/vote`)
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
@@ -237,50 +240,45 @@ describe('Voting', () => {
         });
     });
 
-    describe('POST /withdrawals', () => {
-        beforeAll(async () => {
-            await testToken.transfer(poolAddress, parseEther('1000'));
-        });
-
-        it('HTTP 302', async (done) => {
-            const { call, nonce, sig } = await signMethod(
-                poolAddress,
-                'proposeWithdraw',
-                [parseEther('1000').toString(), userWallet.address],
-                userWallet,
-            );
-
-            user.post('/v1/gas_station/call')
+    describe('POST /rewards/:id/give', () => {
+        it('HTTP 200 after giving a reward', async (done) => {
+            user.post(`/v1/rewards/${rewardID}/give`)
                 .send({
-                    call,
-                    nonce,
-                    sig,
+                    member: userWallet.address,
                 })
-                .set({ AssetPool: poolAddress, Authorization: userAccessToken })
+                .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
                 .end(async (err, res) => {
                     expect(res.status).toBe(200);
+                    expect(res.body.withdrawal).toBe(2);
+
+                    withdrawalID = res.body.withdrawal;
+
                     done();
                 });
         });
     });
 
-    describe('GET /withdrawals (after proposed withdrawal)', () => {
+    describe('GET /withdrawals?member=:address', () => {
+        it('... pause 1s to index events', async () => {
+            await new Promise((res) => setTimeout(res, 1000));
+            expect(true).toBe(true);
+        });
+
         it('HTTP 200 and return a list of 1 item', async (done) => {
             user.get(`/v1/withdrawals?member=${userWallet.address}`)
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
                 .end(async (err, res) => {
                     expect(res.status).toBe(200);
-                    expect(Number(res.body.withdrawals.length)).toBe(1);
-                    expect(Number(res.body.withdrawn.length)).toBe(0);
+                    expect(res.body.length).toBe(1);
 
-                    withdrawalID = res.body.withdrawals[0].id;
+                    withdrawalID = res.body[0].id;
 
                     done();
                 });
         });
     });
 
-    describe('POST /withdrawals/:id/vote (withdrawPoll)', () => {
+    describe('POST /withdrawals/:id/vote', () => {
         it('HTTP 200 and base64 string for the yes vote', (done) => {
             user.post(`/v1/withdrawals/${withdrawalID}/vote`)
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
@@ -309,6 +307,11 @@ describe('Voting', () => {
                     expect(res.status).toBe(200);
                     done();
                 });
+        });
+
+        it('... pause 1s to index events', async () => {
+            await new Promise((res) => setTimeout(res, 1000));
+            expect(true).toBe(true);
         });
 
         it('HTTP 200 and increase yesCounter with 1', (done) => {

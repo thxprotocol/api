@@ -52,10 +52,15 @@ describe('Gas Station', () => {
         userAccessToken = await getAccessToken(http2, client, authCode);
 
         // Create an asset pool
-        const res = await user.post('/v1/asset_pools').set({ Authorization: adminAccessToken }).send({
-            title: poolTitle,
-            token: testToken.address,
-        });
+        const res = await user
+            .post('/v1/asset_pools')
+            .set({ Authorization: adminAccessToken })
+            .send({
+                title: poolTitle,
+                token: {
+                    address: testToken.address,
+                },
+            });
 
         poolAddress = res.body.address;
 

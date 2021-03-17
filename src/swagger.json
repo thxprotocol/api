@@ -1,7 +1,7 @@
 {
   "info": {
     "title": "THX API Specification",
-    "version": "1.0.0-beta.8"
+    "version": "1.0.0-beta.9"
   },
   "basePath": "https://api.thx.network/v1",
   "swagger": "2.0",
@@ -47,13 +47,17 @@
                   "type": "boolean",
                   "description": "Approve polls by default."
                 },
-                "owner": {
-                  "type": "string",
-                  "description": "The address of the owner of the pool. Among other things the owner is responsible for paying all gas costs."
+                "balance": {
+                  "type": "number",
+                  "description": "The token balance of the asset pool for this token."
                 },
                 "token": {
                   "type": "object",
                   "properties": {
+                    "address": {
+                      "type": "string",
+                      "description": "The address of the asset pool."
+                    },
                     "name": {
                       "type": "string",
                       "description": "The name of the token configured for this asset pool."
@@ -62,9 +66,13 @@
                       "type": "string",
                       "description": "The symbol of the token configured for this asset pool."
                     },
+                    "totalSupply": {
+                      "type": "number",
+                      "description": "The total amount of tokens in circulation."
+                    },
                     "balance": {
                       "type": "number",
-                      "description": "The token balance of the asset pool for this token."
+                      "description": "The token balance for this asset pool."
                     }
                   }
                 },
@@ -127,19 +135,16 @@
             "name": "rewardPollDuration",
             "in": "body",
             "required": false,
-            "type": "integer"
+            "type": "number"
           },
           {
             "name": "proposeWithdrawPollDuration",
             "in": "body",
             "required": false,
-            "type": "integer"
+            "type": "number"
           }
         ],
         "responses": {
-          "200": {
-            "description": "OK"
-          },
           "302": {
             "description": "Redirect. Redirects to `GET /asset_pools/:address`"
           },
@@ -179,10 +184,27 @@
           },
           {
             "name": "token",
-            "description": "Contract address of the ERC20 configured for this pool.",
             "in": "body",
             "required": true,
-            "type": "string"
+            "type": "object",
+            "properties": {
+              "address": {
+                "type": "string",
+                "description": "Required for using an existing ERC20 token contract."
+              },
+              "name": {
+                "type": "string",
+                "description": "Required for using a new ERC20 token contract with a limited or unlimited supply."
+              },
+              "symbol": {
+                "type": "string",
+                "description": "Required for using a new ERC20 token contract with a limited or unlimited supply."
+              },
+              "totalSupply": {
+                "type": "number",
+                "description": "Required for using a new ERC20 token contract with a limited supply."
+              }
+            }
           }
         ],
         "responses": {
@@ -397,7 +419,15 @@
                   "type": "string",
                   "description": "The most recent address known for this member"
                 },
-                "token": {
+                "isMember": {
+                  "type": "boolean",
+                  "description": "If this address is known as member of the asset pool"
+                },
+                "isManager": {
+                  "type": "boolean",
+                  "description": "If this address is known as manager of the asset pool"
+                },
+                "balance": {
                   "type": "object",
                   "properties": {
                     "name": {
@@ -408,19 +438,11 @@
                       "type": "string",
                       "description": "The symbol of the token configured for this asset pool"
                     },
-                    "balance": {
+                    "amount": {
                       "type": "number",
                       "description": "The token balance of the asset pool for this token"
                     }
                   }
-                },
-                "isMember": {
-                  "type": "boolean",
-                  "description": "If this address is known as member of the asset pool"
-                },
-                "isManager": {
-                  "type": "boolean",
-                  "description": "If this address is known as manager of the asset pool"
                 }
               }
             }
@@ -471,6 +493,9 @@
           "200": {
             "description": "OK"
           },
+          "302": {
+            "description": "Redirect. GET /members/:address"
+          },
           "400": {
             "description": "Bad Request. Indicates incorrect body parameters."
           },
@@ -520,12 +545,7 @@
             "description": "OK"
           },
           "302": {
-            "description": "Redirect to `GET /members/:address`",
-            "headers": {
-              "Location": {
-                "type": "string"
-              }
-            }
+            "description": "Redirect. GET /members/:address."
           },
           "400": {
             "description": "Bad Request. Indicates incorrect body parameters."
@@ -674,42 +694,40 @@
         "responses": {
           "200": {
             "schema": {
-              "rewards": {
-                "type": "array",
-                "items": {
-                  "type": "object",
-                  "properties": {
-                    "id": {
-                      "type": "number",
-                      "description": "Unique identifier of the reward."
-                    },
-                    "withdrawAmount": {
-                      "type": "number",
-                      "description": "Current size of the reward"
-                    },
-                    "withdrawDuration": {
-                      "type": "number",
-                      "description": "Current duration of the withdraw poll"
-                    },
-                    "state": {
-                      "type": "number",
-                      "description": "Current state of the reward [Disabled, Enabled]"
-                    },
-                    "poll": {
-                      "type": "object",
-                      "properties": {
-                        "id": {
-                          "type": "number",
-                          "description": "Unique identifier of the reward poll"
-                        },
-                        "withdrawAmount": {
-                          "type": "number",
-                          "description": "Proposed size of the reward"
-                        },
-                        "withdrawDuration": {
-                          "type": "number",
-                          "description": "Proposed duration of the withdraw poll"
-                        }
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "number",
+                    "description": "Unique identifier of the reward."
+                  },
+                  "withdrawAmount": {
+                    "type": "number",
+                    "description": "Current size of the reward"
+                  },
+                  "withdrawDuration": {
+                    "type": "number",
+                    "description": "Current duration of the withdraw poll"
+                  },
+                  "state": {
+                    "type": "number",
+                    "description": "Current state of the reward [Disabled, Enabled]"
+                  },
+                  "poll": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "number",
+                        "description": "Unique identifier of the reward poll"
+                      },
+                      "withdrawAmount": {
+                        "type": "number",
+                        "description": "Proposed size of the reward"
+                      },
+                      "withdrawDuration": {
+                        "type": "number",
+                        "description": "Proposed duration of the withdraw poll"
                       }
                     }
                   }
@@ -1119,7 +1137,7 @@
         }
       }
     },
-    "/withdrawals/:address/vote": {
+    "/withdrawals/:id/vote": {
       "delete": {
         "tags": [
           "Withdrawals"
@@ -1228,7 +1246,7 @@
         }
       }
     },
-    "/withdrawals/:address": {
+    "/withdrawals/:id": {
       "get": {
         "tags": [
           "Withdrawals"
@@ -1257,9 +1275,13 @@
             "schema": {
               "type": "object",
               "properties": {
+                "id": {
+                  "type": "string",
+                  "description": "ID of the withdrawal."
+                },
                 "beneficiary": {
                   "type": "string",
-                  "description": "Beneficiary of the withdraw poll"
+                  "description": "Beneficiary of the reward."
                 },
                 "amount": {
                   "type": "string",
@@ -1267,14 +1289,34 @@
                 },
                 "approved": {
                   "type": "string",
-                  "description": "WithdrawState [Pending, Approved, Rejected, Withdrawn]"
+                  "description": "Boolean reflecting the approved state of the withdrawal."
+                },
+                "state": {
+                  "type": "number",
+                  "description": "WithdrawState [Pending, Withdrawn]"
                 },
                 "poll": {
                   "type": "object",
                   "properties": {
-                    "address": {
-                      "type": "string",
-                      "description": "Address of the reward poll"
+                    "startTime": {
+                      "type": "number",
+                      "description": "Timestamp for the start time of the poll."
+                    },
+                    "endTime": {
+                      "type": "number",
+                      "description": "Timestamp for the end time of the poll."
+                    },
+                    "yesCounter": {
+                      "type": "number",
+                      "description": "Amount of yes votes for the poll."
+                    },
+                    "noCounter": {
+                      "type": "number",
+                      "description": "Amount of no votes for the poll."
+                    },
+                    "totalVoted": {
+                      "type": "number",
+                      "description": "Total amount of votes for the poll."
                     }
                   }
                 }
@@ -1304,7 +1346,7 @@
         "tags": [
           "Withdrawals"
         ],
-        "description": "Get a list of withdrawals for the asset pool.",
+        "description": "Get a list of withdrawals for a member of the asset pool.",
         "produces": [
           "application/json"
         ],
@@ -1320,10 +1362,55 @@
           "200": {
             "description": "OK",
             "schema": {
-              "withdrawPolls": {
-                "type": "array",
-                "items": {
-                  "type": "string"
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "description": "ID of the withdrawal."
+                  },
+                  "beneficiary": {
+                    "type": "string",
+                    "description": "Beneficiary of the reward."
+                  },
+                  "amount": {
+                    "type": "string",
+                    "description": "Rewarded amount for the beneficiary"
+                  },
+                  "approved": {
+                    "type": "string",
+                    "description": "Boolean reflecting the approved state of the withdrawal."
+                  },
+                  "state": {
+                    "type": "number",
+                    "description": "WithdrawState [Pending, Withdrawn]"
+                  },
+                  "poll": {
+                    "type": "object",
+                    "properties": {
+                      "startTime": {
+                        "type": "number",
+                        "description": "Timestamp for the start time of the poll."
+                      },
+                      "endTime": {
+                        "type": "number",
+                        "description": "Timestamp for the end time of the poll."
+                      },
+                      "yesCounter": {
+                        "type": "number",
+                        "description": "Amount of yes votes for the poll."
+                      },
+                      "noCounter": {
+                        "type": "number",
+                        "description": "Amount of no votes for the poll."
+                      },
+                      "totalVoted": {
+                        "type": "number",
+                        "description": "Total amount of votes for the poll."
+                      }
+                    }
+                  }
                 }
               }
             }
@@ -1346,12 +1433,12 @@
         }
       }
     },
-    "/withdrawals/:id/finalize": {
+    "/withdrawals/:id/withdraw": {
       "post": {
         "tags": [
           "Withdrawals"
         ],
-        "description": "Finalizes the reward poll.",
+        "description": "If the poll for this withdrawal is approved the reward will be withdrawn.",
         "produces": [
           "application/json"
         ],

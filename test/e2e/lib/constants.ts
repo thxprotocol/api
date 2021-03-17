@@ -1,6 +1,8 @@
 import { parseEther } from 'ethers/lib/utils';
 
-export const poolTitle = 'Volunteers United';
+export const tokenName = 'Unlimited Test Token';
+export const tokenSymbol = 'Unlimited Test Token';
+export const poolTitle = 'UTT';
 export const rewardPollDuration = 10;
 export const proposeWithdrawPollDuration = 10;
 export const rewardWithdrawAmount = 1000;

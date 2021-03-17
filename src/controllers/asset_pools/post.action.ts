@@ -1,8 +1,44 @@
-import { admin, assetPoolFactory, provider, logTransaction, solutionContract } from '../../util/network';
+import {
+    admin,
+    assetPoolFactory,
+    provider,
+    logTransaction,
+    solutionContract,
+    unlimitedSupplyERC20Factory,
+    limitedSupplyERC20Factory,
+} from '../../util/network';
 import { AssetPool } from '../../models/AssetPool';
 import { Response, NextFunction } from 'express';
 import { HttpError, HttpRequest } from '../../models/Error';
 import MongoAdapter from '../../oidc/adapter';
+import { Error } from 'mongoose';
+import { eventIndexer } from '../../util/indexer';
+import { parseEther } from 'ethers/lib/utils';
+
+async function getTokenAddress(token: any, poolAddress: string) {
+    if (token.address) {
+        const code = await provider.getCode(token.address);
+
+        if (code === '0x') {
+            return new Error(`No data found at ERC20 address ${token.address}`);
+        }
+
+        return token.address;
+    } else if (token.name && token.symbol && token.totalSupply) {
+        const tokenInstance = await limitedSupplyERC20Factory.deploy(
+            token.name,
+            token.symbol,
+            poolAddress,
+            parseEther(token.totalSupply),
+        );
+
+        return tokenInstance.address;
+    } else if (token.name && token.symbol && poolAddress) {
+        const tokenInstance = await unlimitedSupplyERC20Factory.deploy(token.name, token.symbol, poolAddress);
+
+        return tokenInstance.address;
+    }
+}
 
 /**
  * @swagger
@@ -19,10 +55,22 @@ import MongoAdapter from '../../oidc/adapter';
  *         required: true
  *         type: string
  *       - name: token
- *         description: Contract address of the ERC20 configured for this pool.
  *         in: body
  *         required: true
- *         type: string
+ *         type: object
+ *         properties:
+ *           address:
+ *             type: string
+ *             description: Required for using an existing ERC20 token contract.
+ *           name:
+ *             type: string
+ *             description: Required for using a new ERC20 token contract with a limited or unlimited supply.
+ *           symbol:
+ *             type: string
+ *             description: Required for using a new ERC20 token contract with a limited or unlimited supply.
+ *           totalSupply:
+ *             type: number
+ *             description: Required for using a new ERC20 token contract with a limited supply.
  *     responses:
  *       '200':
  *         description: OK.
@@ -43,12 +91,7 @@ import MongoAdapter from '../../oidc/adapter';
  */
 export const postAssetPool = async (req: HttpRequest, res: Response, next: NextFunction) => {
     try {
-        const code = await provider.getCode(req.body.token);
-
-        if (code === '0x') {
-            return next(new HttpError(404, `No data found at ERC20 address ${req.body.token}`));
-        }
-
+        const token = req.body.token;
         const audience = req.user.aud;
         const tx = await (await assetPoolFactory.deployAssetPool()).wait();
         const event = tx.events.find((e: { event: string }) => e.event === 'AssetPoolDeployed');
@@ -56,25 +99,31 @@ export const postAssetPool = async (req: HttpRequest, res: Response, next: NextF
         logTransaction(tx);
 
         if (!event) {
-            return next(new HttpError(502, 'Check API health status.'));
+            return next(
+                new HttpError(
+                    502,
+                    'Could not find a confirmation event in factory transaction. Check API health status at /v1/health.',
+                ),
+            );
         }
 
         const solution = solutionContract(event.args.assetPool);
 
         await solution.initializeRoles(await admin.getAddress());
         await solution.initializeGasStation(await admin.getAddress());
-        await solution.addToken(req.body.token);
         await solution.setSigning(true);
 
         try {
-            await new AssetPool({
+            const assetPool = new AssetPool({
                 address: solution.address,
                 title: req.body.title,
                 client: audience,
                 blockNumber: event.blockNumber,
                 transactionHash: event.transactionHash,
                 bypassPolls: false,
-            }).save();
+            });
+
+            await assetPool.save();
 
             try {
                 const Client = new MongoAdapter('client');
@@ -88,14 +137,24 @@ export const postAssetPool = async (req: HttpRequest, res: Response, next: NextF
 
                 await Client.coll().updateOne({ _id: audience }, { $set: { payload } }, { upsert: false });
 
+                try {
+                    const tokenAddress = await getTokenAddress(token, solution.address);
+
+                    await solution.addToken(tokenAddress);
+                } catch (e) {
+                    return next(new HttpError(502, 'Could not add a token to the asset pool.'));
+                }
+
+                eventIndexer.addListener(solution.address);
+
                 res.status(201).json({ address: solution.address });
             } catch (error) {
-                next(new HttpError(502, 'Client account update failed.', error));
+                next(new HttpError(502, 'Could not update the client information.', error));
             }
         } catch (error) {
-            next(new HttpError(502, 'Asset Pool database save failed.', error));
+            next(new HttpError(502, 'Could not save the asset pool in the database..', error));
         }
     } catch (error) {
-        next(new HttpError(502, 'Asset Pool network deploy failed.', error));
+        next(new HttpError(502, 'Could not deploy the asset pool on the network.', error));
     }
 };

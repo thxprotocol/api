@@ -23,6 +23,8 @@ import { VERSION } from '../../util/secrets';
  *     responses:
  *       '200':
  *         description: OK
+ *       '302':
+ *         description: Redirect. GET /members/:address
  *       '400':
  *         description: Bad Request. Indicates incorrect body parameters.
  *       '401':

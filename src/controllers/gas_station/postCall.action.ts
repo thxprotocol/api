@@ -1,7 +1,5 @@
 import { Response, NextFunction } from 'express';
-// import { parseResultLog } from '../../util/events';
 import { HttpError, HttpRequest } from '../../models/Error';
-// import GasStationFacetArtifact from '../../artifacts/contracts/contracts/07-GasStation/GasStation.sol/GasStationFacet.json';
 
 export const postCall = async (req: HttpRequest, res: Response, next: NextFunction) => {
     try {

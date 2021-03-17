@@ -2,7 +2,7 @@ import { ethers, Wallet } from 'ethers';
 import request from 'supertest';
 import server from '../../src/server';
 import db from '../../src/util/database';
-import { decryptString } from './lib/decrypt';
+import { decryptString } from '../../src/util/decrypt';
 import { admin, provider } from '../../src/util/network';
 import { signMethod, voter } from './lib/network';
 import {
@@ -37,10 +37,15 @@ describe('Encryption', () => {
         await testToken.deployed();
 
         // Create an asset pool
-        const res = await user.post('/v1/asset_pools').set({ Authorization: adminAccessToken }).send({
-            title: poolTitle,
-            token: testToken.address,
-        });
+        const res = await user
+            .post('/v1/asset_pools')
+            .set({ Authorization: adminAccessToken })
+            .send({
+                title: poolTitle,
+                token: {
+                    address: testToken.address,
+                },
+            });
 
         poolAddress = res.body.address;
     });

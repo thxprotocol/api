@@ -1,12 +1,32 @@
 import { ethers } from 'ethers';
-
+import { logger } from './logger';
 import IDefaultDiamondArtifact from '../artifacts/contracts/contracts/IDefaultDiamond.sol/IDefaultDiamond.json';
+
+export function parseArgs(ev: any) {
+    const args: any = {};
+    for (const key of Object.keys(ev.args)) {
+        if (isNaN(Number(key))) {
+            args[key] = ev.args[key];
+        }
+    }
+    return args;
+}
 
 export const events = async (tx: any) => {
     tx = await tx;
     tx = await tx.wait();
     return tx.events;
 };
+
+export function parseLog(abi: any, log: any) {
+    const contractInterface = new ethers.utils.Interface(abi);
+    try {
+        return contractInterface.parseLog(log);
+    } catch (e) {
+        logger.error(e.toString());
+        return;
+    }
+}
 
 function hex2a(hex: any) {
     let str = '';

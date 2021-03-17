@@ -1,14 +1,14 @@
+import qrcode from 'qrcode';
 import { HttpError, HttpRequest } from '../../models/Error';
 import { NextFunction, Response } from 'express';
-import { getWithdrawalData } from './get.action';
 
 /**
  * @swagger
- * /withdrawals/:id/finalize:
+ * /withdrawals/:id/withdraw:
  *   post:
  *     tags:
  *       - Withdrawals
- *     description: Finalizes the reward poll.
+ *     description: If the poll for this withdrawal is approved the reward will be withdrawn.
  *     produces:
  *       - application/json
  *     parameters:
@@ -42,20 +42,19 @@ import { getWithdrawalData } from './get.action';
  */
 export const postPollFinalize = async (req: HttpRequest, res: Response, next: NextFunction) => {
     try {
-        await (await req.solution.withdrawPollFinalize(req.params.id)).wait();
-
-        try {
-            const withdrawal = await getWithdrawalData(req.solution, Number(req.params.id));
-
-            if (!withdrawal) {
-                return next(new HttpError(404, 'No withdrawal found for this ID.'));
-            }
-
-            res.json(withdrawal);
-        } catch (e) {
-            return next(new HttpError(502, 'Could not get withdrawal data from the network.', e));
-        }
-    } catch (e) {
-        next(new HttpError(502, 'Could not finalize the withdraw poll.', e));
+        const base64 = await qrcode.toDataURL(
+            JSON.stringify({
+                assetPoolAddress: req.solution.address,
+                contract: 'BasePoll',
+                method: 'vote',
+                params: {
+                    id: req.params.id,
+                    agree: req.body.agree,
+                },
+            }),
+        );
+        res.json({ base64 });
+    } catch (err) {
+        next(new HttpError(500, 'Could not encode the QR image properly.', err));
     }
 };

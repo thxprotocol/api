@@ -1,12 +1,8 @@
-import IDefaultDiamondArtifact from '../../../src/artifacts/contracts/contracts/IDefaultDiamond.sol/IDefaultDiamond.json';
 import Web3 from 'web3';
 import { ethers, Wallet } from 'ethers';
-import { PRIVATE_KEY, RPC } from '../../../src/util/secrets';
+import { PRIVATE_KEY } from '../../../src/util/secrets';
 import { VOTER_PK } from './constants';
-
-const provider = new ethers.providers.JsonRpcProvider(RPC);
-const solutionContract = (address: string) =>
-    new ethers.Contract(address, IDefaultDiamondArtifact.abi, provider.getSigner());
+import { provider, solutionContract } from '../../../src/util/network';
 
 export const admin = new ethers.Wallet(PRIVATE_KEY, provider);
 export const voter = new ethers.Wallet(VOTER_PK, provider);

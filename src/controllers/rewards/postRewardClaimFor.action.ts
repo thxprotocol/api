@@ -1,7 +1,8 @@
 import { Response, NextFunction } from 'express';
 import { HttpError, HttpRequest } from '../../models/Error';
-import IDefaultDiamondArtifact from '../../../src/artifacts/contracts/contracts/IDefaultDiamond.sol/IDefaultDiamond.json';
 import { parseLogs } from '../../util/events';
+import { BigNumber } from 'ethers';
+import { SolutionArtifact } from '../../util/network';
 
 /**
  * @swagger
@@ -57,19 +58,19 @@ export const postRewardClaimFor = async (req: HttpRequest, res: Response, next: 
             const tx = await (await req.solution.claimRewardFor(req.params.id, req.body.member)).wait();
 
             try {
-                const logs = await parseLogs(IDefaultDiamondArtifact.abi, tx.logs);
+                const logs = await parseLogs(SolutionArtifact.abi, tx.logs);
                 const event = logs.filter((e: { name: string }) => e && e.name === 'WithdrawPollCreated')[0];
-                const withdrawal = event.args.id.toNumber();
+                const withdrawal = BigNumber.from(event.args.id).toNumber();
 
                 res.json({ withdrawal });
             } catch (err) {
-                next(new HttpError(500, 'Parse logs failed.', err));
+                next(new HttpError(500, 'Could not parse the transaction for this reward claim.', err));
                 return;
             }
         } catch (err) {
-            next(new HttpError(502, 'Asset Pool claimRewardFor failed.', err));
+            next(new HttpError(502, 'Could not claim the reward for this member.', err));
         }
     } catch (err) {
-        next(new HttpError(502, 'Asset Pool reward does not exist.', err));
+        next(new HttpError(502, 'Could not find this reward on the network.', err));
     }
 };

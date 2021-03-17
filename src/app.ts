@@ -10,10 +10,13 @@ import { errorHandler, notFoundHandler } from './util/error';
 import { corsHandler } from './util/cors';
 import { oidc, router as oidcRouter } from './oidc';
 import { PORT, VERSION, MONGODB_URI } from './util/secrets';
+import { eventIndexer } from './util/indexer';
 
 const app = express();
 
 db.connect(MONGODB_URI);
+
+eventIndexer.start();
 
 app.set('trust proxy', true);
 app.set('view engine', 'ejs');

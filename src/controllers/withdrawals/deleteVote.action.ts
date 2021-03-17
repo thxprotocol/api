@@ -4,7 +4,7 @@ import { NextFunction, Request, Response } from 'express';
 
 /**
  * @swagger
- * /withdrawals/:address/vote:
+ * /withdrawals/:id/vote:
  *   delete:
  *     tags:
  *       - Withdrawals

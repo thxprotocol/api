@@ -9,6 +9,7 @@ import { HttpRequest } from '../models/Error';
 import AssetPoolFactoryArtifact from '../artifacts/contracts/contracts/AssetPoolFactory.sol/AssetPoolFactory.json';
 import ISolutionArtifact from '../artifacts/contracts/contracts/IDefaultDiamond.sol/IDefaultDiamond.json';
 import ERC20Artifact from '../artifacts/@openzeppelin/contracts/token/ERC20/ERC20.sol/ERC20.json';
+import ERC20UnlimitedSupplyArtifact from '../artifacts/contracts/contracts/util/TokenUnlimitedAccount.sol/TokenUnlimitedAccount.json';
 
 import WithdrawArtifact from '../artifacts/contracts/contracts/05-Withdraw/Withdraw.sol/Withdraw.json';
 import WithdrawPollArtifact from '../artifacts/contracts/contracts/05-Withdraw/WithdrawPoll.sol/WithdrawPoll.json';
@@ -26,9 +27,19 @@ import RewardByArtifact from '../artifacts/contracts/contracts/10-RewardBypass/R
 import RewardByPollArtifact from '../artifacts/contracts/contracts/10-RewardBypass/RewardByPoll.sol/RewardByPoll.json';
 import RewardByPollProxyArtifact from '../artifacts/contracts/contracts/10-RewardBypass/RewardByPollProxy.sol/RewardByPollProxy.json';
 
-export const provider = new ethers.providers.JsonRpcProvider(RPC);
+export const SolutionArtifact = ISolutionArtifact;
+export const provider = new ethers.providers.WebSocketProvider(RPC);
 export const admin = new ethers.Wallet(PRIVATE_KEY, provider);
+
 export const assetPoolFactory = new ethers.Contract(ASSET_POOL_FACTORY_ADDRESS, AssetPoolFactoryArtifact.abi, admin);
+
+export const unlimitedSupplyERC20Factory = new ContractFactory(
+    ERC20UnlimitedSupplyArtifact.abi,
+    ERC20UnlimitedSupplyArtifact.bytecode,
+    admin,
+);
+
+export const limitedSupplyERC20Factory = new ContractFactory(ERC20Artifact.abi, ERC20Artifact.bytecode, admin);
 
 export const logTransaction = (tx: { from: string; to: string; transactionHash: string; gasUsed: BigNumber }) => {
     logger.info(`From: ${tx.from} To: ${tx.to} Gas: ${tx.gasUsed.toNumber()} TX:${tx.transactionHash}`);

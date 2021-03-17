@@ -1,4 +1,5 @@
 import dotenv from 'dotenv';
+import { provider } from '../../../src/util/network';
 
 import { Contract, ethers, utils } from 'ethers/lib';
 
@@ -34,7 +35,6 @@ if (env) {
     dotenv.config({ path: '.env' });
 }
 
-const provider = new ethers.providers.JsonRpcProvider(process.env.PUBLIC_RPC);
 const admin = new ethers.Wallet(process.env.PRIVATE_KEY, provider);
 
 export const exampleTokenFactory = new ethers.ContractFactory(

@@ -49,10 +49,7 @@ export async function updateMemberProfile(address: string, poolAddress: string) 
  *       '200':
  *         description: OK
  *       '302':
- *          description: Redirect to `GET /members/:address`
- *          headers:
- *             Location:
- *                type: string
+ *          description: Redirect. GET /members/:address.
  *       '400':
  *         description: Bad Request. Indicates incorrect body parameters.
  *       '401':
