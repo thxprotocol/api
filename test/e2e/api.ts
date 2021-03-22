@@ -1,8 +1,9 @@
 import request from 'supertest';
 import server from '../../src/server';
 import db from '../../src/util/database';
-import { timeTravel, signMethod, admin } from './lib/network';
-import { exampleTokenFactory } from './lib/contracts';
+import { admin } from '../../src/util/network';
+import { timeTravel, signMethod } from './lib/network';
+import { exampleTokenFactory } from './lib/network';
 import {
     poolTitle,
     rewardPollDuration,
@@ -23,7 +24,7 @@ import {
     registerClientCredentialsClient,
 } from './lib/registerClient';
 import { decryptString } from '../../src/util/decrypt';
-import { provider } from '../../src/util/network';
+import { provider, solutionContract } from '../../src/util/network';
 
 const user = request(server);
 const http2 = request.agent(server);
@@ -123,10 +124,15 @@ describe('Happy Flow', () => {
     });
 
     describe('GET /asset_pools/:address', () => {
-        it('HTTP 200 and expose pool information', async (done) => {
-            // Transfer some tokens to the pool rewardWithdrawAmount tokens for the pool
-            await testToken.transfer(poolAddress, parseEther(rewardWithdrawAmount.toString()));
+        it('Deposit assets in pool', async () => {
+            const assetPool = solutionContract(poolAddress);
+            const amount = parseEther(rewardWithdrawAmount.toString());
 
+            await testToken.approve(poolAddress, parseEther(rewardWithdrawAmount.toString()));
+            await assetPool.deposit(amount);
+        });
+
+        it('HTTP 200 and expose pool information', async (done) => {
             user.get('/v1/asset_pools/' + poolAddress)
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
                 .end(async (err, res) => {

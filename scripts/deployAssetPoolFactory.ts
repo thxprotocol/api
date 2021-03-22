@@ -1,7 +1,6 @@
 import dotenv from 'dotenv';
 import { ethers } from 'ethers/lib';
-import { deployAssetPoolFactory } from '../test/e2e/lib/contracts';
-import IAssetPoolFactory from '../src/artifacts/contracts/contracts/AssetPoolFactory/IAssetPoolFactory.sol/IAssetPoolFactory.json';
+import { deployAssetPoolFactory, deployPoolRegistry } from '../src/util/factory';
 
 const env = process.env.NODE_ENV;
 
@@ -15,10 +14,8 @@ const provider = new ethers.providers.WebSocketProvider(process.env.PUBLIC_RPC);
 const admin = new ethers.Wallet(process.env.PRIVATE_KEY, provider);
 
 async function main() {
-    const address = await deployAssetPoolFactory();
-    const factory = new ethers.Contract(address, IAssetPoolFactory.abi, admin);
-
-    console.log('AssetPoolFactory:', factory.address);
+    console.log('Asset Pool Factory:', await deployAssetPoolFactory(admin));
+    console.log('Asset Pool Registry:', await deployPoolRegistry(admin));
 }
 
 main()

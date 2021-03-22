@@ -1,8 +1,9 @@
 import mongoose from 'mongoose';
 import db from '../../src/util/database';
 import { MongoMemoryServer } from 'mongodb-memory-server';
-import { deployAssetPoolFactory } from './lib/contracts';
+import { deployAssetPoolFactory, deployPoolRegistry } from '../../src/util/factory';
 import MongoAdapter from '../../src/oidc/adapter';
+import { admin } from '../../src/util/network';
 
 beforeAll(async () => {
     const memServer = new MongoMemoryServer({
@@ -18,7 +19,12 @@ beforeAll(async () => {
 
     await MongoAdapter.connect();
 
-    await deployAssetPoolFactory();
+    console.log('Start Factory Deployment: ');
+
+    const factoryAddress = await deployAssetPoolFactory(admin);
+    console.log('Factory: ', factoryAddress);
+    const registryAddress = await deployPoolRegistry(admin);
+    console.log('Registry: ', registryAddress);
 });
 
 afterAll(async () => {
@@ -26,12 +32,12 @@ afterAll(async () => {
     await mongoose.disconnect();
 });
 
-require('./api.ts');
-require('./oidc.ts');
-require('./voting.ts');
-require('./unlimitedToken.ts');
-require('./bypasspoll.ts');
-require('./roles.ts');
-require('./encrypt.ts');
+// require('./api.ts');
+// require('./oidc.ts');
+// require('./voting.ts');
+// require('./unlimitedToken.ts');
+// require('./bypasspoll.ts');
+// require('./roles.ts');
+// require('./encrypt.ts');
 require('./gasStation.ts');
 // require('./auth.ts');

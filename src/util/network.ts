@@ -7,7 +7,7 @@ import { isAddress } from 'ethers/lib/utils';
 import { HttpRequest } from '../models/Error';
 
 import AssetPoolFactoryArtifact from '../artifacts/contracts/contracts/AssetPoolFactory/IAssetPoolFactory.sol/IAssetPoolFactory.json';
-import ISolutionArtifact from '../artifacts/contracts/contracts/IDefaultDiamond.sol/IDefaultDiamond.json';
+import IDefaultDiamondArtifact from '../artifacts/contracts/contracts/IDefaultDiamond.sol/IDefaultDiamond.json';
 import ERC20Artifact from '../artifacts/@openzeppelin/contracts/token/ERC20/ERC20.sol/ERC20.json';
 import ERC20UnlimitedSupplyArtifact from '../artifacts/contracts/contracts/util/TokenUnlimitedAccount.sol/TokenUnlimitedAccount.json';
 
@@ -27,7 +27,7 @@ import RewardByArtifact from '../artifacts/contracts/contracts/10-RewardBypass/R
 import RewardByPollArtifact from '../artifacts/contracts/contracts/10-RewardBypass/RewardByPoll.sol/RewardByPoll.json';
 import RewardByPollProxyArtifact from '../artifacts/contracts/contracts/10-RewardBypass/RewardByPollProxy.sol/RewardByPollProxy.json';
 
-export const SolutionArtifact = ISolutionArtifact;
+export const SolutionArtifact = IDefaultDiamondArtifact;
 export const provider = new ethers.providers.WebSocketProvider(RPC);
 export const admin = new ethers.Wallet(PRIVATE_KEY, provider);
 
@@ -47,7 +47,7 @@ export const logTransaction = (tx: { from: string; to: string; transactionHash: 
 };
 
 export const solutionContract = (address?: string) => {
-    return new ethers.Contract(address, ISolutionArtifact.abi, admin);
+    return new ethers.Contract(address, IDefaultDiamondArtifact.abi, admin);
 };
 export const tokenContract = (address?: string) => {
     return new ethers.Contract(address, ERC20Artifact.abi, admin);

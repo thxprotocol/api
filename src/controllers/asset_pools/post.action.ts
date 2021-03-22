@@ -14,6 +14,7 @@ import MongoAdapter from '../../oidc/adapter';
 import { Error } from 'mongoose';
 import { eventIndexer } from '../../util/indexer';
 import { parseEther } from 'ethers/lib/utils';
+import { POOL_REGISTRY_ADDRESS } from '../../util/secrets';
 
 async function getTokenAddress(token: any, poolAddress: string) {
     if (token.address) {
@@ -93,9 +94,12 @@ export const postAssetPool = async (req: HttpRequest, res: Response, next: NextF
     try {
         const token = req.body.token;
         const audience = req.user.aud;
-        const tx = await (await assetPoolFactory.deployAssetPool()).wait();
+        const dep = await assetPoolFactory.deployAssetPool();
+        console.log(dep);
+        const tx = await dep.wait();
+        console.log(tx);
         const event = tx.events.find((e: { event: string }) => e.event === 'AssetPoolDeployed');
-
+        console.log(event);
         logTransaction(tx);
 
         if (!event) {
@@ -109,8 +113,13 @@ export const postAssetPool = async (req: HttpRequest, res: Response, next: NextF
 
         const solution = solutionContract(event.args.assetPool);
 
+        console.log('set reg');
+        await solution.setPoolRegistry(POOL_REGISTRY_ADDRESS);
+        console.log('init roles');
         await solution.initializeRoles(await admin.getAddress());
+        console.log('init gas');
         await solution.initializeGasStation(await admin.getAddress());
+        console.log('set signing');
         await solution.setSigning(true);
 
         try {
@@ -152,7 +161,7 @@ export const postAssetPool = async (req: HttpRequest, res: Response, next: NextF
                 next(new HttpError(502, 'Could not update the client information.', error));
             }
         } catch (error) {
-            next(new HttpError(502, 'Could not save the asset pool in the database..', error));
+            next(new HttpError(502, 'Could not save the asset pool in the database.', error));
         }
     } catch (error) {
         next(new HttpError(502, 'Could not deploy the asset pool on the network.', error));

@@ -15,6 +15,8 @@ const required = [
     'RPC',
     'MONGODB_URI',
     'PRIVATE_KEY',
+    'COLLECTOR',
+    'POOL_REGISTRY_ADDRESS',
 ];
 
 required.forEach((value: string) => {
@@ -37,3 +39,5 @@ export const SECURE_KEY = process.env.SECURE_KEY;
 export const SENDGRID_API_KEY = process.env.SENDGRID_API_KEY;
 export const SENDGRID_USER = process.env.SENDGRID_USER;
 export const SENDGRID_PASSWORD = process.env.SENDGRID_PASSWORD;
+export const COLLECTOR = process.env.COLLECTOR;
+export const POOL_REGISTRY_ADDRESS = process.env.POOL_REGISTRY_ADDRESS;
