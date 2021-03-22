@@ -259,31 +259,31 @@ describe('UnlimitedSupplyToken', () => {
                 });
         });
 
-        // it('HTTP 200 and 1000 balance', (done) => {
-        //     user.get('/v1/members/' + userWallet.address)
-        //         .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
-        //         .end(async (err, res) => {
-        //             expect(res.status).toBe(200);
-        //             expect(res.body.balance.amount).toBe(1000);
+        it('HTTP 200 and 1000 balance', (done) => {
+            user.get('/v1/members/' + userWallet.address)
+                .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
+                .end(async (err, res) => {
+                    expect(res.status).toBe(200);
+                    expect(res.body.balance.amount).toBe(1000);
 
-        //             done();
-        //         });
-        // });
+                    done();
+                });
+        });
     });
 
-    // describe('GET /asset_pools/:address (totalSupply)', () => {
-    //     it('HTTP 302 ', (done) => {
-    //         user.get('/v1/asset_pools/' + poolAddress)
-    //             .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
-    //             .end(async (err, res) => {
-    //                 expect(res.status).toBe(200);
-    //                 expect(res.body.bypassPolls).toBe(true);
-    //                 expect(res.body.token.name).toBe(tokenName);
-    //                 expect(res.body.token.symbol).toBe(tokenSymbol);
-    //                 expect(res.body.token.balance).toBe(0);
-    //                 expect(res.body.token.totalSupply).toBe(1000);
-    //                 done();
-    //             });
-    //     });
-    // });
+    describe('GET /asset_pools/:address (totalSupply)', () => {
+        it('HTTP 302 ', (done) => {
+            user.get('/v1/asset_pools/' + poolAddress)
+                .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
+                .end(async (err, res) => {
+                    expect(res.status).toBe(200);
+                    expect(res.body.bypassPolls).toBe(true);
+                    expect(res.body.token.name).toBe(tokenName);
+                    expect(res.body.token.symbol).toBe(tokenSymbol);
+                    expect(res.body.token.balance).toBe(0);
+                    expect(res.body.token.totalSupply).toBe(1000);
+                    done();
+                });
+        });
+    });
 });

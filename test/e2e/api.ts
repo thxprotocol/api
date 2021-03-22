@@ -492,30 +492,30 @@ describe('Happy Flow', () => {
                 });
         });
 
-        // it('HTTP 200 and have the minted amount balance again', (done) => {
-        //     user.get('/v1/members/' + userWallet.address)
-        //         .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
-        //         .end(async (err, res) => {
-        //             expect(res.status).toBe(200);
-        //             expect(res.body.balance.amount).toBe(rewardWithdrawAmount);
+        it('HTTP 200 and have the minted amount balance again', (done) => {
+            user.get('/v1/members/' + userWallet.address)
+                .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
+                .end(async (err, res) => {
+                    expect(res.status).toBe(200);
+                    expect(res.body.balance.amount).toBe(rewardWithdrawAmount);
 
-        //             done();
-        //         });
-        // });
+                    done();
+                });
+        });
     });
 
-    // describe('GET /asset_pools/:address (after withdaw)', () => {
-    //     it('HTTP 200 and have 0 balance', (done) => {
-    //         user.get(`/v1/asset_pools/${poolAddress}`)
-    //             .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
-    //             .end(async (err, res) => {
-    //                 expect(res.status).toBe(200);
-    //                 expect(res.body.token.balance).toBe(0);
+    describe('GET /asset_pools/:address (after withdaw)', () => {
+        it('HTTP 200 and have 0 balance', (done) => {
+            user.get(`/v1/asset_pools/${poolAddress}`)
+                .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
+                .end(async (err, res) => {
+                    expect(res.status).toBe(200);
+                    expect(res.body.token.balance).toBe(0);
 
-    //                 done();
-    //             });
-    //     });
-    // });
+                    done();
+                });
+        });
+    });
 
     describe('GET /withdrawals (before proposed withdrawal)', () => {
         it('HTTP 200 and return no items', async (done) => {

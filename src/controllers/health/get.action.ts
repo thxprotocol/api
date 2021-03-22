@@ -5,7 +5,7 @@ import { admin, assetPoolFactory, provider } from '../../util/network';
 import { ASSET_POOL_FACTORY_ADDRESS, RPC } from '../../util/secrets';
 import { VERSION } from '../../util/secrets';
 import { name, version, license } from '../../../package.json';
-import AssetPoolFactoryArtifact from '../../artifacts/contracts/contracts/AssetPoolFactory/IAssetPoolFactory.sol/IAssetPoolFactory.json';
+import AssetPoolFactoryArtifact from '../../artifacts/contracts/contracts/AssetPoolFactory.sol/AssetPoolFactory.json';
 
 export const getHealth = async (req: Request, res: Response, next: NextFunction) => {
     try {
