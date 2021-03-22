@@ -24,8 +24,10 @@ import DiamondCutFacetArtifact from '../../../src/artifacts/diamond-2/contracts/
 import DiamondLoupeFacetArtifact from '../../../src/artifacts/diamond-2/contracts/facets/DiamondLoupeFacet.sol/DiamondLoupeFacet.json';
 import OwnershipFacetArtifact from '../../../src/artifacts/diamond-2/contracts/facets/OwnershipFacet.sol/OwnershipFacet.json';
 import UpdateDiamondFacetArtifact from '../../../src/artifacts/contracts/contracts/11-UpdateDiamond/UpdateDiamond.sol/UpdateDiamond.json';
-import AssetPoolFactoryArtifact from '../../../src/artifacts/contracts/contracts/AssetPoolFactory.sol/AssetPoolFactory.json';
 import ExampleTokenArtifact from '../../../src/artifacts/contracts/contracts/util/ExampleToken.sol/ExampleToken.json';
+import DiamondArtifact from '../../../src/artifacts/diamond-2/contracts/Diamond.sol/Diamond.json';
+import AssetPoolFactoryFacetArtifact from '../../../src/artifacts/contracts/contracts/AssetPoolFactory/AssetPoolFactoryFacet.sol/AssetPoolFactoryFacet.json';
+import IAssetPoolFactory from '../../../src/artifacts/contracts/contracts/AssetPoolFactory/IAssetPoolFactory.sol/IAssetPoolFactory.json';
 
 const env = process.env.NODE_ENV;
 
@@ -43,7 +45,7 @@ export const exampleTokenFactory = new ethers.ContractFactory(
     admin,
 );
 
-export const getAssetPoolFactory = async () => {
+export const deployAssetPoolFactory = async () => {
     const GasStation = new ethers.ContractFactory(GasStationArtifact.abi, GasStationArtifact.bytecode, admin);
     const GasStationFacet = await GasStation.deploy();
 
@@ -174,10 +176,33 @@ export const getAssetPoolFactory = async () => {
             functionSelectors: getSelectors(facet),
         });
     });
+
     const AssetPoolFactory = new ethers.ContractFactory(
-        AssetPoolFactoryArtifact.abi,
-        AssetPoolFactoryArtifact.bytecode,
+        AssetPoolFactoryFacetArtifact.abi,
+        AssetPoolFactoryFacetArtifact.bytecode,
         admin,
     );
-    return { AssetPoolFactory, diamondCut };
+
+    const factoryFacets = [AssetPoolFactory, Ownership];
+    const diamondCutFactory = [];
+
+    for (let i = 0; i < factoryFacets.length; i++) {
+        const f = await factoryFacets[i].deploy();
+        diamondCutFactory.push({
+            action: FacetCutAction.Add,
+            facetAddress: f.address,
+            functionSelectors: getSelectors(f),
+        });
+    }
+
+    const DiamondFactory = new ethers.ContractFactory(DiamondArtifact.abi, DiamondArtifact.bytecode, admin);
+    const diamond = await DiamondFactory.deploy(diamondCutFactory, [await admin.getAddress()]);
+
+    await diamond.deployTransaction.wait();
+
+    const factory = new ethers.Contract(diamond.address, IAssetPoolFactory.abi, admin);
+
+    await factory.initialize(diamondCut);
+
+    return factory.address;
 };
