@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
 import db from '../../src/util/database';
 import { MongoMemoryServer } from 'mongodb-memory-server';
-import { getAssetPoolFactory } from './lib/contracts';
+import { deployAssetPoolFactory } from './lib/contracts';
 import MongoAdapter from '../../src/oidc/adapter';
 
 beforeAll(async () => {
@@ -18,10 +18,7 @@ beforeAll(async () => {
 
     await MongoAdapter.connect();
 
-    const { AssetPoolFactory, diamondCut } = await getAssetPoolFactory();
-    const diamond = await AssetPoolFactory.deploy(diamondCut);
-
-    await diamond.deployed();
+    await deployAssetPoolFactory();
 });
 
 afterAll(async () => {

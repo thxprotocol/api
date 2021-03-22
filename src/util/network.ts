@@ -6,7 +6,7 @@ import { logger } from '../util/logger';
 import { isAddress } from 'ethers/lib/utils';
 import { HttpRequest } from '../models/Error';
 
-import AssetPoolFactoryArtifact from '../artifacts/contracts/contracts/AssetPoolFactory.sol/AssetPoolFactory.json';
+import AssetPoolFactoryArtifact from '../artifacts/contracts/contracts/AssetPoolFactory/IAssetPoolFactory.sol/IAssetPoolFactory.json';
 import ISolutionArtifact from '../artifacts/contracts/contracts/IDefaultDiamond.sol/IDefaultDiamond.json';
 import ERC20Artifact from '../artifacts/@openzeppelin/contracts/token/ERC20/ERC20.sol/ERC20.json';
 import ERC20UnlimitedSupplyArtifact from '../artifacts/contracts/contracts/util/TokenUnlimitedAccount.sol/TokenUnlimitedAccount.json';
