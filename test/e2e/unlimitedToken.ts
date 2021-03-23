@@ -1,22 +1,9 @@
 import request from 'supertest';
 import server from '../../src/server';
 import db from '../../src/util/database';
-import { timeTravel, signMethod, admin } from './lib/network';
-import { exampleTokenFactory } from './lib/contracts';
-import {
-    poolTitle,
-    rewardPollDuration,
-    rewardWithdrawAmount,
-    rewardWithdrawDuration,
-    mintAmount,
-    userEmail,
-    userPassword,
-    proposeWithdrawPollDuration,
-    tokenName,
-    tokenSymbol,
-} from './lib/constants';
-import { parseEther } from 'ethers/lib/utils';
-import { Contract, ethers, utils, Wallet } from 'ethers';
+import { signMethod } from './lib/network';
+import { poolTitle, rewardWithdrawAmount, userEmail, userPassword, tokenName, tokenSymbol } from './lib/constants';
+import { ethers, Wallet } from 'ethers';
 import {
     getAccessToken,
     getAuthCode,

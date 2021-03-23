@@ -1,9 +1,9 @@
 import request from 'supertest';
 import server from '../../src/server';
 import db from '../../src/util/database';
-import { admin } from './lib/network';
+import { admin } from '../../src/util/network';
 import { mintAmount, poolTitle } from './lib/constants';
-import { exampleTokenFactory } from './lib/contracts';
+import { exampleTokenFactory } from './lib/network';
 import { Contract } from 'ethers';
 
 const http = request(server);

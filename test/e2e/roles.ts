@@ -1,8 +1,9 @@
 import request from 'supertest';
 import server from '../../src/server';
 import db from '../../src/util/database';
-import { voter, admin } from './lib/network';
-import { exampleTokenFactory } from './lib/contracts';
+import { admin } from '../../src/util/network';
+import { voter } from './lib/network';
+import { exampleTokenFactory } from './lib/network';
 import { poolTitle, mintAmount, userEmail, userPassword } from './lib/constants';
 import { registerClientCredentialsClient } from './lib/registerClient';
 

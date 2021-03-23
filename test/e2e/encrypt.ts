@@ -4,7 +4,7 @@ import server from '../../src/server';
 import db from '../../src/util/database';
 import { decryptString } from '../../src/util/decrypt';
 import { admin, provider } from '../../src/util/network';
-import { signMethod, voter } from './lib/network';
+import { signMethod } from './lib/network';
 import {
     getAuthCode,
     getAuthHeaders,
@@ -12,11 +12,10 @@ import {
     registerAuthorizationCodeClient,
     registerClientCredentialsClient,
 } from './lib/registerClient';
-import { exampleTokenFactory } from './lib/contracts';
+import { exampleTokenFactory } from './lib/network';
 import { mintAmount, poolTitle, newAddress } from './lib/constants';
 
 const user = request(server);
-const http2 = request.agent(server);
 const http3 = request.agent(server);
 
 describe('Encryption', () => {
