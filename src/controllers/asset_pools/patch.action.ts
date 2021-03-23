@@ -1,4 +1,4 @@
-import { downgradeFromBypassPolls, updateToBypassPolls } from '../../util/network';
+import { downgradeFromBypassPolls, updateToBypassPolls } from '../../util/factory';
 import { Response, NextFunction } from 'express';
 import { VERSION } from '../../util/secrets';
 import { HttpRequest, HttpError } from '../../models/Error';

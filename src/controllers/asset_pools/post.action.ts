@@ -14,6 +14,7 @@ import MongoAdapter from '../../oidc/adapter';
 import { Error } from 'mongoose';
 import { eventIndexer } from '../../util/indexer';
 import { parseEther } from 'ethers/lib/utils';
+import { POOL_REGISTRY_ADDRESS } from '../../util/secrets';
 
 async function getTokenAddress(token: any, poolAddress: string) {
     if (token.address) {
@@ -109,6 +110,7 @@ export const postAssetPool = async (req: HttpRequest, res: Response, next: NextF
 
         const solution = solutionContract(event.args.assetPool);
 
+        await solution.setPoolRegistry(POOL_REGISTRY_ADDRESS);
         await solution.initializeRoles(await admin.getAddress());
         await solution.initializeGasStation(await admin.getAddress());
         await solution.setSigning(true);
@@ -152,7 +154,7 @@ export const postAssetPool = async (req: HttpRequest, res: Response, next: NextF
                 next(new HttpError(502, 'Could not update the client information.', error));
             }
         } catch (error) {
-            next(new HttpError(502, 'Could not save the asset pool in the database..', error));
+            next(new HttpError(502, 'Could not save the asset pool in the database.', error));
         }
     } catch (error) {
         next(new HttpError(502, 'Could not deploy the asset pool on the network.', error));

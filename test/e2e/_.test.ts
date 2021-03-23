@@ -1,8 +1,9 @@
 import mongoose from 'mongoose';
 import db from '../../src/util/database';
 import { MongoMemoryServer } from 'mongodb-memory-server';
-import { getAssetPoolFactory } from './lib/contracts';
+import { deployAssetPoolFactory, deployPoolRegistry } from '../../src/util/factory';
 import MongoAdapter from '../../src/oidc/adapter';
+import { admin } from '../../src/util/network';
 
 beforeAll(async () => {
     const memServer = new MongoMemoryServer({
@@ -18,10 +19,10 @@ beforeAll(async () => {
 
     await MongoAdapter.connect();
 
-    const { AssetPoolFactory, diamondCut } = await getAssetPoolFactory();
-    const diamond = await AssetPoolFactory.deploy(diamondCut);
-
-    await diamond.deployed();
+    const factoryAddress = await deployAssetPoolFactory(admin);
+    console.log('Factory: ', factoryAddress);
+    const registryAddress = await deployPoolRegistry(admin);
+    console.log('Registry: ', registryAddress);
 });
 
 afterAll(async () => {

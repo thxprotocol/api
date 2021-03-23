@@ -45,11 +45,9 @@ export const postPollFinalize = async (req: HttpRequest, res: Response, next: Ne
         const base64 = await qrcode.toDataURL(
             JSON.stringify({
                 assetPoolAddress: req.solution.address,
-                contract: 'BasePoll',
-                method: 'vote',
+                method: 'withdrawPollFinalize',
                 params: {
                     id: req.params.id,
-                    agree: req.body.agree,
                 },
             }),
         );

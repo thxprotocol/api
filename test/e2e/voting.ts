@@ -1,7 +1,8 @@
 import request from 'supertest';
 import server from '../../src/server';
 import db from '../../src/util/database';
-import { timeTravel, signMethod, admin } from './lib/network';
+import { admin } from '../../src/util/network';
+import { timeTravel, signMethod } from './lib/network';
 import {
     poolTitle,
     rewardPollDuration,
@@ -11,8 +12,7 @@ import {
     userPassword,
     proposeWithdrawPollDuration,
 } from './lib/constants';
-import { parseEther } from 'ethers/lib/utils';
-import { Contract, ethers, Wallet } from 'ethers';
+import { ethers, Wallet } from 'ethers';
 import {
     getAccessToken,
     getAuthCode,

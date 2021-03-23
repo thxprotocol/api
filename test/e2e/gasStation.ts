@@ -1,8 +1,9 @@
 import request from 'supertest';
 import server from '../../src/server';
+import { admin } from '../../src/util/network';
 import db from '../../src/util/database';
-import { voter, timeTravel, signMethod, admin } from './lib/network';
-import { exampleTokenFactory } from './lib/contracts';
+import { voter, timeTravel, signMethod } from './lib/network';
+import { exampleTokenFactory } from './lib/network';
 import {
     poolTitle,
     rewardPollDuration,
@@ -18,6 +19,8 @@ import {
     registerAuthorizationCodeClient,
     registerClientCredentialsClient,
 } from './lib/registerClient';
+import { solutionContract } from '../../src/util/network';
+import { parseEther } from 'ethers/lib/utils';
 
 const user = request(server);
 const http2 = request.agent(server);
@@ -65,7 +68,10 @@ describe('Gas Station', () => {
         poolAddress = res.body.address;
 
         // Transfer some tokens to the pool rewardWithdrawAmount tokens for the pool
-        await testToken.transfer(poolAddress, rewardWithdrawAmount);
+        const assetPool = solutionContract(poolAddress);
+        const amount = parseEther(rewardWithdrawAmount.toString());
+        const tx1 = await testToken.approve(poolAddress, parseEther(rewardWithdrawAmount.toString()));
+        const tx = await assetPool.deposit(amount);
 
         // Configure the default poll durations
         await user
