@@ -66,20 +66,12 @@ describe('Gas Station', () => {
             });
 
         poolAddress = res.body.address;
-        console.log(poolAddress);
 
         // Transfer some tokens to the pool rewardWithdrawAmount tokens for the pool
         const assetPool = solutionContract(poolAddress);
-        console.log(assetPool.address);
-
         const amount = parseEther(rewardWithdrawAmount.toString());
-        console.log(amount);
-
         const tx1 = await testToken.approve(poolAddress, parseEther(rewardWithdrawAmount.toString()));
-        console.log(tx1);
-
         const tx = await assetPool.deposit(amount);
-        console.log(tx);
 
         // Configure the default poll durations
         await user

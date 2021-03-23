@@ -94,12 +94,9 @@ export const postAssetPool = async (req: HttpRequest, res: Response, next: NextF
     try {
         const token = req.body.token;
         const audience = req.user.aud;
-        const dep = await assetPoolFactory.deployAssetPool();
-        console.log(dep);
-        const tx = await dep.wait();
-        console.log(tx);
+        const tx = await (await assetPoolFactory.deployAssetPool()).wait();
         const event = tx.events.find((e: { event: string }) => e.event === 'AssetPoolDeployed');
-        console.log(event);
+
         logTransaction(tx);
 
         if (!event) {
@@ -113,13 +110,9 @@ export const postAssetPool = async (req: HttpRequest, res: Response, next: NextF
 
         const solution = solutionContract(event.args.assetPool);
 
-        console.log('set reg');
         await solution.setPoolRegistry(POOL_REGISTRY_ADDRESS);
-        console.log('init roles');
         await solution.initializeRoles(await admin.getAddress());
-        console.log('init gas');
         await solution.initializeGasStation(await admin.getAddress());
-        console.log('set signing');
         await solution.setSigning(true);
 
         try {

@@ -19,8 +19,6 @@ beforeAll(async () => {
 
     await MongoAdapter.connect();
 
-    console.log('Start Factory Deployment: ');
-
     const factoryAddress = await deployAssetPoolFactory(admin);
     console.log('Factory: ', factoryAddress);
     const registryAddress = await deployPoolRegistry(admin);

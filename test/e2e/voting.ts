@@ -366,15 +366,15 @@ describe('Voting', () => {
                 });
         });
 
-        // it('HTTP 200 and increased balance', (done) => {
-        //     user.get('/v1/members/' + userWallet.address)
-        //         .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
-        //         .end(async (err, res) => {
-        //             expect(res.status).toBe(200);
-        //             expect(res.body.balance.amount).toBe(1000);
+        it('HTTP 200 and increased balance', (done) => {
+            user.get('/v1/members/' + userWallet.address)
+                .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
+                .end(async (err, res) => {
+                    expect(res.status).toBe(200);
+                    expect(res.body.balance.amount).toBe(1000);
 
-        //             done();
-        //         });
-        // });
+                    done();
+                });
+        });
     });
 });
