@@ -1,10 +1,9 @@
 import async from 'async';
 import crypto from 'crypto';
-import nodemailer from 'nodemailer';
 import { Account, AccountDocument, AuthToken } from '../../models/Account';
 import { Request, Response, NextFunction } from 'express';
 import { HttpError } from '../../models/Error';
-import { SENDGRID_USER, SENDGRID_PASSWORD } from '../../util/secrets';
+import { sendMail } from '../../util/mail';
 
 export const postForgot = async (req: Request, res: Response, next: NextFunction) => {
     async.waterfall(
@@ -32,28 +31,22 @@ export const postForgot = async (req: Request, res: Response, next: NextFunction
                     });
                 });
             },
-            function sendForgotPasswordEmail(token: AuthToken, account: AccountDocument, done: Function) {
-                const transporter = nodemailer.createTransport({
-                    service: 'SendGrid',
-                    auth: {
-                        user: SENDGRID_USER,
-                        pass: SENDGRID_PASSWORD,
-                    },
-                });
-                const text = `You are receiving this email because you (or someone else) have requested the reset of the password for your account.\n\n
-                Please click on the following link, or paste this into your browser to complete the process:\n\n
-                http://${req.headers.host}/v1/reset/${token}\n\n
-                If you did not request this, please ignore this email and your password will remain unchanged.\n`;
-                const mailOptions = {
-                    to: account.email,
-                    from: 'peter@thxprotocol.com',
-                    subject: 'Reset your THX password',
-                    text,
-                };
-                transporter.sendMail(mailOptions, (err) => {
-                    res.send({ message: `An e-mail has been sent to ${account.email} with further instructions.` });
-                    done(err);
-                });
+            async function sendForgotPasswordEmail(token: AuthToken, account: AccountDocument, done: Function) {
+                try {
+                    await sendMail(
+                        account.email,
+                        'Reset your THX password',
+                        `You are receiving this email because you (or someone else) have requested the reset of the password for your account.\n\n
+                    Please click on the following link, or paste this into your browser to complete the process:\n\n
+                    http://${req.headers.host}/v1/reset/${token}\n\n
+                    If you did not request this, please ignore this email and your password will remain unchanged.\n`,
+                    );
+                    res.json({ message: `An e-mail has been sent to ${account.email} with further instructions.` });
+                    done();
+                } catch (e) {
+                    next(new HttpError(502, 'E-mail sent failed.', e));
+                    return;
+                }
             },
         ],
         (err) => {

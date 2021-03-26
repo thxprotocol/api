@@ -1,8 +1,8 @@
 import async from 'async';
-import nodemailer from 'nodemailer';
 import { Account, AccountDocument } from '../../models/Account';
 import { Request, Response, NextFunction } from 'express';
 import { HttpError } from '../../models/Error';
+import { sendMail } from '../../util/mail';
 
 export const postReset = async (req: Request, res: Response, next: NextFunction) => {
     async.waterfall(
@@ -32,24 +32,19 @@ export const postReset = async (req: Request, res: Response, next: NextFunction)
                         });
                     });
             },
-            function sendResetPasswordEmail(account: AccountDocument, done: Function) {
-                const transporter = nodemailer.createTransport({
-                    service: 'SendGrid',
-                    auth: {
-                        user: process.env.SENDGRID_USER,
-                        pass: process.env.SENDGRID_PASSWORD,
-                    },
-                });
-                const mailOptions = {
-                    to: account.email,
-                    from: 'peter@thxprotocol.com',
-                    subject: 'Your password has been changed',
-                    text: `Hello,\n\nThis is a confirmation that the password for your account ${account.email} has just been changed.\n`,
-                };
-                transporter.sendMail(mailOptions, (err) => {
+            async function sendResetPasswordEmail(account: AccountDocument, done: Function) {
+                try {
+                    await sendMail(
+                        account.email,
+                        'Your password has been changed',
+                        `Hello,\n\nThis is a confirmation that the password for your account ${account.email} has just been changed.\n`,
+                    );
                     res.json({ message: 'Success! Your password has been changed.' });
-                    done(err);
-                });
+                    done();
+                } catch (e) {
+                    next(new HttpError(502, 'E-mail sent failed.', e));
+                    return;
+                }
             },
         ],
         (err) => {

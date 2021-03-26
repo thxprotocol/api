@@ -23,7 +23,6 @@ required.forEach((value: string) => {
     if (!process.env[value]) {
         const message = `Set ${value} environment variable.`;
         logger.error(message);
-        console.log(message);
         process.exit(1);
     }
 });
@@ -37,7 +36,5 @@ export const MONGODB_URI = process.env.MONGODB_URI;
 export const PRIVATE_KEY = process.env.PRIVATE_KEY;
 export const SECURE_KEY = process.env.SECURE_KEY;
 export const SENDGRID_API_KEY = process.env.SENDGRID_API_KEY;
-export const SENDGRID_USER = process.env.SENDGRID_USER;
-export const SENDGRID_PASSWORD = process.env.SENDGRID_PASSWORD;
 export const COLLECTOR = process.env.COLLECTOR;
 export const POOL_REGISTRY_ADDRESS = process.env.POOL_REGISTRY_ADDRESS;

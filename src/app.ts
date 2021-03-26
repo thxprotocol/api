@@ -33,7 +33,7 @@ app.use(`/${VERSION}`, bodyParser.json());
 app.use(`/${VERSION}`, bodyParser.urlencoded({ extended: false }));
 app.use(`/${VERSION}`, router);
 app.use('/', oidc.callback);
-app.use(errorHandler);
 app.use(notFoundHandler);
+app.use(errorHandler);
 
 export default app;

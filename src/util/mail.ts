@@ -9,7 +9,7 @@ export const sendMail = (to: string, subject: string, html: string) => {
     const options = {
         to,
         from: {
-            email: 'peter@thxprotocol.com',
+            email: 'peter@thx.network',
             name: 'Peter Polman',
         },
         subject,
