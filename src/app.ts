@@ -6,7 +6,7 @@ import path from 'path';
 import router from './controllers';
 import db from './util/database';
 import { requestLogger } from './util/logger';
-import { errorHandler, notFoundHandler } from './util/error';
+import { errorHandler } from './util/error';
 import { corsHandler } from './util/cors';
 import { oidc, router as oidcRouter } from './oidc';
 import { PORT, VERSION, MONGODB_URI } from './util/secrets';
@@ -33,7 +33,6 @@ app.use(`/${VERSION}`, bodyParser.json());
 app.use(`/${VERSION}`, bodyParser.urlencoded({ extended: false }));
 app.use(`/${VERSION}`, router);
 app.use('/', oidc.callback);
-app.use(notFoundHandler);
 app.use(errorHandler);
 
 export default app;
