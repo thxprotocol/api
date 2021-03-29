@@ -12,10 +12,16 @@ import { parseHeader } from '../../util/network';
 
 const router = express.Router();
 
-router.get('/', checkScopes(['user']), getAccount);
-router.get('/nonce', checkScopes(['user']), validate(validations.getAccountNonce), parseHeader, getAccountNonce);
-router.patch('/', checkScopes(['user']), patchAccount);
-router.delete('/', checkScopes(['user']), deleteAccount);
-router.put('/password', checkScopes(['user']), validate(validations.putPassword), putPassword);
+router.get('/', checkScopes(['user', 'dashboard']), getAccount);
+router.get(
+    '/nonce',
+    checkScopes(['user', 'dashboard']),
+    validate(validations.getAccountNonce),
+    parseHeader,
+    getAccountNonce,
+);
+router.patch('/', checkScopes(['user', 'dashboard']), patchAccount);
+router.delete('/', checkScopes(['user', 'dashboard']), deleteAccount);
+router.put('/password', checkScopes(['user', 'dashboard']), validate(validations.putPassword), putPassword);
 
 export default router;

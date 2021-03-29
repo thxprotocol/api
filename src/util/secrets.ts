@@ -11,7 +11,8 @@ const required = [
     'ISSUER',
     'ASSET_POOL_FACTORY_ADDRESS',
     'SECURE_KEY',
-    'ORIGIN',
+    'WALLET_URL',
+    'DASHBOARD_URL',
     'RPC',
     'MONGODB_URI',
     'PRIVATE_KEY',
@@ -28,13 +29,19 @@ required.forEach((value: string) => {
 });
 
 export const PORT = process.env.PORT;
+
 export const ISSUER = process.env.ISSUER;
-export const ASSET_POOL_FACTORY_ADDRESS = process.env.ASSET_POOL_FACTORY_ADDRESS;
-export const ORIGIN = process.env.ORIGIN;
-export const RPC = process.env.RPC;
+export const WALLET_URL = process.env.WALLET_URL;
+export const DASHBOARD_URL = process.env.DASHBOARD_URL;
+
 export const MONGODB_URI = process.env.MONGODB_URI;
-export const PRIVATE_KEY = process.env.PRIVATE_KEY;
+
 export const SECURE_KEY = process.env.SECURE_KEY;
 export const SENDGRID_API_KEY = process.env.SENDGRID_API_KEY;
+
+export const PRIVATE_KEY = process.env.PRIVATE_KEY;
+
+export const RPC = process.env.RPC;
 export const COLLECTOR = process.env.COLLECTOR;
 export const POOL_REGISTRY_ADDRESS = process.env.POOL_REGISTRY_ADDRESS;
+export const ASSET_POOL_FACTORY_ADDRESS = process.env.ASSET_POOL_FACTORY_ADDRESS;

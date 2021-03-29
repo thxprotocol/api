@@ -9,8 +9,14 @@ import checkScopes from 'express-jwt-authz';
 
 const router = express.Router();
 
-router.post('/', checkScopes(['admin']), validate(validations.postAssetPool), postAssetPool);
+router.post('/', checkScopes(['admin', 'dashboard']), validate(validations.postAssetPool), postAssetPool);
 router.get('/:address', checkScopes(['admin', 'user']), validate(validations.getAssetPool), parseHeader, getAssetPool);
-router.patch('/:address', checkScopes(['admin']), validate(validations.patchAssetPool), parseHeader, patchAssetPool);
+router.patch(
+    '/:address',
+    checkScopes(['admin', 'dashboard']),
+    validate(validations.patchAssetPool),
+    parseHeader,
+    patchAssetPool,
+);
 
 export default router;

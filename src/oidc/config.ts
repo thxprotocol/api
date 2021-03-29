@@ -36,6 +36,7 @@ export default {
     claims: {
         openid: ['sub'],
         admin: ['admin'],
+        dashboard: ['dashboard'],
         user: ['user'],
         email: ['email'],
     },
