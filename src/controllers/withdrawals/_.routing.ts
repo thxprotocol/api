@@ -1,5 +1,5 @@
 import express from 'express';
-import { validate } from '../../util/validation';
+import { validate, validateAssetPoolHeader } from '../../util/validation';
 import { validations } from './_.validation';
 
 import { getWithdrawal } from './get.action';
@@ -12,13 +12,42 @@ import { deleteVote } from './deleteVote.action';
 
 const router = express.Router();
 
-router.get('/', checkScopes(['admin', 'user']), validate(validations.getWithdrawals), parseHeader, getWithdrawals);
-router.get('/:id', checkScopes(['admin', 'user']), validate(validations.getWithdrawal), parseHeader, getWithdrawal);
-router.post('/:id/vote', checkScopes(['admin']), validate(validations.postVote), parseHeader, postVote);
-router.delete('/:id/vote', checkScopes(['admin']), validate(validations.deleteVote), parseHeader, deleteVote);
+router.get(
+    '/',
+    checkScopes(['admin', 'user']),
+    validateAssetPoolHeader,
+    validate(validations.getWithdrawals),
+    parseHeader,
+    getWithdrawals,
+);
+router.get(
+    '/:id',
+    checkScopes(['admin', 'user']),
+    validateAssetPoolHeader,
+    validate(validations.getWithdrawal),
+    parseHeader,
+    getWithdrawal,
+);
+router.post(
+    '/:id/vote',
+    checkScopes(['admin']),
+    validateAssetPoolHeader,
+    validate(validations.postVote),
+    parseHeader,
+    postVote,
+);
+router.delete(
+    '/:id/vote',
+    checkScopes(['admin']),
+    validateAssetPoolHeader,
+    validate(validations.deleteVote),
+    parseHeader,
+    deleteVote,
+);
 router.post(
     '/:id/withdraw',
     checkScopes(['admin']),
+    validateAssetPoolHeader,
     validate(validations.postPollFinalize),
     parseHeader,
     postPollFinalize,

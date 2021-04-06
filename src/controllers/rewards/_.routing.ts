@@ -1,5 +1,5 @@
 import express from 'express';
-import { validate } from '../../util/validation';
+import { validate, validateAssetPoolHeader } from '../../util/validation';
 import { validations } from './_.validation';
 
 import { getRewards } from './get.action';
@@ -16,11 +16,46 @@ import checkScopes from 'express-jwt-authz';
 
 const router = express.Router();
 
-router.get('/', checkScopes(['admin', 'user']), validate(validations.getRewards), parseHeader, getRewards);
-router.get('/:id', checkScopes(['admin', 'user']), validate(validations.getReward), parseHeader, getReward);
-router.post('/', checkScopes(['admin']), validate(validations.postReward), parseHeader, postReward);
-router.patch('/:id', checkScopes(['admin']), validate(validations.patchReward), parseHeader, patchReward);
-router.post('/:id/claim', checkScopes(['admin']), validate(validations.postRewardClaim), parseHeader, postRewardClaim);
+router.get(
+    '/',
+    checkScopes(['admin', 'user']),
+    validateAssetPoolHeader,
+    validate(validations.getRewards),
+    parseHeader,
+    getRewards,
+);
+router.get(
+    '/:id',
+    checkScopes(['admin', 'user']),
+    validateAssetPoolHeader,
+    validate(validations.getReward),
+    parseHeader,
+    getReward,
+);
+router.post(
+    '/',
+    checkScopes(['admin']),
+    validateAssetPoolHeader,
+    validate(validations.postReward),
+    parseHeader,
+    postReward,
+);
+router.patch(
+    '/:id',
+    checkScopes(['admin']),
+    validateAssetPoolHeader,
+    validate(validations.patchReward),
+    parseHeader,
+    patchReward,
+);
+router.post(
+    '/:id/claim',
+    checkScopes(['admin']),
+    validateAssetPoolHeader,
+    validate(validations.postRewardClaim),
+    parseHeader,
+    postRewardClaim,
+);
 router.post(
     '/:id/give',
     checkScopes(['admin']),
@@ -29,11 +64,26 @@ router.post(
     postRewardClaimFor,
 );
 
-router.post('/:id/poll/vote', checkScopes(['admin']), validate(validations.postVote), parseHeader, postVote);
-router.delete('/:id/poll/vote', checkScopes(['admin']), validate(validations.deleteVote), parseHeader, deleteVote);
+router.post(
+    '/:id/poll/vote',
+    checkScopes(['admin']),
+    validateAssetPoolHeader,
+    validate(validations.postVote),
+    parseHeader,
+    postVote,
+);
+router.delete(
+    '/:id/poll/vote',
+    checkScopes(['admin']),
+    validateAssetPoolHeader,
+    validate(validations.deleteVote),
+    parseHeader,
+    deleteVote,
+);
 router.post(
     '/:id/poll/finalize',
     checkScopes(['admin']),
+    validateAssetPoolHeader,
     validate(validations.postPollFinalize),
     parseHeader,
     postPollFinalize,

@@ -1,6 +1,6 @@
-import { body, header, validationResult } from 'express-validator';
+import { body, validationResult } from 'express-validator';
 import { Response, Request, NextFunction } from 'express';
-import { HttpError } from '../models/Error';
+import { HttpError, HttpRequest } from '../models/Error';
 import { Account, AccountDocument } from '../models/Account';
 import { Client } from '../models/Client';
 
@@ -18,9 +18,8 @@ export const validate = (validations: any) => {
     };
 };
 
-export const validateAssetPoolHeader = header('AssetPool')
-    .exists()
-    .custom(async (address, { req }) => {
+export const validateAssetPoolHeader = async (req: HttpRequest, res: Response, next: NextFunction) => {
+    try {
         let assetPools;
 
         if (req.user.sub) {
@@ -32,12 +31,30 @@ export const validateAssetPoolHeader = header('AssetPool')
             assetPools = client.assetPools;
         }
 
-        if (!assetPools || !Object.keys(assetPools).includes(address)) {
-            return new HttpError(403, 'Forbidden to access this asset pool.');
+        if (!assetPools || assetPools.indexOf(req.header('AssetPool')) === -1) {
+            throw new HttpError(403, 'You can not access this asset pool.');
         }
 
-        return true;
-    });
+        next();
+    } catch (e) {
+        console.log(e);
+        next(e);
+    }
+};
+
+export const validateRegistrationToken = async (req: HttpRequest, res: Response, next: NextFunction) => {
+    try {
+        const account = await Account.findById(req.user.sub);
+
+        if (account.registrationAccessTokens && account.registrationAccessTokens.indexOf(req.params.rat) === -1) {
+            throw new HttpError(403, 'You can not access this registration_access_token.');
+        }
+
+        next();
+    } catch (e) {
+        next(e);
+    }
+};
 
 export const confirmPassword = body('confirmPassword')
     .exists()

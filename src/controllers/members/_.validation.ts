@@ -1,10 +1,8 @@
 import { ethers } from 'ethers';
 import { body, param } from 'express-validator';
-import { validateAssetPoolHeader } from '../../util/validation';
 
 export const validations = {
     postMember: [
-        validateAssetPoolHeader,
         body('address')
             .exists()
             .custom((value) => {
@@ -12,7 +10,6 @@ export const validations = {
             }),
     ],
     patchMember: [
-        validateAssetPoolHeader,
         param('address')
             .exists()
             .custom((value) => {
@@ -22,7 +19,6 @@ export const validations = {
         body('isManager').exists(),
     ],
     deleteMember: [
-        validateAssetPoolHeader,
         param('address')
             .exists()
             .custom((value) => {
@@ -30,7 +26,6 @@ export const validations = {
             }),
     ],
     getMember: [
-        validateAssetPoolHeader,
         param('address')
             .exists()
             .custom((value) => {

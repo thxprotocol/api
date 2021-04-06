@@ -1,5 +1,5 @@
 import express from 'express';
-import { validate } from '../../util/validation';
+import { validate, validateAssetPoolHeader } from '../../util/validation';
 import { validations } from './_.validation';
 import { parseHeader } from '../../util/network';
 import { getAssetPool } from './get.action';
@@ -13,6 +13,7 @@ router.post('/', checkScopes(['dashboard']), validate(validations.postAssetPool)
 router.get(
     '/:address',
     checkScopes(['admin', 'user', 'dashboard']),
+    validateAssetPoolHeader,
     validate(validations.getAssetPool),
     parseHeader,
     getAssetPool,
@@ -20,6 +21,7 @@ router.get(
 router.patch(
     '/:address',
     checkScopes(['dashboard']),
+    validateAssetPoolHeader,
     validate(validations.patchAssetPool),
     parseHeader,
     patchAssetPool,

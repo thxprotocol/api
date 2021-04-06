@@ -6,11 +6,18 @@ import { getClient } from './getClient.action';
 import { postClient } from './post.action';
 import { deleteClient } from './delete.action';
 import checkScopes from 'express-jwt-authz';
+import { validateRegistrationToken } from '../../util/validation';
 
 const router = express.Router();
 
-router.get('/:rat', checkScopes(['dashboard']), validate(validations.getClient), getClient);
+router.get('/:rat', checkScopes(['dashboard']), validateRegistrationToken, validate(validations.getClient), getClient);
 router.post('/', checkScopes(['dashboard']), validate(validations.postClient), postClient);
-router.delete('/:rat', checkScopes(['dashboard']), validate(validations.postClient), deleteClient);
+router.delete(
+    '/:rat',
+    checkScopes(['dashboard']),
+    validateRegistrationToken,
+    validate(validations.postClient),
+    deleteClient,
+);
 
 export default router;
