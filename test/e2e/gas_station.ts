@@ -32,6 +32,7 @@ const http3 = request.agent(server);
 describe('Gas Station', () => {
     let poolAddress: any,
         adminAccessToken: string,
+        adminAudience: string,
         dashboardAccessToken: string,
         userAccessToken: string,
         testToken: any;
@@ -39,7 +40,9 @@ describe('Gas Station', () => {
     beforeAll(async () => {
         await db.truncate();
 
-        adminAccessToken = await registerClientCredentialsClient(user);
+        const credentials = await registerClientCredentialsClient(user);
+        adminAccessToken = credentials.accessToken;
+        adminAudience = credentials.aud;
 
         testToken = await exampleTokenFactory.deploy(admin.address, mintAmount);
 
@@ -76,6 +79,7 @@ describe('Gas Station', () => {
             .set({ Authorization: dashboardAccessToken })
             .send({
                 title: poolTitle,
+                aud: adminAudience,
                 token: {
                     address: testToken.address,
                 },

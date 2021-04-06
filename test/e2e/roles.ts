@@ -18,12 +18,19 @@ const http2 = request.agent(server);
 const http3 = request.agent(server);
 
 describe('Roles', () => {
-    let poolAddress: any, dashboardAccessToken: string, testToken: any, adminAccessToken: string, userAddress: string;
+    let poolAddress: any,
+        dashboardAccessToken: string,
+        testToken: any,
+        adminAccessToken: string,
+        adminAudience: string,
+        userAddress: string;
 
     beforeAll(async () => {
         await db.truncate();
 
-        adminAccessToken = await registerClientCredentialsClient(user);
+        const credentials = await registerClientCredentialsClient(user);
+        adminAccessToken = credentials.accessToken;
+        adminAudience = credentials.aud;
 
         testToken = await exampleTokenFactory.deploy(admin.address, mintAmount);
 
@@ -66,6 +73,7 @@ describe('Roles', () => {
                 .set({ Authorization: dashboardAccessToken })
                 .send({
                     title: poolTitle,
+                    aud: adminAudience,
                     token: {
                         address: testToken.address,
                     },

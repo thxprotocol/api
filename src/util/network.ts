@@ -42,10 +42,10 @@ export const tokenContract = (address?: string) => {
     return new ethers.Contract(address, ERC20Artifact.abi, admin);
 };
 export function parseHeader(req: Request, res: Response, next: NextFunction) {
-    const assetPollAddress = req.header('AssetPool');
+    const assetPoolAddress = req.header('AssetPool');
 
-    if (assetPollAddress && isAddress(assetPollAddress)) {
-        (req as HttpRequest).solution = solutionContract(assetPollAddress);
+    if (assetPoolAddress && isAddress(assetPoolAddress)) {
+        (req as HttpRequest).solution = solutionContract(assetPoolAddress);
     }
 
     return next();

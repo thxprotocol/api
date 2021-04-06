@@ -5,6 +5,7 @@ import { parseHeader } from '../../util/network';
 import { getAssetPool } from './get.action';
 import { postAssetPool } from './post.action';
 import { patchAssetPool } from './patch.action';
+import { deleteAssetPool } from './delete.action';
 import checkScopes from 'express-jwt-authz';
 
 const router = express.Router();
@@ -26,5 +27,12 @@ router.patch(
     parseHeader,
     patchAssetPool,
 );
-
+router.delete(
+    '/:address',
+    checkScopes(['dashboard']),
+    validateAssetPoolHeader,
+    validate(validations.deleteAssetPool),
+    parseHeader,
+    deleteAssetPool,
+);
 export default router;

@@ -30,6 +30,7 @@ const http3 = request.agent(server);
 
 describe('Voting', () => {
     let adminAccessToken: string,
+        adminAudience: string,
         userAccessToken: string,
         dashboardAccessToken: string,
         poolAddress: string,
@@ -41,7 +42,9 @@ describe('Voting', () => {
     beforeAll(async () => {
         await db.truncate();
 
-        adminAccessToken = await registerClientCredentialsClient(user);
+        const credentials = await registerClientCredentialsClient(user);
+        adminAccessToken = credentials.accessToken;
+        adminAudience = credentials.aud;
     });
 
     describe('POST /signup', () => {
@@ -103,9 +106,11 @@ describe('Voting', () => {
                 .set('Authorization', dashboardAccessToken)
                 .send({
                     title: poolTitle,
+                    aud: adminAudience,
                     token: {
                         name: 'SparkBlue Token',
                         symbol: 'SPARK',
+                        totalSupply: 0,
                     },
                 })
                 .end(async (err, res) => {
@@ -149,7 +154,7 @@ describe('Voting', () => {
                     proposeWithdrawPollDuration: 10,
                 })
                 .end(async (err, res) => {
-                    expect(res.status).toBe(302);
+                    expect(res.status).toBe(200);
                     done();
                 });
         });

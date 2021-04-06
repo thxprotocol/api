@@ -21,7 +21,10 @@ export const registerClientCredentialsClient = async (http: any) => {
             scope: 'openid admin',
         });
 
-    return 'Bearer ' + body.access_token;
+    return {
+        accessToken: 'Bearer ' + body.access_token,
+        aud: res.body.client_id,
+    };
 };
 
 export const registerWalletClient = async (http: any) => {

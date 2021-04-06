@@ -21,6 +21,7 @@ const http3 = request.agent(server);
 
 describe('UnlimitedSupplyToken', () => {
     let adminAccessToken: string,
+        adminAudience: string,
         userAccessToken: string,
         dashboardAccessToken: string,
         poolAddress: string,
@@ -32,7 +33,9 @@ describe('UnlimitedSupplyToken', () => {
     beforeAll(async () => {
         await db.truncate();
 
-        adminAccessToken = await registerClientCredentialsClient(user);
+        const credentials = await registerClientCredentialsClient(user);
+        adminAccessToken = credentials.accessToken;
+        adminAudience = credentials.aud;
     });
 
     describe('POST /signup', () => {
@@ -92,9 +95,11 @@ describe('UnlimitedSupplyToken', () => {
                 .set('Authorization', dashboardAccessToken)
                 .send({
                     title: poolTitle,
+                    aud: adminAudience,
                     token: {
                         name: tokenName,
                         symbol: tokenSymbol,
+                        totalSupply: 0,
                     },
                 })
                 .end(async (err, res) => {
@@ -136,7 +141,7 @@ describe('UnlimitedSupplyToken', () => {
                     bypassPolls: true,
                 })
                 .end(async (err, res) => {
-                    expect(res.status).toBe(302);
+                    expect(res.status).toBe(200);
                     done();
                 });
         });

@@ -16,7 +16,7 @@ router.delete(
     '/:rat',
     checkScopes(['dashboard']),
     validateRegistrationToken,
-    validate(validations.postClient),
+    validate(validations.deleteClient),
     deleteClient,
 );
 

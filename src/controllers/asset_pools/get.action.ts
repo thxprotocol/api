@@ -1,4 +1,4 @@
-import { AssetPool, AssetPoolDocument } from '../../models/AssetPool';
+import { AssetPool } from '../../models/AssetPool';
 import { Response, NextFunction } from 'express';
 import { provider, tokenContract } from '../../util/network';
 import { HttpError, HttpRequest } from '../../models/Error';
@@ -31,6 +31,12 @@ import { formatEther } from 'ethers/lib/utils';
  *                 title:
  *                    type: string
  *                    description: The title of the asset pool.
+ *                 sub:
+ *                    type: string
+ *                    description: The sub of the account that deployed the asset pool.
+ *                 aud:
+ *                    type: string
+ *                    description: The audience (client id of the connected app) of the asset pool
  *                 address:
  *                    type: string
  *                    description: The address of the asset pool.
@@ -88,7 +94,7 @@ export const getAssetPool = async (req: HttpRequest, res: Response, next: NextFu
             const tokenInstance = tokenContract(tokenAddress);
             const proposeWithdrawPollDuration = (await req.solution.getProposeWithdrawPollDuration()).toNumber();
             const rewardPollDuration = (await req.solution.getRewardPollDuration()).toNumber();
-            const assetPool: AssetPoolDocument = await AssetPool.findOne({
+            const assetPool = await AssetPool.findOne({
                 address: req.params.address,
             });
 
@@ -98,6 +104,8 @@ export const getAssetPool = async (req: HttpRequest, res: Response, next: NextFu
 
             res.json({
                 title: assetPool.title,
+                sub: assetPool.sub,
+                aud: assetPool.aud,
                 address: assetPool.address,
                 bypassPolls: assetPool.bypassPolls,
                 token: {
@@ -111,9 +119,9 @@ export const getAssetPool = async (req: HttpRequest, res: Response, next: NextFu
                 rewardPollDuration,
             });
         } catch (error) {
-            return next(new HttpError(500, 'Asset Pool network data can not be obtained.', error));
+            return next(new HttpError(500, 'Could not obtain Asset Pool data from the network.', error));
         }
     } catch (e) {
-        return next(new HttpError(404, 'Asset Pool is not found on network.', e));
+        return next(new HttpError(404, 'Could not find Asset Pool contract address on the network.', e));
     }
 };

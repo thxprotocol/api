@@ -28,6 +28,7 @@ const http3 = request.agent(server);
 describe('Bypass Polls', () => {
     let adminAccessToken: string,
         userAccessToken: string,
+        adminAudience: string,
         dashboardAccessToken: string,
         redirectURL: string,
         poolAddress: string,
@@ -36,7 +37,9 @@ describe('Bypass Polls', () => {
     beforeAll(async () => {
         await db.truncate();
 
-        adminAccessToken = await registerClientCredentialsClient(user);
+        const credentials = await registerClientCredentialsClient(user);
+        adminAccessToken = credentials.accessToken;
+        adminAudience = credentials.aud;
 
         testToken = await exampleTokenFactory.deploy(admin.address, mintAmount);
 
@@ -82,6 +85,7 @@ describe('Bypass Polls', () => {
                 .set('Authorization', dashboardAccessToken)
                 .send({
                     title: poolTitle,
+                    aud: adminAudience,
                     token: {
                         address: testToken.address,
                     },
@@ -173,16 +177,14 @@ describe('Bypass Polls', () => {
                 })
                 .send({ bypassPolls: true })
                 .end(async (err, res) => {
-                    expect(res.status).toBe(302);
-
-                    redirectURL = res.headers.location;
+                    expect(res.status).toBe(200);
 
                     done();
                 });
         });
 
         it('HTTP 200 response OK', (done) => {
-            user.get(redirectURL)
+            user.get('/v1/asset_pools/' + poolAddress)
                 .set({
                     AssetPool: poolAddress,
                     Authorization: adminAccessToken,
@@ -259,16 +261,14 @@ describe('Bypass Polls', () => {
                 })
                 .send({ bypassPolls: false })
                 .end(async (err, res) => {
-                    expect(res.status).toBe(302);
-
-                    redirectURL = res.headers.location;
+                    expect(res.status).toBe(200);
 
                     done();
                 });
         });
 
         it('HTTP 200 response OK', (done) => {
-            user.get(redirectURL)
+            user.get('/v1/asset_pools/' + poolAddress)
                 .set({
                     AssetPool: poolAddress,
                     Authorization: adminAccessToken,

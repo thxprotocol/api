@@ -24,6 +24,7 @@ describe('Encryption', () => {
     let testToken: any,
         adminAccessToken: string,
         dashboardAccessToken: string,
+        adminAudience: string,
         userAccessToken: string,
         poolAddress: string,
         decryptedWallet: Wallet,
@@ -32,24 +33,14 @@ describe('Encryption', () => {
     beforeAll(async () => {
         await db.truncate();
 
-        adminAccessToken = await registerClientCredentialsClient(user);
+        const credentials = await registerClientCredentialsClient(user);
+
+        adminAccessToken = credentials.accessToken;
+        adminAudience = credentials.aud;
 
         testToken = await exampleTokenFactory.deploy(admin.address, mintAmount);
 
         await testToken.deployed();
-
-        // Create an asset pool
-        const res = await user
-            .post('/v1/asset_pools')
-            .set({ Authorization: adminAccessToken })
-            .send({
-                title: poolTitle,
-                token: {
-                    address: testToken.address,
-                },
-            });
-
-        poolAddress = res.body.address;
     });
 
     describe('POST /signup', () => {
@@ -81,6 +72,7 @@ describe('Encryption', () => {
                 .set({ Authorization: dashboardAccessToken })
                 .send({
                     title: poolTitle,
+                    aud: adminAudience,
                     token: {
                         address: testToken.address,
                     },

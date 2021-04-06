@@ -25,7 +25,7 @@ async function getTokenAddress(token: any, poolAddress: string) {
         }
 
         return token.address;
-    } else if (token.name && token.symbol && token.totalSupply) {
+    } else if (token.name && token.symbol && Number(token.totalSupply) > 0) {
         const tokenInstance = await limitedSupplyERC20Factory.deploy(
             token.name,
             token.symbol,
@@ -33,7 +33,7 @@ async function getTokenAddress(token: any, poolAddress: string) {
             parseEther(token.totalSupply),
         );
         return tokenInstance.address;
-    } else if (token.name && token.symbol && !token.totalSupply) {
+    } else if (token.name && token.symbol && Number(token.totalSupply) === 0) {
         const tokenInstance = await unlimitedSupplyERC20Factory.deploy(token.name, token.symbol, poolAddress);
 
         return tokenInstance.address;
@@ -93,7 +93,6 @@ export const postAssetPool = async (req: HttpRequest, res: Response, next: NextF
     try {
         const token = req.body.token;
         const sub = req.user.sub;
-        const aud = req.body.aud;
         const tx = await (await assetPoolFactory.deployAssetPool()).wait();
         const event = tx.events.find((e: { event: string }) => e.event === 'AssetPoolDeployed');
 
@@ -119,7 +118,7 @@ export const postAssetPool = async (req: HttpRequest, res: Response, next: NextF
             address: solution.address,
             title: req.body.title,
             sub,
-            aud,
+            aud: req.body.aud,
             blockNumber: event.blockNumber,
             transactionHash: event.transactionHash,
             bypassPolls: false,
