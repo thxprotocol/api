@@ -3,14 +3,35 @@ import server from '../../src/server';
 import db from '../../src/util/database';
 import { admin } from '../../src/util/network';
 import { exampleTokenFactory } from './lib/network';
-import { poolTitle, mintAmount, rewardWithdrawAmount, rewardWithdrawDuration } from './lib/constants';
+import {
+    poolTitle,
+    mintAmount,
+    rewardWithdrawAmount,
+    rewardWithdrawDuration,
+    userEmail,
+    userPassword,
+} from './lib/constants';
 import { Contract, ethers } from 'ethers';
-import { registerClientCredentialsClient } from './lib/registerClient';
+import {
+    getAccessToken,
+    getAuthCode,
+    getAuthHeaders,
+    registerClientCredentialsClient,
+    registerDashboardClient,
+    registerWalletClient,
+} from './lib/registerClient';
 
 const user = request(server);
+const http2 = request.agent(server);
+const http3 = request.agent(server);
 
 describe('Bypass Polls', () => {
-    let adminAccessToken: string, redirectURL: string, poolAddress: string, testToken: Contract;
+    let adminAccessToken: string,
+        userAccessToken: string,
+        dashboardAccessToken: string,
+        redirectURL: string,
+        poolAddress: string,
+        testToken: Contract;
 
     beforeAll(async () => {
         await db.truncate();
@@ -22,10 +43,43 @@ describe('Bypass Polls', () => {
         await testToken.deployed();
     });
 
+    describe('POST /signup', () => {
+        it('HTTP 302 if payload is correct', (done) => {
+            user.post('/v1/signup')
+                .set('Authorization', adminAccessToken)
+                .send({ email: userEmail, password: userPassword, confirmPassword: userPassword })
+                .end((err, res) => {
+                    expect(res.status).toBe(201);
+                    expect(ethers.utils.isAddress(res.body.address)).toBe(true);
+
+                    done();
+                });
+        });
+    });
+
     describe('POST /asset_pools', () => {
+        beforeAll(async () => {
+            const walletClient = await registerWalletClient(user);
+            const walletHeaders = await getAuthHeaders(http2, walletClient, 'openid user email offline_access');
+            const walletAuthCode = await getAuthCode(http2, walletHeaders, walletClient, {
+                email: userEmail,
+                password: userPassword,
+            });
+
+            const dashboardClient = await registerDashboardClient(user);
+            const dashboardHeaders = await getAuthHeaders(http3, dashboardClient, 'openid dashboard');
+            const dashboardAuthCode = await getAuthCode(http3, dashboardHeaders, dashboardClient, {
+                email: userEmail,
+                password: userPassword,
+            });
+
+            userAccessToken = await getAccessToken(http2, walletClient, walletAuthCode);
+            dashboardAccessToken = await getAccessToken(http3, dashboardClient, dashboardAuthCode);
+        });
+
         it('HTTP 201 response OK', (done) => {
             user.post('/v1/asset_pools')
-                .set('Authorization', adminAccessToken)
+                .set('Authorization', dashboardAccessToken)
                 .send({
                     title: poolTitle,
                     token: {
@@ -115,7 +169,7 @@ describe('Bypass Polls', () => {
             user.patch('/v1/asset_pools/' + poolAddress)
                 .set({
                     AssetPool: poolAddress,
-                    Authorization: adminAccessToken,
+                    Authorization: dashboardAccessToken,
                 })
                 .send({ bypassPolls: true })
                 .end(async (err, res) => {
@@ -201,7 +255,7 @@ describe('Bypass Polls', () => {
             user.patch('/v1/asset_pools/' + poolAddress)
                 .set({
                     AssetPool: poolAddress,
-                    Authorization: adminAccessToken,
+                    Authorization: dashboardAccessToken,
                 })
                 .send({ bypassPolls: false })
                 .end(async (err, res) => {

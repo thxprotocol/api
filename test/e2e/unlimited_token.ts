@@ -8,18 +8,21 @@ import {
     getAccessToken,
     getAuthCode,
     getAuthHeaders,
-    registerAuthorizationCodeClient,
     registerClientCredentialsClient,
+    registerDashboardClient,
+    registerWalletClient,
 } from './lib/registerClient';
 import { decryptString } from '../../src/util/decrypt';
 import { provider } from '../../src/util/network';
 
 const user = request(server);
 const http2 = request.agent(server);
+const http3 = request.agent(server);
 
 describe('UnlimitedSupplyToken', () => {
     let adminAccessToken: string,
         userAccessToken: string,
+        dashboardAccessToken: string,
         poolAddress: string,
         rewardID: string,
         withdrawalID: number,
@@ -50,14 +53,22 @@ describe('UnlimitedSupplyToken', () => {
 
     describe('GET /account', () => {
         beforeAll(async () => {
-            const client = await registerAuthorizationCodeClient(user);
-            const headers = await getAuthHeaders(http2, client);
-            const authCode = await getAuthCode(http2, headers, client, {
+            const walletClient = await registerWalletClient(user);
+            const walletHeaders = await getAuthHeaders(http2, walletClient, 'openid user email offline_access');
+            const walletAuthCode = await getAuthCode(http2, walletHeaders, walletClient, {
                 email: userEmail,
                 password: userPassword,
             });
 
-            userAccessToken = await getAccessToken(http2, client, authCode);
+            const dashboardClient = await registerDashboardClient(user);
+            const dashboardHeaders = await getAuthHeaders(http3, dashboardClient, 'openid dashboard');
+            const dashboardAuthCode = await getAuthCode(http3, dashboardHeaders, dashboardClient, {
+                email: userEmail,
+                password: userPassword,
+            });
+
+            userAccessToken = await getAccessToken(http2, walletClient, walletAuthCode);
+            dashboardAccessToken = await getAccessToken(http3, dashboardClient, dashboardAuthCode);
         });
 
         it('HTTP 200', async (done) => {
@@ -78,7 +89,7 @@ describe('UnlimitedSupplyToken', () => {
     describe('POST /asset_pools', () => {
         it('HTTP 201 (success)', async (done) => {
             user.post('/v1/asset_pools')
-                .set('Authorization', adminAccessToken)
+                .set('Authorization', dashboardAccessToken)
                 .send({
                     title: poolTitle,
                     token: {
@@ -120,7 +131,7 @@ describe('UnlimitedSupplyToken', () => {
     describe('PATCH /asset_pools/:address', () => {
         it('HTTP 302 ', (done) => {
             user.patch('/v1/asset_pools/' + poolAddress)
-                .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
+                .set({ AssetPool: poolAddress, Authorization: dashboardAccessToken })
                 .send({
                     bypassPolls: true,
                 })

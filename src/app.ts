@@ -1,16 +1,15 @@
 import express from 'express';
 import compression from 'compression';
-import bodyParser from 'body-parser';
 import lusca from 'lusca';
 import path from 'path';
 import router from './controllers';
+import { oidc, router as oidcRouter } from './oidc';
 import db from './util/database';
 import { requestLogger } from './util/logger';
-import { errorHandler } from './util/error';
 import { corsHandler } from './util/cors';
-import { oidc, router as oidcRouter } from './oidc';
-import { PORT, VERSION, MONGODB_URI } from './util/secrets';
 import { eventIndexer } from './util/indexer';
+import { errorHandler, notFoundHandler } from './util/error';
+import { PORT, VERSION, MONGODB_URI } from './util/secrets';
 
 const app = express();
 
@@ -29,10 +28,11 @@ app.use(lusca.xframe('SAMEORIGIN'));
 app.use(lusca.xssProtection(true));
 app.use(express.static(path.join(__dirname, 'public'), { maxAge: 31557600000 }));
 app.use('/', oidcRouter);
-app.use(`/${VERSION}`, bodyParser.json());
-app.use(`/${VERSION}`, bodyParser.urlencoded({ extended: false }));
+app.use(`/${VERSION}`, express.json());
+app.use(`/${VERSION}`, express.urlencoded({ extended: true }));
 app.use(`/${VERSION}`, router);
 app.use('/', oidc.callback);
+app.use(notFoundHandler);
 app.use(errorHandler);
 
 export default app;

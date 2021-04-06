@@ -113,7 +113,7 @@ export const getAssetPool = async (req: HttpRequest, res: Response, next: NextFu
         } catch (error) {
             return next(new HttpError(500, 'Asset Pool network data can not be obtained.', error));
         }
-    } catch (error) {
-        next(new HttpError(404, 'Asset Pool is not found on network.', error));
+    } catch (e) {
+        return next(new HttpError(404, 'Asset Pool is not found on network.', e));
     }
 };

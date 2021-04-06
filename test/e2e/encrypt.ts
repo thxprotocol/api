@@ -9,18 +9,21 @@ import {
     getAuthCode,
     getAuthHeaders,
     getAccessToken,
-    registerAuthorizationCodeClient,
     registerClientCredentialsClient,
+    registerDashboardClient,
+    registerWalletClient,
 } from './lib/registerClient';
 import { exampleTokenFactory } from './lib/network';
-import { mintAmount, poolTitle, newAddress } from './lib/constants';
+import { mintAmount, poolTitle, newAddress, userEmail, userPassword } from './lib/constants';
 
 const user = request(server);
+const http2 = request.agent(server);
 const http3 = request.agent(server);
 
 describe('Encryption', () => {
     let testToken: any,
         adminAccessToken: string,
+        dashboardAccessToken: string,
         userAccessToken: string,
         poolAddress: string,
         decryptedWallet: Wallet,
@@ -49,6 +52,47 @@ describe('Encryption', () => {
         poolAddress = res.body.address;
     });
 
+    describe('POST /signup', () => {
+        it('HTTP 201 if OK', (done) => {
+            user.post('/v1/signup')
+                .set({ Authorization: adminAccessToken })
+                .send({ email: userEmail, password: userPassword, confirmPassword: userPassword })
+                .end((err, res) => {
+                    expect(res.status).toBe(201);
+                    done();
+                });
+        });
+    });
+
+    describe('POST /asset_pools', () => {
+        beforeAll(async () => {
+            const dashboardClient = await registerDashboardClient(user);
+            const dashboardHeaders = await getAuthHeaders(http3, dashboardClient, 'openid dashboard');
+            const dashboardAuthCode = await getAuthCode(http3, dashboardHeaders, dashboardClient, {
+                email: userEmail,
+                password: userPassword,
+            });
+
+            dashboardAccessToken = await getAccessToken(http3, dashboardClient, dashboardAuthCode);
+        });
+
+        it('HTTP 200', async (done) => {
+            user.post('/v1/asset_pools')
+                .set({ Authorization: dashboardAccessToken })
+                .send({
+                    title: poolTitle,
+                    token: {
+                        address: testToken.address,
+                    },
+                })
+                .end(async (err, res) => {
+                    expect(res.status).toBe(201);
+                    poolAddress = res.body.address;
+                    done();
+                });
+        });
+    });
+
     describe('POST /signup (without address)', () => {
         it('HTTP 302 redirect if OK', (done) => {
             user.post('/v1/signup')
@@ -65,6 +109,7 @@ describe('Encryption', () => {
                 });
         });
     });
+
     describe('POST /members/:address', () => {
         it('HTTP 302 when member is added', (done) => {
             user.post('/v1/members/')
@@ -79,20 +124,22 @@ describe('Encryption', () => {
 
     describe('GET /account (encrypted)', () => {
         beforeAll(async () => {
-            const client = await registerAuthorizationCodeClient(user);
-            const headers = await getAuthHeaders(http3, client);
-            const authCode = await getAuthCode(http3, headers, client, {
+            const walletClient = await registerWalletClient(user);
+            const walletHeaders = await getAuthHeaders(http2, walletClient, 'openid user email offline_access');
+            const walletAuthCode = await getAuthCode(http2, walletHeaders, walletClient, {
                 email: 'test.encrypt.bot@thx.network',
                 password: 'mellon',
             });
 
-            userAccessToken = await getAccessToken(http3, client, authCode);
+            userAccessToken = await getAccessToken(http2, walletClient, walletAuthCode);
         });
 
         it('HTTP 200 with address and encrypted private key', async (done) => {
             user.get('/v1/account')
                 .set({ Authorization: userAccessToken })
                 .end((err, res) => {
+                    expect(res.status).toBe(200);
+
                     const pKey = decryptString(res.body.privateKey, 'mellon');
 
                     decryptedWallet = new ethers.Wallet(pKey, provider);
@@ -103,7 +150,6 @@ describe('Encryption', () => {
                         expect(err.toString()).toEqual('Error: Unsupported state or unable to authenticate data');
                     }
 
-                    expect(res.status).toBe(200);
                     expect(ethers.utils.isAddress(decryptedWallet.address)).toBe(true);
                     expect(res.body.address).toBe(decryptedWallet.address);
                     done();

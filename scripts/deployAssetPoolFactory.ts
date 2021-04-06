@@ -11,9 +11,9 @@ if (env) {
 }
 
 async function main() {
-    const provider = new ethers.providers.WebSocketProvider(process.env.PUBLIC_RPC);
+    const provider = new ethers.providers.WebSocketProvider(process.env.RPC);
     const signer = new ethers.Wallet(process.env.PRIVATE_KEY, provider);
-    console.log(provider, signer);
+
     console.log('Asset Pool Factory:', await deployAssetPoolFactory(signer));
     console.log('Asset Pool Registry:', await deployPoolRegistry(signer));
 }

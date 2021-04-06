@@ -63,7 +63,6 @@ describe('OAuth2', () => {
                 .set({
                     'Content-Type': 'application/x-www-form-urlencoded',
                     'Authorization': 'incorrect authorization code',
-                    'scope': 'openid admin user',
                 })
                 .send({
                     grant_type: 'client_credentials',
@@ -82,7 +81,6 @@ describe('OAuth2', () => {
                 .set({
                     'Content-Type': 'application/x-www-form-urlencoded',
                     'Authorization': authHeader,
-                    'scope': 'openid admin user',
                 })
                 .send({
                     grant_type: 'authorization_code',
@@ -102,7 +100,6 @@ describe('OAuth2', () => {
                 .set({
                     'Content-Type': 'application/x-www-form-urlencoded',
                     'Authorization': authHeader,
-                    'scope': 'openid admin user',
                 })
                 .send({
                     grant_type: 'client_credentials',
@@ -123,7 +120,6 @@ describe('OAuth2', () => {
                 .set({
                     'Content-Type': 'application/x-www-form-urlencoded',
                     'Authorization': authHeader,
-                    'scope': 'openid admin user',
                 })
                 .send({
                     grant_type: 'client_credentials',
@@ -131,34 +127,6 @@ describe('OAuth2', () => {
                 });
             accessToken = res.body.access_token;
 
-            expect(res.status).toBe(200);
-            done();
-        });
-    });
-
-    describe('POST /asset_pools', () => {
-        it('HTTP 201', async (done) => {
-            const res = await http
-                .post('/v1/asset_pools')
-                .set('Authorization', `Bearer ${accessToken}`)
-                .send({
-                    title: poolTitle,
-                    token: {
-                        address: testToken.address,
-                    },
-                });
-            assetPoolAddress = res.body.address;
-            expect(res.status).toBe(201);
-            done();
-        });
-    });
-
-    describe('GET /asset_pools', () => {
-        it('HTTP 200', async (done) => {
-            const res = await http.get(`/v1/asset_pools/${assetPoolAddress}`).set({
-                AssetPool: assetPoolAddress,
-                Authorization: `Bearer ${accessToken}`,
-            });
             expect(res.status).toBe(200);
             done();
         });

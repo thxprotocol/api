@@ -9,6 +9,7 @@ export type AccountDocument = mongoose.Document & {
     authenticationTokenExpires: number;
     passwordResetToken: string;
     passwordResetExpires: number;
+    registrationAccessTokens: string[];
     address: string;
     privateKey: string;
     tokens: AuthToken[];
@@ -27,10 +28,11 @@ const accountSchema = new mongoose.Schema(
     {
         email: { type: String, unique: true },
         password: String,
-        passwordResetToken: String,
-        passwordResetExpires: Date,
         authenticationToken: String,
         authenticationTokenExpires: String,
+        passwordResetToken: String,
+        passwordResetExpires: Date,
+        registrationAccessTokens: Array,
         address: String,
         privateKey: String,
         tokens: Array,

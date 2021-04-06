@@ -7,8 +7,7 @@ export const getAccount = async (req: HttpRequest, res: Response, next: NextFunc
 
     Account.findById(sub, (err: Error, account: AccountDocument) => {
         if (err) {
-            next(new HttpError(502, 'Account find failed', err));
-            return;
+            return next(new HttpError(502, 'Account find failed', err));
         }
         if (account) {
             res.send({
@@ -16,6 +15,7 @@ export const getAccount = async (req: HttpRequest, res: Response, next: NextFunc
                 privateKey: account.privateKey,
                 memberships: account.memberships,
                 burnProofs: account.burnProofs,
+                registrationAccessTokens: account.registrationAccessTokens,
             });
         }
     });

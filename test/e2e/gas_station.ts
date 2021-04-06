@@ -11,22 +11,30 @@ import {
     rewardWithdrawAmount,
     rewardWithdrawDuration,
     mintAmount,
+    userEmail,
+    userPassword,
 } from './lib/constants';
 import {
     getAccessToken,
     getAuthCode,
     getAuthHeaders,
-    registerAuthorizationCodeClient,
     registerClientCredentialsClient,
+    registerDashboardClient,
+    registerWalletClient,
 } from './lib/registerClient';
 import { solutionContract } from '../../src/util/network';
 import { parseEther } from 'ethers/lib/utils';
 
 const user = request(server);
 const http2 = request.agent(server);
+const http3 = request.agent(server);
 
 describe('Gas Station', () => {
-    let poolAddress: any, pollId: any, adminAccessToken: string, userAccessToken: string, testToken: any;
+    let poolAddress: any,
+        adminAccessToken: string,
+        dashboardAccessToken: string,
+        userAccessToken: string,
+        testToken: any;
 
     beforeAll(async () => {
         await db.truncate();
@@ -45,19 +53,27 @@ describe('Gas Station', () => {
             confirmPassword: 'mellon',
         });
 
-        const client = await registerAuthorizationCodeClient(user);
-        const headers = await getAuthHeaders(http2, client);
-        const authCode = await getAuthCode(http2, headers, client, {
+        const walletClient = await registerWalletClient(user);
+        const walletHeaders = await getAuthHeaders(http2, walletClient, 'openid user email offline_access');
+        const walletAuthCode = await getAuthCode(http2, walletHeaders, walletClient, {
             email: 'test.api.bot@thx.network',
             password: 'mellon',
         });
 
-        userAccessToken = await getAccessToken(http2, client, authCode);
+        const dashboardClient = await registerDashboardClient(user);
+        const dashboardHeaders = await getAuthHeaders(http3, dashboardClient, 'openid dashboard');
+        const dashboardAuthCode = await getAuthCode(http3, dashboardHeaders, dashboardClient, {
+            email: userEmail,
+            password: userPassword,
+        });
+
+        userAccessToken = await getAccessToken(http2, walletClient, walletAuthCode);
+        dashboardAccessToken = await getAccessToken(http3, dashboardClient, dashboardAuthCode);
 
         // Create an asset pool
         const res = await user
             .post('/v1/asset_pools')
-            .set({ Authorization: adminAccessToken })
+            .set({ Authorization: dashboardAccessToken })
             .send({
                 title: poolTitle,
                 token: {
@@ -70,13 +86,14 @@ describe('Gas Station', () => {
         // Transfer some tokens to the pool rewardWithdrawAmount tokens for the pool
         const assetPool = solutionContract(poolAddress);
         const amount = parseEther(rewardWithdrawAmount.toString());
-        const tx1 = await testToken.approve(poolAddress, parseEther(rewardWithdrawAmount.toString()));
-        const tx = await assetPool.deposit(amount);
+
+        await testToken.approve(poolAddress, parseEther(rewardWithdrawAmount.toString()));
+        await assetPool.deposit(amount);
 
         // Configure the default poll durations
         await user
             .patch('/v1/asset_pools/' + poolAddress)
-            .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
+            .set({ AssetPool: poolAddress, Authorization: dashboardAccessToken })
             .send({
                 rewardPollDuration,
                 proposeWithdrawPollDuration,

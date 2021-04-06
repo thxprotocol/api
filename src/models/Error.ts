@@ -16,6 +16,7 @@ export class HttpError extends Error {
         if (Error.captureStackTrace) {
             Error.captureStackTrace(this, HttpError);
         }
+
         this.status = status;
         this.timestamp = Date.now();
     }

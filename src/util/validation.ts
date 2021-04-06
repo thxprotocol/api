@@ -1,8 +1,8 @@
 import { body, header, validationResult } from 'express-validator';
 import { Response, Request, NextFunction } from 'express';
 import { HttpError } from '../models/Error';
-import MongoAdapter from '../oidc/adapter';
 import { Account, AccountDocument } from '../models/Account';
+import { Client } from '../models/Client';
 
 export const validate = (validations: any) => {
     return async (req: Request, res: Response, next: NextFunction) => {
@@ -28,10 +28,8 @@ export const validateAssetPoolHeader = header('AssetPool')
 
             assetPools = account.memberships;
         } else if (req.user.aud) {
-            const Client = new MongoAdapter('client');
-            const payload = await Client.find(req.user.aud);
-
-            assetPools = payload.assetPools;
+            const client = await Client.findById(req.user.aud);
+            assetPools = client.assetPools;
         }
 
         if (!assetPools || !Object.keys(assetPools).includes(address)) {

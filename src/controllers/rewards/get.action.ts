@@ -68,9 +68,12 @@ export const getRewards = async (req: HttpRequest, res: Response, next: NextFunc
             while (i >= 1) {
                 try {
                     const reward = await getRewardData(req.solution, i);
-
-                    rewards.push(reward);
-                    i++;
+                    if (reward) {
+                        rewards.push(reward);
+                        i++;
+                    } else {
+                        break;
+                    }
                 } catch (e) {
                     break;
                 }

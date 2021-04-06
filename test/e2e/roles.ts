@@ -5,12 +5,20 @@ import { admin } from '../../src/util/network';
 import { voter } from './lib/network';
 import { exampleTokenFactory } from './lib/network';
 import { poolTitle, mintAmount, userEmail, userPassword } from './lib/constants';
-import { registerClientCredentialsClient } from './lib/registerClient';
+import {
+    getAccessToken,
+    getAuthCode,
+    getAuthHeaders,
+    registerClientCredentialsClient,
+    registerDashboardClient,
+} from './lib/registerClient';
 
 const user = request(server);
+const http2 = request.agent(server);
+const http3 = request.agent(server);
 
 describe('Roles', () => {
-    let poolAddress: any, testToken: any, adminAccessToken: string, userAddress: string;
+    let poolAddress: any, dashboardAccessToken: string, testToken: any, adminAccessToken: string, userAddress: string;
 
     beforeAll(async () => {
         await db.truncate();
@@ -43,9 +51,19 @@ describe('Roles', () => {
     });
 
     describe('POST /asset_pools', () => {
+        beforeAll(async () => {
+            const dashboardClient = await registerDashboardClient(user);
+            const dashboardHeaders = await getAuthHeaders(http3, dashboardClient, 'openid dashboard');
+            const dashboardAuthCode = await getAuthCode(http3, dashboardHeaders, dashboardClient, {
+                email: userEmail,
+                password: userPassword,
+            });
+
+            dashboardAccessToken = await getAccessToken(http3, dashboardClient, dashboardAuthCode);
+        });
         it('HTTP 200', async (done) => {
             user.post('/v1/asset_pools')
-                .set({ Authorization: adminAccessToken })
+                .set({ Authorization: dashboardAccessToken })
                 .send({
                     title: poolTitle,
                     token: {
