@@ -4,6 +4,7 @@ import { AssetPool } from '../../models/AssetPool';
 import { Withdrawal } from '../../models/Withdrawal';
 import { Reward } from '../../models/Reward';
 import { Account } from '../../models/Account';
+import { eventIndexer } from '../../util/indexer';
 
 export const deleteAssetPool = async (req: HttpRequest, res: Response, next: NextFunction) => {
     try {
@@ -29,6 +30,8 @@ export const deleteAssetPool = async (req: HttpRequest, res: Response, next: Nex
         account.memberships.splice(index, 1);
 
         await account.save();
+
+        eventIndexer.removeListener(req.solution.address);
 
         // Notify users that asset pool has been removed
         res.status(204).end();

@@ -1,5 +1,5 @@
 import { logger } from './logger';
-import { provider, SolutionArtifact, solutionContract } from './network';
+import { wssProvider, SolutionArtifact, solutionContract } from './network';
 import { AssetPool, AssetPoolDocument } from '../models/AssetPool';
 import { BigNumber, utils } from 'ethers/lib';
 import { parseArgs, parseLog } from './events';
@@ -57,7 +57,7 @@ class EventIndexer {
         try {
             for (const address of this.assetPools) {
                 for (const event of events) {
-                    provider.off({
+                    wssProvider.off({
                         address,
                         topics: event.topics,
                     });
@@ -77,7 +77,7 @@ class EventIndexer {
 
         try {
             for (const event of events) {
-                provider.on(
+                wssProvider.on(
                     {
                         address,
                         topics: event.topics,
@@ -101,7 +101,22 @@ class EventIndexer {
                 );
             }
         } catch (e) {
-            logger.error('EventIndexer add() failed.');
+            logger.error('EventIndexer addListener() failed.');
+        }
+    }
+
+    removeListener(address: string) {
+        if (!address) return;
+
+        try {
+            for (const event of events) {
+                wssProvider.off({
+                    address,
+                    topics: event.topics,
+                });
+            }
+        } catch (e) {
+            logger.error('EventIndexer removeListener() failed.');
         }
     }
 

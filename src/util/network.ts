@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from 'express';
-import { RPC, PRIVATE_KEY, ASSET_POOL_FACTORY_ADDRESS } from '../util/secrets';
+import { WSS_RPC, RPC, PRIVATE_KEY, ASSET_POOL_FACTORY_ADDRESS } from '../util/secrets';
 import { BigNumber, ContractFactory, ethers } from 'ethers';
 import { logger } from '../util/logger';
 
@@ -13,7 +13,8 @@ import ERC20LimitedSupplyArtifact from '../artifacts/contracts/contracts/util/To
 import ERC20UnlimitedSupplyArtifact from '../artifacts/contracts/contracts/util/TokenUnlimitedAccount.sol/TokenUnlimitedAccount.json';
 
 export const SolutionArtifact = IDefaultDiamondArtifact;
-export const provider = new ethers.providers.WebSocketProvider(RPC);
+export const wssProvider = new ethers.providers.WebSocketProvider(WSS_RPC);
+export const provider = new ethers.providers.JsonRpcProvider(RPC);
 export const admin = new ethers.Wallet(PRIVATE_KEY, provider);
 
 export const assetPoolFactory = new ethers.Contract(ASSET_POOL_FACTORY_ADDRESS, AssetPoolFactoryArtifact.abi, admin);
