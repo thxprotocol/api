@@ -28,7 +28,7 @@ export const logger = instance;
 export const requestLogger = morgan(
     ':remote-addr - :remote-user ":method :url HTTP/:http-version" :status :res[content-length] ":referrer" ":user-agent"',
     {
-        skip: (req: Request) => req.baseUrl && req.baseUrl.startsWith(`/${VERSION}/ping`),
+        skip: (req: Request) => (req.baseUrl && req.baseUrl.startsWith(`/${VERSION}/ping`)) || ENVIRONMENT === '2test',
         stream: {
             write: (message: string) => instance.info(message.substring(0, message.lastIndexOf('\n'))),
         },

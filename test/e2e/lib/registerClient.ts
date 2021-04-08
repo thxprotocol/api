@@ -21,31 +21,44 @@ export const registerClientCredentialsClient = async (http: any) => {
             scope: 'openid admin',
         });
 
-    return 'Bearer ' + body.access_token;
+    return {
+        accessToken: 'Bearer ' + body.access_token,
+        aud: res.body.client_id,
+    };
 };
 
-export const registerAuthorizationCodeClient = async (http: any) => {
-    async function registerClient() {
-        const res = await http.post('/reg').send({
-            application_type: 'web',
-            client_name: 'TestUserClient',
-            grant_types: ['authorization_code'],
-            redirect_uris: ['http://localhost:3002/signin-oidc'],
-            response_types: ['code'],
-            response_modes: ['query'],
-            scope: 'openid user email offline_access',
-        });
-        return {
-            client_id: res.body.client_id,
-            client_secret: res.body.client_secret,
-        };
-    }
-    const { client_id, client_secret } = await registerClient();
-
-    return { client_id, client_secret };
+export const registerWalletClient = async (http: any) => {
+    const res = await http.post('/reg').send({
+        application_type: 'web',
+        client_name: 'TestWalletClient',
+        grant_types: ['authorization_code'],
+        redirect_uris: ['http://localhost:3002/signin-oidc'],
+        response_types: ['code'],
+        response_modes: ['query'],
+        scope: 'openid user email offline_access',
+    });
+    return {
+        client_id: res.body.client_id,
+        client_secret: res.body.client_secret,
+    };
 };
 
-export async function getAuthHeaders(http: any, client: { client_id: string; client_secret: string }) {
+export const registerDashboardClient = async (http: any) => {
+    const res = await http.post('/reg').send({
+        application_type: 'web',
+        client_name: 'TestDashboardClient',
+        grant_types: ['authorization_code'],
+        redirect_uris: ['http://localhost:3002/signin-oidc'],
+        response_types: ['code'],
+        response_modes: ['query'],
+        scope: 'openid dashboard',
+    });
+    return {
+        client_id: res.body.client_id,
+        client_secret: res.body.client_secret,
+    };
+};
+export async function getAuthHeaders(http: any, client: { client_id: string; client_secret: string }, scope: string) {
     const r = await http
         .post('/auth')
         .set({
@@ -57,7 +70,7 @@ export async function getAuthHeaders(http: any, client: { client_id: string; cli
             grant_type: 'authorization_grant',
             authority: ISSUER,
             response_type: 'code',
-            scope: 'openid user email offline_access',
+            scope,
             response_mode: 'query',
             redirect_uri: 'http://localhost:3002/signin-oidc',
             id_token_signed_response_alg: 'RS256',

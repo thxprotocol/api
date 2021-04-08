@@ -1,4 +1,4 @@
-import { downgradeFromBypassPolls, updateToBypassPolls } from '../../util/factory';
+import { downgradeFromBypassPolls, updateToBypassPolls } from '../../util/upgrades';
 import { Response, NextFunction } from 'express';
 import { VERSION } from '../../util/secrets';
 import { HttpRequest, HttpError } from '../../models/Error';
@@ -64,7 +64,7 @@ export const patchAssetPool = async (req: HttpRequest, res: Response, next: Next
 
             await assetPool.save();
         } catch (error) {
-            return next(new HttpError(502, 'Asset Pool updateToBypassPolls failed.', error));
+            return next(new HttpError(502, 'Could not update set bypassPolls (true) for this asset pool.', error));
         }
     }
 
@@ -74,7 +74,7 @@ export const patchAssetPool = async (req: HttpRequest, res: Response, next: Next
             assetPool.bypassPolls = req.body.bypassPolls;
             await assetPool.save();
         } catch (error) {
-            return next(new HttpError(502, 'Asset Pool downgradeFromBypassPolls failed.', error));
+            return next(new HttpError(502, 'Could not update set bypassPolls (false) for this asset pool.', error));
         }
     }
 
@@ -85,7 +85,7 @@ export const patchAssetPool = async (req: HttpRequest, res: Response, next: Next
         try {
             await req.solution.setRewardPollDuration(req.body.rewardPollDuration);
         } catch (error) {
-            return next(new HttpError(502, 'Asset Pool setRewardPollDuration failed.', error));
+            return next(new HttpError(502, 'Could not update the rewardPollDuration for this asset pool.', error));
         }
     }
 
@@ -97,8 +97,30 @@ export const patchAssetPool = async (req: HttpRequest, res: Response, next: Next
         try {
             await req.solution.setProposeWithdrawPollDuration(req.body.proposeWithdrawPollDuration);
         } catch (error) {
-            return next(new HttpError(502, 'Asset Pool setProposeWithdrawPollDuration failed.', error));
+            return next(
+                new HttpError(502, 'Could not update the proposeWithdrawPollDuration for this asset pool.', error),
+            );
         }
     }
-    res.redirect(`/${VERSION}/asset_pools/${req.params.address}`);
+
+    if (req.body.aud && req.body.aud !== assetPool.aud) {
+        try {
+            assetPool.aud = req.body.aud;
+            await assetPool.save();
+        } catch (error) {
+            return next(new HttpError(502, 'Could not update the audience for this asset pool.', error));
+        }
+    }
+
+    if (req.body.title && req.body.title !== assetPool.title) {
+        try {
+            assetPool.title = req.body.title;
+            await assetPool.save();
+        } catch (error) {
+            return next(new HttpError(502, 'Could not update the title for this asset pool.', error));
+        }
+    }
+
+    res.status(200).end();
+    // res.redirect(`/${VERSION}/asset_pools/${req.params.address}`);
 };

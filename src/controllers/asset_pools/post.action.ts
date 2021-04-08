@@ -10,11 +10,11 @@ import {
 import { AssetPool } from '../../models/AssetPool';
 import { Response, NextFunction } from 'express';
 import { HttpError, HttpRequest } from '../../models/Error';
-import MongoAdapter from '../../oidc/adapter';
 import { Error } from 'mongoose';
 import { eventIndexer } from '../../util/indexer';
 import { parseEther } from 'ethers/lib/utils';
 import { POOL_REGISTRY_ADDRESS } from '../../util/secrets';
+import { Account } from '../../models/Account';
 
 async function getTokenAddress(token: any, poolAddress: string) {
     if (token.address) {
@@ -25,16 +25,15 @@ async function getTokenAddress(token: any, poolAddress: string) {
         }
 
         return token.address;
-    } else if (token.name && token.symbol && token.totalSupply) {
+    } else if (token.name && token.symbol && Number(token.totalSupply) > 0) {
         const tokenInstance = await limitedSupplyERC20Factory.deploy(
             token.name,
             token.symbol,
             poolAddress,
             parseEther(token.totalSupply),
         );
-
         return tokenInstance.address;
-    } else if (token.name && token.symbol && poolAddress) {
+    } else if (token.name && token.symbol && Number(token.totalSupply) === 0) {
         const tokenInstance = await unlimitedSupplyERC20Factory.deploy(token.name, token.symbol, poolAddress);
 
         return tokenInstance.address;
@@ -93,7 +92,7 @@ async function getTokenAddress(token: any, poolAddress: string) {
 export const postAssetPool = async (req: HttpRequest, res: Response, next: NextFunction) => {
     try {
         const token = req.body.token;
-        const audience = req.user.aud;
+        const sub = req.user.sub;
         const tx = await (await assetPoolFactory.deployAssetPool()).wait();
         const event = tx.events.find((e: { event: string }) => e.event === 'AssetPoolDeployed');
 
@@ -115,48 +114,44 @@ export const postAssetPool = async (req: HttpRequest, res: Response, next: NextF
         await solution.initializeGasStation(await admin.getAddress());
         await solution.setSigning(true);
 
+        const assetPool = new AssetPool({
+            address: solution.address,
+            title: req.body.title,
+            sub,
+            aud: req.body.aud,
+            blockNumber: event.blockNumber,
+            transactionHash: event.transactionHash,
+            bypassPolls: false,
+        });
+
         try {
-            const assetPool = new AssetPool({
-                address: solution.address,
-                title: req.body.title,
-                client: audience,
-                blockNumber: event.blockNumber,
-                transactionHash: event.transactionHash,
-                bypassPolls: false,
-            });
+            const tokenAddress = await getTokenAddress(token, solution.address);
 
-            await assetPool.save();
+            await solution.addToken(tokenAddress);
+        } catch (e) {
+            return next(new HttpError(502, 'Could not add a token to the asset pool.'));
+        }
 
-            try {
-                const Client = new MongoAdapter('client');
-                const payload = await Client.find(audience);
+        await assetPool.save();
 
-                if (payload.assetPools) {
-                    payload.assetPools.push(solution.address);
-                } else {
-                    payload.assetPools = [solution.address];
-                }
+        try {
+            const account = await Account.findById(sub);
 
-                await Client.coll().updateOne({ _id: audience }, { $set: { payload } }, { upsert: false });
-
-                try {
-                    const tokenAddress = await getTokenAddress(token, solution.address);
-
-                    await solution.addToken(tokenAddress);
-                } catch (e) {
-                    return next(new HttpError(502, 'Could not add a token to the asset pool.'));
-                }
-
-                eventIndexer.addListener(solution.address);
-
-                res.status(201).json({ address: solution.address });
-            } catch (error) {
-                next(new HttpError(502, 'Could not update the client information.', error));
+            if (account.memberships) {
+                account.memberships.push(solution.address);
+            } else {
+                account.memberships = [solution.address];
             }
+
+            await account.save();
+
+            eventIndexer.addListener(solution.address);
+
+            res.status(201).json({ address: solution.address });
         } catch (error) {
-            next(new HttpError(502, 'Could not save the asset pool in the database.', error));
+            return next(new HttpError(502, 'Could not store the asset pool and account data.', error));
         }
     } catch (error) {
-        next(new HttpError(502, 'Could not deploy the asset pool on the network.', error));
+        return next(new HttpError(502, 'Could not deploy the asset pool on the network.', error));
     }
 };

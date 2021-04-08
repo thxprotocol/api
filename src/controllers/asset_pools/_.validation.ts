@@ -1,6 +1,5 @@
 import { body, param } from 'express-validator';
 import { ethers } from 'ethers';
-import { validateAssetPoolHeader } from '../../util/validation';
 
 export const validations = {
     postAssetPool: [
@@ -11,16 +10,28 @@ export const validations = {
                     return ethers.utils.isAddress(value.address);
                 }
 
-                if (!value.address && value.name && value.symbol) {
+                if (
+                    !value.address &&
+                    value.name &&
+                    value.symbol &&
+                    (!Number.isNaN(value.totalSupply) || value.totalSupply === 0)
+                ) {
                     return true;
                 }
 
                 return false;
             }),
         body('title').exists(),
+        body('aud').exists(),
+    ],
+    deleteAssetPool: [
+        param('address')
+            .exists()
+            .custom((value) => {
+                return ethers.utils.isAddress(value);
+            }),
     ],
     getAssetPool: [
-        validateAssetPoolHeader,
         param('address')
             .exists()
             .custom((value) => {
@@ -28,7 +39,6 @@ export const validations = {
             }),
     ],
     patchAssetPool: [
-        validateAssetPoolHeader,
         body('bypassPolls').optional().isBoolean(),
         body('rewardPollDuration').optional().isNumeric(),
         body('proposeWithdrawPollDuration').optional().isNumeric(),

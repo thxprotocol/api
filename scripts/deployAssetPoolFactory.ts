@@ -10,12 +10,12 @@ if (env) {
     dotenv.config({ path: '.env' });
 }
 
-const provider = new ethers.providers.WebSocketProvider(process.env.PUBLIC_RPC);
-const admin = new ethers.Wallet(process.env.PRIVATE_KEY, provider);
-
 async function main() {
-    console.log('Asset Pool Factory:', await deployAssetPoolFactory(admin));
-    console.log('Asset Pool Registry:', await deployPoolRegistry(admin));
+    const provider = new ethers.providers.WebSocketProvider(process.env.RPC);
+    const signer = new ethers.Wallet(process.env.PRIVATE_KEY, provider);
+
+    console.log('Asset Pool Factory:', await deployAssetPoolFactory(signer));
+    console.log('Asset Pool Registry:', await deployPoolRegistry(signer));
 }
 
 main()

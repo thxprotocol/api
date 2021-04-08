@@ -31,11 +31,10 @@ afterAll(async () => {
 });
 
 require('./api.ts');
-require('./oidc.ts');
+require('./oidc_admin.ts');
 require('./voting.ts');
-require('./unlimitedToken.ts');
-require('./bypasspoll.ts');
+require('./unlimited_token.ts');
+require('./bypass_polls.ts');
 require('./roles.ts');
 require('./encrypt.ts');
-require('./gasStation.ts');
-// require('./auth.ts');
+require('./gas_station.ts');

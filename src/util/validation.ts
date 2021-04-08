@@ -1,8 +1,8 @@
-import { body, header, validationResult } from 'express-validator';
+import { body, validationResult } from 'express-validator';
 import { Response, Request, NextFunction } from 'express';
-import { HttpError } from '../models/Error';
-import MongoAdapter from '../oidc/adapter';
-import { Account, AccountDocument } from '../models/Account';
+import { HttpError, HttpRequest } from '../models/Error';
+import { Account } from '../models/Account';
+import { AssetPool, AssetPoolDocument } from '../models/AssetPool';
 
 export const validate = (validations: any) => {
     return async (req: Request, res: Response, next: NextFunction) => {
@@ -18,28 +18,44 @@ export const validate = (validations: any) => {
     };
 };
 
-export const validateAssetPoolHeader = header('AssetPool')
-    .exists()
-    .custom(async (address, { req }) => {
-        let assetPools;
-
+export const validateAssetPoolHeader = async (req: HttpRequest, res: Response, next: NextFunction) => {
+    try {
+        // If there is a sub check the account for user membership
         if (req.user.sub) {
-            const account: AccountDocument = await Account.findById(req.user.sub);
+            const account = await Account.findById(req.user.sub);
 
-            assetPools = account.memberships;
-        } else if (req.user.aud) {
-            const Client = new MongoAdapter('client');
-            const payload = await Client.find(req.user.aud);
+            if (!account.memberships || account.memberships.indexOf(req.header('AssetPool')) === -1) {
+                throw new HttpError(401, 'Could not access this asset pool by sub.');
+            }
+        }
+        // If there is no sub check if client aud is equal to requested asset pool aud
+        else if (req.user.aud) {
+            const assetPools = await AssetPool.find({ aud: req.user.aud, address: req.header('AssetPool') });
 
-            assetPools = payload.assetPools;
+            if (!assetPools) {
+                throw new HttpError(401, 'Could not access this asset pool by audience.');
+            }
         }
 
-        if (!assetPools || !Object.keys(assetPools).includes(address)) {
-            return new HttpError(403, 'Forbidden to access this asset pool.');
+        next();
+    } catch (e) {
+        next(e);
+    }
+};
+
+export const validateRegistrationToken = async (req: HttpRequest, res: Response, next: NextFunction) => {
+    try {
+        const account = await Account.findById(req.user.sub);
+
+        if (account.registrationAccessTokens && account.registrationAccessTokens.indexOf(req.params.rat) === -1) {
+            throw new HttpError(401, 'You can not access this registration_access_token.');
         }
 
-        return true;
-    });
+        next();
+    } catch (e) {
+        next(e);
+    }
+};
 
 export const confirmPassword = body('confirmPassword')
     .exists()

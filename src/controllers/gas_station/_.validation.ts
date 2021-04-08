@@ -1,11 +1,9 @@
 import { ethers } from 'ethers';
 import { body } from 'express-validator';
-import { validateAssetPoolHeader } from '../../util/validation';
 
 export const validations = {
-    postCall: [validateAssetPoolHeader, body('call').exists(), body('nonce').exists(), body('sig').exists()],
+    postCall: [body('call').exists(), body('nonce').exists(), body('sig').exists()],
     postCallUpgradeAddress: [
-        validateAssetPoolHeader,
         body('oldAddress')
             .exists()
             .custom((value) => {
@@ -22,6 +20,4 @@ export const validations = {
         body('nonce').exists(),
         body('sig').exists(),
     ],
-    postCallAssetPool: [validateAssetPoolHeader, body('call').exists(), body('nonce').exists(), body('sig').exists()],
-    postCallBasePoll: [validateAssetPoolHeader, body('call').exists(), body('nonce').exists(), body('sig').exists()],
 };
