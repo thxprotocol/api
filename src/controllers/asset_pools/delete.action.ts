@@ -9,13 +9,13 @@ import { eventIndexer } from '../../util/indexer';
 export const deleteAssetPool = async (req: HttpRequest, res: Response, next: NextFunction) => {
     try {
         // Remove rewards for given address
-        const rewards = await Reward.find({ assetPool: req.solution.address });
+        const rewards = await Reward.find({ poolAddress: req.solution.address });
         for (const r of rewards) {
             await r.remove();
         }
 
         // Remove withdrawals for given address
-        const withdrawals = await Withdrawal.find({ assetPool: req.solution.address });
+        const withdrawals = await Withdrawal.find({ poolAddress: req.solution.address });
         for (const w of withdrawals) {
             await w.remove();
         }

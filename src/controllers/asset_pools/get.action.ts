@@ -107,6 +107,7 @@ export const getAssetPool = async (req: HttpRequest, res: Response, next: NextFu
                 sub: assetPool.sub,
                 aud: assetPool.aud,
                 address: assetPool.address,
+                network: assetPool.network,
                 bypassPolls: assetPool.bypassPolls,
                 token: {
                     address: tokenInstance.address,

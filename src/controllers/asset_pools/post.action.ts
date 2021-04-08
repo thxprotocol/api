@@ -54,6 +54,14 @@ async function getTokenAddress(token: any, poolAddress: string) {
  *         in: body
  *         required: true
  *         type: string
+ *       - name: aud
+ *         in: body
+ *         required: true
+ *         type: string
+ *       - name: network
+ *         in: body
+ *         required: true
+ *         type: number
  *       - name: token
  *         in: body
  *         required: true
@@ -122,6 +130,7 @@ export const postAssetPool = async (req: HttpRequest, res: Response, next: NextF
             blockNumber: event.blockNumber,
             transactionHash: event.transactionHash,
             bypassPolls: false,
+            network: req.body.network,
         });
 
         try {

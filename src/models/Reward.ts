@@ -1,8 +1,10 @@
 import mongoose from 'mongoose';
+
 export type RewardDocument = mongoose.Document & {
     id: number;
     withdrawAmount: number;
     withdrawDuration: number;
+    poolAddress: string;
     state: number;
     poll: {
         id: number;
@@ -19,6 +21,10 @@ export type RewardDocument = mongoose.Document & {
 const rewardSchema = new mongoose.Schema(
     {
         id: Number,
+        withdrawAmount: Number,
+        withdrawDuration: Number,
+        poolAddress: String,
+        state: Number,
     },
     { timestamps: true },
 );

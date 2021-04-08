@@ -2,6 +2,7 @@ import mongoose from 'mongoose';
 
 export type AssetPoolDocument = mongoose.Document & {
     address: string;
+    network: number;
     title: string;
     aud: string;
     sub: string;
@@ -13,6 +14,7 @@ export type AssetPoolDocument = mongoose.Document & {
 const assetPoolSchema = new mongoose.Schema(
     {
         address: String,
+        network: Number,
         title: String,
         aud: String,
         sub: String,

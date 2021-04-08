@@ -58,6 +58,10 @@ export const postReward = async (req: HttpRequest, res: Response, next: NextFunc
 
             new Reward({
                 id,
+                poolAddress: req.solution.address,
+                withdrawAmount: req.solution.withdrawAmount,
+                withdrawDuration: req.solution.withdrawDuration,
+                state: 0,
             }).save(async (err) => {
                 if (err) {
                     return next(new HttpError(502, 'Reward save failed.', err));
