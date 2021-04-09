@@ -68,13 +68,7 @@ class EventIndexer {
         }
     }
 
-    ketchup() {
-        debugger;
-    }
-
     addListener(address: string) {
-        if (!address) return;
-
         try {
             for (const event of events) {
                 wssProvider.on(

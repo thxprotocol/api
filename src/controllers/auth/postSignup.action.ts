@@ -58,31 +58,29 @@ export const postSignup = async (req: HttpRequest, res: Response, next: NextFunc
         memberships: req.solution ? [req.solution.address] : [],
     });
 
-    if (req.solution) {
-        try {
+    try {
+        if (req.solution && (await req.solution.isMember(address))) {
             await (await req.solution.addMember(address)).wait();
-        } catch (err) {
-            next(new HttpError(502, 'Asset Pool addMember failed.', err));
         }
+    } catch (err) {
+        return next(new HttpError(502, 'Asset Pool addMember failed.', err));
     }
 
     try {
         const existingUser = await Account.findOne({ email: req.body.email });
 
         if (existingUser) {
-            next(new HttpError(422, 'A user for this e-mail already exists.'));
-            return;
+            return next(new HttpError(422, 'A user for this e-mail already exists.'));
         }
 
-        account.save((error) => {
-            if (error) {
-                next(new HttpError(502, 'Account save failed.', error));
-                return;
-            }
+        try {
+            await account.save();
             res.status(201).json({ address });
-        });
+        } catch (e) {
+            next(new HttpError(502, 'Account save failed.', e));
+            return;
+        }
     } catch (err) {
         next(new HttpError(500, 'Account signup failed.', err));
-        return;
     }
 };
