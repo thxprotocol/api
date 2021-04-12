@@ -2,6 +2,7 @@ import { Account } from '../../models/Account';
 import { Response, NextFunction } from 'express';
 import { ethers } from 'ethers';
 import { HttpError, HttpRequest } from '../../models/Error';
+import { triggerAsyncId } from 'async_hooks';
 
 /**
  * @swagger
@@ -51,6 +52,7 @@ export const postSignup = async (req: HttpRequest, res: Response, next: NextFunc
     const privateKey = wallet.privateKey;
     const address = await wallet.getAddress();
     const account = new Account({
+        active: true,
         address,
         privateKey,
         email: req.body.email,

@@ -245,9 +245,15 @@ router.post(
         }
 
         try {
-            const r = await getSubForCredentials(req.body.email, req.body.password);
+            let account;
 
-            if (r.error) {
+            if (req.body.authenticationToken) {
+                account = await getSubForAuthenticationToken(req.body.authenticationToken, req.body.secureKey);
+            } else {
+                account = await getSubForCredentials(req.body.email, req.body.password);
+            }
+
+            if (account && account.error) {
                 res.render('login', {
                     uid: req.params.uid,
                     title: 'Sign-in',
@@ -260,9 +266,7 @@ router.post(
             } else {
                 const result = {
                     login: {
-                        account: req.body.authenticationToken
-                            ? await getSubForAuthenticationToken(req.body.authenticationToken, req.body.secureKey)
-                            : r,
+                        account,
                     },
                 };
 
