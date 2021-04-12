@@ -48,10 +48,10 @@ export const RPC_WSS = process.env.RPC_WSS;
 export const POOL_REGISTRY_ADDRESS = process.env.POOL_REGISTRY_ADDRESS;
 export const ASSET_POOL_FACTORY_ADDRESS = process.env.ASSET_POOL_FACTORY_ADDRESS;
 
-export const TESTNET_RPC = process.env.RPC;
-export const TESTNET_RPC_WSS = process.env.RPC_WSS;
-export const TESTNET_POOL_REGISTRY_ADDRESS = process.env.POOL_REGISTRY_ADDRESS;
-export const TESTNET_ASSET_POOL_FACTORY_ADDRESS = process.env.ASSET_POOL_FACTORY_ADDRESS;
+export const TESTNET_RPC = process.env.TESTNET_RPC;
+export const TESTNET_RPC_WSS = process.env.TESTNET_RPC_WSS;
+export const TESTNET_POOL_REGISTRY_ADDRESS = process.env.TESTNET_POOL_REGISTRY_ADDRESS;
+export const TESTNET_ASSET_POOL_FACTORY_ADDRESS = process.env.TESTNET_ASSET_POOL_FACTORY_ADDRESS;
 
 export const MONGODB_URI = process.env.MONGODB_URI;
 export const PRIVATE_KEY = process.env.PRIVATE_KEY;

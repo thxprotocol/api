@@ -6,7 +6,7 @@ import {
     TESTNET_ASSET_POOL_FACTORY_ADDRESS,
     ASSET_POOL_FACTORY_ADDRESS,
 } from '../util/secrets';
-import { BigNumber, ContractFactory, ethers, providers, Signer, Wallet } from 'ethers';
+import { BigNumber, ContractFactory, ethers, providers, Wallet } from 'ethers';
 import { logger } from '../util/logger';
 
 import { isAddress } from 'ethers/lib/utils';

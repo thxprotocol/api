@@ -6,6 +6,7 @@ import {
     getAssetPoolFactory,
     getProvider,
     getAdmin,
+    NetworkProvider,
 } from '../../util/network';
 import { AssetPool, AssetPoolDocument } from '../../models/AssetPool';
 import { Response, NextFunction } from 'express';
@@ -13,7 +14,7 @@ import { HttpError, HttpRequest } from '../../models/Error';
 import { Error } from 'mongoose';
 import { eventIndexer } from '../../util/indexer';
 import { parseEther } from 'ethers/lib/utils';
-import { POOL_REGISTRY_ADDRESS } from '../../util/secrets';
+import { POOL_REGISTRY_ADDRESS, TESTNET_POOL_REGISTRY_ADDRESS } from '../../util/secrets';
 import { Account } from '../../models/Account';
 
 async function getTokenAddress(token: any, assetPool: AssetPoolDocument) {
@@ -121,7 +122,9 @@ export const postAssetPool = async (req: HttpRequest, res: Response, next: NextF
 
         const solution = solutionContract(req.body.network, event.args.assetPool);
 
-        await solution.setPoolRegistry(POOL_REGISTRY_ADDRESS);
+        await solution.setPoolRegistry(
+            req.body.network === NetworkProvider.Test ? TESTNET_POOL_REGISTRY_ADDRESS : POOL_REGISTRY_ADDRESS,
+        );
         await solution.initializeRoles(await getAdmin(req.body.network).getAddress());
         await solution.initializeGasStation(await getAdmin(req.body.network).getAddress());
         await solution.setSigning(true);
