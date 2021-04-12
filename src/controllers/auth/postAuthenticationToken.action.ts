@@ -1,15 +1,10 @@
-import crypto from 'crypto';
 import { Account, AccountDocument } from '../../models/Account';
 import { Request, Response, NextFunction } from 'express';
 import { HttpError } from '../../models/Error';
 import { WALLET_URL, SECURE_KEY } from '../../util/secrets';
 import { sendMail } from '../../util/mail';
 import { encryptString } from '../../util/encrypt';
-
-function createRandomToken() {
-    const buf = crypto.randomBytes(16);
-    return buf.toString('hex');
-}
+import { createRandomToken } from '../../util/tokens';
 
 /**
  * @swagger

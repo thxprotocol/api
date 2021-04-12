@@ -4,8 +4,23 @@ import configuration from './config';
 import { AccountDocument } from '../models/Account';
 import { Account } from '../models/Account';
 import { HttpError } from '../models/Error';
-import { ISSUER, SECURE_KEY } from '../util/secrets';
+import { DASHBOARD_URL, ENVIRONMENT, ISSUER, PUBLIC_URL, SECURE_KEY } from '../util/secrets';
 import { decryptString } from '../util/decrypt';
+import { sendMail } from '../util/mail';
+import { createRandomToken, checkSignupToken } from '../util/tokens';
+
+function createAccountVerificationEmail(signupToken: string) {
+    return (
+        'Activate your account: <a href="' +
+        DASHBOARD_URL +
+        '/verify?signup_token=' +
+        signupToken +
+        '" target="_blank">Click this link</a> or copy this in your address bar: ' +
+        DASHBOARD_URL +
+        '/verify?signup_token=' +
+        signupToken
+    );
+}
 
 const oidc = new Provider(ISSUER, configuration as any);
 const router = express.Router();
@@ -13,44 +28,51 @@ const router = express.Router();
 oidc.proxy = true;
 oidc.keys = SECURE_KEY.split(',');
 
-// TODO: REMOVE THIS IN PROD
-const { invalidate: orig } = (oidc.Client as any).Schema.prototype;
-(oidc.Client as any).Schema.prototype.invalidate = function invalidate(message: any, code: any) {
-    if (code === 'implicit-force-https' || code === 'implicit-forbid-localhost') return;
-    orig.call(this, message);
-};
+if (ENVIRONMENT !== 'development' && ENVIRONMENT !== 'production') {
+    const { invalidate: orig } = (oidc.Client as any).Schema.prototype;
+    (oidc.Client as any).Schema.prototype.invalidate = function invalidate(message: any, code: any) {
+        if (code === 'implicit-force-https' || code === 'implicit-forbid-localhost') return;
+        orig.call(this, message);
+    };
+}
 
 router.get('/interaction/:uid', async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { uid, prompt, params } = await oidc.interactionDetails(req, res);
-        const client = await oidc.Client.find(params.client_id);
+
+        if (params.prompt === 'create') {
+            return res.render('signup', {
+                uid,
+                params,
+                title: 'Signup',
+                alert: null,
+            });
+        }
 
         switch (prompt.name) {
+            case 'create': {
+                res.render('signup', {
+                    uid,
+                    params,
+                    title: 'Signup',
+                    alert: null,
+                });
+                break;
+            }
             case 'login': {
                 res.render('login', {
-                    client,
                     uid,
-                    details: prompt.details,
                     params,
                     title: 'Sign-in',
-                    flash: undefined,
+                    alert: params.signup_token ? await checkSignupToken(params.signup_token) : null,
                 });
                 break;
             }
             case 'consent': {
                 const consent: any = {};
 
-                // any scopes you do not wish to grant go in here
-                //   otherwise details.scopes.new.concat(details.scopes.accepted) will be granted
                 consent.rejectedScopes = [];
-
-                // any claims you do not wish to grant go in here
-                //   otherwise all claims mapped to granted scopes
-                //   and details.claims.new.concat(details.claims.accepted) will be granted
                 consent.rejectedClaims = [];
-
-                // replace = false means previously rejected scopes and claims remain rejected
-                // changing this to true will remove those rejections in favour of just what you rejected above
                 consent.replace = false;
 
                 const result = { consent };
@@ -67,10 +89,84 @@ router.get('/interaction/:uid', async (req: Request, res: Response, next: NextFu
 });
 
 router.post(
+    '/interaction/:uid/create',
+    urlencoded({ extended: false }),
+    async (req: Request, res: Response, next: NextFunction) => {
+        const existingUser = await Account.findOne({ email: req.body.email });
+
+        if (existingUser) {
+            return res.render('signup', {
+                uid: req.params.uid,
+                title: 'Signup',
+                alert: {
+                    variant: 'danger',
+                    message: 'A user for this e-mail already exists.',
+                },
+            });
+        }
+
+        if (req.body.password !== req.body.confirmPassword) {
+            return res.render('signup', {
+                uid: req.params.uid,
+                title: 'Signup',
+                alert: {
+                    variant: 'danger',
+                    message: 'Provided passwords are not identical.',
+                },
+            });
+        }
+
+        if (!req.body.acceptTermsPrivacy) {
+            return res.render('signup', {
+                uid: req.params.uid,
+                title: 'Signup',
+                alert: {
+                    variant: 'danger',
+                    message: 'Please accept the terms of use and privacy statement.',
+                },
+            });
+        }
+
+        const account = new Account({
+            active: false,
+            email: req.body.email,
+            password: req.body.password,
+            acceptTermsPrivacy: req.body.acceptTermsPrivacy || false,
+            acceptUpdates: req.body.acceptUpdates || false,
+            signupToken: createRandomToken(),
+            signupTokenExpires: Date.now() + 1000 * 60 * 60 * 24, // 24 hours,
+        });
+
+        try {
+            const html = createAccountVerificationEmail(account.signupToken);
+
+            await sendMail(req.body.email, 'Confirm your THX Account', html);
+
+            try {
+                await account.save();
+
+                return res.render('signup', {
+                    uid: req.params.uid,
+                    title: 'Signup',
+                    alert: {
+                        variant: 'success',
+                        message: 'Verify your e-mail address by clicking the link we just sent you.',
+                    },
+                });
+            } catch (err) {
+                return next(new HttpError(502, 'Could not save the account.', err));
+            }
+        } catch (e) {
+            return next(new HttpError(502, 'Could not send verification e-mail.', e));
+        }
+    },
+);
+
+router.post(
     '/interaction/:uid/login',
     urlencoded({ extended: false }),
     async (req: Request, res: Response, next: NextFunction) => {
-        async function getSubForToken(authenticationToken: string, secureKey: string) {
+        async function getSubForAuthenticationToken(authenticationToken: string, secureKey: string) {
             try {
                 const account: AccountDocument = await Account.findOne({ authenticationToken })
                     .where('authenticationTokenExpires')
@@ -106,7 +202,29 @@ router.post(
             const account: AccountDocument = await Account.findOne({ email });
 
             if (!account) {
-                throw account;
+                return next(new HttpError(404, 'Could not find an account for this e-mail address.'));
+            }
+
+            if (!account.active) {
+                account.signupToken = createRandomToken();
+                account.signupTokenExpires = Date.now() + 1000 * 60 * 60 * 24; // 24 hours,
+
+                try {
+                    const html = createAccountVerificationEmail(account.signupToken);
+
+                    await sendMail(req.body.email, 'Confirm your THX Account', html);
+                } catch (e) {
+                    return next(new HttpError(400, 'Could not send verification e-mail.', e));
+                }
+
+                await account.save();
+
+                return {
+                    error: new HttpError(
+                        502,
+                        'Please verify your account e-mail address. We have re-sent the verification e-mail.',
+                    ),
+                };
             }
 
             try {
@@ -127,15 +245,29 @@ router.post(
         }
 
         try {
-            const result = {
-                login: {
-                    account: req.body.authenticationToken
-                        ? await getSubForToken(req.body.authenticationToken, req.body.secureKey)
-                        : await getSubForCredentials(req.body.email, req.body.password),
-                },
-            };
+            const r = await getSubForCredentials(req.body.email, req.body.password);
 
-            await oidc.interactionFinished(req, res, result, { mergeWithLastSubmission: true });
+            if (r.error) {
+                res.render('login', {
+                    uid: req.params.uid,
+                    title: 'Sign-in',
+                    params: {},
+                    alert: {
+                        variant: 'success',
+                        message: 'Please verify your account e-mail address. We have re-sent the verification e-mail.',
+                    },
+                });
+            } else {
+                const result = {
+                    login: {
+                        account: req.body.authenticationToken
+                            ? await getSubForAuthenticationToken(req.body.authenticationToken, req.body.secureKey)
+                            : r,
+                    },
+                };
+
+                await oidc.interactionFinished(req, res, result, { mergeWithLastSubmission: true });
+            }
         } catch (err) {
             return next(new HttpError(502, 'Account read failed.', err));
         }

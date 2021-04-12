@@ -6,65 +6,71 @@
     <title>THX | Identity Provider</title>
     <meta name="viewport"
           content="width=device-width,initial-scale=1,shrink-to-fit=no,user-scalable=no,maximum-scale=1">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.5.2/css/bootstrap.min.css">
-    <style>
-        @import url('https://fonts.googleapis.com/css?family=Exo+2:200,400,400i,700,700i,900,900i');
-        @import url('https://fonts.googleapis.com/css?family=Ubuntu:200,400,400i,700,700i,900,900i');
-
-        html,
-        body {
-            height: 100%;
-            font-family: 'Ubuntu';
-            font-size: 1rem;
-        }
-
-        h1,
-        h2,
-        h3 {
-            font-family: 'Exo 2';
-            font-size: 1.5rem;
-        }
-    </style>
+    <link rel="stylesheet" href="/main.css">
 </head>
 
 <body class="d-flex w-100 h-100 bg-light align-items-center justify-content-center">
-    <main class="card card-white w-100" style="max-width: 300px">
-        <div class="card-body">
-            <form autocomplete="off" action="/interaction/<%= uid %>/login" method="post">
-                <% if (!params.authentication_token) { %>
-                    <h1 class="h4 text-center mb-3">
-                        <strong>Login to THX</strong>
-                    </h1>
-                    <div class="form-group">
-                        <input class="form-control" required type="email" name="email" placeholder="Enter e-mail">
+    <div class="container">
+        <div class="row pt-sm-5 pb-sm-5">
+            <div class="col-lg-6 offset-lg-3 order-0 order-sm-1">
+                <div class="card shadow-lg mb-5">
+                    <div class="card-body p-sm-5">
+                        <form autocomplete="off" action="/interaction/<%= uid %>/login" method="post">
+                            <% if (alert && alert.message) { %>
+                                <div class="alert alert-<%= alert.variant %>">
+                                    <%= alert.message %>
+                                </div>
+
+                                <% } %>
+                                    <% if (params.authentication_token) { %>
+                                        <h1 class="h3 text-center mb-3">
+                                            <strong>Set a password</strong>
+                                        </h1>
+                                        <div class="form-group">
+                                            <label>Password:</label>
+                                            <input class="form-control" autocomplete="off" required type="password"
+                                                   name="password">
+                                        </div>
+                                        <div class="form-group">
+                                            <label>Password again:</label>
+                                            <input class="form-control" autocomplete="off" required type="password"
+                                                   name="passwordConfirm">
+                                        </div>
+                                        <input type="hidden" name="authenticationToken"
+                                               value="<%= params.authentication_token %>" />
+                                        <input type="hidden" name="secureKey" value="<%= params.secure_key %>" />
+                                        <hr>
+                                        <button type="submit"
+                                                class="btn btn-rounded btn-primary btn-block">Login</button>
+                                        <% } else if (params.signup_token) { %>
+                                            <a href="<%= dashboardUrl %>" class="btn btn-rounded btn-primary btn-block">
+                                                Go to login
+                                            </a>
+                                            <% } else { %>
+                                                <h1 class="h3 text-center mb-3">
+                                                    <strong>Login to THX</strong>
+                                                </h1>
+                                                <div class="form-group">
+                                                    <label>E-mail:</label>
+                                                    <input class="form-control" required type="email" name="email">
+                                                </div>
+                                                <div class="form-group">
+                                                    <label>Password:</label>
+                                                    <input class="form-control" required type="password"
+                                                           name="password">
+                                                </div>
+                                                <hr>
+                                                <button type="submit"
+                                                        class="btn btn-rounded btn-primary btn-block">Login</button>
+                                                <% } %>
+
+                        </form>
+                        <a class="btn btn-block btn-link" href="/interaction/<%= uid %>/abort">Cancel</a>
                     </div>
-                    <div class="form-group">
-                        <input class="form-control" required type="password" name="password"
-                               placeholder="Enter password">
-                    </div>
-                    <hr>
-                    <% } else { %>
-                        <h1 class="h4 text-center mb-3">
-                            <strong>Set a password</strong>
-                        </h1>
-                        <div class="form-group">
-                            <input class="form-control" autocomplete="off" required type="password" name="password"
-                                   placeholder="Enter password">
-                        </div>
-                        <div class="form-group">
-                            <input class="form-control" autocomplete="off" required type="password"
-                                   name="passwordConfirm" placeholder="Repeat password">
-                        </div>
-                        <input type="hidden" name="authenticationToken" value="<%= params.authentication_token %>" />
-                        <input type="hidden" name="secureKey" value="<%= params.secure_key %>" />
-                        <% } %>
-                            <button type="submit" class="btn btn-primary btn-block">Save</button>
-            </form>
-            <div class="login-help">
-                <a class="btn btn-block btn-link" href="/interaction/<%= uid %>/abort">Cancel</a>
+                </div>
             </div>
         </div>
-    </main>
+    </div>
 </body>
 
 </html>

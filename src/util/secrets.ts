@@ -12,6 +12,7 @@ const required = [
     'ASSET_POOL_FACTORY_ADDRESS',
     'SECURE_KEY',
     'WALLET_URL',
+    'PUBLIC_URL',
     'DASHBOARD_URL',
     'RPC',
     'WSS_RPC',
@@ -33,6 +34,7 @@ export const PORT = process.env.PORT;
 
 export const ISSUER = process.env.ISSUER;
 export const WALLET_URL = process.env.WALLET_URL;
+export const PUBLIC_URL = process.env.PUBLIC_URL;
 export const DASHBOARD_URL = process.env.DASHBOARD_URL;
 
 export const MONGODB_URI = process.env.MONGODB_URI;

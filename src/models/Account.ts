@@ -3,13 +3,18 @@ import mongoose from 'mongoose';
 import { encryptString } from '../util/encrypt';
 
 export type AccountDocument = mongoose.Document & {
+    active: boolean;
     email: string;
     password: string;
+    signupToken: string;
+    signupTokenExpires: number;
     authenticationToken: string;
     authenticationTokenExpires: number;
     passwordResetToken: string;
     passwordResetExpires: number;
     registrationAccessTokens: string[];
+    acceptTermsPrivacy: boolean;
+    acceptUpdates: boolean;
     address: string;
     privateKey: string;
     tokens: AuthToken[];
@@ -26,13 +31,18 @@ export interface AuthToken {
 
 const accountSchema = new mongoose.Schema(
     {
+        active: Boolean,
         email: { type: String, unique: true },
         password: String,
+        signupToken: String,
+        signupTokenExpires: Date,
         authenticationToken: String,
-        authenticationTokenExpires: String,
+        authenticationTokenExpires: Date,
         passwordResetToken: String,
         passwordResetExpires: Date,
         registrationAccessTokens: Array,
+        acceptTermsPrivacy: Boolean,
+        acceptUpdates: Boolean,
         address: String,
         privateKey: String,
         tokens: Array,
@@ -53,7 +63,7 @@ accountSchema.pre('save', function save(next) {
         return next();
     }
 
-    if (account.privateKey.length) {
+    if (account.privateKey) {
         account.privateKey = encryptString(account.privateKey, account.password);
     }
 

@@ -11,7 +11,7 @@ import { parseHeader } from '../../util/network';
 
 const router = express.Router();
 
-router.post('/signup', validate(validations.postSignup), checkScopes(['admin', 'user']), parseHeader, postSignup);
+router.post('/signup', validate(validations.postSignup), checkScopes(['admin']), parseHeader, postSignup);
 router.post(
     '/authentication_token',
     validate(validations.postAuthenticationToken),

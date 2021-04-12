@@ -6,6 +6,66 @@
   "basePath": "https://api.thx.network/v1",
   "swagger": "2.0",
   "paths": {
+    "/signup": {
+      "post": {
+        "tags": [
+          "Authentication"
+        ],
+        "description": "Creates an account using email and password.",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "email",
+            "description": "Email to use for login.",
+            "in": "body",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "password",
+            "description": "Password to use for login.",
+            "in": "body",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "confirmPassword",
+            "description": "Password to use for confirmation.",
+            "in": "body",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "address": {
+                  "type": "string",
+                  "description": "The address for the new account."
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request. Indicated incorrect body parameters."
+          },
+          "422": {
+            "description": "Duplicate. An account for this email already exists."
+          },
+          "500": {
+            "description": "Internal Server Error."
+          },
+          "502": {
+            "description": "Bad Gateway. Received an invalid response from the network or database."
+          }
+        }
+      }
+    },
     "/asset_pools/:address": {
       "get": {
         "tags": [
@@ -38,6 +98,14 @@
                 "title": {
                   "type": "string",
                   "description": "The title of the asset pool."
+                },
+                "sub": {
+                  "type": "string",
+                  "description": "The sub of the account that deployed the asset pool."
+                },
+                "aud": {
+                  "type": "string",
+                  "description": "The audience (client id of the connected app) of the asset pool"
                 },
                 "address": {
                   "type": "string",
@@ -183,6 +251,18 @@
             "type": "string"
           },
           {
+            "name": "aud",
+            "in": "body",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "network",
+            "in": "body",
+            "required": true,
+            "type": "number"
+          },
+          {
             "name": "token",
             "in": "body",
             "required": true,
@@ -273,66 +353,6 @@
           },
           "404": {
             "description": "Not Found. Account does not exist."
-          },
-          "500": {
-            "description": "Internal Server Error."
-          },
-          "502": {
-            "description": "Bad Gateway. Received an invalid response from the network or database."
-          }
-        }
-      }
-    },
-    "/signup": {
-      "post": {
-        "tags": [
-          "Authentication"
-        ],
-        "description": "Creates an account using email and password.",
-        "produces": [
-          "application/json"
-        ],
-        "parameters": [
-          {
-            "name": "email",
-            "description": "Email to use for login.",
-            "in": "body",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "password",
-            "description": "Password to use for login.",
-            "in": "body",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "confirmPassword",
-            "description": "Password to use for confirmation.",
-            "in": "body",
-            "required": true,
-            "type": "string"
-          }
-        ],
-        "responses": {
-          "201": {
-            "description": "Created",
-            "schema": {
-              "type": "object",
-              "properties": {
-                "address": {
-                  "type": "string",
-                  "description": "The address for the new account."
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Bad Request. Indicated incorrect body parameters."
-          },
-          "422": {
-            "description": "Duplicate. An account for this email already exists."
           },
           "500": {
             "description": "Internal Server Error."

@@ -4,6 +4,15 @@ import { Account } from '../models/Account';
 import { AccountDocument } from '../models/Account';
 import { ENVIRONMENT, SECURE_KEY } from '../util/secrets';
 
+const {
+    interactionPolicy: { Prompt, base },
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+} = require('oidc-provider');
+const basePolicy = base();
+const prompt = new Prompt({ name: 'create', requestable: true });
+
+basePolicy.add(prompt);
+
 (async () => {
     if (ENVIRONMENT !== 'test') {
         await MongoAdapter.connect();
@@ -32,7 +41,7 @@ export default {
             },
         };
     },
-    extraParams: ['authentication_token', 'secure_key'],
+    extraParams: ['signup_token', 'authentication_token', 'secure_key'],
     claims: {
         openid: ['sub'],
         admin: ['admin'],
@@ -51,6 +60,7 @@ export default {
         ClientCredentials: 'jwt',
     },
     interactions: {
+        policy: basePolicy,
         url(ctx: any) {
             return `/interaction/${ctx.oidc.uid}`;
         },
