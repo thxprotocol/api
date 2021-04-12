@@ -1,5 +1,3 @@
-import '@nomiclabs/hardhat-ethers';
-
 module.exports = {
     paths: {
         sources: './contracts/contracts',
