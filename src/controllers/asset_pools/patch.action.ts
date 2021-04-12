@@ -1,6 +1,5 @@
 import { downgradeFromBypassPolls, updateToBypassPolls } from '../../util/upgrades';
 import { Response, NextFunction } from 'express';
-import { VERSION } from '../../util/secrets';
 import { HttpRequest, HttpError } from '../../models/Error';
 import { AssetPool } from '../../models/AssetPool';
 
@@ -59,7 +58,7 @@ export const patchAssetPool = async (req: HttpRequest, res: Response, next: Next
 
     if (req.body.bypassPolls === true && assetPool.bypassPolls === false) {
         try {
-            await updateToBypassPolls(req.solution);
+            await updateToBypassPolls(assetPool.network, req.solution);
             assetPool.bypassPolls = req.body.bypassPolls;
 
             await assetPool.save();
@@ -70,7 +69,7 @@ export const patchAssetPool = async (req: HttpRequest, res: Response, next: Next
 
     if (req.body.bypassPolls === false && assetPool.bypassPolls === true) {
         try {
-            await downgradeFromBypassPolls(req.solution);
+            await downgradeFromBypassPolls(assetPool.network, req.solution);
             assetPool.bypassPolls = req.body.bypassPolls;
             await assetPool.save();
         } catch (error) {

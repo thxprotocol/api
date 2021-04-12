@@ -4,7 +4,7 @@ import configuration from './config';
 import { AccountDocument } from '../models/Account';
 import { Account } from '../models/Account';
 import { HttpError } from '../models/Error';
-import { DASHBOARD_URL, ENVIRONMENT, ISSUER, PUBLIC_URL, SECURE_KEY } from '../util/secrets';
+import { DASHBOARD_URL, ENVIRONMENT, ISSUER, SECURE_KEY } from '../util/secrets';
 import { decryptString } from '../util/decrypt';
 import { sendMail } from '../util/mail';
 import { createRandomToken, checkSignupToken } from '../util/tokens';

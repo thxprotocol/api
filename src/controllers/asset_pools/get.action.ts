@@ -1,6 +1,5 @@
-import { AssetPool } from '../../models/AssetPool';
 import { Response, NextFunction } from 'express';
-import { provider, tokenContract } from '../../util/network';
+import { tokenContract } from '../../util/network';
 import { HttpError, HttpRequest } from '../../models/Error';
 import { formatEther } from 'ethers/lib/utils';
 
@@ -83,46 +82,28 @@ import { formatEther } from 'ethers/lib/utils';
  */
 export const getAssetPool = async (req: HttpRequest, res: Response, next: NextFunction) => {
     try {
-        const tokenAddress = await req.solution.getToken();
-        const code = await provider.getCode(tokenAddress);
+        const tokenInstance = tokenContract(req.assetPool.network, await req.solution.getToken());
+        const proposeWithdrawPollDuration = (await req.solution.getProposeWithdrawPollDuration()).toNumber();
+        const rewardPollDuration = (await req.solution.getRewardPollDuration()).toNumber();
 
-        if (code === '0x') {
-            return next(new HttpError(404, `No data found at ERC20 address ${tokenAddress}`));
-        }
-
-        try {
-            const tokenInstance = tokenContract(tokenAddress);
-            const proposeWithdrawPollDuration = (await req.solution.getProposeWithdrawPollDuration()).toNumber();
-            const rewardPollDuration = (await req.solution.getRewardPollDuration()).toNumber();
-            const assetPool = await AssetPool.findOne({
-                address: req.params.address,
-            });
-
-            if (!assetPool) {
-                return next(new HttpError(404, 'Asset Pool is not found in database.'));
-            }
-
-            res.json({
-                title: assetPool.title,
-                sub: assetPool.sub,
-                aud: assetPool.aud,
-                address: assetPool.address,
-                network: assetPool.network,
-                bypassPolls: assetPool.bypassPolls,
-                token: {
-                    address: tokenInstance.address,
-                    name: await tokenInstance.name(),
-                    symbol: await tokenInstance.symbol(),
-                    totalSupply: Number(formatEther(await tokenInstance.totalSupply())),
-                    balance: Number(formatEther(await tokenInstance.balanceOf(req.params.address))),
-                },
-                proposeWithdrawPollDuration,
-                rewardPollDuration,
-            });
-        } catch (error) {
-            return next(new HttpError(500, 'Could not obtain Asset Pool data from the network.', error));
-        }
-    } catch (e) {
-        return next(new HttpError(404, 'Could not find Asset Pool contract address on the network.', e));
+        res.json({
+            title: req.assetPool.title,
+            sub: req.assetPool.sub,
+            aud: req.assetPool.aud,
+            address: req.assetPool.address,
+            network: req.assetPool.network,
+            bypassPolls: req.assetPool.bypassPolls,
+            token: {
+                address: tokenInstance.address,
+                name: await tokenInstance.name(),
+                symbol: await tokenInstance.symbol(),
+                totalSupply: Number(formatEther(await tokenInstance.totalSupply())),
+                balance: Number(formatEther(await tokenInstance.balanceOf(req.params.address))),
+            },
+            proposeWithdrawPollDuration,
+            rewardPollDuration,
+        });
+    } catch (error) {
+        return next(new HttpError(500, 'Could not obtain Asset Pool data from the network.', error));
     }
 };

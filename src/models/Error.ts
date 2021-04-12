@@ -1,6 +1,7 @@
 import { Contract } from 'ethers';
 import { logger } from '../util/logger';
 import { Request } from 'express';
+import { AssetPoolDocument } from './AssetPool';
 
 export class HttpError extends Error {
     timestamp: number;
@@ -25,4 +26,5 @@ export class HttpError extends Error {
 export interface HttpRequest extends Request {
     user?: any;
     solution?: Contract;
+    assetPool?: AssetPoolDocument;
 }

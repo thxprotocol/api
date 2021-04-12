@@ -31,7 +31,7 @@ export const deleteAssetPool = async (req: HttpRequest, res: Response, next: Nex
 
         await account.save();
 
-        eventIndexer.removeListener(req.solution.address);
+        eventIndexer.removeListener(req.assetPool.network, req.solution.address);
 
         // Notify users that asset pool has been removed
         res.status(204).end();

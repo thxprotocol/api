@@ -1,5 +1,4 @@
 import { Contract, ethers } from 'ethers/lib';
-import { admin } from './network';
 
 import WithdrawArtifact from '../../src/artifacts/contracts/contracts/05-Withdraw/Withdraw.sol/Withdraw.json';
 import WithdrawPollArtifact from '../../src/artifacts/contracts/contracts/05-Withdraw/WithdrawPoll.sol/WithdrawPoll.json';
@@ -17,30 +16,35 @@ import RewardByArtifact from '../../src/artifacts/contracts/contracts/10-RewardB
 import RewardByPollArtifact from '../../src/artifacts/contracts/contracts/10-RewardBypass/RewardByPoll.sol/RewardByPoll.json';
 import RewardByPollProxyArtifact from '../../src/artifacts/contracts/contracts/10-RewardBypass/RewardByPollProxy.sol/RewardByPollProxy.json';
 import { getSelectors } from './factory';
+import { getAdmin, NetworkProvider } from './network';
 
-export const downgradeFromBypassPolls = async (solution: Contract) => {
-    const withdrawFacetFactory = new ethers.ContractFactory(WithdrawArtifact.abi, WithdrawArtifact.bytecode, admin);
+export const downgradeFromBypassPolls = async (npid: NetworkProvider, solution: Contract) => {
+    const withdrawFacetFactory = new ethers.ContractFactory(
+        WithdrawArtifact.abi,
+        WithdrawArtifact.bytecode,
+        getAdmin(npid),
+    );
     const withdrawPollFacetFactory = new ethers.ContractFactory(
         WithdrawPollArtifact.abi,
         WithdrawPollArtifact.bytecode,
-        admin,
+        getAdmin(npid),
     );
     const withdrawPollProxyFacetFactory = new ethers.ContractFactory(
         WithdrawPollProxyArtifact.abi,
         WithdrawPollProxyArtifact.bytecode,
-        admin,
+        getAdmin(npid),
     );
 
-    const rewardFacetFactory = new ethers.ContractFactory(RewardArtifact.abi, RewardArtifact.bytecode, admin);
+    const rewardFacetFactory = new ethers.ContractFactory(RewardArtifact.abi, RewardArtifact.bytecode, getAdmin(npid));
     const rewardPollFacetFactory = new ethers.ContractFactory(
         RewardPollArtifact.abi,
         RewardPollArtifact.bytecode,
-        admin,
+        getAdmin(npid),
     );
     const rewardPollProxyFacetFactory = new ethers.ContractFactory(
         RewardPollProxyArtifact.abi,
         RewardPollProxyArtifact.bytecode,
-        admin,
+        getAdmin(npid),
     );
 
     const withdrawFacet = await withdrawFacetFactory.deploy();
@@ -66,33 +70,37 @@ export const downgradeFromBypassPolls = async (solution: Contract) => {
     await solution.updateAssetPool(getSelectors(rewardPollProxyFacet), rewardPollProxyFacet.address);
 };
 
-export const updateToBypassPolls = async (solution: Contract) => {
+export const updateToBypassPolls = async (npid: NetworkProvider, solution: Contract) => {
     const withdrawByFacetFactory = new ethers.ContractFactory(
         WithdrawByArtifact.abi,
         WithdrawByArtifact.bytecode,
-        admin,
+        getAdmin(npid),
     );
     const withdrawByPollFacetFactory = new ethers.ContractFactory(
         WithdrawByPollArtifact.abi,
         WithdrawByPollArtifact.bytecode,
-        admin,
+        getAdmin(npid),
     );
     const withdrawByPollProxyFacetFactory = new ethers.ContractFactory(
         WithdrawByPollProxyArtifact.abi,
         WithdrawByPollProxyArtifact.bytecode,
-        admin,
+        getAdmin(npid),
     );
 
-    const rewardByFacetFactory = new ethers.ContractFactory(RewardByArtifact.abi, RewardByArtifact.bytecode, admin);
+    const rewardByFacetFactory = new ethers.ContractFactory(
+        RewardByArtifact.abi,
+        RewardByArtifact.bytecode,
+        getAdmin(npid),
+    );
     const rewardByPollFacetFactory = new ethers.ContractFactory(
         RewardByPollArtifact.abi,
         RewardByPollArtifact.bytecode,
-        admin,
+        getAdmin(npid),
     );
     const rewardByPollProxyFacetFactory = new ethers.ContractFactory(
         RewardByPollProxyArtifact.abi,
         RewardByPollProxyArtifact.bytecode,
-        admin,
+        getAdmin(npid),
     );
 
     const withdrawByFacet = await withdrawByFacetFactory.deploy();

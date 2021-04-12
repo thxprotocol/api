@@ -11,11 +11,17 @@ if (env) {
 }
 
 async function main() {
+    const testnetProvider = new ethers.providers.WebSocketProvider(process.env.TESTNET_RPC);
+    const testnetSigner = new ethers.Wallet(process.env.PRIVATE_KEY, testnetProvider);
+
     const provider = new ethers.providers.WebSocketProvider(process.env.RPC);
     const signer = new ethers.Wallet(process.env.PRIVATE_KEY, provider);
 
-    console.log('Asset Pool Factory:', await deployAssetPoolFactory(signer));
-    console.log('Asset Pool Registry:', await deployPoolRegistry(signer));
+    console.log('TestNet: Asset Pool Factory:', await deployAssetPoolFactory(testnetSigner));
+    console.log('TestNet: Asset Pool Registry:', await deployPoolRegistry(testnetSigner));
+
+    console.log('MainNet: Asset Pool Factory:', await deployAssetPoolFactory(signer));
+    console.log('MainNet: Asset Pool Registry:', await deployPoolRegistry(signer));
 }
 
 main()

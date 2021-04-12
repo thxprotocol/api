@@ -1,7 +1,7 @@
 import request from 'supertest';
 import server from '../../src/server';
 import db from '../../src/util/database';
-import { admin } from '../../src/util/network';
+import { getAdmin, getProvider, NetworkProvider } from '../../src/util/network';
 import { timeTravel, signMethod } from './lib/network';
 import {
     poolTitle,
@@ -22,7 +22,6 @@ import {
     registerClientCredentialsClient,
 } from './lib/registerClient';
 import { decryptString } from '../../src/util/decrypt';
-import { provider } from '../../src/util/network';
 
 const user = request(server);
 const http2 = request.agent(server);
@@ -43,6 +42,7 @@ describe('Voting', () => {
         await db.truncate();
 
         const credentials = await registerClientCredentialsClient(user);
+
         adminAccessToken = credentials.accessToken;
         adminAudience = credentials.aud;
     });
@@ -93,7 +93,7 @@ describe('Voting', () => {
                     expect(res.body.privateKey).toBeTruthy();
 
                     const pKey = decryptString(res.body.privateKey, userPassword);
-                    userWallet = new ethers.Wallet(pKey, provider);
+                    userWallet = new ethers.Wallet(pKey, getProvider(NetworkProvider.Test));
 
                     done();
                 });
@@ -107,6 +107,7 @@ describe('Voting', () => {
                 .send({
                     title: poolTitle,
                     aud: adminAudience,
+                    network: 0,
                     token: {
                         name: 'SparkBlue Token',
                         symbol: 'SPARK',
@@ -310,7 +311,12 @@ describe('Voting', () => {
         });
 
         it('HTTP 302 when tx is handled', async (done) => {
-            const { call, nonce, sig } = await signMethod(poolAddress, 'withdrawPollVote', [withdrawalID, true], admin);
+            const { call, nonce, sig } = await signMethod(
+                poolAddress,
+                'withdrawPollVote',
+                [withdrawalID, true],
+                getAdmin(NetworkProvider.Test),
+            );
 
             user.post('/v1/gas_station/call')
                 .set({ AssetPool: poolAddress, Authorization: userAccessToken })

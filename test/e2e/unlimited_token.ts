@@ -13,7 +13,7 @@ import {
     registerWalletClient,
 } from './lib/registerClient';
 import { decryptString } from '../../src/util/decrypt';
-import { provider } from '../../src/util/network';
+import { getProvider, NetworkProvider } from '../../src/util/network';
 
 const user = request(server);
 const http2 = request.agent(server);
@@ -83,6 +83,7 @@ describe('UnlimitedSupplyToken', () => {
                     expect(res.status).toBe(200);
                     expect(res.body.privateKey).toBeTruthy();
                     const pKey = decryptString(res.body.privateKey, userPassword);
+                    const provider = getProvider(NetworkProvider.Test);
                     userWallet = new ethers.Wallet(pKey, provider);
                     done();
                 });
@@ -96,6 +97,7 @@ describe('UnlimitedSupplyToken', () => {
                 .send({
                     title: poolTitle,
                     aud: adminAudience,
+                    network: 0,
                     token: {
                         name: tokenName,
                         symbol: tokenSymbol,

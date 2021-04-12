@@ -3,7 +3,7 @@ import request from 'supertest';
 import server from '../../src/server';
 import db from '../../src/util/database';
 import { decryptString } from '../../src/util/decrypt';
-import { admin, provider } from '../../src/util/network';
+import { getAdmin, getProvider, NetworkProvider } from '../../src/util/network';
 import { signMethod } from './lib/network';
 import {
     getAuthCode,
@@ -34,6 +34,7 @@ describe('Encryption', () => {
         await db.truncate();
 
         const credentials = await registerClientCredentialsClient(user);
+        const admin = getAdmin(NetworkProvider.Test);
 
         adminAccessToken = credentials.accessToken;
         adminAudience = credentials.aud;
@@ -73,6 +74,7 @@ describe('Encryption', () => {
                 .send({
                     title: poolTitle,
                     aud: adminAudience,
+                    network: 0,
                     token: {
                         address: testToken.address,
                     },
@@ -134,7 +136,7 @@ describe('Encryption', () => {
 
                     const pKey = decryptString(res.body.privateKey, 'mellon');
 
-                    decryptedWallet = new ethers.Wallet(pKey, provider);
+                    decryptedWallet = new ethers.Wallet(pKey, getProvider(NetworkProvider.Test));
 
                     try {
                         decryptString(res.body.privateKey, 'wrongpassword');

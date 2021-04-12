@@ -1,6 +1,6 @@
 import request from 'supertest';
 import server from '../../src/server';
-import { admin } from '../../src/util/network';
+import { getAdmin, NetworkProvider } from '../../src/util/network';
 import db from '../../src/util/database';
 import { voter, timeTravel, signMethod } from './lib/network';
 import { exampleTokenFactory } from './lib/network';
@@ -41,6 +41,8 @@ describe('Gas Station', () => {
         await db.truncate();
 
         const credentials = await registerClientCredentialsClient(user);
+        const admin = getAdmin(NetworkProvider.Test);
+
         adminAccessToken = credentials.accessToken;
         adminAudience = credentials.aud;
 
@@ -80,6 +82,7 @@ describe('Gas Station', () => {
             .send({
                 title: poolTitle,
                 aud: adminAudience,
+                network: 0,
                 token: {
                     address: testToken.address,
                 },
@@ -88,7 +91,7 @@ describe('Gas Station', () => {
         poolAddress = res.body.address;
 
         // Transfer some tokens to the pool rewardWithdrawAmount tokens for the pool
-        const assetPool = solutionContract(poolAddress);
+        const assetPool = solutionContract(NetworkProvider.Test, poolAddress);
         const amount = parseEther(rewardWithdrawAmount.toString());
 
         await testToken.approve(poolAddress, parseEther(rewardWithdrawAmount.toString()));

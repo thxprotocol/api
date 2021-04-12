@@ -2,7 +2,7 @@ import { body, validationResult } from 'express-validator';
 import { Response, Request, NextFunction } from 'express';
 import { HttpError, HttpRequest } from '../models/Error';
 import { Account } from '../models/Account';
-import { AssetPool, AssetPoolDocument } from '../models/AssetPool';
+import { AssetPool } from '../models/AssetPool';
 
 export const validate = (validations: any) => {
     return async (req: Request, res: Response, next: NextFunction) => {

@@ -1,10 +1,11 @@
 import { logger } from './logger';
-import { wssProvider, SolutionArtifact, solutionContract } from './network';
+import { NetworkProvider, SolutionArtifact, solutionContract } from './network';
 import { AssetPool, AssetPoolDocument } from '../models/AssetPool';
-import { BigNumber, utils } from 'ethers/lib';
+import { BigNumber, providers, utils } from 'ethers/lib';
 import { parseArgs, parseLog } from './events';
 import { Withdrawal, WithdrawalState } from '../models/Withdrawal';
 import { formatEther } from 'ethers/lib/utils';
+import { TESTNET_RPC_WSS, RPC_WSS } from './secrets';
 
 const events = [
     {
@@ -30,19 +31,16 @@ const events = [
 ];
 
 class EventIndexer {
-    assetPools: string[] = [];
+    assetPools: AssetPoolDocument[] = [];
+    providers = [new providers.WebSocketProvider(TESTNET_RPC_WSS), new providers.WebSocketProvider(RPC_WSS)];
 
     async start() {
         try {
-            const allAssetPools = await AssetPool.find({});
-
-            this.assetPools = allAssetPools
-                .map((item: AssetPoolDocument) => item.address)
-                .filter((item: AssetPoolDocument, i: number, list: AssetPoolDocument[]) => list.indexOf(item) === i);
+            this.assetPools = await AssetPool.find({});
 
             try {
-                for (const address of this.assetPools) {
-                    this.addListener(address);
+                for (const assetPool of this.assetPools) {
+                    this.addListener(assetPool.network, assetPool.address);
                 }
                 logger.info('EventIndexer started.');
             } catch (e) {
@@ -53,12 +51,12 @@ class EventIndexer {
         }
     }
 
-    async stop() {
+    async stop(npid: NetworkProvider) {
         try {
-            for (const address of this.assetPools) {
+            for (const assetPool of this.assetPools) {
                 for (const event of events) {
-                    wssProvider.off({
-                        address,
+                    this.providers[npid].off({
+                        address: assetPool.address,
                         topics: event.topics,
                     });
                 }
@@ -68,10 +66,10 @@ class EventIndexer {
         }
     }
 
-    addListener(address: string) {
+    addListener(npid: NetworkProvider, address: string) {
         try {
             for (const event of events) {
-                wssProvider.on(
+                this.providers[npid].on(
                     {
                         address,
                         topics: event.topics,
@@ -87,7 +85,7 @@ class EventIndexer {
                                 }`,
                             );
 
-                            (this as any)[event.callback](address, args);
+                            (this as any)[event.callback](npid, address, args);
                         } catch (e) {
                             logger.error('EventIndexer event.callback() failed.');
                         }
@@ -99,12 +97,12 @@ class EventIndexer {
         }
     }
 
-    removeListener(address: string) {
+    removeListener(npid: NetworkProvider, address: string) {
         if (!address) return;
 
         try {
             for (const event of events) {
-                wssProvider.off({
+                this.providers[npid].off({
                     address,
                     topics: event.topics,
                 });
@@ -114,10 +112,10 @@ class EventIndexer {
         }
     }
 
-    async onWithdrawPollVoted(address: string, args: any) {
+    async onWithdrawPollVoted(npid: NetworkProvider, address: string, args: any) {
         try {
             const id = BigNumber.from(args.id).toNumber();
-            const solution = solutionContract(address);
+            const solution = solutionContract(npid, address);
             const withdrawal = await Withdrawal.findOne({ id, poolAddress: address });
 
             if (args.vote === true) {
@@ -135,11 +133,11 @@ class EventIndexer {
         }
     }
 
-    async onWithdrawPollRevokedVote(address: string, args: any) {
+    async onWithdrawPollRevokedVote(npid: NetworkProvider, address: string, args: any) {
         try {
             const id = BigNumber.from(args.id).toNumber();
             const withdrawal = await Withdrawal.findOne({ id, poolAddress: address });
-            const solution = solutionContract(address);
+            const solution = solutionContract(npid, address);
             const vote = solution.votesByAddress(args.member);
 
             if (vote === true) {
@@ -157,7 +155,7 @@ class EventIndexer {
         }
     }
 
-    async onWithdrawPollCreated(address: string, args: any) {
+    async onWithdrawPollCreated(npid: NetworkProvider, address: string, args: any) {
         try {
             const id = BigNumber.from(args.id).toNumber();
             const existingWithdrawal = await Withdrawal.findOne({ id, poolAddress: address });
@@ -166,7 +164,7 @@ class EventIndexer {
                 return;
             }
 
-            const solution = solutionContract(address);
+            const solution = solutionContract(npid, address);
             const amount = Number(formatEther(await solution.getAmount(id)));
             const withdrawal = new Withdrawal({
                 id,
@@ -190,7 +188,7 @@ class EventIndexer {
         }
     }
 
-    async onWithdrawn(address: string, args: any) {
+    async onWithdrawn(npid: NetworkProvider, address: string, args: any) {
         try {
             const id = BigNumber.from(args.id).toNumber();
             const withdrawal = await Withdrawal.findOne({ id, poolAddress: address });
@@ -203,7 +201,7 @@ class EventIndexer {
         }
     }
 
-    async onWithdrawPollFinalized(address: string, args: any) {
+    async onWithdrawPollFinalized(npid: NetworkProvider, address: string, args: any) {
         try {
             const id = BigNumber.from(args.id).toNumber();
             const withdrawal = await Withdrawal.findOne({ id, poolAddress: address });

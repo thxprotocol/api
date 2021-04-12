@@ -1,7 +1,7 @@
 import request from 'supertest';
 import server from '../../src/server';
 import db from '../../src/util/database';
-import { admin } from '../../src/util/network';
+import { getAdmin, NetworkProvider } from '../../src/util/network';
 import { voter } from './lib/network';
 import { exampleTokenFactory } from './lib/network';
 import { poolTitle, mintAmount, userEmail, userPassword } from './lib/constants';
@@ -14,7 +14,6 @@ import {
 } from './lib/registerClient';
 
 const user = request(server);
-const http2 = request.agent(server);
 const http3 = request.agent(server);
 
 describe('Roles', () => {
@@ -29,6 +28,8 @@ describe('Roles', () => {
         await db.truncate();
 
         const credentials = await registerClientCredentialsClient(user);
+        const admin = getAdmin(NetworkProvider.Test);
+
         adminAccessToken = credentials.accessToken;
         adminAudience = credentials.aud;
 
@@ -74,6 +75,7 @@ describe('Roles', () => {
                 .send({
                     title: poolTitle,
                     aud: adminAudience,
+                    network: 0,
                     token: {
                         address: testToken.address,
                     },
@@ -88,6 +90,7 @@ describe('Roles', () => {
 
     describe('GET /members/:address', () => {
         it('HTTP 200 if OK', (done) => {
+            const admin = getAdmin(NetworkProvider.Test);
             user.get('/v1/members/' + admin.address)
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
                 .end(async (err, res) => {

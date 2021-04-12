@@ -1,13 +1,13 @@
 import {
-    admin,
-    assetPoolFactory,
-    provider,
     logTransaction,
     solutionContract,
-    unlimitedSupplyERC20Factory,
-    limitedSupplyERC20Factory,
+    getUnlimitedSupplyERC20Factory,
+    getLimitedSupplyERC20Factory,
+    getAssetPoolFactory,
+    getProvider,
+    getAdmin,
 } from '../../util/network';
-import { AssetPool } from '../../models/AssetPool';
+import { AssetPool, AssetPoolDocument } from '../../models/AssetPool';
 import { Response, NextFunction } from 'express';
 import { HttpError, HttpRequest } from '../../models/Error';
 import { Error } from 'mongoose';
@@ -16,8 +16,9 @@ import { parseEther } from 'ethers/lib/utils';
 import { POOL_REGISTRY_ADDRESS } from '../../util/secrets';
 import { Account } from '../../models/Account';
 
-async function getTokenAddress(token: any, poolAddress: string) {
+async function getTokenAddress(token: any, assetPool: AssetPoolDocument) {
     if (token.address) {
+        const provider = getProvider(assetPool.network);
         const code = await provider.getCode(token.address);
 
         if (code === '0x') {
@@ -26,15 +27,17 @@ async function getTokenAddress(token: any, poolAddress: string) {
 
         return token.address;
     } else if (token.name && token.symbol && Number(token.totalSupply) > 0) {
-        const tokenInstance = await limitedSupplyERC20Factory.deploy(
+        const factory = getLimitedSupplyERC20Factory(assetPool.network);
+        const tokenInstance = await factory.deploy(
             token.name,
             token.symbol,
-            poolAddress,
+            assetPool.address,
             parseEther(token.totalSupply),
         );
         return tokenInstance.address;
     } else if (token.name && token.symbol && Number(token.totalSupply) === 0) {
-        const tokenInstance = await unlimitedSupplyERC20Factory.deploy(token.name, token.symbol, poolAddress);
+        const factory = getUnlimitedSupplyERC20Factory(assetPool.network);
+        const tokenInstance = await factory.deploy(token.name, token.symbol, assetPool.address);
 
         return tokenInstance.address;
     }
@@ -101,6 +104,7 @@ export const postAssetPool = async (req: HttpRequest, res: Response, next: NextF
     try {
         const token = req.body.token;
         const sub = req.user.sub;
+        const assetPoolFactory = getAssetPoolFactory(req.body.network);
         const tx = await (await assetPoolFactory.deployAssetPool()).wait();
         const event = tx.events.find((e: { event: string }) => e.event === 'AssetPoolDeployed');
 
@@ -115,11 +119,11 @@ export const postAssetPool = async (req: HttpRequest, res: Response, next: NextF
             );
         }
 
-        const solution = solutionContract(event.args.assetPool);
+        const solution = solutionContract(req.body.network, event.args.assetPool);
 
         await solution.setPoolRegistry(POOL_REGISTRY_ADDRESS);
-        await solution.initializeRoles(await admin.getAddress());
-        await solution.initializeGasStation(await admin.getAddress());
+        await solution.initializeRoles(await getAdmin(req.body.network).getAddress());
+        await solution.initializeGasStation(await getAdmin(req.body.network).getAddress());
         await solution.setSigning(true);
 
         const assetPool = new AssetPool({
@@ -134,7 +138,7 @@ export const postAssetPool = async (req: HttpRequest, res: Response, next: NextF
         });
 
         try {
-            const tokenAddress = await getTokenAddress(token, solution.address);
+            const tokenAddress = await getTokenAddress(token, assetPool);
 
             await solution.addToken(tokenAddress);
         } catch (e) {
@@ -154,7 +158,7 @@ export const postAssetPool = async (req: HttpRequest, res: Response, next: NextF
 
             await account.save();
 
-            eventIndexer.addListener(solution.address);
+            eventIndexer.addListener(assetPool.network, solution.address);
 
             res.status(201).json({ address: solution.address });
         } catch (error) {

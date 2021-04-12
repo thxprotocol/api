@@ -1,7 +1,7 @@
 import request from 'supertest';
 import server from '../../src/server';
 import db from '../../src/util/database';
-import { admin } from '../../src/util/network';
+import { getAdmin, getProvider, NetworkProvider } from '../../src/util/network';
 import { timeTravel, signMethod } from './lib/network';
 import { exampleTokenFactory } from './lib/network';
 import {
@@ -25,7 +25,7 @@ import {
     registerClientCredentialsClient,
 } from './lib/registerClient';
 import { decryptString } from '../../src/util/decrypt';
-import { provider, solutionContract } from '../../src/util/network';
+import { solutionContract } from '../../src/util/network';
 
 const user = request(server);
 const http2 = request.agent(server);
@@ -46,6 +46,7 @@ describe('Happy Flow', () => {
         await db.truncate();
 
         const credentials = await registerClientCredentialsClient(user);
+        const admin = getAdmin(NetworkProvider.Test);
 
         adminAccessToken = credentials.accessToken;
         adminAudience = credentials.aud;
@@ -98,7 +99,7 @@ describe('Happy Flow', () => {
                     expect(res.status).toBe(200);
                     expect(res.body.privateKey).toBeTruthy();
                     const pKey = decryptString(res.body.privateKey, userPassword);
-                    userWallet = new ethers.Wallet(pKey, provider);
+                    userWallet = new ethers.Wallet(pKey, getProvider(NetworkProvider.Test));
                     done();
                 });
         });
@@ -111,6 +112,7 @@ describe('Happy Flow', () => {
                 .send({
                     title: poolTitle,
                     aud: adminAudience,
+                    network: 0,
                     token: {
                         address: testToken.address,
                     },
@@ -141,7 +143,7 @@ describe('Happy Flow', () => {
 
     describe('GET /asset_pools/:address', () => {
         it('Deposit assets in pool', async () => {
-            const assetPool = solutionContract(poolAddress);
+            const assetPool = solutionContract(NetworkProvider.Test, poolAddress);
             const amount = parseEther(rewardWithdrawAmount.toString());
 
             await testToken.approve(poolAddress, parseEther(rewardWithdrawAmount.toString()));
@@ -153,7 +155,7 @@ describe('Happy Flow', () => {
                 .set({ AssetPool: poolAddress, Authorization: dashboardAccessToken })
                 .end(async (err, res) => {
                     expect(res.status).toBe(200);
-                    expect(Number(formatEther(await testToken.balanceOf(admin.address)))).toBe(
+                    expect(Number(formatEther(await testToken.balanceOf(getAdmin(NetworkProvider.Test).address)))).toBe(
                         Number(formatEther(mintAmount)) - rewardWithdrawAmount,
                     );
                     expect(res.body.title).toEqual(poolTitle);

@@ -1,5 +1,5 @@
 import { NextFunction, Response } from 'express';
-import { provider, tokenContract } from '../../util/network';
+import { getProvider, tokenContract } from '../../util/network';
 import { HttpError, HttpRequest } from '../../models/Error';
 import { parseLogs } from '../../util/events';
 import IDefaultDiamondArtifact from '../../artifacts/contracts/contracts/IDefaultDiamond.sol/IDefaultDiamond.json';
@@ -71,6 +71,7 @@ export const getMember = async (req: HttpRequest, res: Response, next: NextFunct
 
         if (!isMember) {
             const filter = req.solution.filters.MemberAddressChanged(null, req.params.address, null);
+            const provider = getProvider(req.assetPool.network);
             const logs = await provider.getLogs(filter);
             const events = await parseLogs(IDefaultDiamondArtifact.abi, logs);
 
@@ -82,7 +83,7 @@ export const getMember = async (req: HttpRequest, res: Response, next: NextFunct
         }
 
         const tokenAddress = await req.solution.getToken();
-        const tokenInstance = tokenContract(tokenAddress);
+        const tokenInstance = tokenContract(req.assetPool.network, tokenAddress);
         const balance = await tokenInstance.balanceOf(req.params.address);
 
         res.json({

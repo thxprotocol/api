@@ -1,7 +1,7 @@
 import request from 'supertest';
 import server from '../../src/server';
 import db from '../../src/util/database';
-import { admin } from '../../src/util/network';
+import { getAdmin, NetworkProvider } from '../../src/util/network';
 import { exampleTokenFactory } from './lib/network';
 import {
     poolTitle,
@@ -18,16 +18,13 @@ import {
     getAuthHeaders,
     registerClientCredentialsClient,
     registerDashboardClient,
-    registerWalletClient,
 } from './lib/registerClient';
 
 const user = request(server);
-const http2 = request.agent(server);
 const http3 = request.agent(server);
 
 describe('Bypass Polls', () => {
     let adminAccessToken: string,
-        userAccessToken: string,
         adminAudience: string,
         dashboardAccessToken: string,
         redirectURL: string,
@@ -38,6 +35,7 @@ describe('Bypass Polls', () => {
         await db.truncate();
 
         const credentials = await registerClientCredentialsClient(user);
+        const admin = getAdmin(NetworkProvider.Test);
         adminAccessToken = credentials.accessToken;
         adminAudience = credentials.aud;
 
@@ -62,13 +60,6 @@ describe('Bypass Polls', () => {
 
     describe('POST /asset_pools', () => {
         beforeAll(async () => {
-            const walletClient = await registerWalletClient(user);
-            const walletHeaders = await getAuthHeaders(http2, walletClient, 'openid user email offline_access');
-            const walletAuthCode = await getAuthCode(http2, walletHeaders, walletClient, {
-                email: userEmail,
-                password: userPassword,
-            });
-
             const dashboardClient = await registerDashboardClient(user);
             const dashboardHeaders = await getAuthHeaders(http3, dashboardClient, 'openid dashboard');
             const dashboardAuthCode = await getAuthCode(http3, dashboardHeaders, dashboardClient, {
@@ -76,7 +67,6 @@ describe('Bypass Polls', () => {
                 password: userPassword,
             });
 
-            userAccessToken = await getAccessToken(http2, walletClient, walletAuthCode);
             dashboardAccessToken = await getAccessToken(http3, dashboardClient, dashboardAuthCode);
         });
 
@@ -86,6 +76,7 @@ describe('Bypass Polls', () => {
                 .send({
                     title: poolTitle,
                     aud: adminAudience,
+                    network: 0,
                     token: {
                         address: testToken.address,
                     },
