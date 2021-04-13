@@ -5,6 +5,8 @@ import {
     TESTNET_RPC,
     TESTNET_ASSET_POOL_FACTORY_ADDRESS,
     ASSET_POOL_FACTORY_ADDRESS,
+    RPC_WSS,
+    TESTNET_RPC_WSS,
 } from '../util/secrets';
 import { BigNumber, ContractFactory, ethers, providers, Wallet } from 'ethers';
 import { logger } from '../util/logger';
@@ -29,9 +31,9 @@ export const SolutionArtifact = IDefaultDiamondArtifact;
 export const getProvider = (npid: NetworkProvider) => {
     switch (npid) {
         case NetworkProvider.Test:
-            return new providers.JsonRpcProvider(TESTNET_RPC);
+            return new providers.WebSocketProvider(TESTNET_RPC_WSS);
         case NetworkProvider.Main:
-            return new providers.JsonRpcProvider(RPC);
+            return new providers.WebSocketProvider(RPC_WSS);
     }
 };
 
