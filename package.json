@@ -17,7 +17,7 @@
         "publish": "npm version prerelease; npm run build",
         "lint": "npx tsc --noEmit && npx eslint \"src/**/*.ts\" \"test/**/*.ts\" --quiet --fix",
         "build": "npm run build:sass && npm run build:assets && npm run build:docs && npx tsc",
-        "build:assets": "mkdir -p dist/src/public && cp -R src/public/ dist/src/public/.",
+        "build:assets": "mkdir -p dist/src/public && cp -R src/public/* dist/src/public/.",
         "build:docs": "swagger-jsdoc -d ./src/swaggerDef.js -o ./src/swagger.json",
         "build:sass": "sass src/main.scss src/public/main.css",
         "build:contracts": "npx hardhat compile",
