@@ -17,7 +17,8 @@ services:
         volumes:
             - ./:/usr/src/service
         working_dir: /usr/src/service
-        command: bash -c "npm run build; npm run deploy:factory; npm run watch:debug"
+        command: bash -c "npm run build && npm run deploy:factory && npm run deploy:registry && npm run watch:debug"
+        # command: bash -c "npm run build && npm run watch:debug"
         depends_on:
             - mainnet
             - testnet

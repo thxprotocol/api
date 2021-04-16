@@ -1,8 +1,6 @@
 import { NextFunction, Response } from 'express';
 import {
-    RPC,
     PRIVATE_KEY,
-    TESTNET_RPC,
     TESTNET_ASSET_POOL_FACTORY_ADDRESS,
     ASSET_POOL_FACTORY_ADDRESS,
     RPC_WSS,

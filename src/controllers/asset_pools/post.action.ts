@@ -105,6 +105,7 @@ export const postAssetPool = async (req: HttpRequest, res: Response, next: NextF
     try {
         const token = req.body.token;
         const sub = req.user.sub;
+        const adminAddress = await getAdmin(req.body.network).getAddress();
         const assetPoolFactory = getAssetPoolFactory(req.body.network);
         const tx = await (await assetPoolFactory.deployAssetPool()).wait();
         const event = tx.events.find((e: { event: string }) => e.event === 'AssetPoolDeployed');
@@ -125,8 +126,9 @@ export const postAssetPool = async (req: HttpRequest, res: Response, next: NextF
         await solution.setPoolRegistry(
             req.body.network === NetworkProvider.Test ? TESTNET_POOL_REGISTRY_ADDRESS : POOL_REGISTRY_ADDRESS,
         );
-        await solution.initializeRoles(await getAdmin(req.body.network).getAddress());
-        await solution.initializeGasStation(await getAdmin(req.body.network).getAddress());
+
+        await solution.initializeRoles(adminAddress);
+        await (await solution.initializeGasStation(adminAddress)).wait();
         await solution.setSigning(true);
 
         const assetPool = new AssetPool({
