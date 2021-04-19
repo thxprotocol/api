@@ -127,9 +127,7 @@ export const postAssetPool = async (req: HttpRequest, res: Response, next: NextF
             req.body.network === NetworkProvider.Test ? TESTNET_POOL_REGISTRY_ADDRESS : POOL_REGISTRY_ADDRESS,
         );
 
-        await solution.initializeRoles(adminAddress);
         await (await solution.initializeGasStation(adminAddress)).wait();
-        await solution.setSigning(true);
 
         const assetPool = new AssetPool({
             address: solution.address,
@@ -145,7 +143,7 @@ export const postAssetPool = async (req: HttpRequest, res: Response, next: NextF
         try {
             const tokenAddress = await getTokenAddress(token, assetPool);
 
-            await solution.addToken(tokenAddress);
+            await (await solution.addToken(tokenAddress)).wait();
         } catch (e) {
             return next(new HttpError(502, 'Could not add a token to the asset pool.'));
         }
