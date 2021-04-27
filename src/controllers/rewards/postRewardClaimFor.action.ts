@@ -64,11 +64,10 @@ export const postRewardClaimFor = async (req: HttpRequest, res: Response, next: 
 
                 res.json({ withdrawal });
             } catch (err) {
-                next(new HttpError(500, 'Could not parse the transaction for this reward claim.', err));
-                return;
+                return next(new HttpError(500, 'Could not parse the transaction for this reward claim.', err));
             }
         } catch (err) {
-            next(new HttpError(502, 'Could not claim the reward for this member.', err));
+            return next(new HttpError(502, 'Could not claim the reward for this member.', err));
         }
     } catch (err) {
         next(new HttpError(502, 'Could not find this reward on the network.', err));

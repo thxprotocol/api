@@ -1,6 +1,5 @@
 import { Account, AccountDocument } from '../../models/Account';
 import { Response, NextFunction } from 'express';
-import { ethers } from 'ethers';
 import { HttpError, HttpRequest } from '../../models/Error';
 import { VERSION } from '../../util/secrets';
 import { Error } from 'mongoose';
@@ -12,6 +11,7 @@ export const patchAccount = async (req: HttpRequest, res: Response, next: NextFu
             return;
         }
 
+        account.address = req.body.address || account.address;
         account.memberships = req.body.memberships || account.memberships;
         account.privateKeys = req.body.privateKeys || account.privateKeys;
         account.burnProofs = req.body.burnProofs || account.burnProofs;
