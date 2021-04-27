@@ -4,7 +4,7 @@ module.exports = {
             name: 'api',
             script: 'dist/src/server.js',
             instances: 'max',
-            env_staging: {
+            env_development: {
                 NODE_ENV: 'development',
             },
             env_production: {
