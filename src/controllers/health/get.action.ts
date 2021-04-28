@@ -42,9 +42,9 @@ export const getHealth = async (req: Request, res: Response, next: NextFunction)
             version: version,
             license: license,
             metrics: {
-                accounts: await Account.count({}),
-                rewards: await Reward.count({}),
-                withdrawals: await Withdrawal.count({}),
+                accounts: await Account.countDocuments(),
+                rewards: await Reward.countDocuments(),
+                withdrawals: await Withdrawal.countDocuments(),
             },
             testnet: await getNetworkDetails(NetworkProvider.Test, {
                 factory: TESTNET_ASSET_POOL_FACTORY_ADDRESS,
