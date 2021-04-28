@@ -4,6 +4,7 @@ module.exports = {
             name: 'api',
             script: 'dist/src/server.js',
             instances: 'max',
+            max_memory_restart: '250M',
             env_development: {
                 NODE_ENV: 'development',
             },
