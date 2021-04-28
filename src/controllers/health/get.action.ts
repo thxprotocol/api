@@ -13,6 +13,7 @@ import { getAdmin, getProvider, NetworkProvider } from '../../util/network';
 import { Account } from '../../models/Account';
 import { Withdrawal } from '../../models/Withdrawal';
 import { Reward } from '../../models/Reward';
+import { AssetPool } from '../../models/AssetPool';
 
 async function getNetworkDetails(npid: NetworkProvider, constants: { factory: string; registry: string }) {
     const provider = getProvider(npid);
@@ -43,6 +44,7 @@ export const getHealth = async (req: Request, res: Response, next: NextFunction)
             license: license,
             metrics: {
                 accounts: await Account.countDocuments(),
+                assetpools: await AssetPool.countDocuments(),
                 rewards: await Reward.countDocuments(),
                 withdrawals: await Withdrawal.countDocuments(),
             },
