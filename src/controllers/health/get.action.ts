@@ -10,6 +10,9 @@ import {
 import { VERSION } from '../../util/secrets';
 import { name, version, license } from '../../../package.json';
 import { getAdmin, getProvider, NetworkProvider } from '../../util/network';
+import { Account } from '../../models/Account';
+import { Withdrawal } from '../../models/Withdrawal';
+import { Reward } from '../../models/Reward';
 
 async function getNetworkDetails(npid: NetworkProvider, constants: { factory: string; registry: string }) {
     const provider = getProvider(npid);
@@ -38,6 +41,11 @@ export const getHealth = async (req: Request, res: Response, next: NextFunction)
             name: `${name} (${VERSION})`,
             version: version,
             license: license,
+            metrics: {
+                accounts: await Account.count({}),
+                rewards: await Reward.count({}),
+                withdrawals: await Withdrawal.count({}),
+            },
             testnet: await getNetworkDetails(NetworkProvider.Test, {
                 factory: TESTNET_ASSET_POOL_FACTORY_ADDRESS,
                 registry: TESTNET_POOL_REGISTRY_ADDRESS,
