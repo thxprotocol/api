@@ -1,5 +1,5 @@
 import express from 'express';
-import { validate } from '../../util/validation';
+import { validate, validateAssetPoolHeader } from '../../util/validation';
 import { validations } from './_.validation';
 
 import { getAccount } from './get.action';
@@ -14,13 +14,7 @@ import { postAccount } from './post.action';
 const router = express.Router();
 
 router.get('/', checkScopes(['user', 'dashboard']), getAccount);
-router.get(
-    '/nonce',
-    checkScopes(['user', 'dashboard']),
-    validate(validations.getAccountNonce),
-    parseHeader,
-    getAccountNonce,
-);
+router.get('/nonce', checkScopes(['user', 'dashboard']), validateAssetPoolHeader, parseHeader, getAccountNonce);
 router.patch('/', checkScopes(['user', 'dashboard']), patchAccount);
 router.delete('/', checkScopes(['user', 'dashboard']), deleteAccount);
 router.put('/password', checkScopes(['user', 'dashboard']), validate(validations.putPassword), putPassword);
