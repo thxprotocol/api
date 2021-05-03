@@ -7,15 +7,12 @@ import { oidc, router as oidcRouter } from './oidc';
 import db from './util/database';
 import { requestLogger } from './util/logger';
 import { corsHandler } from './util/cors';
-import { eventIndexer } from './util/indexer';
 import { errorHandler, notFoundHandler } from './util/error';
 import { PORT, VERSION, MONGODB_URI, DASHBOARD_URL, PUBLIC_URL } from './util/secrets';
 
 const app = express();
 
 db.connect(MONGODB_URI);
-
-eventIndexer.start();
 
 app.set('trust proxy', true);
 app.set('view engine', 'ejs');
