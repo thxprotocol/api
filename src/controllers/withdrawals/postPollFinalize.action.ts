@@ -25,10 +25,11 @@ import { NextFunction, Response } from 'express';
  *         description: OK
  *         schema:
  *            type: object
+ *            optional: true
  *            properties:
  *               base64:
  *                  type: string
- *                  description: Base64 string representing function call
+ *                  description: Base64 string representing function call if governance is disabled.
  *       '400':
  *         description: Bad Request. Indicates incorrect body parameters.
  *       '401':
@@ -42,16 +43,22 @@ import { NextFunction, Response } from 'express';
  */
 export const postPollFinalize = async (req: HttpRequest, res: Response, next: NextFunction) => {
     try {
-        const base64 = await qrcode.toDataURL(
-            JSON.stringify({
-                assetPoolAddress: req.solution.address,
-                method: 'withdrawPollFinalize',
-                params: {
-                    id: req.params.id,
-                },
-            }),
-        );
-        res.json({ base64 });
+        if (req.assetPool.bypassPolls) {
+            await req.solution.withdrawPollFinalize(req.params.id);
+
+            res.status(200).end();
+        } else {
+            const base64 = await qrcode.toDataURL(
+                JSON.stringify({
+                    assetPoolAddress: req.solution.address,
+                    method: 'withdrawPollFinalize',
+                    params: {
+                        id: req.params.id,
+                    },
+                }),
+            );
+            res.json({ base64 });
+        }
     } catch (err) {
         next(new HttpError(500, 'Could not encode the QR image properly.', err));
     }

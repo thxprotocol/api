@@ -1481,6 +1481,7 @@
             "description": "OK",
             "schema": {
               "type": "object",
+              "optional": true,
               "properties": {
                 "base64": {
                   "type": "string",
