@@ -1485,7 +1485,7 @@
               "properties": {
                 "base64": {
                   "type": "string",
-                  "description": "Base64 string representing function call"
+                  "description": "Base64 string representing function call if governance is disabled."
                 }
               }
             }

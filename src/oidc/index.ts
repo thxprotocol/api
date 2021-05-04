@@ -4,7 +4,7 @@ import configuration from './config';
 import { AccountDocument } from '../models/Account';
 import { Account } from '../models/Account';
 import { HttpError } from '../models/Error';
-import { DASHBOARD_URL, ENVIRONMENT, ISSUER, SECURE_KEY } from '../util/secrets';
+import { DASHBOARD_URL, ENVIRONMENT, GTM, ISSUER, SECURE_KEY } from '../util/secrets';
 import { decryptString } from '../util/decrypt';
 import { sendMail } from '../util/mail';
 import { createRandomToken, checkSignupToken } from '../util/tokens';
@@ -46,6 +46,7 @@ router.get('/interaction/:uid', async (req: Request, res: Response, next: NextFu
                 params,
                 title: 'Signup',
                 alert: null,
+                gtm: GTM,
             });
         }
 
@@ -56,6 +57,7 @@ router.get('/interaction/:uid', async (req: Request, res: Response, next: NextFu
                     params,
                     title: 'Signup',
                     alert: null,
+                    gtm: GTM,
                 });
                 break;
             }
@@ -65,6 +67,7 @@ router.get('/interaction/:uid', async (req: Request, res: Response, next: NextFu
                     params,
                     title: 'Sign-in',
                     alert: params.signup_token ? await checkSignupToken(params.signup_token) : null,
+                    gtm: GTM,
                 });
                 break;
             }
@@ -102,6 +105,7 @@ router.post(
                     variant: 'danger',
                     message: 'A user for this e-mail already exists.',
                 },
+                gtm: GTM,
             });
         }
 
@@ -113,6 +117,7 @@ router.post(
                     variant: 'danger',
                     message: 'Provided passwords are not identical.',
                 },
+                gtm: GTM,
             });
         }
 
@@ -124,6 +129,7 @@ router.post(
                     variant: 'danger',
                     message: 'Please accept the terms of use and privacy statement.',
                 },
+                gtm: GTM,
             });
         }
 
@@ -152,6 +158,7 @@ router.post(
                         variant: 'success',
                         message: 'Verify your e-mail address by clicking the link we just sent you.',
                     },
+                    gtm: GTM,
                 });
             } catch (err) {
                 return next(new HttpError(502, 'Could not save the account.', err));
@@ -262,6 +269,7 @@ router.post(
                         variant: 'success',
                         message: 'Please verify your account e-mail address. We have re-sent the verification e-mail.',
                     },
+                    gtm: GTM,
                 });
             } else {
                 const result = {

@@ -26,6 +26,7 @@ const required = [
     'PRIVATE_KEY',
     'COLLECTOR',
     'PORT',
+    'GTM',
     'SECURE_KEY',
     'SENDGRID_API_KEY',
 ];
@@ -58,4 +59,5 @@ export const PRIVATE_KEY = process.env.PRIVATE_KEY;
 export const COLLECTOR = process.env.COLLECTOR;
 export const PORT = process.env.PORT;
 export const SECURE_KEY = process.env.SECURE_KEY;
+export const GTM = process.env.GTM;
 export const SENDGRID_API_KEY = process.env.SENDGRID_API_KEY;
