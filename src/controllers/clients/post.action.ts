@@ -13,7 +13,7 @@ export const postClient = async (req: HttpRequest, res: Response, next: NextFunc
                 application_type: 'web',
                 client_name: req.body.title,
                 grant_types: ['client_credentials'],
-                request_uris: [req.body.requestUri],
+                request_uris: [],
                 redirect_uris: [],
                 post_logout_redirect_uris: [],
                 response_types: [],
