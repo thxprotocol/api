@@ -1,6 +1,7 @@
 import ERC20Artifact from '../src/artifacts/@openzeppelin/contracts/token/ERC20/ERC20.sol/ERC20.json';
 import hre from 'hardhat';
 import { formatEther } from 'ethers/lib/utils';
+import { BigNumberish } from 'ethers';
 
 const ethers = hre.ethers;
 
@@ -16,7 +17,7 @@ async function main() {
     const address = await accounts[0].getAddress();
     const token = await tokenContract(ERC20_ADDRESS, accounts[0]);
 
-    let senderBalance, recipientBalance;
+    let senderBalance: BigNumberish, recipientBalance: BigNumberish;
 
     senderBalance = await token.balanceOf(address);
     recipientBalance = await token.balanceOf(RECIPIENT);

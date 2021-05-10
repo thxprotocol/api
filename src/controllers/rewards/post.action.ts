@@ -6,6 +6,7 @@ import IDefaultDiamondArtifact from '../../../src/artifacts/contracts/contracts/
 
 import { parseLogs } from '../../util/events';
 import { parseEther } from 'ethers/lib/utils';
+import { Http } from 'winston/lib/winston/transports';
 /**
  * @swagger
  * /rewards:
@@ -55,24 +56,56 @@ export const postReward = async (req: HttpRequest, res: Response, next: NextFunc
             const logs = await parseLogs(IDefaultDiamondArtifact.abi, tx.logs);
             const event = logs.filter((e: { name: string }) => e && e.name === 'RewardPollCreated')[0];
             const id = parseInt(event.args.rewardID, 10);
+            const pollId = parseInt(event.args.id, 10);
 
-            new Reward({
-                id,
-                poolAddress: req.solution.address,
-                withdrawAmount: req.solution.withdrawAmount,
-                withdrawDuration: req.solution.withdrawDuration,
-                state: 0,
-            }).save(async (err) => {
-                if (err) {
-                    return next(new HttpError(502, 'Reward save failed.', err));
+            try {
+                const reward = new Reward({
+                    id,
+                    poolAddress: req.solution.address,
+                    withdrawAmount: req.solution.withdrawAmount,
+                    withdrawDuration: req.solution.withdrawDuration,
+                    state: 0,
+                });
+
+                await reward.save();
+
+                try {
+                    const duration = parseInt(await req.solution.getRewardPollDuration(), 10);
+
+                    if (req.assetPool.bypassPolls && duration === 0) {
+                        try {
+                            await (await req.solution.rewardPollFinalize(pollId)).wait();
+
+                            try {
+                                const event = logs.filter(
+                                    (e: { name: string }) => e && e.name === 'RewardPollEnabled',
+                                )[0];
+
+                                if (event) {
+                                    reward.state = 1;
+                                    await reward.update();
+                                }
+
+                                res.redirect(`/${VERSION}/rewards/${id}`);
+                            } catch (err) {
+                                return next(new HttpError(500, 'Could not parse the transaction event logs.', err));
+                            }
+                        } catch (e) {
+                            return next(new HttpError(502, 'Could not finalize the reward.'));
+                        }
+                    } else {
+                        res.redirect(`/${VERSION}/rewards/${id}`);
+                    }
+                } catch (e) {
+                    return next(new HttpError(502, 'Could determine if governance is disabled for this reward.', e));
                 }
-
-                res.redirect(`/${VERSION}/rewards/${id}`);
-            });
+            } catch (e) {
+                return next(new HttpError(502, 'Could not store the reward in the database.', e));
+            }
         } catch (err) {
-            return next(new HttpError(502, 'Parse logs failed.', err));
+            return next(new HttpError(500, 'Could not parse the transaction event logs.', err));
         }
     } catch (err) {
-        return next(new HttpError(502, 'Asset Pool addReward failed.', err));
+        return next(new HttpError(502, 'Could not add the reward to the asset pool contract.', err));
     }
 };

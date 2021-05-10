@@ -172,71 +172,6 @@ describe('Happy Flow', () => {
         });
     });
 
-    describe('PATCH /asset_pools/:address', () => {
-        it('HTTP 200', (done) => {
-            user.patch('/v1/asset_pools/' + poolAddress)
-                .set({ AssetPool: poolAddress, Authorization: dashboardAccessToken })
-                .send({
-                    rewardPollDuration: 10,
-                    proposeWithdrawPollDuration: 10,
-                })
-                .end(async (err, res) => {
-                    expect(res.status).toBe(200);
-
-                    done();
-                });
-        });
-
-        it('HTTP 200 updated values', (done) => {
-            user.get('/v1/asset_pools/' + poolAddress)
-                .set({ AssetPool: poolAddress, Authorization: dashboardAccessToken })
-                .end(async (err, res) => {
-                    expect(res.status).toBe(200);
-                    expect(Number(res.body.proposeWithdrawPollDuration)).toEqual(10);
-                    expect(Number(res.body.rewardPollDuration)).toEqual(10);
-
-                    done();
-                });
-        });
-
-        it('HTTP 500 if incorrect rewardPollDuration type (string) sent ', (done) => {
-            user.patch('/v1/asset_pools/' + poolAddress)
-                .set({ AssetPool: poolAddress, Authorization: dashboardAccessToken })
-                .send({
-                    rewardPollDuration: 'fivehundred',
-                })
-                .end(async (err, res) => {
-                    expect(res.status).toBe(400);
-                    done();
-                });
-        });
-
-        it('HTTP 500 if incorrect proposeWithdrawPollDuration type (string) is sent ', (done) => {
-            user.patch('/v1/asset_pools/' + poolAddress)
-                .set({ AssetPool: poolAddress, Authorization: dashboardAccessToken })
-                .send({
-                    proposeWithdrawPollDuration: 'fivehundred',
-                })
-                .end(async (err, res) => {
-                    expect(res.status).toBe(400);
-                    done();
-                });
-        });
-
-        it('HTTP should still have the correct values', (done) => {
-            user.get('/v1/asset_pools/' + poolAddress)
-                .set({ AssetPool: poolAddress, Authorization: dashboardAccessToken })
-                .end(async (err, res) => {
-                    expect(res.status).toBe(200);
-                    expect(res.body.bypassPolls).toEqual(true);
-                    expect(Number(res.body.proposeWithdrawPollDuration)).toEqual(proposeWithdrawPollDuration);
-                    expect(Number(res.body.rewardPollDuration)).toEqual(rewardPollDuration);
-
-                    done();
-                });
-        });
-    });
-
     describe('POST /rewards/', () => {
         let redirectURL = '';
 
@@ -261,9 +196,7 @@ describe('Happy Flow', () => {
                 .end(async (err, res) => {
                     expect(res.status).toBe(200);
                     expect(res.body.id).toEqual(1);
-                    expect(res.body.poll.id).toEqual(1);
-                    expect(res.body.poll.withdrawDuration).toEqual(rewardWithdrawDuration);
-                    expect(res.body.poll.withdrawAmount).toEqual(rewardWithdrawAmount);
+                    expect(res.body.poll).toBeUndefined();
 
                     done();
                 });
@@ -339,43 +272,6 @@ describe('Happy Flow', () => {
         });
     });
 
-    describe('POST /rewards/:id/poll/finalize (rewardPoll)', () => {
-        beforeAll(async () => {
-            await timeTravel(rewardPollDuration);
-        });
-
-        it('HTTP 200 reward.id = 1', (done) => {
-            user.get('/v1/rewards/1')
-                .set({ AssetPool: poolAddress, Authorization: userAccessToken })
-                .end(async (err, res) => {
-                    expect(res.status).toBe(200);
-                    expect(res.body.state).toEqual(0);
-                    expect(res.body.poll.withdrawAmount).toEqual(rewardWithdrawAmount);
-
-                    done();
-                });
-        });
-
-        it('HTTP 302 after finalizing the poll', async (done) => {
-            user.post('/v1/rewards/1/poll/finalize')
-                .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
-                .end(async (err, res) => {
-                    expect(res.status).toBe(200);
-                    done();
-                });
-        });
-
-        it('HTTP 200 reward.pollId = 0', (done) => {
-            user.get('/v1/rewards/1')
-                .set({ AssetPool: poolAddress, Authorization: userAccessToken })
-                .end(async (err, res) => {
-                    expect(res.status).toBe(200);
-                    expect(res.body.poll).toBeUndefined();
-                    done();
-                });
-        });
-    });
-
     describe('GET /rewards/:id (after finalizing)', () => {
         it('HTTP 200 and return updated withdrawAmount and state 1', (done) => {
             user.get('/v1/rewards/1')
@@ -384,6 +280,7 @@ describe('Happy Flow', () => {
                     expect(res.status).toBe(200);
                     expect(res.body.state).toEqual(1);
                     expect(res.body.withdrawAmount).toEqual(rewardWithdrawAmount);
+                    expect(res.body.poll).toBeUndefined();
 
                     done();
                 });
