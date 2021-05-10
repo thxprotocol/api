@@ -243,6 +243,28 @@ describe('Bypass Polls', () => {
         });
     });
 
+    describe('PATCH /rewards/2', () => {
+        it('HTTP 200 response OK', (done) => {
+            user.patch('/v1/rewards/2')
+                .set({
+                    AssetPool: poolAddress,
+                    Authorization: adminAccessToken,
+                })
+                .send({
+                    withdrawAmount: rewardWithdrawAmount * 2,
+                    withdrawDuration: rewardWithdrawDuration,
+                })
+                .end((err, res) => {
+                    expect(res.status).toBe(200);
+                    expect(res.body.state).toBe(1);
+                    expect(res.body.withdrawAmount).toBe(rewardWithdrawAmount * 2);
+                    expect(res.body.poll).toBeUndefined();
+
+                    done();
+                });
+        });
+    });
+
     describe('PATCH /asset_pools/:address (bypassPolls = false)', () => {
         it('HTTP 302 redirect to pool', (done) => {
             user.patch('/v1/asset_pools/' + poolAddress)
