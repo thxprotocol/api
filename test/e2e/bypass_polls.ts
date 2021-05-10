@@ -217,8 +217,9 @@ describe('Bypass Polls', () => {
                 .end((err, res) => {
                     expect(res.status).toBe(200);
                     expect(res.body.state).toBe(1);
-                    expect(res.body.withdrawAmount).toBe(0);
-                    expect(res.body.poll.withdrawAmount).toBe(rewardWithdrawAmount);
+                    expect(res.body.withdrawAmount).toBe(rewardWithdrawAmount);
+                    expect(res.body.withdrawDuration).toBe(rewardWithdrawDuration);
+                    expect(res.body.poll).toBeUndefined();
 
                     done();
                 });
