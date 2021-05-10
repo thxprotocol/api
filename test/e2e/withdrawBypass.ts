@@ -175,22 +175,10 @@ describe('Voting', () => {
                 .end(async (err, res) => {
                     expect(res.status).toBe(200);
                     expect(res.body.id).toEqual(1);
-
-                    rewardID = res.body.id;
-
-                    done();
-                });
-        });
-    });
-
-    describe('POST /rewards/:id/poll/finalize (rewardPoll)', () => {
-        it('HTTP 200 after finalizing the poll', async (done) => {
-            user.post(`/v1/rewards/${rewardID}/poll/finalize`)
-                .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
-                .end(async (err, res) => {
-                    expect(res.status).toBe(200);
                     expect(res.body.state).toBe(1);
                     expect(res.body.poll).toBeUndefined();
+
+                    rewardID = res.body.id;
 
                     done();
                 });
