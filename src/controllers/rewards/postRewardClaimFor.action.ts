@@ -3,6 +3,10 @@ import { HttpError, HttpRequest } from '../../models/Error';
 import { parseLogs } from '../../util/events';
 import { BigNumber } from 'ethers';
 import { SolutionArtifact } from '../../util/network';
+import { formatEther } from 'ethers/lib/utils';
+import { Withdrawal } from '../../models/Withdrawal';
+import { WithdrawalState } from '../../models/Withdrawal';
+import IDefaultDiamondArtifact from '../../../src/artifacts/contracts/contracts/IDefaultDiamond.sol/IDefaultDiamond.json';
 
 /**
  * @swagger
@@ -60,16 +64,74 @@ export const postRewardClaimFor = async (req: HttpRequest, res: Response, next: 
             try {
                 const logs = await parseLogs(SolutionArtifact.abi, tx.logs);
                 const event = logs.filter((e: { name: string }) => e && e.name === 'WithdrawPollCreated')[0];
-                const withdrawal = BigNumber.from(event.args.id).toNumber();
+                const withdrawalId = BigNumber.from(event.args.id).toNumber();
 
-                res.json({ withdrawal });
-            } catch (err) {
-                return next(new HttpError(500, 'Could not parse the transaction for this reward claim.', err));
+                try {
+                    console.log('start with');
+
+                    const withdrawal = new Withdrawal({
+                        id: withdrawalId,
+                        amount: Number(formatEther(await req.solution.getAmount(withdrawalId))),
+                        poolAddress: req.solution.address,
+                        beneficiary: await req.solution.getAddressByMember(event.args.member),
+                        approved: await req.solution.withdrawPollApprovalState(withdrawalId),
+                        state: WithdrawalState.Pending,
+                        poll: {
+                            startTime: (await req.solution.getStartTime(withdrawalId)).toNumber(),
+                            endTime: (await req.solution.getEndTime(withdrawalId)).toNumber(),
+                            yesCounter: 0,
+                            noCounter: 0,
+                            totalVoted: 0,
+                        },
+                    });
+
+                    await withdrawal.save();
+
+                    try {
+                        const duration = (await req.solution.getWithdrawDuration(withdrawalId)).toNumber();
+
+                        if (req.assetPool.bypassPolls && duration === 0) {
+                            try {
+                                const tx = await (await req.solution.withdrawPollFinalize(withdrawalId)).wait();
+
+                                try {
+                                    const logs = await parseLogs(IDefaultDiamondArtifact.abi, tx.logs);
+                                    const event = logs.filter((e: { name: string }) => e && e.name === 'Withdrawn')[0];
+
+                                    if (event) {
+                                        withdrawal.state = WithdrawalState.Withdrawn;
+                                        await withdrawal.save();
+                                    }
+
+                                    res.json(withdrawal);
+                                } catch (e) {
+                                    return next(
+                                        new HttpError(
+                                            500,
+                                            'Could not parse the transaction event logs for the finalize call.',
+                                            e,
+                                        ),
+                                    );
+                                }
+                            } catch (e) {
+                                return next(new HttpError(502, 'Could not finalize the withdraw poll.'));
+                            }
+                        }
+                    } catch (e) {
+                        return next(
+                            new HttpError(502, 'Could determine if governance is disabled for this withdrawal.', e),
+                        );
+                    }
+                } catch (e) {
+                    return next(new HttpError(502, 'Could not store the withdrawal in the database.', e));
+                }
+            } catch (e) {
+                return next(new HttpError(500, 'Could not parse the transaction for this reward claim.', e));
             }
-        } catch (err) {
-            return next(new HttpError(502, 'Could not claim the reward for this member.', err));
+        } catch (e) {
+            return next(new HttpError(502, 'Could not claim the reward for this member.', e));
         }
-    } catch (err) {
-        next(new HttpError(502, 'Could not find this reward on the network.', err));
+    } catch (e) {
+        next(new HttpError(502, 'Could not find this reward on the network.', e));
     }
 };

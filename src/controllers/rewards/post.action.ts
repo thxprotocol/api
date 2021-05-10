@@ -6,7 +6,7 @@ import IDefaultDiamondArtifact from '../../../src/artifacts/contracts/contracts/
 
 import { parseLogs } from '../../util/events';
 import { parseEther } from 'ethers/lib/utils';
-import { Http } from 'winston/lib/winston/transports';
+
 /**
  * @swagger
  * /rewards:
@@ -70,20 +70,21 @@ export const postReward = async (req: HttpRequest, res: Response, next: NextFunc
                 await reward.save();
 
                 try {
-                    const duration = parseInt(await req.solution.getRewardPollDuration(), 10);
+                    const duration = (await req.solution.getRewardPollDuration()).toNumber();
 
                     if (req.assetPool.bypassPolls && duration === 0) {
                         try {
-                            await (await req.solution.rewardPollFinalize(pollId)).wait();
+                            const tx = await (await req.solution.rewardPollFinalize(pollId)).wait();
 
                             try {
+                                const logs = await parseLogs(IDefaultDiamondArtifact.abi, tx.logs);
                                 const event = logs.filter(
                                     (e: { name: string }) => e && e.name === 'RewardPollEnabled',
                                 )[0];
 
                                 if (event) {
                                     reward.state = 1;
-                                    await reward.update();
+                                    await reward.save();
                                 }
 
                                 res.redirect(`/${VERSION}/rewards/${id}`);
