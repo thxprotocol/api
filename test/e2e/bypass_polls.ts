@@ -244,6 +244,23 @@ describe('Bypass Polls', () => {
     });
 
     describe('PATCH /rewards/2', () => {
+        it('HTTP 400 if values are identical to current values', (done) => {
+            user.patch('/v1/rewards/2')
+                .set({
+                    AssetPool: poolAddress,
+                    Authorization: adminAccessToken,
+                })
+                .send({
+                    withdrawAmount: rewardWithdrawAmount,
+                    withdrawDuration: rewardWithdrawDuration,
+                })
+                .end((err, res) => {
+                    expect(res.status).toBe(400);
+
+                    done();
+                });
+        });
+
         it('HTTP 200 response OK', (done) => {
             user.patch('/v1/rewards/2')
                 .set({
@@ -252,7 +269,6 @@ describe('Bypass Polls', () => {
                 })
                 .send({
                     withdrawAmount: rewardWithdrawAmount * 2,
-                    withdrawDuration: rewardWithdrawDuration,
                 })
                 .end((err, res) => {
                     expect(res.status).toBe(200);
