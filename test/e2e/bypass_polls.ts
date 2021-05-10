@@ -216,27 +216,9 @@ describe('Bypass Polls', () => {
                 })
                 .end((err, res) => {
                     expect(res.status).toBe(200);
-                    expect(res.body.state).toBe(0);
+                    expect(res.body.state).toBe(1);
                     expect(res.body.withdrawAmount).toBe(0);
                     expect(res.body.poll.withdrawAmount).toBe(rewardWithdrawAmount);
-
-                    done();
-                });
-        });
-    });
-
-    describe('POST /rewards/2/finalize (bypass enabled)', () => {
-        it('HTTP 200 response OK', (done) => {
-            user.post('/v1/rewards/2/poll/finalize')
-                .set({
-                    AssetPool: poolAddress,
-                    Authorization: adminAccessToken,
-                })
-                .end((err, res) => {
-                    expect(res.status).toBe(200);
-                    expect(res.body.state).toBe(1);
-                    expect(res.body.withdrawAmount).toBe(rewardWithdrawAmount);
-                    expect(res.body.poll).toBeUndefined();
 
                     done();
                 });
