@@ -69,33 +69,41 @@ export const postReward = async (req: HttpRequest, res: Response, next: NextFunc
 
                 await reward.save();
 
-                if (req.assetPool.bypassPolls) {
-                    try {
-                        await (await req.solution.rewardPollFinalize(pollId)).wait();
+                try {
+                    const duration = parseInt(await req.solution.getRewardPollDuration(), 10);
 
+                    if (req.assetPool.bypassPolls && duration === 0) {
                         try {
-                            const event = logs.filter((e: { name: string }) => e && e.name === 'RewardPollEnabled')[0];
+                            await (await req.solution.rewardPollFinalize(pollId)).wait();
 
-                            if (event) {
-                                reward.state = 1;
-                                await reward.update();
+                            try {
+                                const event = logs.filter(
+                                    (e: { name: string }) => e && e.name === 'RewardPollEnabled',
+                                )[0];
+
+                                if (event) {
+                                    reward.state = 1;
+                                    await reward.update();
+                                }
+
+                                res.redirect(`/${VERSION}/rewards/${id}`);
+                            } catch (err) {
+                                return next(new HttpError(500, 'Could not parse the transaction event logs.', err));
                             }
-
-                            res.redirect(`/${VERSION}/rewards/${id}`);
-                        } catch (err) {
-                            return next(new HttpError(502, 'Could not parse the transaction event logs.', err));
+                        } catch (e) {
+                            return next(new HttpError(502, 'Could not finalize the reward.'));
                         }
-                    } catch (e) {
-                        return next(new HttpError(502, 'Could not finalize the reward.'));
+                    } else {
+                        res.redirect(`/${VERSION}/rewards/${id}`);
                     }
-                } else {
-                    res.redirect(`/${VERSION}/rewards/${id}`);
+                } catch (e) {
+                    return next(new HttpError(502, 'Could determine if governance is disabled for this reward.', e));
                 }
             } catch (e) {
                 return next(new HttpError(502, 'Could not store the reward in the database.', e));
             }
         } catch (err) {
-            return next(new HttpError(502, 'Could not parse the transaction event logs.', err));
+            return next(new HttpError(500, 'Could not parse the transaction event logs.', err));
         }
     } catch (err) {
         return next(new HttpError(502, 'Could not add the reward to the asset pool contract.', err));

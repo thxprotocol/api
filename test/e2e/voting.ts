@@ -146,16 +146,65 @@ describe('Voting', () => {
     });
 
     describe('PATCH /asset_pools/:address', () => {
-        it('HTTP 302 ', (done) => {
+        it('HTTP 200', (done) => {
             user.patch('/v1/asset_pools/' + poolAddress)
                 .set({ AssetPool: poolAddress, Authorization: dashboardAccessToken })
                 .send({
-                    bypassPolls: false,
                     rewardPollDuration: 10,
                     proposeWithdrawPollDuration: 10,
                 })
                 .end(async (err, res) => {
                     expect(res.status).toBe(200);
+
+                    done();
+                });
+        });
+
+        it('HTTP 200 updated values', (done) => {
+            user.get('/v1/asset_pools/' + poolAddress)
+                .set({ AssetPool: poolAddress, Authorization: dashboardAccessToken })
+                .end(async (err, res) => {
+                    expect(res.status).toBe(200);
+                    expect(Number(res.body.proposeWithdrawPollDuration)).toEqual(10);
+                    expect(Number(res.body.rewardPollDuration)).toEqual(10);
+
+                    done();
+                });
+        });
+
+        it('HTTP 500 if incorrect rewardPollDuration type (string) sent ', (done) => {
+            user.patch('/v1/asset_pools/' + poolAddress)
+                .set({ AssetPool: poolAddress, Authorization: dashboardAccessToken })
+                .send({
+                    rewardPollDuration: 'fivehundred',
+                })
+                .end(async (err, res) => {
+                    expect(res.status).toBe(400);
+                    done();
+                });
+        });
+
+        it('HTTP 500 if incorrect proposeWithdrawPollDuration type (string) is sent ', (done) => {
+            user.patch('/v1/asset_pools/' + poolAddress)
+                .set({ AssetPool: poolAddress, Authorization: dashboardAccessToken })
+                .send({
+                    proposeWithdrawPollDuration: 'fivehundred',
+                })
+                .end(async (err, res) => {
+                    expect(res.status).toBe(400);
+                    done();
+                });
+        });
+
+        it('HTTP should still have the correct values', (done) => {
+            user.get('/v1/asset_pools/' + poolAddress)
+                .set({ AssetPool: poolAddress, Authorization: dashboardAccessToken })
+                .end(async (err, res) => {
+                    expect(res.status).toBe(200);
+                    expect(res.body.bypassPolls).toEqual(false);
+                    expect(Number(res.body.proposeWithdrawPollDuration)).toEqual(proposeWithdrawPollDuration);
+                    expect(Number(res.body.rewardPollDuration)).toEqual(rewardPollDuration);
+
                     done();
                 });
         });
