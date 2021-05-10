@@ -59,12 +59,24 @@ export const patchReward = async (req: HttpRequest, res: Response, next: NextFun
     try {
         let { withdrawAmount, withdrawDuration } = await req.solution.getReward(req.params.id);
 
+        withdrawAmount = Number(formatEther(withdrawAmount.toString()));
+        withdrawDuration = withdrawDuration.toNumber();
+
+        if (
+            req.body.withdrawAmount &&
+            withdrawAmount === req.body.withdrawAmount &&
+            req.body.withdrawDuration &&
+            withdrawDuration === req.body.withdrawDuration
+        ) {
+            return next(new HttpError(400, 'Could not update values since they are identical to the current values.'));
+        }
+
         if (req.body.withdrawAmount && withdrawAmount !== req.body.withdrawAmount) {
             withdrawAmount = parseEther(req.body.withdrawAmount.toString());
         }
 
         if (req.body.withdrawDuration && withdrawDuration !== req.body.withdrawDuration) {
-            withdrawDuration = req.body.withdrawDuration;
+            withdrawDuration = req.body.withdrawDuration.toNumber();
         }
 
         try {
