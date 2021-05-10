@@ -25,7 +25,6 @@ describe('Voting', () => {
         dashboardAccessToken: string,
         poolAddress: string,
         rewardID: string,
-        withdrawalID: number,
         userAddress: string,
         userWallet: Wallet;
 
@@ -100,8 +99,8 @@ describe('Voting', () => {
                     aud: adminAudience,
                     network: 0,
                     token: {
-                        name: 'SparkBlue Token',
-                        symbol: 'SPARK',
+                        name: 'Test Token',
+                        symbol: 'TEST',
                         totalSupply: 0,
                     },
                 })
@@ -186,45 +185,7 @@ describe('Voting', () => {
     });
 
     describe('POST /rewards/:id/give', () => {
-        it('HTTP 200 after giving a reward', async (done) => {
-            user.post(`/v1/rewards/${rewardID}/give`)
-                .send({
-                    member: userWallet.address,
-                })
-                .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
-                .end(async (err, res) => {
-                    expect(res.status).toBe(200);
-                    expect(res.body.withdrawal).toBe(2);
-
-                    withdrawalID = res.body.withdrawal;
-
-                    done();
-                });
-        });
-    });
-
-    describe('GET /withdrawals?member=:address', () => {
-        it('... pause 1s to index events', async () => {
-            await new Promise((res) => setTimeout(res, 1000));
-            expect(true).toBe(true);
-        });
-
-        it('HTTP 200 and return a list of 1 item', async (done) => {
-            user.get(`/v1/withdrawals?member=${userWallet.address}`)
-                .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
-                .end(async (err, res) => {
-                    expect(res.status).toBe(200);
-                    expect(res.body.length).toBe(1);
-
-                    withdrawalID = res.body[0].id;
-
-                    done();
-                });
-        });
-    });
-
-    describe('POST /withdrawals/:id/withdraw', () => {
-        it('HTTP 200 and 0 balance', (done) => {
+        it('HTTP 200 and member with 0 balance', (done) => {
             user.get('/v1/members/' + userWallet.address)
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
                 .end(async (err, res) => {
@@ -235,21 +196,36 @@ describe('Voting', () => {
                 });
         });
 
-        it('HTTP 200 withdrawal withdraw OK', async (done) => {
-            user.post(`/v1/withdrawals/${withdrawalID}/withdraw`)
+        it('HTTP 200 after giving a reward', async (done) => {
+            user.post(`/v1/rewards/${rewardID}/give`)
+                .send({
+                    member: userWallet.address,
+                })
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
                 .end(async (err, res) => {
                     expect(res.status).toBe(200);
+                    expect(res.body.id).toBe(2);
+                    expect(res.body.state).toBe(1);
 
                     done();
                 });
         });
+    });
 
-        it('... pause 1s to index events', async () => {
-            await new Promise((res) => setTimeout(res, 1000));
-            expect(true).toBe(true);
+    describe('GET /withdrawals?member=:address', () => {
+        it('HTTP 200 and return a list of 1 item', async (done) => {
+            user.get(`/v1/withdrawals?member=${userWallet.address}`)
+                .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
+                .end(async (err, res) => {
+                    expect(res.status).toBe(200);
+                    expect(res.body.length).toBe(1);
+
+                    done();
+                });
         });
+    });
 
+    describe('GET /members/:address', () => {
         it('HTTP 200 and increased balance', (done) => {
             user.get('/v1/members/' + userWallet.address)
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })

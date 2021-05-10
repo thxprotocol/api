@@ -4,14 +4,9 @@ import { AssetPool, AssetPoolDocument } from '../models/AssetPool';
 import { BigNumber, providers, utils } from 'ethers/lib';
 import { parseArgs, parseLog } from './events';
 import { Withdrawal, WithdrawalState } from '../models/Withdrawal';
-import { formatEther } from 'ethers/lib/utils';
 import { TESTNET_RPC_WSS, RPC_WSS } from './secrets';
 
 const events = [
-    {
-        topics: [utils.id('WithdrawPollCreated(uint256,uint256)')],
-        callback: 'onWithdrawPollCreated',
-    },
     {
         topics: [utils.id('WithdrawPollFinalized(uint256,bool')],
         callback: 'onWithdrawPollFinalized',
@@ -44,10 +39,10 @@ class EventIndexer {
                 }
                 logger.info('EventIndexer started.');
             } catch (e) {
-                logger.error('EventIndexer start() failed.');
+                logger.error('EventIndexer start() failed.', e);
             }
         } catch (e) {
-            logger.error('EventIndexer AssetPool.find() failed.');
+            logger.error('EventIndexer AssetPool.find() failed.', e);
         }
     }
 
@@ -62,7 +57,7 @@ class EventIndexer {
                 }
             }
         } catch (e) {
-            logger.info('EventIndexer stop() failed.');
+            logger.info('EventIndexer stop() failed.', e);
         }
     }
 
@@ -74,7 +69,7 @@ class EventIndexer {
                         address,
                         topics: event.topics,
                     },
-                    (log: any) => {
+                    async (log: any) => {
                         try {
                             const ev = parseLog(SolutionArtifact.abi, log);
                             const args = parseArgs(ev);
@@ -85,15 +80,15 @@ class EventIndexer {
                                 }`,
                             );
 
-                            (this as any)[event.callback](npid, address, args);
+                            await (this as any)[event.callback](npid, address, args);
                         } catch (e) {
-                            logger.error('EventIndexer event.callback() failed.');
+                            logger.error('EventIndexer event.callback() failed.', e);
                         }
                     },
                 );
             }
         } catch (e) {
-            logger.error('EventIndexer addListener() failed.');
+            logger.error('EventIndexer addListener() failed.', e);
         }
     }
 
@@ -108,7 +103,7 @@ class EventIndexer {
                 });
             }
         } catch (e) {
-            logger.error('EventIndexer removeListener() failed.');
+            logger.error('EventIndexer removeListener() failed.', e);
         }
     }
 
@@ -129,7 +124,7 @@ class EventIndexer {
 
             await withdrawal.save();
         } catch (e) {
-            logger.error('EventIndexer.onWithdrawPollVoted() failed.');
+            logger.error('EventIndexer.onWithdrawPollVoted() failed.', e);
         }
     }
 
@@ -151,40 +146,7 @@ class EventIndexer {
 
             await withdrawal.save();
         } catch (e) {
-            logger.error('EventIndexer.onWithdrawPollRevokedVote() failed.');
-        }
-    }
-
-    async onWithdrawPollCreated(npid: NetworkProvider, address: string, args: any) {
-        try {
-            const id = BigNumber.from(args.id).toNumber();
-            const existingWithdrawal = await Withdrawal.findOne({ id, poolAddress: address });
-
-            if (existingWithdrawal) {
-                return;
-            }
-
-            const solution = solutionContract(npid, address);
-            const amount = Number(formatEther(await solution.getAmount(id)));
-            const withdrawal = new Withdrawal({
-                id,
-                amount,
-                poolAddress: solution.address,
-                beneficiary: await solution.getAddressByMember(args.member),
-                approved: await solution.withdrawPollApprovalState(id),
-                state: WithdrawalState.Pending,
-                poll: {
-                    startTime: (await solution.getStartTime(id)).toNumber(),
-                    endTime: (await solution.getEndTime(id)).toNumber(),
-                    yesCounter: 0,
-                    noCounter: 0,
-                    totalVoted: 0,
-                },
-            });
-
-            await withdrawal.save();
-        } catch (e) {
-            logger.error('EventIndexer.onWithdrawPollCreated() failed.');
+            logger.error('EventIndexer.onWithdrawPollRevokedVote() failed.', e);
         }
     }
 
@@ -197,7 +159,7 @@ class EventIndexer {
 
             await withdrawal.save();
         } catch (e) {
-            logger.error('EventIndexer.onWithdrawn() failed.');
+            logger.error('EventIndexer.onWithdrawn() failed.', e);
         }
     }
 
@@ -210,7 +172,7 @@ class EventIndexer {
 
             await withdrawal.save();
         } catch (e) {
-            logger.error('EventIndexer.onWithdrawPollFinalized() failed.');
+            logger.error('EventIndexer.onWithdrawPollFinalized() failed.', e);
         }
     }
 }
