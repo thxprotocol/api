@@ -57,5 +57,5 @@ const formatMorgan = json({
 export const logger = instance;
 export const requestLogger = morgan(formatMorgan, {
     skip: (req: Request) => req.baseUrl && req.baseUrl.startsWith(`/${VERSION}/ping`),
-    stream: { write: (message: string) => instance.info(message) },
+    stream: { write: (message: string) => instance.info(JSON.parse(message)) },
 });
