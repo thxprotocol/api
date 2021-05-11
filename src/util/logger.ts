@@ -1,18 +1,19 @@
 import morgan from 'morgan';
+import json from 'morgan-json';
 import winston from 'winston';
 import { Request } from 'express';
 import { ENVIRONMENT, VERSION } from './secrets';
 
-const format = winston.format.combine(
-    winston.format.timestamp(),
-    winston.format.colorize({ all: true }),
-    winston.format.splat(),
-    winston.format.printf((info) => `${info.timestamp} [${info.level}]: ${info.message}`),
+const formatWinston = winston.format.combine(
+    winston.format.timestamp({
+        format: 'YYYY-MM-DD HH:mm:ss',
+    }),
+    winston.format.json(),
 );
 
 const instance = winston.createLogger({
     level: 'info',
-    format,
+    format: formatWinston,
     transports: [
         new winston.transports.File({ filename: 'logs/error.log', level: 'error' }),
         new winston.transports.File({ filename: 'logs/combined.log' }),
@@ -24,13 +25,23 @@ if (ENVIRONMENT !== 'production' && ENVIRONMENT !== 'development') {
     instance.debug('Logging initialized at debug level');
 }
 
+morgan.token('timestamp', function getTimestamp() {
+    return new Date().toISOString().replace('T', ' ').substr(0, 19);
+});
+
+const formatMorgan = json({
+    'method': ':method',
+    'url': ':url',
+    'status': ':status',
+    'timestamp': ':timestamp',
+    'ip': ':remote-addr',
+    'bytes': ':res[content-length]',
+    'ms': ':response-time',
+    'user': 'remote-user',
+    'user-agent': ':user-agent',
+});
+
 export const logger = instance;
-export const requestLogger = morgan(
-    ':remote-addr - :remote-user ":method :url HTTP/:http-version" :status :res[content-length] ":referrer" ":user-agent"',
-    {
-        skip: (req: Request) => (req.baseUrl && req.baseUrl.startsWith(`/${VERSION}/ping`)) || ENVIRONMENT === '2test',
-        stream: {
-            write: (message: string) => instance.info(message.substring(0, message.lastIndexOf('\n'))),
-        },
-    },
-);
+export const requestLogger = morgan(formatMorgan, {
+    skip: (req: Request) => req.baseUrl && req.baseUrl.startsWith(`/${VERSION}/ping`),
+});
