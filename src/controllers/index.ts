@@ -1,5 +1,6 @@
 import express from 'express';
 import healthRouter from './health/_.routing';
+import metricsRouter from './metrics/_.routing';
 import docsRouter from './docs/_.routing';
 import accountRouter from './account/_.routing';
 import clientsRouter from './clients/_.routing';
@@ -18,6 +19,7 @@ router.use('/health', healthRouter);
 router.use('/docs', docsRouter);
 router.use(checkJwt);
 router.use('/', authRouter);
+router.use('/metrics', metricsRouter);
 router.use('/account', accountRouter);
 router.use('/clients', clientsRouter);
 router.use('/gas_station', gasStationRouter);

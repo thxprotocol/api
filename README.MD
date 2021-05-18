@@ -95,6 +95,23 @@ npm run deploy:factory
 npm run deploy:token
 ```
 
+## 6. Fixture DB
+
+Make sure you have `mongo-development-tools` installed with brew. See mongo documentation installation steps.
+
+```
+# Export local db
+mongoexport --uri="mongodb://root:root@localhost:27017/admin" --collection="client" --out="./db/client.json"
+mongoexport --uri="mongodb://root:root@localhost:27017/admin" --collection="accounts" --out="./db/accounts.json"
+mongoexport --uri="mongodb://root:root@localhost:27017/admin" --collection="registration_access_token" --out="./db/registration_access_token.json"
+
+# Import local db
+mongoimport --uri="mongodb://root:root@localhost:27017/admin" --collection="client" --file="./db/client.json"
+mongoimport --uri="mongodb://root:root@localhost:27017/admin" --collection="accounts" --file="./db/accounts.json"
+mongoimport --uri="mongodb://root:root@localhost:27017/admin" --collection="registration_access_token" --file="./db/registration_access_token.json"
+
+```
+
 ## 6. Register clients
 
 ### 6.1 client_credentials example
@@ -103,7 +120,7 @@ npm run deploy:token
 POST http://localhost:3000/reg
 {
     "application_type": "web",
-    "client_name": "SparkBlue",
+    "client_name": "Your App",
     "grant_types": ["client_credentials"],
     "redirect_uris": [],
     "response_types": [],
@@ -121,7 +138,8 @@ POST http://localhost:3000/reg
     "grant_types": ["authorization_code"],
     "redirect_uris": ["https://dev.wallet.thx.network/signin-oidc"],
     "post_logout_redirect_uris": ["https://dev.wallet.thx.network"],
-    "response_types": ["code"]
+    "response_types": ["code"],
+    "scope": "openid user email offline_access"
 }
 ```
 
