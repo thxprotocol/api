@@ -12,18 +12,18 @@ export const getClient = async (req: HttpRequest, res: Response, next: NextFunct
             return next(new HttpError(500, 'Could not find this registration_access_token.'));
         }
 
-        const client = await Client.findById(rat.payload.clientId);
+        const client = await Client.findById(rat.payload['clientId']);
 
         if (!client) {
             return next(new HttpError(500, 'Could not find a client for this registration_access_token.'));
         }
-        const assetPools = await AssetPool.find({ aud: client.payload.client_id });
+        const assetPools = await AssetPool.find({ aud: client.payload['client_id'] });
 
         res.json({
-            name: client.payload.client_name,
-            requestUris: client.payload.request_uris,
-            clientId: client.payload.client_id,
-            clientSecret: client.payload.client_secret,
+            name: client.payload['client_name'],
+            requestUris: client.payload['request_uris'],
+            clientId: client.payload['client_id'],
+            clientSecret: client.payload['client_secret'],
             registrationAccessToken: req.params.rat,
             assetPools: assetPools.map((p: AssetPoolDocument) => p.address),
         });

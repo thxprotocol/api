@@ -206,7 +206,7 @@ class EventIndexer {
             const id = BigNumber.from(args.id).toNumber();
             const withdrawal = await Withdrawal.findOne({ id, poolAddress: address });
 
-            withdrawal.poll = {};
+            withdrawal.poll = null;
 
             await withdrawal.save();
         } catch (e) {

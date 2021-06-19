@@ -2,13 +2,19 @@ import mongoose from 'mongoose';
 
 export type RatDocument = mongoose.Document & {
     _id: string;
-    payload: object;
+    payload: {
+        jti: string;
+        clientId: string;
+    };
 };
 
 const ratSchema = new mongoose.Schema(
     {
         _id: String,
-        payload: Object,
+        payload: {
+            jti: String,
+            clientId: String,
+        },
     },
     { timestamps: false },
 );

@@ -18,7 +18,7 @@ export type WithdrawalDocument = mongoose.Document & {
         yesCounter: number;
         noCounter: number;
         totalVoted: number;
-    };
+    } | null;
 };
 
 const withdrawalSchema = new mongoose.Schema(

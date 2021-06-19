@@ -61,7 +61,7 @@ export const postSignup = async (req: HttpRequest, res: Response, next: NextFunc
     });
 
     try {
-        if (req.solution && (await req.solution.isMember(address))) {
+        if (req.solution && !(await req.solution.isMember(address))) {
             await (await req.solution.addMember(address)).wait();
         }
     } catch (err) {

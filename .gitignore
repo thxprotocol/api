@@ -46,3 +46,4 @@ cache
 src/jwks.json
 src/artifacts/**/*.dbg.json
 src/artifacts/build-info
+scripts/local

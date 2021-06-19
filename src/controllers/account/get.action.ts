@@ -5,10 +5,9 @@ import { HttpError, HttpRequest } from '../../models/Error';
 export const getAccount = async (req: HttpRequest, res: Response, next: NextFunction) => {
     const sub = req.user.sub;
 
-    Account.findById(sub, (err: Error, account: AccountDocument) => {
-        if (err) {
-            return next(new HttpError(502, 'Account find failed', err));
-        }
+    try {
+        const account: AccountDocument = await Account.findById(sub);
+
         if (account) {
             res.send({
                 address: account.address,
@@ -18,5 +17,7 @@ export const getAccount = async (req: HttpRequest, res: Response, next: NextFunc
                 registrationAccessTokens: account.registrationAccessTokens,
             });
         }
-    });
+    } catch (e) {
+        next(new HttpError(502, 'Account find failed', e));
+    }
 };
