@@ -4,8 +4,6 @@ import {
     PRIVATE_KEY,
     TESTNET_ASSET_POOL_FACTORY_ADDRESS,
     ASSET_POOL_FACTORY_ADDRESS,
-    RPC_WSS,
-    TESTNET_RPC_WSS,
     TESTNET_RPC,
     RPC,
 } from '../util/secrets';
@@ -94,15 +92,28 @@ export async function callFunction(fn: any, npid: NetworkProvider) {
 }
 
 export async function sendTransaction(fn: any, npid: NetworkProvider) {
-    const gasPrice = await getGasPrice(npid);
-    const from = getAdmin(npid).address;
-    const gas = await fn.estimateGas();
+    const MINIMUM_GAS_LIMIT = 54680;
 
-    return await fn.send({
-        gas,
-        from,
-        gasPrice,
-    });
+    const web3 = getProvider(npid);
+    const from = getAdmin(npid).address;
+    const gasPrice = await getGasPrice(npid);
+
+    const data = fn.encodeABI(from);
+    const estimate = await fn.estimateGas();
+    const gas = estimate < MINIMUM_GAS_LIMIT ? MINIMUM_GAS_LIMIT : estimate;
+    const nonce = await web3.eth.getTransactionCount(from);
+    const sig = await web3.eth.accounts.signTransaction(
+        {
+            nonce,
+            gasPrice,
+            gas,
+            from,
+            data,
+        },
+        PRIVATE_KEY,
+    );
+
+    return await web3.eth.sendSignedTransaction(sig.rawTransaction);
 }
 
 export function getSelectors(contract: Contract) {
