@@ -325,7 +325,7 @@ describe('Happy Flow', () => {
         });
 
         it('... pause 1s to index events', async () => {
-            await new Promise((res) => setTimeout(res, 1000));
+            await new Promise((res) => setTimeout(res, 3000));
             expect(true).toBe(true);
         });
 
@@ -367,7 +367,7 @@ describe('Happy Flow', () => {
 
     describe('GET /withdrawals/:id', () => {
         it('... pause 1s to index events', async () => {
-            await new Promise((res) => setTimeout(res, 1000));
+            await new Promise((res) => setTimeout(res, 3000));
             expect(true).toBe(true);
         });
 

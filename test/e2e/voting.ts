@@ -329,7 +329,7 @@ describe('Voting', () => {
 
     describe('GET /withdrawals?member=:address', () => {
         it('... pause 1s to index events', async () => {
-            await new Promise((res) => setTimeout(res, 1000));
+            await new Promise((res) => setTimeout(res, 3000));
             expect(true).toBe(true);
         });
 
@@ -384,7 +384,7 @@ describe('Voting', () => {
         });
 
         it('... pause 1s to index events', async () => {
-            await new Promise((res) => setTimeout(res, 1000));
+            await new Promise((res) => setTimeout(res, 3000));
             expect(true).toBe(true);
         });
 
