@@ -20,10 +20,10 @@ beforeAll(async () => {
 
     await MongoAdapter.connect();
 
-    const factoryAddress = await deployAssetPoolFactory(NetworkProvider.Test);
-    console.log('Factory: ', factoryAddress);
-    const registryAddress = await deployPoolRegistry(NetworkProvider.Test);
-    console.log('Registry: ', registryAddress);
+    // const factoryAddress = await deployAssetPoolFactory(NetworkProvider.Test);
+    // console.log('Factory: ', factoryAddress);
+    // const registryAddress = await deployPoolRegistry(NetworkProvider.Test);
+    // console.log('Registry: ', registryAddress);
 });
 
 afterAll(async () => {
@@ -31,6 +31,7 @@ afterAll(async () => {
     await mongoose.disconnect();
 });
 
+require('./dummy.ts');
 // require('./api.ts');
 // require('./oidc_admin.ts');
 // require('./voting.ts');
