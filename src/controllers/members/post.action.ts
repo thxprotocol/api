@@ -1,9 +1,8 @@
 import { NextFunction, Response } from 'express';
 import { HttpRequest, HttpError } from '../../models/Error';
 import { VERSION } from '../../util/secrets';
-import { parseLogs } from '../../util/events';
 import { Account } from '../../models/Account';
-import IDefaultDiamondArtifact from '../../../src/artifacts/contracts/contracts/IDefaultDiamond.sol/IDefaultDiamond.json';
+import { callFunction, sendTransaction } from '../../util/network';
 
 export async function updateMemberProfile(address: string, poolAddress: string) {
     try {
@@ -63,22 +62,21 @@ export async function updateMemberProfile(address: string, poolAddress: string) 
  */
 export const postMember = async (req: HttpRequest, res: Response, next: NextFunction) => {
     try {
-        const result = await req.solution.isMember(req.body.address);
+        const result = await callFunction(req.solution.methods.isMember(req.body.address), req.assetPool.network);
 
         if (result) {
-            await updateMemberProfile(req.body.address, req.solution.address);
+            await updateMemberProfile(req.body.address, req.solution.options.address);
             return next(new HttpError(400, 'Address is member already.'));
         }
 
         try {
-            const tx = await (await req.solution.addMember(req.body.address)).wait();
+            const tx = await sendTransaction(req.solution.methods.addMember(req.body.address), req.assetPool.network);
 
             try {
-                const events = await parseLogs(IDefaultDiamondArtifact.abi, tx.logs);
-                const event = events.filter((e: { name: string }) => e && e.name === 'RoleGranted')[0];
-                const address = event.args.account;
+                const event = tx.events.RoleGranted;
+                const address = event.returnValues.account;
 
-                await updateMemberProfile(req.body.address, req.solution.address);
+                await updateMemberProfile(req.body.address, req.solution.options.address);
 
                 res.redirect(`/${VERSION}/members/${address}`);
             } catch (err) {

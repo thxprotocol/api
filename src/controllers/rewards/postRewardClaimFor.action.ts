@@ -1,8 +1,6 @@
 import { Response, NextFunction } from 'express';
 import { HttpError, HttpRequest } from '../../models/Error';
-import { parseLogs } from '../../util/events';
-import { BigNumber } from 'ethers';
-import { SolutionArtifact } from '../../util/network';
+import { callFunction, sendTransaction } from '../../util/network';
 
 /**
  * @swagger
@@ -48,19 +46,21 @@ import { SolutionArtifact } from '../../util/network';
  */
 export const postRewardClaimFor = async (req: HttpRequest, res: Response, next: NextFunction) => {
     try {
-        const result = await req.solution.getReward(req.params.id);
+        const result = await callFunction(req.solution.methods.getReward(req.params.id), req.assetPool.network);
 
         if (!result) {
             throw new Error(result);
         }
 
         try {
-            const tx = await (await req.solution.claimRewardFor(req.params.id, req.body.member)).wait();
+            const tx = await sendTransaction(
+                req.solution.methods.claimRewardFor(req.params.id, req.body.member),
+                req.assetPool.network,
+            );
 
             try {
-                const logs = await parseLogs(SolutionArtifact.abi, tx.logs);
-                const event = logs.filter((e: { name: string }) => e && e.name === 'WithdrawPollCreated')[0];
-                const withdrawal = BigNumber.from(event.args.id).toNumber();
+                const event = tx.events.WithdrawPollCreated;
+                const withdrawal = Number(event.returnValues.id);
 
                 res.json({ withdrawal });
             } catch (err) {

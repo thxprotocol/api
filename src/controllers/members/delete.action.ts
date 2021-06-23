@@ -36,13 +36,17 @@ import { HttpError, HttpRequest } from '../../models/Error';
  */
 export const deleteMember = async (req: HttpRequest, res: Response, next: NextFunction) => {
     try {
-        await req.solution.removeMember(req.params.address);
+        const isMember = await req.solution.methods.isMember(req.params.address).call();
+
+        if (isMember) {
+            await req.solution.methods.removeMember(req.params.address).send();
+        }
 
         try {
             const account = await Account.findOne({ address: req.params.address });
 
             if (account && account.memberships) {
-                const index = account.memberships.indexOf(req.solution.address);
+                const index = account.memberships.indexOf(req.solution.options.address);
 
                 if (index > -1) {
                     account.memberships.splice(index, 1);

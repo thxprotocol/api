@@ -1,6 +1,7 @@
 import qrcode from 'qrcode';
 import { HttpError, HttpRequest } from '../../models/Error';
 import { NextFunction, Response } from 'express';
+import { sendTransaction } from '../../util/network';
 
 /**
  * @swagger
@@ -44,13 +45,13 @@ import { NextFunction, Response } from 'express';
 export const postPollFinalize = async (req: HttpRequest, res: Response, next: NextFunction) => {
     try {
         if (req.assetPool.bypassPolls) {
-            await req.solution.withdrawPollFinalize(req.params.id);
+            await sendTransaction(req.solution.methods.withdrawPollFinalize(req.params.id), req.assetPool.network);
 
             res.status(200).end();
         } else {
             const base64 = await qrcode.toDataURL(
                 JSON.stringify({
-                    assetPoolAddress: req.solution.address,
+                    assetPoolAddress: req.solution.options.address,
                     method: 'withdrawPollFinalize',
                     params: {
                         id: req.params.id,

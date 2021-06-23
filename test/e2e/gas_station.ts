@@ -1,16 +1,14 @@
 import request from 'supertest';
 import server from '../../src/server';
-import { getAdmin, NetworkProvider } from '../../src/util/network';
+import { NetworkProvider, sendTransaction } from '../../src/util/network';
 import db from '../../src/util/database';
-import { voter, timeTravel, signMethod } from './lib/network';
-import { exampleTokenFactory } from './lib/network';
+import { voter, timeTravel, signMethod, deployExampleToken } from './lib/network';
 import {
     poolTitle,
     rewardPollDuration,
     proposeWithdrawPollDuration,
     rewardWithdrawAmount,
     rewardWithdrawDuration,
-    mintAmount,
     userEmail,
     userPassword,
 } from './lib/constants';
@@ -23,32 +21,30 @@ import {
     registerWalletClient,
 } from './lib/registerClient';
 import { solutionContract } from '../../src/util/network';
-import { parseEther } from 'ethers/lib/utils';
+import { toWei } from 'web3-utils';
+import { Contract } from 'web3-eth-contract';
 
 const user = request(server);
 const http2 = request.agent(server);
 const http3 = request.agent(server);
 
 describe('Gas Station', () => {
-    let poolAddress: any,
+    let poolAddress: string,
         adminAccessToken: string,
         adminAudience: string,
         dashboardAccessToken: string,
         userAccessToken: string,
-        testToken: any;
+        testToken: Contract;
 
     beforeAll(async () => {
         await db.truncate();
 
         const credentials = await registerClientCredentialsClient(user);
-        const admin = getAdmin(NetworkProvider.Test);
 
         adminAccessToken = credentials.accessToken;
         adminAudience = credentials.aud;
 
-        testToken = await exampleTokenFactory.deploy(admin.address, mintAmount);
-
-        await testToken.deployed();
+        testToken = await deployExampleToken();
 
         // Create an account
         await user.post('/v1/signup').set({ Authorization: adminAccessToken }).send({
@@ -84,7 +80,7 @@ describe('Gas Station', () => {
                 aud: adminAudience,
                 network: 0,
                 token: {
-                    address: testToken.address,
+                    address: testToken.options.address,
                 },
             });
 
@@ -92,10 +88,13 @@ describe('Gas Station', () => {
 
         // Transfer some tokens to the pool rewardWithdrawAmount tokens for the pool
         const assetPool = solutionContract(NetworkProvider.Test, poolAddress);
-        const amount = parseEther(rewardWithdrawAmount.toString());
+        const amount = toWei(rewardWithdrawAmount.toString());
 
-        await testToken.approve(poolAddress, parseEther(rewardWithdrawAmount.toString()));
-        await assetPool.deposit(amount);
+        await sendTransaction(
+            testToken.methods.approve(poolAddress, toWei(rewardWithdrawAmount.toString())),
+            NetworkProvider.Test,
+        );
+        await sendTransaction(assetPool.methods.deposit(amount), NetworkProvider.Test);
 
         // Configure the default poll durations
         await user
@@ -124,7 +123,7 @@ describe('Gas Station', () => {
             const { body, status } = await user
                 .get('/v1/rewards/1')
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken });
-
+            expect(status).toBe(200);
             expect(body.state).toBe(0);
             done();
         });

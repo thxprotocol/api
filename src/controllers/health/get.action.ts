@@ -1,4 +1,3 @@
-import { ethers } from 'ethers';
 import { Response, Request, NextFunction } from 'express';
 import { HttpError } from '../../models/Error';
 import {
@@ -10,24 +9,25 @@ import {
 import { VERSION } from '../../util/secrets';
 import { name, version, license } from '../../../package.json';
 import { getAdmin, getProvider, NetworkProvider } from '../../util/network';
+import { fromWei } from 'web3-utils';
 
 async function getNetworkDetails(npid: NetworkProvider, constants: { factory: string; registry: string }) {
     const provider = getProvider(npid);
-    const address = await getAdmin(npid).getAddress();
-    const balance = await provider.getBalance(address);
+    const address = getAdmin(npid).address;
+    const balance = await provider.eth.getBalance(address);
 
     return {
         admin: {
             address,
-            balance: ethers.utils.formatEther(balance),
+            balance: fromWei(balance, 'ether'),
         },
         factory: {
             address: constants.factory,
-            deployed: (await provider.getCode(constants.factory)) !== '0x',
+            deployed: (await provider.eth.getCode(constants.factory)) !== '0x',
         },
         registry: {
             address: constants.registry,
-            deployed: (await provider.getCode(constants.registry)) !== '0x',
+            deployed: (await provider.eth.getCode(constants.registry)) !== '0x',
         },
     };
 }

@@ -1,6 +1,7 @@
 import { HttpError, HttpRequest } from '../../models/Error';
 import { NextFunction, Response } from 'express';
 import { getRewardData } from './getReward.action';
+import { callFunction, sendTransaction } from '../../util/network';
 
 /**
  * @swagger
@@ -42,12 +43,12 @@ import { getRewardData } from './getReward.action';
  */
 export const postPollFinalize = async (req: HttpRequest, res: Response, next: NextFunction) => {
     try {
-        const { pollId } = await req.solution.getReward(req.params.id);
+        const { pollId } = await callFunction(req.solution.methods.getReward(req.params.id), req.assetPool.network);
 
-        await (await req.solution.rewardPollFinalize(pollId)).wait();
+        await sendTransaction(req.solution.methods.rewardPollFinalize(pollId), req.assetPool.network);
 
         try {
-            const reward = await getRewardData(req.solution, Number(req.params.id));
+            const reward = await getRewardData(req.solution, Number(req.params.id), req.assetPool.network);
 
             if (!reward) {
                 return next(new HttpError(404, 'No reward found for this ID.'));

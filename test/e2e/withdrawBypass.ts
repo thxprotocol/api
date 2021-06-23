@@ -3,7 +3,7 @@ import server from '../../src/server';
 import db from '../../src/util/database';
 import { getProvider, NetworkProvider } from '../../src/util/network';
 import { poolTitle, rewardWithdrawAmount, rewardWithdrawDuration, userEmail, userPassword } from './lib/constants';
-import { ethers, Wallet } from 'ethers';
+import { ethers } from 'ethers';
 import {
     getAccessToken,
     getAuthCode,
@@ -13,6 +13,7 @@ import {
     registerClientCredentialsClient,
 } from './lib/registerClient';
 import { decryptString } from '../../src/util/decrypt';
+import { Account } from 'web3-core';
 
 const user = request(server);
 const http2 = request.agent(server);
@@ -27,7 +28,7 @@ describe('Voting', () => {
         rewardID: string,
         withdrawalID: number,
         userAddress: string,
-        userWallet: Wallet;
+        userWallet: Account;
 
     beforeAll(async () => {
         await db.truncate();
@@ -84,7 +85,8 @@ describe('Voting', () => {
                     expect(res.body.privateKey).toBeTruthy();
 
                     const pKey = decryptString(res.body.privateKey, userPassword);
-                    userWallet = new ethers.Wallet(pKey, getProvider(NetworkProvider.Test));
+                    const web3 = getProvider(NetworkProvider.Test);
+                    userWallet = web3.eth.accounts.privateKeyToAccount(pKey);
 
                     done();
                 });

@@ -2,11 +2,9 @@ import { Response, NextFunction } from 'express';
 import { Reward } from '../../models/Reward';
 import { HttpError, HttpRequest } from '../../models/Error';
 import { VERSION } from '../../util/secrets';
-import IDefaultDiamondArtifact from '../../../src/artifacts/contracts/contracts/IDefaultDiamond.sol/IDefaultDiamond.json';
-
-import { parseLogs } from '../../util/events';
 import { parseEther } from 'ethers/lib/utils';
-import { Http } from 'winston/lib/winston/transports';
+import { callFunction, sendTransaction } from '../../util/network';
+import { toWei } from 'web3-utils';
 /**
  * @swagger
  * /rewards:
@@ -49,41 +47,52 @@ import { Http } from 'winston/lib/winston/transports';
  */
 export const postReward = async (req: HttpRequest, res: Response, next: NextFunction) => {
     try {
-        const withdrawAmount = parseEther(req.body.withdrawAmount.toString());
-        const tx = await (await req.solution.addReward(withdrawAmount, req.body.withdrawDuration)).wait();
+        const withdrawAmount = toWei(req.body.withdrawAmount.toString());
+        const tx = await sendTransaction(
+            req.solution.methods.addReward(withdrawAmount, req.body.withdrawDuration),
+            req.assetPool.network,
+        );
 
         try {
-            const logs = await parseLogs(IDefaultDiamondArtifact.abi, tx.logs);
-            const event = logs.filter((e: { name: string }) => e && e.name === 'RewardPollCreated')[0];
-            const id = parseInt(event.args.rewardID, 10);
-            const pollId = parseInt(event.args.id, 10);
+            const event = tx.events.RewardPollCreated;
+            const id = Number(event.returnValues.rewardID);
+            const pollId = Number(event.returnValues.id);
 
             try {
                 const reward = new Reward({
                     id,
-                    poolAddress: req.solution.address,
-                    withdrawAmount: req.solution.withdrawAmount,
-                    withdrawDuration: req.solution.withdrawDuration,
+                    poolAddress: req.solution.options.address,
+                    withdrawAmount: await callFunction(
+                        req.solution.methods.getWithdrawAmount(id),
+                        req.assetPool.network,
+                    ),
+                    withdrawDuration: await callFunction(
+                        req.solution.methods.getWithdrawDuration(id),
+                        req.assetPool.network,
+                    ),
                     state: 0,
                 });
 
                 await reward.save();
 
                 try {
-                    const duration = parseInt(await req.solution.getRewardPollDuration(), 10);
+                    const duration = Number(
+                        await callFunction(req.solution.methods.getRewardPollDuration(), req.assetPool.network),
+                    );
 
                     if (req.assetPool.bypassPolls && duration === 0) {
                         try {
-                            await (await req.solution.rewardPollFinalize(pollId)).wait();
+                            const tx = await sendTransaction(
+                                req.solution.methods.rewardPollFinalize(pollId),
+                                req.assetPool.network,
+                            );
 
                             try {
-                                const event = logs.filter(
-                                    (e: { name: string }) => e && e.name === 'RewardPollEnabled',
-                                )[0];
+                                const event = tx.events.RewardPollEnabled;
 
                                 if (event) {
                                     reward.state = 1;
-                                    await reward.update();
+                                    await reward.save();
                                 }
 
                                 res.redirect(`/${VERSION}/rewards/${id}`);

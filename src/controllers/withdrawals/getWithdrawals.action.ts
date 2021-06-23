@@ -72,7 +72,7 @@ export const getWithdrawals = async (req: HttpRequest, res: Response, next: Next
     try {
         const withdrawals = await Withdrawal.find({
             beneficiary: req.query.member as string,
-            poolAddress: req.solution.address,
+            poolAddress: req.solution.options.address,
         });
 
         res.json(

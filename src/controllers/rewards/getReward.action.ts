@@ -2,29 +2,34 @@ import { Response, NextFunction } from 'express';
 import { RewardDocument } from '../../models/Reward';
 import { HttpError, HttpRequest } from '../../models/Error';
 import { formatEther } from 'ethers/lib/utils';
-import { Contract } from '@ethersproject/contracts';
+import { Contract } from 'web3-eth-contract';
+import { callFunction, NetworkProvider } from '../../util/network';
 
-export async function getRewardData(solution: Contract, rewardID: number) {
+export async function getRewardData(solution: Contract, rewardID: number, npid: NetworkProvider) {
     try {
-        const { id, withdrawAmount, withdrawDuration, pollId, state } = await solution.getReward(rewardID);
-        const pid = pollId.toNumber();
+        const { id, withdrawAmount, withdrawDuration, pollId, state } = await callFunction(
+            solution.methods.getReward(rewardID),
+            npid,
+        );
         const reward = {
-            id: id.toNumber(),
+            id: Number(id),
             withdrawAmount: Number(formatEther(withdrawAmount)),
-            withdrawDuration: withdrawDuration.toNumber(),
-            state,
+            withdrawDuration: Number(withdrawDuration),
+            state: Number(state),
         } as RewardDocument;
 
-        if (pid) {
+        if (Number(pollId) > 0) {
             reward.poll = {
-                id: pid,
-                withdrawAmount: Number(formatEther(await solution.getWithdrawAmount(pollId))),
-                withdrawDuration: (await solution.getWithdrawDuration(pollId)).toNumber(),
-                startTime: (await solution.getStartTime(pollId)).toNumber(),
-                endTime: (await solution.getEndTime(pollId)).toNumber(),
-                yesCounter: (await solution.getYesCounter(pollId)).toNumber(),
-                noCounter: (await solution.getNoCounter(pollId)).toNumber(),
-                totalVoted: (await solution.getTotalVoted(pollId)).toNumber(),
+                id: Number(pollId),
+                withdrawAmount: Number(
+                    formatEther(await callFunction(solution.methods.getWithdrawAmount(pollId), npid)),
+                ),
+                withdrawDuration: Number(await callFunction(solution.methods.getWithdrawDuration(pollId), npid)),
+                startTime: Number(await callFunction(solution.methods.getStartTime(pollId), npid)),
+                endTime: Number(await callFunction(solution.methods.getEndTime(pollId), npid)),
+                yesCounter: Number(await callFunction(solution.methods.getYesCounter(pollId), npid)),
+                noCounter: Number(await callFunction(solution.methods.getNoCounter(pollId), npid)),
+                totalVoted: Number(await callFunction(solution.methods.getTotalVoted(pollId), npid)),
             };
         }
         return reward;
@@ -100,7 +105,7 @@ export async function getRewardData(solution: Contract, rewardID: number) {
  */
 export const getReward = async (req: HttpRequest, res: Response, next: NextFunction) => {
     try {
-        const reward = await getRewardData(req.solution, Number(req.params.id));
+        const reward = await getRewardData(req.solution, Number(req.params.id), req.assetPool.network);
 
         if (!reward) {
             return next(new HttpError(404, 'Asset Pool reward not found.'));

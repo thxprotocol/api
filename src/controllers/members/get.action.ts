@@ -1,9 +1,9 @@
 import { NextFunction, Response } from 'express';
-import { getProvider, tokenContract } from '../../util/network';
+import { callFunction, getAdmin, getProvider, SolutionArtifact, tokenContract } from '../../util/network';
 import { HttpError, HttpRequest } from '../../models/Error';
-import { parseLogs } from '../../util/events';
-import IDefaultDiamondArtifact from '../../artifacts/contracts/contracts/IDefaultDiamond.sol/IDefaultDiamond.json';
 import { formatEther } from 'ethers/lib/utils';
+import { parseLogs } from '../../util/events';
+import { VERSION } from '../../util/secrets';
 
 /**
  * @swagger
@@ -66,37 +66,40 @@ import { formatEther } from 'ethers/lib/utils';
  */
 export const getMember = async (req: HttpRequest, res: Response, next: NextFunction) => {
     try {
-        let address = req.params.address;
-        const isMember = await req.solution.isMember(address);
+        const address = req.params.address;
+        const isMember = await callFunction(req.solution.methods.isMember(address), req.assetPool.network);
 
         if (!isMember) {
-            const filter = req.solution.filters.MemberAddressChanged(null, req.params.address, null);
-            const provider = getProvider(req.assetPool.network);
-            const logs = await provider.getLogs(filter);
-            const events = await parseLogs(IDefaultDiamondArtifact.abi, logs);
+            // const filter = req.solution.events.MemberAddressChanged(null, address, null);
+            // const provider = getProvider(req.assetPool.network);
+            // const logs = await provider.eth.getPastLogs(filter);
+            // const events = parseLogs(SolutionArtifact.abi, logs);
 
-            if (!events.length) {
-                return next(new HttpError(404, 'Address is not a member.'));
-            }
+            // if (!events.length) {
+            return next(new HttpError(404, 'Address is not a member.'));
+            // }
 
-            address = events[events.length - 1].args.newAddress;
+            // const newAddress = events[events.length - 1].returnValues.newAddress;
+
+            // return res.redirect(`/${VERSION}/members/${newAddress}`);
+        } else {
+            const tokenAddress = await callFunction(req.solution.methods.getToken(), req.assetPool.network);
+            const tokenInstance = tokenContract(req.assetPool.network, tokenAddress);
+            const balance = await callFunction(tokenInstance.methods.balanceOf(address), req.assetPool.network);
+
+            res.json({
+                address,
+                isMember,
+                isManager: await callFunction(req.solution.methods.isManager(address), req.assetPool.network),
+                balance: {
+                    name: await callFunction(tokenInstance.methods.name(), req.assetPool.network),
+                    symbol: await callFunction(tokenInstance.methods.symbol(), req.assetPool.network),
+                    amount: Number(formatEther(balance)),
+                },
+            });
         }
-
-        const tokenAddress = await req.solution.getToken();
-        const tokenInstance = tokenContract(req.assetPool.network, tokenAddress);
-        const balance = await tokenInstance.balanceOf(req.params.address);
-
-        res.json({
-            address,
-            isMember,
-            isManager: await req.solution.isManager(req.params.address),
-            balance: {
-                name: await tokenInstance.name(),
-                symbol: await tokenInstance.symbol(),
-                amount: Number(formatEther(balance)),
-            },
-        });
     } catch (err) {
-        next(new HttpError(502, 'Asset Pool get member failed.', err));
+        return next(new HttpError(502, 'Asset Pool get member failed.', err));
     }
 };
+//

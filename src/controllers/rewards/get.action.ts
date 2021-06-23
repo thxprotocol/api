@@ -68,7 +68,7 @@ export const getRewards = async (req: HttpRequest, res: Response, next: NextFunc
             let i = 1;
             while (i >= 1) {
                 try {
-                    const reward = await getRewardData(req.solution, i);
+                    const reward = await getRewardData(req.solution, i, req.assetPool.network);
                     if (reward) {
                         rewards.push(reward);
                         i++;

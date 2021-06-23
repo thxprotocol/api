@@ -1,18 +1,12 @@
 import dotenv from 'dotenv';
-import { ethers } from 'ethers/lib';
-import { deployPoolRegistry } from '../src/util/factory';
+import { NetworkProvider } from '../src/util/network';
+import { deployPoolRegistry } from './lib/registry';
 
 dotenv.config();
 
 async function main() {
-    const testnetProvider = new ethers.providers.WebSocketProvider(process.env.TESTNET_RPC_WSS);
-    const testnetSigner = new ethers.Wallet(process.env.PRIVATE_KEY, testnetProvider);
-
-    const provider = new ethers.providers.WebSocketProvider(process.env.RPC_WSS);
-    const signer = new ethers.Wallet(process.env.PRIVATE_KEY, provider);
-
-    console.log('[Test Network] Asset Pool Registry:', await deployPoolRegistry(testnetSigner));
-    console.log('[Main Network] Asset Pool Registry:', await deployPoolRegistry(signer));
+    console.log('[Test Network] Asset Pool Registry:', await deployPoolRegistry(NetworkProvider.Test));
+    console.log('[Main Network] Asset Pool Registry:', await deployPoolRegistry(NetworkProvider.Main));
 }
 
 main()

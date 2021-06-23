@@ -72,7 +72,10 @@ import { Withdrawal } from '../../models/Withdrawal';
  */
 export const getWithdrawal = async (req: HttpRequest, res: Response, next: NextFunction) => {
     try {
-        const withdrawal = await Withdrawal.findOne({ id: Number(req.params.id), poolAddress: req.solution.address });
+        const withdrawal = await Withdrawal.findOne({
+            id: Number(req.params.id),
+            poolAddress: req.solution.options.address,
+        });
 
         if (!withdrawal) {
             return next(new HttpError(404, 'Could not find a withdrawal for this ID.'));

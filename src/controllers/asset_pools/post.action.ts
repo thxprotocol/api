@@ -1,12 +1,13 @@
 import {
     logTransaction,
     solutionContract,
-    getUnlimitedSupplyERC20Factory,
-    getLimitedSupplyERC20Factory,
+    deployUnlimitedSupplyERC20Contract,
+    deployLimitedSupplyERC20Contract,
     getAssetPoolFactory,
     getProvider,
     getAdmin,
     NetworkProvider,
+    sendTransaction,
 } from '../../util/network';
 import { AssetPool, AssetPoolDocument } from '../../models/AssetPool';
 import { Response, NextFunction } from 'express';
@@ -14,13 +15,13 @@ import { HttpError, HttpRequest } from '../../models/Error';
 import { Error } from 'mongoose';
 import { eventIndexer } from '../../util/indexer';
 import { parseEther } from 'ethers/lib/utils';
-import { POOL_REGISTRY_ADDRESS, TESTNET_POOL_REGISTRY_ADDRESS } from '../../util/secrets';
+import { POOL_REGISTRY_ADDRESS, SENDGRID_API_KEY, TESTNET_POOL_REGISTRY_ADDRESS } from '../../util/secrets';
 import { Account } from '../../models/Account';
 
 async function getTokenAddress(token: any, assetPool: AssetPoolDocument) {
     if (token.address) {
         const provider = getProvider(assetPool.network);
-        const code = await provider.getCode(token.address);
+        const code = await provider.eth.getCode(token.address);
 
         if (code === '0x') {
             return new Error(`No data found at ERC20 address ${token.address}`);
@@ -28,19 +29,23 @@ async function getTokenAddress(token: any, assetPool: AssetPoolDocument) {
 
         return token.address;
     } else if (token.name && token.symbol && Number(token.totalSupply) > 0) {
-        const factory = getLimitedSupplyERC20Factory(assetPool.network);
-        const tokenInstance = await factory.deploy(
+        const tokenInstance = await deployLimitedSupplyERC20Contract(
+            assetPool.network,
             token.name,
             token.symbol,
             assetPool.address,
             parseEther(token.totalSupply),
         );
-        return tokenInstance.address;
+        return tokenInstance.options.address;
     } else if (token.name && token.symbol && Number(token.totalSupply) === 0) {
-        const factory = getUnlimitedSupplyERC20Factory(assetPool.network);
-        const tokenInstance = await factory.deploy(token.name, token.symbol, assetPool.address);
+        const tokenInstance = await deployUnlimitedSupplyERC20Contract(
+            assetPool.network,
+            token.name,
+            token.symbol,
+            assetPool.address,
+        );
 
-        return tokenInstance.address;
+        return tokenInstance.options.address;
     }
 }
 
@@ -105,10 +110,10 @@ export const postAssetPool = async (req: HttpRequest, res: Response, next: NextF
     try {
         const token = req.body.token;
         const sub = req.user.sub;
-        const adminAddress = await getAdmin(req.body.network).getAddress();
+        const adminAddress = getAdmin(req.body.network).address;
         const assetPoolFactory = getAssetPoolFactory(req.body.network);
-        const tx = await (await assetPoolFactory.deployAssetPool()).wait();
-        const event = tx.events.find((e: { event: string }) => e.event === 'AssetPoolDeployed');
+        const tx = await sendTransaction(assetPoolFactory.methods.deployAssetPool(), req.body.network);
+        const event = tx.events.AssetPoolDeployed;
 
         logTransaction(tx);
 
@@ -121,16 +126,19 @@ export const postAssetPool = async (req: HttpRequest, res: Response, next: NextF
             );
         }
 
-        const solution = solutionContract(req.body.network, event.args.assetPool);
+        const solution = solutionContract(req.body.network, event.returnValues.assetPool);
 
-        await solution.setPoolRegistry(
-            req.body.network === NetworkProvider.Test ? TESTNET_POOL_REGISTRY_ADDRESS : POOL_REGISTRY_ADDRESS,
+        await sendTransaction(
+            solution.methods.setPoolRegistry(
+                req.body.network === NetworkProvider.Test ? TESTNET_POOL_REGISTRY_ADDRESS : POOL_REGISTRY_ADDRESS,
+            ),
+            req.body.network,
         );
 
-        await (await solution.initializeGasStation(adminAddress)).wait();
+        await sendTransaction(solution.methods.initializeGasStation(adminAddress), req.body.network);
 
         const assetPool = new AssetPool({
-            address: solution.address,
+            address: solution.options.address,
             title: req.body.title,
             sub,
             aud: req.body.aud,
@@ -143,7 +151,7 @@ export const postAssetPool = async (req: HttpRequest, res: Response, next: NextF
         try {
             const tokenAddress = await getTokenAddress(token, assetPool);
 
-            await (await solution.addToken(tokenAddress)).wait();
+            await sendTransaction(solution.methods.addToken(tokenAddress), req.body.network);
         } catch (e) {
             return next(new HttpError(502, 'Could not add a token to the asset pool.'));
         }
@@ -154,16 +162,16 @@ export const postAssetPool = async (req: HttpRequest, res: Response, next: NextF
             const account = await Account.findById(sub);
 
             if (account.memberships) {
-                account.memberships.push(solution.address);
+                account.memberships.push(solution.options.address);
             } else {
-                account.memberships = [solution.address];
+                account.memberships = [solution.options.address];
             }
 
             await account.save();
 
-            eventIndexer.addListener(assetPool.network, solution.address);
+            eventIndexer.addListener(assetPool.network, solution.options.address);
 
-            res.status(201).json({ address: solution.address });
+            res.status(201).json({ address: solution.options.address });
         } catch (error) {
             return next(new HttpError(502, 'Could not store the asset pool and account data.', error));
         }

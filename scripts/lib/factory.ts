@@ -1,6 +1,3 @@
-import { COLLECTOR } from './secrets';
-import { Contract, ethers, utils, Wallet } from 'ethers/lib';
-
 import AccessControlArtifact from '../../src/artifacts/contracts/contracts/01-AccessControl/AccessControl.sol/AccessControl.json';
 import MemberAccessArtifact from '../../src/artifacts/contracts/contracts/03-MemberAccess/MemberAccess.sol/MemberAccess.json';
 import TokenArtifact from '../../src/artifacts/contracts/contracts/04-Token/Token.sol/Token.json';
@@ -24,9 +21,16 @@ import DiamondArtifact from '../../src/artifacts/diamond-2/contracts/Diamond.sol
 import AssetPoolFactoryFacetArtifact from '../../src/artifacts/contracts/contracts/AssetPoolFactory/AssetPoolFactoryFacet.sol/AssetPoolFactoryFacet.json';
 import IAssetPoolFactory from '../../src/artifacts/contracts/contracts/AssetPoolFactory/IAssetPoolFactory.sol/IAssetPoolFactory.json';
 
-import PoolRegistryArtifact from '../../src/artifacts/contracts/contracts/PoolRegistry.sol/PoolRegistry.json';
+import {
+    deployContract,
+    getProvider,
+    getAdmin,
+    NetworkProvider,
+    getSelectors,
+    sendTransaction,
+} from '../../src/util/network';
 
-async function deployFacets(signer: Wallet) {
+async function deployFacets(npid: NetworkProvider) {
     const artifacts = [
         AccessControlArtifact,
         MemberAccessArtifact,
@@ -47,10 +51,7 @@ async function deployFacets(signer: Wallet) {
     const facets = [];
 
     for (let i = 0; i < artifacts.length; i++) {
-        const factory = new ethers.ContractFactory(artifacts[i].abi, artifacts[i].bytecode, signer);
-        const facet = await factory.deploy();
-
-        await facet.deployTransaction.wait();
+        const facet = await deployContract(artifacts[i].abi, artifacts[i].bytecode, [], npid);
 
         facets.push(facet);
     }
@@ -58,50 +59,22 @@ async function deployFacets(signer: Wallet) {
     return facets;
 }
 
-export function getSelectors(contract: Contract) {
-    const signatures = [];
-    for (const key of Object.keys(contract.functions)) {
-        signatures.push(utils.keccak256(utils.toUtf8Bytes(key)).substr(0, 10));
-    }
-    return signatures;
-}
-
-export const deployPoolRegistry = async (signer: Wallet) => {
-    const poolRegistryFactory = new ethers.ContractFactory(
-        PoolRegistryArtifact.abi,
-        PoolRegistryArtifact.bytecode,
-        signer,
-    );
-    const registry = await poolRegistryFactory.deploy(COLLECTOR, 0);
-
-    return registry.address;
-};
-
-export const deployAssetPoolFactory = async (signer: Wallet) => {
+export const deployAssetPoolFactory = async (npid: NetworkProvider) => {
     const FacetCutAction = {
         Add: 0,
         Replace: 1,
         Remove: 2,
     };
-    const AssetPoolFactoryFactory = new ethers.ContractFactory(
+
+    const AssetPoolFactoryFacet = await deployContract(
         AssetPoolFactoryFacetArtifact.abi,
         AssetPoolFactoryFacetArtifact.bytecode,
-        signer,
+        [],
+        npid,
     );
-    const AssetPoolFactoryFacet = await AssetPoolFactoryFactory.deploy();
+    const OwnershipFacet = await deployContract(OwnershipFacetArtifact.abi, OwnershipFacetArtifact.bytecode, [], npid);
 
-    await AssetPoolFactoryFacet.deployTransaction.wait();
-
-    const OwnershipFactory = new ethers.ContractFactory(
-        OwnershipFacetArtifact.abi,
-        OwnershipFacetArtifact.bytecode,
-        signer,
-    );
-    const OwnershipFacet = await OwnershipFactory.deploy();
-
-    await OwnershipFacet.deployTransaction.wait();
-
-    const facets = await deployFacets(signer);
+    const facets = await deployFacets(npid);
     const factoryFacets = [AssetPoolFactoryFacet, OwnershipFacet];
 
     const diamondCut: any[] = [];
@@ -110,7 +83,7 @@ export const deployAssetPoolFactory = async (signer: Wallet) => {
     facets.forEach((facet) => {
         diamondCut.push({
             action: FacetCutAction.Add,
-            facetAddress: facet.address,
+            facetAddress: facet.options.address,
             functionSelectors: getSelectors(facet),
         });
     });
@@ -118,19 +91,23 @@ export const deployAssetPoolFactory = async (signer: Wallet) => {
     factoryFacets.forEach((f) => {
         factoryDiamondCut.push({
             action: FacetCutAction.Add,
-            facetAddress: f.address,
+            facetAddress: f.options.address,
             functionSelectors: getSelectors(f),
         });
     });
 
-    const DiamondFactory = new ethers.ContractFactory(DiamondArtifact.abi, DiamondArtifact.bytecode, signer);
-    const diamond = await DiamondFactory.deploy(factoryDiamondCut, [await signer.getAddress()]);
+    const web3 = getProvider(npid);
+    const diamond = await deployContract(
+        DiamondArtifact.abi,
+        DiamondArtifact.bytecode,
+        [factoryDiamondCut, [getAdmin(npid).address]],
+        npid,
+    );
+    const factory = new web3.eth.Contract(IAssetPoolFactory.abi as any, diamond.options.address, {
+        from: getAdmin(npid).address,
+    });
 
-    await diamond.deployTransaction.wait();
+    await sendTransaction(factory.methods.initialize(diamondCut), npid);
 
-    const factory = new ethers.Contract(diamond.address, IAssetPoolFactory.abi, signer);
-
-    await factory.initialize(diamondCut);
-
-    return factory.address;
+    return factory.options.address;
 };

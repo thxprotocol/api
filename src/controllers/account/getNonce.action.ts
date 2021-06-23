@@ -7,7 +7,7 @@ export const getAccountNonce = async (req: HttpRequest, res: Response, next: Nex
 
     try {
         const account = await Account.findById(sub);
-        const nonce = parseInt(await req.solution.getLatestNonce(account.address)) + 1;
+        const nonce = parseInt(await req.solution.methods.getLatestNonce(account.address).call()) + 1;
 
         res.send({
             nonce,

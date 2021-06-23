@@ -1,15 +1,18 @@
 import { NextFunction, Response } from 'express';
 import {
+    ENVIRONMENT,
     PRIVATE_KEY,
     TESTNET_ASSET_POOL_FACTORY_ADDRESS,
     ASSET_POOL_FACTORY_ADDRESS,
     RPC_WSS,
     TESTNET_RPC_WSS,
+    TESTNET_RPC,
+    RPC,
 } from '../util/secrets';
-import { BigNumber, ContractFactory, ethers, providers, Wallet } from 'ethers';
 import { logger } from '../util/logger';
 
-import { isAddress } from 'ethers/lib/utils';
+import Web3 from 'web3';
+import { isAddress } from 'web3-utils';
 import { HttpError, HttpRequest } from '../models/Error';
 
 import AssetPoolFactoryArtifact from '../artifacts/contracts/contracts/AssetPoolFactory/IAssetPoolFactory.sol/IAssetPoolFactory.json';
@@ -18,6 +21,12 @@ import ERC20Artifact from '../artifacts/@openzeppelin/contracts/token/ERC20/ERC2
 import ERC20LimitedSupplyArtifact from '../artifacts/contracts/contracts/util/TokenLimitedSupply.sol/TokenLimitedSupply.json';
 import ERC20UnlimitedSupplyArtifact from '../artifacts/contracts/contracts/util/TokenUnlimitedAccount.sol/TokenUnlimitedAccount.json';
 import { AssetPool } from '../models/AssetPool';
+
+import { Contract } from 'web3-eth-contract';
+
+import { BigNumber } from '@ethersproject/bignumber';
+import { utils } from 'ethers/lib';
+import axios from 'axios';
 
 export enum NetworkProvider {
     Test = 0,
@@ -29,45 +38,142 @@ export const SolutionArtifact = IDefaultDiamondArtifact;
 export const getProvider = (npid: NetworkProvider) => {
     switch (npid) {
         case NetworkProvider.Test:
-            return new providers.WebSocketProvider(TESTNET_RPC_WSS);
+            return new Web3(TESTNET_RPC);
         case NetworkProvider.Main:
-            return new providers.WebSocketProvider(RPC_WSS);
+            return new Web3(RPC);
     }
 };
+
+export async function getGasPrice(npid: NetworkProvider) {
+    const web3 = getProvider(npid);
+
+    if (ENVIRONMENT === 'test') {
+        return await web3.eth.getGasPrice();
+    }
+    const r: any = await axios.get('https://gasstation-mainnet.matic.network');
+
+    return web3.utils.toWei(r.data.fast.toString(), 'gwei').toString();
+}
 
 export const getAdmin = (npid: NetworkProvider) => {
-    return new Wallet(PRIVATE_KEY, getProvider(npid));
+    const web3 = getProvider(npid);
+    return web3.eth.accounts.wallet.add(PRIVATE_KEY);
 };
 
-export const getAssetPoolFactory = (npid: NetworkProvider) => {
+export async function deployContract(abi: any, bytecode: any, arg: any[], npid: NetworkProvider): Promise<Contract> {
+    const web3 = getProvider(npid);
+    const contract = new web3.eth.Contract(abi, null, {
+        from: getAdmin(npid).address,
+    });
+    const gasPrice = await getGasPrice(npid);
+    const from = getAdmin(npid).address;
+    const gas = await contract
+        .deploy({
+            data: bytecode,
+            arguments: arg,
+        })
+        .estimateGas();
+    return await contract
+        .deploy({
+            data: bytecode,
+            arguments: arg,
+        })
+        .send({
+            gas,
+            from,
+            gasPrice,
+        });
+}
+
+export async function callFunction(fn: any, npid: NetworkProvider) {
+    const from = getAdmin(npid).address;
+
+    return await fn.call({
+        from,
+    });
+}
+
+export async function sendTransaction(fn: any, npid: NetworkProvider) {
+    const gasPrice = await getGasPrice(npid);
+    const from = getAdmin(npid).address;
+    const gas = await fn.estimateGas();
+
+    return await fn.send({
+        gas,
+        from,
+        gasPrice,
+    });
+}
+
+export function getSelectors(contract: Contract) {
+    const signatures = [];
+    for (const key of Object.keys(contract.methods)) {
+        signatures.push(utils.keccak256(utils.toUtf8Bytes(key)).substr(0, 10));
+    }
+    return signatures;
+}
+
+export const getAssetPoolFactory = (npid: NetworkProvider): Contract => {
     const admin = getAdmin(npid);
+    const web3 = getProvider(npid);
     switch (npid) {
         case NetworkProvider.Test:
-            return new ethers.Contract(TESTNET_ASSET_POOL_FACTORY_ADDRESS, AssetPoolFactoryArtifact.abi, admin);
+            return new web3.eth.Contract(AssetPoolFactoryArtifact.abi as any, TESTNET_ASSET_POOL_FACTORY_ADDRESS, {
+                from: admin.address,
+            });
         case NetworkProvider.Main:
-            return new ethers.Contract(ASSET_POOL_FACTORY_ADDRESS, AssetPoolFactoryArtifact.abi, admin);
+            return new web3.eth.Contract(AssetPoolFactoryArtifact.abi as any, ASSET_POOL_FACTORY_ADDRESS, {
+                from: admin.address,
+            });
     }
 };
 
-export const getUnlimitedSupplyERC20Factory = (npid: NetworkProvider) => {
-    return new ContractFactory(ERC20UnlimitedSupplyArtifact.abi, ERC20UnlimitedSupplyArtifact.bytecode, getAdmin(npid));
-};
+export async function deployUnlimitedSupplyERC20Contract(
+    npid: NetworkProvider,
+    name: string,
+    symbol: string,
+    to: string,
+) {
+    return await deployContract(
+        ERC20UnlimitedSupplyArtifact.abi,
+        ERC20UnlimitedSupplyArtifact.bytecode,
+        [name, symbol, to],
+        npid,
+    );
+}
 
-export const getLimitedSupplyERC20Factory = (npid: NetworkProvider) => {
-    return new ContractFactory(ERC20LimitedSupplyArtifact.abi, ERC20LimitedSupplyArtifact.bytecode, getAdmin(npid));
-};
+export async function deployLimitedSupplyERC20Contract(
+    npid: NetworkProvider,
+    name: string,
+    symbol: string,
+    to: string,
+    totalSupply: BigNumber,
+) {
+    return await deployContract(
+        ERC20LimitedSupplyArtifact.abi,
+        ERC20LimitedSupplyArtifact.bytecode,
+        [name, symbol, to, totalSupply],
+        npid,
+    );
+}
 
-export const logTransaction = (tx: { from: string; to: string; transactionHash: string; gasUsed: BigNumber }) => {
-    logger.info(`From: ${tx.from} To: ${tx.to} Gas: ${tx.gasUsed.toNumber()} TX:${tx.transactionHash}`);
+export const logTransaction = (tx: { from: string; to: string; transactionHash: string; gasUsed: number }) => {
+    logger.info(`From: ${tx.from} To: ${tx.to} Gas: ${tx.gasUsed} TX:${tx.transactionHash}`);
     return tx;
 };
 
 export const solutionContract = (npid: NetworkProvider, address: string) => {
-    return new ethers.Contract(address, IDefaultDiamondArtifact.abi, getAdmin(npid));
+    const web3 = getProvider(npid);
+    return new web3.eth.Contract(IDefaultDiamondArtifact.abi as any, address, {
+        from: getAdmin(npid).address,
+    });
 };
 
 export const tokenContract = (npid: NetworkProvider, address: string) => {
-    return new ethers.Contract(address, ERC20Artifact.abi, getAdmin(npid));
+    const web3 = getProvider(npid);
+    return new web3.eth.Contract(ERC20Artifact.abi as any, address, {
+        from: getAdmin(npid).address,
+    });
 };
 
 export async function parseHeader(req: HttpRequest, res: Response, next: NextFunction) {

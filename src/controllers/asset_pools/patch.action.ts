@@ -2,6 +2,8 @@ import { downgradeFromBypassPolls, updateToBypassPolls } from '../../util/upgrad
 import { Response, NextFunction } from 'express';
 import { HttpRequest, HttpError } from '../../models/Error';
 import { AssetPool } from '../../models/AssetPool';
+import { callFunction } from '../../util/network';
+import { sendTransaction } from '../../util/network';
 
 /**
  * @swagger
@@ -49,7 +51,7 @@ import { AssetPool } from '../../models/AssetPool';
  */
 export const patchAssetPool = async (req: HttpRequest, res: Response, next: NextFunction) => {
     const assetPool = await AssetPool.findOne({
-        address: req.solution.address,
+        address: req.solution.options.address,
     });
 
     if (!assetPool) {
@@ -77,24 +79,31 @@ export const patchAssetPool = async (req: HttpRequest, res: Response, next: Next
         }
     }
 
-    if (
-        req.body.rewardPollDuration &&
-        (await req.solution.getRewardPollDuration()).toString() !== req.body.rewardPollDuration.toString()
-    ) {
+    const rewardPollDuration = await callFunction(req.solution.methods.getRewardPollDuration(), req.assetPool.network);
+    if (req.body.rewardPollDuration && Number(rewardPollDuration) !== req.body.rewardPollDuration) {
         try {
-            await req.solution.setRewardPollDuration(req.body.rewardPollDuration);
+            await sendTransaction(
+                req.solution.methods.setRewardPollDuration(req.body.rewardPollDuration),
+                req.assetPool.network,
+            );
         } catch (error) {
             return next(new HttpError(502, 'Could not update the rewardPollDuration for this asset pool.', error));
         }
     }
 
+    const proposeWithdrawPollDuration = await callFunction(
+        req.solution.methods.getProposeWithdrawPollDuration(),
+        req.assetPool.network,
+    );
     if (
         req.body.proposeWithdrawPollDuration &&
-        (await req.solution.getProposeWithdrawPollDuration()).toString() !==
-            req.body.proposeWithdrawPollDuration.toString()
+        Number(proposeWithdrawPollDuration) !== req.body.proposeWithdrawPollDuration
     ) {
         try {
-            await req.solution.setProposeWithdrawPollDuration(req.body.proposeWithdrawPollDuration);
+            await sendTransaction(
+                req.solution.methods.setProposeWithdrawPollDuration(req.body.proposeWithdrawPollDuration),
+                req.assetPool.network,
+            );
         } catch (error) {
             return next(
                 new HttpError(502, 'Could not update the proposeWithdrawPollDuration for this asset pool.', error),

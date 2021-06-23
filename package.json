@@ -12,7 +12,7 @@
         "serve": "node ./dist/src/server.js",
         "serve:debug": "nodemon --inspect dist/src/server.js",
         "serve:hardhat": "kill $(lsof -t -i :8545); HARDHAT_VERBOSE=true NODE_ENV=test npx hardhat node > /dev/null & sleep 1",
-        "serve:ganache": "kill $(lsof -t -i :8545); ganache-cli --account='0x873c254263b17925b686f971d7724267710895f1585bb0533db8e693a2af32ff,1000000000000000000000000000000000000000' > /dev/null & sleep 1",
+        "serve:ganache": "kill $(lsof -t -i :8545); ganache-cli -l 25000000 --account='0x873c254263b17925b686f971d7724267710895f1585bb0533db8e693a2af32ff,1000000000000000000000000000000000000000' > /dev/null & sleep 1",
         "debug": "npm run build && npm run watch:debug",
         "publish": "npm version prerelease; npm run build",
         "lint": "npx tsc --noEmit && npx eslint \"src/**/*.ts\" \"test/**/*.ts\" --quiet --fix",

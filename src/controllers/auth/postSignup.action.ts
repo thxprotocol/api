@@ -1,8 +1,9 @@
 import { Account } from '../../models/Account';
 import { Response, NextFunction } from 'express';
-import { ethers } from 'ethers';
 import { HttpError, HttpRequest } from '../../models/Error';
-import { triggerAsyncId } from 'async_hooks';
+import { callFunction, sendTransaction } from '../../util/network';
+import { AccountsBase } from 'web3-core';
+import Web3 from 'web3';
 
 /**
  * @swagger
@@ -48,21 +49,24 @@ import { triggerAsyncId } from 'async_hooks';
  *         description: Bad Gateway. Received an invalid response from the network or database.
  */
 export const postSignup = async (req: HttpRequest, res: Response, next: NextFunction) => {
-    const wallet = ethers.Wallet.createRandom();
+    const wallet = new Web3().eth.accounts.create();
     const privateKey = wallet.privateKey;
-    const address = await wallet.getAddress();
+    const address = wallet.address;
     const account = new Account({
         active: true,
         address,
         privateKey,
         email: req.body.email,
         password: req.body.password,
-        memberships: req.solution ? [req.solution.address] : [],
+        memberships: req.solution ? [req.solution.options.address] : [],
     });
 
     try {
-        if (req.solution && !(await req.solution.isMember(address))) {
-            await (await req.solution.addMember(address)).wait();
+        if (req.solution) {
+            const isMember = await callFunction(req.solution.methods.isMember(address), req.assetPool.network);
+            if (!isMember) {
+                await sendTransaction(req.solution.methods.addMember(address), req.assetPool.network);
+            }
         }
     } catch (err) {
         return next(new HttpError(502, 'Asset Pool addMember failed.', err));

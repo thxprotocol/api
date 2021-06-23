@@ -1,13 +1,10 @@
 import request from 'supertest';
 import server from '../../src/server';
 import db from '../../src/util/database';
-import { getAdmin, getProvider, NetworkProvider } from '../../src/util/network';
-import { timeTravel, signMethod } from './lib/network';
-import { exampleTokenFactory } from './lib/network';
+import { callFunction, getAdmin, getProvider, NetworkProvider, sendTransaction } from '../../src/util/network';
+import { timeTravel, signMethod, deployExampleToken } from './lib/network';
 import {
     poolTitle,
-    rewardPollDuration,
-    proposeWithdrawPollDuration,
     rewardWithdrawAmount,
     rewardWithdrawDuration,
     mintAmount,
@@ -15,7 +12,9 @@ import {
     userPassword,
 } from './lib/constants';
 import { formatEther, parseEther } from 'ethers/lib/utils';
-import { Contract, ethers, Wallet } from 'ethers';
+import { ethers } from 'ethers';
+import { Contract } from 'web3-eth-contract';
+
 import {
     getAccessToken,
     getAuthCode,
@@ -26,6 +25,7 @@ import {
 } from './lib/registerClient';
 import { decryptString } from '../../src/util/decrypt';
 import { solutionContract } from '../../src/util/network';
+import { Account } from 'web3-core';
 
 const user = request(server);
 const http2 = request.agent(server);
@@ -39,21 +39,18 @@ describe('Happy Flow', () => {
         poolAddress: string,
         userAddress: string,
         withdrawPollID: string,
-        userWallet: Wallet,
+        userWallet: Account,
         testToken: Contract;
 
     beforeAll(async () => {
         await db.truncate();
 
         const credentials = await registerClientCredentialsClient(user);
-        const admin = getAdmin(NetworkProvider.Test);
 
         adminAccessToken = credentials.accessToken;
         adminAudience = credentials.aud;
 
-        testToken = await exampleTokenFactory.deploy(admin.address, mintAmount);
-
-        await testToken.deployed();
+        testToken = await deployExampleToken();
     });
 
     describe('POST /signup', () => {
@@ -99,7 +96,8 @@ describe('Happy Flow', () => {
                     expect(res.status).toBe(200);
                     expect(res.body.privateKey).toBeTruthy();
                     const pKey = decryptString(res.body.privateKey, userPassword);
-                    userWallet = new ethers.Wallet(pKey, getProvider(NetworkProvider.Test));
+                    const web3 = getProvider(NetworkProvider.Test);
+                    userWallet = web3.eth.accounts.privateKeyToAccount(pKey);
                     done();
                 });
         });
@@ -114,7 +112,7 @@ describe('Happy Flow', () => {
                     aud: adminAudience,
                     network: 0,
                     token: {
-                        address: testToken.address,
+                        address: testToken.options.address,
                     },
                 })
                 .end(async (err, res) => {
@@ -146,8 +144,11 @@ describe('Happy Flow', () => {
             const assetPool = solutionContract(NetworkProvider.Test, poolAddress);
             const amount = parseEther(rewardWithdrawAmount.toString());
 
-            await testToken.approve(poolAddress, parseEther(rewardWithdrawAmount.toString()));
-            await assetPool.deposit(amount);
+            await sendTransaction(
+                testToken.methods.approve(poolAddress, parseEther(rewardWithdrawAmount.toString())),
+                NetworkProvider.Test,
+            );
+            await sendTransaction(assetPool.methods.deposit(amount), NetworkProvider.Test);
         });
 
         it('HTTP 200 and expose pool information', async (done) => {
@@ -155,14 +156,21 @@ describe('Happy Flow', () => {
                 .set({ AssetPool: poolAddress, Authorization: dashboardAccessToken })
                 .end(async (err, res) => {
                     expect(res.status).toBe(200);
-                    expect(Number(formatEther(await testToken.balanceOf(getAdmin(NetworkProvider.Test).address)))).toBe(
-                        Number(formatEther(mintAmount)) - rewardWithdrawAmount,
-                    );
+                    expect(
+                        Number(
+                            formatEther(
+                                await callFunction(
+                                    testToken.methods.balanceOf(getAdmin(NetworkProvider.Test).address),
+                                    NetworkProvider.Test,
+                                ),
+                            ),
+                        ),
+                    ).toBe(Number(formatEther(mintAmount)) - rewardWithdrawAmount);
                     expect(res.body.title).toEqual(poolTitle);
                     expect(res.body.address).toEqual(poolAddress);
-                    expect(res.body.token.address).toEqual(testToken.address);
-                    expect(res.body.token.name).toEqual(await testToken.name());
-                    expect(res.body.token.symbol).toEqual(await testToken.symbol());
+                    expect(res.body.token.address).toEqual(testToken.options.address);
+                    expect(res.body.token.name).toEqual(await testToken.methods.name().call());
+                    expect(res.body.token.symbol).toEqual(await testToken.methods.symbol().call());
                     expect(res.body.token.balance).toBe(rewardWithdrawAmount);
                     expect(Number(res.body.proposeWithdrawPollDuration)).toEqual(0);
                     expect(Number(res.body.rewardPollDuration)).toEqual(0);
@@ -278,9 +286,9 @@ describe('Happy Flow', () => {
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
                 .end(async (err, res) => {
                     expect(res.status).toBe(200);
+                    expect(res.body.poll).toBeUndefined();
                     expect(res.body.state).toEqual(1);
                     expect(res.body.withdrawAmount).toEqual(rewardWithdrawAmount);
-                    expect(res.body.poll).toBeUndefined();
 
                     done();
                 });

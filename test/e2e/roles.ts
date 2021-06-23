@@ -2,9 +2,8 @@ import request from 'supertest';
 import server from '../../src/server';
 import db from '../../src/util/database';
 import { getAdmin, NetworkProvider } from '../../src/util/network';
-import { voter } from './lib/network';
-import { exampleTokenFactory } from './lib/network';
-import { poolTitle, mintAmount, userEmail, userPassword } from './lib/constants';
+import { deployExampleToken, voter } from './lib/network';
+import { poolTitle, userEmail, userPassword } from './lib/constants';
 import {
     getAccessToken,
     getAuthCode,
@@ -12,6 +11,7 @@ import {
     registerClientCredentialsClient,
     registerDashboardClient,
 } from './lib/registerClient';
+import { Contract } from 'web3-eth-contract';
 
 const user = request(server);
 const http3 = request.agent(server);
@@ -19,7 +19,7 @@ const http3 = request.agent(server);
 describe('Roles', () => {
     let poolAddress: any,
         dashboardAccessToken: string,
-        testToken: any,
+        testToken: Contract,
         adminAccessToken: string,
         adminAudience: string,
         userAddress: string;
@@ -28,14 +28,11 @@ describe('Roles', () => {
         await db.truncate();
 
         const credentials = await registerClientCredentialsClient(user);
-        const admin = getAdmin(NetworkProvider.Test);
 
         adminAccessToken = credentials.accessToken;
         adminAudience = credentials.aud;
 
-        testToken = await exampleTokenFactory.deploy(admin.address, mintAmount);
-
-        await testToken.deployed();
+        testToken = await deployExampleToken();
     });
 
     describe('POST /signup', () => {
@@ -77,7 +74,7 @@ describe('Roles', () => {
                     aud: adminAudience,
                     network: 0,
                     token: {
-                        address: testToken.address,
+                        address: testToken.options.address,
                     },
                 })
                 .end(async (err, res) => {

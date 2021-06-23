@@ -1,17 +1,10 @@
 import request from 'supertest';
 import server from '../../src/server';
 import db from '../../src/util/database';
-import { getAdmin, NetworkProvider } from '../../src/util/network';
-import { exampleTokenFactory } from './lib/network';
-import {
-    poolTitle,
-    mintAmount,
-    rewardWithdrawAmount,
-    rewardWithdrawDuration,
-    userEmail,
-    userPassword,
-} from './lib/constants';
-import { Contract, ethers } from 'ethers';
+import { deployExampleToken } from './lib/network';
+import { poolTitle, rewardWithdrawAmount, rewardWithdrawDuration, userEmail, userPassword } from './lib/constants';
+import { ethers } from 'ethers';
+import { Contract } from 'web3-eth-contract';
 import {
     getAccessToken,
     getAuthCode,
@@ -35,13 +28,11 @@ describe('Bypass Polls', () => {
         await db.truncate();
 
         const credentials = await registerClientCredentialsClient(user);
-        const admin = getAdmin(NetworkProvider.Test);
+
         adminAccessToken = credentials.accessToken;
         adminAudience = credentials.aud;
 
-        testToken = await exampleTokenFactory.deploy(admin.address, mintAmount);
-
-        await testToken.deployed();
+        testToken = await deployExampleToken();
     });
 
     describe('POST /signup', () => {
@@ -78,7 +69,7 @@ describe('Bypass Polls', () => {
                     aud: adminAudience,
                     network: 0,
                     token: {
-                        address: testToken.address,
+                        address: testToken.options.address,
                     },
                 })
                 .end(async (err, res) => {
@@ -227,7 +218,7 @@ describe('Bypass Polls', () => {
     });
 
     describe('PATCH /rewards/2', () => {
-        it('HTTP 400 if values are identical to current values', (done) => {
+        it('HTTP 200 if values are identical to current values', (done) => {
             user.patch('/v1/rewards/2')
                 .set({
                     AssetPool: poolAddress,
@@ -238,7 +229,9 @@ describe('Bypass Polls', () => {
                     withdrawDuration: rewardWithdrawDuration,
                 })
                 .end((err, res) => {
-                    expect(res.status).toBe(400);
+                    expect(res.status).toBe(200);
+                    expect(res.body.withdrawAmount).toBe(rewardWithdrawAmount);
+                    expect(res.body.withdrawDuration).toBe(rewardWithdrawDuration);
 
                     done();
                 });

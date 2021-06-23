@@ -1,4 +1,5 @@
 import { NextFunction, Response } from 'express';
+import { callFunction, sendTransaction } from '../../util/network';
 import { HttpRequest, HttpError } from '../../models/Error';
 import { VERSION } from '../../util/secrets';
 
@@ -40,14 +41,17 @@ import { VERSION } from '../../util/secrets';
  */
 export const patchMember = async (req: HttpRequest, res: Response, next: NextFunction) => {
     try {
-        const isMember = await req.solution.isMember(req.params.address);
+        const isMember = await callFunction(req.solution.methods.isMember(req.params.address), req.assetPool.network);
 
         if (!isMember) {
             next(new HttpError(404, 'Address is not a member.'));
             return;
         }
 
-        await req.solution[req.body.isManager ? 'addManager' : 'removeManager'](req.params.address);
+        await sendTransaction(
+            req.solution.methods[req.body.isManager ? 'addManager' : 'removeManager'](req.params.address),
+            req.assetPool.network,
+        );
 
         res.redirect(`/${VERSION}/members/${req.params.address}`);
     } catch (err) {

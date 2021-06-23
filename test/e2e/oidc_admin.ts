@@ -1,24 +1,14 @@
 import request from 'supertest';
 import server from '../../src/server';
 import db from '../../src/util/database';
-import { getAdmin, NetworkProvider } from '../../src/util/network';
-import { mintAmount } from './lib/constants';
-import { exampleTokenFactory } from './lib/network';
-import { Contract } from 'ethers';
 
 const http = request(server);
 
 describe('OAuth2', () => {
-    let authHeader: string, accessToken: string, testToken: Contract;
+    let authHeader: string, accessToken: string;
 
     beforeAll(async () => {
-        const admin = getAdmin(NetworkProvider.Test);
-
         await db.truncate();
-
-        testToken = await exampleTokenFactory.deploy(admin.address, mintAmount);
-
-        await testToken.deployed();
     });
 
     afterAll(() => {

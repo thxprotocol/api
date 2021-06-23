@@ -1,12 +1,10 @@
 import { Response, Request, NextFunction } from 'express';
 import { HttpError } from '../../models/Error';
-import { RPC_WSS, TESTNET_RPC_WSS } from '../../util/secrets';
-import { getAdmin, NetworkProvider } from '../../util/network';
+import { getAdmin, getProvider, NetworkProvider } from '../../util/network';
 import { Account } from '../../models/Account';
 import { Withdrawal } from '../../models/Withdrawal';
 import { Reward } from '../../models/Reward';
 import { AssetPool } from '../../models/AssetPool';
-import Web3 from 'web3';
 import { Client } from '../../models/Client';
 
 async function getAvgRewardsPerPool(npid: number) {
@@ -37,9 +35,9 @@ async function getAvgWithdrawsPerPool(npid: number) {
 
 export const getMetrics = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const web3Main = new Web3(RPC_WSS);
-        const web3Test = new Web3(TESTNET_RPC_WSS);
-        const address = await getAdmin(NetworkProvider.Main).getAddress();
+        const web3Main = getProvider(NetworkProvider.Main);
+        const web3Test = getProvider(NetworkProvider.Test);
+        const address = getAdmin(NetworkProvider.Main).address;
         const jsonData = {
             count_wallets: await Account.countDocuments(),
             count_applications: await Client.countDocuments({ 'payload.scope': 'openid admin' }),

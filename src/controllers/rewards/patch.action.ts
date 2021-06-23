@@ -1,13 +1,11 @@
-import IDefaultDiamondArtifact from '../../../src/artifacts/contracts/contracts/IDefaultDiamond.sol/IDefaultDiamond.json';
 import { Response, NextFunction } from 'express';
 import { HttpRequest, HttpError } from '../../models/Error';
 import qrcode from 'qrcode';
-import { parseLogs } from '../../util/events';
-import { VERSION } from '../../util/secrets';
 import { Reward } from '../../models/Reward';
 import { formatEther } from '@ethersproject/units';
-import { parseEther } from 'ethers/lib/utils';
+import { toWei, fromWei } from 'web3-utils';
 import { getRewardData } from './getReward.action';
+import { callFunction, sendTransaction } from '../../util/network';
 
 /**
  * @swagger
@@ -57,10 +55,13 @@ import { getRewardData } from './getReward.action';
  */
 export const patchReward = async (req: HttpRequest, res: Response, next: NextFunction) => {
     try {
-        let { withdrawAmount, withdrawDuration } = await req.solution.getReward(req.params.id);
+        let { withdrawAmount, withdrawDuration } = await callFunction(
+            req.solution.methods.getReward(req.params.id),
+            req.assetPool.network,
+        );
 
-        withdrawAmount = Number(formatEther(withdrawAmount.toString()));
-        withdrawDuration = withdrawDuration.toNumber();
+        withdrawAmount = Number(fromWei(withdrawAmount.toString()));
+        withdrawDuration = Number(withdrawDuration);
 
         if (
             req.body.withdrawAmount &&
@@ -68,44 +69,48 @@ export const patchReward = async (req: HttpRequest, res: Response, next: NextFun
             req.body.withdrawDuration &&
             withdrawDuration === req.body.withdrawDuration
         ) {
-            return next(new HttpError(400, 'Could not update values since they are identical to the current values.'));
+            return res.json(await getRewardData(req.solution, Number(req.params.id), req.assetPool.network));
         }
 
         if (req.body.withdrawAmount && withdrawAmount !== req.body.withdrawAmount) {
-            withdrawAmount = parseEther(req.body.withdrawAmount.toString());
+            withdrawAmount = toWei(req.body.withdrawAmount.toString());
         }
 
         if (req.body.withdrawDuration && withdrawDuration !== req.body.withdrawDuration) {
-            withdrawDuration = req.body.withdrawDuration.toNumber();
+            withdrawDuration = Number(req.body.withdrawDuration);
         }
 
         try {
-            const duration = parseInt(await req.solution.getRewardPollDuration(), 10);
+            const duration = Number(
+                await callFunction(req.solution.methods.getRewardPollDuration(), req.assetPool.network),
+            );
+
+            const tx = await sendTransaction(
+                req.solution.methods.updateReward(req.params.id, withdrawAmount, withdrawDuration),
+                req.assetPool.network,
+            );
 
             if (req.assetPool.bypassPolls && duration === 0) {
                 try {
-                    const tx = await (
-                        await req.solution.updateReward(req.params.id, withdrawAmount, withdrawDuration)
-                    ).wait();
-
-                    const logs = await parseLogs(IDefaultDiamondArtifact.abi, tx.logs);
-                    const event = logs.filter((e: { name: string }) => e && e.name === 'RewardPollCreated')[0];
-                    const id = parseInt(event.args.rewardID, 10);
-                    const pollId = parseInt(event.args.id, 10);
+                    const event = tx.events.RewardPollCreated;
+                    const id = Number(event.returnValues.rewardID);
+                    const pollId = Number(event.returnValues.id);
 
                     try {
-                        const tx = await (await req.solution.rewardPollFinalize(pollId)).wait();
+                        const tx = await sendTransaction(
+                            req.solution.methods.rewardPollFinalize(pollId),
+                            req.assetPool.network,
+                        );
 
                         try {
-                            const logs = await parseLogs(IDefaultDiamondArtifact.abi, tx.logs);
-                            const event = logs.filter((e: { name: string }) => e && e.name === 'RewardPollUpdated')[0];
-                            const withdrawAmount = Number(formatEther(event.args.amount));
-                            const withdrawDuration = parseInt(event.args.duration, 10);
+                            const event = tx.events.RewardPollUpdated;
 
                             if (event) {
+                                const withdrawAmount = Number(fromWei(event.returnValues.amount));
+                                const withdrawDuration = Number(event.returnValues.duration);
                                 const reward = await Reward.findOne({
                                     id: req.params.id,
-                                    poolAddress: req.solution.address,
+                                    poolAddress: req.solution.options.address,
                                 });
 
                                 reward.withdrawAmount = withdrawAmount;
@@ -116,7 +121,7 @@ export const patchReward = async (req: HttpRequest, res: Response, next: NextFun
                             }
 
                             try {
-                                res.json(await getRewardData(req.solution, id));
+                                res.json(await getRewardData(req.solution, id, req.assetPool.network));
                             } catch (e) {
                                 return next(new HttpError(502, 'Could not get reward information from the pool.', e));
                             }

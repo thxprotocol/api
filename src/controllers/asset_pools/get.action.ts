@@ -1,5 +1,5 @@
 import { Response, NextFunction } from 'express';
-import { tokenContract } from '../../util/network';
+import { callFunction, tokenContract } from '../../util/network';
 import { HttpError, HttpRequest } from '../../models/Error';
 import { formatEther } from 'ethers/lib/utils';
 
@@ -82,9 +82,16 @@ import { formatEther } from 'ethers/lib/utils';
  */
 export const getAssetPool = async (req: HttpRequest, res: Response, next: NextFunction) => {
     try {
-        const tokenInstance = tokenContract(req.assetPool.network, await req.solution.getToken());
-        const proposeWithdrawPollDuration = (await req.solution.getProposeWithdrawPollDuration()).toNumber();
-        const rewardPollDuration = (await req.solution.getRewardPollDuration()).toNumber();
+        const tokenAddress = await callFunction(req.solution.methods.getToken(), req.assetPool.network);
+        const tokenInstance = tokenContract(req.assetPool.network, tokenAddress);
+        const proposeWithdrawPollDuration = await callFunction(
+            req.solution.methods.getProposeWithdrawPollDuration(),
+            req.assetPool.network,
+        );
+        const rewardPollDuration = await callFunction(
+            req.solution.methods.getRewardPollDuration(),
+            req.assetPool.network,
+        );
 
         res.json({
             title: req.assetPool.title,
@@ -94,11 +101,17 @@ export const getAssetPool = async (req: HttpRequest, res: Response, next: NextFu
             network: req.assetPool.network,
             bypassPolls: req.assetPool.bypassPolls,
             token: {
-                address: tokenInstance.address,
-                name: await tokenInstance.name(),
-                symbol: await tokenInstance.symbol(),
-                totalSupply: Number(formatEther(await tokenInstance.totalSupply())),
-                balance: Number(formatEther(await tokenInstance.balanceOf(req.params.address))),
+                address: tokenInstance.options.address,
+                name: await callFunction(tokenInstance.methods.name(), req.assetPool.network),
+                symbol: await callFunction(tokenInstance.methods.symbol(), req.assetPool.network),
+                totalSupply: Number(
+                    formatEther(await callFunction(tokenInstance.methods.totalSupply(), req.assetPool.network)),
+                ),
+                balance: Number(
+                    formatEther(
+                        await callFunction(tokenInstance.methods.balanceOf(req.params.address), req.assetPool.network),
+                    ),
+                ),
             },
             proposeWithdrawPollDuration,
             rewardPollDuration,

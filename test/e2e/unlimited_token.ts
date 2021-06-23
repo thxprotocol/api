@@ -3,7 +3,8 @@ import server from '../../src/server';
 import db from '../../src/util/database';
 import { signMethod } from './lib/network';
 import { poolTitle, rewardWithdrawAmount, userEmail, userPassword, tokenName, tokenSymbol } from './lib/constants';
-import { ethers, Wallet } from 'ethers';
+import { ethers } from 'ethers';
+import { Account } from 'web3-core';
 import {
     getAccessToken,
     getAuthCode,
@@ -28,7 +29,7 @@ describe('UnlimitedSupplyToken', () => {
         rewardID: string,
         withdrawalID: number,
         userAddress: string,
-        userWallet: Wallet;
+        userWallet: Account;
 
     beforeAll(async () => {
         await db.truncate();
@@ -83,8 +84,8 @@ describe('UnlimitedSupplyToken', () => {
                     expect(res.status).toBe(200);
                     expect(res.body.privateKey).toBeTruthy();
                     const pKey = decryptString(res.body.privateKey, userPassword);
-                    const provider = getProvider(NetworkProvider.Test);
-                    userWallet = new ethers.Wallet(pKey, provider);
+                    const web3 = getProvider(NetworkProvider.Test);
+                    userWallet = web3.eth.accounts.privateKeyToAccount(pKey);
                     done();
                 });
         });
