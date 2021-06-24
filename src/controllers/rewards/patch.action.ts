@@ -2,10 +2,10 @@ import { Response, NextFunction } from 'express';
 import { HttpRequest, HttpError } from '../../models/Error';
 import qrcode from 'qrcode';
 import { Reward } from '../../models/Reward';
-import { formatEther } from '@ethersproject/units';
 import { toWei, fromWei } from 'web3-utils';
 import { getRewardData } from './getReward.action';
-import { callFunction, sendTransaction } from '../../util/network';
+import { callFunction, sendTransaction, SolutionArtifact } from '../../util/network';
+import { parseLogs, findEvent } from '../../util/events';
 
 /**
  * @swagger
@@ -86,28 +86,32 @@ export const patchReward = async (req: HttpRequest, res: Response, next: NextFun
             );
 
             const tx = await sendTransaction(
+                req.solution.options.address,
                 req.solution.methods.updateReward(req.params.id, withdrawAmount, withdrawDuration),
                 req.assetPool.network,
             );
 
             if (req.assetPool.bypassPolls && duration === 0) {
                 try {
-                    const event = tx.events.RewardPollCreated;
-                    const id = Number(event.returnValues.rewardID);
-                    const pollId = Number(event.returnValues.id);
+                    const events = parseLogs(SolutionArtifact.abi, tx.logs);
+                    const event = findEvent('RewardPollCreated', events);
+                    const id = Number(event.args.rewardID);
+                    const pollId = Number(event.args.id);
 
                     try {
                         const tx = await sendTransaction(
+                            req.solution.options.address,
                             req.solution.methods.rewardPollFinalize(pollId),
                             req.assetPool.network,
                         );
 
                         try {
-                            const event = tx.events.RewardPollUpdated;
+                            const events = parseLogs(SolutionArtifact.abi, tx.logs);
+                            const event = findEvent('RewardPollUpdated', events);
 
                             if (event) {
-                                const withdrawAmount = Number(fromWei(event.returnValues.amount));
-                                const withdrawDuration = Number(event.returnValues.duration);
+                                const withdrawAmount = Number(fromWei(event.args.amount.toString()));
+                                const withdrawDuration = Number(event.args.duration);
                                 const reward = await Reward.findOne({
                                     id: req.params.id,
                                     poolAddress: req.solution.options.address,

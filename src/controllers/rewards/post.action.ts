@@ -2,9 +2,10 @@ import { Response, NextFunction } from 'express';
 import { Reward } from '../../models/Reward';
 import { HttpError, HttpRequest } from '../../models/Error';
 import { VERSION } from '../../util/secrets';
-import { parseEther } from 'ethers/lib/utils';
-import { callFunction, sendTransaction } from '../../util/network';
+import { callFunction, sendTransaction, SolutionArtifact } from '../../util/network';
 import { toWei } from 'web3-utils';
+import { parseLogs, findEvent } from '../../util/events';
+
 /**
  * @swagger
  * /rewards:
@@ -49,14 +50,16 @@ export const postReward = async (req: HttpRequest, res: Response, next: NextFunc
     try {
         const withdrawAmount = toWei(req.body.withdrawAmount.toString());
         const tx = await sendTransaction(
+            req.solution.options.address,
             req.solution.methods.addReward(withdrawAmount, req.body.withdrawDuration),
             req.assetPool.network,
         );
 
         try {
-            const event = tx.events.RewardPollCreated;
-            const id = Number(event.returnValues.rewardID);
-            const pollId = Number(event.returnValues.id);
+            const events = parseLogs(SolutionArtifact.abi, tx.logs);
+            const event = findEvent('RewardPollCreated', events);
+            const id = Number(event.args.rewardID);
+            const pollId = Number(event.args.id);
 
             try {
                 const reward = new Reward({
@@ -83,12 +86,14 @@ export const postReward = async (req: HttpRequest, res: Response, next: NextFunc
                     if (req.assetPool.bypassPolls && duration === 0) {
                         try {
                             const tx = await sendTransaction(
+                                req.solution.options.address,
                                 req.solution.methods.rewardPollFinalize(pollId),
                                 req.assetPool.network,
                             );
 
                             try {
-                                const event = tx.events.RewardPollEnabled;
+                                const events = parseLogs(SolutionArtifact.abi, tx.logs);
+                                const event = findEvent('RewardPollEnabled', events);
 
                                 if (event) {
                                     reward.state = 1;

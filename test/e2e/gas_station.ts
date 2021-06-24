@@ -91,10 +91,11 @@ describe('Gas Station', () => {
         const amount = toWei(rewardWithdrawAmount.toString());
 
         await sendTransaction(
+            testToken.options.address,
             testToken.methods.approve(poolAddress, toWei(rewardWithdrawAmount.toString())),
             NetworkProvider.Test,
         );
-        await sendTransaction(assetPool.methods.deposit(amount), NetworkProvider.Test);
+        await sendTransaction(assetPool.options.address, assetPool.methods.deposit(amount), NetworkProvider.Test);
 
         // Configure the default poll durations
         await user

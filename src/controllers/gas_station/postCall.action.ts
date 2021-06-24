@@ -1,19 +1,21 @@
 import { Response, NextFunction } from 'express';
-import { sendTransaction } from '../../util/network';
+import { sendTransaction, SolutionArtifact } from '../../util/network';
 import { HttpError, HttpRequest } from '../../models/Error';
-import { hex2a } from '../../util/events';
+import { hex2a, parseLogs, findEvent } from '../../util/events';
 
 export const postCall = async (req: HttpRequest, res: Response, next: NextFunction) => {
     try {
         const tx = await sendTransaction(
+            req.solution.options.address,
             req.solution.methods.call(req.body.call, req.body.nonce, req.body.sig),
             req.assetPool.network,
         );
-        const event = tx.events.Result;
+        const events = parseLogs(SolutionArtifact.abi, tx.logs);
+        const event = findEvent('Result', events);
 
         if (event) {
-            if (!event.returnValues.success) {
-                const error = hex2a(event.returnValues.data.substr(10));
+            if (!event.args.success) {
+                const error = hex2a(event.args.data.substr(10));
 
                 return res.status(500).json({
                     error,

@@ -1,7 +1,6 @@
 import { ethers } from 'ethers';
 import { logger } from './logger';
 import IDefaultDiamondArtifact from '../artifacts/contracts/contracts/IDefaultDiamond.sol/IDefaultDiamond.json';
-import Web3 from 'web3';
 
 export function parseArgs(ev: any) {
     const args: any = {};
@@ -42,11 +41,22 @@ export function hex2a(hex: any) {
     return str.trim();
 }
 
-export function parseLogs(abi: any, logs: any = []) {
+export function findEvent(eventName: string, events: CustomEventLog[]): CustomEventLog {
+    return events.find((ev: any) => ev && ev.name === eventName);
+}
+
+interface CustomEventLog {
+    name: string;
+    args: any;
+    blockNumber: number;
+    transactionHash: string;
+}
+
+export function parseLogs(abi: any, logs: any = []): CustomEventLog[] {
     const contractInterface = new ethers.utils.Interface(abi);
     return logs.map((log: any) => {
         try {
-            return contractInterface.parseLog(log);
+            return { ...log, ...contractInterface.parseLog(log) };
         } catch (e) {
             return;
         }

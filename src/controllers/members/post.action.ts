@@ -2,7 +2,8 @@ import { NextFunction, Response } from 'express';
 import { HttpRequest, HttpError } from '../../models/Error';
 import { VERSION } from '../../util/secrets';
 import { Account } from '../../models/Account';
-import { callFunction, sendTransaction } from '../../util/network';
+import { callFunction, sendTransaction, SolutionArtifact } from '../../util/network';
+import { parseLogs, findEvent } from '../../util/events';
 
 export async function updateMemberProfile(address: string, poolAddress: string) {
     try {
@@ -70,11 +71,16 @@ export const postMember = async (req: HttpRequest, res: Response, next: NextFunc
         }
 
         try {
-            const tx = await sendTransaction(req.solution.methods.addMember(req.body.address), req.assetPool.network);
+            const tx = await sendTransaction(
+                req.solution.options.address,
+                req.solution.methods.addMember(req.body.address),
+                req.assetPool.network,
+            );
 
             try {
-                const event = tx.events.RoleGranted;
-                const address = event.returnValues.account;
+                const events = parseLogs(SolutionArtifact.abi, tx.logs);
+                const event = findEvent('RoleGranted', events);
+                const address = event.args.account;
 
                 await updateMemberProfile(req.body.address, req.solution.options.address);
 

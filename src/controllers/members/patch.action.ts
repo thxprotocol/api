@@ -49,6 +49,7 @@ export const patchMember = async (req: HttpRequest, res: Response, next: NextFun
         }
 
         await sendTransaction(
+            req.solution.options.address,
             req.solution.methods[req.body.isManager ? 'addManager' : 'removeManager'](req.params.address),
             req.assetPool.network,
         );

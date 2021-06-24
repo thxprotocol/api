@@ -83,6 +83,7 @@ export const patchAssetPool = async (req: HttpRequest, res: Response, next: Next
     if (req.body.rewardPollDuration && Number(rewardPollDuration) !== req.body.rewardPollDuration) {
         try {
             await sendTransaction(
+                req.solution.options.address,
                 req.solution.methods.setRewardPollDuration(req.body.rewardPollDuration),
                 req.assetPool.network,
             );
@@ -101,6 +102,7 @@ export const patchAssetPool = async (req: HttpRequest, res: Response, next: Next
     ) {
         try {
             await sendTransaction(
+                req.solution.options.address,
                 req.solution.methods.setProposeWithdrawPollDuration(req.body.proposeWithdrawPollDuration),
                 req.assetPool.network,
             );

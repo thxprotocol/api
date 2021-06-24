@@ -20,7 +20,11 @@ import { getSelectors, deployContract, NetworkProvider, sendTransaction } from '
 export async function updateAssetPool(facets: any, solution: Contract, npid: NetworkProvider) {
     for (const facet of facets) {
         const contract = await deployContract(facet.abi, facet.bytecode, [], npid);
-        await sendTransaction(solution.methods.updateAssetPool(getSelectors(contract), contract.options.address), npid);
+        await sendTransaction(
+            solution.options.address,
+            solution.methods.updateAssetPool(getSelectors(contract), contract.options.address),
+            npid,
+        );
     }
 }
 

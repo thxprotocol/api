@@ -45,7 +45,11 @@ import { sendTransaction } from '../../util/network';
 export const postPollFinalize = async (req: HttpRequest, res: Response, next: NextFunction) => {
     try {
         if (req.assetPool.bypassPolls) {
-            await sendTransaction(req.solution.methods.withdrawPollFinalize(req.params.id), req.assetPool.network);
+            await sendTransaction(
+                req.solution.options.address,
+                req.solution.methods.withdrawPollFinalize(req.params.id),
+                req.assetPool.network,
+            );
 
             res.status(200).end();
         } else {

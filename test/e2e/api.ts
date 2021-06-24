@@ -145,10 +145,11 @@ describe('Happy Flow', () => {
             const amount = parseEther(rewardWithdrawAmount.toString());
 
             await sendTransaction(
+                testToken.options.address,
                 testToken.methods.approve(poolAddress, parseEther(rewardWithdrawAmount.toString())),
                 NetworkProvider.Test,
             );
-            await sendTransaction(assetPool.methods.deposit(amount), NetworkProvider.Test);
+            await sendTransaction(assetPool.options.address, assetPool.methods.deposit(amount), NetworkProvider.Test);
         });
 
         it('HTTP 200 and expose pool information', async (done) => {

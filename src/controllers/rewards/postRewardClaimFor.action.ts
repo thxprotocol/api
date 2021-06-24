@@ -1,6 +1,7 @@
 import { Response, NextFunction } from 'express';
+import { parseLogs, findEvent } from '../../util/events';
 import { HttpError, HttpRequest } from '../../models/Error';
-import { callFunction, sendTransaction } from '../../util/network';
+import { callFunction, sendTransaction, SolutionArtifact } from '../../util/network';
 
 /**
  * @swagger
@@ -54,13 +55,15 @@ export const postRewardClaimFor = async (req: HttpRequest, res: Response, next: 
 
         try {
             const tx = await sendTransaction(
+                req.solution.options.address,
                 req.solution.methods.claimRewardFor(req.params.id, req.body.member),
                 req.assetPool.network,
             );
 
             try {
-                const event = tx.events.WithdrawPollCreated;
-                const withdrawal = Number(event.returnValues.id);
+                const events = parseLogs(SolutionArtifact.abi, tx.logs);
+                const event = findEvent('WithdrawPollCreated', events);
+                const withdrawal = Number(event.args.id);
 
                 res.json({ withdrawal });
             } catch (err) {

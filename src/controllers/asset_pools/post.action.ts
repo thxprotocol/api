@@ -1,5 +1,4 @@
 import {
-    logTransaction,
     solutionContract,
     deployUnlimitedSupplyERC20Contract,
     deployLimitedSupplyERC20Contract,
@@ -8,6 +7,7 @@ import {
     getAdmin,
     NetworkProvider,
     sendTransaction,
+    FactoryArtifact,
 } from '../../util/network';
 import { AssetPool, AssetPoolDocument } from '../../models/AssetPool';
 import { Response, NextFunction } from 'express';
@@ -15,8 +15,9 @@ import { HttpError, HttpRequest } from '../../models/Error';
 import { Error } from 'mongoose';
 import { eventIndexer } from '../../util/indexer';
 import { parseEther } from 'ethers/lib/utils';
-import { POOL_REGISTRY_ADDRESS, SENDGRID_API_KEY, TESTNET_POOL_REGISTRY_ADDRESS } from '../../util/secrets';
+import { POOL_REGISTRY_ADDRESS, TESTNET_POOL_REGISTRY_ADDRESS } from '../../util/secrets';
 import { Account } from '../../models/Account';
+import { findEvent, parseLogs } from '../../util/events';
 
 async function getTokenAddress(token: any, assetPool: AssetPoolDocument) {
     if (token.address) {
@@ -106,16 +107,20 @@ async function getTokenAddress(token: any, assetPool: AssetPoolDocument) {
  *       '502':
  *         description: Bad Gateway. Received an invalid response from the network or database.
  */
+
 export const postAssetPool = async (req: HttpRequest, res: Response, next: NextFunction) => {
     try {
         const token = req.body.token;
         const sub = req.user.sub;
         const adminAddress = getAdmin(req.body.network).address;
         const assetPoolFactory = getAssetPoolFactory(req.body.network);
-        const tx = await sendTransaction(assetPoolFactory.methods.deployAssetPool(), req.body.network);
-        const event = tx.events.AssetPoolDeployed;
-
-        logTransaction(tx);
+        const tx = await sendTransaction(
+            assetPoolFactory.options.address,
+            assetPoolFactory.methods.deployAssetPool(),
+            req.body.network,
+        );
+        const events = parseLogs(FactoryArtifact.abi, tx.logs);
+        const event = findEvent('AssetPoolDeployed', events);
 
         if (!event) {
             return next(
@@ -126,16 +131,21 @@ export const postAssetPool = async (req: HttpRequest, res: Response, next: NextF
             );
         }
 
-        const solution = solutionContract(req.body.network, event.returnValues.assetPool);
+        const solution = solutionContract(req.body.network, event.args.assetPool);
 
         await sendTransaction(
+            solution.options.address,
             solution.methods.setPoolRegistry(
                 req.body.network === NetworkProvider.Test ? TESTNET_POOL_REGISTRY_ADDRESS : POOL_REGISTRY_ADDRESS,
             ),
             req.body.network,
         );
 
-        await sendTransaction(solution.methods.initializeGasStation(adminAddress), req.body.network);
+        await sendTransaction(
+            solution.options.address,
+            solution.methods.initializeGasStation(adminAddress),
+            req.body.network,
+        );
 
         const assetPool = new AssetPool({
             address: solution.options.address,
@@ -151,7 +161,7 @@ export const postAssetPool = async (req: HttpRequest, res: Response, next: NextF
         try {
             const tokenAddress = await getTokenAddress(token, assetPool);
 
-            await sendTransaction(solution.methods.addToken(tokenAddress), req.body.network);
+            await sendTransaction(solution.options.address, solution.methods.addToken(tokenAddress), req.body.network);
         } catch (e) {
             return next(new HttpError(502, 'Could not add a token to the asset pool.'));
         }

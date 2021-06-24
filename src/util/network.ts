@@ -32,6 +32,7 @@ export enum NetworkProvider {
 }
 
 export const SolutionArtifact = IDefaultDiamondArtifact;
+export const FactoryArtifact = AssetPoolFactoryArtifact;
 
 export const getProvider = (npid: NetworkProvider) => {
     switch (npid) {
@@ -91,7 +92,7 @@ export async function callFunction(fn: any, npid: NetworkProvider) {
     });
 }
 
-export async function sendTransaction(fn: any, npid: NetworkProvider) {
+export async function sendTransaction(to: string, fn: any, npid: NetworkProvider) {
     const MINIMUM_GAS_LIMIT = 54680;
 
     const web3 = getProvider(npid);
@@ -104,9 +105,10 @@ export async function sendTransaction(fn: any, npid: NetworkProvider) {
     const nonce = await web3.eth.getTransactionCount(from);
     const sig = await web3.eth.accounts.signTransaction(
         {
-            nonce,
-            gasPrice,
             gas,
+            gasPrice,
+            to,
+            nonce,
             from,
             data,
         },
@@ -167,11 +169,6 @@ export async function deployLimitedSupplyERC20Contract(
         npid,
     );
 }
-
-export const logTransaction = (tx: { from: string; to: string; transactionHash: string; gasUsed: number }) => {
-    logger.info(`From: ${tx.from} To: ${tx.to} Gas: ${tx.gasUsed} TX:${tx.transactionHash}`);
-    return tx;
-};
 
 export const solutionContract = (npid: NetworkProvider, address: string) => {
     const web3 = getProvider(npid);

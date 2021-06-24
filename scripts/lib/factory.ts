@@ -107,7 +107,7 @@ export const deployAssetPoolFactory = async (npid: NetworkProvider) => {
         from: getAdmin(npid).address,
     });
 
-    await sendTransaction(factory.methods.initialize(diamondCut), npid);
+    await sendTransaction(factory.options.address, factory.methods.initialize(diamondCut), npid);
 
     return factory.options.address;
 };

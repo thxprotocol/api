@@ -45,7 +45,11 @@ export const postPollFinalize = async (req: HttpRequest, res: Response, next: Ne
     try {
         const { pollId } = await callFunction(req.solution.methods.getReward(req.params.id), req.assetPool.network);
 
-        await sendTransaction(req.solution.methods.rewardPollFinalize(pollId), req.assetPool.network);
+        await sendTransaction(
+            req.solution.options.address,
+            req.solution.methods.rewardPollFinalize(pollId),
+            req.assetPool.network,
+        );
 
         try {
             const reward = await getRewardData(req.solution, Number(req.params.id), req.assetPool.network);

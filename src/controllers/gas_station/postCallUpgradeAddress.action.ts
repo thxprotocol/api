@@ -1,21 +1,24 @@
 import { Response, NextFunction } from 'express';
-import { sendTransaction } from '../../util/network';
+import { sendTransaction, SolutionArtifact } from '../../util/network';
 import { Account } from '../../models/Account';
 import { HttpError, HttpRequest } from '../../models/Error';
+import { parseLogs, findEvent } from '../../util/events';
 
 export const postCallUpgradeAddress = async (req: HttpRequest, res: Response, next: NextFunction) => {
     try {
         const tx = await sendTransaction(
+            req.solution.options.address,
             req.solution.methods.call(req.body.call, req.body.nonce, req.body.sig),
             req.assetPool.network,
         );
-        const event = tx.events.MemberAddressChanged;
+        const events = parseLogs(SolutionArtifact.abi, tx.logs);
+        const event = findEvent('MemberAddressChanged', events);
 
         if (event) {
             try {
-                const account = await Account.findOne({ address: event.returnValues.previousAddress });
+                const account = await Account.findOne({ address: event.args.previousAddress });
 
-                account.address = event.returnValues.newAddress;
+                account.address = event.args.newAddress;
                 account.privateKey = '';
 
                 await account.save();

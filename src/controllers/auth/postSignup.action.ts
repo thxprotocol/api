@@ -65,7 +65,11 @@ export const postSignup = async (req: HttpRequest, res: Response, next: NextFunc
         if (req.solution) {
             const isMember = await callFunction(req.solution.methods.isMember(address), req.assetPool.network);
             if (!isMember) {
-                await sendTransaction(req.solution.methods.addMember(address), req.assetPool.network);
+                await sendTransaction(
+                    req.solution.options.address,
+                    req.solution.methods.addMember(address),
+                    req.assetPool.network,
+                );
             }
         }
     } catch (err) {
