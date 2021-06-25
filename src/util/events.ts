@@ -2,14 +2,14 @@ import { ethers } from 'ethers';
 import { logger } from './logger';
 import IDefaultDiamondArtifact from '../artifacts/contracts/contracts/IDefaultDiamond.sol/IDefaultDiamond.json';
 
-export function parseArgs(ev: any) {
-    const args: any = {};
-    for (const key of Object.keys(ev.args)) {
+export function parseArgs(args: any) {
+    const returnValues: any = {};
+    for (const key of Object.keys(args)) {
         if (isNaN(Number(key))) {
-            args[key] = ev.args[key];
+            returnValues[key] = args[key];
         }
     }
-    return args;
+    return returnValues;
 }
 
 export const events = async (tx: any) => {

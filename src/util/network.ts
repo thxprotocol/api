@@ -6,22 +6,19 @@ import {
     ASSET_POOL_FACTORY_ADDRESS,
     TESTNET_RPC,
     RPC,
+    TESTNET_RPC_WSS,
+    RPC_WSS,
 } from '../util/secrets';
-import { logger } from '../util/logger';
-
 import Web3 from 'web3';
 import { isAddress } from 'web3-utils';
 import { HttpError, HttpRequest } from '../models/Error';
-
 import AssetPoolFactoryArtifact from '../artifacts/contracts/contracts/AssetPoolFactory/IAssetPoolFactory.sol/IAssetPoolFactory.json';
 import IDefaultDiamondArtifact from '../artifacts/contracts/contracts/IDefaultDiamond.sol/IDefaultDiamond.json';
 import ERC20Artifact from '../artifacts/@openzeppelin/contracts/token/ERC20/ERC20.sol/ERC20.json';
 import ERC20LimitedSupplyArtifact from '../artifacts/contracts/contracts/util/TokenLimitedSupply.sol/TokenLimitedSupply.json';
 import ERC20UnlimitedSupplyArtifact from '../artifacts/contracts/contracts/util/TokenUnlimitedAccount.sol/TokenUnlimitedAccount.json';
 import { AssetPool } from '../models/AssetPool';
-
 import { Contract } from 'web3-eth-contract';
-
 import { BigNumber } from '@ethersproject/bignumber';
 import { utils } from 'ethers/lib';
 import axios from 'axios';
@@ -170,14 +167,31 @@ export async function deployLimitedSupplyERC20Contract(
     );
 }
 
-export const solutionContract = (npid: NetworkProvider, address: string) => {
+export const solutionContract = (npid: NetworkProvider, address: string): Contract => {
     const web3 = getProvider(npid);
     return new web3.eth.Contract(IDefaultDiamondArtifact.abi as any, address, {
         from: getAdmin(npid).address,
     });
 };
 
-export const tokenContract = (npid: NetworkProvider, address: string) => {
+function getWSProvider(npid: NetworkProvider) {
+    switch (npid) {
+        case NetworkProvider.Test:
+            return new Web3(new Web3.providers.WebsocketProvider(TESTNET_RPC_WSS));
+        case NetworkProvider.Main:
+            return new Web3(new Web3.providers.WebsocketProvider(RPC_WSS));
+    }
+}
+
+export const solutionWSContract = (npid: NetworkProvider, address: string): Contract => {
+    const web3 = getWSProvider(npid);
+
+    return new web3.eth.Contract(IDefaultDiamondArtifact.abi as any, address, {
+        from: getAdmin(npid).address,
+    });
+};
+
+export const tokenContract = (npid: NetworkProvider, address: string): Contract => {
     const web3 = getProvider(npid);
     return new web3.eth.Contract(ERC20Artifact.abi as any, address, {
         from: getAdmin(npid).address,

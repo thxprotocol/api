@@ -80,11 +80,15 @@ export const postMember = async (req: HttpRequest, res: Response, next: NextFunc
             try {
                 const events = parseLogs(SolutionArtifact.abi, tx.logs);
                 const event = findEvent('RoleGranted', events);
-                const address = event.args.account;
 
-                await updateMemberProfile(req.body.address, req.solution.options.address);
+                if (event) {
+                    const address = event.args.account;
+                    await updateMemberProfile(req.body.address, req.solution.options.address);
 
-                res.redirect(`/${VERSION}/members/${address}`);
+                    res.redirect(`/${VERSION}/members/${address}`);
+                } else {
+                    res.status(200).end();
+                }
             } catch (err) {
                 return next(new HttpError(500, 'Parse logs failed.', err));
             }
