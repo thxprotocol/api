@@ -34,9 +34,9 @@ export const FactoryArtifact = AssetPoolFactoryArtifact;
 export const getProvider = (npid: NetworkProvider) => {
     switch (npid) {
         case NetworkProvider.Test:
-            return new Web3(new Web3.providers.WebsocketProvider(TESTNET_RPC_WSS));
+            return new Web3(TESTNET_RPC);
         case NetworkProvider.Main:
-            return new Web3(new Web3.providers.WebsocketProvider(RPC_WSS));
+            return new Web3(RPC);
     }
 };
 
