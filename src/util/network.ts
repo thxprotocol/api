@@ -99,13 +99,11 @@ export async function sendTransaction(to: string, fn: any, npid: NetworkProvider
     const data = fn.encodeABI(from);
     const estimate = await fn.estimateGas();
     const gas = estimate < MINIMUM_GAS_LIMIT ? MINIMUM_GAS_LIMIT : estimate;
-    const nonce = await web3.eth.getTransactionCount(from);
     const sig = await web3.eth.accounts.signTransaction(
         {
             gas,
             gasPrice,
             to,
-            nonce,
             from,
             data,
         },
