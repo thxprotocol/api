@@ -94,7 +94,7 @@ export async function sendTransaction(to: string, fn: any, npid: NetworkProvider
 
     const web3 = getProvider(npid);
     const from = getAdmin(npid).address;
-    const gasPrice = await web3.eth.getGasPrice();
+    const gasPrice = await getGasPrice(npid);
 
     const data = fn.encodeABI(from);
     const estimate = await fn.estimateGas();
