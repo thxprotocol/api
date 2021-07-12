@@ -232,20 +232,9 @@ describe('UnlimitedSupplyToken', () => {
         });
 
         it('HTTP 200 OK', async (done) => {
-            const { call, nonce, sig } = await signMethod(
-                poolAddress,
-                'withdrawPollFinalize',
-                [withdrawalID],
-                userWallet,
-            );
-
-            user.post('/v1/gas_station/call')
-                .send({
-                    call,
-                    nonce,
-                    sig,
-                })
-                .set({ AssetPool: poolAddress, Authorization: userAccessToken })
+            user.post(`/v1/withdrawals/${withdrawalID}/withdraw`)
+                .send()
+                .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
                 .end(async (err, res) => {
                     expect(res.status).toBe(200);
 
@@ -266,7 +255,7 @@ describe('UnlimitedSupplyToken', () => {
     });
 
     describe('GET /asset_pools/:address (totalSupply)', () => {
-        it('HTTP 302 ', (done) => {
+        it('HTTP 200 state OK', (done) => {
             user.get('/v1/asset_pools/' + poolAddress)
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
                 .end(async (err, res) => {

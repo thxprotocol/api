@@ -1,7 +1,8 @@
 import qrcode from 'qrcode';
 import { HttpError, HttpRequest } from '../../models/Error';
 import { NextFunction, Response } from 'express';
-import { sendTransaction } from '../../util/network';
+import { sendTransaction, SolutionArtifact } from '../../util/network';
+import { parseLogs } from '../../util/events';
 
 /**
  * @swagger
@@ -43,28 +44,38 @@ import { sendTransaction } from '../../util/network';
  *         description: Bad Gateway. Received an invalid response from the network or database.
  */
 export const postPollFinalize = async (req: HttpRequest, res: Response, next: NextFunction) => {
-    try {
-        if (req.assetPool.bypassPolls) {
-            await sendTransaction(
-                req.solution.options.address,
-                req.solution.methods.withdrawPollFinalize(req.params.id),
-                req.assetPool.network,
-            );
+    switch (req.assetPool.bypassPolls) {
+        // BypassPolls enabled
+        case true:
+            try {
+                await sendTransaction(
+                    req.solution.options.address,
+                    req.solution.methods.withdrawPollFinalize(req.params.id),
+                    req.assetPool.network,
+                );
 
-            res.status(200).end();
-        } else {
-            const base64 = await qrcode.toDataURL(
-                JSON.stringify({
-                    assetPoolAddress: req.solution.options.address,
-                    method: 'withdrawPollFinalize',
-                    params: {
-                        id: req.params.id,
-                    },
-                }),
-            );
-            res.json({ base64 });
-        }
-    } catch (err) {
-        next(new HttpError(500, 'Could not encode the QR image properly.', err));
+                return res.status(200).end();
+            } catch (err) {
+                next(new HttpError(500, 'Could not finalize the withdraw poll.', err));
+            }
+            break;
+        // BypassPolls disabled
+        case false:
+            try {
+                const base64 = await qrcode.toDataURL(
+                    JSON.stringify({
+                        assetPoolAddress: req.solution.options.address,
+                        method: 'withdrawPollFinalize',
+                        params: {
+                            id: req.params.id,
+                        },
+                    }),
+                );
+
+                return res.json({ base64 });
+            } catch (err) {
+                next(new HttpError(500, 'Could not encode the QR image properly.', err));
+            }
+            break;
     }
 };

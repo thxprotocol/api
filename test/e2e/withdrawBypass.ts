@@ -19,7 +19,7 @@ const user = request(server);
 const http2 = request.agent(server);
 const http3 = request.agent(server);
 
-describe('Voting', () => {
+describe('WithdrawPoll Bypass', () => {
     let adminAccessToken: string,
         adminAudience: string,
         userAccessToken: string,
