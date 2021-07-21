@@ -2,7 +2,7 @@ import request from 'supertest';
 import server from '../../src/server';
 import db from '../../src/util/database';
 import { getProvider, NetworkProvider } from '../../src/util/network';
-import { poolTitle, rewardWithdrawAmount, rewardWithdrawDuration, userEmail, userPassword } from './lib/constants';
+import { rewardWithdrawAmount, rewardWithdrawDuration, userEmail, userPassword } from './lib/constants';
 import { ethers } from 'ethers';
 import {
     getAccessToken,
@@ -19,9 +19,8 @@ const user = request(server);
 const http2 = request.agent(server);
 const http3 = request.agent(server);
 
-describe('Voting', () => {
+describe('WithdrawPoll Bypass', () => {
     let adminAccessToken: string,
-        adminAudience: string,
         userAccessToken: string,
         dashboardAccessToken: string,
         poolAddress: string,
@@ -36,7 +35,6 @@ describe('Voting', () => {
         const credentials = await registerClientCredentialsClient(user);
 
         adminAccessToken = credentials.accessToken;
-        adminAudience = credentials.aud;
     });
 
     describe('POST /signup', () => {
@@ -98,8 +96,6 @@ describe('Voting', () => {
             user.post('/v1/asset_pools')
                 .set('Authorization', dashboardAccessToken)
                 .send({
-                    title: poolTitle,
-                    aud: adminAudience,
                     network: 0,
                     token: {
                         name: 'SparkBlue Token',
@@ -231,7 +227,7 @@ describe('Voting', () => {
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
                 .end(async (err, res) => {
                     expect(res.status).toBe(200);
-                    expect(res.body.balance.amount).toBe(0);
+                    expect(res.body.token.balance).toBe(0);
 
                     done();
                 });
@@ -257,7 +253,7 @@ describe('Voting', () => {
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
                 .end(async (err, res) => {
                     expect(res.status).toBe(200);
-                    expect(res.body.balance.amount).toBe(1000);
+                    expect(res.body.token.balance).toBe(1000);
 
                     done();
                 });

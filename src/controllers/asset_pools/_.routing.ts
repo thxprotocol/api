@@ -7,6 +7,7 @@ import { postAssetPool } from './post.action';
 import { patchAssetPool } from './patch.action';
 import { deleteAssetPool } from './delete.action';
 import checkScopes from 'express-jwt-authz';
+import { postAssetPoolDepositApprove } from './postDepositApprove';
 
 const router = express.Router();
 
@@ -34,5 +35,12 @@ router.delete(
     validate(validations.deleteAssetPool),
     parseHeader,
     deleteAssetPool,
+);
+router.post(
+    '/:address/deposit/approve',
+    checkScopes(['user']),
+    validate(validations.postAssetPoolDepositApprove),
+    parseHeader,
+    postAssetPoolDepositApprove,
 );
 export default router;

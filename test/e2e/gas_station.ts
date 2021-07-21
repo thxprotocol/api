@@ -4,7 +4,6 @@ import { NetworkProvider, sendTransaction } from '../../src/util/network';
 import db from '../../src/util/database';
 import { voter, timeTravel, signMethod, deployExampleToken } from './lib/network';
 import {
-    poolTitle,
     rewardPollDuration,
     proposeWithdrawPollDuration,
     rewardWithdrawAmount,
@@ -31,7 +30,6 @@ const http3 = request.agent(server);
 describe('Gas Station', () => {
     let poolAddress: string,
         adminAccessToken: string,
-        adminAudience: string,
         dashboardAccessToken: string,
         userAccessToken: string,
         testToken: Contract;
@@ -42,7 +40,6 @@ describe('Gas Station', () => {
         const credentials = await registerClientCredentialsClient(user);
 
         adminAccessToken = credentials.accessToken;
-        adminAudience = credentials.aud;
 
         testToken = await deployExampleToken();
 
@@ -76,8 +73,6 @@ describe('Gas Station', () => {
             .post('/v1/asset_pools')
             .set({ Authorization: dashboardAccessToken })
             .send({
-                title: poolTitle,
-                aud: adminAudience,
                 network: 0,
                 token: {
                     address: testToken.options.address,

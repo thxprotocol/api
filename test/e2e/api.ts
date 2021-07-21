@@ -3,14 +3,7 @@ import server from '../../src/server';
 import db from '../../src/util/database';
 import { callFunction, getAdmin, getProvider, NetworkProvider, sendTransaction } from '../../src/util/network';
 import { timeTravel, signMethod, deployExampleToken } from './lib/network';
-import {
-    poolTitle,
-    rewardWithdrawAmount,
-    rewardWithdrawDuration,
-    mintAmount,
-    userEmail,
-    userPassword,
-} from './lib/constants';
+import { rewardWithdrawAmount, rewardWithdrawDuration, mintAmount, userEmail, userPassword } from './lib/constants';
 import { formatEther, parseEther } from 'ethers/lib/utils';
 import { ethers } from 'ethers';
 import { Contract } from 'web3-eth-contract';
@@ -35,7 +28,6 @@ describe('Happy Flow', () => {
     let adminAccessToken: string,
         userAccessToken: string,
         dashboardAccessToken: string,
-        adminAudience: string,
         poolAddress: string,
         userAddress: string,
         withdrawPollID: string,
@@ -48,7 +40,6 @@ describe('Happy Flow', () => {
         const credentials = await registerClientCredentialsClient(user);
 
         adminAccessToken = credentials.accessToken;
-        adminAudience = credentials.aud;
 
         testToken = await deployExampleToken();
     });
@@ -108,8 +99,6 @@ describe('Happy Flow', () => {
             user.post('/v1/asset_pools')
                 .set('Authorization', dashboardAccessToken)
                 .send({
-                    title: poolTitle,
-                    aud: adminAudience,
                     network: 0,
                     token: {
                         address: testToken.options.address,
@@ -167,7 +156,6 @@ describe('Happy Flow', () => {
                             ),
                         ),
                     ).toBe(Number(formatEther(mintAmount)) - rewardWithdrawAmount);
-                    expect(res.body.title).toEqual(poolTitle);
                     expect(res.body.address).toEqual(poolAddress);
                     expect(res.body.token.address).toEqual(testToken.options.address);
                     expect(res.body.token.name).toEqual(await testToken.methods.name().call());
@@ -275,7 +263,7 @@ describe('Happy Flow', () => {
                     expect(res.status).toBe(200);
                     expect(res.body.isMember).toEqual(true);
                     expect(res.body.isManager).toEqual(true);
-                    expect(res.body.balance.amount).toEqual(0);
+                    expect(res.body.token.balance).toEqual(0);
                     done();
                 });
         });
@@ -418,7 +406,7 @@ describe('Happy Flow', () => {
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
                 .end(async (err, res) => {
                     expect(res.status).toBe(200);
-                    expect(res.body.balance.amount).toBe(rewardWithdrawAmount);
+                    expect(res.body.token.balance).toBe(rewardWithdrawAmount);
 
                     done();
                 });

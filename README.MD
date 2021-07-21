@@ -101,14 +101,14 @@ Make sure you have `mongo-development-tools` installed with brew. See mongo docu
 
 ```
 # Export local db
-mongoexport --uri="mongodb://root:root@localhost:27017/admin" --collection="client" --out="./db/client.json"
-mongoexport --uri="mongodb://root:root@localhost:27017/admin" --collection="accounts" --out="./db/accounts.json"
-mongoexport --uri="mongodb://root:root@localhost:27017/admin" --collection="registration_access_token" --out="./db/registration_access_token.json"
+mongoexport --uri="mongodb://root:root@localhost:27017/admin" --collection="client" --out="./fixture/db/client.json"
+mongoexport --uri="mongodb://root:root@localhost:27017/admin" --collection="accounts" --out="./fixture/db/accounts.json"
+mongoexport --uri="mongodb://root:root@localhost:27017/admin" --collection="registration_access_token" --out="./fixture/db/registration_access_token.json"
 
 # Import local db
-mongoimport --uri="mongodb://root:root@localhost:27017/admin" --collection="client" --file="./db/client.json"
-mongoimport --uri="mongodb://root:root@localhost:27017/admin" --collection="accounts" --file="./db/accounts.json"
-mongoimport --uri="mongodb://root:root@localhost:27017/admin" --collection="registration_access_token" --file="./db/registration_access_token.json"
+mongoimport --uri="mongodb://root:root@localhost:27017/admin" --collection="client" --file="./fixture/db/client.json"
+mongoimport --uri="mongodb://root:root@localhost:27017/admin" --collection="accounts" --file="./fixture/db/accounts.json"
+mongoimport --uri="mongodb://root:root@localhost:27017/admin" --collection="registration_access_token" --file="./fixture/db/registration_access_token.json"
 
 ```
 

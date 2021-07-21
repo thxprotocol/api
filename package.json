@@ -12,7 +12,7 @@
         "serve": "node ./dist/src/server.js",
         "serve:debug": "nodemon --inspect dist/src/server.js",
         "serve:hardhat": "kill $(lsof -t -i :8545); HARDHAT_VERBOSE=true NODE_ENV=test npx hardhat node > /dev/null & sleep 1",
-        "serve:ganache": "kill $(lsof -t -i :8545); ganache-cli -l 25000000 --account='0x873c254263b17925b686f971d7724267710895f1585bb0533db8e693a2af32ff,1000000000000000000000000000000000000000' > /dev/null & sleep 1",
+        "serve:ganache": "kill $(lsof -t -i :8545); ganache-cli -l 25000000 --account='0x873c254263b17925b686f971d7724267710895f1585bb0533db8e693a2af32ff,1000000000000000000000000000000000000000' --account='0x5a05e38394194379795422d2e8c1d33e90033d90defec4880174c39198f707e3,0' > /dev/null & sleep 1",
         "debug": "npm run build && npm run watch:debug",
         "publish": "npm version prerelease; npm run build",
         "lint": "npx tsc --noEmit && npx eslint \"src/**/*.ts\" \"test/**/*.ts\" --quiet --fix",
@@ -28,7 +28,7 @@
         "watch:node": "nodemon dist/src/server.js",
         "watch:test": "npm run test -- --watchAll",
         "watch:debug": "concurrently -k -p \"[{name}]\" -n \"TypeScript,Node\" -c \"yellow.bold,cyan.bold,green.bold\" \"npm run watch:ts\" \"npm run watch:sass\" \"npm run serve:debug\"",
-        "test": "npm run serve:ganache; NODE_ENV=test jest --forceExit --runInBand",
+        "test": "npm run serve:ganache; NODE_ENV=test jest --forceExit --detectOpenHandles --runInBand",
         "deploy:factory": "npx hardhat run scripts/deployAssetPoolFactory.ts",
         "deploy:registry": "npx hardhat run scripts/deployAssetPoolRegistry.ts"
     },

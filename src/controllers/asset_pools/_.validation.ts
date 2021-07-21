@@ -21,9 +21,9 @@ export const validations = {
 
                 return false;
             }),
-        body('title').exists(),
-        body('aud').exists(),
+        body('network').exists().isNumeric(),
     ],
+    postAssetPoolDepositApprove: [body('amount').exists().isNumeric()],
     deleteAssetPool: [
         param('address')
             .exists()

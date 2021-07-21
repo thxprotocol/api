@@ -2,7 +2,7 @@ import request from 'supertest';
 import server from '../../src/server';
 import db from '../../src/util/database';
 import { deployExampleToken } from './lib/network';
-import { poolTitle, rewardWithdrawAmount, rewardWithdrawDuration, userEmail, userPassword } from './lib/constants';
+import { rewardWithdrawAmount, rewardWithdrawDuration, userEmail, userPassword } from './lib/constants';
 import { ethers } from 'ethers';
 import { Contract } from 'web3-eth-contract';
 import {
@@ -18,7 +18,6 @@ const http3 = request.agent(server);
 
 describe('Bypass Polls', () => {
     let adminAccessToken: string,
-        adminAudience: string,
         dashboardAccessToken: string,
         redirectURL: string,
         poolAddress: string,
@@ -30,7 +29,6 @@ describe('Bypass Polls', () => {
         const credentials = await registerClientCredentialsClient(user);
 
         adminAccessToken = credentials.accessToken;
-        adminAudience = credentials.aud;
 
         testToken = await deployExampleToken();
     });
@@ -65,8 +63,6 @@ describe('Bypass Polls', () => {
             user.post('/v1/asset_pools')
                 .set('Authorization', dashboardAccessToken)
                 .send({
-                    title: poolTitle,
-                    aud: adminAudience,
                     network: 0,
                     token: {
                         address: testToken.options.address,

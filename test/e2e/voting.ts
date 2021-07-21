@@ -4,7 +4,6 @@ import db from '../../src/util/database';
 import { getAdmin, getProvider, NetworkProvider } from '../../src/util/network';
 import { timeTravel, signMethod } from './lib/network';
 import {
-    poolTitle,
     rewardPollDuration,
     rewardWithdrawAmount,
     rewardWithdrawDuration,
@@ -30,7 +29,6 @@ const http3 = request.agent(server);
 
 describe('Voting', () => {
     let adminAccessToken: string,
-        adminAudience: string,
         userAccessToken: string,
         dashboardAccessToken: string,
         poolAddress: string,
@@ -45,7 +43,6 @@ describe('Voting', () => {
         const credentials = await registerClientCredentialsClient(user);
 
         adminAccessToken = credentials.accessToken;
-        adminAudience = credentials.aud;
     });
 
     describe('POST /signup', () => {
@@ -108,8 +105,6 @@ describe('Voting', () => {
             user.post('/v1/asset_pools')
                 .set('Authorization', dashboardAccessToken)
                 .send({
-                    title: poolTitle,
-                    aud: adminAudience,
                     network: 0,
                     token: {
                         name: 'SparkBlue Token',
@@ -412,7 +407,7 @@ describe('Voting', () => {
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
                 .end(async (err, res) => {
                     expect(res.status).toBe(200);
-                    expect(res.body.balance.amount).toBe(0);
+                    expect(res.body.token.balance).toBe(0);
 
                     done();
                 });
@@ -445,7 +440,7 @@ describe('Voting', () => {
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
                 .end(async (err, res) => {
                     expect(res.status).toBe(200);
-                    expect(res.body.balance.amount).toBe(1000);
+                    expect(res.body.token.balance).toBe(1000);
 
                     done();
                 });

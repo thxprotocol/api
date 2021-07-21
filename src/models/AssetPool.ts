@@ -3,9 +3,8 @@ import mongoose from 'mongoose';
 export type AssetPoolDocument = mongoose.Document & {
     address: string;
     network: number;
-    title: string;
-    aud: string;
     sub: string;
+    rat: string;
     blockNumber: number;
     transactionHash: string;
     bypassPolls: boolean;
@@ -15,9 +14,8 @@ const assetPoolSchema = new mongoose.Schema(
     {
         address: String,
         network: Number,
-        title: String,
-        aud: String,
         sub: String,
+        rat: String,
         blockNumber: Number,
         transactionHash: String,
         bypassPolls: Boolean,

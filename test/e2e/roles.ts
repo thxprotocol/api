@@ -3,7 +3,7 @@ import server from '../../src/server';
 import db from '../../src/util/database';
 import { getAdmin, NetworkProvider } from '../../src/util/network';
 import { deployExampleToken, voter } from './lib/network';
-import { poolTitle, userEmail, userPassword } from './lib/constants';
+import { userEmail, userPassword } from './lib/constants';
 import {
     getAccessToken,
     getAuthCode,
@@ -21,7 +21,6 @@ describe('Roles', () => {
         dashboardAccessToken: string,
         testToken: Contract,
         adminAccessToken: string,
-        adminAudience: string,
         userAddress: string;
 
     beforeAll(async () => {
@@ -30,7 +29,6 @@ describe('Roles', () => {
         const credentials = await registerClientCredentialsClient(user);
 
         adminAccessToken = credentials.accessToken;
-        adminAudience = credentials.aud;
 
         testToken = await deployExampleToken();
     });
@@ -70,8 +68,6 @@ describe('Roles', () => {
             user.post('/v1/asset_pools')
                 .set({ Authorization: dashboardAccessToken })
                 .send({
-                    title: poolTitle,
-                    aud: adminAudience,
                     network: 0,
                     token: {
                         address: testToken.options.address,
@@ -126,7 +122,7 @@ describe('Roles', () => {
                 .end(async (err, res) => {
                     expect(res.body.isMember).toEqual(true);
                     expect(res.body.isManager).toEqual(false);
-                    expect(res.body.balance.amount).toEqual(0);
+                    expect(res.body.token.balance).toEqual(0);
                     expect(res.status).toBe(200);
                     done();
                 });
@@ -153,7 +149,7 @@ describe('Roles', () => {
                 .end(async (err, res) => {
                     expect(res.body.isMember).toEqual(true);
                     expect(res.body.isManager).toEqual(true);
-                    expect(res.body.balance.amount).toEqual(0);
+                    expect(res.body.token.balance).toEqual(0);
                     expect(res.status).toBe(200);
                     done();
                 });
@@ -180,7 +176,7 @@ describe('Roles', () => {
                 .end(async (err, res) => {
                     expect(res.body.isMember).toEqual(true);
                     expect(res.body.isManager).toEqual(false);
-                    expect(res.body.balance.amount).toEqual(0);
+                    expect(res.body.token.balance).toEqual(0);
                     expect(res.status).toBe(200);
                     done();
                 });

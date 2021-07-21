@@ -20,8 +20,8 @@
 <body class="d-flex w-100 h-100 bg-light align-items-center justify-content-center">
     <div class="container">
         <div class="row pt-sm-5 pb-sm-5">
-            <div class="col-lg-6 offset-lg-3 order-0 order-sm-1">
-                <div class="card shadow-lg mb-5">
+            <div class="col-lg-4 offset-lg-4 order-0 order-sm-1">
+                <div class="card shadow-sm mb-5">
                     <div class="card-body p-sm-5">
                         <form autocomplete="off" action="/interaction/<%= uid %>/login" method="post">
                             <% if (alert && alert.message) { %>
@@ -31,9 +31,7 @@
 
                                 <% } %>
                                     <% if (params.authentication_token) { %>
-                                        <h1 class="h3 text-center mb-3">
-                                            <strong>Set a password</strong>
-                                        </h1>
+                                        <strong class="h1 d-block text-dark text-center mb-4">Set a password</strong>
                                         <div class="form-group">
                                             <label>Password:</label>
                                             <input class="form-control" autocomplete="off" required type="password"
@@ -55,9 +53,9 @@
                                                 Go to login
                                             </a>
                                             <% } else { %>
-                                                <h1 class="h3 text-center mb-3">
-                                                    <strong>Login to THX</strong>
-                                                </h1>
+                                                <strong class="h1 d-block text-dark text-center mb-4">
+                                                    Login
+                                                </strong>
                                                 <div class="form-group">
                                                     <label>E-mail:</label>
                                                     <input class="form-control" required type="email" name="email">
@@ -69,7 +67,7 @@
                                                 </div>
                                                 <hr>
                                                 <button type="submit"
-                                                        class="btn btn-rounded btn-primary btn-block">Login</button>
+                                                        class="btn rounded-pill btn-primary btn-block">Login</button>
                                                 <% } %>
 
                         </form>

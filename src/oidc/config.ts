@@ -41,7 +41,7 @@ export default {
             },
         };
     },
-    extraParams: ['signup_token', 'authentication_token', 'secure_key'],
+    extraParams: ['email', 'signup_token', 'authentication_token', 'secure_key'],
     claims: {
         openid: ['sub'],
         admin: ['admin'],

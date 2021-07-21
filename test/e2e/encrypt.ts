@@ -14,7 +14,7 @@ import {
     registerDashboardClient,
     registerWalletClient,
 } from './lib/registerClient';
-import { poolTitle, newAddress, userEmail, userPassword } from './lib/constants';
+import { newAddress, userEmail, userPassword } from './lib/constants';
 import { Contract } from 'web3-eth-contract';
 import { isAddress } from 'web3-utils';
 
@@ -26,7 +26,6 @@ describe('Encryption', () => {
     let testToken: Contract,
         adminAccessToken: string,
         dashboardAccessToken: string,
-        adminAudience: string,
         userAccessToken: string,
         poolAddress: string,
         decryptedWallet: Account,
@@ -38,7 +37,6 @@ describe('Encryption', () => {
         const credentials = await registerClientCredentialsClient(user);
 
         adminAccessToken = credentials.accessToken;
-        adminAudience = credentials.aud;
 
         testToken = await deployExampleToken();
     });
@@ -71,8 +69,6 @@ describe('Encryption', () => {
             user.post('/v1/asset_pools')
                 .set({ Authorization: dashboardAccessToken })
                 .send({
-                    title: poolTitle,
-                    aud: adminAudience,
                     network: 0,
                     token: {
                         address: testToken.options.address,
