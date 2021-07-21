@@ -1,10 +1,10 @@
 @import url('https://fonts.googleapis.com/css?family=Exo+2:200,400,400i,700,700i,900,900i');
-@import './scss/variables';
 
 // Required
-@import '../node_modules/bootstrap/scss/functions';
-@import '../node_modules/bootstrap/scss/variables';
 @import '../node_modules/bootstrap/scss/mixins';
+@import '../node_modules/bootstrap/scss/functions';
+@import './scss/variables';
+@import '../node_modules/bootstrap/scss/variables';
 
 // Optional
 @import '../node_modules/bootstrap/scss/reboot';
@@ -20,9 +20,6 @@
 @import '../node_modules/bootstrap/scss/list-group';
 @import '../node_modules/bootstrap/scss/alert';
 @import '../node_modules/bootstrap/scss/grid';
-@import '../node_modules/bootstrap/scss/modal';
-@import '../node_modules/bootstrap/scss/close';
-@import '../node_modules/bootstrap/scss/tooltip';
 @import '../node_modules/bootstrap/scss/transitions';
 @import '../node_modules/bootstrap/scss/buttons';
 @import '../node_modules/bootstrap/scss/spinners';
@@ -33,17 +30,7 @@
 // Reset
 @import './scss/root';
 
-// Regions
-@import './scss/jumbotron';
-@import './scss/content';
-@import './scss/contact';
-@import './scss/faq';
-@import './scss/glossary';
-@import './scss/team';
-
 // UI Components
-@import './scss/custom-switch';
 @import './scss/buttons';
-@import './scss/navbar';
-@import './scss/tab';
-@import './scss/number';
+@import './scss/card';
+@import './scss/forms';

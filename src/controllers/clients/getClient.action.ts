@@ -17,7 +17,8 @@ export const getClient = async (req: HttpRequest, res: Response, next: NextFunct
         if (!client) {
             return next(new HttpError(500, 'Could not find a client for this registration_access_token.'));
         }
-        const assetPools = await AssetPool.find({ aud: client.payload['client_id'] });
+
+        const assetPools = await AssetPool.find({ rat: req.params.rat });
 
         res.json({
             name: client.payload['client_name'],

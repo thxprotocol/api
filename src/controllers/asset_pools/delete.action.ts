@@ -5,6 +5,8 @@ import { Withdrawal } from '../../models/Withdrawal';
 import { Reward } from '../../models/Reward';
 import { Account } from '../../models/Account';
 import { eventIndexer } from '../../util/indexer';
+import { Client } from '../../models/Client';
+import { Rat, RatDocument } from '../../models/Rat';
 
 export const deleteAssetPool = async (req: HttpRequest, res: Response, next: NextFunction) => {
     try {
@@ -20,14 +22,25 @@ export const deleteAssetPool = async (req: HttpRequest, res: Response, next: Nex
             await w.remove();
         }
 
+        // Remove client and rat
+        const rat: RatDocument = await Rat.findById(req.assetPool.rat);
+        const client = Client.findById(rat.payload.clientId);
+
+        await client.remove();
+        await rat.remove();
+
         // Remove asset pool for given address
         const assetPool = await AssetPool.findOne({ address: req.solution.options.address });
         await assetPool.remove();
 
+        // Remove rat and
         const account = await Account.findById(req.user.sub);
-        const index = account.memberships.indexOf(req.solution.options.address);
 
-        account.memberships.splice(index, 1);
+        const membershipIndex = account.memberships.indexOf(req.solution.options.address);
+        account.memberships.splice(membershipIndex, 1);
+
+        const ratIndex = account.registrationAccessTokens.indexOf(req.assetPool.rat);
+        account.registrationAccessTokens.splice(ratIndex, 1);
 
         await account.save();
 

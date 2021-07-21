@@ -8,6 +8,7 @@ import {
     RPC,
     TESTNET_RPC_WSS,
     RPC_WSS,
+    MINIMUM_GAS_LIMIT,
 } from '../util/secrets';
 import Web3 from 'web3';
 import { isAddress } from 'web3-utils';
@@ -56,6 +57,11 @@ export const getAdmin = (npid: NetworkProvider) => {
     return web3.eth.accounts.wallet.add(PRIVATE_KEY);
 };
 
+export const getBalance = (npid: NetworkProvider, address: string) => {
+    const web3 = getProvider(npid);
+    return web3.eth.getBalance(address);
+};
+
 export async function deployContract(abi: any, bytecode: any, arg: any[], npid: NetworkProvider): Promise<Contract> {
     const web3 = getProvider(npid);
     const contract = new web3.eth.Contract(abi, null, {
@@ -90,8 +96,6 @@ export async function callFunction(fn: any, npid: NetworkProvider) {
 }
 
 export async function sendTransaction(to: string, fn: any, npid: NetworkProvider) {
-    const MINIMUM_GAS_LIMIT = 54680;
-
     const web3 = getProvider(npid);
     const from = getAdmin(npid).address;
     const gasPrice = await getGasPrice(npid);
@@ -106,6 +110,27 @@ export async function sendTransaction(to: string, fn: any, npid: NetworkProvider
             to,
             from,
             data,
+        },
+        PRIVATE_KEY,
+    );
+
+    return await web3.eth.sendSignedTransaction(sig.rawTransaction);
+}
+
+export async function sendTransactionValue(to: string, value: string, npid: NetworkProvider) {
+    const web3 = getProvider(npid);
+    const from = getAdmin(npid).address;
+    const gasPrice = await getGasPrice(npid);
+
+    const estimate = await web3.eth.estimateGas({ from, to, value });
+    const gas = estimate < MINIMUM_GAS_LIMIT ? MINIMUM_GAS_LIMIT : estimate;
+    const sig = await web3.eth.accounts.signTransaction(
+        {
+            gas,
+            gasPrice,
+            to,
+            from,
+            value,
         },
         PRIVATE_KEY,
     );
@@ -197,7 +222,7 @@ export const tokenContract = (npid: NetworkProvider, address: string): Contract 
 };
 
 export async function parseHeader(req: HttpRequest, res: Response, next: NextFunction) {
-    const address = req.header('AssetPool');
+    const address = req.header('AssetPool') || req.params.address;
 
     if (address && isAddress(address)) {
         const assetPool = await AssetPool.findOne({ address });

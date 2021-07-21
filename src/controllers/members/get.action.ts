@@ -91,10 +91,10 @@ export const getMember = async (req: HttpRequest, res: Response, next: NextFunct
                 address,
                 isMember,
                 isManager: await callFunction(req.solution.methods.isManager(address), req.assetPool.network),
-                balance: {
+                token: {
                     name: await callFunction(tokenInstance.methods.name(), req.assetPool.network),
                     symbol: await callFunction(tokenInstance.methods.symbol(), req.assetPool.network),
-                    amount: Number(formatEther(balance)),
+                    balance: Number(formatEther(balance)),
                 },
             });
         }

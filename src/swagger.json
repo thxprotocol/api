@@ -1,7 +1,7 @@
 {
   "info": {
     "title": "THX API Specification",
-    "version": "1.0.0-beta.13"
+    "version": "1.0.0-beta.14"
   },
   "basePath": "https://api.thx.network/v1",
   "swagger": "2.0",
@@ -66,239 +66,18 @@
         }
       }
     },
-    "/asset_pools/:address": {
-      "get": {
-        "tags": [
-          "Asset Pools"
-        ],
-        "description": "Provides information about the configuration and balance of an asset pool.",
-        "produces": [
-          "application/json"
-        ],
-        "parameters": [
-          {
-            "name": "AssetPool",
-            "in": "header",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "address",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "An asset pool object exposing the configuration and balance.",
-            "schema": {
-              "type": "object",
-              "properties": {
-                "title": {
-                  "type": "string",
-                  "description": "The title of the asset pool."
-                },
-                "sub": {
-                  "type": "string",
-                  "description": "The sub of the account that deployed the asset pool."
-                },
-                "aud": {
-                  "type": "string",
-                  "description": "The audience (client id of the connected app) of the asset pool"
-                },
-                "address": {
-                  "type": "string",
-                  "description": "The address of the asset pool."
-                },
-                "bypassPolls": {
-                  "type": "boolean",
-                  "description": "Approve polls by default."
-                },
-                "balance": {
-                  "type": "number",
-                  "description": "The token balance of the asset pool for this token."
-                },
-                "token": {
-                  "type": "object",
-                  "properties": {
-                    "address": {
-                      "type": "string",
-                      "description": "The address of the asset pool."
-                    },
-                    "name": {
-                      "type": "string",
-                      "description": "The name of the token configured for this asset pool."
-                    },
-                    "symbol": {
-                      "type": "string",
-                      "description": "The symbol of the token configured for this asset pool."
-                    },
-                    "totalSupply": {
-                      "type": "number",
-                      "description": "The total amount of tokens in circulation."
-                    },
-                    "balance": {
-                      "type": "number",
-                      "description": "The token balance for this asset pool."
-                    }
-                  }
-                },
-                "proposeWithdrawPollDuration": {
-                  "type": "number",
-                  "description": "The default duration of the withdraw polls."
-                },
-                "rewardPollDuration": {
-                  "type": "number",
-                  "description": "The default duration of the reward polls."
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Bad Request. Could indicate incorrect rewardPollDuration or proposeWithdrawPollDuration values."
-          },
-          "401": {
-            "description": "Unauthorized. Authenticate your request please."
-          },
-          "403": {
-            "description": "Forbidden. Your account does not have access to this pool."
-          },
-          "500": {
-            "description": "Internal Server Error."
-          },
-          "502": {
-            "description": "Bad Gateway. Received an invalid response from the network or database."
-          }
-        }
-      },
-      "patch": {
-        "tags": [
-          "Asset Pools"
-        ],
-        "description": "Updates the configuration for this asset pool. RewardPollDuration and ProposeWithdrawPollDuration are set in seconds. BypassPolls will upgrade or downgrade the asset pool with governance logic.",
-        "produces": [
-          "application/json"
-        ],
-        "parameters": [
-          {
-            "name": "AssetPool",
-            "in": "header",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "address",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "bypassPolls",
-            "in": "body",
-            "required": false,
-            "type": "boolean"
-          },
-          {
-            "name": "rewardPollDuration",
-            "in": "body",
-            "required": false,
-            "type": "number"
-          },
-          {
-            "name": "proposeWithdrawPollDuration",
-            "in": "body",
-            "required": false,
-            "type": "number"
-          }
-        ],
-        "responses": {
-          "302": {
-            "description": "Redirect. Redirects to `GET /asset_pools/:address`"
-          },
-          "400": {
-            "description": "Bad Request. Could indicate incorrect rewardPollDuration or proposeWithdrawPollDuration values."
-          },
-          "401": {
-            "description": "Unauthorized. Authenticate your request please."
-          },
-          "403": {
-            "description": "Forbidden. Your account does not have access to this pool."
-          },
-          "500": {
-            "description": "Internal Server Error."
-          },
-          "502": {
-            "description": "Bad Gateway. Received an invalid response from the network or database."
-          }
-        }
-      }
-    },
-    "/asset_pools": {
+    "/asset_pools/:address/deposit/approve": {
       "post": {
         "tags": [
           "Asset Pools"
         ],
-        "description": "Deploys a new asset pool with an ERC20 token configured for it.",
+        "description": "Deposit approve the transaction",
         "produces": [
           "application/json"
         ],
-        "parameters": [
-          {
-            "name": "title",
-            "in": "body",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "aud",
-            "in": "body",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "network",
-            "in": "body",
-            "required": true,
-            "type": "number"
-          },
-          {
-            "name": "token",
-            "in": "body",
-            "required": true,
-            "type": "object",
-            "properties": {
-              "address": {
-                "type": "string",
-                "description": "Required for using an existing ERC20 token contract."
-              },
-              "name": {
-                "type": "string",
-                "description": "Required for using a new ERC20 token contract with a limited or unlimited supply."
-              },
-              "symbol": {
-                "type": "string",
-                "description": "Required for using a new ERC20 token contract with a limited or unlimited supply."
-              },
-              "totalSupply": {
-                "type": "number",
-                "description": "Required for using a new ERC20 token contract with a limited supply."
-              }
-            }
-          }
-        ],
         "responses": {
           "200": {
-            "description": "OK.",
-            "schema": {
-              "type": "object",
-              "properties": {
-                "address": {
-                  "type": "string",
-                  "description": "Address of the new asset pool."
-                }
-              }
-            }
+            "description": "OK."
           },
           "400": {
             "description": "Bad Request. Could indicate incorrect rewardPollDuration or proposeWithdrawPollDuration values."

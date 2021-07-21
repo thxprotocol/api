@@ -1,8 +1,7 @@
 import request from 'supertest';
 import server from '../../src/server';
 import db from '../../src/util/database';
-import { signMethod } from './lib/network';
-import { poolTitle, rewardWithdrawAmount, userEmail, userPassword, tokenName, tokenSymbol } from './lib/constants';
+import { rewardWithdrawAmount, userEmail, userPassword, tokenName, tokenSymbol } from './lib/constants';
 import { ethers } from 'ethers';
 import { Account } from 'web3-core';
 import {
@@ -22,7 +21,6 @@ const http3 = request.agent(server);
 
 describe('UnlimitedSupplyToken', () => {
     let adminAccessToken: string,
-        adminAudience: string,
         userAccessToken: string,
         dashboardAccessToken: string,
         poolAddress: string,
@@ -36,7 +34,6 @@ describe('UnlimitedSupplyToken', () => {
 
         const credentials = await registerClientCredentialsClient(user);
         adminAccessToken = credentials.accessToken;
-        adminAudience = credentials.aud;
     });
 
     describe('POST /signup', () => {
@@ -96,8 +93,6 @@ describe('UnlimitedSupplyToken', () => {
             user.post('/v1/asset_pools')
                 .set('Authorization', dashboardAccessToken)
                 .send({
-                    title: poolTitle,
-                    aud: adminAudience,
                     network: 0,
                     token: {
                         name: tokenName,
@@ -225,7 +220,7 @@ describe('UnlimitedSupplyToken', () => {
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
                 .end(async (err, res) => {
                     expect(res.status).toBe(200);
-                    expect(res.body.balance.amount).toBe(0);
+                    expect(res.body.token.balance).toBe(0);
 
                     done();
                 });
@@ -247,7 +242,7 @@ describe('UnlimitedSupplyToken', () => {
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
                 .end(async (err, res) => {
                     expect(res.status).toBe(200);
-                    expect(res.body.balance.amount).toBe(1000);
+                    expect(res.body.token.balance).toBe(1000);
 
                     done();
                 });

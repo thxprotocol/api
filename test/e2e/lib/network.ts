@@ -1,5 +1,5 @@
 import { soliditySha3 } from 'web3-utils';
-import { VOTER_PK } from './constants';
+import { VOTER_PK, DEPOSITOR_PK } from './constants';
 import {
     callFunction,
     deployContract,
@@ -16,6 +16,7 @@ import { Account } from 'web3-core';
 const web3 = getProvider(NetworkProvider.Test);
 
 export const voter = web3.eth.accounts.privateKeyToAccount(VOTER_PK);
+export const depositor = web3.eth.accounts.privateKeyToAccount(DEPOSITOR_PK);
 
 export const timeTravel = async (seconds: number) => {
     web3.extend({
