@@ -163,8 +163,8 @@ describe('Voting', () => {
                 .set({ AssetPool: poolAddress, Authorization: dashboardAccessToken })
                 .end(async (err, res) => {
                     expect(res.status).toBe(200);
-                    expect(Number(res.body.proposeWithdrawPollDuration)).toEqual(10);
-                    expect(Number(res.body.rewardPollDuration)).toEqual(10);
+                    expect(Number(res.body.proposeWithdrawPollDuration)).toEqual(proposeWithdrawPollDuration);
+                    expect(Number(res.body.rewardPollDuration)).toEqual(rewardPollDuration);
 
                     done();
                 });
