@@ -2,8 +2,8 @@ import { parseEther } from 'ethers/lib/utils';
 
 export const tokenName = 'Unlimited Test Token';
 export const tokenSymbol = 'Unlimited Test Token';
-export const rewardPollDuration = 10;
-export const proposeWithdrawPollDuration = 10;
+export const rewardPollDuration = 30;
+export const proposeWithdrawPollDuration = 30;
 export const rewardWithdrawAmount = 1000;
 export const rewardWithdrawDuration = 12;
 export const VOTER_PK = '0x97093724e1748ebfa6aa2d2ec4ec68df8678423ab9a12eb2d27ddc74e35e5db9';

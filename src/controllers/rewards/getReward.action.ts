@@ -32,6 +32,7 @@ export async function getRewardData(solution: Contract, rewardID: number, npid: 
                 totalVoted: Number(await callFunction(solution.methods.getTotalVoted(pollId), npid)),
             };
         }
+        console.log(reward);
         return reward;
     } catch (e) {
         return;

@@ -1,4 +1,5 @@
 import { NextFunction, Response } from 'express';
+import { sendTransaction } from '../../util/network';
 import { Account } from '../../models/Account';
 import { HttpError, HttpRequest } from '../../models/Error';
 
@@ -39,7 +40,11 @@ export const deleteMember = async (req: HttpRequest, res: Response, next: NextFu
         const isMember = await req.solution.methods.isMember(req.params.address).call();
 
         if (isMember) {
-            await req.solution.methods.removeMember(req.params.address).send();
+            await sendTransaction(
+                req.solution.options.address,
+                await req.solution.methods.removeMember(req.params.address),
+                req.assetPool.network,
+            );
         }
 
         try {

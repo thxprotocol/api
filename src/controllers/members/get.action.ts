@@ -1,9 +1,7 @@
 import { NextFunction, Response } from 'express';
-import { callFunction, getAdmin, getProvider, SolutionArtifact, tokenContract } from '../../util/network';
+import { callFunction, tokenContract } from '../../util/network';
 import { HttpError, HttpRequest } from '../../models/Error';
 import { formatEther } from 'ethers/lib/utils';
-import { parseLogs } from '../../util/events';
-import { VERSION } from '../../util/secrets';
 
 /**
  * @swagger
