@@ -5,5 +5,13 @@ module.exports = {
         cache: './cache',
         artifacts: './src/artifacts',
     },
-    solidity: '0.7.4',
+    solidity: {
+        version: '0.7.4',
+        settings: {
+            optimizer: {
+                enabled: true,
+                runs: 1000,
+            },
+        },
+    },
 };

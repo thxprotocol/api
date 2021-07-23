@@ -19,6 +19,7 @@ import UpdateDiamondFacetArtifact from '../../src/artifacts/contracts/contracts/
 
 import DiamondArtifact from '../../src/artifacts/diamond-2/contracts/Diamond.sol/Diamond.json';
 import AssetPoolFactoryFacetArtifact from '../../src/artifacts/contracts/contracts/AssetPoolFactory/AssetPoolFactoryFacet.sol/AssetPoolFactoryFacet.json';
+import AssetPoolFactoryUpdateFacetArtifact from '../../src/artifacts/contracts/contracts/AssetPoolFactory/AssetPoolFactoryUpdateFacet.sol/AssetPoolFactoryUpdateFacet.json';
 import IAssetPoolFactory from '../../src/artifacts/contracts/contracts/AssetPoolFactory/IAssetPoolFactory.sol/IAssetPoolFactory.json';
 
 import {
@@ -72,10 +73,18 @@ export const deployAssetPoolFactory = async (npid: NetworkProvider) => {
         [],
         npid,
     );
+
+    const AssetPoolFactoryUpdateFacet = await deployContract(
+        AssetPoolFactoryUpdateFacetArtifact.abi,
+        AssetPoolFactoryUpdateFacetArtifact.bytecode,
+        [],
+        npid,
+    );
+
     const OwnershipFacet = await deployContract(OwnershipFacetArtifact.abi, OwnershipFacetArtifact.bytecode, [], npid);
 
     const facets = await deployFacets(npid);
-    const factoryFacets = [AssetPoolFactoryFacet, OwnershipFacet];
+    const factoryFacets = [AssetPoolFactoryFacet, AssetPoolFactoryUpdateFacet, OwnershipFacet];
 
     const diamondCut: any[] = [];
     const factoryDiamondCut: any[] = [];

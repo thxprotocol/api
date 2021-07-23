@@ -33,12 +33,22 @@ export const SolutionArtifact = IDefaultDiamondArtifact;
 export const FactoryArtifact = AssetPoolFactoryArtifact;
 
 export const getProvider = (npid: NetworkProvider) => {
+    let web3: Web3;
+
     switch (npid) {
+        default:
         case NetworkProvider.Test:
-            return new Web3(TESTNET_RPC);
+            web3 = new Web3(TESTNET_RPC);
+            break;
         case NetworkProvider.Main:
-            return new Web3(RPC);
+            web3 = new Web3(RPC);
+            break;
     }
+    const account = web3.eth.accounts.privateKeyToAccount(process.env.PRIVATE_KEY);
+
+    web3.eth.accounts.wallet.add(account);
+
+    return web3;
 };
 
 export async function getGasPrice(npid: NetworkProvider) {
