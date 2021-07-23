@@ -148,8 +148,8 @@ describe('Voting', () => {
             user.patch('/v1/asset_pools/' + poolAddress)
                 .set({ AssetPool: poolAddress, Authorization: dashboardAccessToken })
                 .send({
-                    rewardPollDuration: 10,
-                    proposeWithdrawPollDuration: 10,
+                    rewardPollDuration: rewardPollDuration,
+                    proposeWithdrawPollDuration: proposeWithdrawPollDuration,
                 })
                 .end(async (err, res) => {
                     expect(res.status).toBe(200);

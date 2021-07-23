@@ -1,6 +1,6 @@
 {
   "_format": "hh-sol-artifact-1",
-  "contractName": "IDefaultDiamondFactory",
+  "contractName": "IDefaultFactory",
   "sourceName": "contracts/contracts/AssetPoolFactory/IDefaultFactory.sol",
   "abi": [
     {
