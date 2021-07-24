@@ -10,6 +10,7 @@ import { VERSION } from '../../util/secrets';
 import { name, version, license } from '../../../package.json';
 import { getAdmin, getProvider, NetworkProvider } from '../../util/network';
 import { fromWei } from 'web3-utils';
+import { Facets } from '../../util/facets';
 
 async function getNetworkDetails(npid: NetworkProvider, constants: { factory: string; registry: string }) {
     const provider = getProvider(npid);
@@ -17,18 +18,11 @@ async function getNetworkDetails(npid: NetworkProvider, constants: { factory: st
     const balance = await provider.eth.getBalance(address);
 
     return {
-        admin: {
-            address,
-            balance: fromWei(balance, 'ether'),
-        },
-        factory: {
-            address: constants.factory,
-            deployed: (await provider.eth.getCode(constants.factory)) !== '0x',
-        },
-        registry: {
-            address: constants.registry,
-            deployed: (await provider.eth.getCode(constants.registry)) !== '0x',
-        },
+        admin: address,
+        balance: fromWei(balance, 'ether'),
+        factory: constants.factory,
+        registry: constants.registry,
+        facets: Facets[NetworkProvider[npid]],
     };
 }
 

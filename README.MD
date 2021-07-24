@@ -45,8 +45,8 @@ npm run build:keys
 # 6. Start the containers
 docker-compose up
 
-# 7. Provide the asset pool factory address from the output your .env file
-npm run deploy:factory
+# 7. Deploy all facets, factory and registry
+npm run deploy:init
 
 # 8. Rebuild the API project
 npm run build

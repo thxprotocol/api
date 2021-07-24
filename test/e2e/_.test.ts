@@ -1,9 +1,10 @@
 import mongoose from 'mongoose';
 import db from '../../src/util/database';
-import { MongoMemoryServer } from 'mongodb-memory-server';
-import { deployAssetPoolFactory } from '../../scripts/lib/factory';
-import { deployPoolRegistry } from '../../scripts/lib/registry';
 import MongoAdapter from '../../src/oidc/adapter';
+import { MongoMemoryServer } from 'mongodb-memory-server';
+import { deployFacets } from '../../scripts/lib/facets';
+import { deployFactory } from '../../scripts/lib/factory';
+import { deployRegistry } from '../../scripts/lib/registry';
 import { NetworkProvider } from '../../src/util/network';
 
 beforeAll(async () => {
@@ -20,10 +21,9 @@ beforeAll(async () => {
 
     await MongoAdapter.connect();
 
-    const factoryAddress = await deployAssetPoolFactory(NetworkProvider.Test);
-    console.log('Factory: ', factoryAddress);
-    const registryAddress = await deployPoolRegistry(NetworkProvider.Test);
-    console.log('Registry: ', registryAddress);
+    console.log('Facets: ', await deployFacets(NetworkProvider.Test));
+    console.log('Factory: ', await deployFactory(NetworkProvider.Test));
+    console.log('Registry: ', await deployRegistry(NetworkProvider.Test));
 });
 
 afterAll(async () => {

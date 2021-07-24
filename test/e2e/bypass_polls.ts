@@ -86,89 +86,6 @@ describe('Bypass Polls', () => {
                 })
                 .end(async (err, res) => {
                     expect(res.status).toBe(200);
-                    expect(res.body.bypassPolls).toBe(false);
-
-                    done();
-                });
-        });
-    });
-
-    describe('POST /rewards 1 (bypass disabled)', () => {
-        it('HTTP 302 redirect OK', (done) => {
-            user.post('/v1/rewards')
-                .set({
-                    AssetPool: poolAddress,
-                    Authorization: adminAccessToken,
-                })
-                .send({
-                    withdrawAmount: rewardWithdrawAmount,
-                    withdrawDuration: rewardWithdrawDuration,
-                })
-                .end((err, res) => {
-                    expect(res.status).toBe(302);
-
-                    redirectURL = res.headers.location;
-
-                    done();
-                });
-        });
-
-        it('HTTP 200 reward storage OK ', (done) => {
-            user.get(redirectURL)
-                .set({
-                    AssetPool: poolAddress,
-                    Authorization: adminAccessToken,
-                })
-                .end((err, res) => {
-                    expect(res.status).toBe(200);
-                    expect(res.body.state).toBe(0);
-
-                    done();
-                });
-        });
-    });
-
-    describe('POST /rewards/1/finalize (bypass disabled)', () => {
-        it('HTTP 200 reward storage OK', (done) => {
-            user.post('/v1/rewards/1/poll/finalize')
-                .set({
-                    AssetPool: poolAddress,
-                    Authorization: adminAccessToken,
-                })
-                .end((err, res) => {
-                    expect(res.status).toBe(200);
-                    expect(res.body.state).toBe(0);
-                    expect(res.body.poll).toBeUndefined();
-                    expect(res.body.withdrawAmount).toBe(0);
-
-                    done();
-                });
-        });
-    });
-
-    describe('PATCH /asset_pools/:address (bypassPolls = true)', () => {
-        it('HTTP 302 redirect to pool', (done) => {
-            user.patch('/v1/asset_pools/' + poolAddress)
-                .set({
-                    AssetPool: poolAddress,
-                    Authorization: dashboardAccessToken,
-                })
-                .send({ bypassPolls: true })
-                .end(async (err, res) => {
-                    expect(res.status).toBe(200);
-
-                    done();
-                });
-        });
-
-        it('HTTP 200 response OK', (done) => {
-            user.get('/v1/asset_pools/' + poolAddress)
-                .set({
-                    AssetPool: poolAddress,
-                    Authorization: adminAccessToken,
-                })
-                .end(async (err, res) => {
-                    expect(res.status).toBe(200);
                     expect(res.body.bypassPolls).toBe(true);
 
                     done();
@@ -176,7 +93,7 @@ describe('Bypass Polls', () => {
         });
     });
 
-    describe('POST /rewards 2 (bypass enabled)', () => {
+    describe('POST /rewards 1 (bypass enabled)', () => {
         it('HTTP 302 redirect OK', (done) => {
             user.post('/v1/rewards')
                 .set({
@@ -191,6 +108,7 @@ describe('Bypass Polls', () => {
                     expect(res.status).toBe(302);
 
                     redirectURL = res.headers.location;
+
                     done();
                 });
         });
@@ -213,9 +131,9 @@ describe('Bypass Polls', () => {
         });
     });
 
-    describe('PATCH /rewards/2', () => {
+    describe('PATCH /rewards/1', () => {
         it('HTTP 200 if values are identical to current values', (done) => {
-            user.patch('/v1/rewards/2')
+            user.patch('/v1/rewards/1')
                 .set({
                     AssetPool: poolAddress,
                     Authorization: adminAccessToken,
@@ -234,7 +152,7 @@ describe('Bypass Polls', () => {
         });
 
         it('HTTP 200 response OK', (done) => {
-            user.patch('/v1/rewards/2')
+            user.patch('/v1/rewards/1')
                 .set({
                     AssetPool: poolAddress,
                     Authorization: adminAccessToken,
@@ -277,6 +195,86 @@ describe('Bypass Polls', () => {
                 .end(async (err, res) => {
                     expect(res.status).toBe(200);
                     expect(res.body.bypassPolls).toBe(false);
+
+                    done();
+                });
+        });
+    });
+
+    describe('POST /rewards 2 (bypass disabled)', () => {
+        it('HTTP 302 redirect OK', (done) => {
+            user.post('/v1/rewards')
+                .set({
+                    AssetPool: poolAddress,
+                    Authorization: adminAccessToken,
+                })
+                .send({
+                    withdrawAmount: rewardWithdrawAmount,
+                    withdrawDuration: rewardWithdrawDuration,
+                })
+                .end((err, res) => {
+                    expect(res.status).toBe(302);
+
+                    redirectURL = res.headers.location;
+                    done();
+                });
+        });
+
+        it('HTTP 200 reward storage OK ', (done) => {
+            user.get(redirectURL)
+                .set({
+                    AssetPool: poolAddress,
+                    Authorization: adminAccessToken,
+                })
+                .end((err, res) => {
+                    expect(res.status).toBe(200);
+                    expect(res.body.state).toBe(0);
+
+                    done();
+                });
+        });
+    });
+
+    describe('POST /rewards/2/finalize (bypass disabled)', () => {
+        it('HTTP 200 reward storage OK', (done) => {
+            user.post('/v1/rewards/2/poll/finalize')
+                .set({
+                    AssetPool: poolAddress,
+                    Authorization: adminAccessToken,
+                })
+                .end((err, res) => {
+                    expect(res.status).toBe(200);
+                    expect(res.body.state).toBe(0);
+
+                    done();
+                });
+        });
+    });
+
+    describe('PATCH /asset_pools/:address (bypassPolls = true)', () => {
+        it('HTTP 302 redirect to pool', (done) => {
+            user.patch('/v1/asset_pools/' + poolAddress)
+                .set({
+                    AssetPool: poolAddress,
+                    Authorization: dashboardAccessToken,
+                })
+                .send({ bypassPolls: true })
+                .end(async (err, res) => {
+                    expect(res.status).toBe(200);
+
+                    done();
+                });
+        });
+
+        it('HTTP 200 response OK', (done) => {
+            user.get('/v1/asset_pools/' + poolAddress)
+                .set({
+                    AssetPool: poolAddress,
+                    Authorization: adminAccessToken,
+                })
+                .end(async (err, res) => {
+                    expect(res.status).toBe(200);
+                    expect(res.body.bypassPolls).toBe(true);
 
                     done();
                 });

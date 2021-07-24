@@ -66,34 +66,6 @@
         }
       }
     },
-    "/asset_pools/:address/deposit/approve": {
-      "post": {
-        "tags": [
-          "Asset Pools"
-        ],
-        "description": "Deposit approve the transaction",
-        "produces": [
-          "application/json"
-        ],
-        "responses": {
-          "200": {
-            "description": "OK."
-          },
-          "400": {
-            "description": "Bad Request. Could indicate incorrect rewardPollDuration or proposeWithdrawPollDuration values."
-          },
-          "401": {
-            "description": "Unauthorized. Authenticate your request please."
-          },
-          "500": {
-            "description": "Internal Server Error."
-          },
-          "502": {
-            "description": "Bad Gateway. Received an invalid response from the network or database."
-          }
-        }
-      }
-    },
     "/authentication_token": {
       "post": {
         "tags": [

@@ -148,6 +148,7 @@ describe('Voting', () => {
             user.patch('/v1/asset_pools/' + poolAddress)
                 .set({ AssetPool: poolAddress, Authorization: dashboardAccessToken })
                 .send({
+                    bypassPolls: false,
                     rewardPollDuration: rewardPollDuration,
                     proposeWithdrawPollDuration: proposeWithdrawPollDuration,
                 })

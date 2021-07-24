@@ -28,7 +28,7 @@ export enum NetworkProvider {
     Test = 0,
     Main = 1,
 }
-
+export const ADDRESS_ZERO = '0x0000000000000000000000000000000000000000';
 export const SolutionArtifact = IDefaultDiamondArtifact;
 export const FactoryArtifact = AssetPoolFactoryArtifact;
 

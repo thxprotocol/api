@@ -1,12 +1,13 @@
 import dotenv from 'dotenv';
 import { NetworkProvider } from '../src/util/network';
-import { deployFactory } from './lib/factory';
+import { deployFacets } from './lib/facets';
 
 dotenv.config();
 
 async function main() {
-    console.log('Asset Pool Factory [Test]: ', await deployFactory(NetworkProvider.Test));
-    console.log('Asset Pool Factory [Main]: ', await deployFactory(NetworkProvider.Main));
+    console.log('Facets [Test]:', await deployFacets(NetworkProvider.Test));
+    console.log('Facets [Main]:', await deployFacets(NetworkProvider.Main));
+    console.log('*** UPDATE YOUR .ENV ***');
 }
 
 main()

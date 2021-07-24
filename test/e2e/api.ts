@@ -114,20 +114,6 @@ describe('Happy Flow', () => {
         });
     });
 
-    describe('PATCH /asset_pools/:address (bypassPolls = true)', () => {
-        it('HTTP 200 ', (done) => {
-            user.patch('/v1/asset_pools/' + poolAddress)
-                .set({ AssetPool: poolAddress, Authorization: dashboardAccessToken })
-                .send({
-                    bypassPolls: true,
-                })
-                .end(async (err, res) => {
-                    expect(res.status).toBe(200);
-                    done();
-                });
-        });
-    });
-
     describe('GET /asset_pools/:address', () => {
         it('Deposit assets in pool', async () => {
             const assetPool = solutionContract(NetworkProvider.Test, poolAddress);

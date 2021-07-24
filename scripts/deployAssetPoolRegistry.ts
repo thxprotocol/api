@@ -1,12 +1,12 @@
 import dotenv from 'dotenv';
+import { deployRegistry } from './lib/registry';
 import { NetworkProvider } from '../src/util/network';
-import { deployPoolRegistry } from './lib/registry';
 
 dotenv.config();
 
 async function main() {
-    console.log('[Test Network] Asset Pool Registry:', await deployPoolRegistry(NetworkProvider.Test));
-    console.log('[Main Network] Asset Pool Registry:', await deployPoolRegistry(NetworkProvider.Main));
+    console.log('Asset Pool Registry [Test]:', await deployRegistry(NetworkProvider.Test));
+    console.log('Asset Pool Registry [Main]:', await deployRegistry(NetworkProvider.Main));
 }
 
 main()

@@ -29,6 +29,7 @@ export const patchAssetPool = async (req: HttpRequest, res: Response, next: Next
         try {
             await downgradeFromBypassPolls(assetPool.network, req.solution);
             assetPool.bypassPolls = req.body.bypassPolls;
+
             await assetPool.save();
         } catch (error) {
             return next(new HttpError(502, 'Could not update set bypassPolls (false) for this asset pool.', error));

@@ -60,7 +60,7 @@ export const postAssetPool = async (req: HttpRequest, res: Response, next: NextF
                 sub,
                 blockNumber: event.blockNumber,
                 transactionHash: event.transactionHash,
-                bypassPolls: false,
+                bypassPolls: true,
                 network: req.body.network,
             });
 

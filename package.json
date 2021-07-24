@@ -30,7 +30,9 @@
         "watch:debug": "concurrently -k -p \"[{name}]\" -n \"TypeScript,Node\" -c \"yellow.bold,cyan.bold,green.bold\" \"npm run watch:ts\" \"npm run watch:sass\" \"npm run serve:debug\"",
         "test": "npm run serve:ganache; NODE_ENV=test jest --forceExit",
         "deploy:factory": "npx hardhat run scripts/deployAssetPoolFactory.ts",
-        "deploy:registry": "npx hardhat run scripts/deployAssetPoolRegistry.ts"
+        "deploy:registry": "npx hardhat run scripts/deployAssetPoolRegistry.ts",
+        "deploy:facets": "npx ts-node scripts/deployFacets.ts",
+        "deploy:init": "npm run deploy:facets && npm run deploy:factory && npm run deploy:registry"
     },
     "dependencies": {
         "@sendgrid/mail": "^7.4.2",

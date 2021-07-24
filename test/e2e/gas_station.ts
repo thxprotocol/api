@@ -99,6 +99,7 @@ describe('Gas Station', () => {
             .send({
                 rewardPollDuration,
                 proposeWithdrawPollDuration,
+                bypassPolls: false,
             });
 
         // Create a reward

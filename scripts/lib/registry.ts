@@ -1,14 +1,14 @@
-import { COLLECTOR } from '../../src/util/secrets';
+import { Artifacts } from '../../src/util/artifacts';
 import { deployContract, NetworkProvider } from '../../src/util/network';
-import PoolRegistryArtifact from '../../src/artifacts/contracts/contracts/PoolRegistry.sol/PoolRegistry.json';
+import { COLLECTOR } from '../../src/util/secrets';
 
-export const deployPoolRegistry = async (npid: NetworkProvider) => {
+export async function deployRegistry(npid: NetworkProvider) {
     const registry = await deployContract(
-        PoolRegistryArtifact.abi,
-        PoolRegistryArtifact.bytecode,
+        Artifacts.PoolRegistry.abi,
+        Artifacts.PoolRegistry.bytecode,
         [COLLECTOR, 0],
         npid,
     );
 
     return registry.options.address;
-};
+}
