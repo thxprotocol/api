@@ -1,4 +1,5 @@
 import {
+    callFunction,
     deployContract,
     getAdmin,
     getProvider,
@@ -56,14 +57,15 @@ export async function deployFactory(npid: NetworkProvider) {
             functionSelectors: getSelectors(facet),
         };
     });
+    const from = getAdmin(npid).address;
     const diamond = await deployContract(
         Artifacts.Diamond.abi,
         Artifacts.Diamond.bytecode,
-        [factoryDiamond, [getAdmin(npid).address]],
+        [factoryDiamond, [from]],
         npid,
     );
     const abi: any = Artifacts.IAssetPoolFactory.abi;
-    const factory = new web3.eth.Contract(abi, diamond.options.address);
+    const factory = new web3.eth.Contract(abi, diamond.options.address, { from });
 
     await sendTransaction(factory.options.address, factory.methods.initialize(defaultDiamond), npid);
 
