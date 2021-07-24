@@ -1,5 +1,4 @@
 import {
-    callFunction,
     deployContract,
     getAdmin,
     getProvider,
