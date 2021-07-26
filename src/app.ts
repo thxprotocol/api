@@ -9,6 +9,7 @@ import { requestLogger } from './util/logger';
 import { corsHandler } from './util/cors';
 import { errorHandler, notFoundHandler } from './util/error';
 import { PORT, VERSION, MONGODB_URI, DASHBOARD_URL, PUBLIC_URL } from './util/secrets';
+import { rateLimitAll } from './util/ratelimiter';
 
 const app = express();
 
@@ -18,6 +19,7 @@ app.set('trust proxy', true);
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, '../../src/views'));
 app.set('port', PORT);
+app.use(rateLimitAll);
 app.use(corsHandler);
 app.use(requestLogger);
 app.use(compression());
