@@ -64,11 +64,15 @@ export const postAssetPool = async (req: HttpRequest, res: Response, next: NextF
 
             try {
                 const account = await Account.findById(sub);
+                const erc20 = {
+                    network: req.body.network,
+                    address: tokenAddress,
+                };
 
-                if (account.erc20) {
-                    account.erc20.push(tokenAddress);
+                if (account.erc20 && !account.erc20.find((r: { address: string }) => r.address === erc20.address)) {
+                    account.erc20.push(erc20);
                 } else {
-                    account.erc20 = [tokenAddress];
+                    account.erc20 = [erc20];
                 }
 
                 if (account.memberships) {

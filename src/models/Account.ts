@@ -1,5 +1,6 @@
 import bcrypt from 'bcrypt-nodejs';
-import mongoose from 'mongoose';
+import mongoose, { Schema } from 'mongoose';
+import { NetworkProvider } from '../util/network';
 import { encryptString } from '../util/encrypt';
 
 export type AccountDocument = mongoose.Document & {
@@ -18,18 +19,24 @@ export type AccountDocument = mongoose.Document & {
     address: string;
     privateKey: string;
     tokens: AuthToken[];
-    erc20: string[];
+    erc20: ERC20Token[];
     burnProofs: string[];
     memberships: string[];
     privateKeys: { [address: string]: string };
     comparePassword: Function;
 };
 
+export interface ERC20Token {
+    network: NetworkProvider;
+    address: string;
+}
+
 export interface AuthToken {
     accessToken: string;
     kind: string;
 }
 
+const ERC20TokenSchema = new Schema({ network: Number, address: String });
 const accountSchema = new mongoose.Schema(
     {
         active: Boolean,
@@ -47,7 +54,7 @@ const accountSchema = new mongoose.Schema(
         address: String,
         privateKey: String,
         tokens: [String],
-        erc20: [String],
+        erc20: [ERC20TokenSchema],
         burnProofs: [String],
         memberships: [String],
         privateKeys: Map,

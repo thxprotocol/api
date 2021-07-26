@@ -1,6 +1,3 @@
-[submodule "contracts"]
-	path = contracts
-	url = git@github.com:thxprotocol/modules-solidity.git
 [submodule "src/scss"]
 	path = src/scss
 	url = https://github.com/thxprotocol/scss.git
