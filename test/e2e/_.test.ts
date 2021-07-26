@@ -40,3 +40,4 @@ require('./encrypt.ts');
 require('./gas_station.ts');
 require('./withdrawBypass.ts');
 require('./oidc_admin.ts');
+require('./ratelimit.ts');

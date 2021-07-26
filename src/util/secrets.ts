@@ -61,6 +61,7 @@ export const PORT = process.env.PORT;
 export const SECURE_KEY = process.env.SECURE_KEY;
 export const GTM = process.env.GTM;
 export const SENDGRID_API_KEY = process.env.SENDGRID_API_KEY;
-
+export const RATE_LIMIT_REWARD_GIVE = Number(process.env.RATE_LIMIT_REWARD_GIVE);
+export const RATE_LIMIT_REWARD_GIVE_WINDOW = Number(process.env.RATE_LIMIT_REWARD_GIVE_WINDOW);
 export const MINIMUM_GAS_LIMIT = 54680;
 export const MAXIMUM_GAS_PRICE = 200;

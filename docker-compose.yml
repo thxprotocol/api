@@ -18,6 +18,8 @@ services:
             - ./:/usr/src/service
         working_dir: /usr/src/service
         command: bash -c "npm run build && npm run deploy:init && npm run watch:debug"
+        environment:
+            - NODE_ENV=local
         depends_on:
             - mainnet
             - testnet

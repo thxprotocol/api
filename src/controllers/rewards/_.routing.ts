@@ -1,7 +1,8 @@
 import express from 'express';
+import checkScopes from 'express-jwt-authz';
+
 import { validate, validateAssetPoolHeader } from '../../util/validation';
 import { validations } from './_.validation';
-
 import { getRewards } from './get.action';
 import { getReward } from './getReward.action';
 import { postReward } from './post.action';
@@ -12,7 +13,7 @@ import { parseHeader } from '../../util/network';
 import { postVote } from './postVote.action';
 import { deleteVote } from './deleteVote.action';
 import { postPollFinalize } from './postPollFinalize.action';
-import checkScopes from 'express-jwt-authz';
+import { rateLimitRewardGive } from '../../util/ratelimiter';
 
 const router = express.Router();
 
@@ -59,6 +60,7 @@ router.post(
 router.post(
     '/:id/give',
     checkScopes(['admin']),
+    rateLimitRewardGive,
     validate(validations.postRewardClaimFor),
     parseHeader,
     postRewardClaimFor,
