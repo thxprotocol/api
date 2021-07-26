@@ -1,4 +1,4 @@
-import { ISSUER } from '../../../src/util/secrets';
+import { ISSUER } from '@/util/secrets';
 
 export const registerClientCredentialsClient = async (http: any) => {
     const res = await http.post('/reg').send({

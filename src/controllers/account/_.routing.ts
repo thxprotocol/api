@@ -1,5 +1,5 @@
 import express from 'express';
-import { validate, validateAssetPoolHeader } from '../../util/validation';
+import { validate, validateAssetPoolHeader } from '@/util/validation';
 import { validations } from './_.validation';
 
 import { getAccount } from './get.action';
@@ -8,7 +8,7 @@ import { deleteAccount } from './delete.action';
 import { putPassword } from './putPassword.action';
 import checkScopes from 'express-jwt-authz';
 import { getAccountNonce } from './getNonce.action';
-import { parseHeader } from '../../util/network';
+import { parseHeader } from '@/util/network';
 import { postAccount } from './post.action';
 
 const router = express.Router();

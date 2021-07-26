@@ -1,11 +1,11 @@
 import { Response, NextFunction } from 'express';
-import { Reward } from '../../models/Reward';
-import { HttpError, HttpRequest } from '../../models/Error';
-import { VERSION } from '../../util/secrets';
-import { callFunction, sendTransaction } from '../../util/network';
+import { Reward } from '@/models/Reward';
+import { HttpError, HttpRequest } from '@/models/Error';
+import { VERSION } from '@/util/secrets';
+import { callFunction, sendTransaction } from '@/util/network';
 import { toWei } from 'web3-utils';
-import { parseLogs, findEvent } from '../../util/events';
-import { Artifacts } from '../../util/artifacts';
+import { parseLogs, findEvent } from '@/util/events';
+import { Artifacts } from '@/util/artifacts';
 
 /**
  * @swagger

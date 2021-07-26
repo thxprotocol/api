@@ -4,12 +4,11 @@ import lusca from 'lusca';
 import path from 'path';
 import router from './controllers';
 import { oidc, router as oidcRouter } from './oidc';
-import db from './util/database';
-import { requestLogger } from './util/logger';
-import { corsHandler } from './util/cors';
-import { errorHandler, notFoundHandler } from './util/error';
-import { PORT, VERSION, MONGODB_URI, DASHBOARD_URL, PUBLIC_URL } from './util/secrets';
-import { rateLimitAll } from './util/ratelimiter';
+import db from '@/util/database';
+import { requestLogger } from '@/util/logger';
+import { corsHandler } from '@/util/cors';
+import { errorHandler, notFoundHandler } from '@/util/error';
+import { PORT, VERSION, MONGODB_URI, DASHBOARD_URL, PUBLIC_URL } from '@/util/secrets';
 
 const app = express();
 
@@ -17,9 +16,8 @@ db.connect(MONGODB_URI);
 
 app.set('trust proxy', true);
 app.set('view engine', 'ejs');
-app.set('views', path.join(__dirname, '../../src/views'));
+app.set('views', path.join(__dirname, '@/views'));
 app.set('port', PORT);
-app.use(rateLimitAll);
 app.use(corsHandler);
 app.use(requestLogger);
 app.use(compression());

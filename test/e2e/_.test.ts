@@ -1,11 +1,11 @@
 import mongoose from 'mongoose';
-import db from '../../src/util/database';
-import MongoAdapter from '../../src/oidc/adapter';
+import db from '@/util/database';
+import MongoAdapter from '@/oidc/adapter';
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import { deployFacets } from '../../scripts/lib/facets';
 import { deployFactory } from '../../scripts/lib/factory';
 import { deployRegistry } from '../../scripts/lib/registry';
-import { NetworkProvider } from '../../src/util/network';
+import { NetworkProvider } from '@/util/network';
 
 beforeAll(async () => {
     const memServer = new MongoMemoryServer({

@@ -1,6 +1,6 @@
-import { Account } from '../../models/Account';
+import { Account } from '@/models/Account';
 import { Response, NextFunction } from 'express';
-import { HttpError, HttpRequest } from '../../models/Error';
+import { HttpError, HttpRequest } from '@/models/Error';
 
 export const getAccountNonce = async (req: HttpRequest, res: Response, next: NextFunction) => {
     const sub = req.user.sub;

@@ -1,5 +1,5 @@
 import { Contract } from 'web3-eth-contract';
-import { logger } from '../util/logger';
+import { logger } from '@/util/logger';
 import { Request } from 'express';
 import { AssetPoolDocument } from './AssetPool';
 

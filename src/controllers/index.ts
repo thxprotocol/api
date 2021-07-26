@@ -10,7 +10,7 @@ import membersRouter from './members/_.routing';
 import rewardsRouter from './rewards/_.routing';
 import withdrawalsRouter from './withdrawals/_.routing';
 import authRouter from './auth/_.routing';
-import { checkJwt } from '../util/jwt';
+import { checkJwt } from '@/util/jwt';
 
 const router = express.Router();
 

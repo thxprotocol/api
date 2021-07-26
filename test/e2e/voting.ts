@@ -1,7 +1,7 @@
 import request from 'supertest';
-import server from '../../src/server';
-import db from '../../src/util/database';
-import { getAdmin, getProvider, NetworkProvider } from '../../src/util/network';
+import server from '@/server';
+import db from '@/util/database';
+import { getAdmin, getProvider, NetworkProvider } from '@/util/network';
 import { timeTravel, signMethod } from './lib/network';
 import {
     rewardPollDuration,
@@ -21,7 +21,7 @@ import {
     registerDashboardClient,
     registerClientCredentialsClient,
 } from './lib/registerClient';
-import { decryptString } from '../../src/util/decrypt';
+import { decryptString } from '@/util/decrypt';
 
 const user = request(server);
 const http2 = request.agent(server);

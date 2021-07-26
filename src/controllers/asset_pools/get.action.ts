@@ -1,6 +1,6 @@
 import { Response, NextFunction } from 'express';
-import { callFunction, tokenContract } from '../../util/network';
-import { HttpError, HttpRequest } from '../../models/Error';
+import { callFunction, tokenContract } from '@/util/network';
+import { HttpError, HttpRequest } from '@/models/Error';
 import { formatEther } from 'ethers/lib/utils';
 
 export const getAssetPool = async (req: HttpRequest, res: Response, next: NextFunction) => {

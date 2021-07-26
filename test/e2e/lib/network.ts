@@ -1,14 +1,7 @@
 import { soliditySha3 } from 'web3-utils';
 import { VOTER_PK, DEPOSITOR_PK } from './constants';
-import {
-    callFunction,
-    deployContract,
-    getAdmin,
-    getProvider,
-    NetworkProvider,
-    solutionContract,
-} from '../../../src/util/network';
-import { Artifacts } from '../../../src/util/artifacts';
+import { callFunction, deployContract, getAdmin, getProvider, NetworkProvider, solutionContract } from '@/util/network';
+import { Artifacts } from '@/util/artifacts';
 import { mintAmount } from './constants';
 import { Account } from 'web3-core';
 

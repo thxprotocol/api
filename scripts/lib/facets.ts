@@ -1,5 +1,5 @@
-import { deployContract, NetworkProvider } from '../../src/util/network';
-import { Artifacts } from '../../src/util/artifacts';
+import { deployContract, NetworkProvider } from '@/util/network';
+import { Artifacts } from '@/util/artifacts';
 
 export async function deployFacets(npid: NetworkProvider) {
     const artifacts = [

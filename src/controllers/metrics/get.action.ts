@@ -1,11 +1,11 @@
 import { Response, Request, NextFunction } from 'express';
-import { HttpError } from '../../models/Error';
-import { getAdmin, getProvider, NetworkProvider } from '../../util/network';
-import { Account } from '../../models/Account';
-import { Withdrawal } from '../../models/Withdrawal';
-import { Reward } from '../../models/Reward';
-import { AssetPool } from '../../models/AssetPool';
-import { Client } from '../../models/Client';
+import { HttpError } from '@/models/Error';
+import { getAdmin, getProvider, NetworkProvider } from '@/util/network';
+import { Account } from '@/models/Account';
+import { Withdrawal } from '@/models/Withdrawal';
+import { Reward } from '@/models/Reward';
+import { AssetPool } from '@/models/AssetPool';
+import { Client } from '@/models/Client';
 
 async function getAvgRewardsPerPool(npid: number) {
     const rewardsPerPool = [];

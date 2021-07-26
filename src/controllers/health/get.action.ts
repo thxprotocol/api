@@ -1,16 +1,16 @@
 import { Response, Request, NextFunction } from 'express';
-import { HttpError } from '../../models/Error';
+import { HttpError } from '@/models/Error';
 import {
     ASSET_POOL_FACTORY_ADDRESS,
     POOL_REGISTRY_ADDRESS,
     TESTNET_ASSET_POOL_FACTORY_ADDRESS,
     TESTNET_POOL_REGISTRY_ADDRESS,
-} from '../../util/secrets';
-import { VERSION } from '../../util/secrets';
+} from '@/util/secrets';
+import { VERSION } from '@/util/secrets';
 import { name, version, license } from '../../../package.json';
-import { getAdmin, getProvider, NetworkProvider } from '../../util/network';
+import { getAdmin, getProvider, NetworkProvider } from '@/util/network';
 import { fromWei } from 'web3-utils';
-import { Facets } from '../../util/facets';
+import { Facets } from '@/util/facets';
 
 async function getNetworkDetails(npid: NetworkProvider, constants: { factory: string; registry: string }) {
     const provider = getProvider(npid);

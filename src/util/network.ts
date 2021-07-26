@@ -10,12 +10,12 @@ import {
     RPC_WSS,
     MINIMUM_GAS_LIMIT,
     MAXIMUM_GAS_PRICE,
-} from '../util/secrets';
+} from '@/util/secrets';
 import Web3 from 'web3';
 import axios from 'axios';
 import { isAddress } from 'web3-utils';
-import { HttpError, HttpRequest } from '../models/Error';
-import { AssetPool } from '../models/AssetPool';
+import { HttpError, HttpRequest } from '@/models/Error';
+import { AssetPool } from '@/models/AssetPool';
 import { Contract } from 'web3-eth-contract';
 import { BigNumber } from '@ethersproject/bignumber';
 import { utils } from 'ethers/lib';

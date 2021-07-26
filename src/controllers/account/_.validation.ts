@@ -1,5 +1,5 @@
 import { body, check } from 'express-validator';
-import { confirmPassword } from '../../util/validation';
+import { confirmPassword } from '@/util/validation';
 
 export const validations = {
     putPassword: [

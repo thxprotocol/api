@@ -1,8 +1,8 @@
 import { Response, NextFunction } from 'express';
-import { HttpError, HttpRequest } from '../../models/Error';
-import { Rat } from '../../models/Rat';
-import { Client } from '../../models/Client';
-import { AssetPool, AssetPoolDocument } from '../../models/AssetPool';
+import { HttpError, HttpRequest } from '@/models/Error';
+import { Rat } from '@/models/Rat';
+import { Client } from '@/models/Client';
+import { AssetPool, AssetPoolDocument } from '@/models/AssetPool';
 
 export const getClient = async (req: HttpRequest, res: Response, next: NextFunction) => {
     try {

@@ -1,5 +1,5 @@
 import app from './app';
-import { eventIndexer } from './util/indexer';
+import { eventIndexer } from '@/util/indexer';
 
 eventIndexer.start();
 

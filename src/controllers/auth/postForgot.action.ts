@@ -1,9 +1,9 @@
 import async from 'async';
 import crypto from 'crypto';
-import { Account, AccountDocument, AuthToken } from '../../models/Account';
+import { Account, AccountDocument, AuthToken } from '@/models/Account';
 import { Request, Response, NextFunction } from 'express';
-import { HttpError } from '../../models/Error';
-import { sendMail } from '../../util/mail';
+import { HttpError } from '@/models/Error';
+import { sendMail } from '@/util/mail';
 
 export const postForgot = async (req: Request, res: Response, next: NextFunction) => {
     async.waterfall(

@@ -1,7 +1,7 @@
 import bcrypt from 'bcrypt-nodejs';
 import mongoose, { Schema } from 'mongoose';
-import { NetworkProvider } from '../util/network';
-import { encryptString } from '../util/encrypt';
+import { NetworkProvider } from '@/util/network';
+import { encryptString } from '@/util/encrypt';
 
 export type AccountDocument = mongoose.Document & {
     active: boolean;

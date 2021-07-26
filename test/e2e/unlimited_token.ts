@@ -1,6 +1,6 @@
 import request from 'supertest';
-import server from '../../src/server';
-import db from '../../src/util/database';
+import server from '@/server';
+import db from '@/util/database';
 import { rewardWithdrawAmount, userEmail, userPassword, tokenName, tokenSymbol } from './lib/constants';
 import { ethers } from 'ethers';
 import { Account } from 'web3-core';
@@ -12,8 +12,8 @@ import {
     registerDashboardClient,
     registerWalletClient,
 } from './lib/registerClient';
-import { decryptString } from '../../src/util/decrypt';
-import { getProvider, NetworkProvider } from '../../src/util/network';
+import { decryptString } from '@/util/decrypt';
+import { getProvider, NetworkProvider } from '@/util/network';
 
 const user = request(server);
 const http2 = request.agent(server);

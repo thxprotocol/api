@@ -1,6 +1,6 @@
 import { NextFunction, Response } from 'express';
-import { Withdrawal, WithdrawalDocument } from '../../models/Withdrawal';
-import { HttpError, HttpRequest } from '../../models/Error';
+import { Withdrawal, WithdrawalDocument } from '@/models/Withdrawal';
+import { HttpError, HttpRequest } from '@/models/Error';
 
 /**
  * @swagger

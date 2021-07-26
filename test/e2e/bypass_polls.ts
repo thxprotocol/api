@@ -1,6 +1,6 @@
 import request from 'supertest';
-import server from '../../src/server';
-import db from '../../src/util/database';
+import server from '@/server';
+import db from '@/util/database';
 import { deployExampleToken } from './lib/network';
 import { rewardWithdrawAmount, rewardWithdrawDuration, userEmail, userPassword } from './lib/constants';
 import { ethers } from 'ethers';

@@ -1,7 +1,7 @@
 import { logger } from './logger';
 import { callFunction, NetworkProvider, solutionContract, solutionWSContract } from './network';
-import { AssetPool, AssetPoolDocument } from '../models/AssetPool';
-import { Withdrawal, WithdrawalState } from '../models/Withdrawal';
+import { AssetPool, AssetPoolDocument } from '@/models/AssetPool';
+import { Withdrawal, WithdrawalState } from '@/models/Withdrawal';
 import { formatEther } from 'ethers/lib/utils';
 import { RPC_WSS, TESTNET_RPC_WSS } from './secrets';
 import Web3 from 'web3';

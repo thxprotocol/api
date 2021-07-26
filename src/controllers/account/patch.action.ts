@@ -1,7 +1,7 @@
-import { Account, AccountDocument } from '../../models/Account';
+import { Account, AccountDocument } from '@/models/Account';
 import { Response, NextFunction } from 'express';
-import { HttpError, HttpRequest } from '../../models/Error';
-import { VERSION } from '../../util/secrets';
+import { HttpError, HttpRequest } from '@/models/Error';
+import { VERSION } from '@/util/secrets';
 import { Error } from 'mongoose';
 
 export const patchAccount = async (req: HttpRequest, res: Response, next: NextFunction) => {

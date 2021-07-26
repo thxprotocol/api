@@ -1,7 +1,7 @@
 import request from 'supertest';
-import server from '../../src/server';
-import db from '../../src/util/database';
-import { getAdmin, NetworkProvider } from '../../src/util/network';
+import server from '@/server';
+import db from '@/util/database';
+import { getAdmin, NetworkProvider } from '@/util/network';
 import { deployExampleToken, voter } from './lib/network';
 import { userEmail, userPassword } from './lib/constants';
 import {

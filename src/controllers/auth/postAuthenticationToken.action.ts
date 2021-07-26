@@ -1,10 +1,10 @@
-import { Account, AccountDocument } from '../../models/Account';
+import { Account, AccountDocument } from '@/models/Account';
 import { Request, Response, NextFunction } from 'express';
-import { HttpError } from '../../models/Error';
-import { WALLET_URL, SECURE_KEY } from '../../util/secrets';
-import { sendMail } from '../../util/mail';
-import { encryptString } from '../../util/encrypt';
-import { createRandomToken } from '../../util/tokens';
+import { HttpError } from '@/models/Error';
+import { WALLET_URL, SECURE_KEY } from '@/util/secrets';
+import { sendMail } from '@/util/mail';
+import { encryptString } from '@/util/encrypt';
+import { createRandomToken } from '@/util/tokens';
 
 /**
  * @swagger

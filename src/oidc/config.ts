@@ -1,8 +1,8 @@
-import jwks from '../jwks.json';
 import MongoAdapter from './adapter';
-import { Account } from '../models/Account';
-import { AccountDocument } from '../models/Account';
-import { ENVIRONMENT, SECURE_KEY } from '../util/secrets';
+import { Account } from '@/models/Account';
+import { AccountDocument } from '@/models/Account';
+import { ENVIRONMENT, SECURE_KEY } from '@/util/secrets';
+import fs from 'fs';
 
 const {
     interactionPolicy: { Prompt, base },
@@ -10,6 +10,7 @@ const {
 } = require('oidc-provider');
 const basePolicy = base();
 const prompt = new Prompt({ name: 'create', requestable: true });
+const jwksData = fs.readFileSync(__dirname + '/../jwks.json');
 
 basePolicy.add(prompt);
 
@@ -26,7 +27,7 @@ basePolicy.add(prompt);
 // https://github.com/panva/node-oidc-provider/blob/master/lib/helpers/defaults.js
 export default {
     debug: false,
-    jwks,
+    jwks: JSON.parse(jwksData.toString()),
     adapter: MongoAdapter,
     async findAccount(ctx: any, id: string) {
         const account: AccountDocument = await Account.findById(id);

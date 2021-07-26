@@ -1,5 +1,5 @@
 import express from 'express';
-import { validate, validateAssetPoolHeader } from '../../util/validation';
+import { validate, validateAssetPoolHeader } from '@/util/validation';
 import { validations } from './_.validation';
 
 import { getRewards } from './get.action';
@@ -8,10 +8,11 @@ import { postReward } from './post.action';
 import { patchReward } from './patch.action';
 import { postRewardClaim } from './postRewardClaim.action';
 import { postRewardClaimFor } from './postRewardClaimFor.action';
-import { parseHeader } from '../../util/network';
+import { parseHeader } from '@/util/network';
 import { postVote } from './postVote.action';
 import { deleteVote } from './deleteVote.action';
 import { postPollFinalize } from './postPollFinalize.action';
+import { rateLimitRewardGive } from '@/util/ratelimiter';
 import checkScopes from 'express-jwt-authz';
 
 const router = express.Router();
@@ -62,6 +63,7 @@ router.post(
     validate(validations.postRewardClaimFor),
     parseHeader,
     postRewardClaimFor,
+    rateLimitRewardGive,
 );
 
 router.post(

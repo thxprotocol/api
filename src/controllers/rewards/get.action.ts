@@ -1,5 +1,5 @@
 import { Response, NextFunction } from 'express';
-import { HttpError, HttpRequest } from '../../models/Error';
+import { HttpError, HttpRequest } from '@/models/Error';
 import { getRewardData } from './getReward.action';
 
 /**

@@ -1,12 +1,12 @@
 import { Response, NextFunction } from 'express';
-import { HttpRequest, HttpError } from '../../models/Error';
+import { HttpRequest, HttpError } from '@/models/Error';
 import qrcode from 'qrcode';
-import { Reward } from '../../models/Reward';
+import { Reward } from '@/models/Reward';
 import { toWei, fromWei } from 'web3-utils';
 import { getRewardData } from './getReward.action';
-import { callFunction, sendTransaction } from '../../util/network';
-import { parseLogs, findEvent } from '../../util/events';
-import { Artifacts } from '../../util/artifacts';
+import { callFunction, sendTransaction } from '@/util/network';
+import { parseLogs, findEvent } from '@/util/events';
+import { Artifacts } from '@/util/artifacts';
 
 /**
  * @swagger

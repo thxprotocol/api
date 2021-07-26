@@ -1,7 +1,7 @@
 import request from 'supertest';
-import server from '../../src/server';
-import db from '../../src/util/database';
-import { callFunction, getAdmin, getProvider, NetworkProvider, sendTransaction } from '../../src/util/network';
+import server from '@/server';
+import db from '@/util/database';
+import { callFunction, getAdmin, getProvider, NetworkProvider, sendTransaction } from '@/util/network';
 import { timeTravel, signMethod, deployExampleToken } from './lib/network';
 import { rewardWithdrawAmount, rewardWithdrawDuration, mintAmount, userEmail, userPassword } from './lib/constants';
 import { formatEther, parseEther } from 'ethers/lib/utils';
@@ -16,8 +16,8 @@ import {
     registerDashboardClient,
     registerClientCredentialsClient,
 } from './lib/registerClient';
-import { decryptString } from '../../src/util/decrypt';
-import { solutionContract } from '../../src/util/network';
+import { decryptString } from '@/util/decrypt';
+import { solutionContract } from '@/util/network';
 import { Account } from 'web3-core';
 
 const user = request(server);

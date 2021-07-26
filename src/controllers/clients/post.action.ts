@@ -1,8 +1,8 @@
 import { Response, NextFunction } from 'express';
-import { HttpError, HttpRequest } from '../../models/Error';
+import { HttpError, HttpRequest } from '@/models/Error';
 import axios from 'axios';
-import { ISSUER } from '../../util/secrets';
-import { Account } from '../../models/Account';
+import { ISSUER } from '@/util/secrets';
+import { Account } from '@/models/Account';
 
 export const postClient = async (req: HttpRequest, res: Response, next: NextFunction) => {
     try {

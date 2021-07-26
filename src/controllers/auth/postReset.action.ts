@@ -1,8 +1,8 @@
 import async from 'async';
-import { Account, AccountDocument } from '../../models/Account';
+import { Account, AccountDocument } from '@/models/Account';
 import { Request, Response, NextFunction } from 'express';
-import { HttpError } from '../../models/Error';
-import { sendMail } from '../../util/mail';
+import { HttpError } from '@/models/Error';
+import { sendMail } from '@/util/mail';
 
 export const postReset = async (req: Request, res: Response, next: NextFunction) => {
     async.waterfall(

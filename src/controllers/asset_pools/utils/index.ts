@@ -1,13 +1,9 @@
-import {
-    deployUnlimitedSupplyERC20Contract,
-    deployLimitedSupplyERC20Contract,
-    getProvider,
-} from '../../../util/network';
-import { AssetPoolDocument } from '../../../models/AssetPool';
+import { deployUnlimitedSupplyERC20Contract, deployLimitedSupplyERC20Contract, getProvider } from '@/util/network';
+import { AssetPoolDocument } from '@/models/AssetPool';
 import axios from 'axios';
 import { Error } from 'mongoose';
 import { parseEther } from 'ethers/lib/utils';
-import { ISSUER } from '../../../util/secrets';
+import { ISSUER } from '@/util/secrets';
 
 export async function getTokenAddress(token: any, assetPool: AssetPoolDocument) {
     if (token.address) {

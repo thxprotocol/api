@@ -1,13 +1,13 @@
 import Provider from 'oidc-provider';
 import express, { Request, Response, NextFunction, urlencoded } from 'express';
 import configuration from './config';
-import { AccountDocument } from '../models/Account';
-import { Account } from '../models/Account';
-import { HttpError } from '../models/Error';
-import { DASHBOARD_URL, ENVIRONMENT, GTM, ISSUER, SECURE_KEY } from '../util/secrets';
-import { decryptString } from '../util/decrypt';
-import { sendMail } from '../util/mail';
-import { createRandomToken, checkSignupToken } from '../util/tokens';
+import { AccountDocument } from '@/models/Account';
+import { Account } from '@/models/Account';
+import { HttpError } from '@/models/Error';
+import { DASHBOARD_URL, ENVIRONMENT, GTM, ISSUER, SECURE_KEY } from '@/util/secrets';
+import { decryptString } from '@/util/decrypt';
+import { sendMail } from '@/util/mail';
+import { createRandomToken, checkSignupToken } from '@/util/tokens';
 
 function createAccountVerificationEmail(signupToken: string) {
     return (

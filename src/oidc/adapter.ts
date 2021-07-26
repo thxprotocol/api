@@ -1,7 +1,7 @@
-import { HttpError } from '../models/Error';
+import { HttpError } from '@/models/Error';
 import { snakeCase } from 'lodash';
 import { MongoClient } from 'mongodb';
-import { MONGODB_URI } from '../util/secrets';
+import { MONGODB_URI } from '@/util/secrets';
 
 const grantable = new Set(['access_token', 'authorization_code', 'refresh_token', 'device_code']);
 

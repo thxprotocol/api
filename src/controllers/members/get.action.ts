@@ -1,6 +1,6 @@
 import { NextFunction, Response } from 'express';
-import { callFunction, tokenContract } from '../../util/network';
-import { HttpError, HttpRequest } from '../../models/Error';
+import { callFunction, tokenContract } from '@/util/network';
+import { HttpError, HttpRequest } from '@/models/Error';
 import { formatEther } from 'ethers/lib/utils';
 
 /**

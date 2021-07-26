@@ -1,9 +1,9 @@
-import { downgradeFromBypassPolls, updateToBypassPolls } from '../../util/upgrades';
+import { downgradeFromBypassPolls, updateToBypassPolls } from '@/util/upgrades';
 import { Response, NextFunction } from 'express';
-import { HttpRequest, HttpError } from '../../models/Error';
-import { AssetPool } from '../../models/AssetPool';
-import { callFunction } from '../../util/network';
-import { sendTransaction } from '../../util/network';
+import { HttpRequest, HttpError } from '@/models/Error';
+import { AssetPool } from '@/models/AssetPool';
+import { callFunction } from '@/util/network';
+import { sendTransaction } from '@/util/network';
 
 export const patchAssetPool = async (req: HttpRequest, res: Response, next: NextFunction) => {
     const assetPool = await AssetPool.findOne({

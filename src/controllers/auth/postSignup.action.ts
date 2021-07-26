@@ -1,7 +1,7 @@
-import { Account } from '../../models/Account';
+import { Account } from '@/models/Account';
 import { Response, NextFunction } from 'express';
-import { HttpError, HttpRequest } from '../../models/Error';
-import { callFunction, sendTransaction } from '../../util/network';
+import { HttpError, HttpRequest } from '@/models/Error';
+import { callFunction, sendTransaction } from '@/util/network';
 import { AccountsBase } from 'web3-core';
 import Web3 from 'web3';
 

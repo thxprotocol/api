@@ -1,7 +1,7 @@
 import express from 'express';
-import { validate, validateAssetPoolHeader } from '../../util/validation';
+import { validate, validateAssetPoolHeader } from '@/util/validation';
 import { validations } from './_.validation';
-import { parseHeader } from '../../util/network';
+import { parseHeader } from '@/util/network';
 import { getAssetPool } from './get.action';
 import { postAssetPool } from './post.action';
 import { patchAssetPool } from './patch.action';

@@ -1,9 +1,9 @@
 import { Response, NextFunction } from 'express';
-import { Rat } from '../../models/Rat';
-import { Client } from '../../models/Client';
-import { Account } from '../../models/Account';
-import { HttpRequest, HttpError } from '../../models/Error';
-import { AssetPool } from '../../models/AssetPool';
+import { Rat } from '@/models/Rat';
+import { Client } from '@/models/Client';
+import { Account } from '@/models/Account';
+import { HttpRequest, HttpError } from '@/models/Error';
+import { AssetPool } from '@/models/AssetPool';
 
 export const deleteClient = async (req: HttpRequest, res: Response, next: NextFunction) => {
     try {

@@ -1,9 +1,9 @@
 import { Response, NextFunction } from 'express';
-import { RewardDocument } from '../../models/Reward';
-import { HttpError, HttpRequest } from '../../models/Error';
+import { RewardDocument } from '@/models/Reward';
+import { HttpError, HttpRequest } from '@/models/Error';
 import { formatEther } from 'ethers/lib/utils';
 import { Contract } from 'web3-eth-contract';
-import { callFunction, NetworkProvider } from '../../util/network';
+import { callFunction, NetworkProvider } from '@/util/network';
 
 export async function getRewardData(solution: Contract, rewardID: number, npid: NetworkProvider) {
     try {

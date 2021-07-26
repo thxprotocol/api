@@ -1,10 +1,10 @@
 import { ethers } from 'ethers';
 import { Account } from 'web3-core';
 import request from 'supertest';
-import server from '../../src/server';
-import db from '../../src/util/database';
-import { decryptString } from '../../src/util/decrypt';
-import { getProvider, NetworkProvider } from '../../src/util/network';
+import server from '@/server';
+import db from '@/util/database';
+import { decryptString } from '@/util/decrypt';
+import { getProvider, NetworkProvider } from '@/util/network';
 import { deployExampleToken, signMethod } from './lib/network';
 import {
     getAuthCode,

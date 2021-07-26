@@ -1,7 +1,7 @@
-import { Account } from '../../models/Account';
+import { Account } from '@/models/Account';
 import { Response, NextFunction } from 'express';
-import { createRandomToken } from '../../util/tokens';
-import { HttpError, HttpRequest } from '../../models/Error';
+import { createRandomToken } from '@/util/tokens';
+import { HttpError, HttpRequest } from '@/models/Error';
 
 /**
  * @swagger

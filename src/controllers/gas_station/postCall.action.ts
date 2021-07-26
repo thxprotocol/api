@@ -1,8 +1,8 @@
 import { Response, NextFunction } from 'express';
-import { sendTransaction } from '../../util/network';
-import { HttpError, HttpRequest } from '../../models/Error';
-import { hex2a, parseLogs, findEvent } from '../../util/events';
-import { Artifacts } from '../../util/artifacts';
+import { sendTransaction } from '@/util/network';
+import { HttpError, HttpRequest } from '@/models/Error';
+import { hex2a, parseLogs, findEvent } from '@/util/events';
+import { Artifacts } from '@/util/artifacts';
 
 export const postCall = async (req: HttpRequest, res: Response, next: NextFunction) => {
     try {

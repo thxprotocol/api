@@ -1,6 +1,6 @@
-import { Account, AccountDocument } from '../../models/Account';
+import { Account, AccountDocument } from '@/models/Account';
 import { Response, NextFunction } from 'express';
-import { HttpError, HttpRequest } from '../../models/Error';
+import { HttpError, HttpRequest } from '@/models/Error';
 
 export const putPassword = async (req: HttpRequest, res: Response, next: NextFunction) => {
     Account.findById(req.user.sub, (err: Error, account: AccountDocument) => {

@@ -1,6 +1,6 @@
 import request from 'supertest';
-import server from '../../src/server';
-import db from '../../src/util/database';
+import server from '@/server';
+import db from '@/util/database';
 
 const http = request(server);
 

@@ -1,12 +1,12 @@
 import { Response, NextFunction } from 'express';
-import { HttpRequest, HttpError } from '../../models/Error';
-import { AssetPool } from '../../models/AssetPool';
-import { Withdrawal } from '../../models/Withdrawal';
-import { Reward } from '../../models/Reward';
-import { Account } from '../../models/Account';
-import { eventIndexer } from '../../util/indexer';
-import { Client } from '../../models/Client';
-import { Rat, RatDocument } from '../../models/Rat';
+import { HttpRequest, HttpError } from '@/models/Error';
+import { AssetPool } from '@/models/AssetPool';
+import { Withdrawal } from '@/models/Withdrawal';
+import { Reward } from '@/models/Reward';
+import { Account } from '@/models/Account';
+import { eventIndexer } from '@/util/indexer';
+import { Client } from '@/models/Client';
+import { Rat, RatDocument } from '@/models/Rat';
 
 export const deleteAssetPool = async (req: HttpRequest, res: Response, next: NextFunction) => {
     try {

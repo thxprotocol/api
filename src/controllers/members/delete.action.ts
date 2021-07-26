@@ -1,7 +1,7 @@
 import { NextFunction, Response } from 'express';
-import { sendTransaction } from '../../util/network';
-import { Account } from '../../models/Account';
-import { HttpError, HttpRequest } from '../../models/Error';
+import { sendTransaction } from '@/util/network';
+import { Account } from '@/models/Account';
+import { HttpError, HttpRequest } from '@/models/Error';
 
 /**
  * @swagger

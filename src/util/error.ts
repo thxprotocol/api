@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from 'express';
-import { HttpError } from '../models/Error';
+import { HttpError } from '@/models/Error';
 
 export const notFoundHandler = (req: Request, res: Response, next: NextFunction) => {
     next(new HttpError(404, 'Route not found'));

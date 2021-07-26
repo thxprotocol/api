@@ -1,8 +1,8 @@
 import { Response, NextFunction } from 'express';
-import { parseLogs, findEvent } from '../../util/events';
-import { HttpError, HttpRequest } from '../../models/Error';
-import { callFunction, sendTransaction } from '../../util/network';
-import { Artifacts } from '../../util/artifacts';
+import { parseLogs, findEvent } from '@/util/events';
+import { HttpError, HttpRequest } from '@/models/Error';
+import { callFunction, sendTransaction } from '@/util/network';
+import { Artifacts } from '@/util/artifacts';
 
 /**
  * @swagger

@@ -1,7 +1,7 @@
-import { HttpError, HttpRequest } from '../../models/Error';
+import { HttpError, HttpRequest } from '@/models/Error';
 import { NextFunction, Response } from 'express';
 import { getRewardData } from './getReward.action';
-import { callFunction, sendTransaction } from '../../util/network';
+import { callFunction, sendTransaction } from '@/util/network';
 
 /**
  * @swagger

@@ -1,13 +1,13 @@
-import { solutionContract, getAssetPoolFactory, getAdmin, NetworkProvider, sendTransaction } from '../../util/network';
-import { AssetPool } from '../../models/AssetPool';
+import { solutionContract, getAssetPoolFactory, getAdmin, NetworkProvider, sendTransaction } from '@/util/network';
+import { AssetPool } from '@/models/AssetPool';
 import { Response, NextFunction } from 'express';
-import { HttpError, HttpRequest } from '../../models/Error';
-import { eventIndexer } from '../../util/indexer';
-import { POOL_REGISTRY_ADDRESS, TESTNET_POOL_REGISTRY_ADDRESS } from '../../util/secrets';
-import { Account } from '../../models/Account';
-import { findEvent, parseLogs } from '../../util/events';
+import { HttpError, HttpRequest } from '@/models/Error';
+import { eventIndexer } from '@/util/indexer';
+import { POOL_REGISTRY_ADDRESS, TESTNET_POOL_REGISTRY_ADDRESS } from '@/util/secrets';
+import { Account } from '@/models/Account';
+import { findEvent, parseLogs } from '@/util/events';
 import { getRegistrationAccessToken, getTokenAddress } from './utils';
-import { Artifacts } from '../../util/artifacts';
+import { Artifacts } from '@/util/artifacts';
 
 export const postAssetPool = async (req: HttpRequest, res: Response, next: NextFunction) => {
     try {

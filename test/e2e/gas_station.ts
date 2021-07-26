@@ -1,7 +1,7 @@
 import request from 'supertest';
-import server from '../../src/server';
-import { NetworkProvider, sendTransaction } from '../../src/util/network';
-import db from '../../src/util/database';
+import server from '@/server';
+import { NetworkProvider, sendTransaction } from '@/util/network';
+import db from '@/util/database';
 import { voter, timeTravel, signMethod, deployExampleToken } from './lib/network';
 import {
     rewardPollDuration,
@@ -19,7 +19,7 @@ import {
     registerDashboardClient,
     registerWalletClient,
 } from './lib/registerClient';
-import { solutionContract } from '../../src/util/network';
+import { solutionContract } from '@/util/network';
 import { toWei } from 'web3-utils';
 import { Contract } from 'web3-eth-contract';
 
