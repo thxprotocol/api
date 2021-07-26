@@ -1,8 +1,9 @@
 import { Response, NextFunction } from 'express';
-import { sendTransaction, SolutionArtifact } from '../../util/network';
+import { sendTransaction } from '../../util/network';
 import { Account } from '../../models/Account';
 import { HttpError, HttpRequest } from '../../models/Error';
 import { parseLogs, findEvent } from '../../util/events';
+import { Artifacts } from '../../util/artifacts';
 
 export const postCallUpgradeAddress = async (req: HttpRequest, res: Response, next: NextFunction) => {
     try {
@@ -11,7 +12,7 @@ export const postCallUpgradeAddress = async (req: HttpRequest, res: Response, ne
             req.solution.methods.call(req.body.call, req.body.nonce, req.body.sig),
             req.assetPool.network,
         );
-        const events = parseLogs(SolutionArtifact.abi, tx.logs);
+        const events = parseLogs(Artifacts.IDefaultDiamond.abi, tx.logs);
         const event = findEvent('MemberAddressChanged', events);
 
         if (event) {

@@ -8,8 +8,7 @@ import {
     NetworkProvider,
     solutionContract,
 } from '../../../src/util/network';
-import IDefaultDiamondArtifact from '../../../src/artifacts/contracts/contracts/IDefaultDiamond.sol/IDefaultDiamond.json';
-import ExampleTokenArtifact from '../../../src/artifacts/contracts/contracts/util/ExampleToken.sol/ExampleToken.json';
+import { Artifacts } from '../../../src/util/artifacts';
 import { mintAmount } from './constants';
 import { Account } from 'web3-core';
 
@@ -38,8 +37,8 @@ export const timeTravel = async (seconds: number) => {
 
 export async function deployExampleToken() {
     return await deployContract(
-        ExampleTokenArtifact.abi,
-        ExampleTokenArtifact.bytecode,
+        Artifacts.ExampleToken.abi,
+        Artifacts.ExampleToken.bytecode,
         [getAdmin(NetworkProvider.Test).address, mintAmount],
         NetworkProvider.Test,
     );
@@ -47,7 +46,7 @@ export async function deployExampleToken() {
 
 export async function signMethod(poolAddress: string, name: string, params: any[], account: Account) {
     const solution = solutionContract(NetworkProvider.Test, poolAddress);
-    const abi: any = IDefaultDiamondArtifact.abi.find((fn) => fn.name === name);
+    const abi: any = Artifacts.IDefaultDiamond.abi.find((fn) => fn.name === name);
     const nonce =
         Number(await callFunction(solution.methods.getLatestNonce(account.address), NetworkProvider.Test)) + 1;
     const call = web3.eth.abi.encodeFunctionCall(abi, params);

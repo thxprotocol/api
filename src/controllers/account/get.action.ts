@@ -11,6 +11,7 @@ export const getAccount = async (req: HttpRequest, res: Response, next: NextFunc
         if (account) {
             res.send({
                 address: account.address,
+                erc20: account.erc20,
                 privateKey: account.privateKey,
                 memberships: account.memberships,
                 burnProofs: account.burnProofs,

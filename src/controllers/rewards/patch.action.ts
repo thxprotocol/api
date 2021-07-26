@@ -4,8 +4,9 @@ import qrcode from 'qrcode';
 import { Reward } from '../../models/Reward';
 import { toWei, fromWei } from 'web3-utils';
 import { getRewardData } from './getReward.action';
-import { callFunction, sendTransaction, SolutionArtifact } from '../../util/network';
+import { callFunction, sendTransaction } from '../../util/network';
 import { parseLogs, findEvent } from '../../util/events';
+import { Artifacts } from '../../util/artifacts';
 
 /**
  * @swagger
@@ -93,7 +94,7 @@ export const patchReward = async (req: HttpRequest, res: Response, next: NextFun
 
             if (req.assetPool.bypassPolls && duration === 0) {
                 try {
-                    const events = parseLogs(SolutionArtifact.abi, tx.logs);
+                    const events = parseLogs(Artifacts.IDefaultDiamond.abi, tx.logs);
                     const event = findEvent('RewardPollCreated', events);
                     const id = Number(event.args.rewardID);
                     const pollId = Number(event.args.id);
@@ -106,7 +107,7 @@ export const patchReward = async (req: HttpRequest, res: Response, next: NextFun
                         );
 
                         try {
-                            const events = parseLogs(SolutionArtifact.abi, tx.logs);
+                            const events = parseLogs(Artifacts.IDefaultDiamond.abi, tx.logs);
                             const event = findEvent('RewardPollUpdated', events);
 
                             if (event) {

@@ -18,6 +18,7 @@ export type AccountDocument = mongoose.Document & {
     address: string;
     privateKey: string;
     tokens: AuthToken[];
+    erc20: string[];
     burnProofs: string[];
     memberships: string[];
     privateKeys: { [address: string]: string };
@@ -46,6 +47,7 @@ const accountSchema = new mongoose.Schema(
         address: String,
         privateKey: String,
         tokens: [String],
+        erc20: [String],
         burnProofs: [String],
         memberships: [String],
         privateKeys: Map,

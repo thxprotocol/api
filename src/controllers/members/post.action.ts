@@ -2,8 +2,9 @@ import { NextFunction, Response } from 'express';
 import { HttpRequest, HttpError } from '../../models/Error';
 import { VERSION } from '../../util/secrets';
 import { Account } from '../../models/Account';
-import { callFunction, sendTransaction, SolutionArtifact } from '../../util/network';
+import { callFunction, sendTransaction } from '../../util/network';
 import { parseLogs, findEvent } from '../../util/events';
+import { Artifacts } from '../../util/artifacts';
 
 export async function updateMemberProfile(address: string, poolAddress: string) {
     try {
@@ -78,7 +79,7 @@ export const postMember = async (req: HttpRequest, res: Response, next: NextFunc
             );
 
             try {
-                const events = parseLogs(SolutionArtifact.abi, tx.logs);
+                const events = parseLogs(Artifacts.IDefaultDiamond.abi, tx.logs);
                 const event = findEvent('RoleGranted', events);
 
                 if (event) {

@@ -1,32 +1,37 @@
-import AccessControl from '../artifacts/contracts/contracts/01-AccessControl/AccessControl.sol/AccessControl.json';
-import MemberID from '../artifacts/contracts/contracts/03-MemberAccess/MemberAccess.sol/MemberAccess.json';
-import Token from '../artifacts/contracts/contracts/04-Token/Token.sol/Token.json';
-import WithdrawArtifact from '../artifacts/contracts/contracts/05-Withdraw/Withdraw.sol/Withdraw.json';
-import WithdrawPollArtifact from '../artifacts/contracts/contracts/05-Withdraw/WithdrawPoll.sol/WithdrawPoll.json';
-import WithdrawPollProxyArtifact from '../artifacts/contracts/contracts/05-Withdraw/WithdrawPollProxy.sol/WithdrawPollProxy.json';
-import RewardArtifact from '../artifacts/contracts/contracts/06-Reward/Reward.sol/Reward.json';
-import RewardPollArtifact from '../artifacts/contracts/contracts/06-Reward/RewardPoll.sol/RewardPoll.json';
-import RewardPollProxyArtifact from '../artifacts/contracts/contracts/06-Reward/RewardPollProxy.sol/RewardPollProxy.json';
-import GasStation from '../artifacts/contracts/contracts/07-GasStation/GasStation.sol/GasStationFacet.json';
-import BasePoll from '../artifacts/contracts/contracts/08-BasePoll/BasePollProxy.sol/BasePollProxy.json';
-import WithdrawByArtifact from '../artifacts/contracts/contracts/09-WithdrawBypass/WithdrawBy.sol/WithdrawBy.json';
-import WithdrawByPollArtifact from '../artifacts/contracts/contracts/09-WithdrawBypass/WithdrawByPoll.sol/WithdrawByPoll.json';
-import WithdrawByPollProxyArtifact from '../artifacts/contracts/contracts/09-WithdrawBypass/WithdrawByPollProxy.sol/WithdrawByPollProxy.json';
-import RewardByArtifact from '../artifacts/contracts/contracts/10-RewardBypass/RewardBy.sol/RewardBy.json';
-import RewardByPollArtifact from '../artifacts/contracts/contracts/10-RewardBypass/RewardByPoll.sol/RewardByPoll.json';
-import RewardByPollProxyArtifact from '../artifacts/contracts/contracts/10-RewardBypass/RewardByPollProxy.sol/RewardByPollProxy.json';
-import UpdateDiamond from '../artifacts/contracts/contracts/11-UpdateDiamond/UpdateDiamond.sol/UpdateDiamond.json';
+import AccessControl from '@thxnetwork/artifacts/artifacts/contracts/01-AccessControl/AccessControl.sol/AccessControl.json';
+import MemberID from '@thxnetwork/artifacts/artifacts/contracts/03-MemberAccess/MemberAccess.sol/MemberAccess.json';
+import Token from '@thxnetwork/artifacts/artifacts/contracts/04-Token/Token.sol/Token.json';
+import WithdrawArtifact from '@thxnetwork/artifacts/artifacts/contracts/05-Withdraw/Withdraw.sol/Withdraw.json';
+import WithdrawPollArtifact from '@thxnetwork/artifacts/artifacts/contracts/05-Withdraw/WithdrawPoll.sol/WithdrawPoll.json';
+import WithdrawPollProxyArtifact from '@thxnetwork/artifacts/artifacts/contracts/05-Withdraw/WithdrawPollProxy.sol/WithdrawPollProxy.json';
+import RewardArtifact from '@thxnetwork/artifacts/artifacts/contracts/06-Reward/Reward.sol/Reward.json';
+import RewardPollArtifact from '@thxnetwork/artifacts/artifacts/contracts/06-Reward/RewardPoll.sol/RewardPoll.json';
+import RewardPollProxyArtifact from '@thxnetwork/artifacts/artifacts/contracts/06-Reward/RewardPollProxy.sol/RewardPollProxy.json';
+import GasStation from '@thxnetwork/artifacts/artifacts/contracts/07-GasStation/GasStation.sol/GasStationFacet.json';
+import BasePoll from '@thxnetwork/artifacts/artifacts/contracts/08-BasePoll/BasePollProxy.sol/BasePollProxy.json';
+import WithdrawByArtifact from '@thxnetwork/artifacts/artifacts/contracts/09-WithdrawBypass/WithdrawBy.sol/WithdrawBy.json';
+import WithdrawByPollArtifact from '@thxnetwork/artifacts/artifacts/contracts/09-WithdrawBypass/WithdrawByPoll.sol/WithdrawByPoll.json';
+import WithdrawByPollProxyArtifact from '@thxnetwork/artifacts/artifacts/contracts/09-WithdrawBypass/WithdrawByPollProxy.sol/WithdrawByPollProxy.json';
+import RewardByArtifact from '@thxnetwork/artifacts/artifacts/contracts/10-RewardBypass/RewardBy.sol/RewardBy.json';
+import RewardByPollArtifact from '@thxnetwork/artifacts/artifacts/contracts/10-RewardBypass/RewardByPoll.sol/RewardByPoll.json';
+import RewardByPollProxyArtifact from '@thxnetwork/artifacts/artifacts/contracts/10-RewardBypass/RewardByPollProxy.sol/RewardByPollProxy.json';
+import UpdateDiamond from '@thxnetwork/artifacts/artifacts/contracts/11-UpdateDiamond/UpdateDiamond.sol/UpdateDiamond.json';
 
-import DiamondCutFacetArtifact from '../artifacts/diamond-2/contracts/facets/DiamondCutFacet.sol/DiamondCutFacet.json';
-import DiamondLoupeFacetArtifact from '../artifacts/diamond-2/contracts/facets/DiamondLoupeFacet.sol/DiamondLoupeFacet.json';
-import OwnershipFacetArtifact from '../artifacts/diamond-2/contracts/facets/OwnershipFacet.sol/OwnershipFacet.json';
-import DiamondArtifact from '../artifacts/diamond-2/contracts/Diamond.sol/Diamond.json';
-import AssetPoolFactoryFacetArtifact from '../artifacts/contracts/contracts/AssetPoolFactory/AssetPoolFactoryFacet.sol/AssetPoolFactoryFacet.json';
-import PoolRegistryArtifact from '../artifacts/contracts/contracts/PoolRegistry.sol/PoolRegistry.json';
+import DiamondCutFacetArtifact from '@thxnetwork/artifacts/artifacts/diamond-2/contracts/facets/DiamondCutFacet.sol/DiamondCutFacet.json';
+import DiamondLoupeFacetArtifact from '@thxnetwork/artifacts/artifacts/diamond-2/contracts/facets/DiamondLoupeFacet.sol/DiamondLoupeFacet.json';
+import OwnershipFacetArtifact from '@thxnetwork/artifacts/artifacts/diamond-2/contracts/facets/OwnershipFacet.sol/OwnershipFacet.json';
+import DiamondArtifact from '@thxnetwork/artifacts/artifacts/diamond-2/contracts/Diamond.sol/Diamond.json';
+import AssetPoolFactoryFacetArtifact from '@thxnetwork/artifacts/artifacts/contracts/AssetPoolFactory/AssetPoolFactoryFacet.sol/AssetPoolFactoryFacet.json';
+import PoolRegistryArtifact from '@thxnetwork/artifacts/artifacts/contracts/PoolRegistry.sol/PoolRegistry.json';
+
+import ERC20Artifact from '@thxnetwork/artifacts/artifacts/@openzeppelin/contracts/token/ERC20/ERC20.sol/ERC20.json';
+import ERC20LimitedSupplyArtifact from '@thxnetwork/artifacts/artifacts/contracts/util/TokenLimitedSupply.sol/TokenLimitedSupply.json';
+import ERC20UnlimitedSupplyArtifact from '@thxnetwork/artifacts/artifacts/contracts/util/TokenUnlimitedAccount.sol/TokenUnlimitedAccount.json';
+import ExampleTokenArtifact from '@thxnetwork/artifacts/artifacts/contracts/util/ExampleToken.sol/ExampleToken.json';
 
 // Interfaces
-import IAssetPoolFactoryArtifact from '../artifacts/contracts/contracts/AssetPoolFactory/IAssetPoolFactory.sol/IAssetPoolFactory.json';
-import IDefaultDiamondArtifact from '../artifacts/contracts/contracts/IDefaultDiamond.sol/IDefaultDiamond.json';
+import IAssetPoolFactoryArtifact from '@thxnetwork/artifacts/artifacts/contracts/AssetPoolFactory/IAssetPoolFactory.sol/IAssetPoolFactory.json';
+import IDefaultDiamondArtifact from '@thxnetwork/artifacts/artifacts/contracts/IDefaultDiamond.sol/IDefaultDiamond.json';
 
 export const Artifacts = {
     AccessControl: AccessControl,
@@ -59,4 +64,10 @@ export const Artifacts = {
 
     IAssetPoolFactory: IAssetPoolFactoryArtifact,
     IDefaultDiamond: IDefaultDiamondArtifact,
+
+    ERC20: ERC20Artifact,
+    ERC20LimitedSupply: ERC20LimitedSupplyArtifact,
+    ERC20UnlimitedSupply: ERC20UnlimitedSupplyArtifact,
+
+    ExampleToken: ExampleTokenArtifact,
 };

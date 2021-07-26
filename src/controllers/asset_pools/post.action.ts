@@ -1,11 +1,4 @@
-import {
-    solutionContract,
-    getAssetPoolFactory,
-    getAdmin,
-    NetworkProvider,
-    sendTransaction,
-    FactoryArtifact,
-} from '../../util/network';
+import { solutionContract, getAssetPoolFactory, getAdmin, NetworkProvider, sendTransaction } from '../../util/network';
 import { AssetPool } from '../../models/AssetPool';
 import { Response, NextFunction } from 'express';
 import { HttpError, HttpRequest } from '../../models/Error';
@@ -14,6 +7,7 @@ import { POOL_REGISTRY_ADDRESS, TESTNET_POOL_REGISTRY_ADDRESS } from '../../util
 import { Account } from '../../models/Account';
 import { findEvent, parseLogs } from '../../util/events';
 import { getRegistrationAccessToken, getTokenAddress } from './utils';
+import { Artifacts } from '../../util/artifacts';
 
 export const postAssetPool = async (req: HttpRequest, res: Response, next: NextFunction) => {
     try {
@@ -26,7 +20,7 @@ export const postAssetPool = async (req: HttpRequest, res: Response, next: NextF
             assetPoolFactory.methods.deployAssetPool(),
             req.body.network,
         );
-        const events = parseLogs(FactoryArtifact.abi, tx.logs);
+        const events = parseLogs(Artifacts.IAssetPoolFactory.abi, tx.logs);
         const event = findEvent('AssetPoolDeployed', events);
 
         if (!event) {
@@ -70,6 +64,12 @@ export const postAssetPool = async (req: HttpRequest, res: Response, next: NextF
 
             try {
                 const account = await Account.findById(sub);
+
+                if (account.erc20) {
+                    account.erc20.push(tokenAddress);
+                } else {
+                    account.erc20 = [tokenAddress];
+                }
 
                 if (account.memberships) {
                     account.memberships.push(solution.options.address);

@@ -1,7 +1,8 @@
 import { Response, NextFunction } from 'express';
 import { parseLogs, findEvent } from '../../util/events';
 import { HttpError, HttpRequest } from '../../models/Error';
-import { callFunction, sendTransaction, SolutionArtifact } from '../../util/network';
+import { callFunction, sendTransaction } from '../../util/network';
+import { Artifacts } from '../../util/artifacts';
 
 /**
  * @swagger
@@ -61,7 +62,7 @@ export const postRewardClaimFor = async (req: HttpRequest, res: Response, next: 
             );
 
             try {
-                const events = parseLogs(SolutionArtifact.abi, tx.logs);
+                const events = parseLogs(Artifacts.IDefaultDiamond.abi, tx.logs);
                 const event = findEvent('WithdrawPollCreated', events);
                 const withdrawal = Number(event.args.id);
 

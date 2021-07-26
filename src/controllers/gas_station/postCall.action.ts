@@ -1,7 +1,8 @@
 import { Response, NextFunction } from 'express';
-import { sendTransaction, SolutionArtifact } from '../../util/network';
+import { sendTransaction } from '../../util/network';
 import { HttpError, HttpRequest } from '../../models/Error';
 import { hex2a, parseLogs, findEvent } from '../../util/events';
+import { Artifacts } from '../../util/artifacts';
 
 export const postCall = async (req: HttpRequest, res: Response, next: NextFunction) => {
     try {
@@ -10,7 +11,7 @@ export const postCall = async (req: HttpRequest, res: Response, next: NextFuncti
             req.solution.methods.call(req.body.call, req.body.nonce, req.body.sig),
             req.assetPool.network,
         );
-        const events = parseLogs(SolutionArtifact.abi, tx.logs);
+        const events = parseLogs(Artifacts.IDefaultDiamond.abi, tx.logs);
         const event = findEvent('Result', events);
 
         if (event) {

@@ -1,6 +1,6 @@
 import { ethers } from 'ethers';
+import { Artifacts } from './artifacts';
 import { logger } from './logger';
-import IDefaultDiamondArtifact from '../artifacts/contracts/contracts/IDefaultDiamond.sol/IDefaultDiamond.json';
 
 export function parseArgs(args: any) {
     const returnValues: any = {};
@@ -64,7 +64,7 @@ export function parseLogs(abi: any, logs: any = []): CustomEventLog[] {
 }
 
 export async function parseResultLog(logs: any) {
-    const gasStationInterface = new ethers.utils.Interface(IDefaultDiamondArtifact.abi);
+    const gasStationInterface = new ethers.utils.Interface(Artifacts.IDefaultDiamond.abi);
     const event = gasStationInterface.parseLog(logs[logs.length - 1]);
 
     if (event.args.success) {
@@ -72,7 +72,7 @@ export async function parseResultLog(logs: any) {
         for (const log of logs) {
             let event;
             try {
-                const contractInterface = new ethers.utils.Interface(IDefaultDiamondArtifact.abi);
+                const contractInterface = new ethers.utils.Interface(Artifacts.IDefaultDiamond.abi);
                 event = contractInterface.parseLog(log);
             } catch (err) {
                 continue;

@@ -2,9 +2,10 @@ import { Response, NextFunction } from 'express';
 import { Reward } from '../../models/Reward';
 import { HttpError, HttpRequest } from '../../models/Error';
 import { VERSION } from '../../util/secrets';
-import { callFunction, sendTransaction, SolutionArtifact } from '../../util/network';
+import { callFunction, sendTransaction } from '../../util/network';
 import { toWei } from 'web3-utils';
 import { parseLogs, findEvent } from '../../util/events';
+import { Artifacts } from '../../util/artifacts';
 
 /**
  * @swagger
@@ -56,7 +57,7 @@ export const postReward = async (req: HttpRequest, res: Response, next: NextFunc
         );
 
         try {
-            const events = parseLogs(SolutionArtifact.abi, tx.logs);
+            const events = parseLogs(Artifacts.IDefaultDiamond.abi, tx.logs);
             const event = findEvent('RewardPollCreated', events);
             const id = Number(event.args.rewardID);
             const pollId = Number(event.args.id);
@@ -92,7 +93,7 @@ export const postReward = async (req: HttpRequest, res: Response, next: NextFunc
                             );
 
                             try {
-                                const events = parseLogs(SolutionArtifact.abi, tx.logs);
+                                const events = parseLogs(Artifacts.IDefaultDiamond.abi, tx.logs);
                                 const event = findEvent('RewardPollEnabled', events);
 
                                 if (event) {
