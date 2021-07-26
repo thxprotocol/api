@@ -9,6 +9,7 @@ import {
     TESTNET_RPC_WSS,
     RPC_WSS,
     MINIMUM_GAS_LIMIT,
+    MAXIMUM_GAS_PRICE,
 } from '../util/secrets';
 import Web3 from 'web3';
 import axios from 'axios';
@@ -49,12 +50,17 @@ export const getProvider = (npid: NetworkProvider) => {
 export async function getGasPrice(npid: NetworkProvider) {
     const web3 = getProvider(npid);
 
-    if (ENVIRONMENT === 'test') {
+    if (ENVIRONMENT === 'test' || ENVIRONMENT === 'local') {
         return await web3.eth.getGasPrice();
     }
+
     const r: any = await axios.get('https://gasstation-mainnet.matic.network');
 
-    return web3.utils.toWei(r.data.fast.toString(), 'gwei').toString();
+    if (r.data.fast <= MAXIMUM_GAS_PRICE) {
+        return web3.utils.toWei(r.data.fast.toString(), 'gwei').toString();
+    } else {
+        throw new Error('Gas price exceeds configured cap');
+    }
 }
 
 export const getAdmin = (npid: NetworkProvider) => {

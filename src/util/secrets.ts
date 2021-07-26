@@ -63,3 +63,4 @@ export const GTM = process.env.GTM;
 export const SENDGRID_API_KEY = process.env.SENDGRID_API_KEY;
 
 export const MINIMUM_GAS_LIMIT = 54680;
+export const MAXIMUM_GAS_PRICE = 200;
