@@ -9,6 +9,7 @@
     "author": "Peter Polman",
     "license": "AGPL-3.0",
     "scripts": {
+        "preinstall": "npx npm-force-resolutions",
         "serve": "node ./dist/src/server.js",
         "serve:debug": "nodemon --inspect dist/src/server.js",
         "serve:ganache": "kill $(lsof -t -i :8545); ganache-cli -l 25000000 --account='0x873c254263b17925b686f971d7724267710895f1585bb0533db8e693a2af32ff,1000000000000000000000000000000000000000' --account='0x5a05e38394194379795422d2e8c1d33e90033d90defec4880174c39198f707e3,1000000000000000000000000000000000000000' > /dev/null & sleep 1",
@@ -36,7 +37,6 @@
     "dependencies": {
         "@sendgrid/mail": "^7.4.2",
         "@snapshot-labs/snapshot.js": "^0.1.9",
-        "@thxnetwork/artifacts": "^1.0.0",
         "async": "^3.1.0",
         "axios": "^0.21.1",
         "bcrypt-nodejs": "^0.0.3",
@@ -51,7 +51,7 @@
         "express-jwt": "^6.0.0",
         "express-jwt-authz": "^2.4.1",
         "express-rate-limit": "^5.3.0",
-        "express-validator": "^6.2.0",
+        "express-validator": "^6.12.1",
         "jose": "^2.0.5",
         "jwks-rsa": "^1.12.0",
         "lodash": "^4.17.21",
@@ -59,13 +59,13 @@
         "mongoose": "^5.12.3",
         "morgan": "^1.10.0",
         "nodemailer": "^6.6.1",
-        "oidc-provider": "^6.29.9",
+        "oidc-provider": "^6.31.1",
         "qrcode": "^1.4.4",
         "web3": "^1.3.6",
         "winston": "^3.2.1"
     },
     "devDependencies": {
-        "@openzeppelin/contracts": "^3.3.0",
+        "@thxnetwork/artifacts": "^1.0.0",
         "@types/async": "^3.0.2",
         "@types/bcrypt-nodejs": "^0.0.30",
         "@types/bluebird": "^3.5.27",
@@ -102,6 +102,7 @@
         "mongodb-memory-server": "^6.9.3",
         "morgan-json": "^1.1.0",
         "nodemon": "^1.19.2",
+        "npm-force-resolutions": "0.0.10",
         "prettier": "^2.2.1",
         "sass": "^1.32.8",
         "shelljs": "^0.8.4",
@@ -112,6 +113,11 @@
         "ts-node": "^8.4.1",
         "typescript": "^3.6.3",
         "winston-daily-rotate-file": "^4.5.5"
+    },
+    "resolutions": {
+        "color-string": "1.5.5",
+        "normalize-url": "4.5.1",
+        "ws": "7.4.6"
     },
     "prettier": {
         "tabWidth": 4,
