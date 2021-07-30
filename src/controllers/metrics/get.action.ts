@@ -38,6 +38,7 @@ export const getMetrics = async (req: Request, res: Response, next: NextFunction
         const web3Main = getProvider(NetworkProvider.Main);
         const web3Test = getProvider(NetworkProvider.Test);
         const address = getAdmin(NetworkProvider.Main).address;
+
         const jsonData = {
             count_wallets: await Account.countDocuments(),
             count_applications: await Client.countDocuments({ 'payload.scope': 'openid admin' }),
@@ -46,8 +47,12 @@ export const getMetrics = async (req: Request, res: Response, next: NextFunction
                 testnet: await AssetPool.countDocuments({ network: NetworkProvider.Test }),
             },
             count_transactions: {
-                mainnet: await web3Main.eth.getTransactionCount(address),
-                testnet: await web3Test.eth.getTransactionCount(address),
+                mainnet:
+                    (await web3Main.eth.getTransactionCount(address)) +
+                    (await web3Test.eth.getTransactionCount('0xe583A501276B2E64178512e83972581f98e9290c')), // Including rotated account for realistic total
+                testnet:
+                    (await web3Test.eth.getTransactionCount(address)) +
+                    (await web3Test.eth.getTransactionCount('0xe583A501276B2E64178512e83972581f98e9290c')), // Including rotated account for realistic total
             },
             avg_rewards_per_pool: {
                 mainnet: await getAvgRewardsPerPool(NetworkProvider.Main),
