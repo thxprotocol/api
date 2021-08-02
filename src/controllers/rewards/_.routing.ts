@@ -19,7 +19,7 @@ const router = express.Router();
 
 router.get(
     '/',
-    checkScopes(['admin', 'user']),
+    checkScopes(['admin', 'user', 'dashboard']),
     validateAssetPoolHeader,
     validate(validations.getRewards),
     parseHeader,
@@ -27,7 +27,7 @@ router.get(
 );
 router.get(
     '/:id',
-    checkScopes(['admin', 'user']),
+    checkScopes(['admin', 'user', 'dashboard']),
     validateAssetPoolHeader,
     validate(validations.getReward),
     parseHeader,
@@ -35,7 +35,7 @@ router.get(
 );
 router.post(
     '/',
-    checkScopes(['admin']),
+    checkScopes(['admin', 'dashboard']),
     validateAssetPoolHeader,
     validate(validations.postReward),
     parseHeader,
@@ -43,7 +43,7 @@ router.post(
 );
 router.patch(
     '/:id',
-    checkScopes(['admin']),
+    checkScopes(['admin', 'dashboard']),
     validateAssetPoolHeader,
     validate(validations.patchReward),
     parseHeader,
