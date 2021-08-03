@@ -28,6 +28,8 @@ export const postCallUpgradeAddress = async (req: HttpRequest, res: Response, ne
             } catch (err) {
                 return next(new HttpError(502, 'Could not store the new address for the account.', err));
             }
+        } else {
+            return next(new HttpError(502, 'No event in the result after sending calldata.'));
         }
     } catch (err) {
         return next(new HttpError(502, 'Could not change the address for the member.', err));
