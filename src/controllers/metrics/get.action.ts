@@ -49,7 +49,7 @@ export const getMetrics = async (req: Request, res: Response, next: NextFunction
             count_transactions: {
                 mainnet:
                     (await web3Main.eth.getTransactionCount(address)) +
-                    (await web3Test.eth.getTransactionCount('0xe583A501276B2E64178512e83972581f98e9290c')), // Including rotated account for realistic total
+                    (await web3Main.eth.getTransactionCount('0xe583A501276B2E64178512e83972581f98e9290c')), // Including rotated account for realistic total
                 testnet:
                     (await web3Test.eth.getTransactionCount(address)) +
                     (await web3Test.eth.getTransactionCount('0xe583A501276B2E64178512e83972581f98e9290c')), // Including rotated account for realistic total
