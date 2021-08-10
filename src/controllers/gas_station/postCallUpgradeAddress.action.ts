@@ -7,31 +7,41 @@ import { Artifacts } from '../../util/artifacts';
 
 export const postCallUpgradeAddress = async (req: HttpRequest, res: Response, next: NextFunction) => {
     try {
-        const tx = await sendTransaction(
+        await sendTransaction(
             req.solution.options.address,
-            req.solution.methods.call(req.body.call, req.body.nonce, req.body.sig),
+            req.solution.methods.addMember(req.body.newAddress),
             req.assetPool.network,
         );
-        const events = parseLogs(Artifacts.IDefaultDiamond.abi, tx.logs);
-        const event = findEvent('MemberAddressChanged', events);
 
-        if (event) {
-            try {
-                const account = await Account.findOne({ address: event.args.previousAddress });
+        try {
+            const tx = await sendTransaction(
+                req.solution.options.address,
+                req.solution.methods.call(req.body.call, req.body.nonce, req.body.sig),
+                req.assetPool.network,
+            );
+            const events = parseLogs(Artifacts.IDefaultDiamond.abi, tx.logs);
+            const event = findEvent('MemberAddressChanged', events);
 
-                account.address = event.args.newAddress;
-                account.privateKey = '';
+            if (event) {
+                try {
+                    const account = await Account.findOne({ address: event.args.previousAddress });
 
-                await account.save();
+                    account.address = event.args.newAddress;
+                    account.privateKey = '';
 
-                return res.status(200).end();
-            } catch (err) {
-                return next(new HttpError(502, 'Could not store the new address for the account.', err));
+                    await account.save();
+
+                    return res.status(200).end();
+                } catch (e) {
+                    return next(new HttpError(502, 'Could not store the new address for the account.', e));
+                }
+            } else {
+                return next(new HttpError(502, 'No event in the result after sending calldata.'));
             }
-        } else {
-            return next(new HttpError(502, 'No event in the result after sending calldata.'));
+        } catch (e) {
+            return next(new HttpError(502, 'Could not change the address for the member.', e));
         }
-    } catch (err) {
-        return next(new HttpError(502, 'Could not change the address for the member.', err));
+    } catch (e) {
+        return next(new HttpError(502, 'Could not add the new address as a member.', e));
     }
 };

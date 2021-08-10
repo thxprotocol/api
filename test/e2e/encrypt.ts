@@ -85,7 +85,7 @@ describe('Encryption', () => {
     describe('POST /signup (without address)', () => {
         it('HTTP 302 redirect if OK', (done) => {
             user.post('/v1/signup')
-                .set({ Authorization: adminAccessToken })
+                .set({ Authorization: adminAccessToken, AssetPool: poolAddress })
                 .send({
                     email: 'test.encrypt.bot@thx.network',
                     password: 'mellon',
@@ -94,18 +94,6 @@ describe('Encryption', () => {
                 .end((err, res) => {
                     tempAddress = res.body.address;
                     expect(res.status).toBe(201);
-                    done();
-                });
-        });
-    });
-
-    describe('POST /members/:address', () => {
-        it('HTTP 302 when member is added', (done) => {
-            user.post('/v1/members/')
-                .send({ address: tempAddress })
-                .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
-                .end(async (err, res) => {
-                    expect(res.status).toBe(302);
                     done();
                 });
         });
@@ -158,7 +146,7 @@ describe('Encryption', () => {
 
             user.post('/v1/gas_station/upgrade_address')
                 .set({ AssetPool: poolAddress, Authorization: userAccessToken })
-                .send({ call, nonce, sig })
+                .send({ call, nonce, sig, newAddress })
                 .end((err, res) => {
                     expect(res.status).toBe(200);
                     done();
