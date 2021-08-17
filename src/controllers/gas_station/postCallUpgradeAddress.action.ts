@@ -1,5 +1,5 @@
 import { Response, NextFunction } from 'express';
-import { sendTransaction } from '../../util/network';
+import { callFunction, sendTransaction } from '../../util/network';
 import { Account } from '../../models/Account';
 import { HttpError, HttpRequest } from '../../models/Error';
 import { parseLogs, findEvent } from '../../util/events';
@@ -7,11 +7,15 @@ import { Artifacts } from '../../util/artifacts';
 
 export const postCallUpgradeAddress = async (req: HttpRequest, res: Response, next: NextFunction) => {
     try {
-        await sendTransaction(
-            req.solution.options.address,
-            req.solution.methods.addMember(req.body.newAddress),
-            req.assetPool.network,
-        );
+        const isMember = await callFunction(req.solution.methods.isMember(req.body.newAddress), req.assetPool.network);
+
+        if (!isMember) {
+            await sendTransaction(
+                req.solution.options.address,
+                req.solution.methods.addMember(req.body.newAddress),
+                req.assetPool.network,
+            );
+        }
 
         try {
             const tx = await sendTransaction(
