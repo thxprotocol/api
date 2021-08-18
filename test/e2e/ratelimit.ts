@@ -127,10 +127,6 @@ describe('Rate Limit', () => {
     });
 
     describe('POST /reward/:id/give (200 when window passes)', () => {
-        it('... pause 1s to index events', async () => {
-            await new Promise((res) => setTimeout(res, 20000));
-            expect(true).toBe(true);
-        });
         it('HTTP 200', async (done) => {
             const { status } = await user
                 .post('/v1/rewards/1/give')

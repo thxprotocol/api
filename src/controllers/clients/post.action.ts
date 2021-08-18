@@ -1,6 +1,6 @@
+import axios from 'axios';
 import { Response, NextFunction } from 'express';
 import { HttpError, HttpRequest } from '../../models/Error';
-import axios from 'axios';
 import { ISSUER } from '../../util/secrets';
 import { Account } from '../../models/Account';
 
@@ -11,15 +11,15 @@ export const postClient = async (req: HttpRequest, res: Response, next: NextFunc
             url: ISSUER + '/reg',
             data: {
                 application_type: 'web',
-                client_name: req.body.title,
-                grant_types: ['client_credentials'],
-                request_uris: [],
-                redirect_uris: [],
-                post_logout_redirect_uris: [],
-                response_types: [],
-                scope: 'openid admin',
+                grant_types: ['authorization_code'],
+                request_uris: req.body.request_uris,
+                redirect_uris: req.body.request_uris,
+                post_logout_redirect_uris: req.body.request_uris,
+                response_types: ['code'],
+                scope: 'openid user widget',
             },
         });
+
         const rat = r.data.registration_access_token;
 
         try {

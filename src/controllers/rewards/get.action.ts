@@ -63,7 +63,6 @@ import { getRewardData } from './getReward.action';
 export const getRewards = async (req: HttpRequest, res: Response, next: NextFunction) => {
     try {
         try {
-            // TODO Get these rewards from db when event indexer covers all contract events.
             const rewards = [];
             let i = 1;
             while (i >= 1) {

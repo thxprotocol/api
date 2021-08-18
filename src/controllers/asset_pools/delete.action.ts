@@ -4,7 +4,6 @@ import { AssetPool } from '../../models/AssetPool';
 import { Withdrawal } from '../../models/Withdrawal';
 import { Reward } from '../../models/Reward';
 import { Account } from '../../models/Account';
-import { eventIndexer } from '../../util/indexer';
 import { Client } from '../../models/Client';
 import { Rat, RatDocument } from '../../models/Rat';
 
@@ -39,12 +38,7 @@ export const deleteAssetPool = async (req: HttpRequest, res: Response, next: Nex
         const membershipIndex = account.memberships.indexOf(req.solution.options.address);
         account.memberships.splice(membershipIndex, 1);
 
-        const ratIndex = account.registrationAccessTokens.indexOf(req.assetPool.rat);
-        account.registrationAccessTokens.splice(ratIndex, 1);
-
         await account.save();
-
-        eventIndexer.removeListener(req.assetPool.network, req.solution.options.address);
 
         // Notify users that asset pool has been removed
         res.status(204).end();

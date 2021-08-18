@@ -2,8 +2,9 @@ import { Response, NextFunction } from 'express';
 import { HttpError, HttpRequest } from '../../models/Error';
 import { Rat } from '../../models/Rat';
 import { Client } from '../../models/Client';
+import { Widget } from '../../models/Widget';
 
-export const getClient = async (req: HttpRequest, res: Response, next: NextFunction) => {
+export const getWidget = async (req: HttpRequest, res: Response, next: NextFunction) => {
     try {
         const rat = await Rat.findOne({ _id: req.params.rat });
 
@@ -17,11 +18,20 @@ export const getClient = async (req: HttpRequest, res: Response, next: NextFunct
             return next(new HttpError(500, 'Could not find a client for this registration_access_token.'));
         }
 
+        const widget = await Widget.findOne({ rat: rat.payload.jti });
+
+        if (!widget) {
+            return next(new HttpError(500, 'Could not find a widget for this registration_access_token.'));
+        }
+
         res.json({
             requestUris: client.payload['request_uris'],
             clientId: client.payload['client_id'],
             clientSecret: client.payload['client_secret'],
             registrationAccessToken: req.params.rat,
+            metadata: {
+                rewardId: widget.metadata.rewardId,
+            },
         });
     } catch (e) {
         next(new HttpError(500, 'Could not return client information.', e));

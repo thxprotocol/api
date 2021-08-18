@@ -24,6 +24,7 @@ export class HttpError extends Error {
 }
 
 export interface HttpRequest extends Request {
+    origin?: string;
     user?: any;
     solution?: Contract;
     assetPool?: AssetPoolDocument;

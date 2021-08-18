@@ -6,6 +6,7 @@ export type RewardDocument = mongoose.Document & {
     withdrawDuration: number;
     poolAddress: string;
     state: number;
+    beneficiaries: string[];
     poll: {
         id: number;
         withdrawAmount: number;
@@ -24,6 +25,7 @@ const rewardSchema = new mongoose.Schema(
         withdrawAmount: Number,
         withdrawDuration: Number,
         poolAddress: String,
+        beneficiaries: [String],
         state: Number,
     },
     { timestamps: true },

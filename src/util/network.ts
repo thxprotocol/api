@@ -209,23 +209,6 @@ export const solutionContract = (npid: NetworkProvider, address: string): Contra
     });
 };
 
-function getWSProvider(npid: NetworkProvider) {
-    switch (npid) {
-        case NetworkProvider.Test:
-            return new Web3(new Web3.providers.WebsocketProvider(TESTNET_RPC_WSS));
-        case NetworkProvider.Main:
-            return new Web3(new Web3.providers.WebsocketProvider(RPC_WSS));
-    }
-}
-
-export const solutionWSContract = (npid: NetworkProvider, address: string): Contract => {
-    const web3 = getWSProvider(npid);
-
-    return new web3.eth.Contract(Artifacts.IDefaultDiamond.abi as any, address, {
-        from: getAdmin(npid).address,
-    });
-};
-
 export const tokenContract = (npid: NetworkProvider, address: string): Contract => {
     const web3 = getProvider(npid);
     return new web3.eth.Contract(Artifacts.ERC20.abi as any, address, {

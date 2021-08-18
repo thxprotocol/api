@@ -324,11 +324,6 @@ describe('Voting', () => {
     });
 
     describe('GET /withdrawals?member=:address', () => {
-        it('... pause 1s to index events', async () => {
-            await new Promise((res) => setTimeout(res, 3000));
-            expect(true).toBe(true);
-        });
-
         it('HTTP 200 and return a list of 1 item', async (done) => {
             user.get(`/v1/withdrawals?member=${userWallet.address}`)
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
@@ -377,11 +372,6 @@ describe('Voting', () => {
                     expect(res.status).toBe(200);
                     done();
                 });
-        });
-
-        it('... pause 1s to index events', async () => {
-            await new Promise((res) => setTimeout(res, 3000));
-            expect(true).toBe(true);
         });
 
         it('HTTP 200 and increase yesCounter with 1', (done) => {

@@ -3,6 +3,7 @@ import { validate, validateAssetPoolHeader } from '../../util/validation';
 import { validations } from './_.validation';
 import { parseHeader } from '../../util/network';
 import { getAssetPool } from './get.action';
+import { getAssetPools } from './getAll.action';
 import { postAssetPool } from './post.action';
 import { patchAssetPool } from './patch.action';
 import { deleteAssetPool } from './delete.action';
@@ -11,6 +12,7 @@ import checkScopes from 'express-jwt-authz';
 const router = express.Router();
 
 router.post('/', checkScopes(['dashboard']), validate(validations.postAssetPool), postAssetPool);
+router.get('/', checkScopes(['dashboard']), parseHeader, getAssetPools);
 router.get(
     '/:address',
     checkScopes(['admin', 'user', 'dashboard']),

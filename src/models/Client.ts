@@ -4,7 +4,7 @@ export type ClientDocument = mongoose.Document & {
     _id: string;
     payload: {
         client_name: string;
-        request_uris: string;
+        request_uris: string[];
         client_id: string;
         client_secret: string;
     };
@@ -15,7 +15,7 @@ const clientSchema = new mongoose.Schema(
         _id: String,
         payload: {
             client_name: String,
-            request_uris: String,
+            request_uris: [String],
             client_id: String,
             client_secret: String,
         },

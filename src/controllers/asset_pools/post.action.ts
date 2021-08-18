@@ -2,7 +2,6 @@ import { solutionContract, getAssetPoolFactory, getAdmin, NetworkProvider, sendT
 import { AssetPool } from '../../models/AssetPool';
 import { Response, NextFunction } from 'express';
 import { HttpError, HttpRequest } from '../../models/Error';
-import { eventIndexer } from '../../util/indexer';
 import { POOL_REGISTRY_ADDRESS, TESTNET_POOL_REGISTRY_ADDRESS } from '../../util/secrets';
 import { Account } from '../../models/Account';
 import { findEvent, parseLogs } from '../../util/events';
@@ -98,8 +97,6 @@ export const postAssetPool = async (req: HttpRequest, res: Response, next: NextF
                 assetPool.rat = rat;
 
                 await assetPool.save();
-
-                eventIndexer.addListener(assetPool.network, solution.options.address);
 
                 res.status(201).json({ address: solution.options.address });
             } catch (e) {

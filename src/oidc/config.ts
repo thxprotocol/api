@@ -37,6 +37,7 @@ export default {
                 return {
                     sub: id,
                     email: account.email,
+                    address: account.address,
                 };
             },
         };
@@ -48,6 +49,7 @@ export default {
         cms: ['cms'],
         dashboard: ['dashboard'],
         user: ['user'],
+        widget: ['widget', 'address'],
         email: ['email'],
     },
     ttl: {

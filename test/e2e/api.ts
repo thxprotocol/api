@@ -19,6 +19,7 @@ import {
 import { decryptString } from '../../src/util/decrypt';
 import { solutionContract } from '../../src/util/network';
 import { Account } from 'web3-core';
+import { Withdrawal } from '../../src/models/Withdrawal';
 
 const user = request(server);
 const http2 = request.agent(server);
@@ -271,20 +272,8 @@ describe('Happy Flow', () => {
     });
 
     describe('POST /rewards/:id/claim', () => {
-        it('HTTP 200 and base64 string for the claim', (done) => {
-            user.post('/v1/rewards/1/claim')
-                .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
-                .end(async (err, res) => {
-                    expect(res.status).toBe(200);
-                    expect(res.body.base64).toContain('data:image/png;base64');
-
-                    done();
-                });
-        });
-
         it('HTTP 302 when tx is handled', async (done) => {
             const { call, nonce, sig } = await signMethod(poolAddress, 'claimReward', [1], userWallet);
-
             user.post('/v1/gas_station/call')
                 .send({
                     call,
@@ -294,14 +283,8 @@ describe('Happy Flow', () => {
                 .set({ AssetPool: poolAddress, Authorization: userAccessToken })
                 .end(async (err, res) => {
                     expect(res.status).toBe(200);
-
                     done();
                 });
-        });
-
-        it('... pause 1s to index events', async () => {
-            await new Promise((res) => setTimeout(res, 3000));
-            expect(true).toBe(true);
         });
 
         it('HTTP 200 after return state Pending', (done) => {
@@ -309,14 +292,11 @@ describe('Happy Flow', () => {
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
                 .end(async (err, res) => {
                     expect(res.status).toBe(200);
-
                     const index = res.body.length - 1;
                     const withdrawal = res.body[index];
-
                     expect(withdrawal.approved).toEqual(true);
                     expect(withdrawal.state).toEqual(0);
                     expect(withdrawal.amount).toEqual(rewardWithdrawAmount);
-
                     done();
                 });
         });
@@ -341,11 +321,6 @@ describe('Happy Flow', () => {
     });
 
     describe('GET /withdrawals/:id', () => {
-        it('... pause 1s to index events', async () => {
-            await new Promise((res) => setTimeout(res, 3000));
-            expect(true).toBe(true);
-        });
-
         it('HTTP 200 and return state Approved', (done) => {
             user.get(`/v1/withdrawals/${withdrawPollID}`)
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
@@ -418,7 +393,7 @@ describe('Happy Flow', () => {
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
                 .end(async (err, res) => {
                     expect(res.status).toBe(200);
-                    expect(res.body.length).toBe(2); // Pending and withdrawn withdrawal from reward given
+                    expect(res.body.length).toBe(2);
 
                     done();
                 });

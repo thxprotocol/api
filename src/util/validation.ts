@@ -43,20 +43,6 @@ export const validateAssetPoolHeader = async (req: HttpRequest, res: Response, n
     }
 };
 
-export const validateRegistrationToken = async (req: HttpRequest, res: Response, next: NextFunction) => {
-    try {
-        const account = await Account.findById(req.user.sub);
-
-        if (account.registrationAccessTokens && account.registrationAccessTokens.indexOf(req.params.rat) === -1) {
-            throw new HttpError(401, 'You can not access this registration_access_token.');
-        }
-
-        next();
-    } catch (e) {
-        next(e);
-    }
-};
-
 export const confirmPassword = body('confirmPassword')
     .exists()
     .custom((confirmPassword, { req }) => {

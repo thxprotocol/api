@@ -3,6 +3,16 @@ import { sendTransaction } from '../../util/network';
 import { HttpError, HttpRequest } from '../../models/Error';
 import { hex2a, parseLogs, findEvent } from '../../util/events';
 import { Artifacts } from '../../util/artifacts';
+import { eventIndexer } from '../../util/indexer';
+
+const indexer = eventIndexer as any;
+const eventNames = [
+    'WithdrawPollCreated',
+    'WithdrawPollFinalized',
+    'Withdrawn',
+    'WithdrawPollVoted',
+    'WithdrawPollRevokedVote',
+];
 
 export const postCall = async (req: HttpRequest, res: Response, next: NextFunction) => {
     try {
@@ -22,6 +32,15 @@ export const postCall = async (req: HttpRequest, res: Response, next: NextFuncti
                     error,
                 });
             }
+
+            for (const eventName of eventNames) {
+                const event = findEvent(eventName, events);
+
+                if (event) {
+                    await indexer[`on${eventName}`](req.assetPool.network, req.solution.options.address, event.args);
+                }
+            }
+
             res.status(200).end();
         }
     } catch (err) {
