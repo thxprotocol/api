@@ -1,10 +1,10 @@
 import cors from 'cors';
 import { Client } from '../models/Client';
-import { ISSUER, WALLET_URL, DASHBOARD_URL } from '../util/secrets';
+import { ISSUER, WALLET_URL, DASHBOARD_URL, WIDGETS_URL } from '../util/secrets';
 
 export const corsHandler = cors(async (req: any, callback: Function) => {
     const origin = req.header('Origin');
-    const allowedOrigins = [ISSUER, WALLET_URL, DASHBOARD_URL];
+    const allowedOrigins = [ISSUER, WALLET_URL, DASHBOARD_URL, WIDGETS_URL];
     const clients = await Client.find({});
 
     for (const client of clients) {

@@ -43,6 +43,7 @@ export const ISSUER = process.env.ISSUER;
 export const WALLET_URL = process.env.WALLET_URL;
 export const PUBLIC_URL = process.env.PUBLIC_URL;
 export const DASHBOARD_URL = process.env.DASHBOARD_URL;
+export const WIDGETS_URL = process.env.WIDGETS_URL;
 
 export const RPC = process.env.RPC;
 export const RPC_WSS = process.env.RPC_WSS;
