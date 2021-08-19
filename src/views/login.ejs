@@ -21,6 +21,9 @@
     <div class="container">
         <div class="row pt-sm-5 pb-sm-5">
             <div class="col-lg-4 offset-lg-4 order-0 order-sm-1">
+                <div class="text-center pb-4 pt-4">
+                    <img src="/img/logo.png" width="50" alt="THX Logo" />
+                </div>
                 <div class="card shadow-sm mb-5">
                     <div class="card-body p-sm-5">
                         <form autocomplete="off" action="/interaction/<%= uid %>/login" method="post">
@@ -31,7 +34,7 @@
 
                                 <% } %>
                                     <% if (params.authentication_token) { %>
-                                        <strong class="h1 d-block text-dark text-center mb-4">Set a password</strong>
+                                        <strong class="h2 d-block text-dark text-center mb-4">Set a password</strong>
                                         <div class="form-group">
                                             <label>Password:</label>
                                             <input class="form-control" autocomplete="off" required type="password"
@@ -53,7 +56,7 @@
                                                 Go to login
                                             </a>
                                             <% } else { %>
-                                                <strong class="h1 d-block text-dark text-center mb-4">
+                                                <strong class="h2 d-block text-dark text-center mb-4">
                                                     Login
                                                 </strong>
                                                 <div class="form-group">
@@ -71,7 +74,10 @@
                                                 <% } %>
 
                         </form>
-                        <a class="btn btn-block btn-link" href="/interaction/<%= uid %>/abort">Cancel</a>
+                        <a class="btn btn-block btn-link" href="<%= dashboardUrl %>/signup">
+                            Sign up for an
+                            account
+                        </a>
                     </div>
                 </div>
             </div>
