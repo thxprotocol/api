@@ -22,62 +22,45 @@
         <div class="row pt-sm-5 pb-sm-5">
             <div class="col-lg-4 offset-lg-4 order-0 order-sm-1">
                 <div class="text-center pb-4 pt-4">
-                    <img src="/img/logo.png" width="50" alt="THX Logo" />
+                    <img src="/img/logo.png" width="60" alt="THX Logo" />
                 </div>
                 <div class="card shadow-sm mb-5">
                     <div class="card-body p-sm-5">
-                        <form autocomplete="off" action="/interaction/<%= uid %>/login" method="post">
-                            <% if (alert && alert.message) { %>
-                                <div class="alert alert-<%= alert.variant %>">
-                                    <%= alert.message %>
-                                </div>
+                        <% if (alert && alert.message) { %>
+                            <div class="alert alert-<%= alert.variant %>">
+                                <%= alert.message %>
+                            </div>
+                            <% } %>
 
-                                <% } %>
-                                    <% if (params.authentication_token) { %>
-                                        <strong class="h2 d-block text-dark text-center mb-4">Set a password</strong>
-                                        <div class="form-group">
-                                            <label>Password:</label>
-                                            <input class="form-control" autocomplete="off" required type="password"
-                                                   name="password">
-                                        </div>
-                                        <div class="form-group">
-                                            <label>Password again:</label>
-                                            <input class="form-control" autocomplete="off" required type="password"
-                                                   name="passwordConfirm">
-                                        </div>
-                                        <input type="hidden" name="authenticationToken"
-                                               value="<%= params.authentication_token %>" />
-                                        <input type="hidden" name="secureKey" value="<%= params.secure_key %>" />
-                                        <hr>
-                                        <button type="submit"
-                                                class="btn btn-rounded btn-primary btn-block">Login</button>
-                                        <% } else if (params.signup_token) { %>
-                                            <a href="<%= dashboardUrl %>" class="btn btn-rounded btn-primary btn-block">
-                                                Go to login
-                                            </a>
-                                            <% } else { %>
-                                                <strong class="h2 d-block text-dark text-center mb-4">
-                                                    Login
-                                                </strong>
-                                                <div class="form-group">
-                                                    <label>E-mail:</label>
-                                                    <input class="form-control" required type="email" name="email">
-                                                </div>
-                                                <div class="form-group">
-                                                    <label>Password:</label>
-                                                    <input class="form-control" required type="password"
-                                                           name="password">
-                                                </div>
-                                                <hr>
-                                                <button type="submit"
-                                                        class="btn rounded-pill btn-primary btn-block">Login</button>
-                                                <% } %>
+                                <% if (params.signup_token) { %>
+                                    <a href="<%= params.return_url %>" class="btn rounded-pill btn-primary btn-block">
+                                        Go to sign in
+                                    </a>
+                                    <% } else { %>
+                                        <form autocomplete="off" action="/interaction/<%= uid %>/login" method="post">
 
-                        </form>
-                        <a class="btn btn-block btn-link" href="<%= dashboardUrl %>/signup">
-                            Sign up for an
-                            account
-                        </a>
+                                            <strong class="h2 d-block text-dark text-center mb-4">
+                                                Login
+                                            </strong>
+                                            <div class="form-group">
+                                                <label>E-mail:</label>
+                                                <input class="form-control" required type="email" name="email">
+                                            </div>
+                                            <div class="form-group">
+                                                <label>Password:</label>
+                                                <input class="form-control" required type="password" name="password">
+                                            </div>
+                                            <input type="hidden" name="returnUrl" value="<%= params.return_url %>" />
+                                            <hr>
+                                            <button type="submit" class="btn rounded-pill btn-primary btn-block">
+                                                Sign in
+                                            </button>
+                                        </form>
+                                        <a class="btn btn-block btn-link" href="<%= params.return_url %>/signup">
+                                            Sign up for an
+                                            account
+                                        </a>
+                                        <% } %>
                     </div>
                 </div>
             </div>

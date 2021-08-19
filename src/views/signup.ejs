@@ -22,6 +22,9 @@
     <div class="container">
         <div class="row pt-sm-5 pb-sm-5">
             <div class="col-lg-5 offset-lg-1 pt-3">
+                <div class="text-center pb-4 pt-4">
+                    <img src="/img/logo.png" width="60" alt="THX Logo" />
+                </div>
                 <div class="card shadow-lg mb-5">
                     <div class="card-body p-sm-5">
                         <% if (alert && alert.message && alert.variant==='danger' ) { %>
@@ -42,7 +45,13 @@
                                         <form autocomplete="off" action="/interaction/<%= uid %>/create" method="post">
                                             <div class="form-group">
                                                 <label>E-mail:</label>
-                                                <input class="form-control" required type="email" name="email">
+                                                <% if (params.signup_email) { %>
+                                                    <input class="form-control" value="<%= params.signup_email %>"
+                                                           required type="email" name="email">
+                                                    <% } else { %>
+                                                        <input class="form-control" required type="email" name="email">
+                                                        <% } %>
+
                                             </div>
                                             <div class="form-group">
                                                 <label>Password:</label>
@@ -69,16 +78,21 @@
                                                            class="custom-control-input" value="true"><label
                                                            for="acceptUpdates" class="custom-control-label"> Opt-in to
                                                         receive updates from THX on its products, you can opt-out at any
-                                                        time. </label></div>
+                                                        time. </label>
+
+                                                </div>
+                                                <input type="hidden" name="returnUrl"
+                                                       value="<%= params.return_url %>" />
                                             </div>
                                             <div class="form-group row mb-0">
                                                 <div class="col-md-12">
                                                     <button type="submit"
-                                                            class="btn btn-rounded mt-3 btn-primary btn-block"> Sign-up
+                                                            class="btn rounded-pill mt-3 btn-primary btn-block">
+                                                        Sign-up
                                                     </button>
                                                     <a class="btn btn-block btn-link"
                                                        href="/interaction/<%= uid %>/abort">Already have an account?
-                                                        Login.</a>
+                                                        Sign in.</a>
                                                 </div>
                                             </div>
                                         </form>

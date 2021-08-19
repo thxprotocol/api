@@ -4,21 +4,25 @@ import configuration from './config';
 import { AccountDocument } from '../models/Account';
 import { Account } from '../models/Account';
 import { HttpError } from '../models/Error';
-import { DASHBOARD_URL, ENVIRONMENT, GTM, ISSUER, SECURE_KEY } from '../util/secrets';
+import { ENVIRONMENT, GTM, ISSUER, SECURE_KEY } from '../util/secrets';
 import { decryptString } from '../util/decrypt';
 import { sendMail } from '../util/mail';
 import { createRandomToken, checkSignupToken } from '../util/tokens';
 
-function createAccountVerificationEmail(signupToken: string) {
+function createAccountVerificationEmail(returnUrl: string, signupToken: string) {
     return (
-        'Activate your account: <a href="' +
-        DASHBOARD_URL +
+        'Hi! Thanks for your sign up! We will make this e-mail more pretty in the near future. For now you can activate your account over here: <a href="' +
+        returnUrl +
         '/verify?signup_token=' +
         signupToken +
+        '&return_url=' +
+        returnUrl +
         '" target="_blank">Click this link</a> or copy this in your address bar: ' +
-        DASHBOARD_URL +
+        returnUrl +
         '/verify?signup_token=' +
-        signupToken
+        signupToken +
+        '&return_url=' +
+        returnUrl
     );
 }
 
@@ -40,14 +44,25 @@ router.get('/interaction/:uid', async (req: Request, res: Response, next: NextFu
     try {
         const { uid, prompt, params } = await oidc.interactionDetails(req, res);
 
-        if (params.prompt === 'create') {
-            return res.render('signup', {
-                uid,
-                params,
-                title: 'Signup',
-                alert: null,
-                gtm: GTM,
-            });
+        switch (params.prompt) {
+            case 'create': {
+                return res.render('signup', {
+                    uid,
+                    params,
+                    title: 'Signup',
+                    alert: null,
+                    gtm: GTM,
+                });
+            }
+            case 'password': {
+                return res.render('password', {
+                    uid,
+                    params,
+                    title: 'Signup',
+                    alert: null,
+                    gtm: GTM,
+                });
+            }
         }
 
         switch (prompt.name) {
@@ -56,6 +71,16 @@ router.get('/interaction/:uid', async (req: Request, res: Response, next: NextFu
                     uid,
                     params,
                     title: 'Signup',
+                    alert: null,
+                    gtm: GTM,
+                });
+                break;
+            }
+            case 'password': {
+                res.render('password', {
+                    uid,
+                    params,
+                    title: 'Password',
                     alert: null,
                     gtm: GTM,
                 });
@@ -101,6 +126,7 @@ router.post(
             return res.render('signup', {
                 uid: req.params.uid,
                 title: 'Signup',
+                params: req.params,
                 alert: {
                     variant: 'danger',
                     message: 'A user for this e-mail already exists.',
@@ -113,6 +139,7 @@ router.post(
             return res.render('signup', {
                 uid: req.params.uid,
                 title: 'Signup',
+                params: req.params,
                 alert: {
                     variant: 'danger',
                     message: 'Provided passwords are not identical.',
@@ -124,6 +151,7 @@ router.post(
         if (!req.body.acceptTermsPrivacy) {
             return res.render('signup', {
                 uid: req.params.uid,
+                params: req.params,
                 title: 'Signup',
                 alert: {
                     variant: 'danger',
@@ -144,7 +172,7 @@ router.post(
         });
 
         try {
-            const html = createAccountVerificationEmail(account.signupToken);
+            const html = createAccountVerificationEmail(req.body.returnUrl, account.signupToken);
 
             await sendMail(req.body.email, 'Confirm your THX Account', html);
 
@@ -154,6 +182,7 @@ router.post(
                 return res.render('signup', {
                     uid: req.params.uid,
                     title: 'Signup',
+                    params: req.params,
                     alert: {
                         variant: 'success',
                         message: 'Verify your e-mail address by clicking the link we just sent you.',
@@ -205,7 +234,7 @@ router.post(
             }
         }
 
-        async function getSubForCredentials(email: string, password: string) {
+        async function getSubForCredentials(returnUrl: string, email: string, password: string) {
             const account: AccountDocument = await Account.findOne({ email });
 
             if (!account) {
@@ -217,7 +246,7 @@ router.post(
                 account.signupTokenExpires = Date.now() + 1000 * 60 * 60 * 24; // 24 hours,
 
                 try {
-                    const html = createAccountVerificationEmail(account.signupToken);
+                    const html = createAccountVerificationEmail(returnUrl, account.signupToken);
 
                     await sendMail(req.body.email, 'Confirm your THX Account', html);
                 } catch (e) {
@@ -257,7 +286,7 @@ router.post(
             if (req.body.authenticationToken) {
                 account = await getSubForAuthenticationToken(req.body.authenticationToken, req.body.secureKey);
             } else {
-                account = await getSubForCredentials(req.body.email, req.body.password);
+                account = await getSubForCredentials(req.body.returnUrl, req.body.email, req.body.password);
             }
 
             if (account && account.error) {
