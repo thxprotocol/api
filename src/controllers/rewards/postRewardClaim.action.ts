@@ -129,7 +129,7 @@ export const postRewardClaim = async (req: HttpRequest, res: Response, next: Nex
             try {
                 await sendTransaction(
                     req.solution.options.address,
-                    req.solution.methods.withdrawPollFinalize(withdrawal),
+                    req.solution.methods.withdrawPollFinalize(withdrawal.id),
                     req.assetPool.network,
                 );
 
