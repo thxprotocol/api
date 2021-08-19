@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { Response, NextFunction } from 'express';
 import { HttpError, HttpRequest } from '../../models/Error';
-import { ISSUER } from '../../util/secrets';
+import { ISSUER, WIDGETS_URL } from '../../util/secrets';
 import { Widget } from '../../models/Widget';
 
 export const postWidget = async (req: HttpRequest, res: Response, next: NextFunction) => {
@@ -13,7 +13,7 @@ export const postWidget = async (req: HttpRequest, res: Response, next: NextFunc
                 application_type: 'web',
                 grant_types: ['authorization_code'],
                 request_uris: req.body.requestUris,
-                redirect_uris: req.body.redirectUris,
+                redirect_uris: [WIDGETS_URL],
                 post_logout_redirect_uris: req.body.postLogoutRedirectUris,
                 response_types: ['code'],
                 scope: 'openid user widget',

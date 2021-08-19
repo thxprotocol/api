@@ -1,7 +1,7 @@
 {
   "info": {
     "title": "THX API Specification",
-    "version": "1.0.0-beta.18"
+    "version": "1.0.0-beta.19"
   },
   "basePath": "https://api.thx.network/v1",
   "swagger": "2.0",
