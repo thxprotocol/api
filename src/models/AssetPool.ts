@@ -1,7 +1,9 @@
+import { Contract } from 'web3-eth-contract';
 import mongoose from 'mongoose';
 
-export type AssetPoolDocument = mongoose.Document & {
+export type IAssetPool = mongoose.Document & {
     address: string;
+    solution: Contract;
     network: number;
     sub: string;
     rat: string;
@@ -22,4 +24,4 @@ const assetPoolSchema = new mongoose.Schema(
     },
     { timestamps: true },
 );
-export const AssetPool = mongoose.model<AssetPoolDocument>('AssetPool', assetPoolSchema);
+export const AssetPool = mongoose.model<IAssetPool>('AssetPool', assetPoolSchema);

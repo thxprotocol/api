@@ -15,6 +15,7 @@
     <link rel="shortcut icon" href="/img/icons/favicon.ico?v=pgdmXmoa2w">
     <meta name="msapplication-TileColor" content="#da532c">
     <meta name="theme-color" content="#ffffff">
+    <script src="https://kit.fontawesome.com/06b7267748.js" crossorigin="anonymous"></script>
 </head>
 
 <body class="d-flex w-100 h-100 bg-light align-items-center justify-content-center">
@@ -33,8 +34,12 @@
                             <% } %>
 
                                 <% if (params.signup_token) { %>
+                                    <strong class="h2 d-block text-dark text-center mb-4">
+                                        Super
+                                    </strong>
+                                    <p>Your e-mail address has been verified.</p>
                                     <a href="<%= params.return_url %>" class="btn rounded-pill btn-primary btn-block">
-                                        Go to sign in
+                                        Sign in
                                     </a>
                                     <% } else { %>
                                         <form autocomplete="off" action="/interaction/<%= uid %>/login" method="post">
@@ -54,11 +59,13 @@
                                             <hr>
                                             <button type="submit" class="btn rounded-pill btn-primary btn-block">
                                                 Sign in
+                                                <i class="fas fa-chevron-right" aria-hidden="true"></i>
                                             </button>
                                         </form>
                                         <a class="btn btn-block btn-link" href="<%= params.return_url %>/signup">
                                             Sign up for an
                                             account
+                                            <i class="fas fa-chevron-right text-primary" aria-hidden="true"></i>
                                         </a>
                                         <% } %>
                     </div>

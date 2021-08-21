@@ -5,6 +5,7 @@ export type WidgetDocument = mongoose.Document & {
     sub: string;
     metadata: {
         rewardId: number;
+        poolAddress: string;
     };
 };
 
@@ -14,6 +15,7 @@ const widgetSchema = new mongoose.Schema(
         sub: String,
         metadata: {
             rewardId: Number,
+            poolAddress: String,
         },
     },
     { timestamps: false },

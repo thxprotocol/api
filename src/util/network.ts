@@ -226,8 +226,8 @@ export async function parseHeader(req: HttpRequest, res: Response, next: NextFun
             return next(new HttpError(404, 'Asset Pool is not found in database.'));
         }
 
+        (req as HttpRequest).solution = assetPool.solution = solutionContract(assetPool.network, address);
         (req as HttpRequest).assetPool = assetPool;
-        (req as HttpRequest).solution = solutionContract(assetPool.network, address);
     }
 
     return next();

@@ -9,7 +9,7 @@ import { validateClientAccess } from './utils/validateAccess';
 
 const router = express.Router();
 
-router.get('/', checkScopes(['dashboard']), getWidgets);
+router.get('/', checkScopes(['dashboard']), validate(validations.getWidgets), getWidgets);
 router.get('/:rat', checkScopes(['dashboard']), validate(validations.getWidget), validateClientAccess, getWidget);
 router.post('/', checkScopes(['dashboard']), validate(validations.postWidget), postWidget);
 

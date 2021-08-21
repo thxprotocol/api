@@ -85,7 +85,7 @@ export const postRewardClaim = async (req: HttpRequest, res: Response, next: Nex
         const account = await Account.findById(req.user.sub);
 
         if (!reward) {
-            return next(new HttpError(400, 'Reward does not exist.'));
+            return next(new HttpError(404, 'Reward does not exist.'));
         }
 
         if (reward.beneficiaries.includes(account.address)) {

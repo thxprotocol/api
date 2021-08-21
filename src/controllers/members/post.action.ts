@@ -1,30 +1,30 @@
+import MemberService from '../../services/MemberService';
+import AccountService from '../../services/AccountService';
 import { NextFunction, Response } from 'express';
 import { HttpRequest, HttpError } from '../../models/Error';
 import { VERSION } from '../../util/secrets';
-import { Account } from '../../models/Account';
-import { callFunction, sendTransaction } from '../../util/network';
-import { parseLogs, findEvent } from '../../util/events';
-import { Artifacts } from '../../util/artifacts';
 
-export async function updateMemberProfile(address: string, poolAddress: string) {
+export async function postMember(req: HttpRequest, res: Response, next: NextFunction) {
     try {
-        const account = await Account.findOne({ address: address });
+        const r = await MemberService.addMember(req.assetPool, req.body.address);
 
-        if (!account) {
-            return;
-        }
-        if (!account.memberships) {
-            account.memberships = [];
-        }
-        if (account.memberships.indexOf(poolAddress) > -1) {
-            return;
+        if (r && r.error) {
+            return next(new HttpError(502, r.error.toString(), r.error));
         }
 
-        account.memberships.push(poolAddress);
+        try {
+            const r = await AccountService.addMembershipForAddress(req.assetPool, req.body.address);
 
-        return account.save();
+            if (r && r.error) {
+                return next(new HttpError(500, r.error.toString(), r.error));
+            }
+
+            return res.redirect(`/${VERSION}/members/${req.body.address}`);
+        } catch (e) {
+            return next(new HttpError(502, e.toString(), e));
+        }
     } catch (e) {
-        console.log(e);
+        return next(new HttpError(502, e.toString(), e));
     }
 }
 
@@ -62,41 +62,3 @@ export async function updateMemberProfile(address: string, poolAddress: string) 
  *       '502':
  *         description: Bad Gateway. Received an invalid response from the network or database.
  */
-export const postMember = async (req: HttpRequest, res: Response, next: NextFunction) => {
-    try {
-        const result = await callFunction(req.solution.methods.isMember(req.body.address), req.assetPool.network);
-
-        if (result) {
-            await updateMemberProfile(req.body.address, req.solution.options.address);
-            return next(new HttpError(400, 'Address is member already.'));
-        }
-
-        try {
-            const tx = await sendTransaction(
-                req.solution.options.address,
-                req.solution.methods.addMember(req.body.address),
-                req.assetPool.network,
-            );
-
-            try {
-                const events = parseLogs(Artifacts.IDefaultDiamond.abi, tx.logs);
-                const event = findEvent('RoleGranted', events);
-
-                if (event) {
-                    const address = event.args.account;
-                    await updateMemberProfile(req.body.address, req.solution.options.address);
-
-                    res.redirect(`/${VERSION}/members/${address}`);
-                } else {
-                    res.status(200).end();
-                }
-            } catch (err) {
-                return next(new HttpError(500, 'Parse logs failed.', err));
-            }
-        } catch (err) {
-            return next(new HttpError(502, 'Asset Pool addMember failed.', err));
-        }
-    } catch (err) {
-        return next(new HttpError(502, 'Asset Pool isMember failed.', err));
-    }
-};

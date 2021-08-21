@@ -121,6 +121,6 @@ export const getReward = async (req: HttpRequest, res: Response, next: NextFunct
 
         res.json(reward);
     } catch (err) {
-        next(new HttpError(402, 'Asset Pool get reward failed.', err));
+        next(new HttpError(502, 'Asset Pool get reward failed.', err));
     }
 };

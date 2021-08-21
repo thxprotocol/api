@@ -27,7 +27,7 @@ router.get(
 );
 router.get(
     '/:id',
-    checkScopes(['admin', 'user', 'dashboard']),
+    checkScopes(['admin', 'user', 'widget', 'dashboard']),
     validateAssetPoolHeader,
     validate(validations.getReward),
     parseHeader,

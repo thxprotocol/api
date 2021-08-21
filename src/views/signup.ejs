@@ -33,6 +33,9 @@
                             </div>
                             <% } %>
                                 <% if (alert && alert.message && alert.variant==='success' ) { %>
+                                    <strong class="h2 d-block text-dark text-center mb-4">
+                                        THX for signing up!
+                                    </strong>
                                     <div class="alert alert-<%= alert.variant %>">
                                         <%= alert.message %>
                                     </div>
@@ -67,7 +70,7 @@
                                                     <input id="acceptTermsPrivacy" type="checkbox"
                                                            name="acceptTermsPrivacy" class="custom-control-input"
                                                            value="true"><label for="acceptTermsPrivacy"
-                                                           class="custom-control-label"> I agree to
+                                                           class="custom-control-label font-weight-normal"> I agree to
                                                         THX' <a href="<%= publicUrl %>/general-terms-and-conditions.pdf"
                                                            target="_blank">terms of use</a> and <a
                                                            href="<%= publicUrl %>/privacy-policy.pdf"
@@ -76,7 +79,9 @@
                                                 <div class="custom-control custom-checkbox b-custom-control-sm"><input
                                                            id="acceptUpdates" type="checkbox" name="acceptUpdates"
                                                            class="custom-control-input" value="true"><label
-                                                           for="acceptUpdates" class="custom-control-label"> Opt-in to
+                                                           for="acceptUpdates"
+                                                           class="custom-control-label font-weight-normal">
+                                                        Opt-in to
                                                         receive updates from THX on its products, you can opt-out at any
                                                         time. </label>
 

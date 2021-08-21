@@ -1,7 +1,7 @@
 import { Contract } from 'web3-eth-contract';
 import { logger } from '../util/logger';
 import { Request } from 'express';
-import { AssetPoolDocument } from './AssetPool';
+import { IAssetPool } from './AssetPool';
 
 export class HttpError extends Error {
     timestamp: number;
@@ -27,5 +27,5 @@ export interface HttpRequest extends Request {
     origin?: string;
     user?: any;
     solution?: Contract;
-    assetPool?: AssetPoolDocument;
+    assetPool?: IAssetPool;
 }

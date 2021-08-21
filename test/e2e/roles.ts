@@ -109,6 +109,7 @@ describe('Roles', () => {
                 .send({ address: userAddress })
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
                 .end(async (err, res) => {
+                    console.log(res.body, err);
                     redirectURL = res.headers.location;
 
                     expect(res.status).toBe(302);

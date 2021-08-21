@@ -26,6 +26,7 @@ export const postWidget = async (req: HttpRequest, res: Response, next: NextFunc
             rat,
             metadata: {
                 rewardId: req.body.metadata.rewardId,
+                poolAddress: req.body.metadata.poolAddress,
             },
         });
 

@@ -3,13 +3,13 @@ import {
     deployLimitedSupplyERC20Contract,
     getProvider,
 } from '../../../util/network';
-import { AssetPoolDocument } from '../../../models/AssetPool';
+import { IAssetPool } from '../../../models/AssetPool';
 import axios from 'axios';
 import { Error } from 'mongoose';
 import { parseEther } from 'ethers/lib/utils';
 import { ISSUER } from '../../../util/secrets';
 
-export async function getTokenAddress(token: any, assetPool: AssetPoolDocument) {
+export async function getTokenAddress(token: any, assetPool: IAssetPool) {
     if (token.address) {
         const provider = getProvider(assetPool.network);
         const code = await provider.eth.getCode(token.address);

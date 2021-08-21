@@ -18,7 +18,7 @@ export const getWidget = async (req: HttpRequest, res: Response, next: NextFunct
             return next(new HttpError(500, 'Could not find a client for this registration_access_token.'));
         }
 
-        const widget = await Widget.findOne({ rat: rat.payload.jti });
+        const widget = await Widget.findOne({ rat: rat.payload.jti, poolAddress: req.query.asset_pool });
 
         if (!widget) {
             return next(new HttpError(500, 'Could not find a widget for this registration_access_token.'));
@@ -31,6 +31,7 @@ export const getWidget = async (req: HttpRequest, res: Response, next: NextFunct
             registrationAccessToken: req.params.rat,
             metadata: {
                 rewardId: widget.metadata.rewardId,
+                poolAddress: widget.metadata.poolAddress,
             },
         });
     } catch (e) {
