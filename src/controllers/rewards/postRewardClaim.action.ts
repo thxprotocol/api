@@ -1,13 +1,13 @@
 import { Response, NextFunction } from 'express';
 import { HttpError, HttpRequest } from '../../models/Error';
-import { Reward } from '../../models/Reward';
 import { callFunction, NetworkProvider, sendTransaction } from '../../util/network';
-import { Account } from '../../models/Account';
-import { Artifacts } from '../../util/artifacts';
-import { parseLogs, findEvent } from '../../util/events';
 import { Withdrawal, WithdrawalState } from '../../models/Withdrawal';
 import { fromWei } from 'web3-utils';
 import { Contract } from 'web3-eth-contract';
+import RewardService from '../../services/RewardService';
+import MemberService from '../../services/MemberService';
+import AccountService from '../../services/AccountService';
+import WithdrawalService from '../../services/WithdrawalService';
 
 export async function createWithdrawal(solution: Contract, args: any, npid: NetworkProvider) {
     const id = args.id;
@@ -40,6 +40,84 @@ export async function createWithdrawal(solution: Contract, args: any, npid: Netw
         },
     });
 }
+
+const ERROR_REWARD_NOT_FOUND = 'The reward for this ID does not exist.';
+const ERROR_ACCOUNT_NO_ADDRESS = 'The authenticated account has not wallet address. Sign in the Web Wallet once.';
+const ERROR_REWARD_ALREADY_CLAIMED = 'Reward already claimed for this address.';
+
+export const postRewardClaim = async (req: HttpRequest, res: Response, next: NextFunction) => {
+    try {
+        const rewardId = Number(req.params.id);
+        const { reward, error } = await RewardService.get(req.assetPool, rewardId);
+
+        if (error) {
+            throw new Error(error);
+        } else {
+            if (!reward) {
+                throw new Error(ERROR_REWARD_NOT_FOUND);
+            }
+
+            const account = await AccountService.get(req.user.sub);
+
+            if (!account.address) {
+                throw new Error(ERROR_ACCOUNT_NO_ADDRESS);
+            }
+
+            const { isMember, error } = await MemberService.isMember(req.assetPool, account.address);
+
+            if (error) {
+                throw new Error(error);
+            } else {
+                if (!isMember) {
+                    const { error } = await MemberService.addMember(req.assetPool, account.address);
+
+                    if (error) {
+                        throw new Error(error);
+                    }
+                }
+                const { canClaim, error } = await RewardService.canClaim(reward, account.address);
+
+                if (error) {
+                    throw new Error(error);
+                }
+
+                if (!canClaim) {
+                    throw new Error(ERROR_REWARD_ALREADY_CLAIMED);
+                }
+
+                try {
+                    const { withdrawal, error } = await RewardService.claimRewardForOnce(
+                        req.assetPool,
+                        Number(req.params.id),
+                        account.address,
+                    );
+
+                    if (error) {
+                        throw new Error('ClaimRewardForOnce failed');
+                    }
+
+                    if (!withdrawal) {
+                        throw new Error('No withdrawal found failed');
+                    }
+
+                    if (req.assetPool.bypassPolls) {
+                        const { error } = await WithdrawalService.withdrawPollFinalize(req.assetPool, withdrawal.id);
+
+                        if (error) {
+                            throw new Error(error);
+                        }
+                    }
+
+                    res.status(200).end();
+                } catch (error) {
+                    next(new HttpError(500, error.toString(), error));
+                }
+            }
+        }
+    } catch (error) {
+        next(new HttpError(500, error.toString(), error));
+    }
+};
 
 /**
  * @swagger
@@ -79,83 +157,3 @@ export async function createWithdrawal(solution: Contract, args: any, npid: Netw
  *       '502':
  *         description: Bad Gateway. Received an invalid response from the network or database.
  */
-export const postRewardClaim = async (req: HttpRequest, res: Response, next: NextFunction) => {
-    try {
-        const reward = await Reward.findOne({ poolAddress: req.assetPool.address, id: req.params.id });
-        const account = await Account.findById(req.user.sub);
-
-        if (!reward) {
-            return next(new HttpError(404, 'Reward does not exist.'));
-        }
-
-        if (reward.beneficiaries.includes(account.address)) {
-            return next(new HttpError(400, 'Reward already claimed for this address.'));
-        }
-
-        const isMember = await callFunction(req.solution.methods.isMember(account.address), req.assetPool.network);
-
-        if (!isMember) {
-            await sendTransaction(
-                req.solution.options.address,
-                req.solution.methods.addMember(account.address),
-                req.assetPool.network,
-            );
-        }
-
-        const tx = await sendTransaction(
-            req.solution.options.address,
-            req.solution.methods.claimRewardFor(req.params.id, account.address),
-            req.assetPool.network,
-        );
-
-        try {
-            const events = parseLogs(Artifacts.IDefaultDiamond.abi, tx.logs);
-            const event = findEvent('WithdrawPollCreated', events);
-            const withdrawal = await createWithdrawal(req.solution, event.args, req.assetPool.network);
-
-            if (reward.beneficiaries.length) {
-                reward.beneficiaries.push(account.address);
-            } else {
-                reward.beneficiaries = [account.address];
-            }
-
-            if (!req.assetPool.bypassPolls) {
-                await reward.save();
-                await withdrawal.save();
-
-                return res.json({ withdrawal });
-            }
-
-            try {
-                await sendTransaction(
-                    req.solution.options.address,
-                    req.solution.methods.withdrawPollFinalize(withdrawal.id),
-                    req.assetPool.network,
-                );
-
-                const events = parseLogs(Artifacts.IDefaultDiamond.abi, tx.logs);
-                const eventWithdrawPollFinalized = findEvent('WithdrawPollFinalized', events);
-                const eventWithdrawn = findEvent('Withdrawn', events);
-
-                if (eventWithdrawPollFinalized) {
-                    withdrawal.poll = null;
-                }
-
-                if (eventWithdrawn) {
-                    withdrawal.state = WithdrawalState.Withdrawn;
-                }
-
-                await reward.save();
-                await withdrawal.save();
-
-                return res.status(200).end();
-            } catch (err) {
-                return next(new HttpError(500, 'Could not finalize the withdraw poll.', err));
-            }
-        } catch (err) {
-            return next(new HttpError(500, 'Could not parse the transaction for this reward claim.', err));
-        }
-    } catch (err) {
-        next(new HttpError(502, 'Could not claim the reward for this address', err));
-    }
-};

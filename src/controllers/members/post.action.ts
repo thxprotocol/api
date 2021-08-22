@@ -6,25 +6,27 @@ import { VERSION } from '../../util/secrets';
 
 export async function postMember(req: HttpRequest, res: Response, next: NextFunction) {
     try {
-        const r = await MemberService.addMember(req.assetPool, req.body.address);
+        const { account, error } = await AccountService.getByAddress(req.body.address);
 
-        if (r && r.error) {
-            return next(new HttpError(502, r.error.toString(), r.error));
-        }
+        if (error) {
+            throw new Error(error);
+        } else {
+            const { error } = await MemberService.addMember(req.assetPool, req.body.address);
 
-        try {
-            const r = await AccountService.addMembershipForAddress(req.assetPool, req.body.address);
+            if (error) {
+                throw new Error(error);
+            } else {
+                const { error } = await AccountService.addMembershipForAddress(req.assetPool, account.address);
 
-            if (r && r.error) {
-                return next(new HttpError(500, r.error.toString(), r.error));
+                if (error) {
+                    throw new Error(error);
+                } else {
+                    res.redirect(`/${VERSION}/members/${account.address}`);
+                }
             }
-
-            return res.redirect(`/${VERSION}/members/${req.body.address}`);
-        } catch (e) {
-            return next(new HttpError(502, e.toString(), e));
         }
-    } catch (e) {
-        return next(new HttpError(502, e.toString(), e));
+    } catch (error) {
+        return next(new HttpError(500, error.toString(), error));
     }
 }
 

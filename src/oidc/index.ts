@@ -138,7 +138,8 @@ router.post(
                     },
                     alert: {
                         variant: 'success',
-                        message: 'Verify your e-mail address by clicking the link we just sent you.',
+                        message:
+                            'Verify your e-mail address by clicking the link we just sent you. You can close this window.',
                     },
                     gtm: GTM,
                 });
@@ -171,8 +172,6 @@ router.post(
 
             const sub = result.sub;
             const error = result.error;
-
-            console.log(sub);
 
             if (error) {
                 const alert = {

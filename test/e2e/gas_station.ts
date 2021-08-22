@@ -129,7 +129,7 @@ describe('Gas Station', () => {
     describe('POST /gas_station/call (vote)', () => {
         it('HTTP 302 when call is ok', async (done) => {
             const { call, nonce, sig } = await signMethod(poolAddress, 'rewardPollVote', [1, true], voter);
-            const { status } = await user
+            const { body, status } = await user
                 .post('/v1/gas_station/call')
                 .set({ AssetPool: poolAddress, Authorization: userAccessToken })
                 .send({

@@ -97,7 +97,12 @@ export const postReward = async (req: HttpRequest, res: Response, next: NextFunc
                                 const event = findEvent('RewardPollEnabled', events);
 
                                 if (event) {
+                                    reward.withdrawAmount = await callFunction(
+                                        req.solution.methods.getWithdrawAmount(id),
+                                        req.assetPool.network,
+                                    );
                                     reward.state = 1;
+
                                     await reward.save();
                                 }
 

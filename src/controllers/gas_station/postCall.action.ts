@@ -37,7 +37,11 @@ export const postCall = async (req: HttpRequest, res: Response, next: NextFuncti
                 const event = findEvent(eventName, events);
 
                 if (event) {
-                    await indexer[`on${eventName}`](req.assetPool.network, req.solution.options.address, event.args);
+                    const callback = indexer[`on${eventName}`];
+                    console.log(callback);
+                    if (callback) {
+                        await callback(req.assetPool.network, req.solution.options.address, event.args);
+                    }
                 }
             }
 

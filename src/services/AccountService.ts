@@ -12,10 +12,25 @@ const ERROR_PASSWORD_NOT_MATCHING = 'Your provided passwords do not match';
 const ERROR_SIGNUP_TOKEN_INVALID = 'Could not find an account for this signup_token.';
 const ERROR_SIGNUP_TOKEN_EXPIRED = 'This signup_token has expired.';
 const SUCCESS_SIGNUP_COMPLETED = 'Congratulations! Your e-mail address has been verified.';
+const ERROR_NO_ACCOUNT = 'Could not find an account for this address';
 
 export default class AccountService {
     static async get(sub: string) {
         return await Account.findById(sub);
+    }
+
+    static async getByAddress(address: string) {
+        try {
+            const account = await Account.findOne({ address });
+
+            if (!account) {
+                throw new Error(ERROR_NO_ACCOUNT);
+            }
+
+            return { account };
+        } catch (error) {
+            return { error };
+        }
     }
 
     static async isEmailDuplicate(email: string) {
@@ -69,23 +84,21 @@ export default class AccountService {
         try {
             const account = await Account.findOne({ address });
 
-            // Check if account for address in network has membership
             if (!account.memberships.includes(assetPool.address)) {
-                // Add membership in db
                 account.memberships.push(assetPool.address);
             }
 
             const tokenAddress = await callFunction(assetPool.solution.methods.getToken(), assetPool.network);
-            console.log(tokenAddress);
             const hasERC20 = account.erc20.find((erc20: ERC20Token) => erc20.address === tokenAddress);
-            console.log(hasERC20);
-            // Check if account for address in network has erc20
+
             if (!hasERC20) {
-                // Add erc20 in db
                 account.erc20.push({ address: tokenAddress, network: assetPool.network });
+                console.log(account.erc20);
             }
 
             await account.save();
+
+            return { result: true };
         } catch (error) {
             return { error };
         }

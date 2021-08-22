@@ -50,8 +50,8 @@ import Web3 from 'web3';
  */
 export const postSignup = async (req: HttpRequest, res: Response, next: NextFunction) => {
     const wallet = new Web3().eth.accounts.create();
-    const privateKey = wallet.privateKey;
-    const address = wallet.address;
+    const privateKey = req.body.address ? null : wallet.privateKey;
+    const address = req.body.address ? req.body.address : wallet.address;
     const account = new Account({
         active: true,
         address,
