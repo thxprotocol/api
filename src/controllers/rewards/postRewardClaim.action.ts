@@ -1,6 +1,6 @@
 import { Response, NextFunction } from 'express';
 import { HttpError, HttpRequest } from '../../models/Error';
-import { callFunction, NetworkProvider, sendTransaction } from '../../util/network';
+import { callFunction, NetworkProvider } from '../../util/network';
 import { Withdrawal, WithdrawalState } from '../../models/Withdrawal';
 import { fromWei } from 'web3-utils';
 import { Contract } from 'web3-eth-contract';
@@ -73,6 +73,12 @@ export const postRewardClaim = async (req: HttpRequest, res: Response, next: Nex
 
                     if (error) {
                         throw new Error(error);
+                    } else {
+                        const { error } = await AccountService.addMembershipForAddress(req.assetPool, account.address);
+
+                        if (error) {
+                            throw new Error(error);
+                        }
                     }
                 }
                 const { canClaim, error } = await RewardService.canClaim(reward, account.address);
