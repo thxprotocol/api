@@ -7,11 +7,9 @@ import { interactionPolicy } from 'oidc-provider';
 
 const basePolicy = interactionPolicy.base();
 const promptCreate = new interactionPolicy.Prompt({ name: 'create', requestable: true });
-const promptPassword = new interactionPolicy.Prompt({ name: 'password', requestable: true });
 const promptConfirm = new interactionPolicy.Prompt({ name: 'confirm', requestable: true });
 
 basePolicy.add(promptCreate);
-basePolicy.add(promptPassword);
 basePolicy.add(promptConfirm);
 
 (async () => {
@@ -43,7 +41,7 @@ export default {
             },
         };
     },
-    extraParams: ['signup_email', 'return_url', 'signup_token', 'authentication_token', 'secure_key'],
+    extraParams: ['signup_email', 'return_url', 'signup_token', 'authentication_token', 'secure_key', 'prompt'],
     claims: {
         openid: ['sub'],
         admin: ['admin'],

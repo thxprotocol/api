@@ -19,6 +19,20 @@ export default class AccountService {
         return await Account.findById(sub);
     }
 
+    static async getByEmail(email: string) {
+        try {
+            const account = await Account.findOne({ email });
+
+            if (!account) {
+                throw new Error(ERROR_NO_ACCOUNT);
+            }
+
+            return { account };
+        } catch (error) {
+            return { error };
+        }
+    }
+
     static async getByAddress(address: string) {
         try {
             const account = await Account.findOne({ address });

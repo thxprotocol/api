@@ -21,6 +21,7 @@ if (ENVIRONMENT !== 'development' && ENVIRONMENT !== 'production') {
 }
 
 const ERROR_SENDING_MAIL_FAILED = 'Could not send your confirmation e-mail.';
+const ERROR_ACCOUNT_NOT_ACTIVE = 'Your e-mail is not verified. We have re-sent the activation link.';
 
 router.get('/interaction/:uid', async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -28,27 +29,8 @@ router.get('/interaction/:uid', async (req: Request, res: Response, next: NextFu
         let view, alert;
 
         switch (prompt.name) {
-            case 'create': {
-                view = 'signup';
-                break;
-            }
-            case 'password': {
-                view = 'password';
-                break;
-            }
             case 'login': {
                 view = 'login';
-                break;
-            }
-            case 'confirm': {
-                view = 'login';
-                if (params.signup_token) {
-                    const { result, error } = await AccountService.verifySignupToken(params.signup_token);
-                    alert = {
-                        variant: result ? 'success' : 'danger',
-                        message: result || error,
-                    };
-                }
                 break;
             }
             case 'consent': {
@@ -65,6 +47,19 @@ router.get('/interaction/:uid', async (req: Request, res: Response, next: NextFu
         }
 
         switch (params.prompt) {
+            case 'confirm': {
+                view = 'confirm';
+                const { error } = await AccountService.verifySignupToken(params.signup_token);
+
+                if (error) {
+                    alert = {
+                        variant: 'danger',
+                        message: error,
+                    };
+                }
+
+                break;
+            }
             case 'create': {
                 view = 'signup';
                 break;
@@ -153,48 +148,32 @@ router.post(
 );
 
 router.post(
-    '/interaction/:uid/login',
+    '/interaction/:uid/password',
     urlencoded({ extended: false }),
     async (req: Request, res: Response, next: NextFunction) => {
         try {
-            let result;
-
-            if (req.body.authenticationToken) {
-                result = await AccountService.getSubForAuthenticationToken(
-                    req.body.password,
-                    req.body.passwordConfirm,
-                    req.body.authenticationToken,
-                    req.body.secureKey,
-                );
-            } else {
-                result = await AccountService.getSubForCredentials(req.body.email, req.body.password);
-            }
-
-            const sub = result.sub;
-            const error = result.error;
+            const { sub, error } = await AccountService.getSubForAuthenticationToken(
+                req.body.password,
+                req.body.passwordConfirm,
+                req.body.authenticationToken,
+                req.body.secureKey,
+            );
+            console.log(sub, error);
 
             if (error) {
-                const alert = {
-                    variant: 'success',
-                    message: 'Please verify your account e-mail address. We have re-sent the verification e-mail.',
-                };
-
                 return res.render('login', {
                     uid: req.params.uid,
-                    params: {},
-                    alert,
+                    params: {
+                        return_url: req.body.returnUrl,
+                        authentication_token: req.body.authenticationToken,
+                        secure_key: req.body.secureKey,
+                    },
+                    alert: {
+                        variant: 'danger',
+                        message: error.toString(),
+                    },
                     gtm: GTM,
                 });
-            }
-
-            const account = await AccountService.get(sub);
-
-            if (!account.active) {
-                const r = await MailService.sendConfirmationEmail(account, req.body.returnUrl);
-
-                if (r && r.error) {
-                    throw r.error;
-                }
             }
 
             await oidc.interactionFinished(
@@ -208,7 +187,61 @@ router.post(
                 { mergeWithLastSubmission: true },
             );
         } catch (error) {
-            return next(new HttpError(502, error.toString(), error));
+            return next(new HttpError(500, error.toString(), error));
+        }
+    },
+);
+
+router.post(
+    '/interaction/:uid/login',
+    urlencoded({ extended: false }),
+    async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const { sub, error } = await AccountService.getSubForCredentials(req.body.email, req.body.password);
+            const alert = {
+                variant: 'danger',
+                message: '',
+            };
+
+            if (error) {
+                alert.message = error.toString();
+            }
+
+            const account = await AccountService.get(sub);
+
+            if (!account.active) {
+                const { result, error } = await MailService.sendConfirmationEmail(account, req.body.returnUrl);
+
+                if (error) {
+                    alert.message = error.toString();
+                }
+
+                if (result) {
+                    alert.message = ERROR_ACCOUNT_NOT_ACTIVE;
+                }
+            }
+
+            if (alert.message) {
+                return res.render('login', {
+                    uid: req.params.uid,
+                    params: {},
+                    alert,
+                    gtm: GTM,
+                });
+            } else {
+                await oidc.interactionFinished(
+                    req,
+                    res,
+                    {
+                        login: {
+                            account: sub,
+                        },
+                    },
+                    { mergeWithLastSubmission: true },
+                );
+            }
+        } catch (error) {
+            return next(new HttpError(500, error.toString(), error));
         }
     },
 );

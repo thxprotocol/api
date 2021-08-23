@@ -44,19 +44,21 @@
                                                 Hi!</p>
                                             <p
                                                style="font-family: 'Exo 2', sans-serif; font-size: 21px;  font-weight: normal; margin: 0; Margin-bottom: 15px; color: #000000">
-                                                Please confirm your e-mail address.</p>
+                                                A sign in is requested for your account.</p>
                                             <p
                                                style="font-family: 'Exo 2' , sans-serif; font-size: 16px; font-weight: normal; margin: 0; Margin-bottom: 15px; color: #000000">
-                                                Activate your account by clicking on the button below. If you need
-                                                any help please do not hesitate to contact and hop into our Discord or
-                                                Slack channels.
+                                                A login is requested for your e-mail address. Make sure to set a secure
+                                                password during authentication. This password will be used to encrypt
+                                                your THX Web Wallet and can not be changed, nor requested at a later
+                                                stage.
+                                                <strong>Store it somewhere safe.</strong>
                                             </p>
 
                                             <p>
-                                                <a href="<%= returnUrl %>/verify?signup_token=<%= signupToken %>&return_url=<%= returnUrl %>"
+                                                <a href="<%= returnUrl %>/login?authentication_token=<%= authenticationToken %>&secure_key=<%= secureKey %>"
                                                    target="_blank"
                                                    style="display: block; font-size: 16px !important; width: 100%; text-align: center; color: #ffffff; background-color: #5942c1; border: 0; border-radius: 50rem; box-sizing: border-box; cursor: pointer; text-decoration: none; font-size: 12px; margin: 0; padding: 12px 25px;">
-                                                    Activate your THX Account
+                                                    Access your Web Wallet
                                                     <img width="12" height="auto"
                                                          src="<%= baseUrl %>/img/mail/icons/chevron-right-solid.png" />
                                                 </a>
