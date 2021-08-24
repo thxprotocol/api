@@ -22,6 +22,7 @@ if (ENVIRONMENT !== 'development' && ENVIRONMENT !== 'production') {
 
 const ERROR_SENDING_MAIL_FAILED = 'Could not send your confirmation e-mail.';
 const ERROR_ACCOUNT_NOT_ACTIVE = 'Your e-mail is not verified. We have re-sent the activation link.';
+const ERROR_NO_ACCOUNT = 'We could not find an account for this e-mail and password combination.';
 
 router.get('/interaction/:uid', async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -209,7 +210,11 @@ router.post(
 
             const account = await AccountService.get(sub);
 
-            if (!account.active) {
+            if (!account) {
+                alert.message = ERROR_NO_ACCOUNT;
+            }
+
+            if (account && !account.active) {
                 const { result, error } = await MailService.sendConfirmationEmail(account, req.body.returnUrl);
 
                 if (error) {
