@@ -1,7 +1,33 @@
 import { NextFunction, Response } from 'express';
-import { sendTransaction } from '../../util/network';
-import { Account } from '../../models/Account';
 import { HttpError, HttpRequest } from '../../models/Error';
+import MemberService, { ERROR_IS_NOT_MEMBER } from '../../services/MemberService';
+import AccountService from '../../services/AccountService';
+
+export const deleteMember = async (req: HttpRequest, res: Response, next: NextFunction) => {
+    try {
+        const { isMember, error } = await MemberService.isMember(req.assetPool, req.params.address);
+
+        if (error) throw new Error(error);
+
+        if (!isMember) {
+            return next(new HttpError(404, ERROR_IS_NOT_MEMBER));
+        } else {
+            const { error } = await MemberService.removeMember(req.assetPool, req.params.address);
+
+            if (error) {
+                throw new Error(error);
+            } else {
+                const { error } = await AccountService.removeMembershipForAddress(req.assetPool, req.params.address);
+
+                if (error) throw new Error(error);
+
+                res.status(204).end();
+            }
+        }
+    } catch (error) {
+        return next(new HttpError(500, error.toString(), error));
+    }
+};
 
 /**
  * @swagger
@@ -35,36 +61,3 @@ import { HttpError, HttpRequest } from '../../models/Error';
  *       '502':
  *         description: Bad Gateway. Received an invalid response from the network or database.
  */
-export const deleteMember = async (req: HttpRequest, res: Response, next: NextFunction) => {
-    try {
-        const isMember = await req.solution.methods.isMember(req.params.address).call();
-
-        if (isMember) {
-            await sendTransaction(
-                req.solution.options.address,
-                await req.solution.methods.removeMember(req.params.address),
-                req.assetPool.network,
-            );
-        }
-
-        try {
-            const account = await Account.findOne({ address: req.params.address });
-
-            if (account && account.memberships) {
-                const index = account.memberships.indexOf(req.solution.options.address);
-
-                if (index > -1) {
-                    account.memberships.splice(index, 1);
-
-                    await account.save();
-                }
-            }
-
-            res.status(204).end();
-        } catch (err) {
-            next(new HttpError(502, 'Account profile update failed.', err));
-        }
-    } catch (err) {
-        next(new HttpError(502, 'Asset Pool removeMember failed.', err));
-    }
-};

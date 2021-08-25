@@ -1,7 +1,8 @@
 import express from 'express';
 import { validate, validateAssetPoolHeader } from '../../util/validation';
 import { validations } from './_.validation';
-import { getMember } from './get.action';
+import { getMembers } from './get.action';
+import { getMember } from './getMember.action';
 import { postMember } from './post.action';
 import { patchMember } from './patch.action';
 import { deleteMember } from './delete.action';
@@ -10,6 +11,7 @@ import { parseHeader } from '../../util/network';
 
 const router = express.Router();
 
+router.get('/', checkScopes(['admin']), validateAssetPoolHeader, parseHeader, getMembers);
 router.post(
     '/',
     checkScopes(['admin']),

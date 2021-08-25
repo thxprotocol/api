@@ -109,10 +109,9 @@ describe('Roles', () => {
                 .send({ address: userAddress })
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
                 .end(async (err, res) => {
-                    console.log(res.body, err);
+                    expect(res.status).toBe(302);
                     redirectURL = res.headers.location;
 
-                    expect(res.status).toBe(302);
                     done();
                 });
         });
@@ -121,10 +120,10 @@ describe('Roles', () => {
             user.get(redirectURL)
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
                 .end(async (err, res) => {
+                    expect(res.status).toBe(200);
                     expect(res.body.isMember).toEqual(true);
                     expect(res.body.isManager).toEqual(false);
                     expect(res.body.token.balance).toEqual(0);
-                    expect(res.status).toBe(200);
                     done();
                 });
         });
@@ -138,8 +137,8 @@ describe('Roles', () => {
                 .send({ isManager: true })
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
                 .end(async (err, res) => {
-                    redirectURL = res.headers.location;
                     expect(res.status).toBe(302);
+                    redirectURL = res.headers.location;
                     done();
                 });
         });
@@ -148,10 +147,10 @@ describe('Roles', () => {
             user.get(redirectURL)
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
                 .end(async (err, res) => {
+                    expect(res.status).toBe(200);
                     expect(res.body.isMember).toEqual(true);
                     expect(res.body.isManager).toEqual(true);
                     expect(res.body.token.balance).toEqual(0);
-                    expect(res.status).toBe(200);
                     done();
                 });
         });
@@ -165,8 +164,8 @@ describe('Roles', () => {
                 .send({ isManager: false })
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
                 .end(async (err, res) => {
-                    redirectURL = res.headers.location;
                     expect(res.status).toBe(302);
+                    redirectURL = res.headers.location;
                     done();
                 });
         });
@@ -175,10 +174,22 @@ describe('Roles', () => {
             user.get(redirectURL)
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
                 .end(async (err, res) => {
+                    expect(res.status).toBe(200);
                     expect(res.body.isMember).toEqual(true);
                     expect(res.body.isManager).toEqual(false);
                     expect(res.body.token.balance).toEqual(0);
+                    done();
+                });
+        });
+    });
+
+    describe('GET /members', () => {
+        it('HTTP 200 if OK', (done) => {
+            user.get('/v1/members')
+                .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
+                .end(async (err, res) => {
                     expect(res.status).toBe(200);
+                    expect(res.body.length).toEqual(1);
                     done();
                 });
         });
@@ -201,6 +212,18 @@ describe('Roles', () => {
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
                 .end(async (err, res) => {
                     expect(res.status).toBe(404);
+                    done();
+                });
+        });
+    });
+
+    describe('GET /members', () => {
+        it('HTTP 200 if OK', (done) => {
+            user.get('/v1/members')
+                .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
+                .end(async (err, res) => {
+                    expect(res.status).toBe(200);
+                    expect(res.body.length).toEqual(0);
                     done();
                 });
         });

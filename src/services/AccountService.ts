@@ -107,7 +107,26 @@ export default class AccountService {
 
             if (!hasERC20) {
                 account.erc20.push({ address: tokenAddress, network: assetPool.network });
-                console.log(account.erc20);
+            }
+
+            await account.save();
+
+            return { result: true };
+        } catch (error) {
+            return { error };
+        }
+    }
+
+    static async removeMembershipForAddress(assetPool: IAssetPool, address: string) {
+        try {
+            const account = await Account.findOne({ address });
+
+            if (account && account.memberships) {
+                const index = account.memberships.indexOf(assetPool.solution.options.address);
+
+                if (index > -1) {
+                    account.memberships.splice(index, 1);
+                }
             }
 
             await account.save();
