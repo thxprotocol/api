@@ -16,7 +16,7 @@ export const getMembers = async (req: HttpRequest, res: Response, next: NextFunc
 
 /**
  * @swagger
- * /members
+ * /members:
  *   get:
  *     tags:
  *       - Members
@@ -29,26 +29,23 @@ export const getMembers = async (req: HttpRequest, res: Response, next: NextFunc
  *         required: true
  *         type: string
  *     responses:
- *       '200':
- *         description: OK
- *         schema:
- *           type: array
- *           items:
- *             type: object
- *             properties:
- *               address:
- *                 type: string
- *                 description: The address of the member
- *       '400':
- *         description: Bad Request. Indicates incorrect body parameters.
- *       '401':
- *         description: Unauthorized. Authenticate your request please.
- *       '403':
- *         description: Forbidden. Your account does not have access to this pool.
- *       '404':
- *         description: Not Found. Address is not a member.
- *       '500':
- *         description: Internal Server Error.
- *       '502':
- *         description: Bad Gateway. Received an invalid response from the network or database.
+ *        '200':
+ *          description: OK
+ *          schema:
+ *            type: array
+ *            items:
+ *              type: string
+ *              description: The address of the member
+ *        '400':
+ *           description: Bad Request. Indicates incorrect body parameters.
+ *        '401':
+ *           description: Unauthorized. Authenticate your request please.
+ *        '403':
+ *           description: Forbidden. Your account does not have access to this pool.
+ *        '404':
+ *           description: Not Found. Address is not a member.
+ *        '500':
+ *           description: Internal Server Error.
+ *        '502':
+ *           description: Bad Gateway. Received an invalid response from the network or database.
  */
