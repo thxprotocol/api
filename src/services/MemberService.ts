@@ -107,7 +107,7 @@ export default class MemberService {
             return { memberId };
         } catch (error) {
             return {
-                error: ERROR_ADD_MEMBER_FAILED,
+                error,
             };
         }
     }

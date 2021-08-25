@@ -23,6 +23,7 @@ if (ENVIRONMENT !== 'development' && ENVIRONMENT !== 'production') {
 const ERROR_SENDING_MAIL_FAILED = 'Could not send your confirmation e-mail.';
 const ERROR_ACCOUNT_NOT_ACTIVE = 'Your e-mail is not verified. We have re-sent the activation link.';
 const ERROR_NO_ACCOUNT = 'We could not find an account for this e-mail and password combination.';
+const ERROR_AUTH_LINK = 'Your wallet is encrypted by another party. Please ask them to send you a login link.';
 
 router.get('/interaction/:uid', async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -159,7 +160,6 @@ router.post(
                 req.body.authenticationToken,
                 req.body.secureKey,
             );
-            console.log(sub, error);
 
             if (error) {
                 return res.render('login', {
@@ -224,6 +224,10 @@ router.post(
                 if (result) {
                     alert.message = ERROR_ACCOUNT_NOT_ACTIVE;
                 }
+            }
+
+            if (account && account.privateKey) {
+                alert.message = ERROR_AUTH_LINK;
             }
 
             if (alert.message) {

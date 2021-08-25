@@ -4,6 +4,7 @@ import { Account } from '../../models/Account';
 import { HttpError, HttpRequest } from '../../models/Error';
 import { parseLogs, findEvent } from '../../util/events';
 import { Artifacts } from '../../util/artifacts';
+import { Withdrawal } from '../../models/Withdrawal';
 
 export const postCallUpgradeAddress = async (req: HttpRequest, res: Response, next: NextFunction) => {
     try {
@@ -35,7 +36,19 @@ export const postCallUpgradeAddress = async (req: HttpRequest, res: Response, ne
 
                     await account.save();
 
-                    return res.status(200).end();
+                    try {
+                        const withdrawals = await Withdrawal.find({ beneficiary: event.args.previousAddress });
+
+                        for (const withdrawal of withdrawals) {
+                            withdrawal.beneficiary = event.args.newAddress;
+
+                            await withdrawal.save();
+                        }
+
+                        return res.status(200).end();
+                    } catch (e) {
+                        return next(new HttpError(502, 'Could not migrate the withdrawals in db.', e));
+                    }
                 } catch (e) {
                     return next(new HttpError(502, 'Could not store the new address for the account.', e));
                 }
