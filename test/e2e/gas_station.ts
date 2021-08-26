@@ -2,7 +2,7 @@ import request from 'supertest';
 import server from '../../src/server';
 import { NetworkProvider, sendTransaction } from '../../src/util/network';
 import db from '../../src/util/database';
-import { voter, timeTravel, signMethod, deployExampleToken } from './lib/network';
+import { timeTravel, signMethod, deployExampleToken, signupWithAddress, addMembership } from './lib/network';
 import {
     rewardPollDuration,
     proposeWithdrawPollDuration,
@@ -10,63 +10,42 @@ import {
     rewardWithdrawDuration,
     userEmail,
     userPassword,
+    userEmail2,
+    userPassword2,
+    voterEmail,
 } from './lib/constants';
-import {
-    getAccessToken,
-    getAuthCode,
-    getAuthHeaders,
-    registerClientCredentialsClient,
-    registerDashboardClient,
-    registerWalletClient,
-} from './lib/registerClient';
 import { solutionContract } from '../../src/util/network';
 import { toWei } from 'web3-utils';
 import { Contract } from 'web3-eth-contract';
+import { getAuthCodeToken } from './lib/authorizationCode';
+import { getClientCredentialsToken } from './lib/clientCredentials';
+import { Account } from 'web3-core';
 
-const user = request(server);
-const http2 = request.agent(server);
-const http3 = request.agent(server);
+const admin = request(server);
+const user = request.agent(server);
+const user2 = request.agent(server);
 
 describe('Gas Station', () => {
     let poolAddress: string,
         adminAccessToken: string,
         dashboardAccessToken: string,
         userAccessToken: string,
-        testToken: Contract;
+        testToken: Contract,
+        userWallet: Account;
 
     beforeAll(async () => {
         await db.truncate();
 
-        const credentials = await registerClientCredentialsClient(user);
+        const { accessToken } = await getClientCredentialsToken(admin);
+        adminAccessToken = accessToken;
 
-        adminAccessToken = credentials.accessToken;
+        userWallet = await signupWithAddress(userEmail, userPassword);
+        userAccessToken = await getAuthCodeToken(user, 'openid user', userEmail, userPassword);
+
+        await signupWithAddress(userEmail2, userPassword2);
+        dashboardAccessToken = await getAuthCodeToken(user2, 'openid dashboard', userEmail2, userPassword2);
 
         testToken = await deployExampleToken();
-
-        // Create an account
-        await user.post('/v1/signup').set({ Authorization: adminAccessToken }).send({
-            address: voter.address,
-            email: 'test.api.bot@thx.network',
-            password: 'mellon',
-            confirmPassword: 'mellon',
-        });
-
-        const walletClient = await registerWalletClient(user);
-        const walletHeaders = await getAuthHeaders(http2, walletClient, 'openid user email offline_access');
-        const walletAuthCode = await getAuthCode(http2, walletHeaders, walletClient, {
-            email: 'test.api.bot@thx.network',
-            password: 'mellon',
-        });
-
-        const dashboardClient = await registerDashboardClient(user);
-        const dashboardHeaders = await getAuthHeaders(http3, dashboardClient, 'openid dashboard');
-        const dashboardAuthCode = await getAuthCode(http3, dashboardHeaders, dashboardClient, {
-            email: userEmail,
-            password: userPassword,
-        });
-
-        userAccessToken = await getAccessToken(http2, walletClient, walletAuthCode);
-        dashboardAccessToken = await getAccessToken(http3, dashboardClient, dashboardAuthCode);
 
         // Create an asset pool
         const res = await user
@@ -99,7 +78,6 @@ describe('Gas Station', () => {
             .send({
                 rewardPollDuration,
                 proposeWithdrawPollDuration,
-                bypassPolls: false,
             });
 
         // Create a reward
@@ -112,7 +90,7 @@ describe('Gas Station', () => {
         await user
             .post('/v1/members')
             .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
-            .send({ address: voter.address });
+            .send({ address: userWallet.address });
     });
 
     describe('GET /reward', () => {
@@ -128,7 +106,7 @@ describe('Gas Station', () => {
 
     describe('POST /gas_station/call (vote)', () => {
         it('HTTP 302 when call is ok', async (done) => {
-            const { call, nonce, sig } = await signMethod(poolAddress, 'rewardPollVote', [1, true], voter);
+            const { call, nonce, sig } = await signMethod(poolAddress, 'rewardPollVote', [1, true], userWallet);
             const { body, status } = await user
                 .post('/v1/gas_station/call')
                 .set({ AssetPool: poolAddress, Authorization: userAccessToken })
@@ -137,6 +115,7 @@ describe('Gas Station', () => {
                     nonce,
                     sig,
                 });
+            console.log(body);
             expect(status).toBe(200);
 
             done();
@@ -155,7 +134,7 @@ describe('Gas Station', () => {
 
     describe('POST /gas_station/base_poll (revokeVote)', () => {
         it('HTTP 302 when revokeVote call is ok', async (done) => {
-            const { call, nonce, sig } = await signMethod(poolAddress, 'rewardPollRevokeVote', [1], voter);
+            const { call, nonce, sig } = await signMethod(poolAddress, 'rewardPollRevokeVote', [1], userWallet);
             const { status } = await user
                 .post('/v1/gas_station/call')
                 .set({ AssetPool: poolAddress, Authorization: userAccessToken })
@@ -182,7 +161,7 @@ describe('Gas Station', () => {
 
     describe('POST /gas_station/base_poll (finalize)', () => {
         it('HTTP 302 when vote call is ok', async (done) => {
-            const { call, nonce, sig } = await signMethod(poolAddress, 'rewardPollVote', [1, true], voter);
+            const { call, nonce, sig } = await signMethod(poolAddress, 'rewardPollVote', [1, true], userWallet);
             await user
                 .post('/v1/gas_station/call')
                 .set({ AssetPool: poolAddress, Authorization: userAccessToken })
@@ -197,7 +176,7 @@ describe('Gas Station', () => {
         it('HTTP 302 when finalize call is ok', async (done) => {
             await timeTravel(rewardPollDuration);
 
-            const { call, nonce, sig } = await signMethod(poolAddress, 'rewardPollFinalize', [1], voter);
+            const { call, nonce, sig } = await signMethod(poolAddress, 'rewardPollFinalize', [1], userWallet);
             const { status } = await user
                 .post('/v1/gas_station/call')
                 .set({ AssetPool: poolAddress, Authorization: userAccessToken })

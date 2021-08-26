@@ -1,23 +1,26 @@
 import request from 'supertest';
 import server from '../../src/server';
 import db from '../../src/util/database';
-import { rewardWithdrawAmount, userEmail, userPassword, tokenName, tokenSymbol } from './lib/constants';
+import {
+    rewardWithdrawAmount,
+    userEmail,
+    userPassword,
+    tokenName,
+    tokenSymbol,
+    userEmail2,
+    userPassword2,
+} from './lib/constants';
 import { ethers } from 'ethers';
 import { Account } from 'web3-core';
-import {
-    getAccessToken,
-    getAuthCode,
-    getAuthHeaders,
-    registerClientCredentialsClient,
-    registerDashboardClient,
-    registerWalletClient,
-} from './lib/registerClient';
 import { decryptString } from '../../src/util/decrypt';
 import { getProvider, NetworkProvider } from '../../src/util/network';
+import { signupWithAddress } from './lib/network';
+import { getAuthCodeToken } from './lib/authorizationCode';
+import { getClientCredentialsToken } from './lib/clientCredentials';
 
-const user = request(server);
-const http2 = request.agent(server);
-const http3 = request.agent(server);
+const admin = request(server);
+const user = request.agent(server);
+const user2 = request.agent(server);
 
 describe('UnlimitedSupplyToken', () => {
     let adminAccessToken: string,
@@ -32,46 +35,18 @@ describe('UnlimitedSupplyToken', () => {
     beforeAll(async () => {
         await db.truncate();
 
-        const credentials = await registerClientCredentialsClient(user);
-        adminAccessToken = credentials.accessToken;
-    });
+        const { accessToken } = await getClientCredentialsToken(admin);
+        adminAccessToken = accessToken;
 
-    describe('POST /signup', () => {
-        it('HTTP 302 if payload is correct', (done) => {
-            user.post('/v1/signup')
-                .set('Authorization', adminAccessToken)
-                .send({ email: userEmail, password: userPassword, confirmPassword: userPassword })
-                .end((err, res) => {
-                    expect(res.status).toBe(201);
-                    expect(ethers.utils.isAddress(res.body.address)).toBe(true);
+        userWallet = await signupWithAddress(userEmail, userPassword);
+        userAccessToken = await getAuthCodeToken(user, 'openid user', userEmail, userPassword);
+        userAddress = userWallet.address;
 
-                    userAddress = res.body.address;
-
-                    done();
-                });
-        });
+        await signupWithAddress(userEmail2, userPassword2);
+        dashboardAccessToken = await getAuthCodeToken(user2, 'openid dashboard', userEmail2, userPassword2);
     });
 
     describe('GET /account', () => {
-        beforeAll(async () => {
-            const walletClient = await registerWalletClient(user);
-            const walletHeaders = await getAuthHeaders(http2, walletClient, 'openid user email offline_access');
-            const walletAuthCode = await getAuthCode(http2, walletHeaders, walletClient, {
-                email: userEmail,
-                password: userPassword,
-            });
-
-            const dashboardClient = await registerDashboardClient(user);
-            const dashboardHeaders = await getAuthHeaders(http3, dashboardClient, 'openid dashboard');
-            const dashboardAuthCode = await getAuthCode(http3, dashboardHeaders, dashboardClient, {
-                email: userEmail,
-                password: userPassword,
-            });
-
-            userAccessToken = await getAccessToken(http2, walletClient, walletAuthCode);
-            dashboardAccessToken = await getAccessToken(http3, dashboardClient, dashboardAuthCode);
-        });
-
         it('HTTP 200', async (done) => {
             user.get('/v1/account')
                 .set({
@@ -79,10 +54,7 @@ describe('UnlimitedSupplyToken', () => {
                 })
                 .end((err, res) => {
                     expect(res.status).toBe(200);
-                    expect(res.body.privateKey).toBeTruthy();
-                    const pKey = decryptString(res.body.privateKey, userPassword);
-                    const web3 = getProvider(NetworkProvider.Test);
-                    userWallet = web3.eth.accounts.privateKeyToAccount(pKey);
+                    expect(res.body.privateKey).toBeUndefined();
                     done();
                 });
         });

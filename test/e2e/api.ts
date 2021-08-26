@@ -1,29 +1,28 @@
 import request from 'supertest';
 import server from '../../src/server';
 import db from '../../src/util/database';
-import { callFunction, getAdmin, getProvider, NetworkProvider, sendTransaction } from '../../src/util/network';
-import { timeTravel, signMethod, deployExampleToken } from './lib/network';
-import { rewardWithdrawAmount, rewardWithdrawDuration, mintAmount, userEmail, userPassword } from './lib/constants';
+import { callFunction, getAdmin, NetworkProvider, sendTransaction } from '../../src/util/network';
+import { timeTravel, signMethod, deployExampleToken, signupWithAddress } from './lib/network';
+import {
+    rewardWithdrawAmount,
+    rewardWithdrawDuration,
+    mintAmount,
+    userEmail,
+    userPassword,
+    userEmail2,
+    userPassword2,
+} from './lib/constants';
 import { formatEther, parseEther } from 'ethers/lib/utils';
 import { ethers } from 'ethers';
 import { Contract } from 'web3-eth-contract';
-
-import {
-    getAccessToken,
-    getAuthCode,
-    getAuthHeaders,
-    registerWalletClient,
-    registerDashboardClient,
-    registerClientCredentialsClient,
-} from './lib/registerClient';
-import { decryptString } from '../../src/util/decrypt';
+import { getClientCredentialsToken } from './lib/clientCredentials';
+import { getAuthCodeToken } from './lib/authorizationCode';
 import { solutionContract } from '../../src/util/network';
 import { Account } from 'web3-core';
-import { Withdrawal } from '../../src/models/Withdrawal';
 
-const user = request(server);
-const http2 = request.agent(server);
-const http3 = request.agent(server);
+const admin = request(server);
+const user = request.agent(server);
+const user2 = request.agent(server);
 
 describe('Happy Flow', () => {
     let adminAccessToken: string,
@@ -32,53 +31,27 @@ describe('Happy Flow', () => {
         poolAddress: string,
         userAddress: string,
         withdrawPollID: string,
+        dashboardWallet: Account,
         userWallet: Account,
         testToken: Contract;
 
     beforeAll(async () => {
         await db.truncate();
 
-        const credentials = await registerClientCredentialsClient(user);
-
-        adminAccessToken = credentials.accessToken;
-
         testToken = await deployExampleToken();
-    });
 
-    describe('POST /signup', () => {
-        it('HTTP 302 if payload is correct', (done) => {
-            user.post('/v1/signup')
-                .set('Authorization', adminAccessToken)
-                .send({ email: userEmail, password: userPassword, confirmPassword: userPassword })
-                .end((err, res) => {
-                    userAddress = res.body.address;
-                    expect(ethers.utils.isAddress(res.body.address)).toBe(true);
-                    expect(res.status).toBe(201);
-                    done();
-                });
-        });
+        const { accessToken } = await getClientCredentialsToken(admin);
+        adminAccessToken = accessToken;
+
+        userWallet = await signupWithAddress(userEmail, userPassword);
+        userAccessToken = await getAuthCodeToken(user, 'openid user', userEmail, userPassword);
+        userAddress = userWallet.address;
+
+        dashboardWallet = await signupWithAddress(userEmail2, userPassword2);
+        dashboardAccessToken = await getAuthCodeToken(user2, 'openid dashboard', userEmail2, userPassword2);
     });
 
     describe('GET /account', () => {
-        beforeAll(async () => {
-            const walletClient = await registerWalletClient(user);
-            const walletHeaders = await getAuthHeaders(http2, walletClient, 'openid user email offline_access');
-            const walletAuthCode = await getAuthCode(http2, walletHeaders, walletClient, {
-                email: userEmail,
-                password: userPassword,
-            });
-
-            const dashboardClient = await registerDashboardClient(user);
-            const dashboardHeaders = await getAuthHeaders(http3, dashboardClient, 'openid dashboard');
-            const dashboardAuthCode = await getAuthCode(http3, dashboardHeaders, dashboardClient, {
-                email: userEmail,
-                password: userPassword,
-            });
-
-            userAccessToken = await getAccessToken(http2, walletClient, walletAuthCode);
-            dashboardAccessToken = await getAccessToken(http3, dashboardClient, dashboardAuthCode);
-        });
-
         it('HTTP 200', async (done) => {
             user.get('/v1/account')
                 .set({
@@ -86,10 +59,8 @@ describe('Happy Flow', () => {
                 })
                 .end((err, res) => {
                     expect(res.status).toBe(200);
-                    expect(res.body.privateKey).toBeTruthy();
-                    const pKey = decryptString(res.body.privateKey, userPassword);
-                    const web3 = getProvider(NetworkProvider.Test);
-                    userWallet = web3.eth.accounts.privateKeyToAccount(pKey);
+                    expect(res.body.privateKey).toBeUndefined();
+
                     done();
                 });
         });

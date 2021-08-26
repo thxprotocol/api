@@ -11,11 +11,25 @@ import {
 import { Artifacts } from '../../../src/util/artifacts';
 import { mintAmount } from './constants';
 import { Account } from 'web3-core';
+import Web3 from 'web3';
+import AccountService from '../../../src/services/AccountService';
 
 const web3 = getProvider(NetworkProvider.Test);
 
 export const voter = web3.eth.accounts.privateKeyToAccount(VOTER_PK);
 export const depositor = web3.eth.accounts.privateKeyToAccount(DEPOSITOR_PK);
+
+export async function signupWithAddress(email: string, password: string) {
+    const account = AccountService.signup(email, password, true, true);
+    const wallet = new Web3().eth.accounts.create();
+
+    account.address = wallet.address;
+
+    await account.save();
+    await AccountService.verifySignupToken(account.signupToken);
+
+    return wallet;
+}
 
 export const timeTravel = async (seconds: number) => {
     web3.extend({

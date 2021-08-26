@@ -2,7 +2,7 @@ import request from 'supertest';
 import server from '../../src/server';
 import { NetworkProvider, sendTransaction } from '../../src/util/network';
 import db from '../../src/util/database';
-import { voter, deployExampleToken } from './lib/network';
+import { voter, deployExampleToken, signupWithAddress } from './lib/network';
 import { rewardWithdrawAmount, rewardWithdrawDuration, userEmail, userPassword } from './lib/constants';
 import {
     getAccessToken,
@@ -37,12 +37,13 @@ describe('Rate Limit', () => {
         testToken = await deployExampleToken();
 
         // Create an account
-        await user.post('/v1/signup').set({ Authorization: adminAccessToken }).send({
-            address: voter.address,
-            email: 'test.api.bot@thx.network',
-            password: 'mellon',
-            confirmPassword: 'mellon',
-        });
+        // await user.post('/v1/signup').set({ Authorization: adminAccessToken }).send({
+        //     address: voter.address,
+        //     email: 'test.api.bot@thx.network',
+        //     password: 'mellon',
+        //     confirmPassword: 'mellon',
+        // });
+        const voter = await signupWithAddress('test.api.bot@thx.network', 'mellon');
 
         const walletClient = await registerWalletClient(user);
         const walletHeaders = await getAuthHeaders(http2, walletClient, 'openid user email offline_access');

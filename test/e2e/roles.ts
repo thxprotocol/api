@@ -2,68 +2,43 @@ import request from 'supertest';
 import server from '../../src/server';
 import db from '../../src/util/database';
 import { getAdmin, NetworkProvider } from '../../src/util/network';
-import { deployExampleToken, voter } from './lib/network';
-import { userEmail, userPassword } from './lib/constants';
-import {
-    getAccessToken,
-    getAuthCode,
-    getAuthHeaders,
-    registerClientCredentialsClient,
-    registerDashboardClient,
-} from './lib/registerClient';
+import { deployExampleToken, signupWithAddress, voter } from './lib/network';
+import { userEmail, userEmail2, userPassword, userPassword2 } from './lib/constants';
 import { Contract } from 'web3-eth-contract';
+import { getClientCredentialsToken } from './lib/clientCredentials';
+import { getAuthCodeToken } from './lib/authorizationCode';
+import { Account } from 'web3-core';
 
-const user = request(server);
-const http3 = request.agent(server);
+const admin = request(server);
+const user = request.agent(server);
+const user2 = request.agent(server);
 
 describe('Roles', () => {
     let poolAddress: any,
         dashboardAccessToken: string,
+        userAccessToken: string,
         testToken: Contract,
         adminAccessToken: string,
-        userAddress: string;
+        userAddress: string,
+        userWallet: Account;
 
     beforeAll(async () => {
         await db.truncate();
 
-        const credentials = await registerClientCredentialsClient(user);
+        const { accessToken } = await getClientCredentialsToken(admin);
+        adminAccessToken = accessToken;
 
-        adminAccessToken = credentials.accessToken;
+        userWallet = await signupWithAddress(userEmail, userPassword);
+        userAccessToken = await getAuthCodeToken(user, 'openid user', userEmail, userPassword);
+        userAddress = userWallet.address;
+
+        await signupWithAddress(userEmail2, userPassword2);
+        dashboardAccessToken = await getAuthCodeToken(user2, 'openid dashboard', userEmail2, userPassword2);
 
         testToken = await deployExampleToken();
     });
 
-    describe('POST /signup', () => {
-        it('HTTP 201 if OK', (done) => {
-            user.post('/v1/signup')
-                .set({ Authorization: adminAccessToken })
-                .send({ email: userEmail, password: userPassword, confirmPassword: userPassword })
-                .end((err, res) => {
-                    expect(res.status).toBe(201);
-                    done();
-                });
-            user.post('/v1/signup')
-                .set({ Authorization: adminAccessToken })
-                .send({ email: 'test.api.bot2@thx.network', password: userPassword, confirmPassword: userPassword })
-                .end((err, res) => {
-                    userAddress = res.body.address;
-                    expect(res.status).toBe(201);
-                    done();
-                });
-        });
-    });
-
     describe('POST /asset_pools', () => {
-        beforeAll(async () => {
-            const dashboardClient = await registerDashboardClient(user);
-            const dashboardHeaders = await getAuthHeaders(http3, dashboardClient, 'openid dashboard');
-            const dashboardAuthCode = await getAuthCode(http3, dashboardHeaders, dashboardClient, {
-                email: userEmail,
-                password: userPassword,
-            });
-
-            dashboardAccessToken = await getAccessToken(http3, dashboardClient, dashboardAuthCode);
-        });
         it('HTTP 200', async (done) => {
             user.post('/v1/asset_pools')
                 .set({ Authorization: dashboardAccessToken })

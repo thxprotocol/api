@@ -5,6 +5,7 @@ import { HttpError, HttpRequest } from '../../models/Error';
 import { parseLogs, findEvent } from '../../util/events';
 import { Artifacts } from '../../util/artifacts';
 import { Withdrawal } from '../../models/Withdrawal';
+import { Member } from '../../models/Member';
 
 export const postCallUpgradeAddress = async (req: HttpRequest, res: Response, next: NextFunction) => {
     try {
@@ -44,6 +45,12 @@ export const postCallUpgradeAddress = async (req: HttpRequest, res: Response, ne
 
                             await withdrawal.save();
                         }
+
+                        const member = await Member.findOne({ address: event.args.previousAddress });
+
+                        member.address = event.args.newAddress;
+
+                        await member.save();
 
                         return res.status(200).end();
                     } catch (e) {

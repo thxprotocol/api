@@ -1,26 +1,19 @@
-import { ethers } from 'ethers';
 import { Account } from 'web3-core';
 import request from 'supertest';
 import server from '../../src/server';
 import db from '../../src/util/database';
 import { decryptString } from '../../src/util/decrypt';
 import { getProvider, NetworkProvider } from '../../src/util/network';
-import { deployExampleToken, signMethod } from './lib/network';
-import {
-    getAuthCode,
-    getAuthHeaders,
-    getAccessToken,
-    registerClientCredentialsClient,
-    registerDashboardClient,
-    registerWalletClient,
-} from './lib/registerClient';
-import { newAddress, userEmail, userPassword } from './lib/constants';
+import { deployExampleToken, signMethod, signupWithAddress, signupWithPrivateKey } from './lib/network';
+import { newAddress, userEmail, userEmail2, userPassword, userPassword2 } from './lib/constants';
 import { Contract } from 'web3-eth-contract';
 import { isAddress } from 'web3-utils';
+import { getClientCredentialsToken } from './lib/clientCredentials';
+import { getAuthCodeToken } from './lib/authorizationCode';
 
-const user = request(server);
-const http2 = request.agent(server);
-const http3 = request.agent(server);
+const admin = request(server);
+const user = request.agent(server);
+const user2 = request.agent(server);
 
 describe('Encryption', () => {
     let testToken: Contract,
@@ -29,42 +22,25 @@ describe('Encryption', () => {
         userAccessToken: string,
         poolAddress: string,
         decryptedWallet: Account,
+        userWallet: Account,
         tempAddress: string;
 
     beforeAll(async () => {
         await db.truncate();
 
-        const credentials = await registerClientCredentialsClient(user);
+        const { accessToken } = await getClientCredentialsToken(admin);
+        adminAccessToken = accessToken;
 
-        adminAccessToken = credentials.accessToken;
+        userWallet = await signupWithAddress(userEmail, userPassword);
+        userAccessToken = await getAuthCodeToken(user, 'openid user', userEmail, userPassword);
+
+        await signupWithAddress(userEmail2, userPassword2);
+        dashboardAccessToken = await getAuthCodeToken(user2, 'openid dashboard', userEmail2, userPassword2);
 
         testToken = await deployExampleToken();
     });
 
-    describe('POST /signup', () => {
-        it('HTTP 201 if OK', (done) => {
-            user.post('/v1/signup')
-                .set({ Authorization: adminAccessToken })
-                .send({ email: userEmail, password: userPassword, confirmPassword: userPassword })
-                .end((err, res) => {
-                    expect(res.status).toBe(201);
-                    done();
-                });
-        });
-    });
-
     describe('POST /asset_pools', () => {
-        beforeAll(async () => {
-            const dashboardClient = await registerDashboardClient(user);
-            const dashboardHeaders = await getAuthHeaders(http3, dashboardClient, 'openid dashboard');
-            const dashboardAuthCode = await getAuthCode(http3, dashboardHeaders, dashboardClient, {
-                email: userEmail,
-                password: userPassword,
-            });
-
-            dashboardAccessToken = await getAccessToken(http3, dashboardClient, dashboardAuthCode);
-        });
-
         it('HTTP 200', async (done) => {
             user.post('/v1/asset_pools')
                 .set({ Authorization: dashboardAccessToken })
@@ -82,35 +58,7 @@ describe('Encryption', () => {
         });
     });
 
-    describe('POST /signup (without address)', () => {
-        it('HTTP 302 redirect if OK', (done) => {
-            user.post('/v1/signup')
-                .set({ Authorization: adminAccessToken, AssetPool: poolAddress })
-                .send({
-                    email: 'test.encrypt.bot@thx.network',
-                    password: 'mellon',
-                    confirmPassword: 'mellon',
-                })
-                .end((err, res) => {
-                    tempAddress = res.body.address;
-                    expect(res.status).toBe(201);
-                    done();
-                });
-        });
-    });
-
     describe('GET /account (encrypted)', () => {
-        beforeAll(async () => {
-            const walletClient = await registerWalletClient(user);
-            const walletHeaders = await getAuthHeaders(http2, walletClient, 'openid user email offline_access');
-            const walletAuthCode = await getAuthCode(http2, walletHeaders, walletClient, {
-                email: 'test.encrypt.bot@thx.network',
-                password: 'mellon',
-            });
-
-            userAccessToken = await getAccessToken(http2, walletClient, walletAuthCode);
-        });
-
         it('HTTP 200 with address and encrypted private key', async (done) => {
             user.get('/v1/account')
                 .set({ Authorization: userAccessToken })

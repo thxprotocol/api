@@ -1,20 +1,15 @@
 import request from 'supertest';
 import server from '../../src/server';
 import db from '../../src/util/database';
-import { deployExampleToken } from './lib/network';
+import { deployExampleToken, signupWithAddress } from './lib/network';
 import { rewardWithdrawAmount, rewardWithdrawDuration, userEmail, userPassword } from './lib/constants';
 import { ethers } from 'ethers';
 import { Contract } from 'web3-eth-contract';
-import {
-    getAccessToken,
-    getAuthCode,
-    getAuthHeaders,
-    registerClientCredentialsClient,
-    registerDashboardClient,
-} from './lib/registerClient';
+import { getAuthCodeToken } from './lib/authorizationCode';
+import { getClientCredentialsToken } from './lib/clientCredentials';
 
-const user = request(server);
-const http3 = request.agent(server);
+const admin = request(server);
+const user = request.agent(server);
 
 describe('Bypass Polls', () => {
     let adminAccessToken: string,
@@ -26,39 +21,17 @@ describe('Bypass Polls', () => {
     beforeAll(async () => {
         await db.truncate();
 
-        const credentials = await registerClientCredentialsClient(user);
+        const { accessToken } = await getClientCredentialsToken(admin);
+        adminAccessToken = accessToken;
 
-        adminAccessToken = credentials.accessToken;
+        await signupWithAddress(userEmail, userPassword);
+
+        dashboardAccessToken = await getAuthCodeToken(user, 'openid dashboard', userEmail, userPassword);
 
         testToken = await deployExampleToken();
     });
 
-    describe('POST /signup', () => {
-        it('HTTP 302 if payload is correct', (done) => {
-            user.post('/v1/signup')
-                .set('Authorization', adminAccessToken)
-                .send({ email: userEmail, password: userPassword, confirmPassword: userPassword })
-                .end((err, res) => {
-                    expect(res.status).toBe(201);
-                    expect(ethers.utils.isAddress(res.body.address)).toBe(true);
-
-                    done();
-                });
-        });
-    });
-
     describe('POST /asset_pools', () => {
-        beforeAll(async () => {
-            const dashboardClient = await registerDashboardClient(user);
-            const dashboardHeaders = await getAuthHeaders(http3, dashboardClient, 'openid dashboard');
-            const dashboardAuthCode = await getAuthCode(http3, dashboardHeaders, dashboardClient, {
-                email: userEmail,
-                password: userPassword,
-            });
-
-            dashboardAccessToken = await getAccessToken(http3, dashboardClient, dashboardAuthCode);
-        });
-
         it('HTTP 201 response OK', (done) => {
             user.post('/v1/asset_pools')
                 .set('Authorization', dashboardAccessToken)
