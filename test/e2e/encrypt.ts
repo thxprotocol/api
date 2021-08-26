@@ -4,34 +4,27 @@ import server from '../../src/server';
 import db from '../../src/util/database';
 import { decryptString } from '../../src/util/decrypt';
 import { getProvider, NetworkProvider } from '../../src/util/network';
-import { deployExampleToken, signMethod, signupWithAddress, signupWithPrivateKey } from './lib/network';
+import { deployExampleToken, signMethod, signupWithAddress } from './lib/network';
 import { newAddress, userEmail, userEmail2, userPassword, userPassword2 } from './lib/constants';
 import { Contract } from 'web3-eth-contract';
 import { isAddress } from 'web3-utils';
-import { getClientCredentialsToken } from './lib/clientCredentials';
 import { getAuthCodeToken } from './lib/authorizationCode';
 
-const admin = request(server);
 const user = request.agent(server);
 const user2 = request.agent(server);
 
 describe('Encryption', () => {
     let testToken: Contract,
-        adminAccessToken: string,
         dashboardAccessToken: string,
         userAccessToken: string,
         poolAddress: string,
         decryptedWallet: Account,
-        userWallet: Account,
         tempAddress: string;
 
     beforeAll(async () => {
         await db.truncate();
 
-        const { accessToken } = await getClientCredentialsToken(admin);
-        adminAccessToken = accessToken;
-
-        userWallet = await signupWithAddress(userEmail, userPassword);
+        await signupWithAddress(userEmail, userPassword);
         userAccessToken = await getAuthCodeToken(user, 'openid user', userEmail, userPassword);
 
         await signupWithAddress(userEmail2, userPassword2);

@@ -2,7 +2,7 @@ import request from 'supertest';
 import server from '../../src/server';
 import { NetworkProvider, sendTransaction } from '../../src/util/network';
 import db from '../../src/util/database';
-import { timeTravel, signMethod, deployExampleToken, signupWithAddress, addMembership } from './lib/network';
+import { timeTravel, signMethod, deployExampleToken, signupWithAddress } from './lib/network';
 import {
     rewardPollDuration,
     proposeWithdrawPollDuration,
@@ -12,7 +12,6 @@ import {
     userPassword,
     userEmail2,
     userPassword2,
-    voterEmail,
 } from './lib/constants';
 import { solutionContract } from '../../src/util/network';
 import { toWei } from 'web3-utils';

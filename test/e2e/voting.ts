@@ -1,7 +1,7 @@
 import request from 'supertest';
 import server from '../../src/server';
 import db from '../../src/util/database';
-import { getAdmin, getProvider, NetworkProvider } from '../../src/util/network';
+import { getAdmin, NetworkProvider } from '../../src/util/network';
 import { timeTravel, signMethod, signupWithAddress } from './lib/network';
 import {
     rewardPollDuration,
@@ -15,7 +15,6 @@ import {
 } from './lib/constants';
 import { ethers } from 'ethers';
 import { Account } from 'web3-core';
-import { decryptString } from '../../src/util/decrypt';
 import { getClientCredentialsToken } from './lib/clientCredentials';
 import { getAuthCodeToken } from './lib/authorizationCode';
 

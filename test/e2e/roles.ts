@@ -16,7 +16,6 @@ const user2 = request.agent(server);
 describe('Roles', () => {
     let poolAddress: any,
         dashboardAccessToken: string,
-        userAccessToken: string,
         testToken: Contract,
         adminAccessToken: string,
         userAddress: string,
@@ -29,7 +28,7 @@ describe('Roles', () => {
         adminAccessToken = accessToken;
 
         userWallet = await signupWithAddress(userEmail, userPassword);
-        userAccessToken = await getAuthCodeToken(user, 'openid user', userEmail, userPassword);
+        await getAuthCodeToken(user, 'openid user', userEmail, userPassword);
         userAddress = userWallet.address;
 
         await signupWithAddress(userEmail2, userPassword2);

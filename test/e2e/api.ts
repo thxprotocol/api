@@ -31,7 +31,6 @@ describe('Happy Flow', () => {
         poolAddress: string,
         userAddress: string,
         withdrawPollID: string,
-        dashboardWallet: Account,
         userWallet: Account,
         testToken: Contract;
 
@@ -47,7 +46,7 @@ describe('Happy Flow', () => {
         userAccessToken = await getAuthCodeToken(user, 'openid user', userEmail, userPassword);
         userAddress = userWallet.address;
 
-        dashboardWallet = await signupWithAddress(userEmail2, userPassword2);
+        await signupWithAddress(userEmail2, userPassword2);
         dashboardAccessToken = await getAuthCodeToken(user2, 'openid dashboard', userEmail2, userPassword2);
     });
 

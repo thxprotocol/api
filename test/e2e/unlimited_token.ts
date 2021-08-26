@@ -12,8 +12,6 @@ import {
 } from './lib/constants';
 import { ethers } from 'ethers';
 import { Account } from 'web3-core';
-import { decryptString } from '../../src/util/decrypt';
-import { getProvider, NetworkProvider } from '../../src/util/network';
 import { signupWithAddress } from './lib/network';
 import { getAuthCodeToken } from './lib/authorizationCode';
 import { getClientCredentialsToken } from './lib/clientCredentials';

@@ -1,4 +1,3 @@
-import { before } from 'lodash';
 import request from 'supertest';
 import server from '../../src/server';
 import db from '../../src/util/database';
