@@ -73,3 +73,9 @@ export async function signMethod(poolAddress: string, name: string, params: any[
         sig,
     };
 }
+
+export async function mockUpgradeAddress(email: string) {
+    const { account } = await AccountService.getByEmail(email);
+    account.privateKey = '';
+    account.save();
+}

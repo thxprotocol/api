@@ -1,9 +1,50 @@
-import { Account } from '../../models/Account';
 import { Response, NextFunction } from 'express';
 import { HttpError, HttpRequest } from '../../models/Error';
-import { callFunction, sendTransaction } from '../../util/network';
-import { AccountsBase } from 'web3-core';
-import Web3 from 'web3';
+import MemberService from '../../services/MemberService';
+import AccountService from '../../services/AccountService';
+
+const ERROR_DUPLICATE_EMAIL = 'An account with this e-mail address already exists.';
+
+export const postSignup = async (req: HttpRequest, res: Response, next: NextFunction) => {
+    try {
+        const { result, error } = await AccountService.isEmailDuplicate(req.body.email);
+
+        if (result) {
+            throw new Error(ERROR_DUPLICATE_EMAIL);
+        }
+
+        if (error) {
+            throw new Error(error);
+        }
+
+        const account = AccountService.signupFor(
+            req.body.email,
+            req.body.password,
+            req.body.address,
+            req.assetPool?.address,
+        );
+
+        await account.save();
+
+        if (req.assetPool) {
+            const { error } = await MemberService.addMember(req.assetPool, account.address);
+
+            if (error) {
+                throw new Error(error);
+            } else {
+                const { error } = await AccountService.addMembershipForAddress(req.assetPool, account.address);
+
+                if (error) {
+                    throw new Error(error);
+                }
+            }
+        }
+
+        res.status(201).json({ address: account.address });
+    } catch (error) {
+        return next(new HttpError(502, error.toString(), error));
+    }
+};
 
 /**
  * @swagger
@@ -48,49 +89,3 @@ import Web3 from 'web3';
  *       '502':
  *         description: Bad Gateway. Received an invalid response from the network or database.
  */
-export const postSignup = async (req: HttpRequest, res: Response, next: NextFunction) => {
-    const wallet = new Web3().eth.accounts.create();
-    const privateKey = req.body.address ? null : wallet.privateKey;
-    const address = req.body.address ? req.body.address : wallet.address;
-    const account = new Account({
-        active: true,
-        address,
-        privateKey,
-        email: req.body.email,
-        password: req.body.password,
-        memberships: req.solution ? [req.solution.options.address] : [],
-    });
-
-    try {
-        if (req.solution) {
-            const isMember = await callFunction(req.solution.methods.isMember(address), req.assetPool.network);
-            if (!isMember) {
-                await sendTransaction(
-                    req.solution.options.address,
-                    req.solution.methods.addMember(address),
-                    req.assetPool.network,
-                );
-            }
-        }
-    } catch (err) {
-        return next(new HttpError(502, 'Asset Pool addMember failed.', err));
-    }
-
-    try {
-        const existingUser = await Account.findOne({ email: req.body.email });
-
-        if (existingUser) {
-            return next(new HttpError(422, 'A user for this e-mail already exists.'));
-        }
-
-        try {
-            await account.save();
-            res.status(201).json({ address });
-        } catch (e) {
-            next(new HttpError(502, 'Account save failed.', e));
-            return;
-        }
-    } catch (err) {
-        next(new HttpError(500, 'Account signup failed.', err));
-    }
-};

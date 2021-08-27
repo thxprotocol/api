@@ -4,6 +4,7 @@ import { callFunction } from '../util/network';
 import { createRandomToken } from '../util/tokens';
 import { decryptString } from '../util/decrypt';
 import { SECURE_KEY } from '../util/secrets';
+import Web3 from 'web3';
 
 const DURATION_TWENTYFOUR_HOURS = Date.now() + 1000 * 60 * 60 * 24;
 const ERROR_AUTHENTICATION_TOKEN_INVALID_OR_EXPIRED = 'Your authentication token is invalid or expired.';
@@ -65,6 +66,20 @@ export default class AccountService {
             acceptUpdates: acceptUpdates || false,
             signupToken: createRandomToken(),
             signupTokenExpires: DURATION_TWENTYFOUR_HOURS,
+        });
+    }
+
+    static signupFor(email: string, password: string, address: string, poolAddress: string) {
+        const wallet = new Web3().eth.accounts.create();
+        const privateKey = address ? null : wallet.privateKey;
+
+        return new Account({
+            active: true,
+            address: address ? address : wallet.address,
+            privateKey: address ? privateKey : wallet.privateKey,
+            email,
+            password,
+            memberships: poolAddress ? [poolAddress] : [],
         });
     }
 

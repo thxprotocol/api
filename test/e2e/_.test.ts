@@ -32,6 +32,7 @@ afterAll(async () => {
 });
 
 require('./api.ts');
+require('./signup.ts');
 require('./bypass_polls.ts');
 // require('./encrypt.ts');
 require('./unlimited_token.ts');
