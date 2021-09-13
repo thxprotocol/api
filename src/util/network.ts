@@ -6,8 +6,7 @@ import {
     ASSET_POOL_FACTORY_ADDRESS,
     TESTNET_RPC,
     RPC,
-    TESTNET_RPC_WSS,
-    RPC_WSS,
+    FIXED_GAS_PRICE,
     MINIMUM_GAS_LIMIT,
     MAXIMUM_GAS_PRICE,
 } from '../util/secrets';
@@ -49,6 +48,10 @@ export const getProvider = (npid: NetworkProvider) => {
 
 export async function getGasPrice(npid: NetworkProvider) {
     const web3 = getProvider(npid);
+
+    if (FIXED_GAS_PRICE > 0) {
+        return web3.utils.toWei(FIXED_GAS_PRICE.toString(), 'gwei').toString();
+    }
 
     if (ENVIRONMENT === 'test' || ENVIRONMENT === 'local') {
         return await web3.eth.getGasPrice();
