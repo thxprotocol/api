@@ -114,7 +114,6 @@ describe('Gas Station', () => {
                     nonce,
                     sig,
                 });
-            console.log(body);
             expect(status).toBe(200);
 
             done();

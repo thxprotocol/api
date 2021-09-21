@@ -12,12 +12,12 @@ import {
 } from '../util/secrets';
 import Web3 from 'web3';
 import axios from 'axios';
+import BN from 'bn.js';
 import { isAddress } from 'web3-utils';
+import { utils } from 'ethers/lib';
 import { HttpError, HttpRequest } from '../models/Error';
 import { AssetPool } from '../models/AssetPool';
 import { Contract } from 'web3-eth-contract';
-import { BigNumber } from '@ethersproject/bignumber';
-import { utils } from 'ethers/lib';
 import { Artifacts } from './artifacts';
 
 export enum NetworkProvider {
@@ -195,7 +195,7 @@ export async function deployLimitedSupplyERC20Contract(
     name: string,
     symbol: string,
     to: string,
-    totalSupply: BigNumber,
+    totalSupply: BN,
 ) {
     return await deployContract(
         Artifacts.ERC20LimitedSupply.abi,

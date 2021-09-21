@@ -3,8 +3,9 @@ import { Account, AccountDocument, ERC20Token } from '../models/Account';
 import { callFunction } from '../util/network';
 import { createRandomToken } from '../util/tokens';
 import { decryptString } from '../util/decrypt';
-import { SECURE_KEY } from '../util/secrets';
+import { ISSUER, SECURE_KEY } from '../util/secrets';
 import Web3 from 'web3';
+import axios from 'axios';
 
 const DURATION_TWENTYFOUR_HOURS = Date.now() + 1000 * 60 * 60 * 24;
 const ERROR_AUTHENTICATION_TOKEN_INVALID_OR_EXPIRED = 'Your authentication token is invalid or expired.';
@@ -104,6 +105,40 @@ export default class AccountService {
             return {
                 result: SUCCESS_SIGNUP_COMPLETED,
             };
+        } catch (error) {
+            return { error };
+        }
+    }
+
+    static async addRatForAddress(address: string) {
+        try {
+            const account = await Account.findOne({ address });
+            const r = await axios({
+                method: 'POST',
+                url: ISSUER + '/reg',
+                data: {
+                    application_type: 'web',
+                    grant_types: ['client_credentials'],
+                    request_uris: [],
+                    redirect_uris: [],
+                    post_logout_redirect_uris: [],
+                    response_types: [],
+                    scope: 'openid admin',
+                },
+            });
+            const rat = r.data.registration_access_token;
+
+            if (account.registrationAccessTokens.length) {
+                if (!account.registrationAccessTokens.includes(rat)) {
+                    account.registrationAccessTokens.push(rat);
+                }
+            } else {
+                account.registrationAccessTokens = [rat];
+            }
+
+            await account.save();
+
+            return { rat };
         } catch (error) {
             return { error };
         }

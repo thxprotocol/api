@@ -1,19 +1,19 @@
-import { ethers } from 'ethers';
 import { body, param } from 'express-validator';
+import { isAddress } from 'web3-utils';
 
 export const validations = {
     postMember: [
         body('address')
             .exists()
             .custom((value) => {
-                return ethers.utils.isAddress(value);
+                return isAddress(value);
             }),
     ],
     patchMember: [
         param('address')
             .exists()
             .custom((value) => {
-                return ethers.utils.isAddress(value);
+                return isAddress(value);
             }),
         ,
         body('isManager').exists(),
@@ -22,14 +22,14 @@ export const validations = {
         param('address')
             .exists()
             .custom((value) => {
-                return ethers.utils.isAddress(value);
+                return isAddress(value);
             }),
     ],
     getMember: [
         param('address')
             .exists()
             .custom((value) => {
-                return ethers.utils.isAddress(value);
+                return isAddress(value);
             }),
     ],
 };

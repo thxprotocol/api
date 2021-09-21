@@ -1,9 +1,9 @@
-import { createWithdrawal } from '../controllers/rewards/postRewardClaim.action';
 import { IAssetPool } from '../models/AssetPool';
 import { sendTransaction } from '../util/network';
 import { Artifacts } from '../util/artifacts';
 import { parseLogs, findEvent } from '../util/events';
 import { Reward, RewardDocument } from '../models/Reward';
+import WithdrawalService from './WithdrawalService';
 
 const ERROR_REWARD_GET_FAILED = 'Could not get the reward information from the database';
 
@@ -37,7 +37,7 @@ export default class RewardService {
 
             const events = parseLogs(Artifacts.IDefaultDiamond.abi, tx.logs);
             const event = findEvent('WithdrawPollCreated', events);
-            const withdrawal = await createWithdrawal(assetPool.solution, event.args, assetPool.network);
+            const withdrawal = await WithdrawalService.save(assetPool, event.args.id, event.args.member);
 
             return { withdrawal };
         } catch (error) {

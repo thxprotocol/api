@@ -1,45 +1,10 @@
-import { Response, NextFunction } from 'express';
-import { HttpError, HttpRequest } from '../../models/Error';
-import { callFunction, NetworkProvider } from '../../util/network';
-import { Withdrawal, WithdrawalState } from '../../models/Withdrawal';
-import { fromWei } from 'web3-utils';
-import { Contract } from 'web3-eth-contract';
 import RewardService from '../../services/RewardService';
 import MemberService from '../../services/MemberService';
 import AccountService from '../../services/AccountService';
 import WithdrawalService from '../../services/WithdrawalService';
 
-export async function createWithdrawal(solution: Contract, args: any, npid: NetworkProvider) {
-    const id = args.id;
-    const memberId = args.member;
-    const existingWithdrawal = await Withdrawal.findOne({ id, poolAddress: solution.options.address });
-
-    if (existingWithdrawal) {
-        return;
-    }
-
-    const amount = Number(fromWei(await callFunction(solution.methods.getAmount(id), npid)));
-    const beneficiary = await callFunction(solution.methods.getAddressByMember(memberId), npid);
-    const approved = await callFunction(solution.methods.withdrawPollApprovalState(id), npid);
-    const startTime = Number(await callFunction(solution.methods.getStartTime(id), npid));
-    const endTime = Number(await callFunction(solution.methods.getEndTime(id), npid));
-
-    return new Withdrawal({
-        id,
-        amount,
-        poolAddress: solution.options.address,
-        beneficiary,
-        approved,
-        state: WithdrawalState.Pending,
-        poll: {
-            startTime,
-            endTime,
-            yesCounter: 0,
-            noCounter: 0,
-            totalVoted: 0,
-        },
-    });
-}
+import { Response, NextFunction } from 'express';
+import { HttpError, HttpRequest } from '../../models/Error';
 
 const ERROR_REWARD_NOT_FOUND = 'The reward for this ID does not exist.';
 const ERROR_ACCOUNT_NO_ADDRESS = 'The authenticated account has not wallet address. Sign in the Web Wallet once.';

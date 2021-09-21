@@ -3,10 +3,10 @@ import server from '../../src/server';
 import db from '../../src/util/database';
 import { deployExampleToken, signupWithAddress } from './lib/network';
 import { rewardWithdrawAmount, rewardWithdrawDuration, userEmail, userPassword } from './lib/constants';
-import { ethers } from 'ethers';
 import { Contract } from 'web3-eth-contract';
 import { getAuthCodeToken } from './lib/authorizationCode';
 import { getClientCredentialsToken } from './lib/clientCredentials';
+import { isAddress } from 'web3-utils';
 
 const admin = request(server);
 const user = request.agent(server);
@@ -43,7 +43,7 @@ describe('Bypass Polls', () => {
                 })
                 .end(async (err, res) => {
                     expect(res.status).toBe(201);
-                    expect(ethers.utils.isAddress(res.body.address)).toBe(true);
+                    expect(isAddress(res.body.address)).toBe(true);
 
                     poolAddress = res.body.address;
 

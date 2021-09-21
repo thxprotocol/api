@@ -1,7 +1,7 @@
 import { Response, NextFunction } from 'express';
 import { Reward, RewardDocument } from '../../models/Reward';
 import { HttpError, HttpRequest } from '../../models/Error';
-import { formatEther } from 'ethers/lib/utils';
+import { fromWei } from 'web3-utils';
 import { Contract } from 'web3-eth-contract';
 import { callFunction, NetworkProvider } from '../../util/network';
 
@@ -17,7 +17,7 @@ export async function getRewardData(solution: Contract, rewardID: number, npid: 
             );
             const reward = {
                 id: Number(id),
-                withdrawAmount: Number(formatEther(withdrawAmount)),
+                withdrawAmount: Number(fromWei(withdrawAmount)),
                 withdrawDuration: Number(withdrawDuration),
                 beneficiaries,
                 state: Number(state),
@@ -27,7 +27,7 @@ export async function getRewardData(solution: Contract, rewardID: number, npid: 
                 reward.poll = {
                     id: Number(pollId),
                     withdrawAmount: Number(
-                        formatEther(await callFunction(solution.methods.getWithdrawAmount(pollId), npid)),
+                        fromWei(await callFunction(solution.methods.getWithdrawAmount(pollId), npid)),
                     ),
                     withdrawDuration: Number(await callFunction(solution.methods.getWithdrawDuration(pollId), npid)),
                     startTime: Number(await callFunction(solution.methods.getStartTime(pollId), npid)),

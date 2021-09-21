@@ -11,24 +11,21 @@ const required = [
     'WALLET_URL',
     'PUBLIC_URL',
     'DASHBOARD_URL',
-
     'RPC',
-    'RPC_WSS',
     'ASSET_POOL_FACTORY_ADDRESS',
     'POOL_REGISTRY_ADDRESS',
-
     'TESTNET_RPC',
-    'TESTNET_RPC_WSS',
     'TESTNET_ASSET_POOL_FACTORY_ADDRESS',
     'TESTNET_POOL_REGISTRY_ADDRESS',
-
     'MONGODB_URI',
     'PRIVATE_KEY',
-    'COLLECTOR',
     'PORT',
-    'GTM',
     'SECURE_KEY',
     'SENDGRID_API_KEY',
+    'RATE_LIMIT_REWARD_GIVE',
+    'RATE_LIMIT_REWARD_GIVE_WINDOW',
+    'MINIMUM_GAS_LIMIT',
+    'MAXIMUM_GAS_PRICE',
 ];
 
 required.forEach((value: string) => {
@@ -44,17 +41,12 @@ export const WALLET_URL = process.env.WALLET_URL;
 export const PUBLIC_URL = process.env.PUBLIC_URL;
 export const DASHBOARD_URL = process.env.DASHBOARD_URL;
 export const WIDGETS_URL = process.env.WIDGETS_URL;
-
 export const RPC = process.env.RPC;
-export const RPC_WSS = process.env.RPC_WSS;
 export const POOL_REGISTRY_ADDRESS = process.env.POOL_REGISTRY_ADDRESS;
 export const ASSET_POOL_FACTORY_ADDRESS = process.env.ASSET_POOL_FACTORY_ADDRESS;
-
 export const TESTNET_RPC = process.env.TESTNET_RPC;
-export const TESTNET_RPC_WSS = process.env.TESTNET_RPC_WSS;
 export const TESTNET_POOL_REGISTRY_ADDRESS = process.env.TESTNET_POOL_REGISTRY_ADDRESS;
 export const TESTNET_ASSET_POOL_FACTORY_ADDRESS = process.env.TESTNET_ASSET_POOL_FACTORY_ADDRESS;
-
 export const MONGODB_URI = process.env.MONGODB_URI;
 export const PRIVATE_KEY = process.env.PRIVATE_KEY;
 export const COLLECTOR = process.env.COLLECTOR;

@@ -1,5 +1,5 @@
 import { body, param } from 'express-validator';
-import { ethers } from 'ethers';
+import { isAddress } from 'web3-utils';
 
 export const validations = {
     postAssetPool: [
@@ -7,7 +7,7 @@ export const validations = {
             .exists()
             .custom((value) => {
                 if (value.address) {
-                    return ethers.utils.isAddress(value.address);
+                    return isAddress(value.address);
                 }
 
                 if (
@@ -28,14 +28,14 @@ export const validations = {
         param('address')
             .exists()
             .custom((value) => {
-                return ethers.utils.isAddress(value);
+                return isAddress(value);
             }),
     ],
     getAssetPool: [
         param('address')
             .exists()
             .custom((value) => {
-                return ethers.utils.isAddress(value);
+                return isAddress(value);
             }),
     ],
     patchAssetPool: [

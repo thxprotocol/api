@@ -20,12 +20,11 @@ const admin = request(server);
 const user = request.agent(server);
 const user2 = request.agent(server);
 
-describe('UnlimitedSupplyToken', () => {
+describe('ProposeWithdrawal', () => {
     let adminAccessToken: string,
         userAccessToken: string,
         dashboardAccessToken: string,
         poolAddress: string,
-        rewardID: string,
         withdrawalID: number,
         userAddress: string,
         userWallet: Account;
@@ -89,95 +88,21 @@ describe('UnlimitedSupplyToken', () => {
                     done();
                 });
         });
-
-        it('HTTP 302 when member is promoted', (done) => {
-            user.patch(`/v1/members/${userAddress}`)
-                .send({ isManager: true })
-                .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
-                .end(async (err, res) => {
-                    expect(res.status).toBe(302);
-                    done();
-                });
-        });
     });
 
-    describe('PATCH /asset_pools/:address', () => {
-        it('HTTP 302 ', (done) => {
-            user.patch('/v1/asset_pools/' + poolAddress)
-                .set({ AssetPool: poolAddress, Authorization: dashboardAccessToken })
+    describe('POST /withdrawals', () => {
+        it('HTTP 200 after proposing a withdrawal', async (done) => {
+            user.post('/v1/withdrawals')
                 .send({
-                    bypassPolls: true,
-                })
-                .end(async (err, res) => {
-                    expect(res.status).toBe(200);
-                    done();
-                });
-        });
-    });
-
-    describe('GET /asset_pools/:address', () => {
-        it('HTTP 302 ', (done) => {
-            user.get('/v1/asset_pools/' + poolAddress)
-                .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
-                .end(async (err, res) => {
-                    expect(res.status).toBe(200);
-                    expect(res.body.bypassPolls).toBe(true);
-                    expect(res.body.token.name).toBe(tokenName);
-                    expect(res.body.token.symbol).toBe(tokenSymbol);
-                    expect(res.body.token.balance).toBe(0);
-                    expect(res.body.token.totalSupply).toBe(0);
-                    done();
-                });
-        });
-    });
-
-    describe('POST /rewards/', () => {
-        let redirectURL = '';
-
-        it('HTTP 302 when reward is added', (done) => {
-            user.post('/v1/rewards/')
-                .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
-                .send({
-                    withdrawAmount: rewardWithdrawAmount,
-                    withdrawDuration: 0,
-                })
-                .end(async (err, res) => {
-                    expect(res.status).toBe(302);
-
-                    redirectURL = res.headers.location;
-
-                    done();
-                });
-        });
-
-        it('HTTP 200 after redirect', (done) => {
-            user.get(redirectURL)
-                .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
-                .end(async (err, res) => {
-                    expect(res.status).toBe(200);
-                    expect(res.body.id).toEqual(1);
-                    expect(res.body.state).toBe(1);
-                    expect(res.body.poll).toBeUndefined();
-
-                    rewardID = res.body.id;
-
-                    done();
-                });
-        });
-    });
-
-    describe('POST /rewards/:id/give', () => {
-        it('HTTP 200 after giving a reward', async (done) => {
-            user.post(`/v1/rewards/${rewardID}/give`)
-                .send({
-                    member: userWallet.address,
+                    member: userAddress,
+                    amount: rewardWithdrawAmount,
                 })
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
                 .end(async (err, res) => {
-                    expect(res.status).toBe(200);
-                    expect(res.body.withdrawal).toBe(2);
+                    expect(res.status).toBe(201);
+                    expect(res.body.withdrawal.id).toBe(1);
 
-                    withdrawalID = res.body.withdrawal;
+                    withdrawalID = res.body.withdrawal.id;
 
                     done();
                 });

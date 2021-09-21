@@ -13,7 +13,7 @@ import {
     userEmail2,
     userPassword2,
 } from './lib/constants';
-import { ethers } from 'ethers';
+import { isAddress } from 'web3-utils';
 import { Account } from 'web3-core';
 import { getClientCredentialsToken } from './lib/clientCredentials';
 import { getAuthCodeToken } from './lib/authorizationCode';
@@ -74,7 +74,7 @@ describe('Voting', () => {
                 })
                 .end(async (err, res) => {
                     expect(res.status).toBe(201);
-                    expect(ethers.utils.isAddress(res.body.address)).toBe(true);
+                    expect(isAddress(res.body.address)).toBe(true);
 
                     poolAddress = res.body.address;
 

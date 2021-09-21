@@ -1,7 +1,7 @@
 import { Response, NextFunction } from 'express';
 import { callFunction, tokenContract } from '../../util/network';
 import { HttpError, HttpRequest } from '../../models/Error';
-import { formatEther } from 'ethers/lib/utils';
+import { fromWei } from 'web3-utils';
 
 export const getAssetPool = async (req: HttpRequest, res: Response, next: NextFunction) => {
     try {
@@ -27,10 +27,10 @@ export const getAssetPool = async (req: HttpRequest, res: Response, next: NextFu
                 name: await callFunction(tokenInstance.methods.name(), req.assetPool.network),
                 symbol: await callFunction(tokenInstance.methods.symbol(), req.assetPool.network),
                 totalSupply: Number(
-                    formatEther(await callFunction(tokenInstance.methods.totalSupply(), req.assetPool.network)),
+                    fromWei(await callFunction(tokenInstance.methods.totalSupply(), req.assetPool.network)),
                 ),
                 balance: Number(
-                    formatEther(
+                    fromWei(
                         await callFunction(tokenInstance.methods.balanceOf(req.params.address), req.assetPool.network),
                     ),
                 ),

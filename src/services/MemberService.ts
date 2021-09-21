@@ -3,7 +3,7 @@ import { IAssetPool } from '../models/AssetPool';
 import { findEvent, parseLogs } from '../util/events';
 import { Artifacts } from '../util/artifacts';
 import { IMember, Member } from '../models/Member';
-import { formatEther } from 'ethers/lib/utils';
+import { fromWei } from 'web3-utils';
 
 export const ERROR_IS_MEMBER_FAILED = 'Could not check if this address is a member';
 export const ERROR_IS_MANAGER_FAILED = 'Could not check if this address is a manager';
@@ -27,17 +27,21 @@ export default class MemberService {
                 if (error) {
                     throw new Error(error);
                 } else {
+                    const memberId = await callFunction(
+                        assetPool.solution.methods.getMemberByAddress(address),
+                        assetPool.network,
+                    );
                     const tokenAddress = await callFunction(assetPool.solution.methods.getToken(), assetPool.network);
                     const tokenInstance = tokenContract(assetPool.network, tokenAddress);
                     const name = await callFunction(tokenInstance.methods.name(), assetPool.network);
                     const symbol = await callFunction(tokenInstance.methods.symbol(), assetPool.network);
                     const balance = Number(
-                        formatEther(await callFunction(tokenInstance.methods.balanceOf(address), assetPool.network)),
+                        fromWei(await callFunction(tokenInstance.methods.balanceOf(address), assetPool.network)),
                     );
 
                     return {
                         member: {
-                            address,
+                            id: memberId,
                             isMember,
                             isManager,
                             token: {

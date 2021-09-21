@@ -1,7 +1,7 @@
 import { logger } from './logger';
 import { callFunction, NetworkProvider, solutionContract } from './network';
 import { Withdrawal, WithdrawalState } from '../models/Withdrawal';
-import { formatEther } from 'ethers/lib/utils';
+import { fromWei } from 'web3-utils';
 
 class EventIndexer {
     async onWithdrawPollVoted(npid: NetworkProvider, address: string, args: any) {
@@ -48,7 +48,7 @@ class EventIndexer {
             }
 
             const solution = solutionContract(npid, address);
-            const amount = Number(formatEther(await callFunction(solution.methods.getAmount(id), npid)));
+            const amount = Number(fromWei(await callFunction(solution.methods.getAmount(id), npid)));
             const beneficiary = await callFunction(solution.methods.getAddressByMember(memberId), npid);
             const approved = await callFunction(solution.methods.withdrawPollApprovalState(id), npid);
             const startTime = Number(await callFunction(solution.methods.getStartTime(id), npid));

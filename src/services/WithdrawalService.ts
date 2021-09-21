@@ -1,8 +1,10 @@
 import { IAssetPool } from '../models/AssetPool';
-import { sendTransaction } from '../util/network';
+import { callFunction, sendTransaction } from '../util/network';
 import { Artifacts } from '../util/artifacts';
 import { parseLogs, findEvent } from '../util/events';
 import { Withdrawal, WithdrawalState } from '../models/Withdrawal';
+import { toWei, fromWei } from 'web3-utils';
+import MemberService from './MemberService';
 
 export default class WithdrawalService {
     static async get(assetPool: IAssetPool, withdrawalId: number) {
@@ -13,6 +15,61 @@ export default class WithdrawalService {
         } catch (error) {
             return { error };
         }
+    }
+
+    static async proposeWithdrawal(assetPool: IAssetPool, memberAddress: string, amount: number) {
+        try {
+            // Check if is member
+            const amountInWei = toWei(amount.toString());
+            const tx = await sendTransaction(
+                assetPool.address,
+                assetPool.solution.methods.proposeWithdraw(amountInWei, memberAddress),
+                assetPool.network,
+            );
+            const events = parseLogs(Artifacts.IDefaultDiamond.abi, tx.logs);
+            const event = findEvent('WithdrawPollCreated', events);
+            const withdrawal = await this.save(assetPool, event.args.id, event.args.member);
+
+            return { withdrawal };
+        } catch (error) {
+            return { error };
+        }
+    }
+
+    static async save(assetPool: IAssetPool, id: number, memberId: number) {
+        const existingWithdrawal = await Withdrawal.findOne({ id, poolAddress: assetPool.address });
+
+        if (existingWithdrawal) {
+            return;
+        }
+
+        const amount = Number(fromWei(await callFunction(assetPool.solution.methods.getAmount(id), assetPool.network)));
+        const beneficiary = await callFunction(
+            assetPool.solution.methods.getAddressByMember(memberId),
+            assetPool.network,
+        );
+        const approved = await callFunction(
+            assetPool.solution.methods.withdrawPollApprovalState(id),
+            assetPool.network,
+        );
+        const startTime = Number(await callFunction(assetPool.solution.methods.getStartTime(id), assetPool.network));
+        const endTime = Number(await callFunction(assetPool.solution.methods.getEndTime(id), assetPool.network));
+
+        return new Withdrawal({
+            id,
+            amount,
+            poolAddress: assetPool.solution.options.address,
+            beneficiary,
+            approved,
+            state: WithdrawalState.Pending,
+            poll: {
+                startTime,
+                endTime,
+                yesCounter: 0,
+                noCounter: 0,
+                totalVoted: 0,
+            },
+        });
     }
 
     static async withdrawPollFinalize(assetPool: IAssetPool, withdrawalId: number) {

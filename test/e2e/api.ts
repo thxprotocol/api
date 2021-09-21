@@ -12,8 +12,8 @@ import {
     userEmail2,
     userPassword2,
 } from './lib/constants';
-import { formatEther, parseEther } from 'ethers/lib/utils';
-import { ethers } from 'ethers';
+import { fromWei, toWei } from 'web3-utils';
+import { isAddress } from 'web3-utils';
 import { Contract } from 'web3-eth-contract';
 import { getClientCredentialsToken } from './lib/clientCredentials';
 import { getAuthCodeToken } from './lib/authorizationCode';
@@ -77,7 +77,7 @@ describe('Happy Flow', () => {
                 })
                 .end(async (err, res) => {
                     expect(res.status).toBe(201);
-                    expect(ethers.utils.isAddress(res.body.address)).toBe(true);
+                    expect(isAddress(res.body.address)).toBe(true);
                     poolAddress = res.body.address;
 
                     done();
@@ -88,11 +88,11 @@ describe('Happy Flow', () => {
     describe('GET /asset_pools/:address', () => {
         it('Deposit assets in pool', async () => {
             const assetPool = solutionContract(NetworkProvider.Test, poolAddress);
-            const amount = parseEther(rewardWithdrawAmount.toString());
+            const amount = toWei(rewardWithdrawAmount.toString());
 
             await sendTransaction(
                 testToken.options.address,
-                testToken.methods.approve(poolAddress, parseEther(rewardWithdrawAmount.toString())),
+                testToken.methods.approve(poolAddress, toWei(rewardWithdrawAmount.toString())),
                 NetworkProvider.Test,
             );
             await sendTransaction(assetPool.options.address, assetPool.methods.deposit(amount), NetworkProvider.Test);
@@ -105,14 +105,14 @@ describe('Happy Flow', () => {
                     expect(res.status).toBe(200);
                     expect(
                         Number(
-                            formatEther(
+                            fromWei(
                                 await callFunction(
                                     testToken.methods.balanceOf(getAdmin(NetworkProvider.Test).address),
                                     NetworkProvider.Test,
                                 ),
                             ),
                         ),
-                    ).toBe(Number(formatEther(mintAmount)) - rewardWithdrawAmount);
+                    ).toBe(Number(fromWei(mintAmount)) - rewardWithdrawAmount);
                     expect(res.body.address).toEqual(poolAddress);
                     expect(res.body.token.address).toEqual(testToken.options.address);
                     expect(res.body.token.name).toEqual(await testToken.methods.name().call());

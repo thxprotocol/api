@@ -1,104 +1,46 @@
-import { solutionContract, getAssetPoolFactory, getAdmin, NetworkProvider, sendTransaction } from '../../util/network';
-import { AssetPool } from '../../models/AssetPool';
 import { Response, NextFunction } from 'express';
 import { HttpError, HttpRequest } from '../../models/Error';
-import { POOL_REGISTRY_ADDRESS, TESTNET_POOL_REGISTRY_ADDRESS } from '../../util/secrets';
-import { Account } from '../../models/Account';
-import { findEvent, parseLogs } from '../../util/events';
-import { getRegistrationAccessToken, getTokenAddress } from './utils';
-import { Artifacts } from '../../util/artifacts';
+import AssetPoolService from '../../services/AssetPoolService';
+import AccountService from '../../services/AccountService';
 
 export const postAssetPool = async (req: HttpRequest, res: Response, next: NextFunction) => {
     try {
-        const token = req.body.token;
-        const sub = req.user.sub;
-        const adminAddress = getAdmin(req.body.network).address;
-        const assetPoolFactory = getAssetPoolFactory(req.body.network);
-        const tx = await sendTransaction(
-            assetPoolFactory.options.address,
-            assetPoolFactory.methods.deployAssetPool(),
-            req.body.network,
-        );
-        const events = parseLogs(Artifacts.IAssetPoolFactory.abi, tx.logs);
-        const event = findEvent('AssetPoolDeployed', events);
+        const { assetPool, error } = await AssetPoolService.deploy(req.user.sub, req.body.network);
 
-        if (!event) {
-            return next(
-                new HttpError(
-                    502,
-                    'Could not find a confirmation event in factory transaction. Check API health status at /v1/health.',
-                ),
-            );
-        }
-
-        const solution = solutionContract(req.body.network, event.args.assetPool);
-
-        await sendTransaction(
-            solution.options.address,
-            solution.methods.setPoolRegistry(
-                req.body.network === NetworkProvider.Test ? TESTNET_POOL_REGISTRY_ADDRESS : POOL_REGISTRY_ADDRESS,
-            ),
-            req.body.network,
-        );
-
-        await sendTransaction(
-            solution.options.address,
-            solution.methods.initializeGasStation(adminAddress),
-            req.body.network,
-        );
+        if (error) throw new Error(error);
 
         try {
-            const assetPool = new AssetPool({
-                address: solution.options.address,
-                sub,
-                blockNumber: event.blockNumber,
-                transactionHash: event.transactionHash,
-                bypassPolls: true,
-                network: req.body.network,
-            });
+            const { error } = await AssetPoolService.init(assetPool);
 
-            const tokenAddress = await getTokenAddress(token, assetPool);
-
-            await sendTransaction(solution.options.address, solution.methods.addToken(tokenAddress), req.body.network);
+            if (error) throw new Error(error);
 
             try {
-                const account = await Account.findById(sub);
-                const erc20 = {
-                    network: req.body.network,
-                    address: tokenAddress,
-                };
+                const { error } = await AssetPoolService.addToken(assetPool, req.body.token);
 
-                if (account.erc20 && !account.erc20.find((r: { address: string }) => r.address === erc20.address)) {
-                    account.erc20.push(erc20);
-                } else {
-                    account.erc20 = [erc20];
+                if (error) throw new Error(error);
+
+                try {
+                    const account = await AccountService.get(req.user.sub);
+                    const { error } = await AccountService.addMembershipForAddress(assetPool, account.address);
+
+                    if (error) throw new Error(error);
+
+                    try {
+                        const { rat, error } = await AccountService.addRatForAddress(account.address);
+
+                        if (error) throw new Error(error);
+
+                        assetPool.rat = rat;
+
+                        await assetPool.save();
+
+                        res.status(201).json({ address: assetPool.solution.options.address });
+                    } catch (error) {
+                        return next(new HttpError(502, error.toString(), error));
+                    }
+                } catch (error) {
+                    return next(new HttpError(502, error.toString(), error));
                 }
-
-                if (account.memberships) {
-                    account.memberships.push(solution.options.address);
-                } else {
-                    account.memberships = [solution.options.address];
-                }
-
-                const rat = await getRegistrationAccessToken();
-
-                if (rat.error) {
-                    return next(new HttpError(500, rat.error));
-                }
-
-                if (account.registrationAccessTokens.length > 0) {
-                    account.registrationAccessTokens.push(rat);
-                } else {
-                    account.registrationAccessTokens = [rat];
-                }
-
-                await account.save();
-
-                assetPool.rat = rat;
-
-                await assetPool.save();
-
-                res.status(201).json({ address: solution.options.address });
             } catch (e) {
                 return next(new HttpError(502, 'Could not store the asset pool and account data.', e));
             }

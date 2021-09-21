@@ -1,6 +1,6 @@
-import { ethers } from 'ethers';
 import { body, check } from 'express-validator';
 import { confirmPassword } from '../../util/validation';
+import { isAddress } from 'web3-utils';
 
 export const validations = {
     postSignup: [
@@ -10,7 +10,7 @@ export const validations = {
         body('address')
             .optional()
             .custom((value) => {
-                return ethers.utils.isAddress(value);
+                return isAddress(value);
             }),
         check('email', 'Email is not valid').isEmail(),
         check('password', 'Password must be at least 4 characters long').isLength({ min: 4 }),

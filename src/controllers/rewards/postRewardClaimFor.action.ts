@@ -3,7 +3,7 @@ import { parseLogs, findEvent } from '../../util/events';
 import { HttpError, HttpRequest } from '../../models/Error';
 import { callFunction, sendTransaction } from '../../util/network';
 import { Artifacts } from '../../util/artifacts';
-import { createWithdrawal } from './postRewardClaim.action';
+import WithdrawalService from '../../services/WithdrawalService';
 
 /**
  * @swagger
@@ -65,7 +65,7 @@ export const postRewardClaimFor = async (req: HttpRequest, res: Response, next: 
             try {
                 const events = parseLogs(Artifacts.IDefaultDiamond.abi, tx.logs);
                 const event = findEvent('WithdrawPollCreated', events);
-                const withdrawal = await createWithdrawal(req.solution, event.args, req.assetPool.network);
+                const withdrawal = await WithdrawalService.save(req.assetPool, event.args.id, event.args.member);
 
                 if (!withdrawal) {
                     return next(new HttpError(500, 'Withdrawal already exists.'));
