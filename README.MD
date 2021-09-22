@@ -21,17 +21,18 @@ This repository holds the source for the THX REST API.
 ## 2. Installing
 
 ```
-# 1. Duplicate .env.example and
-#    1. remove the Hardhat Config section,
-#    2. uncomment the Docker settings
-#    3. replace localhost with Docker IP if required
-cp .env.example .env
+# 1. Duplicate .env.example
+cp .env.example .env;
 
-# 2. Install packages
-npm install
+# 2. Install SCSS submodule (will move to an npm package eventually)
+git submodule init;
+git submodule update;
 
-# 3. Start the containers
-docker compose up
+# 3. Install packages
+npm install;
+
+# 4. Start the containers
+docker compose up;
 
 ```
 
