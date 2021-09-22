@@ -21,45 +21,28 @@ This repository holds the source for the THX REST API.
 ## 2. Installing
 
 ```
-# 1. Initialize the submodule
-git submodule init
-
-# 2. Update the submodule
-git submodule update
-
-# 3. Duplicate .env.example and
+# 1. Duplicate .env.example and
 #    1. remove the Hardhat Config section,
 #    2. uncomment the Docker settings
 #    3. replace localhost with Docker IP if required
 cp .env.example .env
 
-# 4. Install packages
+# 2. Install packages
 npm install
 
-# 4. Compile the smart contracts
-npm run build:contracts
+# 3. Start the containers
+docker compose up
 
-# 5. Start the containers
-npm run build:keys
-
-# 6. Start the containers
-docker-compose up
-
-# 7. Deploy all facets, factory and registry
-npm run deploy:init
-
-# 8. Rebuild the API project
-npm run build
 ```
 
 ## 3. Running
 
 ```
 # Start containers
-docker-compose up
+docker compose up
 
 # Start containers and suppress logging
-docker-compose up -d
+docker compose up -d
 ```
 
 The thx_ganache container will start with 4 prefilled accounts:
