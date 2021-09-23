@@ -1,5 +1,5 @@
 import { IAssetPool } from '../models/AssetPool';
-import { Account, AccountDocument, ERC20Token } from '../models/Account';
+import { Account, AccountDocument, ERC20Token, IAccount } from '../models/Account';
 import { callFunction } from '../util/network';
 import { createRandomToken } from '../util/tokens';
 import { decryptString } from '../util/decrypt';
@@ -56,6 +56,13 @@ export default class AccountService {
         } catch (error) {
             return { error };
         }
+    }
+
+    static async update(account: AccountDocument, { acceptTermsPrivacy = false, acceptUpdates = false }: IAccount) {
+        account.acceptTermsPrivacy = acceptTermsPrivacy;
+        account.acceptUpdates = acceptUpdates;
+
+        await account.save();
     }
 
     static signup(email: string, password: string, acceptTermsPrivacy: boolean, acceptUpdates: boolean) {
@@ -238,12 +245,5 @@ export default class AccountService {
         } catch (error) {
             return { error };
         }
-    }
-
-    static updatePrivacy(acceptTermsPrivacy: boolean, acceptUpdates: boolean) {
-        return new Account({
-            acceptTermsPrivacy: acceptTermsPrivacy || false,
-            acceptUpdates: acceptUpdates || false,
-        });
     }
 }

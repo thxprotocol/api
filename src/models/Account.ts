@@ -3,7 +3,7 @@ import mongoose, { Schema } from 'mongoose';
 import { NetworkProvider } from '../util/network';
 import { encryptString } from '../util/encrypt';
 
-export type AccountDocument = mongoose.Document & {
+export interface IAccount {
     active: boolean;
     email: string;
     password: string;
@@ -24,7 +24,9 @@ export type AccountDocument = mongoose.Document & {
     memberships: string[];
     privateKeys: { [address: string]: string };
     comparePassword: Function;
-};
+}
+
+export type AccountDocument = mongoose.Document & IAccount;
 
 export interface ERC20Token {
     network: NetworkProvider;

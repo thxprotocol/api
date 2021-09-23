@@ -5,6 +5,7 @@ import { HttpError } from '../models/Error';
 import { ENVIRONMENT, GTM, ISSUER, SECURE_KEY } from '../util/secrets';
 import MailService from '../services/MailService';
 import AccountService from '../services/AccountService';
+import { IAccount } from 'src/models/Account';
 
 const oidc = new Provider(ISSUER, configuration as any);
 const router = express.Router();
@@ -192,12 +193,14 @@ router.post(
                     },
                     gtm: GTM,
                 });
-            }
-            else {
-                const privacy = AccountService.updatePrivacy(
-                    req.body.acceptTermsPrivacy,
-                    req.body.acceptUpdates,
-                );
+            } else {
+                const account = await AccountService.get(sub);
+                const updates: IAccount = {
+                    acceptTermsPrivacy: req.body.acceptTermsPrivacy,
+                    acceptUpdates: req.body.acceptUpdates,
+                };
+
+                await AccountService.update(account, updates);
             }
 
             await oidc.interactionFinished(
