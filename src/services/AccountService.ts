@@ -239,4 +239,11 @@ export default class AccountService {
             return { error };
         }
     }
+
+    static updatePrivacy(acceptTermsPrivacy: boolean, acceptUpdates: boolean) {
+        return new Account({
+            acceptTermsPrivacy: acceptTermsPrivacy || false,
+            acceptUpdates: acceptUpdates || false,
+        });
+    }
 }

@@ -154,6 +154,23 @@ router.post(
     urlencoded({ extended: false }),
     async (req: Request, res: Response, next: NextFunction) => {
         try {
+            const alert = { variant: 'danger', message: '' };
+            if (!req.body.acceptTermsPrivacy) {
+                alert.message = 'Please accept the terms of use and privacy statement.';
+            }
+            if (alert.message) {
+                return res.render('login', {
+                    uid: req.params.uid,
+                    params: {
+                        return_url: req.body.returnUrl,
+                        authentication_token: req.body.authenticationToken,
+                        secure_key: req.body.secureKey,
+                    },
+                    alert,
+                    gtm: GTM,
+                });
+            }
+
             const { sub, error } = await AccountService.getSubForAuthenticationToken(
                 req.body.password,
                 req.body.passwordConfirm,
@@ -175,6 +192,12 @@ router.post(
                     },
                     gtm: GTM,
                 });
+            }
+            else {
+                const privacy = AccountService.updatePrivacy(
+                    req.body.acceptTermsPrivacy,
+                    req.body.acceptUpdates,
+                );
             }
 
             await oidc.interactionFinished(
