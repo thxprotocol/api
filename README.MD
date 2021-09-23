@@ -1,9 +1,9 @@
-![CI/CD Production](https://github.com/thxprotocol/api/workflows/CI/CD%20Production/badge.svg)
-![CI/CD Staging](https://github.com/thxprotocol/api/workflows/CI/CD%20Staging/badge.svg)
+[![CI/CD Production](https://github.com/thxprotocol/api/workflows/CI/CD%20Production/badge.svg)](https://github.com/thxprotocol/api/actions/workflows/ci-cd-master.yml)
+[![CI/CD Staging](https://github.com/thxprotocol/api/workflows/CI/CD%20Staging/badge.svg)](https://github.com/thxprotocol/api/actions/workflows/ci-cd-develop.yml)
 
 # THX API
 
-This repository holds the source for the THX REST API.
+This repository holds the code for the THX API project. A REST API that can be used to interact the the THX Smart Contract layer and which main purpose is to make it easier for developers to utilize blockchain technology in their applications.
 
 ## Index
 
@@ -21,7 +21,7 @@ This repository holds the source for the THX REST API.
 ## 2. Installing
 
 ```
-# 1. Duplicate .env.example
+# 1. Provide environment variables
 cp .env.example .env;
 
 # 2. Install SCSS submodule (will move to an npm package eventually)
@@ -34,6 +34,8 @@ npm install;
 # 4. Start the containers
 docker compose up;
 
+#5. Install fixture data (if database is empty)
+npm run reset:db;
 ```
 
 ## 3. Running
@@ -46,7 +48,7 @@ docker compose up
 docker compose up -d
 ```
 
-The thx_ganache container will start with 4 prefilled accounts:
+The thx_mainnet and thx_testnet containers will start with 4 prefilled accounts and both the AssetPoolFactory and AssetPoolRegistry will be deployed automatically:
 
 ```
 0x873c254263b17925b686f971d7724267710895f1585bb0533db8e693a2af32ff
@@ -60,23 +62,6 @@ The thx_ganache container will start with 4 prefilled accounts:
 ```
 # Run e2e tests on MemoryMongoDB and temporary Hardhat node
 npm run test
-
-# Run load tests in dockerized k6 container (open Grafana to visualize results)
-# Mind that it will target the MONGODB_URI set in .env
-npm run test:load
-```
-
-## 5. Development
-
-```
-# Builds artifacts for the solidity files in the submodule
-npm run build:contracts
-
-# Deploys AssetPoolFactory (diamond) on the RPC set in .env
-npm run deploy:factory
-
-# Deploys TestToken on the RPC set in .env
-npm run deploy:token
 ```
 
 ## 6. Fixture DB
