@@ -32,7 +32,7 @@
         "deploy:registry": "npx ts-node scripts/deployAssetPoolRegistry.ts",
         "deploy:facets": "npx ts-node scripts/deployFacets.ts",
         "deploy:init": "npm run deploy:facets && npm run deploy:factory && npm run deploy:registry",
-        "reset:db": "mongoimport --uri=\"mongodb://root:root@mongo:27017/admin\" --collection=\"client\" --file=\"./fixture/db/client.json\"; mongoimport --uri=\"mongodb://root:root@mongo:27017/admin\" --collection=\"accounts\" --file=\"./fixture/db/accounts.json\"; mongoimport --uri=\"mongodb://root:root@mongo:27017/admin\" --collection=\"registration_access_token\" --file=\"./fixture/db/registration_access_token.json\""
+        "reset:db": "mongoimport --uri=\"mongodb://root:root@localhost:27017/admin\" --collection=\"client\" --file=\"./fixture/db/client.json\"; mongoimport --uri=\"mongodb://root:root@localhost:27017/admin\" --collection=\"accounts\" --file=\"./fixture/db/accounts.json\"; mongoimport --uri=\"mongodb://root:root@localhost:27017/admin\" --collection=\"registration_access_token\" --file=\"./fixture/db/registration_access_token.json\""
     },
     "dependencies": {
         "@sendgrid/mail": "^7.4.2",
@@ -163,7 +163,8 @@
             "@typescript-eslint/explicit-function-return-type": "off",
             "@typescript-eslint/no-unused-vars": "warn",
             "@typescript-eslint/camelcase": "off",
-            "@typescript-eslint/no-explicit-any": "off"
+            "@typescript-eslint/no-explicit-any": "off",
+            "@typescript-eslint/interface-name-prefix": "off"
         },
         "ignorePatterns": [
             "test/**/*.{j,t}s?(x)",

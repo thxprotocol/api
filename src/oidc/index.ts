@@ -5,6 +5,7 @@ import { HttpError } from '../models/Error';
 import { ENVIRONMENT, GTM, ISSUER, SECURE_KEY } from '../util/secrets';
 import MailService from '../services/MailService';
 import AccountService from '../services/AccountService';
+import { IAccountUpdates } from '../models/Account';
 
 const oidc = new Provider(ISSUER, configuration as any);
 const router = express.Router();
@@ -154,6 +155,23 @@ router.post(
     urlencoded({ extended: false }),
     async (req: Request, res: Response, next: NextFunction) => {
         try {
+            const alert = { variant: 'danger', message: '' };
+            if (!req.body.acceptTermsPrivacy) {
+                alert.message = 'Please accept the terms of use and privacy statement.';
+            }
+            if (alert.message) {
+                return res.render('login', {
+                    uid: req.params.uid,
+                    params: {
+                        return_url: req.body.returnUrl,
+                        authentication_token: req.body.authenticationToken,
+                        secure_key: req.body.secureKey,
+                    },
+                    alert,
+                    gtm: GTM,
+                });
+            }
+
             const { sub, error } = await AccountService.getSubForAuthenticationToken(
                 req.body.password,
                 req.body.passwordConfirm,
@@ -175,6 +193,14 @@ router.post(
                     },
                     gtm: GTM,
                 });
+            } else {
+                const account = await AccountService.get(sub);
+                const updates: IAccountUpdates = {
+                    acceptTermsPrivacy: req.body.acceptTermsPrivacy,
+                    acceptUpdates: req.body.acceptUpdates,
+                };
+
+                await AccountService.update(account, updates);
             }
 
             await oidc.interactionFinished(
