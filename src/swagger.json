@@ -1,7 +1,7 @@
 {
   "info": {
     "title": "THX API Specification",
-    "version": "1.0.0-beta.25"
+    "version": "1.0.0-beta.26"
   },
   "basePath": "https://api.thx.network/v1",
   "swagger": "2.0",
@@ -1247,6 +1247,63 @@
           },
           "502": {
             "description": "Bad Gateway. Received an invalid response from the network or database."
+          }
+        }
+      }
+    },
+    "/withdrawals": {
+      "post": {
+        "tags": [
+          "Withdrawals"
+        ],
+        "description": "Proposes a custom withdrawal for a member of the pool",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "AssetPool",
+            "in": "header",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "integer"
+          },
+          {
+            "name": "agree",
+            "in": "body",
+            "required": true,
+            "type": "boolean"
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "OK",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "integer",
+                  "description": "ID of the withdraw poll"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request. Indicates incorrect body parameters."
+          },
+          "401": {
+            "description": "Unauthorized. Authenticate your request please."
+          },
+          "403": {
+            "description": "Forbidden. Your account does not have access to this pool."
+          },
+          "500": {
+            "description": "Internal Server Error."
           }
         }
       }
