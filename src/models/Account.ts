@@ -26,6 +26,11 @@ export interface IAccount {
     comparePassword: Function;
 }
 
+export interface IAccountUpdates {
+    acceptTermsPrivacy?: boolean;
+    acceptUpdates?: boolean;
+}
+
 export type AccountDocument = mongoose.Document & IAccount;
 
 export interface ERC20Token {

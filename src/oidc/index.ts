@@ -5,7 +5,7 @@ import { HttpError } from '../models/Error';
 import { ENVIRONMENT, GTM, ISSUER, SECURE_KEY } from '../util/secrets';
 import MailService from '../services/MailService';
 import AccountService from '../services/AccountService';
-import { IAccount } from 'src/models/Account';
+import { IAccountUpdates } from '../models/Account';
 
 const oidc = new Provider(ISSUER, configuration as any);
 const router = express.Router();
@@ -195,7 +195,7 @@ router.post(
                 });
             } else {
                 const account = await AccountService.get(sub);
-                const updates: IAccount = {
+                const updates: IAccountUpdates = {
                     acceptTermsPrivacy: req.body.acceptTermsPrivacy,
                     acceptUpdates: req.body.acceptUpdates,
                 };
