@@ -25,12 +25,13 @@ const ERROR_SENDING_MAIL_FAILED = 'Could not send your confirmation e-mail.';
 const ERROR_ACCOUNT_NOT_ACTIVE = 'Your e-mail is not verified. We have re-sent the activation link.';
 const ERROR_NO_ACCOUNT = 'We could not find an account for this e-mail and password combination.';
 const ERROR_AUTH_LINK = 'Your wallet is encrypted by another party. Please ask them to send you a login link.';
+const ERROR_SENDING_FORGOT_MAIL_FAILED = 'Could not send your reset password e-mail.';
+
 
 router.get('/interaction/:uid', async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { uid, prompt, params } = await oidc.interactionDetails(req, res);
         let view, alert;
-
         switch (prompt.name) {
             case 'login': {
                 view = 'login';
@@ -48,7 +49,6 @@ router.get('/interaction/:uid', async (req: Request, res: Response, next: NextFu
                 return await oidc.interactionFinished(req, res, result, { mergeWithLastSubmission: true });
             }
         }
-
         switch (params.prompt) {
             case 'confirm': {
                 view = 'confirm';
@@ -292,5 +292,77 @@ router.get('/interaction/:uid/abort', async (req: Request, res: Response, next: 
         return next(err);
     }
 });
+
+router.get('/interaction/:uid/forgot', async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { uid, params } = await oidc.interactionDetails(req, res);
+        res.render('forgot', {
+            uid,
+            params,
+            alert,
+            gtm: GTM,
+        });
+    } catch (err) {
+        return next(err);
+    }
+});
+
+
+router.post(
+    '/interaction/:uid/forgot',
+    urlencoded({ extended: false }),
+    async (req: Request, res: Response, next: NextFunction) => {
+        const { result, error } = await AccountService.isEmailDuplicate(req.body.email);
+        const alert = { variant: 'danger', message: '' };
+
+        if (!result) {
+            alert.message = 'An account with this e-mail address not exists.';
+        } else if (error) {
+            alert.message = 'Could not check your e-mail address for existence.';
+        }
+
+        if (alert.message) {
+            return res.render('forgot', {
+                uid: req.params.uid,
+                params: {
+                    return_url: req.body.returnUrl,
+                },
+                alert,
+                gtm: GTM,
+            });
+        }
+
+        const { account } = await AccountService.getByEmail(
+            req.body.email,
+        );
+
+        try {
+            const { result, error } = await MailService.sendResetPasswordEmail(account, req.body.returnUrl);
+
+            if (error) {
+                throw new Error(ERROR_SENDING_FORGOT_MAIL_FAILED);
+            }
+
+            try {
+                return res.render('forgot', {
+                    uid: req.params.uid,
+                    params: {
+                        return_url: req.body.returnUrl
+                    },
+                    alert: {
+                        variant: 'success',
+                        message:
+                            'We have send a password reset link to' + account.email +'. It will be valid for 20 minutes.',
+                    },
+                    gtm: GTM,
+                });
+            } catch (error) {
+                return next(new HttpError(502, error.toString(), error));
+            }
+        } catch (error) {
+            return next(new HttpError(502, error.toString(), error));
+        }
+    },
+);
 
 export { oidc, router };

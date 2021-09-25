@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en" class="h-100">
+    <head>
+        <meta charset="UTF-8" />
+        <title>THX | Login</title>
+        <meta
+            name="viewport"
+            content="width=device-width,initial-scale=1,shrink-to-fit=no,user-scalable=no,maximum-scale=1"
+        />
+        <link rel="stylesheet" href="/main.css" />
+        <link rel="apple-touch-icon" sizes="180x180" href="/img/icons/apple-touch-icon.png?v=pgdmXmoa2w" />
+        <link rel="icon" type="image/png" sizes="32x32" href="/img/icons/favicon-32x32.png?v=pgdmXmoa2w" />
+        <link rel="icon" type="image/png" sizes="16x16" href="/img/icons/favicon-16x16.png?v=pgdmXmoa2w" />
+        <link rel="manifest" href="/site.webmanifest?v=pgdmXmoa2w" />
+        <link rel="mask-icon" href="/img/icons/safari-pinned-tab.svg?v=pgdmXmoa2w" color="#5bbad5" />
+        <link rel="shortcut icon" href="/img/icons/favicon.ico?v=pgdmXmoa2w" />
+        <meta name="msapplication-TileColor" content="#da532c" />
+        <meta name="theme-color" content="#ffffff" />
+        <script src="https://kit.fontawesome.com/06b7267748.js" crossorigin="anonymous"></script>
+    </head>
+    <body class="d-flex w-100 h-100 bg-light align-items-center justify-content-center">
+        <div class="container">
+            <div class="row pt-sm-5 pb-sm-5">
+                <div class="col-lg-4 offset-lg-4 order-0 order-sm-1">
+                    <div class="text-center pb-4 pt-4">
+                        <img src="/img/logo.png" width="60" alt="THX Logo" />
+                    </div>
+                    <div class="card shadow-sm mb-5">
+                        <div class="card-body p-sm-5">
+                            <% if (alert && alert.message) { %>
+                            <div class="alert alert-<%= alert.variant %>"><%= alert.message %></div>
+                            <% } %>
+                            <form autocomplete="off" action="/interaction/<%= uid %>/forgot" method="post">
+                                <strong class="h2 d-block text-dark text-center mb-4">
+                                    Did you forget your password? No worries, we got your back! Please submit the e-mail
+                                    address of your account and we will send you a password reset link.
+                                </strong>
+                                <div class="form-group">
+                                    <label>Email:</label>
+                                    <input class="form-control" autocomplete="off" required type="email" name="email" />
+                                </div>
+                                <input type="hidden" name="returnUrl" value="<%= params.return_url %>" />
+                                <hr />
+                                <button type="submit" class="btn rounded-pill btn-primary btn-block">
+                                    Reset password
+                                    <i class="fas fa-chevron-right" aria-hidden="true"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <script>
+            (function (w, d, s, l, i) {
+                w[l] = w[l] || [];
+                w[l].push({
+                    'gtm.start': new Date().getTime(),
+                    'event': 'gtm.js',
+                });
+                const f = d.getElementsByTagName(s)[0],
+                    j = d.createElement(s),
+                    dl = l != 'dataLayer' ? '&l=' + l : '';
+                j.async = true;
+                j.src = 'https://www.googletagmanager.com/gtm.js?id=' + i + dl;
+                f.parentNode.insertBefore(j, f);
+            })(window, document, 'script', 'dataLayer', '<%= gtm %>');
+        </script>
+    </body>
+</html>

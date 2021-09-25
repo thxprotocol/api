@@ -60,4 +60,29 @@ export default class MailService {
             return { error };
         }
     }
+
+    static async sendResetPasswordEmail(account: AccountDocument, returnUrl: string) {
+        try {
+            account.passwordResetToken = createRandomToken();
+            account.passwordResetExpires = Date.now() + 1000 * 60 * 20; // 20 minutes,
+
+            const html = await ejs.renderFile(
+                path.dirname(__dirname) + '/views/mail/resetPassword.ejs',
+                {
+                    passwordResetToken: account.passwordResetToken,
+                    returnUrl,
+                    baseUrl: ISSUER,
+                },
+                { async: true },
+            );
+
+            await sendMail(account.email, 'Reset your THX Password', html);
+
+            await account.save();
+
+            return { result: true };
+        } catch (error) {
+            return { error };
+        }
+    }
 }

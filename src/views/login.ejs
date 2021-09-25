@@ -32,7 +32,6 @@
                                 <%= alert.message %>
                             </div>
                             <% } %>
-
                                 <% if (params.authentication_token && params.secure_key) { %>
                                     <form autocomplete="off" action="/interaction/<%= uid %>/password" method="post">
                                         <strong class="h2 d-block text-dark text-center mb-4">Set a password</strong>
@@ -93,22 +92,21 @@
                                                 <input class="form-control" required type="password" name="password">
                                             </div>
                                             <input type="hidden" name="returnUrl" value="<%= params.return_url %>" />
-
                                             <hr>
-
                                             <button type="submit" class="btn rounded-pill btn-primary btn-block">
                                                 Sign in
                                                 <i class="fas fa-chevron-right" aria-hidden="true"></i>
                                             </button>
-                                            <a class="btn btn-block btn-link" href="<%= params.return_url %>/signup">
+                                            <a class="btn btn-block btn-link" href="/interaction/<%= uid %>/forgot">
+                                                Forgot your password?
+                                            </a>
+                                            <a class="btn btn-block btn-link pt-0" href="<%= params.return_url %>/signup">
                                                 Sign up for an
                                                 account
                                                 <i class="fas fa-chevron-right text-primary" aria-hidden="true"></i>
                                             </a>
                                         </form>
                                         <% } %>
-
-
                     </div>
                 </div>
             </div>
