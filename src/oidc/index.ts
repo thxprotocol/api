@@ -27,7 +27,6 @@ const ERROR_NO_ACCOUNT = 'We could not find an account for this e-mail and passw
 const ERROR_AUTH_LINK = 'Your wallet is encrypted by another party. Please ask them to send you a login link.';
 const ERROR_SENDING_FORGOT_MAIL_FAILED = 'Could not send your reset password e-mail.';
 
-
 router.get('/interaction/:uid', async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { uid, prompt, params } = await oidc.interactionDetails(req, res);
@@ -296,17 +295,17 @@ router.get('/interaction/:uid/abort', async (req: Request, res: Response, next: 
 router.get('/interaction/:uid/forgot', async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { uid, params } = await oidc.interactionDetails(req, res);
+
         res.render('forgot', {
             uid,
             params,
-            alert,
+            alert: {},
             gtm: GTM,
         });
     } catch (err) {
         return next(err);
     }
 });
-
 
 router.post(
     '/interaction/:uid/forgot',
@@ -332,9 +331,7 @@ router.post(
             });
         }
 
-        const { account } = await AccountService.getByEmail(
-            req.body.email,
-        );
+        const { account } = await AccountService.getByEmail(req.body.email);
 
         try {
             const { result, error } = await MailService.sendResetPasswordEmail(account, req.body.returnUrl);
@@ -347,12 +344,14 @@ router.post(
                 return res.render('forgot', {
                     uid: req.params.uid,
                     params: {
-                        return_url: req.body.returnUrl
+                        return_url: req.body.returnUrl,
                     },
                     alert: {
                         variant: 'success',
                         message:
-                            'We have send a password reset link to' + account.email +'. It will be valid for 20 minutes.',
+                            'We have send a password reset link to' +
+                            account.email +
+                            '. It will be valid for 20 minutes.',
                     },
                     gtm: GTM,
                 });
