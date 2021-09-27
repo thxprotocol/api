@@ -32,6 +32,11 @@
                                 <%= alert.message %>
                             </div>
                             <% } %>
+                        <% if (alert && alert.variant == 'success') { %>
+                            <span><strong>Your password has been changed Successfully!</strong><br />
+                                <a class="btn btn-block btn-link" href="/interaction/<%= uid %>/abort">Go to Sign in.</a>
+                            </span>
+                            <% } %>  
                                 <form autocomplete="off" action="/interaction/<%= uid %>/reset" method="post">
                                     <strong class="h2 d-block text-dark text-center mb-4">
                                         Reset Password
@@ -48,7 +53,7 @@
                                     </div>
                                     <input type="hidden" name="returnUrl" value="<%= params.return_url %>" />
                                     <input type="hidden" name="passwordResetToken"
-                                           value="<%= params.passwordResetToken %>" />
+                                           value="<%= params.password_reset_token %>" />
                                     <hr />
                                     <button type="submit" class="btn rounded-pill btn-primary btn-block">
                                         Submit

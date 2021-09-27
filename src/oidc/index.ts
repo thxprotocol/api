@@ -357,7 +357,7 @@ router.post(
                     alert: {
                         variant: 'success',
                         message:
-                            'We have send a password reset link to' +
+                            'We have send a password reset link to ' +
                             account.email +
                             '. It will be valid for 20 minutes.',
                     },
@@ -411,18 +411,19 @@ router.post(
                     },
                     gtm: GTM,
                 });
-            }
-
-            await oidc.interactionFinished(
-                req,
-                res,
-                {
-                    reset: {
-                        account: sub,
+            } else {
+                return res.render('reset', {
+                    uid: req.params.uid,
+                    params: {
+                        return_url: req.body.returnUrl,
+                        passwordResetToken: req.body.passwordResetToken,
                     },
-                },
-                { mergeWithLastSubmission: true },
-            );
+                    alert: {
+                        variant: 'success',
+                    },
+                    gtm: GTM,
+                });
+            }
         } catch (error) {
             return next(new HttpError(500, error.toString(), error));
         }
