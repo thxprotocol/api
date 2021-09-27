@@ -315,10 +315,10 @@ router.post(
     '/interaction/:uid/forgot',
     urlencoded({ extended: false }),
     async (req: Request, res: Response, next: NextFunction) => {
-        const { result, error } = await AccountService.isEmailDuplicate(req.body.email);
+        const { account, error } = await AccountService.getByEmail(req.body.email);
         const alert = { variant: 'danger', message: '' };
 
-        if (!result) {
+        if (!account) {
             alert.message = 'An account with this e-mail address not exists.';
         } else if (error) {
             alert.message = 'Could not check your e-mail address for existence.';
@@ -335,14 +335,9 @@ router.post(
             });
         }
 
-        const { account } = await AccountService.getByEmail(req.body.email);
-
         try {
-            const { result, error } = await MailService.sendResetPasswordEmail(
-                account,
-                req.body.returnUrl,
-                req.params.uid,
-            );
+            console.log(account);
+            const { error } = await MailService.sendResetPasswordEmail(account, req.body.returnUrl, req.params.uid);
 
             if (error) {
                 throw new Error(ERROR_SENDING_FORGOT_MAIL_FAILED);
