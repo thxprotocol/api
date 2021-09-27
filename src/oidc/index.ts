@@ -334,7 +334,11 @@ router.post(
         const { account } = await AccountService.getByEmail(req.body.email);
 
         try {
-            const { result, error } = await MailService.sendResetPasswordEmail(account, req.body.returnUrl);
+            const { result, error } = await MailService.sendResetPasswordEmail(
+                account,
+                req.body.returnUrl,
+                req.params.uid,
+            );
 
             if (error) {
                 throw new Error(ERROR_SENDING_FORGOT_MAIL_FAILED);
@@ -360,6 +364,63 @@ router.post(
             }
         } catch (error) {
             return next(new HttpError(502, error.toString(), error));
+        }
+    },
+);
+
+router.get('/interaction/:uid/reset', async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { uid, params } = await oidc.interactionDetails(req, res);
+
+        res.render('reset', {
+            uid,
+            params,
+            alert: {},
+            gtm: GTM,
+        });
+    } catch (err) {
+        return next(err);
+    }
+});
+
+router.post(
+    '/interaction/:uid/reset',
+    urlencoded({ extended: false }),
+    async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const { sub, error } = await AccountService.getSubForPasswordResetToken(
+                req.body.password,
+                req.body.passwordConfirm,
+                req.body.passwordResetToken,
+            );
+
+            if (error) {
+                return res.render('reset', {
+                    uid: req.params.uid,
+                    params: {
+                        return_url: req.body.returnUrl,
+                        passwordResetToken: req.body.passwordResetToken,
+                    },
+                    alert: {
+                        variant: 'danger',
+                        message: error.toString(),
+                    },
+                    gtm: GTM,
+                });
+            }
+
+            await oidc.interactionFinished(
+                req,
+                res,
+                {
+                    reset: {
+                        account: sub,
+                    },
+                },
+                { mergeWithLastSubmission: true },
+            );
+        } catch (error) {
+            return next(new HttpError(500, error.toString(), error));
         }
     },
 );

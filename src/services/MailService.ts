@@ -61,7 +61,7 @@ export default class MailService {
         }
     }
 
-    static async sendResetPasswordEmail(account: AccountDocument, returnUrl: string) {
+    static async sendResetPasswordEmail(account: AccountDocument, returnUrl: string, uid: string) {
         try {
             account.passwordResetToken = createRandomToken();
             account.passwordResetExpires = Date.now() + 1000 * 60 * 20; // 20 minutes,
@@ -70,6 +70,7 @@ export default class MailService {
                 path.dirname(__dirname) + '/views/mail/resetPassword.ejs',
                 {
                     passwordResetToken: account.passwordResetToken,
+                    uid,
                     returnUrl,
                     baseUrl: ISSUER,
                 },

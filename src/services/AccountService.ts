@@ -15,6 +15,7 @@ const ERROR_SIGNUP_TOKEN_INVALID = 'Could not find an account for this signup_to
 const ERROR_SIGNUP_TOKEN_EXPIRED = 'This signup_token has expired.';
 const SUCCESS_SIGNUP_COMPLETED = 'Congratulations! Your e-mail address has been verified.';
 const ERROR_NO_ACCOUNT = 'Could not find an account for this address';
+const ERROR_PASSWORD_RESET_TOKEN_INVALID_OR_EXPIRED = 'Your password reset token is invalid or expired.';
 
 export default class AccountService {
     static async get(sub: string) {
@@ -243,6 +244,30 @@ export default class AccountService {
             if (!isMatch) {
                 throw new Error(ERROR_PASSWORD_NOT_MATCHING);
             }
+
+            return { sub: account._id.toString() };
+        } catch (error) {
+            return { error };
+        }
+    }
+
+    static async getSubForPasswordResetToken(password: string, passwordConfirm: string, passwordResetToken: string) {
+        try {
+            const account: AccountDocument = await Account.findOne({ passwordResetToken })
+                .where('passwordResetExpires')
+                .gt(Date.now())
+                .exec();
+
+            if (!account) {
+                throw new Error(ERROR_PASSWORD_RESET_TOKEN_INVALID_OR_EXPIRED);
+            }
+
+            if (password !== passwordConfirm) {
+                throw new Error(ERROR_PASSWORD_NOT_MATCHING);
+            }
+            account.password = password;
+
+            await account.save();
 
             return { sub: account._id.toString() };
         } catch (error) {
