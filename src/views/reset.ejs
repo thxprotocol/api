@@ -32,36 +32,38 @@
                                 <%= alert.message %>
                             </div>
                             <% } %>
-                        <% if (alert && alert.variant == 'success') { %>
-                        <div class="alert alert-<%= alert.variant %>">
-                            <span>Your password has been changed Successfully!<br />
-                                <a class="btn btn-link px-0 py-1" href="/interaction/<%= uid %>/abort">Go to Sign in.</a>
-                            </span>
-                        </div>
-                            <% } %>  
-                                <form autocomplete="off" action="/interaction/<%= uid %>/reset" method="post">
-                                    <strong class="h2 d-block text-dark text-center mb-4">
-                                        Reset Password
-                                    </strong>
-                                    <div class="form-group">
-                                        <label>New Password:</label>
-                                        <input class="form-control" autocomplete="off" required type="password"
-                                               name="password">
+                                <% if (alert && alert.variant=='success' ) { %>
+                                    <div class="alert alert-<%= alert.variant %>">
+                                        <strong>Congratulations!</strong><br />
+                                        <span>Your password has been reset successfully.</span>
                                     </div>
-                                    <div class="form-group">
-                                        <label>Confirm new password:</label>
-                                        <input class="form-control" autocomplete="off" required type="password"
-                                               name="passwordConfirm">
-                                    </div>
-                                    <input type="hidden" name="returnUrl" value="<%= params.return_url %>" />
-                                    <input type="hidden" name="passwordResetToken"
-                                           value="<%= params.password_reset_token %>" />
-                                    <hr />
-                                    <button type="submit" class="btn rounded-pill btn-primary btn-block">
-                                        Submit
-                                        <i class="fas fa-chevron-right" aria-hidden="true"></i>
-                                    </button>
-                                </form>
+                                    <a class="btn btn-primary btn-block rounded-pill" href="<%= params.return_url %>">
+                                        Sign in
+                                    </a>
+                                    <% } else { %>
+                                        <form autocomplete="off" action="/interaction/<%= uid %>/reset" method="post">
+                                            <strong class="h2 d-block text-dark text-center mb-4">
+                                                Reset password
+                                            </strong>
+                                            <div class="form-group">
+                                                <label>New password:</label>
+                                                <input class="form-control" autocomplete="off" required type="password"
+                                                       name="password">
+                                            </div>
+                                            <div class="form-group">
+                                                <label>Repeat new password:</label>
+                                                <input class="form-control" autocomplete="off" required type="password"
+                                                       name="passwordConfirm">
+                                            </div>
+                                            <input type="hidden" name="returnUrl" value="<%= params.return_url %>" />
+                                            <input type="hidden" name="passwordResetToken"
+                                                   value="<%= params.password_reset_token %>" />
+                                            <button type="submit" class="btn rounded-pill btn-primary btn-block">
+                                                Submit
+                                                <i class="fas fa-chevron-right" aria-hidden="true"></i>
+                                            </button>
+                                        </form>
+                                        <% } %>
                     </div>
                 </div>
             </div>

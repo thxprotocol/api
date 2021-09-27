@@ -336,7 +336,6 @@ router.post(
         }
 
         try {
-            console.log(account);
             const { error } = await MailService.sendResetPasswordEmail(account, req.body.returnUrl, req.params.uid);
 
             if (error) {
