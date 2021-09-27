@@ -62,6 +62,10 @@ router.get('/interaction/:uid', async (req: Request, res: Response, next: NextFu
 
                 break;
             }
+            case 'reset': {
+                view = 'reset';
+                break;
+            }
             case 'create': {
                 view = 'signup';
                 break;
@@ -120,7 +124,7 @@ router.post(
         );
 
         try {
-            const { result, error } = await MailService.sendConfirmationEmail(account, req.body.returnUrl);
+            const { error } = await MailService.sendConfirmationEmail(account, req.body.returnUrl);
 
             if (error) {
                 throw new Error(ERROR_SENDING_MAIL_FAILED);

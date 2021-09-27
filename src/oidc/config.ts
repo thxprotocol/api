@@ -6,9 +6,11 @@ import { ENVIRONMENT, SECURE_KEY } from '../util/secrets';
 import { interactionPolicy } from 'oidc-provider';
 
 const basePolicy = interactionPolicy.base();
+const promptReset = new interactionPolicy.Prompt({ name: 'reset', requestable: true });
 const promptCreate = new interactionPolicy.Prompt({ name: 'create', requestable: true });
 const promptConfirm = new interactionPolicy.Prompt({ name: 'confirm', requestable: true });
 
+basePolicy.add(promptReset);
 basePolicy.add(promptCreate);
 basePolicy.add(promptConfirm);
 
@@ -41,7 +43,15 @@ export default {
             },
         };
     },
-    extraParams: ['signup_email', 'return_url', 'signup_token', 'authentication_token', 'secure_key', 'prompt'],
+    extraParams: [
+        'signup_email',
+        'return_url',
+        'signup_token',
+        'authentication_token',
+        'secure_key',
+        'password_reset_token',
+        'prompt',
+    ],
     claims: {
         openid: ['sub'],
         admin: ['admin'],
