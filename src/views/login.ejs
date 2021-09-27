@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <title>THX | Login</title>
     <meta name="viewport"
-        content="width=device-width,initial-scale=1,shrink-to-fit=no,user-scalable=no,maximum-scale=1">
+          content="width=device-width,initial-scale=1,shrink-to-fit=no,user-scalable=no,maximum-scale=1">
     <link rel="stylesheet" href="/main.css">
     <link rel="apple-touch-icon" sizes="180x180" href="/img/icons/apple-touch-icon.png?v=pgdmXmoa2w">
     <link rel="icon" type="image/png" sizes="32x32" href="/img/icons/favicon-32x32.png?v=pgdmXmoa2w">
@@ -32,42 +32,42 @@
                                 <%= alert.message %>
                             </div>
                             <% } %>
-
                                 <% if (params.authentication_token && params.secure_key) { %>
                                     <form autocomplete="off" action="/interaction/<%= uid %>/password" method="post">
                                         <strong class="h2 d-block text-dark text-center mb-4">Set a password</strong>
                                         <div class="form-group">
                                             <label>Password:</label>
                                             <input class="form-control" autocomplete="off" required type="password"
-                                                name="password">
+                                                   name="password">
                                         </div>
                                         <div class="form-group">
                                             <label>Repeat password:</label>
                                             <input class="form-control" autocomplete="off" required type="password"
-                                                name="passwordConfirm">
+                                                   name="passwordConfirm">
                                         </div>
                                         <div class="form-group">
                                             <div class="m-0 custom-control custom-checkbox b-custom-control-sm">
                                                 <input id="acceptTermsPrivacy" type="checkbox" name="acceptTermsPrivacy"
-                                                    class="custom-control-input" value="true"><label
-                                                    for="acceptTermsPrivacy"
-                                                    class="custom-control-label font-weight-normal"> I agree to
+                                                       class="custom-control-input" value="true"><label
+                                                       for="acceptTermsPrivacy"
+                                                       class="custom-control-label font-weight-normal"> I agree to
                                                     THX' <a href="<%= publicUrl %>/general-terms-and-conditions.pdf"
-                                                        target="_blank">terms of use</a> and <a
-                                                        href="<%= publicUrl %>/privacy-policy.pdf"
-                                                        target="_blank">privacy statement</a></label>
+                                                       target="_blank">terms of use</a> and <a
+                                                       href="<%= publicUrl %>/privacy-policy.pdf"
+                                                       target="_blank">privacy statement</a></label>
                                             </div>
                                             <div class="custom-control custom-checkbox b-custom-control-sm"><input
-                                                    id="acceptUpdates" type="checkbox" name="acceptUpdates"
-                                                    class="custom-control-input" value="true"><label for="acceptUpdates"
-                                                    class="custom-control-label font-weight-normal">
+                                                       id="acceptUpdates" type="checkbox" name="acceptUpdates"
+                                                       class="custom-control-input" value="true"><label
+                                                       for="acceptUpdates"
+                                                       class="custom-control-label font-weight-normal">
                                                     Opt-in to
                                                     receive updates from THX on its products, you can opt-out at any
                                                     time. </label>
                                             </div>
                                         </div>
                                         <input type="hidden" name="authenticationToken"
-                                            value="<%= params.authentication_token %>" />
+                                               value="<%= params.authentication_token %>" />
                                         <input type="hidden" name="secureKey" value="<%= params.secure_key %>" />
                                         <input type="hidden" name="returnUrl" value="<%= params.return_url %>" />
 
@@ -79,8 +79,8 @@
                                         </button>
                                     </form>
                                     <% } else { %>
-                                        <form autocomplete="off" action="/interaction/<%= uid %>/login" method="post">
-
+                                        <form autocomplete="off" action="/interaction/<%= uid %>/login" method="post"
+                                              class="mb-4">
                                             <strong class="h2 d-block text-dark text-center mb-4">
                                                 Login
                                             </strong>
@@ -93,22 +93,23 @@
                                                 <input class="form-control" required type="password" name="password">
                                             </div>
                                             <input type="hidden" name="returnUrl" value="<%= params.return_url %>" />
-
-                                            <hr>
-
                                             <button type="submit" class="btn rounded-pill btn-primary btn-block">
                                                 Sign in
                                                 <i class="fas fa-chevron-right" aria-hidden="true"></i>
                                             </button>
-                                            <a class="btn btn-block btn-link" href="<%= params.return_url %>/signup">
-                                                Sign up for an
-                                                account
-                                                <i class="fas fa-chevron-right text-primary" aria-hidden="true"></i>
-                                            </a>
                                         </form>
+                                        <hr>
+                                        <div class="text-center">
+                                            <a class="btn btn-link" href="/interaction/<%= uid %>/forgot">
+                                                Can't sign in?
+                                            </a>
+                                            <span class="text-muted">|</span>
+                                            <a class="btn btn-link" href="<%= params.return_url %>/signup">
+                                                Sign up for an account
+                                            </a>
+                                        </div>
+
                                         <% } %>
-
-
                     </div>
                 </div>
             </div>
