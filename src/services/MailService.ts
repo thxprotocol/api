@@ -65,7 +65,6 @@ export default class MailService {
         try {
             account.passwordResetToken = createRandomToken();
             account.passwordResetExpires = Date.now() + 1000 * 60 * 20; // 20 minutes,
-
             const html = await ejs.renderFile(
                 path.dirname(__dirname) + '/views/mail/resetPassword.ejs',
                 {

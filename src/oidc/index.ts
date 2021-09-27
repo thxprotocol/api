@@ -367,21 +367,6 @@ router.post(
     },
 );
 
-router.get('/interaction/:uid/reset', async (req: Request, res: Response, next: NextFunction) => {
-    try {
-        const { uid, params } = await oidc.interactionDetails(req, res);
-
-        res.render('reset', {
-            uid,
-            params,
-            alert: {},
-            gtm: GTM,
-        });
-    } catch (err) {
-        return next(err);
-    }
-});
-
 router.post(
     '/interaction/:uid/reset',
     urlencoded({ extended: false }),
@@ -392,13 +377,12 @@ router.post(
                 req.body.passwordConfirm,
                 req.body.passwordResetToken,
             );
-
             if (error) {
                 return res.render('reset', {
                     uid: req.params.uid,
                     params: {
                         return_url: req.body.returnUrl,
-                        passwordResetToken: req.body.passwordResetToken,
+                        password_reset_token: req.body.passwordResetToken,
                     },
                     alert: {
                         variant: 'danger',
@@ -411,7 +395,7 @@ router.post(
                     uid: req.params.uid,
                     params: {
                         return_url: req.body.returnUrl,
-                        passwordResetToken: req.body.passwordResetToken,
+                        password_reset_token: req.body.passwordResetToken,
                     },
                     alert: {
                         variant: 'success',
