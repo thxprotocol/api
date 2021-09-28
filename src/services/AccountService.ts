@@ -4,6 +4,7 @@ import { callFunction } from '../util/network';
 import { createRandomToken } from '../util/tokens';
 import { decryptString } from '../util/decrypt';
 import { ISSUER, SECURE_KEY } from '../util/secrets';
+import { checkPasswordStrength } from '../util/passwordcheck';
 import Web3 from 'web3';
 import axios from 'axios';
 
@@ -16,6 +17,7 @@ const ERROR_SIGNUP_TOKEN_EXPIRED = 'This signup_token has expired.';
 const SUCCESS_SIGNUP_COMPLETED = 'Congratulations! Your e-mail address has been verified.';
 const ERROR_NO_ACCOUNT = 'Could not find an account for this address';
 const ERROR_PASSWORD_RESET_TOKEN_INVALID_OR_EXPIRED = 'Your password reset token is invalid or expired.';
+const ERROR_PASSWORD_STRENGTH = 'Please enter a strong password.';
 
 export default class AccountService {
     static async get(sub: string) {
@@ -257,11 +259,13 @@ export default class AccountService {
                 .where('passwordResetExpires')
                 .gt(Date.now())
                 .exec();
-
+            const passwordStrength = checkPasswordStrength(password);
             if (!account) {
                 throw new Error(ERROR_PASSWORD_RESET_TOKEN_INVALID_OR_EXPIRED);
             }
-
+            if (passwordStrength != 'strong') {
+                throw new Error(ERROR_PASSWORD_STRENGTH);
+            }
             if (password !== passwordConfirm) {
                 throw new Error(ERROR_PASSWORD_NOT_MATCHING);
             }
