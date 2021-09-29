@@ -1,12 +1,11 @@
-import { Account, AccountDocument } from '../../models/Account';
 import { Response, NextFunction } from 'express';
 import { HttpError, HttpRequest } from '../../models/Error';
+import AccountService from '../../services/AccountService';
 
 export const getAccount = async (req: HttpRequest, res: Response, next: NextFunction) => {
     const sub = req.user.sub;
-
     try {
-        const account: AccountDocument = await Account.findById(sub);
+        const account = await AccountService.get(sub);
 
         if (account) {
             res.send({

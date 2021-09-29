@@ -1,7 +1,7 @@
-import { Account } from '../../models/Account';
 import { Response, NextFunction } from 'express';
 import { createRandomToken } from '../../util/tokens';
 import { HttpError, HttpRequest } from '../../models/Error';
+import AccountService from '../../services/AccountService';
 
 /**
  * @swagger
@@ -50,24 +50,13 @@ export const postAccount = async (req: HttpRequest, res: Response, next: NextFun
     try {
         const signupToken = createRandomToken();
         const signupTokenExpires = Date.now() + 86400000; // 24 hours
-        const existingUser = await Account.findOne({ email: req.body.email });
-
+        const existingUser = await AccountService.getByEmail(req.body.email);
         if (existingUser) {
             return next(new HttpError(422, 'A user for this e-mail already exists.'));
         }
-
         try {
-            const account = new Account({
-                firstName: req.body.firstName,
-                lastName: req.body.lastName,
-                email: req.body.email,
-                password: req.body.password,
-                signupToken,
-                signupTokenExpires,
-            });
-
-            await account.save();
-
+            const { error } = await AccountService.saveUserAccount(req, signupToken, signupTokenExpires);
+            if (error) throw new Error(error);
             res.status(201).end();
         } catch (e) {
             return next(new HttpError(502, 'Could not save the account.', e));

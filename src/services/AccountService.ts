@@ -7,6 +7,7 @@ import { ISSUER, SECURE_KEY } from '../util/secrets';
 import { checkPasswordStrength } from '../util/passwordcheck';
 import Web3 from 'web3';
 import axios from 'axios';
+import { HttpRequest } from '../models/Error';
 
 const DURATION_TWENTYFOUR_HOURS = Date.now() + 1000 * 60 * 60 * 24;
 const ERROR_AUTHENTICATION_TOKEN_INVALID_OR_EXPIRED = 'Your authentication token is invalid or expired.';
@@ -274,6 +275,31 @@ export default class AccountService {
             await account.save();
 
             return { sub: account._id.toString() };
+        } catch (error) {
+            return { error };
+        }
+    }
+
+    static async deleteUserAccount(id: string) {
+        try {
+            await Account.remove({ _id: id });
+        } catch (error) {
+            return { error };
+        }
+    }
+
+    static async saveUserAccount(req: HttpRequest, signupToken: string, signupTokenExpires: number) {
+        try {
+            const account = new Account({
+                firstName: req.body.firstName,
+                lastName: req.body.lastName,
+                email: req.body.email,
+                password: req.body.password,
+                signupToken,
+                signupTokenExpires,
+            });
+
+            await account.save();
         } catch (error) {
             return { error };
         }

@@ -1,10 +1,11 @@
-import { Account } from '../../models/Account';
 import { Response, NextFunction } from 'express';
 import { HttpRequest, HttpError } from '../../models/Error';
+import AccountService from '../../services/AccountService';
 
 export const deleteAccount = async (req: HttpRequest, res: Response, next: NextFunction) => {
     try {
-        await Account.remove({ _id: req.user.sub });
+        const { error } = await AccountService.deleteUserAccount(req.user.sub);
+        if (error) throw new Error(error);
 
         res.status(204).end();
     } catch (e) {

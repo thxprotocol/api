@@ -1,15 +1,11 @@
-import { Account, AccountDocument } from '../../models/Account';
 import { Response, NextFunction } from 'express';
 import { HttpError, HttpRequest } from '../../models/Error';
 import { VERSION } from '../../util/secrets';
-import { Error } from 'mongoose';
+import AccountService from '../../services/AccountService';
 
 export const patchAccount = async (req: HttpRequest, res: Response, next: NextFunction) => {
-    Account.findById(req.user.sub, (err: Error, account: AccountDocument) => {
-        if (err) {
-            next(new HttpError(502, 'Account find failed.', err));
-            return;
-        }
+    try {
+        const account = await AccountService.get(req.user.sub);
 
         account.address = req.body.address || account.address;
         account.memberships = req.body.memberships || account.memberships;
@@ -27,5 +23,8 @@ export const patchAccount = async (req: HttpRequest, res: Response, next: NextFu
             }
             res.redirect(303, `/${VERSION}/account`);
         });
-    });
+    } catch (err) {
+        next(new HttpError(502, 'Account find failed.', err));
+        return;
+    }
 };
