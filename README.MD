@@ -130,7 +130,7 @@ Swagger Documentation is provided in the controllers of the routes and lives at 
 ### 8.1 To add a new migration script, use the following CLI command
 
 ```
-migrate-mongo create name-of-my-script
+npm run migrate:create name-of-my-script
 ```
 
 A new file will be created inside migrations folder with a corresponding timestamp.
@@ -144,28 +144,35 @@ A new file will be created inside migrations folder with a corresponding timesta
 
 Considering we want to add a quantity property to the products collection, the migration could be as follows:
 ```
-module.exports = {
-    async up(db) {
-        return db.collection('products').updateMany({}, { $set: { quantity: 10 } })
-    }
-    async down(db) {
-        return db.collection('products').updateMany({}, { $unset: { quantity: null } })
-    }
-}
+export = {
+    async up(db: Db) {
+        return db.collection('products').updateMany({}, { $set: { quantity: 10 } });
+    },
+
+    async down(db: Db) {
+        return db.collection('products').updateMany({}, { $unset: { quantity: null } });
+    },
+};
 ```
 
 ### 8.3 Running migrations
 
+To get the migration status
+
+```
+npm run migrate:status
+```
+
 To run your migrations, simply run the command
 
 ```
-migrate-mongo up
+npm run migrate
 ```
 
 To rollback a migration use the down command
 
 ```
-migrate-mongo down
+npm run migrate:undo-last
 ```
 
 
