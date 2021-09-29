@@ -24,6 +24,7 @@ export interface IAccount {
     memberships: string[];
     privateKeys: { [address: string]: string };
     comparePassword: Function;
+    recoveryPhrase: string;
 }
 
 export interface IAccountUpdates {
@@ -65,6 +66,7 @@ const accountSchema = new mongoose.Schema(
         burnProofs: [String],
         memberships: [String],
         privateKeys: Map,
+        recoveryPhrase: String,
     },
     { timestamps: true },
 );
