@@ -135,8 +135,10 @@ migrate-mongo create name-of-my-script
 
 A new file will be created inside migrations folder with a corresponding timestamp.
 
+```
 |_ migrations/
    |- 20210108114324-name-of-my-script.js
+```   
 
 ### 8.2 To add a new property to the existing collection
 
