@@ -1,25 +1,21 @@
 import { downgradeFromBypassPolls, updateToBypassPolls } from '../../util/upgrades';
 import { Response, NextFunction } from 'express';
 import { HttpRequest, HttpError } from '../../models/Error';
-import { AssetPool } from '../../models/AssetPool';
+import AssetPoolService from '../../services/AssetPoolService';
 import { callFunction } from '../../util/network';
 import { sendTransaction } from '../../util/network';
 
 export const patchAssetPool = async (req: HttpRequest, res: Response, next: NextFunction) => {
-    const assetPool = await AssetPool.findOne({
-        address: req.solution.options.address,
-    });
-
+    const { assetPool, error } = await AssetPoolService.findAssetPool(req.solution.options.address);
+    if (error) throw new Error(error);
     if (!assetPool) {
         return next(new HttpError(404, 'Could not find an asset pool for this address.'));
     }
 
     if (req.body.bypassPolls === true && assetPool.bypassPolls === false) {
         try {
-            await updateToBypassPolls(assetPool.network, req.solution);
-            assetPool.bypassPolls = req.body.bypassPolls;
-
-            await assetPool.save();
+            const { error } = await AssetPoolService.bypassAssetPools('update', assetPool, req);
+            if (error) throw new Error(error);
         } catch (error) {
             return next(new HttpError(502, 'Could not update set bypassPolls (true) for this asset pool.', error));
         }
@@ -27,10 +23,8 @@ export const patchAssetPool = async (req: HttpRequest, res: Response, next: Next
 
     if (req.body.bypassPolls === false && assetPool.bypassPolls === true) {
         try {
-            await downgradeFromBypassPolls(assetPool.network, req.solution);
-            assetPool.bypassPolls = req.body.bypassPolls;
-
-            await assetPool.save();
+            const { error } = await AssetPoolService.bypassAssetPools('downgrade', assetPool, req);
+            if (error) throw new Error(error);
         } catch (error) {
             return next(new HttpError(502, 'Could not update set bypassPolls (false) for this asset pool.', error));
         }

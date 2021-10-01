@@ -5,6 +5,8 @@ import { POOL_REGISTRY_ADDRESS, TESTNET_POOL_REGISTRY_ADDRESS } from '../util/se
 import { AssetPool, IAssetPool } from '../models/AssetPool';
 import { deployUnlimitedSupplyERC20Contract, deployLimitedSupplyERC20Contract, getProvider } from '../util/network';
 import { toWei } from 'web3-utils';
+import { HttpRequest, HttpError } from '../models/Error';
+import { downgradeFromBypassPolls, updateToBypassPolls } from '../util/upgrades';
 
 export default class AssetPoolService {
     static async getTokenAddress(assetPool: IAssetPool, token: any) {
@@ -116,6 +118,55 @@ export default class AssetPoolService {
                 return { result: true };
             } catch (error) {
                 return { error };
+            }
+        } catch (error) {
+            return { error };
+        }
+    }
+
+    static async getAssetPools(sub: string) {
+        try {
+            return { result: (await AssetPool.find({ sub: sub })).map((pool) => pool.address) };
+        } catch (error) {
+            return { error };
+        }
+    }
+
+    static async removeAssetPoolForAddress(address: string) {
+        try {
+            const assetPool = await AssetPool.findOne({ address: address });
+            await assetPool.remove();
+        } catch (error) {
+            return { error };
+        }
+    }
+
+    static async findAssetPool(address: string) {
+        try {
+            const assetPool = await AssetPool.findOne({
+                address: address,
+            });
+            return { assetPool };
+        } catch (error) {
+            return { error };
+        }
+    }
+
+    static async bypassAssetPools(type: string, assetPool: IAssetPool, req: HttpRequest) {
+        try {
+            switch (type) {
+                case 'update': {
+                    await updateToBypassPolls(assetPool.network, req.solution);
+                    assetPool.bypassPolls = req.body.bypassPolls;
+
+                    await assetPool.save();
+                }
+                case 'downgrade': {
+                    await downgradeFromBypassPolls(assetPool.network, req.solution);
+                    assetPool.bypassPolls = req.body.bypassPolls;
+
+                    await assetPool.save();
+                }
             }
         } catch (error) {
             return { error };

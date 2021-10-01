@@ -102,4 +102,15 @@ export default class WithdrawalService {
             return { error };
         }
     }
+
+    static async removeWithdrawalForAddress(address: string) {
+        try {
+            const withdrawals = await Withdrawal.find({ poolAddress: address });
+            for (const w of withdrawals) {
+                await w.remove();
+            }
+        } catch (error) {
+            return { error };
+        }
+    }
 }

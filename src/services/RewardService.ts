@@ -69,4 +69,15 @@ export default class RewardService {
             return { error };
         }
     }
+
+    static async removeRewardsForAddress(address: string) {
+        try {
+            const rewards = await Reward.find({ poolAddress: address });
+            for (const r of rewards) {
+                await r.remove();
+            }
+        } catch (error) {
+            return { error };
+        }
+    }
 }
