@@ -9,8 +9,10 @@ import MemberService from './MemberService';
 export default class WithdrawalService {
     static async get(assetPool: IAssetPool, withdrawalId: number) {
         try {
-            const withdrawal = await Withdrawal.findOne({ poolAddress: assetPool.address, id: withdrawalId });
-
+            const withdrawal = await Withdrawal.findOne({
+                poolAddress: assetPool.address,
+                id: withdrawalId,
+            });
             return { withdrawal };
         } catch (error) {
             return { error };
@@ -72,9 +74,12 @@ export default class WithdrawalService {
         });
     }
 
-    static async withdrawPollFinalize(assetPool: IAssetPool, withdrawalId: number) {
+    static async withdrawPollFinalize(assetPool: IAssetPool, withdrawalId: number, rId: number) {
         try {
-            const withdrawal = await Withdrawal.findOne({ poolAddress: assetPool.address, id: withdrawalId });
+            const withdrawal = await Withdrawal.findOne({
+                poolAddress: assetPool.address,
+                id: withdrawalId,
+            });
             const tx = await sendTransaction(
                 assetPool.solution.options.address,
                 assetPool.solution.methods.withdrawPollFinalize(withdrawalId),
@@ -93,11 +98,30 @@ export default class WithdrawalService {
                 withdrawal.state = WithdrawalState.Withdrawn;
             }
 
+            if (rId) {
+                withdrawal.rewardId = rId;
+            }
+
             await withdrawal.save();
 
             return {
                 result: true,
             };
+        } catch (error) {
+            return { error };
+        }
+    }
+
+    static async getWithdrawals(address: string, member: string, rId: number, state: number) {
+        try {
+            console
+            const withdrawals = await Withdrawal.find({
+                rewardId: rId,
+                beneficiary: member,
+                poolAddress: address,
+                state
+            });
+            return { withdrawals };
         } catch (error) {
             return { error };
         }

@@ -1,7 +1,7 @@
 import { NextFunction, Response } from 'express';
 import { Withdrawal, WithdrawalDocument } from '../../models/Withdrawal';
 import { HttpError, HttpRequest } from '../../models/Error';
-
+import WithdrawalService from '../../services/WithdrawalService';
 /**
  * @swagger
  * /withdrawals?member=:address:
@@ -70,11 +70,13 @@ import { HttpError, HttpRequest } from '../../models/Error';
  */
 export const getWithdrawals = async (req: HttpRequest, res: Response, next: NextFunction) => {
     try {
-        const withdrawals = await Withdrawal.find({
-            beneficiary: req.query.member as string,
-            poolAddress: req.solution.options.address,
-        });
-
+        const { withdrawals, error } = await WithdrawalService.getWithdrawals(
+            req.solution.options.address,
+            req.query.member as string,
+            Number(req.query.rewardId),
+            Number(req.query.state),
+        );
+        if (error) throw new Error(error);
         res.json(
             withdrawals.map((w: WithdrawalDocument) => {
                 return {
@@ -83,6 +85,7 @@ export const getWithdrawals = async (req: HttpRequest, res: Response, next: Next
                     amount: w.amount,
                     approved: w.approved,
                     state: w.state,
+                    rewardId: w.rewardId,
                     poll: {
                         startTime: w.poll.startTime,
                         endTime: w.poll.endTime,

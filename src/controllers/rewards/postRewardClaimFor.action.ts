@@ -70,7 +70,7 @@ export const postRewardClaimFor = async (req: HttpRequest, res: Response, next: 
                 if (!withdrawal) {
                     return next(new HttpError(500, 'Withdrawal already exists.'));
                 }
-
+                withdrawal.rewardId = Number(req.params.id);
                 await withdrawal.save();
 
                 res.json({ withdrawal: withdrawal.id });
