@@ -32,7 +32,11 @@
         "deploy:registry": "npx ts-node scripts/deployAssetPoolRegistry.ts",
         "deploy:facets": "npx ts-node scripts/deployFacets.ts",
         "deploy:init": "npm run deploy:facets && npm run deploy:factory && npm run deploy:registry",
-        "reset:db": "mongoimport --uri=\"mongodb://root:root@localhost:27017/admin\" --collection=\"client\" --file=\"./fixture/db/client.json\"; mongoimport --uri=\"mongodb://root:root@localhost:27017/admin\" --collection=\"accounts\" --file=\"./fixture/db/accounts.json\"; mongoimport --uri=\"mongodb://root:root@localhost:27017/admin\" --collection=\"registration_access_token\" --file=\"./fixture/db/registration_access_token.json\""
+        "reset:db": "mongoimport --uri=\"mongodb://root:root@localhost:27017/admin\" --collection=\"client\" --file=\"./fixture/db/client.json\"; mongoimport --uri=\"mongodb://root:root@localhost:27017/admin\" --collection=\"accounts\" --file=\"./fixture/db/accounts.json\"; mongoimport --uri=\"mongodb://root:root@localhost:27017/admin\" --collection=\"registration_access_token\" --file=\"./fixture/db/registration_access_token.json\"",
+        "migrate:create": "sh -c 'ts-node node_modules/migrate-mongo/bin/migrate-mongo create $0 -f migrate-mongo-config.ts' ",
+        "migrate:status": "ts-node node_modules/migrate-mongo/bin/migrate-mongo status -f migrate-mongo-config.ts",
+        "migrate:undo-last": "ts-node node_modules/migrate-mongo/bin/migrate-mongo down -f migrate-mongo-config.ts && npm run migrate:status",
+        "migrate": "ts-node node_modules/migrate-mongo/bin/migrate-mongo up -f migrate-mongo-config.ts"
     },
     "dependencies": {
         "@sendgrid/mail": "^7.4.2",
@@ -56,6 +60,7 @@
         "jwks-rsa": "^1.12.0",
         "lodash": "^4.17.21",
         "lusca": "^1.6.1",
+        "migrate-mongo": "^8.2.3",
         "mongoose": "^5.12.3",
         "morgan": "^1.10.0",
         "nodemailer": "^6.6.1",

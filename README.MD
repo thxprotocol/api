@@ -11,7 +11,10 @@ This repository holds the code for the THX API project. A REST API that can be u
 2. Debugging
 3. Running
 4. Testing
-5. Interface
+5. Fixture DB
+6. Register clients
+7. Interface
+8. Database Schema Migration
 
 ## 1. Prerequisites
 
@@ -64,7 +67,7 @@ The thx_mainnet and thx_testnet containers will start with 4 prefilled accounts 
 npm run test
 ```
 
-## 6. Fixture DB
+## 5. Fixture DB
 
 Make sure you have `mongo-development-tools` installed with brew. See mongo documentation installation steps.
 
@@ -112,7 +115,7 @@ POST http://localhost:3000/reg
 }
 ```
 
-## 6. Interface
+## 7. Interface
 
 Swagger Documentation is provided in the controllers of the routes and lives at the following endpoints:
 
@@ -121,3 +124,56 @@ Swagger Documentation is provided in the controllers of the routes and lives at 
 -   [Local API Specs](https://localhost:3000/v1/docs/)
 -   [Staging API Specs](https://dev.api.thx.network/v1/docs/)
 -   [Production API Specs](https://api.thx.network/v1/docs/)
+
+## 8. Database Schema Migration
+
+### 8.1 To add a new migration script, use the following CLI command
+
+```
+npm run migrate:create name-of-my-script
+```
+
+A new file will be created inside migrations folder with a corresponding timestamp.
+
+```
+|_ migrations/
+   |- 20210108114324-name-of-my-script.js
+```   
+
+### 8.2 To add a new property to the existing collection
+
+Considering we want to add a quantity property to the products collection, the migration could be as follows:
+```
+export = {
+    async up(db: Db) {
+        return db.collection('products').updateMany({}, { $set: { quantity: 10 } });
+    },
+
+    async down(db: Db) {
+        return db.collection('products').updateMany({}, { $unset: { quantity: null } });
+    },
+};
+```
+
+### 8.3 Running migrations
+
+To get the migration status
+
+```
+npm run migrate:status
+```
+
+To run your migrations, simply run the command
+
+```
+npm run migrate
+```
+
+To rollback a migration use the down command
+
+```
+npm run migrate:undo-last
+```
+
+
+
