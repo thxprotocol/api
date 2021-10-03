@@ -27,7 +27,7 @@
         "watch:node": "nodemon dist/src/server.js",
         "watch:test": "npm run test -- --watchAll",
         "watch:debug": "concurrently -k -p \"[{name}]\" -n \"TypeScript,Node\" -c \"yellow.bold,cyan.bold,green.bold\" \"npm run watch:ts\" \"npm run watch:sass\" \"npm run serve:debug\"",
-        "test": "docker exec -it thx_node bash sh -c \"npm run serve:ganache; NODE_ENV=test npx jest --forceExit\"",
+        "test": "NODE_ENV=test && npm run serve:ganache && npx jest --forceExit",
         "deploy:factory": "npx ts-node scripts/deployAssetPoolFactory.ts",
         "deploy:registry": "npx ts-node scripts/deployAssetPoolRegistry.ts",
         "deploy:facets": "npx ts-node scripts/deployFacets.ts",
