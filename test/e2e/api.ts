@@ -358,12 +358,12 @@ describe('Happy Flow', () => {
     });
 
     describe('GET /withdrawals (before proposed withdrawal)', () => {
-        it('HTTP 200 and return no items', async (done) => {
+        it('HTTP 200 and returns 1 item', async (done) => {
             user.get(`/v1/withdrawals?member=${userWallet.address}`)
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
                 .end(async (err, res) => {
                     expect(res.status).toBe(200);
-                    expect(res.body.length).toBe(2);
+                    expect(res.body.length).toBe(1);
 
                     done();
                 });
