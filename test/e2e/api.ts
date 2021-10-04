@@ -258,7 +258,7 @@ describe('Happy Flow', () => {
         });
 
         it('HTTP 200 after return state Pending', (done) => {
-            user.get('/v1/withdrawals?member=' + userWallet.address + '&rewardId=0&state=0')
+            user.get('/v1/withdrawals?member=' + userWallet.address)
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
                 .end(async (err, res) => {
                     expect(res.status).toBe(200);
@@ -292,7 +292,7 @@ describe('Happy Flow', () => {
 
     describe('GET /withdrawals/:id', () => {
         it('HTTP 200 and return state Approved', (done) => {
-            user.get(`/v1/withdrawals/${withdrawPollID}` + `&rewardId=0&state=1`)
+            user.get(`/v1/withdrawals/${withdrawPollID}`)
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
                 .end(async (err, res) => {
                     expect(res.status).toBe(200);
@@ -359,7 +359,7 @@ describe('Happy Flow', () => {
 
     describe('GET /withdrawals (before proposed withdrawal)', () => {
         it('HTTP 200 and return no items', async (done) => {
-            user.get(`/v1/withdrawals?member=${userWallet.address}`+`&rewardId=0&state=0`)
+            user.get(`/v1/withdrawals?member=${userWallet.address}`)
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
                 .end(async (err, res) => {
                     expect(res.status).toBe(200);

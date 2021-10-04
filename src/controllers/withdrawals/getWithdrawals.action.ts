@@ -73,8 +73,8 @@ export const getWithdrawals = async (req: HttpRequest, res: Response, next: Next
         const { withdrawals, error } = await WithdrawalService.getWithdrawals(
             req.solution.options.address,
             req.query.member as string,
-            Number(req.query.rewardId),
-            Number(req.query.state),
+            req.query.rewardId ? Number(req.query.rewardId) : undefined,
+            req.query.state ? Number(req.query.state) : 0,
         );
         if (error) throw new Error(error);
         res.json(

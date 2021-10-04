@@ -114,12 +114,10 @@ export default class WithdrawalService {
 
     static async getWithdrawals(address: string, member: string, rId: number, state: number) {
         try {
-            console
             const withdrawals = await Withdrawal.find({
-                rewardId: rId,
                 beneficiary: member,
                 poolAddress: address,
-                state
+                $or: [{ rewardId: rId }, { state }],
             });
             return { withdrawals };
         } catch (error) {
