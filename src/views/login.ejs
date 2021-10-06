@@ -79,11 +79,24 @@
                                         </button>
                                     </form>
                                     <% } else { %>
-                                        <form autocomplete="off" action="/interaction/<%= uid %>/login" method="post"
-                                              class="mb-4">
+                                        <div class="class=mb-4"> 
                                             <strong class="h2 d-block text-dark text-center mb-4">
                                                 Login
                                             </strong>
+                                        
+                                        <form autocomplete="off" action="/interaction/google_auth" method="post"
+                                            class="mb-4">
+                                            <div class="text-center">
+                                                <button type="submit" class="login-with-google-btn" >
+                                                    Sign in with Google
+                                                  </button>
+                                            </div>
+                                        </form>
+                                        <h2 class="login-seperator"><span>or</span></h2>
+                                    </div>
+                                        <form autocomplete="off" action="/interaction/<%= uid %>/login" method="post"
+                                              class="mb-4">
+                                            
                                             <div class="form-group">
                                                 <label>E-mail:</label>
                                                 <input class="form-control" required type="email" name="email">

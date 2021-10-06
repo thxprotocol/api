@@ -6,6 +6,8 @@ import { ENVIRONMENT, GTM, ISSUER, SECURE_KEY } from '../util/secrets';
 import MailService from '../services/MailService';
 import AccountService from '../services/AccountService';
 import { IAccountUpdates } from '../models/Account';
+import OAuthService from '../services/OAuthService';
+
 
 const oidc = new Provider(ISSUER, configuration as any);
 const router = express.Router();
@@ -406,6 +408,21 @@ router.post(
             return next(new HttpError(500, error.toString(), error));
         }
     },
+);
+
+    router.post(
+        '/interaction/google_auth',
+        urlencoded({ extended: false }),
+        async (req: Request, res: Response, next: NextFunction) => {
+            try {
+                const { error } = await OAuthService.googleAuthentication();
+                if (error) {
+                    throw new Error(error);
+                }
+            } catch (error) {
+                return next(new HttpError(500, error.toString(), error));
+            }
+        },
 );
 
 export { oidc, router };
