@@ -8,16 +8,16 @@ import { deployRegistry } from '../../scripts/lib/registry';
 import { NetworkProvider } from '../../src/util/network';
 
 beforeAll(async () => {
-    const memServer = new MongoMemoryServer({
-        instance: {
-            ip: 'localhost',
-            port: 27027,
-            dbName: 'test',
-        },
-        autoStart: true,
-    });
+    // const memServer = new MongoMemoryServer({
+    //     instance: {
+    //         ip: 'node',
+    //         port: 27027,
+    //         dbName: 'test',
+    //     },
+    //     autoStart: true,
+    // });
 
-    await memServer.ensureInstance();
+    // await memServer.ensureInstance();
 
     await MongoAdapter.connect();
 

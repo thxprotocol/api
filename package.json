@@ -11,7 +11,7 @@
     "scripts": {
         "preinstall": "npx npm-force-resolutions",
         "serve": "node ./dist/src/server.js",
-        "serve:debug": "nodemon --inspect dist/src/server.js",
+        "serve:debug": "nodemon --inspect dist/src/server.js --legacy-watch",
         "serve:ganache": "kill $(lsof -t -i :8545); ganache-cli -l 25000000 --account='0x873c254263b17925b686f971d7724267710895f1585bb0533db8e693a2af32ff,1000000000000000000000000000000000000000' --account='0x5a05e38394194379795422d2e8c1d33e90033d90defec4880174c39198f707e3,1000000000000000000000000000000000000000' > /dev/null & sleep 1",
         "debug": "npm run build && npm run watch:debug",
         "publish": "npm version prerelease; npm run build",
@@ -27,7 +27,7 @@
         "watch:node": "nodemon dist/src/server.js",
         "watch:test": "npm run test -- --watchAll",
         "watch:debug": "concurrently -k -p \"[{name}]\" -n \"TypeScript,Node\" -c \"yellow.bold,cyan.bold,green.bold\" \"npm run watch:ts\" \"npm run watch:sass\" \"npm run serve:debug\"",
-        "test": "NODE_ENV=test && npm run serve:ganache && npx jest --forceExit",
+        "test": "NODE_ENV=test && npx jest --forceExit",
         "deploy:factory": "npx ts-node scripts/deployAssetPoolFactory.ts",
         "deploy:registry": "npx ts-node scripts/deployAssetPoolRegistry.ts",
         "deploy:facets": "npx ts-node scripts/deployFacets.ts",
