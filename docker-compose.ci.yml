@@ -3,6 +3,16 @@ version: '3.5'
 services:
     mongo:
         env_file: .env.ci
+        environment:
+            MONGO_INITDB_ROOT_USERNAME: root
+            MONGO_INITDB_ROOT_PASSWORD: root
+            MONGO_INITDB_DATABASE: admin
+            DB_NAME: $MONGODB_NAME
+            DB_USER: $MONGODB_USER
+            DB_PASSWORD: $MONGODB_PASSWORD
 
     node:
+        env_file: .env.ci
+        environment:
+            - NODE_ENV=test
         command: bash -c "npm run build"
