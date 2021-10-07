@@ -11,6 +11,7 @@ import membersRouter from './members/_.routing';
 import rewardsRouter from './rewards/_.routing';
 import withdrawalsRouter from './withdrawals/_.routing';
 import authRouter from './auth/_.routing';
+import googleAuthRouter from './google_auth/_.routing';
 import { checkJwt } from '../util/jwt';
 
 const router = express.Router();
@@ -18,6 +19,7 @@ const router = express.Router();
 router.use('/ping', (req, res) => res.send('pong'));
 router.use('/health', healthRouter);
 router.use('/docs', docsRouter);
+router.use('/googlecallback', googleAuthRouter);
 router.use(checkJwt);
 router.use('/', authRouter);
 router.use('/metrics', metricsRouter);

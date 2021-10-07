@@ -2,12 +2,11 @@ import Provider from 'oidc-provider';
 import express, { Request, Response, NextFunction, urlencoded } from 'express';
 import configuration from './config';
 import { HttpError } from '../models/Error';
-import { ENVIRONMENT, GTM, ISSUER, SECURE_KEY } from '../util/secrets';
+import { ENVIRONMENT, GTM, ISSUER, SECURE_KEY, OAUTH_CLIENT_SECRET, OAUTH_CLIENT_ID, OAUTH_REDIRECT_URIS } from '../util/secrets';
 import MailService from '../services/MailService';
 import AccountService from '../services/AccountService';
 import { IAccountUpdates } from '../models/Account';
-import OAuthService from '../services/OAuthService';
-
+import { OAuth2Client } from 'google-auth-library';
 
 const oidc = new Provider(ISSUER, configuration as any);
 const router = express.Router();
@@ -410,19 +409,30 @@ router.post(
     },
 );
 
-    router.post(
-        '/interaction/google_auth',
-        urlencoded({ extended: false }),
-        async (req: Request, res: Response, next: NextFunction) => {
-            try {
-                const { error } = await OAuthService.googleAuthentication();
-                if (error) {
-                    throw new Error(error);
-                }
-            } catch (error) {
-                return next(new HttpError(500, error.toString(), error));
-            }
-        },
+router.post(
+    '/interaction/:uid/google_auth',
+    urlencoded({ extended: false }),
+    async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const oAuth2Client = new OAuth2Client(
+                OAUTH_CLIENT_ID,
+                OAUTH_CLIENT_SECRET,
+                OAUTH_REDIRECT_URIS,
+            );
+
+            // Generate the url that will be used for the consent dialog.
+            const authorizeUrl = oAuth2Client.generateAuthUrl({
+                access_type: 'offline',
+                scope: 'https://www.googleapis.com/auth/youtube.readonly',
+            });
+            console.log("Auth URL" + authorizeUrl)
+            res.redirect(authorizeUrl);
+            //await open(authorizeUrl, { wait: false }).then((cp) => cp.unref());
+        } catch (error) {
+            return next(new HttpError(500, error.toString(), error));
+        }
+    },
 );
+
 
 export { oidc, router };

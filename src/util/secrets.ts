@@ -59,3 +59,19 @@ export const RATE_LIMIT_REWARD_GIVE_WINDOW = Number(process.env.RATE_LIMIT_REWAR
 export const MINIMUM_GAS_LIMIT = Number(process.env.MINIMUM_GAS_LIMIT);
 export const MAXIMUM_GAS_PRICE = Number(process.env.MAXIMUM_GAS_PRICE);
 export const FIXED_GAS_PRICE = Number(process.env.FIXED_GAS_PRICE);
+export const OAUTH_CLIENT_ID = process.env.client_id;
+export const OAUTH_PROJECT_ID = process.env.project_id;
+export const OAUTH_AUTH_URI = process.env.auth_uri;
+export const OAUTH_TOKEN_URI = process.env.token_uri;
+export const OAUTH_AUTH_PROVIDER = process.env.auth_provider_x509_cert_url;
+export const OAUTH_CLIENT_SECRET = process.env.client_secret;
+export const OAUTH_JAVASCRIPT_ORIGINS = process.env.javascript_origins;
+export const OAUTH_REDIRECT_URIS = process.env.redirect_uris;
+
+
+
+
+
+
+
+
