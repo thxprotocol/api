@@ -43,6 +43,7 @@ describe('Signup', () => {
                     },
                 })
                 .end(async (err, res) => {
+                    console.log(res.body);
                     expect(res.status).toBe(201);
                     poolAddress = res.body.address;
                     done();
