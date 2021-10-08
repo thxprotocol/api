@@ -4,6 +4,7 @@ services:
     mongo:
         container_name: thx_mongo
         image: mongo
+        env_file: .env.ci
         networks:
             - api_network
         ports:
@@ -15,22 +16,19 @@ services:
             DB_NAME: $MONGODB_NAME
             DB_USER: $MONGODB_USER
             DB_PASSWORD: $MONGODB_PASSWORD
-        volumes:
-            - db-data:/data/db
-            - ./fixture/db:/docker-entrypoint-initdb.d/fixture/db
-            - ./scripts/mongo-init.sh:/docker-entrypoint-initdb.d/mongo-init.sh
 
     node:
         container_name: thx_node
         image: node:12
+        env_file: .env.ci
         networks:
             - api_network
         volumes:
             - ./:/usr/src/service
         working_dir: /usr/src/service
-        command: bash -c "npm run build && npm run deploy:init && npm run watch:debug"
+        command: bash -c "npm run build"
         environment:
-            - NODE_ENV=local
+            - NODE_ENV=test
         depends_on:
             - mainnet
             - testnet
@@ -75,8 +73,6 @@ services:
                 "--account='0x5a05e38394194379795422d2e8c1d33e90033d90defec4880174c39198f707e3,100000000000000000000'",
                 '-l 25000000 ',
             ]
-volumes:
-    db-data:
 
 networks:
     api_network:

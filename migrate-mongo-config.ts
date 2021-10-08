@@ -10,7 +10,7 @@ export = {
         url: process.env.MONGODB_URI,
 
         // Mongo database name
-        databaseName: process.env.MONGO_DB,
+        databaseName: process.env.MONGODB_NAME,
 
         options: {
             useNewUrlParser: true, // removes a deprecation warning when connecting
