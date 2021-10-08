@@ -74,7 +74,7 @@ export default class WithdrawalService {
         });
     }
 
-    static async withdrawPollFinalize(assetPool: IAssetPool, withdrawalId: number, rId: number) {
+    static async withdrawPollFinalize(assetPool: IAssetPool, withdrawalId: number, rewardId: number) {
         try {
             const withdrawal = await Withdrawal.findOne({
                 poolAddress: assetPool.address,
@@ -98,8 +98,8 @@ export default class WithdrawalService {
                 withdrawal.state = WithdrawalState.Withdrawn;
             }
 
-            if (rId) {
-                withdrawal.rewardId = rId;
+            if (rewardId) {
+                withdrawal.rewardId = rewardId;
             }
 
             await withdrawal.save();

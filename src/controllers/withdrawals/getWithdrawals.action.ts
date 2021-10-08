@@ -74,7 +74,7 @@ export const getWithdrawals = async (req: HttpRequest, res: Response, next: Next
             req.solution.options.address,
             req.query.member as string,
             req.query.rewardId ? Number(req.query.rewardId) : undefined,
-            req.query.state ? Number(req.query.state) : 0,
+            req.query.state ? Number(req.query.state) : undefined,
         );
         if (error) throw new Error(error);
         res.json(
