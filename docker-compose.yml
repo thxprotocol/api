@@ -4,6 +4,8 @@ services:
     mongo:
         container_name: thx_mongo
         image: mongo
+        networks:
+            - api_network
         ports:
             - 27017:27017
         environment:
@@ -21,6 +23,8 @@ services:
     node:
         container_name: thx_node
         image: node:12
+        networks:
+            - api_network
         volumes:
             - ./:/usr/src/service
         working_dir: /usr/src/service
@@ -32,15 +36,17 @@ services:
             - testnet
             - mongo
         links:
-            - mongo
             - mainnet
             - testnet
+            - mongo
         ports:
             - 3000:3000
 
     testnet:
         container_name: thx_testnet
         image: trufflesuite/ganache-cli:latest
+        networks:
+            - api_network
         ports:
             - '8547:8545'
         volumes:
@@ -56,6 +62,8 @@ services:
     mainnet:
         container_name: thx_mainnet
         image: trufflesuite/ganache-cli:latest
+        networks:
+            - api_network
         ports:
             - '8546:8545'
         volumes:
@@ -69,3 +77,7 @@ services:
             ]
 volumes:
     db-data:
+
+networks:
+    api_network:
+        name: api_network
