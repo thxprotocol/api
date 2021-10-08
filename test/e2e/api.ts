@@ -358,8 +358,21 @@ describe('Happy Flow', () => {
     });
 
     describe('GET /withdrawals (before proposed withdrawal)', () => {
-        it('HTTP 200 and returns 1 item', async (done) => {
+        it('HTTP 200 and returns 2 items', async (done) => {
             user.get(`/v1/withdrawals?member=${userWallet.address}`)
+                .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
+                .end(async (err, res) => {
+                    expect(res.status).toBe(200);
+                    expect(res.body.length).toBe(2);
+
+                    done();
+                });
+        });
+    });
+
+    describe('GET /withdrawals for withdrawn state', () => {
+        it('HTTP 200 and returns 2 items', async (done) => {
+            user.get(`/v1/withdrawals?state=1`)
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
                 .end(async (err, res) => {
                     expect(res.status).toBe(200);

@@ -65,12 +65,16 @@ export const postRewardClaimFor = async (req: HttpRequest, res: Response, next: 
             try {
                 const events = parseLogs(Artifacts.IDefaultDiamond.abi, tx.logs);
                 const event = findEvent('WithdrawPollCreated', events);
-                const withdrawal = await WithdrawalService.save(req.assetPool, event.args.id, event.args.member);
-
+                const rewardId = Number(req.params.id);
+                const withdrawal = await WithdrawalService.save(
+                    req.assetPool,
+                    event.args.id,
+                    event.args.member,
+                    rewardId,
+                );
                 if (!withdrawal) {
                     return next(new HttpError(500, 'Withdrawal already exists.'));
                 }
-                withdrawal.rewardId = Number(req.params.id);
                 await withdrawal.save();
 
                 res.json({ withdrawal: withdrawal.id });

@@ -38,7 +38,7 @@ export default class WithdrawalService {
         }
     }
 
-    static async save(assetPool: IAssetPool, id: number, memberId: number) {
+    static async save(assetPool: IAssetPool, id: number, memberId: number, rewardId?: number) {
         const existingWithdrawal = await Withdrawal.findOne({ id, poolAddress: assetPool.address });
 
         if (existingWithdrawal) {
@@ -64,6 +64,7 @@ export default class WithdrawalService {
             beneficiary,
             approved,
             state: WithdrawalState.Pending,
+            ...(rewardId > 0 ? { rewardId } : {}),
             poll: {
                 startTime,
                 endTime,
@@ -74,7 +75,7 @@ export default class WithdrawalService {
         });
     }
 
-    static async withdrawPollFinalize(assetPool: IAssetPool, withdrawalId: number, rewardId: number) {
+    static async withdrawPollFinalize(assetPool: IAssetPool, withdrawalId: number) {
         try {
             const withdrawal = await Withdrawal.findOne({
                 poolAddress: assetPool.address,
@@ -97,11 +98,6 @@ export default class WithdrawalService {
             if (eventWithdrawn) {
                 withdrawal.state = WithdrawalState.Withdrawn;
             }
-
-            if (rewardId) {
-                withdrawal.rewardId = rewardId;
-            }
-
             await withdrawal.save();
 
             return {
@@ -115,10 +111,10 @@ export default class WithdrawalService {
     static async getWithdrawals(address: string, member: string, rewardId: number, state: number) {
         try {
             const withdrawals = await Withdrawal.find({
-                ...member && !member.startsWith('0x000') ?  { beneficiary: member } : {},
-                ...address ? { poolAddress: address } : {},
-                ...rewardId ? { rewardId } : {},
-                ...state ? { state } : {}
+                ...(member ? { beneficiary: member } : {}),
+                ...(address ? { poolAddress: address } : {}),
+                ...(rewardId ? { rewardId } : {}),
+                ...(state ? { state } : {}),
             });
             return { withdrawals };
         } catch (error) {

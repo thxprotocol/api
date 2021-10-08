@@ -72,7 +72,7 @@ export const postRewardClaim = async (req: HttpRequest, res: Response, next: Nex
                     }
 
                     if (req.assetPool.bypassPolls) {
-                        const { error } = await WithdrawalService.withdrawPollFinalize(req.assetPool, withdrawal.id, rewardId);
+                        const { error } = await WithdrawalService.withdrawPollFinalize(req.assetPool, withdrawal.id);
 
                         if (error) {
                             throw new Error(error);
