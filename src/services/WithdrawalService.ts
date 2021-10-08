@@ -103,7 +103,7 @@ export default class WithdrawalService {
         }
     }
 
-    static async removeWithdrawalForAddress(address: string) {
+    static async removeByAddress(address: string) {
         try {
             const withdrawals = await Withdrawal.find({ poolAddress: address });
             for (const w of withdrawals) {

@@ -55,7 +55,14 @@ export const postAccount = async (req: HttpRequest, res: Response, next: NextFun
             return next(new HttpError(422, 'A user for this e-mail already exists.'));
         }
         try {
-            const { error } = await AccountService.saveUserAccount(req, signupToken, signupTokenExpires);
+            const { error } = await AccountService.post(
+                req.body.firstName,
+                req.body.lastName,
+                req.body.email,
+                req.body.password,
+                signupToken,
+                signupTokenExpires,
+            );
             if (error) throw new Error(error);
             res.status(201).end();
         } catch (e) {

@@ -5,7 +5,6 @@ import { POOL_REGISTRY_ADDRESS, TESTNET_POOL_REGISTRY_ADDRESS } from '../util/se
 import { AssetPool, IAssetPool } from '../models/AssetPool';
 import { deployUnlimitedSupplyERC20Contract, deployLimitedSupplyERC20Contract, getProvider } from '../util/network';
 import { toWei } from 'web3-utils';
-import { HttpRequest, HttpError } from '../models/Error';
 import { downgradeFromBypassPolls, updateToBypassPolls } from '../util/upgrades';
 
 export default class AssetPoolService {
@@ -124,7 +123,7 @@ export default class AssetPoolService {
         }
     }
 
-    static async getAssetPools(sub: string) {
+    static async getAll(sub: string) {
         try {
             return { result: (await AssetPool.find({ sub: sub })).map((pool) => pool.address) };
         } catch (error) {
@@ -132,7 +131,7 @@ export default class AssetPoolService {
         }
     }
 
-    static async removeAssetPoolForAddress(address: string) {
+    static async removeByAddress(address: string) {
         try {
             const assetPool = await AssetPool.findOne({ address: address });
             await assetPool.remove();
@@ -141,7 +140,7 @@ export default class AssetPoolService {
         }
     }
 
-    static async findAssetPool(address: string) {
+    static async findByAddress(address: string) {
         try {
             const assetPool = await AssetPool.findOne({
                 address: address,
@@ -152,20 +151,27 @@ export default class AssetPoolService {
         }
     }
 
-    static async bypassAssetPools(type: string, assetPool: IAssetPool, req: HttpRequest) {
+    static async patch(assetPool: IAssetPool, bypassPolls: boolean, solution: any) {
         try {
-            switch (type) {
-                case 'update': {
-                    await updateToBypassPolls(assetPool.network, req.solution);
-                    assetPool.bypassPolls = req.body.bypassPolls;
-
+            if (bypassPolls === true && assetPool.bypassPolls === false) {
+                try {
+                    await updateToBypassPolls(assetPool.network, solution);
+                    assetPool.bypassPolls = bypassPolls;
                     await assetPool.save();
+                } catch (error) {
+                    error = 'Could not update set bypassPolls (true) for this asset pool.';
+                    return { error };
                 }
-                case 'downgrade': {
-                    await downgradeFromBypassPolls(assetPool.network, req.solution);
-                    assetPool.bypassPolls = req.body.bypassPolls;
+            }
 
+            if (bypassPolls === false && assetPool.bypassPolls === true) {
+                try {
+                    await downgradeFromBypassPolls(assetPool.network, solution);
+                    assetPool.bypassPolls = bypassPolls;
                     await assetPool.save();
+                } catch (error) {
+                    error = 'Could not update set bypassPolls (false) for this asset pool.';
+                    return { error };
                 }
             }
         } catch (error) {
