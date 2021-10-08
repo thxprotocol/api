@@ -32,4 +32,4 @@ jobs:
             - name: Run build
               run: npm run build
             - name: Run test
-              run: docker compose -f docker-compose.yml -f docker-compose.ci.yml run node npm test
+              run: docker compose -f docker-compose.yml -f docker-compose.ci.yml run --network=api_default node npm test
