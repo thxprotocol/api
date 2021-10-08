@@ -2,7 +2,13 @@ version: '3.5'
 
 services:
     mongo:
+        container_name: thx_mongo
+        image: mongo
         env_file: .env.ci
+        networks:
+            - api_network
+        ports:
+            - 27017:27017
         environment:
             MONGO_INITDB_ROOT_USERNAME: root
             MONGO_INITDB_ROOT_PASSWORD: root
@@ -12,7 +18,62 @@ services:
             DB_PASSWORD: $MONGODB_PASSWORD
 
     node:
+        container_name: thx_node
+        image: node:12
         env_file: .env.ci
+        networks:
+            - api_network
+        volumes:
+            - ./:/usr/src/service
+        working_dir: /usr/src/service
+        command: bash -c "npm run build"
         environment:
             - NODE_ENV=test
-        command: bash -c "npm run build"
+        depends_on:
+            - mainnet
+            - testnet
+            - mongo
+        links:
+            - mainnet
+            - testnet
+            - mongo
+        ports:
+            - 3000:3000
+
+    testnet:
+        container_name: thx_testnet
+        image: trufflesuite/ganache-cli:latest
+        networks:
+            - api_network
+        ports:
+            - '8547:8545'
+        volumes:
+            - ./:/ganache_data
+        command:
+            [
+                'ganache-cli',
+                "--account='0x873c254263b17925b686f971d7724267710895f1585bb0533db8e693a2af32ff,100000000000000000000'",
+                "--account='0x5a05e38394194379795422d2e8c1d33e90033d90defec4880174c39198f707e3,100000000000000000000'",
+                '-l 25000000',
+            ]
+
+    mainnet:
+        container_name: thx_mainnet
+        image: trufflesuite/ganache-cli:latest
+        networks:
+            - api_network
+        ports:
+            - '8546:8545'
+        volumes:
+            - ./:/ganache_data
+        command:
+            [
+                'ganache-cli',
+                "--account='0x873c254263b17925b686f971d7724267710895f1585bb0533db8e693a2af32ff,100000000000000000000'",
+                "--account='0x5a05e38394194379795422d2e8c1d33e90033d90defec4880174c39198f707e3,100000000000000000000'",
+                '-l 25000000 ',
+            ]
+
+networks:
+    api_network:
+        name: api_network
