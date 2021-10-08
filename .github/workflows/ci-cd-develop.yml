@@ -14,25 +14,24 @@ jobs:
                 node-version: ['12.x']
 
         steps:
-            - uses: actions/checkout@v2
+            - name: Checkout repository
+              uses: actions/checkout@v2
               with:
                   submodules: true
 
-            # Initialize Node.js
             - name: Install Node.js ${{ matrix.node-version }}
               uses: actions/setup-node@v1
               with:
                   node-version: ${{ matrix.node-version }}
 
-            # Install project dependencies, test and build
             - name: Install dependencies
               run: npm install
+
             - name: Run build:keys
               run: npm run build:keys
-            - name: Run build
-              run: npm run build
+
             - name: Run test
-              run: docker compose -f docker-compose.yml -f docker-compose.ci.yml run node npm test
+              run: docker compose -f docker-compose.ci.yml run node npm test
 
     deploy:
         name: CD Pipeline
