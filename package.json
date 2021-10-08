@@ -27,15 +27,13 @@
         "watch:test": "npm run test -- --watchAll",
         "watch:debug": "concurrently -k -p \"[{name}]\" -n \"TypeScript,Node\" -c \"yellow.bold,cyan.bold,green.bold\" \"npm run watch:ts\" \"npm run watch:sass\" \"npm run serve:debug\"",
         "test": "npx jest --forceExit",
-        "deploy:factory": "npx ts-node scripts/deployAssetPoolFactory.ts",
-        "deploy:registry": "npx ts-node scripts/deployAssetPoolRegistry.ts",
-        "deploy:facets": "npx ts-node scripts/deployFacets.ts",
-        "deploy:init": "npm run deploy:facets && npm run deploy:factory && npm run deploy:registry",
-        "reset:db": "mongoimport --uri=\"mongodb://admin:admin@localhost:27017/api?authSource=admin&ssl=false\" --collection=\"client\" --file=\"./fixture/db/client.json\"; mongoimport --uri=\"mongodb://admin:admin@localhost:27017/api?authSource=admin&ssl=false\" --collection=\"accounts\" --file=\"./fixture/db/accounts.json\"; mongoimport --uri=\"mongodb://admin:admin@localhost:27017/api?authSource=admin&ssl=false\" --collection=\"registration_access_token\" --file=\"./fixture/db/registration_access_token.json\"",
+        "deploy:facets": "docker compose run --rm node npx ts-node scripts/deployFacets.ts",
+        "deploy:factory": "docker compose run --rm node npx ts-node scripts/deployAssetPoolFactory.ts",
+        "deploy:registry": "docker compose run --rm node npx ts-node scripts/deployAssetPoolRegistry.ts",
+        "migrate": "ts-node node_modules/migrate-mongo/bin/migrate-mongo up -f migrate-mongo-config.ts",
         "migrate:create": "sh -c 'ts-node node_modules/migrate-mongo/bin/migrate-mongo create $0 -f migrate-mongo-config.ts' ",
         "migrate:status": "ts-node node_modules/migrate-mongo/bin/migrate-mongo status -f migrate-mongo-config.ts",
-        "migrate:undo-last": "ts-node node_modules/migrate-mongo/bin/migrate-mongo down -f migrate-mongo-config.ts && npm run migrate:status",
-        "migrate": "ts-node node_modules/migrate-mongo/bin/migrate-mongo up -f migrate-mongo-config.ts"
+        "migrate:undo-last": "ts-node node_modules/migrate-mongo/bin/migrate-mongo down -f migrate-mongo-config.ts && npm run migrate:status"
     },
     "dependencies": {
         "@sendgrid/mail": "^7.4.2",
