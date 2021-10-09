@@ -10,7 +10,7 @@ export default class ClientService {
         }
     }
 
-    static async removeRat(ratId: string) {
+    static async remove(ratId: string) {
         try {
             const rat: RatDocument = await Rat.findById(ratId);
             await rat.remove();

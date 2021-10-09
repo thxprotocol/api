@@ -7,7 +7,6 @@ import { ISSUER, SECURE_KEY } from '../util/secrets';
 import { checkPasswordStrength } from '../util/passwordcheck';
 import Web3 from 'web3';
 import axios from 'axios';
-import { HttpRequest } from '../models/Error';
 
 const DURATION_TWENTYFOUR_HOURS = Date.now() + 1000 * 60 * 60 * 24;
 const ERROR_AUTHENTICATION_TOKEN_INVALID_OR_EXPIRED = 'Your authentication token is invalid or expired.';
@@ -66,10 +65,22 @@ export default class AccountService {
         account: AccountDocument,
         { acceptTermsPrivacy = false, acceptUpdates = false }: IAccountUpdates,
     ) {
-        account.acceptTermsPrivacy = acceptTermsPrivacy;
-        account.acceptUpdates = acceptUpdates;
+        try {
+            account.acceptTermsPrivacy = acceptTermsPrivacy;
+            account.acceptUpdates = acceptUpdates;
 
-        await account.save();
+            await account.save();
+        } catch (error) {
+            return { error };
+        }
+    }
+
+    static async patch(account: AccountDocument) {
+        try {
+            await account.save();
+        } catch (error) {
+            return { error };
+        }
     }
 
     static signup(email: string, password: string, acceptTermsPrivacy: boolean, acceptUpdates: boolean) {
@@ -181,7 +192,7 @@ export default class AccountService {
         }
     }
 
-    static async removeMembershipForAddress(assetPool: IAssetPool, address: string) {
+    static async removeByAddress(assetPool: IAssetPool, address: string) {
         try {
             const account = await Account.findOne({ address });
 
@@ -280,26 +291,7 @@ export default class AccountService {
         }
     }
 
-    static async getUserAccount(sub: string) {
-        try {
-            const account = await Account.findById(sub);
-
-            if (account) {
-                return new Account({
-                    address: account.address,
-                    erc20: account.erc20,
-                    privateKey: account.privateKey,
-                    memberships: account.memberships,
-                    burnProofs: account.burnProofs,
-                    registrationAccessTokens: account.registrationAccessTokens,
-                });
-            }
-        } catch (error) {
-            return { error };
-        }
-    }
-
-    static async deleteUserAccount(id: string) {
+    static async remove(id: string) {
         try {
             await Account.remove({ _id: id });
         } catch (error) {
@@ -307,41 +299,25 @@ export default class AccountService {
         }
     }
 
-    static async saveUserAccount(req: HttpRequest, signupToken: string, signupTokenExpires: number) {
+    static async post(
+        firstName: string,
+        lastName: string,
+        email: string,
+        password: string,
+        signupToken: string,
+        signupTokenExpires: number,
+    ) {
         try {
             const account = new Account({
-                firstName: req.body.firstName,
-                lastName: req.body.lastName,
-                email: req.body.email,
-                password: req.body.password,
+                firstName,
+                lastName,
+                email,
+                password,
                 signupToken,
                 signupTokenExpires,
             });
 
             await account.save();
-        } catch (error) {
-            return { error };
-        }
-    }
-
-    static async patchUserAccount(req: HttpRequest) {
-        try {
-            const account = await Account.findById(req.user.sub);
-            account.address = req.body.address || account.address;
-            account.memberships = req.body.memberships || account.memberships;
-            account.privateKeys = req.body.privateKeys || account.privateKeys;
-            account.burnProofs = req.body.burnProofs || account.burnProofs;
-            account.save();
-        } catch (error) {
-            return { error };
-        }
-    }
-
-    static async putUserPassword(req: HttpRequest) {
-        try {
-            const account = await Account.findById(req.user.sub);
-            account.password = req.body.password;
-            account.save();
         } catch (error) {
             return { error };
         }

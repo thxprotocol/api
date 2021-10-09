@@ -4,7 +4,9 @@ import AccountService from '../../services/AccountService';
 
 export const putPassword = async (req: HttpRequest, res: Response, next: NextFunction) => {
     try {
-        const { error } = await AccountService.putUserPassword(req);
+        const account = await AccountService.get(req.user.sub);
+        account.password = req.body.password;
+        const { error } = await AccountService.patch(account);
         if (error) {
             next(new HttpError(502, 'Account save failed.', error));
             return;
