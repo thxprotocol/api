@@ -1,0 +1,4 @@
+mongoimport --uri="mongodb://$MONGO_INITDB_ROOT_USERNAME:$MONGO_INITDB_ROOT_PASSWORD@localhost:27017/$MONGODB_NAME?authSource=admin&ssl=false" --file="/docker-entrypoint-initdb.d/fixture/db/client.json"; 
+mongoimport --uri="mongodb://$MONGO_INITDB_ROOT_USERNAME:$MONGO_INITDB_ROOT_PASSWORD@localhost:27017/$MONGODB_NAME?authSource=admin&ssl=false" --file="/docker-entrypoint-initdb.d/fixture/db/accounts.json"; 
+mongoimport --uri="mongodb://$MONGO_INITDB_ROOT_USERNAME:$MONGO_INITDB_ROOT_PASSWORD@localhost:27017/$MONGODB_NAME?authSource=admin&ssl=false" --file="/docker-entrypoint-initdb.d/fixture/db/registration_access_token.json";
+mongo --eval "db.auth('$MONGO_INITDB_ROOT_USERNAME', '$MONGO_INITDB_ROOT_PASSWORD'); db = db.getSiblingDB('$MONGO_INITDB_DATABASE'); db.createUser({ user: '$MONGODB_USER', pwd: '$MONGODB_PASSWORD', roles: [{ role: 'readWrite', db: '$MONGODB_NAME' }] });";
