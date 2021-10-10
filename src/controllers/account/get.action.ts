@@ -7,6 +7,7 @@ export const getAccount = async (req: HttpRequest, res: Response, next: NextFunc
 
     try {
         const account = await AccountService.get(sub);
+
         if (account) {
             res.send({
                 address: account.address,

@@ -15,7 +15,7 @@ export const postAssetPool = async (req: HttpRequest, res: Response, next: NextF
             if (error) throw new Error(error);
 
             try {
-                const { error } = await AssetPoolService.addToken(assetPool, req.body.token);
+                const { error } = await AssetPoolService.addPoolToken(assetPool, req.body.token);
 
                 if (error) throw new Error(error);
 

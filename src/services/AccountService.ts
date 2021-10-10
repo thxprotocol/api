@@ -63,11 +63,27 @@ export default class AccountService {
 
     static async update(
         account: AccountDocument,
-        { acceptTermsPrivacy = false, acceptUpdates = false }: IAccountUpdates,
+        { acceptTermsPrivacy, acceptUpdates, address, memberships, privateKey, burnProofs }: IAccountUpdates,
     ) {
         try {
-            account.acceptTermsPrivacy = acceptTermsPrivacy;
-            account.acceptUpdates = acceptUpdates;
+            // No strict checking here since null == undefined
+            if (account.acceptTermsPrivacy == null) {
+                account.acceptTermsPrivacy = acceptTermsPrivacy == null ? false : account.acceptTermsPrivacy;
+            } else {
+                account.acceptTermsPrivacy = acceptTermsPrivacy || account.acceptTermsPrivacy;
+            }
+
+            // No strict checking here since null == undefined
+            if (account.acceptUpdates == null) {
+                account.acceptUpdates = acceptUpdates == null ? false : account.acceptUpdates;
+            } else {
+                account.acceptUpdates = acceptUpdates || account.acceptTermsPrivacy;
+            }
+
+            account.address = address || account.address;
+            account.memberships = memberships || account.memberships;
+            account.privateKey = privateKey || account.privateKey;
+            account.burnProofs = burnProofs || account.burnProofs;
 
             await account.save();
         } catch (error) {
@@ -192,7 +208,7 @@ export default class AccountService {
         }
     }
 
-    static async removeByAddress(assetPool: IAssetPool, address: string) {
+    static async removeMembershipForAddress(assetPool: IAssetPool, address: string) {
         try {
             const account = await Account.findOne({ address });
 

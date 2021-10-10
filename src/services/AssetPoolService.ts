@@ -1,24 +1,83 @@
 import { findEvent, parseLogs } from '../util/events';
-import { getAdmin, getAssetPoolFactory, NetworkProvider, sendTransaction, solutionContract } from '../util/network';
+import {
+    callFunction,
+    getAdmin,
+    getAssetPoolFactory,
+    NetworkProvider,
+    sendTransaction,
+    solutionContract,
+    tokenContract,
+} from '../util/network';
 import { Artifacts } from '../util/artifacts';
 import { POOL_REGISTRY_ADDRESS, TESTNET_POOL_REGISTRY_ADDRESS } from '../util/secrets';
 import { AssetPool, IAssetPool } from '../models/AssetPool';
 import { deployUnlimitedSupplyERC20Contract, deployLimitedSupplyERC20Contract, getProvider } from '../util/network';
-import { toWei } from 'web3-utils';
+import { toWei, fromWei } from 'web3-utils';
 import { downgradeFromBypassPolls, updateToBypassPolls } from '../util/upgrades';
 
-export default class AssetPoolService {
-    static async getTokenAddress(assetPool: IAssetPool, token: any) {
-        if (token.address) {
-            const provider = getProvider(assetPool.network);
-            const code = await provider.eth.getCode(token.address);
+const ERROR_NO_ASSETPOOL = 'Could not find asset pool for this address';
 
-            if (code === '0x') {
-                return new Error(`No data found at ERC20 address ${token.address}`);
+export default class AssetPoolService {
+    static async getByAddress(assetPool: IAssetPool, address: string) {
+        try {
+            const assetPool = await AssetPool.findOne({ address });
+
+            if (!assetPool) {
+                throw new Error(ERROR_NO_ASSETPOOL);
             }
 
-            return token.address;
-        } else if (token.name && token.symbol && Number(token.totalSupply) > 0) {
+            const proposeWithdrawPollDuration = await callFunction(
+                assetPool.solution.methods.getProposeWithdrawPollDuration(),
+                assetPool.network,
+            );
+            const rewardPollDuration = await callFunction(
+                assetPool.solution.methods.getRewardPollDuration(),
+                assetPool.network,
+            );
+
+            return {
+                assetPool: {
+                    sub: assetPool.sub,
+                    rat: assetPool.rat,
+                    address: assetPool.address,
+                    network: assetPool.network,
+                    bypassPolls: assetPool.bypassPolls,
+                    proposeWithdrawPollDuration,
+                    rewardPollDuration,
+                },
+            };
+        } catch (error) {
+            return error;
+        }
+    }
+
+    static async getPoolToken(assetPool: IAssetPool) {
+        try {
+            const tokenAddress = await callFunction(assetPool.solution.methods.getToken(), assetPool.network);
+            const tokenInstance = tokenContract(assetPool.network, tokenAddress);
+
+            return {
+                token: {
+                    address: tokenInstance.options.address,
+                    name: await callFunction(tokenInstance.methods.name(), assetPool.network),
+                    symbol: await callFunction(tokenInstance.methods.symbol(), assetPool.network),
+                    totalSupply: Number(
+                        fromWei(await callFunction(tokenInstance.methods.totalSupply(), assetPool.network)),
+                    ),
+                    balance: Number(
+                        fromWei(
+                            await callFunction(tokenInstance.methods.balanceOf(assetPool.address), assetPool.network),
+                        ),
+                    ),
+                },
+            };
+        } catch (error) {
+            return error;
+        }
+    }
+
+    static async deployPoolToken(assetPool: IAssetPool, token: any) {
+        if (token.name && token.symbol && Number(token.totalSupply) > 0) {
             const tokenInstance = await deployLimitedSupplyERC20Contract(
                 assetPool.network,
                 token.name,
@@ -39,9 +98,18 @@ export default class AssetPoolService {
         }
     }
 
-    static async addToken(assetPool: IAssetPool, token: any) {
+    static async addPoolToken(assetPool: IAssetPool, token: any) {
         try {
-            const address = await this.getTokenAddress(assetPool, token);
+            if (token.address) {
+                const provider = getProvider(assetPool.network);
+                const code = await provider.eth.getCode(token.address);
+
+                if (code === '0x') {
+                    throw new Error(`No data found at ERC20 address ${token.address}`);
+                }
+            }
+
+            const address = token.address || (await this.deployPoolToken(assetPool, token));
 
             await sendTransaction(
                 assetPool.solution.options.address,

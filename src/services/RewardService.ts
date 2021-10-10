@@ -70,7 +70,7 @@ export default class RewardService {
         }
     }
 
-    static async removeByAddress(address: string) {
+    static async removeAllForAddress(address: string) {
         try {
             const rewards = await Reward.find({ poolAddress: address });
             for (const r of rewards) {

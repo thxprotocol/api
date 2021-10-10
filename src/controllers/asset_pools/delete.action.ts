@@ -6,62 +6,77 @@ import RatService from '../../services/RatService';
 import ClientService from '../../services/ClientService';
 import AssetPoolService from '../../services/AssetPoolService';
 import AccountService from '../../services/AccountService';
+import { IAssetPool } from '../../models/AssetPool';
 
-export const deleteAssetPool = async (req: HttpRequest, res: Response, next: NextFunction) => {
-    try {
-        // Remove rewards for given address
-        const { error } = await RewardService.removeByAddress(req.solution.options.address);
-        if (error) throw new Error(error);
-        try {
-            // Remove withdrawals for given address
-            const { error } = await WithdrawalService.removeByAddress(req.solution.options.address);
-            if (error) throw new Error(error);
-            try {
-                // get rat
-                const { rat, error } = await RatService.get(req.assetPool.rat);
-                if (error) throw new Error(error);
-                try {
-                    // remove client
-                    const { error } = await ClientService.remove(rat.payload.clientId);
-                    if (error) throw new Error(error);
-                    try {
-                        // remove rat
-                        const { error } = await RatService.remove(req.assetPool.rat);
-                        if (error) throw new Error(error);
-                        try {
-                            // Remove asset pool for given address
-                            const { error } = await AssetPoolService.removeByAddress(
-                                req.solution.options.address,
-                            );
-                            if (error) throw new Error(error);
-                            try {
-                                // Remove membership
-                                const { error } = await AccountService.removeByAddress(
-                                    req.assetPool,
-                                    req.solution.options.address,
-                                );
-                                if (error) throw new Error(error);
-                                // Notify users that asset pool has been removed
-                                res.status(204).end();
-                            } catch (e) {
-                                return next(new HttpError(502, 'Could not remove membership.', e));
-                            }
-                        } catch (e) {
-                            return next(new HttpError(502, 'Could not remove asset pool.', e));
-                        }
-                    } catch (e) {
-                        return next(new HttpError(502, 'Could not remove rat.', e));
-                    }
-                } catch (e) {
-                    return next(new HttpError(502, 'Could not remove client.', e));
-                }
-            } catch (e) {
-                return next(new HttpError(502, 'Could not find rat.', e));
-            }
-        } catch (e) {
-            return next(new HttpError(502, 'Could not remove withdrawal.', e));
+export async function deleteAssetPool(req: HttpRequest, res: Response, next: NextFunction) {
+    async function removeAssetPool(address: string) {
+        const { error } = await AssetPoolService.removeByAddress(address);
+        if (error) {
+            return next(new HttpError(502, 'Could not remove asset pool.', new Error(error)));
         }
-    } catch (e) {
-        return next(new HttpError(502, 'Could not remove reward.', e));
     }
-};
+
+    async function removeRat(rat: string) {
+        const { error } = await RatService.remove(rat);
+        if (error) {
+            return next(new HttpError(502, 'Could not remove registration access token.', new Error(error)));
+        }
+    }
+
+    async function removeClient(clientId: string) {
+        const { error } = await ClientService.remove(clientId);
+        if (error) {
+            return next(new HttpError(502, 'Could not remove client.', new Error(error)));
+        }
+    }
+
+    async function getRat(_rat: string) {
+        const { rat, error } = await RatService.get(_rat);
+        if (error) {
+            return next(new HttpError(502, 'Could not find registration access token.', new Error(error)));
+        }
+        return rat;
+    }
+
+    async function removeWithdrawals(address: string) {
+        const { error } = await WithdrawalService.removeAllForAddress(address);
+        if (error) {
+            return next(new HttpError(502, 'Could not remove withdrawals.', new Error(error)));
+        }
+    }
+
+    async function removeRewards(address: string) {
+        const { error } = await RewardService.removeAllForAddress(address);
+        if (error) {
+            return next(new HttpError(502, 'Could not remove rewards.', new Error(error)));
+        }
+    }
+
+    async function removeMembership(assetPool: IAssetPool) {
+        const account = await AccountService.get(assetPool.sub);
+        const { error } = await AccountService.removeMembershipForAddress(assetPool, account.address);
+
+        if (error) {
+            return next(new HttpError(502, 'Could not remove rewards.', new Error(error)));
+        }
+    }
+
+    try {
+        await removeRewards(req.solution.options.address);
+        await removeWithdrawals(req.solution.options.address);
+
+        const rat = await getRat(req.assetPool.rat);
+
+        if (rat) {
+            await removeClient(rat.payload.clientId);
+        }
+
+        await removeRat(req.assetPool.rat);
+        await removeAssetPool(req.solution.options.address);
+        await removeMembership(req.assetPool);
+
+        res.status(204).end();
+    } catch (e) {
+        return next(new HttpError(502, 'Could not remove membership.', e));
+    }
+}

@@ -6,12 +6,11 @@ import AccountService from '../../services/AccountService';
 export const patchAccount = async (req: HttpRequest, res: Response, next: NextFunction) => {
     try {
         const account = await AccountService.get(req.user.sub);
-
-        account.address = req.body.address || account.address;
-        account.memberships = req.body.memberships || account.memberships;
-        account.privateKeys = req.body.privateKeys || account.privateKeys;
-        account.burnProofs = req.body.burnProofs || account.burnProofs;
-        const { error } = await AccountService.patch(account);
+        const { error } = await AccountService.update(account, {
+            address: req.body.address,
+            memberships: req.body.memberships,
+            burnProofs: req.body.burnProofs,
+        });
 
         if (error) {
             if (error.code === 11000) {

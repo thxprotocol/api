@@ -4,7 +4,6 @@ import { Artifacts } from '../util/artifacts';
 import { parseLogs, findEvent } from '../util/events';
 import { Withdrawal, WithdrawalState } from '../models/Withdrawal';
 import { toWei, fromWei } from 'web3-utils';
-import MemberService from './MemberService';
 
 export default class WithdrawalService {
     static async get(assetPool: IAssetPool, withdrawalId: number) {
@@ -103,9 +102,10 @@ export default class WithdrawalService {
         }
     }
 
-    static async removeByAddress(address: string) {
+    static async removeAllForAddress(address: string) {
         try {
             const withdrawals = await Withdrawal.find({ poolAddress: address });
+
             for (const w of withdrawals) {
                 await w.remove();
             }

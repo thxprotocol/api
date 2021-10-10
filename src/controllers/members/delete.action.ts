@@ -17,7 +17,7 @@ export const deleteMember = async (req: HttpRequest, res: Response, next: NextFu
             if (error) {
                 throw new Error(error);
             } else {
-                const { error } = await AccountService.removeByAddress(req.assetPool, req.params.address);
+                const { error } = await AccountService.removeMembershipForAddress(req.assetPool, req.params.address);
 
                 if (error) throw new Error(error);
 
