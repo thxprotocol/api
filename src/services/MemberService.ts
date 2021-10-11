@@ -57,6 +57,16 @@ export default class MemberService {
             return { error };
         }
     }
+    static async findByAddress(address: string) {
+        try {
+            const member = await Member.findOne({ address });
+            return { member };
+        } catch (error) {
+            return {
+                error,
+            };
+        }
+    }
 
     static async getByPoolAddress(assetPool: IAssetPool) {
         try {

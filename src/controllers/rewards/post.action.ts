@@ -1,11 +1,11 @@
 import { Response, NextFunction } from 'express';
-import { Reward } from '../../models/Reward';
 import { HttpError, HttpRequest } from '../../models/Error';
 import { VERSION } from '../../util/secrets';
 import { callFunction, sendTransaction } from '../../util/network';
 import { toWei } from 'web3-utils';
 import { parseLogs, findEvent } from '../../util/events';
 import { Artifacts } from '../../util/artifacts';
+import RewardService from '../../services/RewardService';
 
 /**
  * @swagger
@@ -63,64 +63,10 @@ export const postReward = async (req: HttpRequest, res: Response, next: NextFunc
             const pollId = Number(event.args.id);
 
             try {
-                const reward = new Reward({
-                    id,
-                    poolAddress: req.solution.options.address,
-                    withdrawAmount: await callFunction(
-                        req.solution.methods.getWithdrawAmount(id),
-                        req.assetPool.network,
-                    ),
-                    withdrawDuration: await callFunction(
-                        req.solution.methods.getWithdrawDuration(id),
-                        req.assetPool.network,
-                    ),
-                    state: 0,
-                });
-
-                await reward.save();
-
-                try {
-                    const duration = Number(
-                        await callFunction(req.solution.methods.getRewardPollDuration(), req.assetPool.network),
-                    );
-
-                    if (req.assetPool.bypassPolls && duration === 0) {
-                        try {
-                            const tx = await sendTransaction(
-                                req.solution.options.address,
-                                req.solution.methods.rewardPollFinalize(pollId),
-                                req.assetPool.network,
-                            );
-
-                            try {
-                                const events = parseLogs(Artifacts.IDefaultDiamond.abi, tx.logs);
-                                const event = findEvent('RewardPollEnabled', events);
-
-                                if (event) {
-                                    reward.withdrawAmount = await callFunction(
-                                        req.solution.methods.getWithdrawAmount(id),
-                                        req.assetPool.network,
-                                    );
-                                    reward.state = 1;
-
-                                    await reward.save();
-                                }
-
-                                res.redirect(`/${VERSION}/rewards/${id}`);
-                            } catch (err) {
-                                return next(new HttpError(500, 'Could not parse the transaction event logs.', err));
-                            }
-                        } catch (e) {
-                            return next(new HttpError(502, 'Could not finalize the reward.'));
-                        }
-                    } else {
-                        res.redirect(`/${VERSION}/rewards/${id}`);
-                    }
-                } catch (e) {
-                    return next(new HttpError(502, 'Could determine if governance is disabled for this reward.', e));
-                }
+                await RewardService.post(req.assetPool, req.solution, id, pollId, 0);
+                res.redirect(`/${VERSION}/rewards/${id}`);
             } catch (e) {
-                return next(new HttpError(502, 'Could not store the reward in the database.', e));
+                return next(new HttpError(502, e.message, e));
             }
         } catch (err) {
             return next(new HttpError(500, 'Could not parse the transaction event logs.', err));

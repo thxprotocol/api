@@ -1,11 +1,11 @@
 import { Response, NextFunction } from 'express';
 import { callFunction, sendTransaction } from '../../util/network';
-import { Account } from '../../models/Account';
 import { HttpError, HttpRequest } from '../../models/Error';
 import { parseLogs, findEvent } from '../../util/events';
 import { Artifacts } from '../../util/artifacts';
-import { Withdrawal } from '../../models/Withdrawal';
-import { Member } from '../../models/Member';
+import AccountService from '../../services/AccountService';
+import WithdrawalService from '../../services/WithdrawalService';
+import MemberService from '../../services/MemberService';
 
 export const postCallUpgradeAddress = async (req: HttpRequest, res: Response, next: NextFunction) => {
     try {
@@ -30,7 +30,7 @@ export const postCallUpgradeAddress = async (req: HttpRequest, res: Response, ne
 
             if (event) {
                 try {
-                    const account = await Account.findOne({ address: event.args.previousAddress });
+                    const { account } = await AccountService.getByAddress(event.args.previousAddress);
 
                     account.address = event.args.newAddress;
                     account.privateKey = '';
@@ -38,15 +38,16 @@ export const postCallUpgradeAddress = async (req: HttpRequest, res: Response, ne
                     await account.save();
 
                     try {
-                        const withdrawals = await Withdrawal.find({ beneficiary: event.args.previousAddress });
-
+                        const { withdrawals, error } = await WithdrawalService.getByBeneficiary(
+                            event.args.previousAddress,
+                        );
+                        if (error) throw new Error(error);
                         for (const withdrawal of withdrawals) {
                             withdrawal.beneficiary = event.args.newAddress;
-
                             await withdrawal.save();
                         }
 
-                        const member = await Member.findOne({ address: event.args.previousAddress });
+                        const { member } = await MemberService.findByAddress(event.args.previousAddress);
 
                         member.address = event.args.newAddress;
 

@@ -245,4 +245,30 @@ export default class AssetPoolService {
             return { error };
         }
     }
+
+    static async getByClient(clientId: string) {
+        try {
+            const assetPools = await AssetPool.find({ aud: clientId });
+            return { assetPools };
+        } catch (error) {
+            return { error };
+        }
+    }
+
+    static async findByNetwork(network: number) {
+        try {
+            const assetPools = await AssetPool.find({ network });
+            return { assetPools };
+        } catch (error) {
+            return { error };
+        }
+    }
+
+    static async countByNetwork(network: NetworkProvider) {
+        try {
+            return await AssetPool.countDocuments({ network });
+        } catch (error) {
+            return { error };
+        }
+    }
 }

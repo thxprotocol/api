@@ -5,6 +5,8 @@ import { parseLogs, findEvent } from '../util/events';
 import { Withdrawal, WithdrawalState } from '../models/Withdrawal';
 import { toWei, fromWei } from 'web3-utils';
 
+const ERROR_NO_WITHDRAWAL = 'Could not find an withdrawal for this beneficiary';
+
 export default class WithdrawalService {
     static async get(assetPool: IAssetPool, withdrawalId: number) {
         try {
@@ -109,6 +111,29 @@ export default class WithdrawalService {
             for (const w of withdrawals) {
                 await w.remove();
             }
+        } catch (error) {
+            return { error };
+        }
+    }
+
+    static async getByBeneficiary(beneficiary: string) {
+        try {
+            const withdrawals = await Withdrawal.find({ beneficiary });
+
+            if (!withdrawals) {
+                throw new Error(ERROR_NO_WITHDRAWAL);
+            }
+
+            return { withdrawals };
+        } catch (error) {
+            return { error };
+        }
+    }
+
+    static async countByPoolAddress(poolAddress: string) {
+        try {
+            const count = Withdrawal.countDocuments({ poolAddress });
+            return count;
         } catch (error) {
             return { error };
         }

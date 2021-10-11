@@ -1,34 +1,36 @@
 import { Response, Request, NextFunction } from 'express';
 import { HttpError } from '../../models/Error';
 import { getAdmin, getProvider, NetworkProvider } from '../../util/network';
-import { Account } from '../../models/Account';
-import { Withdrawal } from '../../models/Withdrawal';
-import { Reward } from '../../models/Reward';
-import { AssetPool } from '../../models/AssetPool';
-import { Client } from '../../models/Client';
+import AccountService from '../../services/AccountService';
+import AssetPoolService from '../../services/AssetPoolService';
+import RewardService from '../../services/RewardService';
+import WithdrawalService from '../../services/WithdrawalService';
+import ClientService from '../../services/ClientService';
 
 async function getAvgRewardsPerPool(npid: number) {
     const rewardsPerPool = [];
-    const assetPools = await AssetPool.find({ network: npid });
-
+    const { assetPools, error } = await AssetPoolService.findByNetwork(npid);
+    if (error) throw new Error(error);
     for (const p of assetPools) {
-        rewardsPerPool.push(await Reward.countDocuments({ poolAddress: p.address }));
+        const count = await RewardService.countByPoolAddress(p.address);
+        rewardsPerPool.push(count);
     }
 
-    const sum = rewardsPerPool.reduce((a: number, b: number) => a + b, 0);
+    const sum = Number(rewardsPerPool.reduce((a: number, b: number) => a + b, 0));
 
     return sum / assetPools.length || 0;
 }
 
 async function getAvgWithdrawsPerPool(npid: number) {
     const withdrawalsPerPool = [];
-    const assetPools = await AssetPool.find({ network: npid });
+    const { assetPools } = await AssetPoolService.findByNetwork(npid);
 
     for (const p of assetPools) {
-        withdrawalsPerPool.push(await Withdrawal.countDocuments({ poolAddress: p.address }));
+        const count = await WithdrawalService.countByPoolAddress(p.address);
+        withdrawalsPerPool.push(count);
     }
 
-    const sum = withdrawalsPerPool.reduce((a: number, b: number) => a + b, 0);
+    const sum = Number(withdrawalsPerPool.reduce((a: number, b: number) => a + b, 0));
 
     return sum / assetPools.length || 0;
 }
@@ -40,11 +42,11 @@ export const getMetrics = async (req: Request, res: Response, next: NextFunction
         const address = getAdmin(NetworkProvider.Main).address;
 
         const jsonData = {
-            count_wallets: await Account.countDocuments(),
-            count_applications: await Client.countDocuments({ 'payload.scope': 'openid admin' }),
+            count_wallets: await AccountService.count(),
+            count_applications: await ClientService.countScope('openid admin'),
             count_asset_pools: {
-                mainnet: await AssetPool.countDocuments({ network: NetworkProvider.Main }),
-                testnet: await AssetPool.countDocuments({ network: NetworkProvider.Test }),
+                mainnet: await AssetPoolService.countByNetwork(NetworkProvider.Main),
+                testnet: await AssetPoolService.countByNetwork(NetworkProvider.Test),
             },
             count_transactions: {
                 mainnet:

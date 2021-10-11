@@ -338,4 +338,12 @@ export default class AccountService {
             return { error };
         }
     }
+
+    static async count() {
+        try {
+            return await Account.countDocuments();
+        } catch (error) {
+            return { error };
+        }
+    }
 }
