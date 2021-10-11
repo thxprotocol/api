@@ -18,21 +18,20 @@ import { downgradeFromBypassPolls, updateToBypassPolls } from '../util/upgrades'
 const ERROR_NO_ASSETPOOL = 'Could not find asset pool for this address';
 
 export default class AssetPoolService {
-    static async getByAddress(assetPool: IAssetPool, address: string) {
+    static async getByAddress(address: string) {
         try {
             const assetPool = await AssetPool.findOne({ address });
+            assetPool.solution = solutionContract(assetPool.network, address);
 
             if (!assetPool) {
                 throw new Error(ERROR_NO_ASSETPOOL);
             }
 
-            const proposeWithdrawPollDuration = await callFunction(
-                assetPool.solution.methods.getProposeWithdrawPollDuration(),
-                assetPool.network,
+            const proposeWithdrawPollDuration = Number(
+                await callFunction(assetPool.solution.methods.getProposeWithdrawPollDuration(), assetPool.network),
             );
-            const rewardPollDuration = await callFunction(
-                assetPool.solution.methods.getRewardPollDuration(),
-                assetPool.network,
+            const rewardPollDuration = Number(
+                await callFunction(assetPool.solution.methods.getRewardPollDuration(), assetPool.network),
             );
 
             return {

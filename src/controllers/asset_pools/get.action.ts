@@ -4,7 +4,7 @@ import AssetPoolService from '../../services/AssetPoolService';
 
 export const getAssetPool = async (req: HttpRequest, res: Response, next: NextFunction) => {
     try {
-        const { assetPool, error } = await AssetPoolService.getByAddress(req.assetPool, req.params.address);
+        const { assetPool, error } = await AssetPoolService.getByAddress(req.params.address);
 
         if (error) {
             return next(new HttpError(500, 'Could not get this asset pool.'));
