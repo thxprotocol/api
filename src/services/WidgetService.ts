@@ -21,8 +21,7 @@ export default class WidgetService {
 
     static async getAll(sub: string) {
         try {
-            const widgets = await Widget.find({ sub }).map((widget) => widget.rat);
-            return { widgets };
+            return { result: (await Widget.find({ sub: sub })).map((widget) => widget.rat) };
         } catch (error) {
             return { error };
         }
