@@ -8,11 +8,23 @@ import { toWei, fromWei } from 'web3-utils';
 const ERROR_NO_WITHDRAWAL = 'Could not find an withdrawal for this beneficiary';
 
 export default class WithdrawalService {
-    static async get(assetPool: IAssetPool, withdrawalId: number) {
+    static async get(poolAddress: string, withdrawalId: number) {
         try {
-            const withdrawal = await Withdrawal.findOne({ poolAddress: assetPool.address, id: withdrawalId });
+            const withdrawal = await Withdrawal.findOne({ poolAddress, id: withdrawalId });
 
             return { withdrawal };
+        } catch (error) {
+            return { error };
+        }
+    }
+
+    static async getAll(beneficiary: string, poolAddress: string) {
+        try {
+            const withdrawals = await Withdrawal.find({
+                beneficiary,
+                poolAddress,
+            });
+            return { withdrawals };
         } catch (error) {
             return { error };
         }

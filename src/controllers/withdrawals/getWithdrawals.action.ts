@@ -1,6 +1,7 @@
 import { NextFunction, Response } from 'express';
-import { Withdrawal, WithdrawalDocument } from '../../models/Withdrawal';
+import WithdrawalService from '../../services/WithdrawalService';
 import { HttpError, HttpRequest } from '../../models/Error';
+import { WithdrawalDocument } from '../../models/Withdrawal';
 
 /**
  * @swagger
@@ -70,10 +71,10 @@ import { HttpError, HttpRequest } from '../../models/Error';
  */
 export const getWithdrawals = async (req: HttpRequest, res: Response, next: NextFunction) => {
     try {
-        const withdrawals = await Withdrawal.find({
-            beneficiary: req.query.member as string,
-            poolAddress: req.solution.options.address,
-        });
+        const { withdrawals } = await WithdrawalService.getAll(
+            req.query.member as string,
+            req.solution.options.address,
+        );
 
         res.json(
             withdrawals.map((w: WithdrawalDocument) => {

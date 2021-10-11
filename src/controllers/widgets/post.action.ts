@@ -2,7 +2,7 @@ import axios from 'axios';
 import { Response, NextFunction } from 'express';
 import { HttpError, HttpRequest } from '../../models/Error';
 import { ISSUER, WIDGETS_URL } from '../../util/secrets';
-import { Widget } from '../../models/Widget';
+import WidgetService from '../../services/WidgetService';
 
 export const postWidget = async (req: HttpRequest, res: Response, next: NextFunction) => {
     try {
@@ -21,17 +21,12 @@ export const postWidget = async (req: HttpRequest, res: Response, next: NextFunc
         });
 
         const rat = r.data.registration_access_token;
-        const widget = new Widget({
-            sub: req.user.sub,
+        const { widget } = await WidgetService.post(
+            req.user.sub,
             rat,
-            metadata: {
-                rewardId: req.body.metadata.rewardId,
-                poolAddress: req.body.metadata.poolAddress,
-            },
-        });
-
-        await widget.save();
-
+            req.body.metadata.rewardId,
+            req.body.metadata.poolAddress,
+        );
         res.status(201).json(widget);
     } catch (e) {
         return next(new HttpError(502, 'Could not register your widget.'));
