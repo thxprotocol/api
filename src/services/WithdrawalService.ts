@@ -108,14 +108,15 @@ export default class WithdrawalService {
         }
     }
 
-    static async getWithdrawals(address: string, member: string, rewardId: number, state: number) {
+    static async getWithdrawals(poolAddress: string, beneficiary?: string, rewardId?: number, state?: number) {
         try {
             const withdrawals = await Withdrawal.find({
-                ...(member ? { beneficiary: member } : {}),
-                ...(address ? { poolAddress: address } : {}),
-                ...(rewardId ? { rewardId } : {}),
-                ...(state ? { state } : {}),
+                ...(poolAddress ? { poolAddress } : {}),
+                ...(beneficiary ? { beneficiary } : {}),
+                ...(rewardId || rewardId === 0 ? { rewardId } : {}),
+                ...(state || state === 0 ? { state } : {}),
             });
+
             return { withdrawals };
         } catch (error) {
             return { error };
