@@ -12,6 +12,7 @@ export type WithdrawalDocument = mongoose.Document & {
     amount: number;
     approved: boolean;
     state: number;
+    rewardId: number;
     poll: {
         startTime: number;
         endTime: number;
@@ -29,6 +30,7 @@ const withdrawalSchema = new mongoose.Schema(
         amount: Number,
         approved: Boolean,
         state: Number,
+        rewardId: Number,
         poll: {
             startTime: Number,
             endTime: Number,
