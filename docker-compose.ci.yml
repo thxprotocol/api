@@ -1,14 +1,14 @@
 version: '3.5'
 
 services:
-    mongo:
-        container_name: thx_mongo
+    api_ci_mongo:
+        container_name: thx_api_ci_mongo
         image: mongo
         env_file: .env.ci
         networks:
-            - api_network
+            - thx_ci_network
         ports:
-            - 27017:27017
+            - 27018:27017
         environment:
             MONGO_INITDB_ROOT_USERNAME: root
             MONGO_INITDB_ROOT_PASSWORD: root
@@ -17,12 +17,12 @@ services:
             DB_USER: $MONGODB_USER
             DB_PASSWORD: $MONGODB_PASSWORD
 
-    node:
-        container_name: thx_node
+    api_ci_node:
+        container_name: thx_api_ci_node
         image: node:12
         env_file: .env.ci
         networks:
-            - api_network
+            - thx_ci_network
         volumes:
             - ./:/usr/src/service
         working_dir: /usr/src/service
@@ -30,23 +30,23 @@ services:
         environment:
             - NODE_ENV=test
         depends_on:
-            - mainnet
-            - testnet
-            - mongo
+            - api_ci_mainnet
+            - api_ci_testnet
+            - api_ci_mongo
         links:
-            - mainnet
-            - testnet
-            - mongo
+            - api_ci_mainnet
+            - api_ci_testnet
+            - api_ci_mongo
         ports:
-            - 3000:3000
+            - 3003:3000
 
-    testnet:
-        container_name: thx_testnet
+    api_ci_testnet:
+        container_name: thx_api_ci_testnet
         image: trufflesuite/ganache-cli:latest
         networks:
-            - api_network
+            - thx_ci_network
         ports:
-            - '8547:8545'
+            - '8549:8545'
         volumes:
             - ./:/ganache_data
         command:
@@ -57,13 +57,13 @@ services:
                 '-l 25000000',
             ]
 
-    mainnet:
-        container_name: thx_mainnet
+    api_ci_mainnet:
+        container_name: thx_api_ci_mainnet
         image: trufflesuite/ganache-cli:latest
         networks:
-            - api_network
+            - thx_ci_network
         ports:
-            - '8546:8545'
+            - '8548:8545'
         volumes:
             - ./:/ganache_data
         command:
@@ -75,5 +75,5 @@ services:
             ]
 
 networks:
-    api_network:
-        name: api_network
+    thx_ci_network:
+        name: thx_ci_network
