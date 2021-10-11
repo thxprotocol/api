@@ -31,4 +31,4 @@ jobs:
               run: npm run build:keys
 
             - name: Run test
-              run: docker compose -f docker-compose.ci.yml run node npm test:ci
+              run: docker compose -f docker-compose.ci.yml run node npm run test:ci
