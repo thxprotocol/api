@@ -64,7 +64,7 @@ export default class WithdrawalService {
             beneficiary,
             approved,
             state: WithdrawalState.Pending,
-            ...(rewardId ? { rewardId } : {}),
+            rewardId,
             poll: {
                 startTime,
                 endTime,
