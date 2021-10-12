@@ -2,13 +2,16 @@ import { body, header, param, query } from 'express-validator';
 import { isAddress } from 'web3-utils';
 
 export const validations = {
-    getWithdrawals: [header('AssetPool').exists()],
-    getWithdrawalsForMember: [
+    getWithdrawals: [
+        header('AssetPool').exists(),
         query('member')
-            .exists()
+            .optional()
+            .isString()
             .custom((value) => {
                 return isAddress(value);
             }),
+        query('rewardId').optional().isNumeric(),
+        query('state').optional().isNumeric(),
     ],
     getWithdrawal: [param('id').exists().isNumeric()],
     postWithdrawal: [
