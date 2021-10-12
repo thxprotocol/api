@@ -70,8 +70,10 @@ import WithdrawalService from '../../services/WithdrawalService';
  */
 export const getWithdrawals = async (req: HttpRequest, res: Response, next: NextFunction) => {
     try {
-        const { withdrawals, error } = await WithdrawalService.getWithdrawals(
+        const { results, error } = await WithdrawalService.getWithdrawals(
             req.solution.options.address,
+            Number(req.query.page),
+            Number(req.query.limit),
             req.query.member && req.query.member.length > 0 ? String(req.query.member) : undefined,
             !isNaN(Number(req.query.rewardId)) ? Number(req.query.rewardId) : undefined,
             !isNaN(Number(req.query.state)) ? Number(req.query.state) : undefined,
@@ -79,7 +81,7 @@ export const getWithdrawals = async (req: HttpRequest, res: Response, next: Next
         if (error) throw new Error(error);
 
         res.json(
-            withdrawals.map((w: WithdrawalDocument) => {
+            results.results.map((w: WithdrawalDocument) => {
                 return {
                     id: w.id,
                     beneficiary: w.beneficiary,

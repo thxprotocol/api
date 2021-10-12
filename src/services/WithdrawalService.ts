@@ -5,6 +5,7 @@ import { parseLogs, findEvent } from '../util/events';
 import { Withdrawal, WithdrawalState } from '../models/Withdrawal';
 import { toWei, fromWei } from 'web3-utils';
 import MemberService from './MemberService';
+import { paginatedResults } from '../util/pagination';
 
 export default class WithdrawalService {
     static async get(assetPool: IAssetPool, withdrawalId: number) {
@@ -108,16 +109,31 @@ export default class WithdrawalService {
         }
     }
 
-    static async getWithdrawals(poolAddress: string, beneficiary?: string, rewardId?: number, state?: number) {
+    static async getWithdrawals(
+        poolAddress: string,
+        page: number,
+        limit: number,
+        beneficiary?: string,
+        rewardId?: number,
+        state?: number,
+    ) {
         try {
-            const withdrawals = await Withdrawal.find({
+            const query = {
                 ...(poolAddress ? { poolAddress } : {}),
                 ...(beneficiary ? { beneficiary } : {}),
                 ...(rewardId || rewardId === 0 ? { rewardId } : {}),
                 ...(state || state === 0 ? { state } : {}),
-            });
+            };
+            const { results } = await paginatedResults(Withdrawal, page, limit, query);
 
-            return { withdrawals };
+            // const withdrawals = await Withdrawal.find({
+            //     ...(poolAddress ? { poolAddress } : {}),
+            //     ...(beneficiary ? { beneficiary } : {}),
+            //     ...(rewardId || rewardId === 0 ? { rewardId } : {}),
+            //     ...(state || state === 0 ? { state } : {}),
+            // });
+
+            return { results };
         } catch (error) {
             return { error };
         }
