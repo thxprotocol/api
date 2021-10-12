@@ -4,27 +4,18 @@ import { Artifacts } from '../util/artifacts';
 import { parseLogs, findEvent } from '../util/events';
 import { Withdrawal, WithdrawalState } from '../models/Withdrawal';
 import { toWei, fromWei } from 'web3-utils';
+import MemberService from './MemberService';
 
 const ERROR_NO_WITHDRAWAL = 'Could not find an withdrawal for this beneficiary';
 
 export default class WithdrawalService {
-    static async get(poolAddress: string, withdrawalId: number) {
+    static async get(assetPool: IAssetPool, withdrawalId: number) {
         try {
-            const withdrawal = await Withdrawal.findOne({ poolAddress, id: withdrawalId });
-
-            return { withdrawal };
-        } catch (error) {
-            return { error };
-        }
-    }
-
-    static async getAll(beneficiary: string, poolAddress: string) {
-        try {
-            const withdrawals = await Withdrawal.find({
-                beneficiary,
-                poolAddress,
+            const withdrawal = await Withdrawal.findOne({
+                poolAddress: assetPool.address,
+                id: withdrawalId,
             });
-            return { withdrawals };
+            return { withdrawal };
         } catch (error) {
             return { error };
         }
@@ -49,7 +40,7 @@ export default class WithdrawalService {
         }
     }
 
-    static async save(assetPool: IAssetPool, id: number, memberId: number) {
+    static async save(assetPool: IAssetPool, id: number, memberId: number, rewardId?: number) {
         const existingWithdrawal = await Withdrawal.findOne({ id, poolAddress: assetPool.address });
 
         if (existingWithdrawal) {
@@ -75,6 +66,7 @@ export default class WithdrawalService {
             beneficiary,
             approved,
             state: WithdrawalState.Pending,
+            rewardId,
             poll: {
                 startTime,
                 endTime,
@@ -87,7 +79,10 @@ export default class WithdrawalService {
 
     static async withdrawPollFinalize(assetPool: IAssetPool, withdrawalId: number) {
         try {
-            const withdrawal = await Withdrawal.findOne({ poolAddress: assetPool.address, id: withdrawalId });
+            const withdrawal = await Withdrawal.findOne({
+                poolAddress: assetPool.address,
+                id: withdrawalId,
+            });
             const tx = await sendTransaction(
                 assetPool.solution.options.address,
                 assetPool.solution.methods.withdrawPollFinalize(withdrawalId),
@@ -105,12 +100,26 @@ export default class WithdrawalService {
             if (eventWithdrawn) {
                 withdrawal.state = WithdrawalState.Withdrawn;
             }
-
             await withdrawal.save();
 
             return {
                 result: true,
             };
+        } catch (error) {
+            return { error };
+        }
+    }
+
+    static async getWithdrawals(poolAddress: string, beneficiary?: string, rewardId?: number, state?: number) {
+        try {
+            const withdrawals = await Withdrawal.find({
+                ...(poolAddress ? { poolAddress } : {}),
+                ...(beneficiary ? { beneficiary } : {}),
+                ...(rewardId || rewardId === 0 ? { rewardId } : {}),
+                ...(state || state === 0 ? { state } : {}),
+            });
+
+            return { withdrawals };
         } catch (error) {
             return { error };
         }
@@ -127,8 +136,8 @@ export default class WithdrawalService {
             return { error };
         }
     }
-
-    static async getByBeneficiary(beneficiary: string) {
+	
+	static async getByBeneficiary(beneficiary: string) {
         try {
             const withdrawals = await Withdrawal.find({ beneficiary });
 
