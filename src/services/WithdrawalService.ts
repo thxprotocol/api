@@ -9,10 +9,10 @@ import MemberService from './MemberService';
 const ERROR_NO_WITHDRAWAL = 'Could not find an withdrawal for this beneficiary';
 
 export default class WithdrawalService {
-    static async get(assetPool: IAssetPool, withdrawalId: number) {
+    static async get(poolAddress: string, withdrawalId: number) {
         try {
             const withdrawal = await Withdrawal.findOne({
-                poolAddress: assetPool.address,
+                poolAddress,
                 id: withdrawalId,
             });
             return { withdrawal };
