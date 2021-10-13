@@ -63,10 +63,7 @@ export const postReward = async (req: HttpRequest, res: Response, next: NextFunc
             const pollId = Number(event.args.id);
 
             try {
-                const { error } = await RewardService.create(req.assetPool, req.solution, id, pollId, 0);
-                if (error) {
-                    return next(new HttpError(502, error));
-                }
+                await RewardService.create(req.assetPool, req.solution, id, pollId, 0);
                 res.redirect(`/${VERSION}/rewards/${id}`);
             } catch (e) {
                 return next(new HttpError(502, e.message, e));

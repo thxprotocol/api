@@ -12,12 +12,9 @@ export const patchAssetPool = async (req: HttpRequest, res: Response, next: Next
         return next(new HttpError(404, 'Could not find an asset pool for this address.'));
     }
     try {
-        const { error } = await AssetPoolService.patch(assetPool, req.body.bypassPolls, req.solution);
-        if (error) {
-            return next(new HttpError(502, error));
-        }
+        await AssetPoolService.patch(assetPool, req.body.bypassPolls, req.solution);
     } catch (error) {
-        return next(new HttpError(502, 'Could not update the bypassPolls for this asset pool.', error));
+        return next(new HttpError(502, error.message, error));
     }
 
     const rewardPollDuration = await callFunction(req.solution.methods.getRewardPollDuration(), req.assetPool.network);

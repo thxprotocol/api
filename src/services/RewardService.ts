@@ -102,18 +102,17 @@ export default class RewardService {
                 );
 
                 if (assetPool.bypassPolls && duration === 0) {
-                    const { error } = await this.finalizePoll(assetPool, solution, reward, pollId);
-                    if (error) {
-                        return { error };
+                    try {
+                        await this.finalizePoll(assetPool, solution, reward, pollId);
+                    } catch (e) {
+                        throw new Error(e.message);
                     }
                 }
             } catch (e) {
-                const error = ERROR_GOVERNANCE_DISABLED;
-                return { error };
+                throw new Error(ERROR_GOVERNANCE_DISABLED);
             }
         } catch (e) {
-            const error = DATABASE_STORE_ERROR;
-            return { error };
+            throw new Error(DATABASE_STORE_ERROR);
         }
     }
 
@@ -128,7 +127,6 @@ export default class RewardService {
             try {
                 const events = parseLogs(Artifacts.IDefaultDiamond.abi, tx.logs);
                 const event = findEvent('RewardPollEnabled', events);
-
                 if (event) {
                     reward.withdrawAmount = await callFunction(
                         solution.methods.getWithdrawAmount(reward.id),
@@ -138,12 +136,10 @@ export default class RewardService {
                     await reward.save();
                 }
             } catch (err) {
-                const error = TRANSACTION_EVENT_ERROR;
-                return { error };
+                throw new Error(TRANSACTION_EVENT_ERROR);
             }
         } catch (e) {
-            const error = REWARD_ERROR;
-            return { error };
+            throw new Error(REWARD_ERROR);
         }
     }
 

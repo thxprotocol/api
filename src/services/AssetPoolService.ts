@@ -226,8 +226,7 @@ export default class AssetPoolService {
                     assetPool.bypassPolls = bypassPolls;
                     await assetPool.save();
                 } catch (error) {
-                    error = 'Could not update set bypassPolls (true) for this asset pool.';
-                    return { error };
+                    throw new Error('Could not update set bypassPolls (true) for this asset pool.');
                 }
             }
 
@@ -237,12 +236,11 @@ export default class AssetPoolService {
                     assetPool.bypassPolls = bypassPolls;
                     await assetPool.save();
                 } catch (error) {
-                    error = 'Could not update set bypassPolls (false) for this asset pool.';
-                    return { error };
+                    throw new Error('Could not update set bypassPolls (false) for this asset pool.');
                 }
             }
         } catch (error) {
-            return { error };
+            throw new Error(error);
         }
     }
 
