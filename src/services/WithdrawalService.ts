@@ -125,14 +125,6 @@ export default class WithdrawalService {
                 ...(state || state === 0 ? { state } : {}),
             };
             const { results } = await paginatedResults(Withdrawal, page, limit, query);
-
-            // const withdrawals = await Withdrawal.find({
-            //     ...(poolAddress ? { poolAddress } : {}),
-            //     ...(beneficiary ? { beneficiary } : {}),
-            //     ...(rewardId || rewardId === 0 ? { rewardId } : {}),
-            //     ...(state || state === 0 ? { state } : {}),
-            // });
-
             return { results };
         } catch (error) {
             return { error };

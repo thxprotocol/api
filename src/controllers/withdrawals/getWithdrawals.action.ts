@@ -80,8 +80,8 @@ export const getWithdrawals = async (req: HttpRequest, res: Response, next: Next
         );
         if (error) throw new Error(error);
 
-        res.json(
-            results.results.map((w: WithdrawalDocument) => {
+        res.json({
+            results: results.results.map((w: WithdrawalDocument) => {
                 return {
                     id: w.id,
                     beneficiary: w.beneficiary,
@@ -98,7 +98,9 @@ export const getWithdrawals = async (req: HttpRequest, res: Response, next: Next
                     },
                 };
             }),
-        );
+            next: results.next,
+            previous: results.previous,
+        });
     } catch (err) {
         next(new HttpError(502, 'Could not get all withdrawal information from the network.', err));
     }

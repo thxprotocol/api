@@ -4,8 +4,8 @@ import { isAddress } from 'web3-utils';
 export const validations = {
     getWithdrawals: [
         header('AssetPool').exists(),
-        query('page').optional().exists(),
-        query('limit').optional().exists(),
+        query('page').exists().isNumeric(),
+        query('limit').exists().isNumeric(),
         query('member')
             .optional()
             .isString()
