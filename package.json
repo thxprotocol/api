@@ -24,7 +24,7 @@
         "watch:node": "nodemon dist/src/server.js",
         "watch:test": "npm run test -- --watchAll",
         "watch:debug": "concurrently -k -p \"[{name}]\" -n \"TypeScript,Node\" -c \"yellow.bold,cyan.bold,green.bold\" \"npm run watch:ts\" \"npm run watch:sass\" \"npm run serve:debug\"",
-        "reset": "rm -rf ./cache && unzip cache.zip -d ./cache && rm -rf ./cach/__MACOSX",
+        "reset": "rm -rf ./cache && unzip cache.zip -d ./cache && rm -rf ./cache/__MACOSX",
         "test": "docker compose -f docker-compose.ci.yml run --rm api_ci_node npx jest --forceExit",
         "test:ci": "npx jest --forceExit",
         "deploy:facets": "docker compose run --rm node npx ts-node scripts/deployFacets.ts",

@@ -2,12 +2,12 @@ import Provider from 'oidc-provider';
 import express, { Request, Response, NextFunction, urlencoded } from 'express';
 import configuration from './config';
 import { HttpError } from '../models/Error';
-import { ENVIRONMENT, GTM, ISSUER, SECURE_KEY } from '../util/secrets';
+import { ENVIRONMENT, GTM, API_URL, SECURE_KEY } from '../util/secrets';
 import MailService from '../services/MailService';
 import AccountService from '../services/AccountService';
 import { IAccountUpdates } from '../models/Account';
 
-const oidc = new Provider(ISSUER, configuration as any);
+const oidc = new Provider(API_URL, configuration as any);
 const router = express.Router();
 
 oidc.proxy = true;

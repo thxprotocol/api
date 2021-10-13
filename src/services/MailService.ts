@@ -3,7 +3,7 @@ import { AccountDocument } from '../models/Account';
 import { sendMail } from '../util/mail';
 import { createRandomToken } from '../util/tokens';
 import path from 'path';
-import { ISSUER, SECURE_KEY, WALLET_URL } from '../util/secrets';
+import { API_URL, SECURE_KEY, WALLET_URL } from '../util/secrets';
 import { encryptString } from '../util/encrypt';
 
 export default class MailService {
@@ -17,7 +17,7 @@ export default class MailService {
                 {
                     signupToken: account.signupToken,
                     returnUrl,
-                    baseUrl: ISSUER,
+                    baseUrl: API_URL,
                 },
                 { async: true },
             );
@@ -43,7 +43,7 @@ export default class MailService {
                     authenticationToken: encryptedAuthToken,
                     secureKey,
                     returnUrl: WALLET_URL,
-                    baseUrl: ISSUER,
+                    baseUrl: API_URL,
                 },
                 { async: true },
             );
@@ -71,7 +71,7 @@ export default class MailService {
                     passwordResetToken: account.passwordResetToken,
                     uid,
                     returnUrl,
-                    baseUrl: ISSUER,
+                    baseUrl: API_URL,
                 },
                 { async: true },
             );

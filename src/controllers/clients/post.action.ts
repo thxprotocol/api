@@ -1,14 +1,14 @@
 import axios from 'axios';
 import { Response, NextFunction } from 'express';
 import { HttpError, HttpRequest } from '../../models/Error';
-import { ISSUER } from '../../util/secrets';
+import { AUTH_URL } from '../../util/secrets';
 import AccountService from '../../services/AccountService';
 
 export const postClient = async (req: HttpRequest, res: Response, next: NextFunction) => {
     try {
         const r = await axios({
             method: 'POST',
-            url: ISSUER + '/reg',
+            url: AUTH_URL + '/reg',
             data: {
                 application_type: 'web',
                 grant_types: ['authorization_code'],

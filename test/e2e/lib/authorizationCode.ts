@@ -1,4 +1,4 @@
-import { ISSUER } from '../../../src/util/secrets';
+import { AUTH_URL } from '../../../src/util/secrets';
 
 function getPath(url: string) {
     return '/' + url.split('/')[3] + '/' + url.split('/')[4];
@@ -26,7 +26,7 @@ export const getAuthCodeToken = async (http: any, scope: string, userEmail: stri
                 client_id: clientId,
                 client_secret: clientSecret,
                 grant_type: 'authorization_grant',
-                authority: ISSUER,
+                authority: AUTH_URL,
                 response_type: 'code',
                 scope,
                 response_mode: 'query',

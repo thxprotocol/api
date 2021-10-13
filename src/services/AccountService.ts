@@ -3,7 +3,7 @@ import { Account, AccountDocument, ERC20Token, IAccountUpdates } from '../models
 import { callFunction } from '../util/network';
 import { createRandomToken } from '../util/tokens';
 import { decryptString } from '../util/decrypt';
-import { ISSUER, SECURE_KEY } from '../util/secrets';
+import { AUTH_URL, SECURE_KEY } from '../util/secrets';
 import { checkPasswordStrength } from '../util/passwordcheck';
 import Web3 from 'web3';
 import axios from 'axios';
@@ -156,7 +156,7 @@ export default class AccountService {
             const account = await Account.findOne({ address });
             const r = await axios({
                 method: 'POST',
-                url: ISSUER + '/reg',
+                url: AUTH_URL + '/reg',
                 data: {
                     application_type: 'web',
                     grant_types: ['client_credentials'],

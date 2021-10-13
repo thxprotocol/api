@@ -1,14 +1,14 @@
 import jwt from 'express-jwt';
 import jwksRsa from 'jwks-rsa';
-import { ISSUER } from '../util/secrets';
+import { AUTH_URL } from '../util/secrets';
 
 export const checkJwt = jwt({
     secret: jwksRsa.expressJwtSecret({
         cache: true,
         rateLimit: true,
         jwksRequestsPerMinute: 5,
-        jwksUri: `${ISSUER}/jwks`,
+        jwksUri: `${AUTH_URL}/jwks`,
     }),
-    issuer: ISSUER,
+    issuer: AUTH_URL,
     algorithms: ['RS256'],
 });
