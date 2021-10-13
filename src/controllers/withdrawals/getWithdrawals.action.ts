@@ -5,11 +5,11 @@ import { WithdrawalDocument } from '../../models/Withdrawal';
 
 /**
  * @swagger
- * /withdrawals?member=:address:
+ * /withdrawals?member=:address&state=:state&rewardId=:rewardId:
  *   get:
  *     tags:
  *       - Withdrawals
- *     description: Get a list of withdrawals for a member of the asset pool.
+ *     description: Get a list of withdrawals for a member of the asset pool. Optional `member` parameter should be a string representing the address. Optional `:state` parameter should be a number where 0 = Rejected, 1 = Approved, 2 = Withdrawn. Optional `rewardId` parameter should be a number representing the reward this withdrawal was created for.
  *     produces:
  *       - application/json
  *     parameters:
@@ -71,10 +71,13 @@ import { WithdrawalDocument } from '../../models/Withdrawal';
  */
 export const getWithdrawals = async (req: HttpRequest, res: Response, next: NextFunction) => {
     try {
-        const { withdrawals } = await WithdrawalService.getAll(
-            req.query.member as string,
+        const { withdrawals, error } = await WithdrawalService.getAll(
             req.solution.options.address,
+            req.query.member && req.query.member.length > 0 ? String(req.query.member) : undefined,
+            !isNaN(Number(req.query.rewardId)) ? Number(req.query.rewardId) : undefined,
+            !isNaN(Number(req.query.state)) ? Number(req.query.state) : undefined,
         );
+        if (error) throw new Error(error);
 
         res.json(
             withdrawals.map((w: WithdrawalDocument) => {
@@ -84,6 +87,7 @@ export const getWithdrawals = async (req: HttpRequest, res: Response, next: Next
                     amount: w.amount,
                     approved: w.approved,
                     state: w.state,
+                    rewardId: w.rewardId,
                     poll: {
                         startTime: w.poll.startTime,
                         endTime: w.poll.endTime,

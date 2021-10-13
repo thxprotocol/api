@@ -18,11 +18,13 @@ export default class WithdrawalService {
         }
     }
 
-    static async getAll(beneficiary: string, poolAddress: string) {
+    static async getAll(beneficiary: string, poolAddress: string, rewardId: number, state: number) {
         try {
             const withdrawals = await Withdrawal.find({
-                beneficiary,
-                poolAddress,
+                ...(poolAddress ? { poolAddress } : {}),
+                ...(beneficiary ? { beneficiary } : {}),
+                ...(rewardId || rewardId === 0 ? { rewardId } : {}),
+                ...(state || state === 0 ? { state } : {}),
             });
             return { withdrawals };
         } catch (error) {
@@ -49,7 +51,7 @@ export default class WithdrawalService {
         }
     }
 
-    static async save(assetPool: IAssetPool, id: number, memberId: number) {
+    static async save(assetPool: IAssetPool, id: number, memberId: number, rewardId?: number) {
         const existingWithdrawal = await Withdrawal.findOne({ id, poolAddress: assetPool.address });
 
         if (existingWithdrawal) {
@@ -75,6 +77,7 @@ export default class WithdrawalService {
             beneficiary,
             approved,
             state: WithdrawalState.Pending,
+            rewardId,
             poll: {
                 startTime,
                 endTime,
@@ -87,7 +90,10 @@ export default class WithdrawalService {
 
     static async withdrawPollFinalize(assetPool: IAssetPool, withdrawalId: number) {
         try {
-            const withdrawal = await Withdrawal.findOne({ poolAddress: assetPool.address, id: withdrawalId });
+            const withdrawal = await Withdrawal.findOne({
+                poolAddress: assetPool.address,
+                id: withdrawalId,
+            });
             const tx = await sendTransaction(
                 assetPool.solution.options.address,
                 assetPool.solution.methods.withdrawPollFinalize(withdrawalId),
@@ -105,7 +111,6 @@ export default class WithdrawalService {
             if (eventWithdrawn) {
                 withdrawal.state = WithdrawalState.Withdrawn;
             }
-
             await withdrawal.save();
 
             return {
