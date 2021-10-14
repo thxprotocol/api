@@ -1,4 +1,4 @@
-export class ResultObject {
+export class PaginationResult {
     next: any;
     results: any;
     previous: any;
@@ -8,7 +8,7 @@ export const paginatedResults = async (model: any, page: number, limit: number, 
     const startIndex = (page - 1) * limit;
     const endIndex = page * limit;
 
-    let results = new ResultObject();
+    let results = new PaginationResult();
     if (endIndex < (await model.countDocuments().exec())) {
         results.next = {
             page: page + 1,
@@ -21,10 +21,6 @@ export const paginatedResults = async (model: any, page: number, limit: number, 
             limit: limit,
         };
     }
-    try {
-        results.results = await model.find(query).limit(limit).skip(startIndex).exec();
-        return { results };
-    } catch (error) {
-        throw { error };
-    }
+    results.results = await model.find(query).limit(limit).skip(startIndex).exec();
+    return { results };
 };
