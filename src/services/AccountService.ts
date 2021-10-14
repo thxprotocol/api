@@ -91,14 +91,6 @@ export default class AccountService {
         }
     }
 
-    static async patch(account: AccountDocument) {
-        try {
-            await account.save();
-        } catch (error) {
-            return { error };
-        }
-    }
-
     static signup(email: string, password: string, acceptTermsPrivacy: boolean, acceptUpdates: boolean) {
         return new Account({
             active: false,
