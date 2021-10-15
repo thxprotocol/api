@@ -258,7 +258,7 @@ describe('Happy Flow', () => {
         });
 
         it('HTTP 200 after return state Pending', (done) => {
-            user.get('/v1/withdrawals?member=' + userWallet.address+'&page=1&limit=2')
+            user.get('/v1/withdrawals?member=' + userWallet.address + '&page=1&limit=2')
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
                 .end(async (err, res) => {
                     expect(res.status).toBe(200);

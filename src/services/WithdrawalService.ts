@@ -144,8 +144,8 @@ export default class WithdrawalService {
             return { error };
         }
     }
-	
-	static async getByBeneficiary(beneficiary: string) {
+
+    static async getByBeneficiary(beneficiary: string) {
         try {
             const withdrawals = await Withdrawal.find({ beneficiary });
 
