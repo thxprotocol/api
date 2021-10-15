@@ -21,6 +21,7 @@ export const paginatedResults = async (model: any, page: number, limit: number, 
             limit: limit,
         };
     }
+    results.results = await model.find(query).limit(limit).skip(startIndex).exec();
 
-    return await model.find(query).limit(limit).skip(startIndex).exec();
+    return results;
 };
