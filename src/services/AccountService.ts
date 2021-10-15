@@ -63,12 +63,32 @@ export default class AccountService {
 
     static async update(
         account: AccountDocument,
-        { acceptTermsPrivacy = false, acceptUpdates = false }: IAccountUpdates,
+        { acceptTermsPrivacy, acceptUpdates, address, memberships, privateKey, burnProofs }: IAccountUpdates,
     ) {
-        account.acceptTermsPrivacy = acceptTermsPrivacy;
-        account.acceptUpdates = acceptUpdates;
+        try {
+            // No strict checking here since null == undefined
+            if (account.acceptTermsPrivacy == null) {
+                account.acceptTermsPrivacy = acceptTermsPrivacy == null ? false : account.acceptTermsPrivacy;
+            } else {
+                account.acceptTermsPrivacy = acceptTermsPrivacy || account.acceptTermsPrivacy;
+            }
 
-        await account.save();
+            // No strict checking here since null == undefined
+            if (account.acceptUpdates == null) {
+                account.acceptUpdates = acceptUpdates == null ? false : account.acceptUpdates;
+            } else {
+                account.acceptUpdates = acceptUpdates || account.acceptTermsPrivacy;
+            }
+
+            account.address = address || account.address;
+            account.memberships = memberships || account.memberships;
+            account.privateKey = privateKey || account.privateKey;
+            account.burnProofs = burnProofs || account.burnProofs;
+
+            await account.save();
+        } catch (error) {
+            return { error };
+        }
     }
 
     static signup(email: string, password: string, acceptTermsPrivacy: boolean, acceptUpdates: boolean) {
@@ -274,6 +294,22 @@ export default class AccountService {
             await account.save();
 
             return { sub: account._id.toString() };
+        } catch (error) {
+            return { error };
+        }
+    }
+
+    static async remove(id: string) {
+        try {
+            await Account.remove({ _id: id });
+        } catch (error) {
+            return { error };
+        }
+    }
+
+    static async count() {
+        try {
+            return await Account.countDocuments();
         } catch (error) {
             return { error };
         }

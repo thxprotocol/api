@@ -13,7 +13,7 @@ const ERROR_REWARD_ALREADY_CLAIMED = 'Reward already claimed for this address.';
 export const postRewardClaim = async (req: HttpRequest, res: Response, next: NextFunction) => {
     try {
         const rewardId = Number(req.params.id);
-        const { reward, error } = await RewardService.get(req.assetPool, rewardId);
+        const { reward, error } = await RewardService.get(req.assetPool.address, rewardId);
 
         if (error) {
             throw new Error(error);

@@ -1,28 +1,28 @@
 import { Response, NextFunction } from 'express';
-import { Rat } from '../../models/Rat';
-import { Client } from '../../models/Client';
-import { Account } from '../../models/Account';
 import { HttpRequest, HttpError } from '../../models/Error';
-import { AssetPool } from '../../models/AssetPool';
+import RatService from '../../services/RatService';
+import ClientService from '../../services/ClientService';
+import AccountService from '../../services/AccountService';
+import AssetPoolService from '../../services/AssetPoolService';
 
 export const deleteClient = async (req: HttpRequest, res: Response, next: NextFunction) => {
     try {
         try {
-            const rat = await Rat.findById(req.params.rat);
-            const client = await Client.findById(rat.payload.clientId);
+            const { rat } = await RatService.get(req.params.rat);
+            const { client } = await ClientService.get(rat.payload.clientId);
 
             if (!client) {
                 return next(new HttpError(404, 'Could not find client for this request_access_token.'));
             }
 
-            const assetPools = await AssetPool.find({ aud: rat.payload.clientId });
+            const { assetPools } = await AssetPoolService.getByClient(rat.payload.clientId);
 
             if (assetPools.length > 0) {
                 return next(new HttpError(403, `Remove ${assetPools.length} asset pools using this client first.`));
             }
 
             try {
-                const account = await Account.findById(req.user.sub);
+                const account = await AccountService.get(req.user.sub);
                 const index = account.registrationAccessTokens.indexOf(rat.payload.jti);
 
                 account.registrationAccessTokens.splice(index, 1);

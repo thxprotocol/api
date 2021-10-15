@@ -2,7 +2,7 @@ import axios from 'axios';
 import { Response, NextFunction } from 'express';
 import { HttpError, HttpRequest } from '../../models/Error';
 import { ISSUER } from '../../util/secrets';
-import { Account } from '../../models/Account';
+import AccountService from '../../services/AccountService';
 
 export const postClient = async (req: HttpRequest, res: Response, next: NextFunction) => {
     try {
@@ -23,7 +23,7 @@ export const postClient = async (req: HttpRequest, res: Response, next: NextFunc
         const rat = r.data.registration_access_token;
 
         try {
-            const account = await Account.findById(req.user.sub);
+            const account = await AccountService.get(req.user.sub);
 
             if (account.registrationAccessTokens.length > 0) {
                 account.registrationAccessTokens.push(rat);

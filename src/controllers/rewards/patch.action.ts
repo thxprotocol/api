@@ -1,12 +1,12 @@
 import { Response, NextFunction } from 'express';
 import { HttpRequest, HttpError } from '../../models/Error';
 import qrcode from 'qrcode';
-import { Reward } from '../../models/Reward';
 import { toWei, fromWei } from 'web3-utils';
 import { getRewardData } from './getReward.action';
 import { callFunction, sendTransaction } from '../../util/network';
 import { parseLogs, findEvent } from '../../util/events';
 import { Artifacts } from '../../util/artifacts';
+import RewardService from '../../services/RewardService';
 
 /**
  * @swagger
@@ -113,10 +113,10 @@ export const patchReward = async (req: HttpRequest, res: Response, next: NextFun
                             if (event) {
                                 const withdrawAmount = Number(fromWei(event.args.amount.toString()));
                                 const withdrawDuration = Number(event.args.duration);
-                                const reward = await Reward.findOne({
-                                    id: req.params.id,
-                                    poolAddress: req.solution.options.address,
-                                });
+                                const { reward } = await RewardService.get(
+                                    req.solution.options.address,
+                                    Number(req.params.id),
+                                );
 
                                 reward.withdrawAmount = withdrawAmount;
                                 reward.withdrawDuration = withdrawDuration;

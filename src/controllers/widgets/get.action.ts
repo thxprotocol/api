@@ -1,24 +1,24 @@
 import { Response, NextFunction } from 'express';
 import { HttpError, HttpRequest } from '../../models/Error';
-import { Rat } from '../../models/Rat';
-import { Client } from '../../models/Client';
-import { Widget } from '../../models/Widget';
+import WidgetService from '../../services/WidgetService';
+import ClientService from '../../services/ClientService';
+import RatService from '../../services/RatService';
 
 export const getWidget = async (req: HttpRequest, res: Response, next: NextFunction) => {
     try {
-        const rat = await Rat.findOne({ _id: req.params.rat });
+        const { rat } = await RatService.get(req.params.rat);
 
         if (!rat) {
             return next(new HttpError(500, 'Could not find this registration_access_token.'));
         }
 
-        const client = await Client.findById(rat.payload['clientId']);
+        const { client } = await ClientService.get(rat.payload['clientId']);
 
         if (!client) {
             return next(new HttpError(500, 'Could not find a client for this registration_access_token.'));
         }
 
-        const widget = await Widget.findOne({ rat: rat.payload.jti, poolAddress: req.query.asset_pool });
+        const { widget } = await WidgetService.getByIdAndAddress(rat.payload.jti, req.query.asset_pool.toString());
 
         if (!widget) {
             return next(new HttpError(500, 'Could not find a widget for this registration_access_token.'));

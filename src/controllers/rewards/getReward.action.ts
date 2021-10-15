@@ -1,13 +1,14 @@
 import { Response, NextFunction } from 'express';
-import { Reward, RewardDocument } from '../../models/Reward';
 import { HttpError, HttpRequest } from '../../models/Error';
 import { fromWei } from 'web3-utils';
 import { Contract } from 'web3-eth-contract';
 import { callFunction, NetworkProvider } from '../../util/network';
+import RewardService from '../../services/RewardService';
+import { RewardDocument } from '../../models/Reward';
 
 export async function getRewardData(solution: Contract, rewardID: number, npid: NetworkProvider) {
     try {
-        const reward = await Reward.findOne({ poolAddress: solution.options.address, id: rewardID });
+        const { reward } = await RewardService.get(solution.options.address, rewardID);
         const beneficiaries = reward && reward.beneficiaries ? reward.beneficiaries : [];
 
         try {

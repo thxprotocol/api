@@ -6,11 +6,13 @@ import { Withdrawal, WithdrawalState } from '../models/Withdrawal';
 import { toWei, fromWei } from 'web3-utils';
 import { paginatedResults } from '../util/pagination';
 
+const ERROR_NO_WITHDRAWAL = 'Could not find an withdrawal for this beneficiary';
+
 export default class WithdrawalService {
-    static async get(assetPool: IAssetPool, withdrawalId: number) {
+    static async get(poolAddress: string, withdrawalId: number) {
         try {
             const withdrawal = await Withdrawal.findOne({
-                poolAddress: assetPool.address,
+                poolAddress,
                 id: withdrawalId,
             });
             return { withdrawal };
@@ -126,6 +128,41 @@ export default class WithdrawalService {
             const result = await paginatedResults(Withdrawal, page, limit, query);
 
             return { result };
+        } catch (error) {
+            return { error };
+        }
+    }
+
+    static async removeAllForAddress(address: string) {
+        try {
+            const withdrawals = await Withdrawal.find({ poolAddress: address });
+
+            for (const w of withdrawals) {
+                await w.remove();
+            }
+        } catch (error) {
+            return { error };
+        }
+    }
+
+    static async getByBeneficiary(beneficiary: string) {
+        try {
+            const withdrawals = await Withdrawal.find({ beneficiary });
+
+            if (!withdrawals) {
+                throw new Error(ERROR_NO_WITHDRAWAL);
+            }
+
+            return { withdrawals };
+        } catch (error) {
+            return { error };
+        }
+    }
+
+    static async countByPoolAddress(poolAddress: string) {
+        try {
+            const count = Withdrawal.countDocuments({ poolAddress });
+            return count;
         } catch (error) {
             return { error };
         }

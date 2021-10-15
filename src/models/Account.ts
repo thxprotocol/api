@@ -22,7 +22,6 @@ export interface IAccount {
     erc20: ERC20Token[];
     burnProofs: string[];
     memberships: string[];
-    privateKeys: { [address: string]: string };
     comparePassword: Function;
     recoveryPhrase: string;
 }
@@ -30,6 +29,10 @@ export interface IAccount {
 export interface IAccountUpdates {
     acceptTermsPrivacy?: boolean;
     acceptUpdates?: boolean;
+    address?: string;
+    memberships?: string[];
+    privateKey?: string;
+    burnProofs?: string[];
 }
 
 export type AccountDocument = mongoose.Document & IAccount;
@@ -65,7 +68,6 @@ const accountSchema = new mongoose.Schema(
         erc20: [ERC20TokenSchema],
         burnProofs: [String],
         memberships: [String],
-        privateKeys: Map,
         recoveryPhrase: String,
     },
     { timestamps: true },
