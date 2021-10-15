@@ -14,6 +14,12 @@ export type IAssetPool = mongoose.Document & {
     proposeWithdrawPollDuration: number;
 };
 
+export interface IAssetPoolUpdates {
+    proposeWithdrawPollDuration?: number;
+    rewardPollDuration?: number;
+    bypassPolls?: boolean;
+}
+
 const assetPoolSchema = new mongoose.Schema(
     {
         address: String,

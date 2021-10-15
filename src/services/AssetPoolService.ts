@@ -10,12 +10,17 @@ import {
 } from '../util/network';
 import { Artifacts } from '../util/artifacts';
 import { POOL_REGISTRY_ADDRESS, TESTNET_POOL_REGISTRY_ADDRESS } from '../util/secrets';
-import { AssetPool, IAssetPool } from '../models/AssetPool';
+import { AssetPool, IAssetPool, IAssetPoolUpdates } from '../models/AssetPool';
 import { deployUnlimitedSupplyERC20Contract, deployLimitedSupplyERC20Contract, getProvider } from '../util/network';
 import { toWei, fromWei } from 'web3-utils';
 import { downgradeFromBypassPolls, updateToBypassPolls } from '../util/upgrades';
 
 const ERROR_NO_ASSETPOOL = 'Could not find asset pool for this address';
+const ERROR_DOWNGRADE_BYPASS_POLLS = 'Could not update set bypassPolls (false) for this asset pool.';
+const ERROR_UPGRADE_BYPASS_POLLS = 'Could not update set bypassPolls (true) for this asset pool.';
+const ERROR_UPDATE_PROPOSE_WITHDRAW_POLL_DURATION =
+    'Could not update the proposeWithdrawPollDuration for this asset pool.';
+const ERROR_UPDATE_REWARD_POLL_DURATION = 'Could not update the rewardPollDuration for this asset pool.';
 
 export default class AssetPoolService {
     static async getByAddress(address: string) {
@@ -27,24 +32,14 @@ export default class AssetPoolService {
                 throw new Error(ERROR_NO_ASSETPOOL);
             }
 
-            const proposeWithdrawPollDuration = Number(
+            assetPool.proposeWithdrawPollDuration = Number(
                 await callFunction(assetPool.solution.methods.getProposeWithdrawPollDuration(), assetPool.network),
             );
-            const rewardPollDuration = Number(
+            assetPool.rewardPollDuration = Number(
                 await callFunction(assetPool.solution.methods.getRewardPollDuration(), assetPool.network),
             );
 
-            return {
-                assetPool: {
-                    sub: assetPool.sub,
-                    rat: assetPool.rat,
-                    address: assetPool.address,
-                    network: assetPool.network,
-                    bypassPolls: assetPool.bypassPolls,
-                    proposeWithdrawPollDuration,
-                    rewardPollDuration,
-                },
-            };
+            return { assetPool };
         } catch (error) {
             return error;
         }
@@ -220,11 +215,7 @@ export default class AssetPoolService {
 
     static async update(
         assetPool: IAssetPool,
-        {
-            proposeWithdrawPollDuration,
-            rewardPollDuration,
-            bypassPolls,
-        }: { proposeWithdrawPollDuration: number; rewardPollDuration: number; bypassPolls?: boolean },
+        { proposeWithdrawPollDuration, rewardPollDuration, bypassPolls }: IAssetPoolUpdates,
     ) {
         async function updateRewardPollDuration() {
             try {
@@ -235,8 +226,9 @@ export default class AssetPoolService {
                 );
                 assetPool.rewardPollDuration = rewardPollDuration;
                 await assetPool.save();
+                return { assetPool };
             } catch (error) {
-                return { error: 'Could not update the rewardPollDuration for this asset pool.' };
+                return { error: ERROR_UPDATE_REWARD_POLL_DURATION };
             }
         }
 
@@ -249,8 +241,9 @@ export default class AssetPoolService {
                 );
                 assetPool.proposeWithdrawPollDuration = proposeWithdrawPollDuration;
                 await assetPool.save();
+                return { assetPool };
             } catch (error) {
-                return { error: 'Could not update the proposeWithdrawPollDuration for this asset pool.' };
+                return { error: ERROR_UPDATE_PROPOSE_WITHDRAW_POLL_DURATION };
             }
         }
 
@@ -271,7 +264,7 @@ export default class AssetPoolService {
                     assetPool.bypassPolls = bypassPolls;
                     await assetPool.save();
                 } catch (error) {
-                    throw new Error('Could not update set bypassPolls (true) for this asset pool.');
+                    throw new Error(ERROR_UPGRADE_BYPASS_POLLS);
                 }
             }
 
@@ -281,13 +274,12 @@ export default class AssetPoolService {
                     assetPool.bypassPolls = bypassPolls;
                     await assetPool.save();
                 } catch (error) {
-                    throw new Error('Could not update set bypassPolls (false) for this asset pool.');
+                    throw new Error(ERROR_DOWNGRADE_BYPASS_POLLS);
                 }
             }
-
-            return { assetPool };
+            return { result: true };
         } catch (error) {
-            throw { error };
+            return { error };
         }
     }
 

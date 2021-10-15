@@ -2,7 +2,7 @@ import { getSelectors, NetworkProvider, sendTransaction, getProvider, ADDRESS_ZE
 import { Contract } from 'web3-eth-contract';
 import { Artifacts } from './artifacts';
 import { Facets } from './facets';
-import { IAssetPool } from 'src/models/AssetPool';
+import { IAssetPool } from '../models/AssetPool';
 
 export const FacetCutAction = {
     Add: 0,

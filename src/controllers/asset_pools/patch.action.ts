@@ -1,8 +1,6 @@
 import { Response, NextFunction } from 'express';
 import { HttpRequest, HttpError } from '../../models/Error';
 import AssetPoolService from '../../services/AssetPoolService';
-import { callFunction } from '../../util/network';
-import { sendTransaction } from '../../util/network';
 
 export const patchAssetPool = async (req: HttpRequest, res: Response, next: NextFunction) => {
     const { assetPool, error } = await AssetPoolService.getByAddress(req.params.address);
@@ -14,14 +12,16 @@ export const patchAssetPool = async (req: HttpRequest, res: Response, next: Next
     }
 
     try {
-        await AssetPoolService.update(assetPool, {
+        const { error } = await AssetPoolService.update(assetPool, {
             rewardPollDuration: req.body.rewardPollDuration,
             proposeWithdrawPollDuration: req.body.proposeWithdrawPollDuration,
             bypassPolls: req.body.bypassPolls,
         });
+
+        if (error) throw new Error(error);
+
+        res.status(200).end();
     } catch (error) {
         return next(new HttpError(502, error.message, error));
     }
-
-    res.status(200).end();
 };
