@@ -16,7 +16,6 @@ export const getAccount = async (req: HttpRequest, res: Response, next: NextFunc
                 memberships: account.memberships,
                 burnProofs: account.burnProofs,
                 registrationAccessTokens: account.registrationAccessTokens,
-                account,
             });
         }
     } catch (e) {

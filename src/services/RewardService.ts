@@ -86,7 +86,7 @@ export default class RewardService {
         }
     }
 
-    static async post(assetPool: IAssetPool, solution: Contract, id: number, pollId: number, state: number) {
+    static async create(assetPool: IAssetPool, solution: Contract, id: number, pollId: number, state: number) {
         try {
             const reward = new Reward({
                 id,
@@ -103,29 +103,9 @@ export default class RewardService {
 
                 if (assetPool.bypassPolls && duration === 0) {
                     try {
-                        const tx = await sendTransaction(
-                            solution.options.address,
-                            solution.methods.rewardPollFinalize(pollId),
-                            assetPool.network,
-                        );
-
-                        try {
-                            const events = parseLogs(Artifacts.IDefaultDiamond.abi, tx.logs);
-                            const event = findEvent('RewardPollEnabled', events);
-
-                            if (event) {
-                                reward.withdrawAmount = await callFunction(
-                                    solution.methods.getWithdrawAmount(id),
-                                    assetPool.network,
-                                );
-                                reward.state = 1;
-                                await reward.save();
-                            }
-                        } catch (err) {
-                            throw new Error(TRANSACTION_EVENT_ERROR);
-                        }
+                        await this.finalizePoll(assetPool, solution, reward, pollId);
                     } catch (e) {
-                        throw new Error(REWARD_ERROR);
+                        throw new Error(e.message);
                     }
                 }
             } catch (e) {
@@ -133,6 +113,33 @@ export default class RewardService {
             }
         } catch (e) {
             throw new Error(DATABASE_STORE_ERROR);
+        }
+    }
+
+    static async finalizePoll(assetPool: IAssetPool, solution: Contract, reward: RewardDocument, pollId: number) {
+        try {
+            const tx = await sendTransaction(
+                solution.options.address,
+                solution.methods.rewardPollFinalize(pollId),
+                assetPool.network,
+            );
+
+            try {
+                const events = parseLogs(Artifacts.IDefaultDiamond.abi, tx.logs);
+                const event = findEvent('RewardPollEnabled', events);
+                if (event) {
+                    reward.withdrawAmount = await callFunction(
+                        solution.methods.getWithdrawAmount(reward.id),
+                        assetPool.network,
+                    );
+                    reward.state = 1;
+                    await reward.save();
+                }
+            } catch (err) {
+                throw new Error(TRANSACTION_EVENT_ERROR);
+            }
+        } catch (e) {
+            throw new Error(REWARD_ERROR);
         }
     }
 

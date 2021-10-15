@@ -91,14 +91,6 @@ export default class AccountService {
         }
     }
 
-    static async patch(account: AccountDocument) {
-        try {
-            await account.save();
-        } catch (error) {
-            return { error };
-        }
-    }
-
     static signup(email: string, password: string, acceptTermsPrivacy: boolean, acceptUpdates: boolean) {
         return new Account({
             active: false,
@@ -310,30 +302,6 @@ export default class AccountService {
     static async remove(id: string) {
         try {
             await Account.remove({ _id: id });
-        } catch (error) {
-            return { error };
-        }
-    }
-
-    static async post(
-        firstName: string,
-        lastName: string,
-        email: string,
-        password: string,
-        signupToken: string,
-        signupTokenExpires: number,
-    ) {
-        try {
-            const account = new Account({
-                firstName,
-                lastName,
-                email,
-                password,
-                signupToken,
-                signupTokenExpires,
-            });
-
-            await account.save();
         } catch (error) {
             return { error };
         }

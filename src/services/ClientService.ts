@@ -1,6 +1,5 @@
 import { Client, ClientDocument } from '../models/Client';
 
-
 export default class ClientService {
     static async get(id: string) {
         try {

@@ -1,10 +1,39 @@
 import dotenv from 'dotenv';
 
+dotenv.config({ path: process.env.NODE_ENV === 'test' ? '.env.ci' : '.env' });
+
+const required = [
+    'ISSUER',
+    'WALLET_URL',
+    'PUBLIC_URL',
+    'DASHBOARD_URL',
+    'RPC',
+    'ASSET_POOL_FACTORY_ADDRESS',
+    'POOL_REGISTRY_ADDRESS',
+    'TESTNET_RPC',
+    'TESTNET_ASSET_POOL_FACTORY_ADDRESS',
+    'TESTNET_POOL_REGISTRY_ADDRESS',
+    'MONGODB_URI',
+    'PRIVATE_KEY',
+    'PORT',
+    'SECURE_KEY',
+    'SENDGRID_API_KEY',
+    'RATE_LIMIT_REWARD_GIVE',
+    'RATE_LIMIT_REWARD_GIVE_WINDOW',
+    'MINIMUM_GAS_LIMIT',
+    'MAXIMUM_GAS_PRICE',
+];
+
+required.forEach((value: string) => {
+    if (!process.env[value]) {
+        console.log(`Set ${value} environment variable.`);
+        process.exit(1);
+    }
+});
+
 export const VERSION = 'v1';
 export const ENVIRONMENT = process.env.NODE_ENV;
-
-dotenv.config({ path: ENVIRONMENT === 'test' ? '.env.ci' : '.env' });
-
+export const ISSUER = process.env.ISSUER;
 export const AUTH_URL = process.env.AUTH_URL;
 export const API_URL = process.env.API_URL;
 export const WALLET_URL = process.env.WALLET_URL;
