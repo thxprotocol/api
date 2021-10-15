@@ -2,6 +2,7 @@ import { getSelectors, NetworkProvider, sendTransaction, getProvider, ADDRESS_ZE
 import { Contract } from 'web3-eth-contract';
 import { Artifacts } from './artifacts';
 import { Facets } from './facets';
+import { IAssetPool } from 'src/models/AssetPool';
 
 export const FacetCutAction = {
     Add: 0,
@@ -31,7 +32,7 @@ export async function updateAssetPool(artifacts: any, solution: Contract, npid: 
     );
 }
 
-export const downgradeFromBypassPolls = async (npid: NetworkProvider, solution: Contract) => {
+export const downgradeFromBypassPolls = async (assetPool: IAssetPool) => {
     return await updateAssetPool(
         [
             Artifacts.Withdraw,
@@ -41,12 +42,12 @@ export const downgradeFromBypassPolls = async (npid: NetworkProvider, solution: 
             Artifacts.RewardPoll,
             Artifacts.RewardPollProxy,
         ],
-        solution,
-        npid,
+        assetPool.solution,
+        assetPool.network,
     );
 };
 
-export const updateToBypassPolls = async (npid: NetworkProvider, solution: Contract) => {
+export const updateToBypassPolls = async (assetPool: IAssetPool) => {
     return await updateAssetPool(
         [
             Artifacts.WithdrawBy,
@@ -56,7 +57,7 @@ export const updateToBypassPolls = async (npid: NetworkProvider, solution: Contr
             Artifacts.RewardByPoll,
             Artifacts.RewardByPollProxy,
         ],
-        solution,
-        npid,
+        assetPool.solution,
+        assetPool.network,
     );
 };
