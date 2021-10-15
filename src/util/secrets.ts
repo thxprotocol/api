@@ -30,8 +30,7 @@ const required = [
 
 required.forEach((value: string) => {
     if (!process.env[value]) {
-        const message = `Set ${value} environment variable.`;
-        logger.error(message);
+        console.log(`Set ${value} environment variable.`);
         process.exit(1);
     }
 });

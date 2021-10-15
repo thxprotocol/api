@@ -4,7 +4,6 @@ import { Artifacts } from '../util/artifacts';
 import { parseLogs, findEvent } from '../util/events';
 import { Withdrawal, WithdrawalState } from '../models/Withdrawal';
 import { toWei, fromWei } from 'web3-utils';
-import MemberService from './MemberService';
 import { paginatedResults } from '../util/pagination';
 
 export default class WithdrawalService {
@@ -124,8 +123,9 @@ export default class WithdrawalService {
                 ...(rewardId || rewardId === 0 ? { rewardId } : {}),
                 ...(state || state === 0 ? { state } : {}),
             };
-            const { results } = await paginatedResults(Withdrawal, page, limit, query);
-            return { results };
+            const result = await paginatedResults(Withdrawal, page, limit, query);
+
+            return { result };
         } catch (error) {
             return { error };
         }

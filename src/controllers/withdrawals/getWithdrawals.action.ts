@@ -2,9 +2,10 @@ import { NextFunction, Response } from 'express';
 import { WithdrawalDocument } from '../../models/Withdrawal';
 import { HttpError, HttpRequest } from '../../models/Error';
 import WithdrawalService from '../../services/WithdrawalService';
+
 /**
  * @swagger
- * /withdrawals?member=:address&state=:state&rewardId=:rewardId:
+ * /withdrawals?member=:address&state=:state&rewardId=:rewardId&page=1&limit=20:
  *   get:
  *     tags:
  *       - Withdrawals
@@ -70,7 +71,7 @@ import WithdrawalService from '../../services/WithdrawalService';
  */
 export const getWithdrawals = async (req: HttpRequest, res: Response, next: NextFunction) => {
     try {
-        const { results, error } = await WithdrawalService.getWithdrawals(
+        const { result, error } = await WithdrawalService.getWithdrawals(
             req.solution.options.address,
             Number(req.query.page),
             Number(req.query.limit),
@@ -78,29 +79,28 @@ export const getWithdrawals = async (req: HttpRequest, res: Response, next: Next
             !isNaN(Number(req.query.rewardId)) ? Number(req.query.rewardId) : undefined,
             !isNaN(Number(req.query.state)) ? Number(req.query.state) : undefined,
         );
+
         if (error) throw new Error(error);
 
-        res.json({
-            results: results.results.map((w: WithdrawalDocument) => {
-                return {
-                    id: w.id,
-                    beneficiary: w.beneficiary,
-                    amount: w.amount,
-                    approved: w.approved,
-                    state: w.state,
-                    rewardId: w.rewardId,
-                    poll: {
-                        startTime: w.poll.startTime,
-                        endTime: w.poll.endTime,
-                        yesCounter: w.poll.yesCounter,
-                        noCounter: w.poll.noCounter,
-                        totalVoted: w.poll.totalVoted,
-                    },
-                };
-            }),
-            next: results.next,
-            previous: results.previous,
+        result.results = result.results.map((w: WithdrawalDocument) => {
+            return {
+                id: w.id,
+                beneficiary: w.beneficiary,
+                amount: w.amount,
+                approved: w.approved,
+                state: w.state,
+                rewardId: w.rewardId,
+                poll: {
+                    startTime: w.poll.startTime,
+                    endTime: w.poll.endTime,
+                    yesCounter: w.poll.yesCounter,
+                    noCounter: w.poll.noCounter,
+                    totalVoted: w.poll.totalVoted,
+                },
+            };
         });
+
+        res.json(result);
     } catch (err) {
         next(new HttpError(502, 'Could not get all withdrawal information from the network.', err));
     }

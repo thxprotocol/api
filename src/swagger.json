@@ -1173,12 +1173,12 @@
         }
       }
     },
-    "/withdrawals?member=:address": {
+    "/withdrawals?member=:address&state=:state&rewardId=:rewardId": {
       "get": {
         "tags": [
           "Withdrawals"
         ],
-        "description": "Get a list of withdrawals for a member of the asset pool.",
+        "description": "Get a list of withdrawals for a member of the asset pool. Optional `member` parameter should be a string representing the address. Optional `:state` parameter should be a number where 0 = Rejected, 1 = Approved, 2 = Withdrawn. Optional `rewardId` parameter should be a number representing the reward this withdrawal was created for.",
         "produces": [
           "application/json"
         ],
