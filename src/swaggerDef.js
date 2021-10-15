@@ -6,5 +6,19 @@ module.exports = {
         version: packageJSON.version,
     },
     apis: ['src/controllers/**/*.ts'],
-    basePath: 'https://api.thx.network/v1',
+    basePath: '/v1',
+    securityDefinitions: {
+        "bearerAuth": {
+            "description": "Value: Bearer {jwt}",
+            "type": "apiKey",
+            "name": "Authorization",
+            "scheme": "bearer",
+            "in": "header"
+        }
+    },
+    security: [
+        {
+            "bearerAuth": []
+        }
+    ],
 };

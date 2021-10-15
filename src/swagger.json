@@ -3,7 +3,21 @@
     "title": "THX API Specification",
     "version": "1.0.0-beta.27"
   },
-  "basePath": "https://api.thx.network/v1",
+  "basePath": "/v1",
+  "securityDefinitions": {
+    "bearerAuth": {
+      "description": "Value: Bearer {jwt}",
+      "type": "apiKey",
+      "name": "Authorization",
+      "scheme": "bearer",
+      "in": "header"
+    }
+  },
+  "security": [
+    {
+      "bearerAuth": []
+    }
+  ],
   "swagger": "2.0",
   "paths": {
     "/authentication_token": {
@@ -1367,6 +1381,5 @@
   "definitions": {},
   "responses": {},
   "parameters": {},
-  "securityDefinitions": {},
   "tags": []
 }
