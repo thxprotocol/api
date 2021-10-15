@@ -1,7 +1,7 @@
 {
   "info": {
     "title": "THX API Specification",
-    "version": "1.0.0-beta.27"
+    "version": "1.0.0-beta.28"
   },
   "basePath": "/v1",
   "securityDefinitions": {
@@ -1173,7 +1173,7 @@
         }
       }
     },
-    "/withdrawals?member=:address&state=:state&rewardId=:rewardId": {
+    "/withdrawals?member=:address&state=:state&rewardId=:rewardId&page=1&limit=20": {
       "get": {
         "tags": [
           "Withdrawals"
