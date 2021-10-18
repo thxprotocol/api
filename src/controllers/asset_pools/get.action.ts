@@ -15,7 +15,19 @@ export const getAssetPool = async (req: HttpRequest, res: Response, next: NextFu
                 throw new Error(error);
             }
 
-            res.json({ address: req.params.address, ...assetPool, token });
+            res.json({
+                address: req.params.address,
+                ...{
+                    sub: assetPool.sub,
+                    rat: assetPool.rat,
+                    address: assetPool.address,
+                    network: assetPool.network,
+                    bypassPolls: assetPool.bypassPolls,
+                    proposeWithdrawPollDuration: assetPool.proposeWithdrawPollDuration,
+                    rewardPollDuration: assetPool.rewardPollDuration,
+                },
+                token,
+            });
         }
     } catch (error) {
         return next(new HttpError(500, 'Could not obtain Asset Pool data from the network.', error));

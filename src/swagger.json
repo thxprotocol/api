@@ -1,7 +1,7 @@
 {
   "info": {
     "title": "THX API Specification",
-    "version": "1.0.0-beta.27"
+    "version": "1.0.0-beta.28"
   },
   "basePath": "/v1",
   "securityDefinitions": {
@@ -20,6 +20,54 @@
   ],
   "swagger": "2.0",
   "paths": {
+    "/authentication_token": {
+      "post": {
+        "tags": [
+          "Authentication"
+        ],
+        "description": "Returns a one-time login link for the wallet. Valid for 10 minutes.",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "email",
+            "in": "body",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "url": {
+                  "type": "string",
+                  "description": "One-time login link for wallet."
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized. Authenticate your request please."
+          },
+          "403": {
+            "description": "Forbidden. Password reset token is invalid or has expired."
+          },
+          "404": {
+            "description": "Not Found. Account does not exist."
+          },
+          "500": {
+            "description": "Internal Server Error."
+          },
+          "502": {
+            "description": "Bad Gateway. Received an invalid response from the network or database."
+          }
+        }
+      }
+    },
     "/signup": {
       "post": {
         "tags": [
@@ -70,54 +118,6 @@
           },
           "422": {
             "description": "Duplicate. An account for this email already exists."
-          },
-          "500": {
-            "description": "Internal Server Error."
-          },
-          "502": {
-            "description": "Bad Gateway. Received an invalid response from the network or database."
-          }
-        }
-      }
-    },
-    "/authentication_token": {
-      "post": {
-        "tags": [
-          "Authentication"
-        ],
-        "description": "Returns a one-time login link for the wallet. Valid for 10 minutes.",
-        "produces": [
-          "application/json"
-        ],
-        "parameters": [
-          {
-            "name": "email",
-            "in": "body",
-            "required": true,
-            "type": "string"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "schema": {
-              "type": "object",
-              "properties": {
-                "url": {
-                  "type": "string",
-                  "description": "One-time login link for wallet."
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Unauthorized. Authenticate your request please."
-          },
-          "403": {
-            "description": "Forbidden. Password reset token is invalid or has expired."
-          },
-          "404": {
-            "description": "Not Found. Account does not exist."
           },
           "500": {
             "description": "Internal Server Error."
@@ -1173,12 +1173,12 @@
         }
       }
     },
-    "/withdrawals?member=:address": {
+    "/withdrawals?member=:address&state=:state&rewardId=:rewardId&page=1&limit=20": {
       "get": {
         "tags": [
           "Withdrawals"
         ],
-        "description": "Get a list of withdrawals for a member of the asset pool.",
+        "description": "Get a list of withdrawals for a member of the asset pool. Optional `member` parameter should be a string representing the address. Optional `:state` parameter should be a number where 0 = Rejected, 1 = Approved, 2 = Withdrawn. Optional `rewardId` parameter should be a number representing the reward this withdrawal was created for.",
         "produces": [
           "application/json"
         ],

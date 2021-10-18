@@ -4,29 +4,18 @@ import { Artifacts } from '../util/artifacts';
 import { parseLogs, findEvent } from '../util/events';
 import { Withdrawal, WithdrawalState } from '../models/Withdrawal';
 import { toWei, fromWei } from 'web3-utils';
+import { paginatedResults } from '../util/pagination';
 
 const ERROR_NO_WITHDRAWAL = 'Could not find an withdrawal for this beneficiary';
 
 export default class WithdrawalService {
     static async get(poolAddress: string, withdrawalId: number) {
         try {
-            const withdrawal = await Withdrawal.findOne({ poolAddress, id: withdrawalId });
-
-            return { withdrawal };
-        } catch (error) {
-            return { error };
-        }
-    }
-
-    static async getAll(beneficiary: string, poolAddress: string, rewardId: number, state: number) {
-        try {
-            const withdrawals = await Withdrawal.find({
-                ...(poolAddress ? { poolAddress } : {}),
-                ...(beneficiary ? { beneficiary } : {}),
-                ...(rewardId || rewardId === 0 ? { rewardId } : {}),
-                ...(state || state === 0 ? { state } : {}),
+            const withdrawal = await Withdrawal.findOne({
+                poolAddress,
+                id: withdrawalId,
             });
-            return { withdrawals };
+            return { withdrawal };
         } catch (error) {
             return { error };
         }
@@ -116,6 +105,29 @@ export default class WithdrawalService {
             return {
                 result: true,
             };
+        } catch (error) {
+            return { error };
+        }
+    }
+
+    static async getAll(
+        poolAddress: string,
+        page: number,
+        limit: number,
+        beneficiary?: string,
+        rewardId?: number,
+        state?: number,
+    ) {
+        try {
+            const query = {
+                ...(poolAddress ? { poolAddress } : {}),
+                ...(beneficiary ? { beneficiary } : {}),
+                ...(rewardId || rewardId === 0 ? { rewardId } : {}),
+                ...(state || state === 0 ? { state } : {}),
+            };
+            const result = await paginatedResults(Withdrawal, page, limit, query);
+
+            return { result };
         } catch (error) {
             return { error };
         }

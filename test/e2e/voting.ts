@@ -285,13 +285,13 @@ describe('Voting', () => {
 
     describe('GET /withdrawals?member=:address', () => {
         it('HTTP 200 and return a list of 1 item', async (done) => {
-            user.get(`/v1/withdrawals?member=${userWallet.address}`)
+            user.get(`/v1/withdrawals?member=${userWallet.address}&page=1&limit=2`)
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
                 .end(async (err, res) => {
                     expect(res.status).toBe(200);
-                    expect(res.body.length).toBe(1);
+                    expect(res.body.results.length).toBe(1);
 
-                    withdrawalID = res.body[0].id;
+                    withdrawalID = res.body.results[0].id;
 
                     done();
                 });
