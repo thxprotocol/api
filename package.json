@@ -43,6 +43,7 @@
         "axios": "^0.21.3",
         "bcrypt-nodejs": "^0.0.3",
         "bluebird": "^3.5.5",
+        "bull-board": "^1.0.0-alpha.12",
         "bull-master": "^1.0.5",
         "bullmq": "^1.50.3",
         "compression": "^1.7.4",
@@ -70,6 +71,7 @@
         "winston": "^3.2.1"
     },
     "devDependencies": {
+        "@types/bull-board": "^0.6.0",
         "@thxnetwork/artifacts": "^1.0.1",
         "@types/async": "^3.0.2",
         "@types/bcrypt-nodejs": "^0.0.30",

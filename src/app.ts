@@ -10,6 +10,12 @@ import { corsHandler } from './util/cors';
 import { errorHandler, notFoundHandler } from './util/error';
 import { PORT, VERSION, MONGODB_URI, DASHBOARD_URL, PUBLIC_URL } from './util/secrets';
 
+import { BullQueueProvider } from './controllers/queue/implementations/BullQueueProvider';
+import { IQueueProvider } from './controllers/queue/IQueueProvider';
+import { Worker } from 'bullmq';
+import DataProcessor from './controllers/queue/workers/data.processor';
+import { router as bullRouter } from 'bull-board';
+
 const app = express();
 
 db.connect(MONGODB_URI);
@@ -42,4 +48,34 @@ app.use('/', oidc.callback);
 app.use(notFoundHandler);
 app.use(errorHandler);
 
-export default app;
+class App {
+    public queueProvider: IQueueProvider;
+    constructor() {
+        this.queueProvider = new BullQueueProvider();
+        this.initialization();
+    }
+
+    private initialization(): void {
+        this.middlewares();
+        this.workers();
+        this.queues();
+    }
+
+    private middlewares(): void {
+        app.use('/admin/queues', bullRouter);
+    }
+
+    private queues(): void {
+        this.queueProvider.register({ queueName: 'data-processor' });
+        this.queueProvider.setUI();
+    }
+
+    private workers(): void {
+        new Worker('data-processor', DataProcessor);
+    }
+}
+
+const queue = new App();
+const { queueProvider } = queue;
+
+export default { app, queueProvider };
