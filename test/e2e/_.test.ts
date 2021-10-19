@@ -6,9 +6,9 @@ import { deployRegistry } from '../../scripts/lib/registry';
 import { NetworkProvider } from '../../src/util/network';
 
 beforeAll(async () => {
-    // console.log('Facets: ', await deployFacets(NetworkProvider.Test));
-    // console.log('Factory: ', await deployFactory(NetworkProvider.Test));
-    // console.log('Registry: ', await deployRegistry(NetworkProvider.Test));
+    console.log('Facets: ', await deployFacets(NetworkProvider.Test));
+    console.log('Factory: ', await deployFactory(NetworkProvider.Test));
+    console.log('Registry: ', await deployRegistry(NetworkProvider.Test));
 });
 
 afterAll(async () => {
