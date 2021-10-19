@@ -2,39 +2,42 @@ import request from 'supertest';
 import server from '../../src/server';
 import db from '../../src/util/database';
 import { getAdmin, NetworkProvider } from '../../src/util/network';
-import { deployExampleToken, signupWithAddress, voter } from './lib/network';
-import { userEmail, userEmail2, userPassword, userPassword2 } from './lib/constants';
+import { createWallet, deployExampleToken, voter } from './lib/network';
+import { account, sub, userWalletPrivateKey } from './lib/constants';
 import { Contract } from 'web3-eth-contract';
-import { getClientCredentialsToken } from './lib/clientCredentials';
-import { getAuthCodeToken } from './lib/authorizationCode';
+import { getToken } from './lib/jwt';
 import { Account } from 'web3-core';
+import { mockClear, mockPath, mockStart } from './lib/mock';
 
-const admin = request(server);
 const user = request.agent(server);
-const user2 = request.agent(server);
 
 describe('Roles', () => {
     let poolAddress: any,
         dashboardAccessToken: string,
         testToken: Contract,
         adminAccessToken: string,
-        userAddress: string,
         userWallet: Account;
 
     beforeAll(async () => {
-        await db.truncate();
-
-        const { accessToken } = await getClientCredentialsToken(admin);
-        adminAccessToken = accessToken;
-
-        userWallet = await signupWithAddress(userEmail, userPassword);
-        await getAuthCodeToken(user, 'openid user', userEmail, userPassword);
-        userAddress = userWallet.address;
-
-        await signupWithAddress(userEmail2, userPassword2);
-        dashboardAccessToken = await getAuthCodeToken(user2, 'openid dashboard', userEmail2, userPassword2);
-
         testToken = await deployExampleToken();
+        adminAccessToken = getToken('openid admin');
+        dashboardAccessToken = getToken('openid dashboard');
+        userWallet = createWallet(userWalletPrivateKey);
+
+        mockStart();
+        mockPath('post', '/account', 200, function () {
+            if (poolAddress) account.memberships[0] = poolAddress;
+            return account;
+        });
+        mockPath('get', `/account/${sub}`, 200, function () {
+            if (poolAddress) account.memberships[0] = poolAddress;
+            return account;
+        });
+    });
+
+    afterAll(async () => {
+        mockClear();
+        await db.truncate();
     });
 
     describe('POST /asset_pools', () => {
@@ -80,7 +83,7 @@ describe('Roles', () => {
 
         it('HTTP 302 if OK', (done) => {
             user.post('/v1/members/')
-                .send({ address: userAddress })
+                .send({ address: userWallet.address })
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
                 .end(async (err, res) => {
                     expect(res.status).toBe(302);
@@ -107,7 +110,7 @@ describe('Roles', () => {
         let redirectURL = '';
 
         it('HTTP 302 if OK', (done) => {
-            user.patch('/v1/members/' + userAddress)
+            user.patch('/v1/members/' + userWallet.address)
                 .send({ isManager: true })
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
                 .end(async (err, res) => {
@@ -134,7 +137,7 @@ describe('Roles', () => {
         let redirectURL = '';
 
         it('HTTP 302 if OK', (done) => {
-            user.patch('/v1/members/' + userAddress)
+            user.patch('/v1/members/' + userWallet.address)
                 .send({ isManager: false })
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
                 .end(async (err, res) => {
@@ -171,7 +174,7 @@ describe('Roles', () => {
 
     describe('DELETE /members/:address', () => {
         it('HTTP 200 if OK', (done) => {
-            user.delete('/v1/members/' + userAddress)
+            user.delete('/v1/members/' + userWallet.address)
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
                 .end(async (err, res) => {
                     expect(res.status).toBe(204);
@@ -182,7 +185,7 @@ describe('Roles', () => {
 
     describe('GET /members/:address (after DELETE)', () => {
         it('HTTP 404 if not found', (done) => {
-            user.get('/v1/members/' + userAddress)
+            user.get('/v1/members/' + userWallet.address)
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
                 .end(async (err, res) => {
                     expect(res.status).toBe(404);

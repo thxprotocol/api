@@ -1,38 +1,53 @@
 import { IAssetPool } from '../models/AssetPool';
-import { Account, AccountDocument, ERC20Token, IAccountUpdates } from '../models/Account';
+import { ERC20Token, IAccountUpdates } from '../models/Account';
 import { callFunction } from '../util/network';
-import { createRandomToken } from '../util/tokens';
-import { decryptString } from '../util/decrypt';
-import { AUTH_URL, SECURE_KEY } from '../util/secrets';
-import { checkPasswordStrength } from '../util/passwordcheck';
+import { AUTH_URL } from '../util/secrets';
 import Web3 from 'web3';
 import axios from 'axios';
+import ClientService from './ClientService';
 
-const DURATION_TWENTYFOUR_HOURS = Date.now() + 1000 * 60 * 60 * 24;
-const ERROR_AUTHENTICATION_TOKEN_INVALID_OR_EXPIRED = 'Your authentication token is invalid or expired.';
-const ERROR_PASSWORD_MATCHING = 'Could not compare your passwords';
-const ERROR_PASSWORD_NOT_MATCHING = 'Your provided passwords do not match';
-const ERROR_SIGNUP_TOKEN_INVALID = 'Could not find an account for this signup_token.';
-const ERROR_SIGNUP_TOKEN_EXPIRED = 'This signup_token has expired.';
-const SUCCESS_SIGNUP_COMPLETED = 'Congratulations! Your e-mail address has been verified.';
 const ERROR_NO_ACCOUNT = 'Could not find an account for this address';
-const ERROR_PASSWORD_RESET_TOKEN_INVALID_OR_EXPIRED = 'Your password reset token is invalid or expired.';
-const ERROR_PASSWORD_STRENGTH = 'Please enter a strong password.';
+const apiAccesstoken = '';
+
+axios.defaults.baseURL = AUTH_URL;
+axios.interceptors.request.use(
+    (config) => {
+        config.headers.Authorization = `Bearer ${apiAccesstoken}`;
+        // Do something before request is sent
+        return config;
+    },
+    function (error) {
+        // Do something with request error
+        return Promise.reject(error);
+    },
+);
 
 export default class AccountService {
     static async get(sub: string) {
-        return await Account.findById(sub);
+        try {
+            const r = await axios({
+                method: 'GET',
+                url: `/account/${sub}`,
+            });
+
+            return { account: r.data };
+        } catch (error) {
+            return { error };
+        }
     }
 
     static async getByEmail(email: string) {
         try {
-            const account = await Account.findOne({ email });
+            const r = await axios({
+                method: 'GET',
+                url: `/account/email/${email}`,
+            });
 
-            if (!account) {
+            if (!r.data) {
                 throw new Error(ERROR_NO_ACCOUNT);
             }
 
-            return { account };
+            return { account: r.data };
         } catch (error) {
             return { error };
         }
@@ -40,13 +55,16 @@ export default class AccountService {
 
     static async getByAddress(address: string) {
         try {
-            const account = await Account.findOne({ address });
+            const r = await axios({
+                method: 'GET',
+                url: `/account/address/${address}`,
+            });
 
-            if (!account) {
+            if (!r.data) {
                 throw new Error(ERROR_NO_ACCOUNT);
             }
 
-            return { account };
+            return { account: r.data };
         } catch (error) {
             return { error };
         }
@@ -54,90 +72,103 @@ export default class AccountService {
 
     static async isEmailDuplicate(email: string) {
         try {
-            const result = await Account.findOne({ email });
-            return { result };
+            await axios({
+                method: 'GET',
+                url: `/account/email/${email}`,
+            });
+
+            return { result: true };
         } catch (error) {
-            return { error };
+            if (error.status !== 404) {
+                return { error };
+            }
+            return { result: true };
         }
     }
 
     static async update(
-        account: AccountDocument,
-        { acceptTermsPrivacy, acceptUpdates, address, memberships, privateKey, burnProofs }: IAccountUpdates,
+        sub: string,
+        {
+            acceptTermsPrivacy,
+            acceptUpdates,
+            address,
+            memberships,
+            privateKey,
+            burnProofs,
+            registrationAccessTokens,
+            erc20,
+            authenticationToken,
+            authenticationTokenExpires,
+        }: IAccountUpdates,
     ) {
         try {
-            // No strict checking here since null == undefined
-            if (account.acceptTermsPrivacy == null) {
-                account.acceptTermsPrivacy = acceptTermsPrivacy == null ? false : account.acceptTermsPrivacy;
-            } else {
-                account.acceptTermsPrivacy = acceptTermsPrivacy || account.acceptTermsPrivacy;
+            const r = await axios({
+                method: 'PATCH',
+                url: `/account/${sub}`,
+                data: {
+                    acceptTermsPrivacy,
+                    acceptUpdates,
+                    address,
+                    memberships,
+                    privateKey,
+                    burnProofs,
+                    registrationAccessTokens,
+                    erc20,
+                    authenticationToken,
+                    authenticationTokenExpires,
+                },
+            });
+
+            if (!r.data) {
+                throw new Error('Could not update');
             }
 
-            // No strict checking here since null == undefined
-            if (account.acceptUpdates == null) {
-                account.acceptUpdates = acceptUpdates == null ? false : account.acceptUpdates;
-            } else {
-                account.acceptUpdates = acceptUpdates || account.acceptTermsPrivacy;
-            }
-
-            account.address = address || account.address;
-            account.memberships = memberships || account.memberships;
-            account.privateKey = privateKey || account.privateKey;
-            account.burnProofs = burnProofs || account.burnProofs;
-
-            await account.save();
+            return { result: true };
         } catch (error) {
             return { error };
         }
     }
 
-    static signup(email: string, password: string, acceptTermsPrivacy: boolean, acceptUpdates: boolean) {
-        return new Account({
-            active: false,
-            email,
-            password,
-            acceptTermsPrivacy: acceptTermsPrivacy || false,
-            acceptUpdates: acceptUpdates || false,
-            signupToken: createRandomToken(),
-            signupTokenExpires: DURATION_TWENTYFOUR_HOURS,
-        });
-    }
-
-    static signupFor(email: string, password: string, address: string, poolAddress: string) {
-        const wallet = new Web3().eth.accounts.create();
-        const privateKey = address ? null : wallet.privateKey;
-
-        return new Account({
-            active: true,
-            address: address ? address : wallet.address,
-            privateKey: address ? privateKey : wallet.privateKey,
-            email,
-            password,
-            memberships: poolAddress ? [poolAddress] : [],
-        });
-    }
-
-    static async verifySignupToken(signupToken: string) {
+    static async remove(sub: string) {
         try {
-            const account = await Account.findOne({ signupToken });
+            const r = await axios({
+                method: 'DELETE',
+                url: `/account/${sub}`,
+            });
 
-            if (!account) {
-                throw new Error(ERROR_SIGNUP_TOKEN_INVALID);
+            if (!r.data) {
+                throw new Error('Could not delete');
             }
 
-            if (account.signupTokenExpires < Date.now()) {
-                throw new Error(ERROR_SIGNUP_TOKEN_EXPIRED);
+            return { result: true };
+        } catch (error) {
+            return { error };
+        }
+    }
+
+    static async signupFor(email: string, password: string, address: string, poolAddress: string) {
+        try {
+            const wallet = new Web3().eth.accounts.create();
+            const privateKey = address ? null : wallet.privateKey;
+
+            const r = await axios({
+                method: 'POST',
+                url: '/account',
+                data: {
+                    active: true,
+                    address: address ? address : wallet.address,
+                    privateKey: address ? privateKey : wallet.privateKey,
+                    email,
+                    password,
+                    memberships: poolAddress ? [poolAddress] : [],
+                },
+            });
+
+            if (!r.data) {
+                throw new Error('Could not update');
             }
 
-            account.signupToken = '';
-            account.signupTokenExpires = null;
-            account.active = true;
-
-            await account.save();
-
-            return {
-                result: SUCCESS_SIGNUP_COMPLETED,
-            };
+            return { account: r.data };
         } catch (error) {
             return { error };
         }
@@ -145,21 +176,13 @@ export default class AccountService {
 
     static async addRatForAddress(address: string) {
         try {
-            const account = await Account.findOne({ address });
-            const r = await axios({
-                method: 'POST',
-                url: AUTH_URL + '/reg',
-                data: {
-                    application_type: 'web',
-                    grant_types: ['client_credentials'],
-                    request_uris: [],
-                    redirect_uris: [],
-                    post_logout_redirect_uris: [],
-                    response_types: [],
-                    scope: 'openid admin',
-                },
-            });
-            const rat = r.data.registration_access_token;
+            const { account, error } = await this.getByAddress(address);
+
+            if (error) return { error };
+
+            const { client } = await ClientService.create();
+
+            const rat = client.registration_access_token;
 
             if (account.registrationAccessTokens.length) {
                 if (!account.registrationAccessTokens.includes(rat)) {
@@ -169,7 +192,7 @@ export default class AccountService {
                 account.registrationAccessTokens = [rat];
             }
 
-            await account.save();
+            await this.update(account.sub, { registrationAccessTokens: account.registrationAccessTokens });
 
             return { rat };
         } catch (error) {
@@ -179,7 +202,9 @@ export default class AccountService {
 
     static async addMembershipForAddress(assetPool: IAssetPool, address: string) {
         try {
-            const account = await Account.findOne({ address });
+            const { account, error } = await this.getByAddress(address);
+
+            if (error) throw new Error(error);
 
             if (!account.memberships.includes(assetPool.address)) {
                 account.memberships.push(assetPool.address);
@@ -192,7 +217,11 @@ export default class AccountService {
                 account.erc20.push({ address: tokenAddress, network: assetPool.network });
             }
 
-            await account.save();
+            await this.update(account.sub, {
+                registrationAccessTokens: account.registrationAccessTokens,
+                memberships: account.memberships,
+                erc20: account.erc20,
+            });
 
             return { result: true };
         } catch (error) {
@@ -202,7 +231,9 @@ export default class AccountService {
 
     static async removeMembershipForAddress(assetPool: IAssetPool, address: string) {
         try {
-            const account = await Account.findOne({ address });
+            const { account, error } = await this.getByAddress(address);
+
+            if (error) throw new Error(error);
 
             if (account && account.memberships) {
                 const index = account.memberships.indexOf(assetPool.solution.options.address);
@@ -212,104 +243,11 @@ export default class AccountService {
                 }
             }
 
-            await account.save();
+            await this.update(account.sub, {
+                memberships: account.memberships,
+            });
 
             return { result: true };
-        } catch (error) {
-            return { error };
-        }
-    }
-
-    static async getSubForAuthenticationToken(
-        password: string,
-        passwordConfirm: string,
-        authenticationToken: string,
-        secureKey: string,
-    ) {
-        try {
-            const account: AccountDocument = await Account.findOne({ authenticationToken })
-                .where('authenticationTokenExpires')
-                .gt(Date.now())
-                .exec();
-
-            if (!account) {
-                throw new Error(ERROR_AUTHENTICATION_TOKEN_INVALID_OR_EXPIRED);
-            }
-
-            if (password !== passwordConfirm) {
-                throw new Error(ERROR_PASSWORD_NOT_MATCHING);
-            }
-
-            const oldPassword = decryptString(secureKey, SECURE_KEY.split(',')[0]);
-
-            account.privateKey = decryptString(account.privateKey, oldPassword);
-            account.password = password;
-
-            await account.save();
-
-            return { sub: account._id.toString() };
-        } catch (error) {
-            return { error };
-        }
-    }
-
-    static async getSubForCredentials(email: string, password: string) {
-        try {
-            const account: AccountDocument = await Account.findOne({ email });
-
-            const { error, isMatch } = account.comparePassword(password);
-
-            if (error) {
-                throw new Error(ERROR_PASSWORD_MATCHING);
-            }
-
-            if (!isMatch) {
-                throw new Error(ERROR_PASSWORD_NOT_MATCHING);
-            }
-
-            return { sub: account._id.toString() };
-        } catch (error) {
-            return { error };
-        }
-    }
-
-    static async getSubForPasswordResetToken(password: string, passwordConfirm: string, passwordResetToken: string) {
-        try {
-            const account: AccountDocument = await Account.findOne({ passwordResetToken })
-                .where('passwordResetExpires')
-                .gt(Date.now())
-                .exec();
-            const passwordStrength = checkPasswordStrength(password);
-            if (!account) {
-                throw new Error(ERROR_PASSWORD_RESET_TOKEN_INVALID_OR_EXPIRED);
-            }
-            if (passwordStrength != 'strong') {
-                throw new Error(ERROR_PASSWORD_STRENGTH);
-            }
-            if (password !== passwordConfirm) {
-                throw new Error(ERROR_PASSWORD_NOT_MATCHING);
-            }
-            account.password = password;
-
-            await account.save();
-
-            return { sub: account._id.toString() };
-        } catch (error) {
-            return { error };
-        }
-    }
-
-    static async remove(id: string) {
-        try {
-            await Account.remove({ _id: id });
-        } catch (error) {
-            return { error };
-        }
-    }
-
-    static async count() {
-        try {
-            return await Account.countDocuments();
         } catch (error) {
             return { error };
         }

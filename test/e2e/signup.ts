@@ -1,35 +1,49 @@
 import request from 'supertest';
 import server from '../../src/server';
 import db from '../../src/util/database';
-import { deployExampleToken, mockUpgradeAddress, signupWithAddress } from './lib/network';
-import { userEmail, userEmail2, userPassword, userPassword2 } from './lib/constants';
+import { deployExampleToken } from './lib/network';
+import { account, sub, userEmail2, userPassword2 } from './lib/constants';
 import { Contract } from 'web3-eth-contract';
-import { getClientCredentialsToken } from './lib/clientCredentials';
-import { getAuthCodeToken } from './lib/authorizationCode';
 import { NetworkProvider } from '../../src/util/network';
+import { getToken } from './lib/jwt';
+import { mockClear, mockPath, mockStart } from './lib/mock';
 
-const admin = request(server);
 const user = request.agent(server);
-const user2 = request.agent(server);
 
 describe('Signup', () => {
     let poolAddress: any,
         dashboardAccessToken: string,
         testToken: Contract,
-        walletAccessToken: string,
+        userAccessToken: string,
         adminAccessToken: string,
         userAddress: string;
 
     beforeAll(async () => {
-        await db.truncate();
-
-        const { accessToken } = await getClientCredentialsToken(admin);
-        adminAccessToken = accessToken;
-
-        await signupWithAddress(userEmail2, userPassword2);
-        dashboardAccessToken = await getAuthCodeToken(user2, 'openid dashboard', userEmail2, userPassword2);
-
         testToken = await deployExampleToken();
+        adminAccessToken = getToken('openid admin');
+        dashboardAccessToken = getToken('openid dashboard');
+        userAccessToken = getToken('openid user');
+
+        mockStart();
+        mockPath('post', '/account', 200, function () {
+            if (poolAddress) {
+                account.memberships[0] = poolAddress;
+                account.erc20[0] = { network: NetworkProvider.Test, address: testToken.options.address };
+            }
+            return account;
+        });
+        mockPath('get', `/account/${sub}`, 200, function () {
+            if (poolAddress) {
+                account.memberships[0] = poolAddress;
+                account.erc20[0] = { network: NetworkProvider.Test, address: testToken.options.address };
+            }
+            return account;
+        });
+    });
+
+    afterAll(async () => {
+        mockClear();
+        await db.truncate();
     });
 
     describe('POST /asset_pools', () => {
@@ -50,14 +64,13 @@ describe('Signup', () => {
         });
     });
 
-    describe('POST /signup (+ membership)', () => {
-        it('HTTP 200', async (done) => {
-            user.post('/v1/signup')
+    describe('POST /account (+ membership)', () => {
+        it('HTTP 201', async (done) => {
+            user.post('/v1/account')
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
                 .send({
-                    email: userEmail,
-                    password: userPassword,
-                    confirmPassword: userPassword,
+                    email: userEmail2,
+                    password: userPassword2,
                 })
                 .end(async (err, res) => {
                     expect(res.status).toBe(201);
@@ -100,16 +113,9 @@ describe('Signup', () => {
     // });
 
     describe('GET /account', () => {
-        beforeAll(async () => {
-            // remove encoded private key to simulate upgrade_address
-            await mockUpgradeAddress(userEmail);
-
-            walletAccessToken = await getAuthCodeToken(user, 'openid user', userEmail, userPassword);
-        });
-
         it('HTTP 200 if OK', (done) => {
             user.get('/v1/account')
-                .set({ AssetPool: poolAddress, Authorization: walletAccessToken })
+                .set({ AssetPool: poolAddress, Authorization: userAccessToken })
                 .end(async (err, res) => {
                     expect(res.status).toBe(200);
                     expect(res.body.memberships[0]).toBe(poolAddress);

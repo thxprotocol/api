@@ -3,10 +3,10 @@ import { HttpError, HttpRequest } from '../../models/Error';
 import AccountService from '../../services/AccountService';
 
 export const getAccount = async (req: HttpRequest, res: Response, next: NextFunction) => {
-    const sub = req.user.sub;
-
     try {
-        const account = await AccountService.get(sub);
+        const { account, error } = await AccountService.get(req.user.sub);
+
+        if (error) throw new Error(error.message);
 
         if (account) {
             res.send({

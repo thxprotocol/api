@@ -1,47 +1,44 @@
 import request from 'supertest';
 import server from '../../src/server';
 import db from '../../src/util/database';
-import {
-    rewardWithdrawAmount,
-    userEmail,
-    userPassword,
-    tokenName,
-    tokenSymbol,
-    userEmail2,
-    userPassword2,
-} from './lib/constants';
+import { account, rewardWithdrawAmount, sub, tokenName, tokenSymbol, userWalletPrivateKey } from './lib/constants';
 import { isAddress } from 'web3-utils';
 import { Account } from 'web3-core';
-import { signupWithAddress } from './lib/network';
-import { getAuthCodeToken } from './lib/authorizationCode';
-import { getClientCredentialsToken } from './lib/clientCredentials';
+import { createWallet } from './lib/network';
+import { getToken } from './lib/jwt';
+import { mockClear, mockPath, mockStart } from './lib/mock';
 
-const admin = request(server);
 const user = request.agent(server);
-const user2 = request.agent(server);
 
-describe('UnlimitedSupplyToken', () => {
+describe('Unlimited Supply Token', () => {
     let adminAccessToken: string,
         userAccessToken: string,
         dashboardAccessToken: string,
         poolAddress: string,
         rewardID: string,
         withdrawalID: number,
-        userAddress: string,
         userWallet: Account;
 
     beforeAll(async () => {
+        adminAccessToken = getToken('openid admin');
+        dashboardAccessToken = getToken('openid dashboard');
+        userAccessToken = getToken('openid user');
+        userWallet = createWallet(userWalletPrivateKey);
+
+        mockStart();
+        mockPath('post', '/account', 200, function () {
+            if (poolAddress) account.memberships[0] = poolAddress;
+            return account;
+        });
+        mockPath('get', `/account/${sub}`, 200, function () {
+            if (poolAddress) account.memberships[0] = poolAddress;
+            return account;
+        });
+    });
+
+    afterAll(async () => {
+        mockClear();
         await db.truncate();
-
-        const { accessToken } = await getClientCredentialsToken(admin);
-        adminAccessToken = accessToken;
-
-        userWallet = await signupWithAddress(userEmail, userPassword);
-        userAccessToken = await getAuthCodeToken(user, 'openid user', userEmail, userPassword);
-        userAddress = userWallet.address;
-
-        await signupWithAddress(userEmail2, userPassword2);
-        dashboardAccessToken = await getAuthCodeToken(user2, 'openid dashboard', userEmail2, userPassword2);
     });
 
     describe('GET /account', () => {
@@ -82,7 +79,7 @@ describe('UnlimitedSupplyToken', () => {
 
         it('HTTP 302 when member is added', (done) => {
             user.post('/v1/members/')
-                .send({ address: userAddress })
+                .send({ address: userWallet.address })
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
                 .end(async (err, res) => {
                     expect(res.status).toBe(302);
@@ -91,7 +88,7 @@ describe('UnlimitedSupplyToken', () => {
         });
 
         it('HTTP 302 when member is promoted', (done) => {
-            user.patch(`/v1/members/${userAddress}`)
+            user.patch(`/v1/members/${userWallet.address}`)
                 .send({ isManager: true })
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
                 .end(async (err, res) => {

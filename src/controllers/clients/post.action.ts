@@ -23,7 +23,7 @@ export const postClient = async (req: HttpRequest, res: Response, next: NextFunc
         const rat = r.data.registration_access_token;
 
         try {
-            const account = await AccountService.get(req.user.sub);
+            const { account } = await AccountService.get(req.user.sub);
 
             if (account.registrationAccessTokens.length > 0) {
                 account.registrationAccessTokens.push(rat);

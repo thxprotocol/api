@@ -53,7 +53,7 @@ export async function deleteAssetPool(req: HttpRequest, res: Response, next: Nex
     }
 
     async function removeMembership(assetPool: IAssetPool) {
-        const account = await AccountService.get(assetPool.sub);
+        const { account } = await AccountService.get(assetPool.sub);
         const { error } = await AccountService.removeMembershipForAddress(assetPool, account.address);
 
         if (error) {

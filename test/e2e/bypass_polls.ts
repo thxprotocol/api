@@ -1,14 +1,13 @@
 import request from 'supertest';
 import server from '../../src/server';
 import db from '../../src/util/database';
-import { deployExampleToken, signupWithAddress } from './lib/network';
-import { rewardWithdrawAmount, rewardWithdrawDuration, userEmail, userPassword } from './lib/constants';
+import { deployExampleToken } from './lib/network';
+import { account, rewardWithdrawAmount, rewardWithdrawDuration, sub } from './lib/constants';
 import { Contract } from 'web3-eth-contract';
-import { getAuthCodeToken } from './lib/authorizationCode';
-import { getClientCredentialsToken } from './lib/clientCredentials';
 import { isAddress } from 'web3-utils';
+import { getToken } from './lib/jwt';
+import { mockClear, mockPath, mockStart } from './lib/mock';
 
-const admin = request(server);
 const user = request.agent(server);
 
 describe('Bypass Polls', () => {
@@ -19,16 +18,24 @@ describe('Bypass Polls', () => {
         testToken: Contract;
 
     beforeAll(async () => {
-        await db.truncate();
-
-        const { accessToken } = await getClientCredentialsToken(admin);
-        adminAccessToken = accessToken;
-
-        await signupWithAddress(userEmail, userPassword);
-
-        dashboardAccessToken = await getAuthCodeToken(user, 'openid dashboard', userEmail, userPassword);
-
         testToken = await deployExampleToken();
+        adminAccessToken = getToken('openid admin');
+        dashboardAccessToken = getToken('openid dashboard');
+
+        mockStart();
+        mockPath('post', '/account', 200, function () {
+            if (poolAddress) account.memberships[0] = poolAddress;
+            return account;
+        });
+        mockPath('get', `/account/${sub}`, 200, function () {
+            if (poolAddress) account.memberships[0] = poolAddress;
+            return account;
+        });
+    });
+
+    afterAll(async () => {
+        mockClear();
+        await db.truncate();
     });
 
     describe('POST /asset_pools', () => {

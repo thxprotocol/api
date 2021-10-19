@@ -1,8 +1,8 @@
 import { body, validationResult } from 'express-validator';
 import { Response, Request, NextFunction } from 'express';
 import { HttpError, HttpRequest } from '../models/Error';
-import { Account } from '../models/Account';
 import { AssetPool } from '../models/AssetPool';
+import AccountService from '../services/AccountService';
 
 export const validate = (validations: any) => {
     return async (req: Request, res: Response, next: NextFunction) => {
@@ -22,7 +22,7 @@ export const validateAssetPoolHeader = async (req: HttpRequest, res: Response, n
     try {
         // If there is a sub check the account for user membership
         if (req.user.sub) {
-            const account = await Account.findById(req.user.sub);
+            const { account } = await AccountService.get(req.user.sub);
 
             if (req.user.scope.includes('widget')) {
                 return next();

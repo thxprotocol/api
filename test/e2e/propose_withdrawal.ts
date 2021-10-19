@@ -1,46 +1,47 @@
 import request from 'supertest';
 import server from '../../src/server';
 import db from '../../src/util/database';
-import {
-    rewardWithdrawAmount,
-    userEmail,
-    userPassword,
-    tokenName,
-    tokenSymbol,
-    userEmail2,
-    userPassword2,
-} from './lib/constants';
+import { rewardWithdrawAmount, tokenName, tokenSymbol, account, sub, userWalletPrivateKey } from './lib/constants';
 import { isAddress } from 'web3-utils';
 import { Account } from 'web3-core';
-import { signupWithAddress } from './lib/network';
-import { getAuthCodeToken } from './lib/authorizationCode';
-import { getClientCredentialsToken } from './lib/clientCredentials';
+import { getToken } from './lib/jwt';
+import { NetworkProvider } from '../../src/util/network';
+import { createWallet } from './lib/network';
+import { mockClear, mockPath, mockStart } from './lib/mock';
 
-const admin = request(server);
 const user = request.agent(server);
-const user2 = request.agent(server);
 
-describe('ProposeWithdrawal', () => {
+describe('Propose Withdrawal', () => {
     let adminAccessToken: string,
         userAccessToken: string,
         dashboardAccessToken: string,
         poolAddress: string,
+        poolTokenAddress: string,
         withdrawalID: number,
-        userAddress: string,
         userWallet: Account;
 
     beforeAll(async () => {
+        adminAccessToken = getToken('openid admin');
+        dashboardAccessToken = getToken('openid dashboard');
+        userAccessToken = getToken('openid user');
+        userWallet = createWallet(userWalletPrivateKey);
+
+        mockStart();
+        mockPath('post', '/account', 200, function () {
+            if (poolAddress) account.memberships[0] = poolAddress;
+            if (poolTokenAddress) account.erc20[0] = { network: NetworkProvider.Test, address: poolTokenAddress };
+            return account;
+        });
+        mockPath('get', `/account/${sub}`, 200, function () {
+            if (poolAddress) account.memberships[0] = poolAddress;
+            if (poolTokenAddress) account.erc20[0] = { network: NetworkProvider.Test, address: poolTokenAddress };
+            return account;
+        });
+    });
+
+    afterAll(async () => {
+        mockClear();
         await db.truncate();
-
-        const { accessToken } = await getClientCredentialsToken(admin);
-        adminAccessToken = accessToken;
-
-        userWallet = await signupWithAddress(userEmail, userPassword);
-        userAccessToken = await getAuthCodeToken(user, 'openid user', userEmail, userPassword);
-        userAddress = userWallet.address;
-
-        await signupWithAddress(userEmail2, userPassword2);
-        dashboardAccessToken = await getAuthCodeToken(user2, 'openid dashboard', userEmail2, userPassword2);
     });
 
     describe('GET /account', () => {
@@ -79,9 +80,23 @@ describe('ProposeWithdrawal', () => {
                 });
         });
 
+        it('HTTP 200 (success)', async (done) => {
+            user.get('/v1/asset_pools/' + poolAddress)
+                .set({ AssetPool: poolAddress, Authorization: dashboardAccessToken })
+                .send()
+                .end(async (err, res) => {
+                    expect(res.status).toBe(200);
+                    expect(isAddress(res.body.token.address)).toBe(true);
+
+                    poolTokenAddress = res.body.token.address;
+
+                    done();
+                });
+        });
+
         it('HTTP 302 when member is added', (done) => {
             user.post('/v1/members/')
-                .send({ address: userAddress })
+                .send({ address: userWallet.address })
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
                 .end(async (err, res) => {
                     expect(res.status).toBe(302);
@@ -94,7 +109,7 @@ describe('ProposeWithdrawal', () => {
         it('HTTP 200 after proposing a withdrawal', async (done) => {
             user.post('/v1/withdrawals')
                 .send({
-                    member: userAddress,
+                    member: userWallet.address,
                     amount: rewardWithdrawAmount,
                 })
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })

@@ -1,7 +1,7 @@
 import { Response, Request, NextFunction } from 'express';
 import { HttpError } from '../../models/Error';
 import { getAdmin, getProvider, NetworkProvider } from '../../util/network';
-import AccountService from '../../services/AccountService';
+// import AccountService from '../../services/AccountService';
 import AssetPoolService from '../../services/AssetPoolService';
 import RewardService from '../../services/RewardService';
 import WithdrawalService from '../../services/WithdrawalService';
@@ -42,7 +42,7 @@ export const getMetrics = async (req: Request, res: Response, next: NextFunction
         const address = getAdmin(NetworkProvider.Main).address;
 
         const jsonData = {
-            count_wallets: await AccountService.count(),
+            // count_wallets: await AccountService.count(),
             count_applications: await ClientService.countScope('openid admin'),
             count_asset_pools: {
                 mainnet: await AssetPoolService.countByNetwork(NetworkProvider.Main),

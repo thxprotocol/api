@@ -5,8 +5,7 @@ import AccountService from '../../services/AccountService';
 
 export const patchAccount = async (req: HttpRequest, res: Response, next: NextFunction) => {
     try {
-        const account = await AccountService.get(req.user.sub);
-        const { error } = await AccountService.update(account, {
+        const { error } = await AccountService.update(req.user.sub, {
             address: req.body.address,
             memberships: req.body.memberships,
             burnProofs: req.body.burnProofs,

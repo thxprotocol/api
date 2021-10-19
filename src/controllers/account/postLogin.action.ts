@@ -1,22 +1,15 @@
 import MailService from '../../services/MailService';
 import { Request, Response, NextFunction } from 'express';
 import { HttpError } from '../../models/Error';
-import AccountService from '../../services/AccountService';
 
-export const postAuthenticationToken = async (req: Request, res: Response, next: NextFunction) => {
+export const postLogin = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const { account, error } = await AccountService.getByEmail(req.body.email);
+        const { error } = await MailService.sendLoginLinkEmail(req.body.email, req.body.password);
 
         if (error) {
             throw new Error(error);
         } else {
-            const { error } = await MailService.sendLoginLinkEmail(account, req.body.password);
-
-            if (error) {
-                throw new Error(error);
-            } else {
-                return res.json({ message: `E-mail sent to ${account.email}` });
-            }
+            return res.json({ message: `E-mail sent to ${req.body.email}` });
         }
     } catch (error) {
         return next(new HttpError(500, error.toString(), error));

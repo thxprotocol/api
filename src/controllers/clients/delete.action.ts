@@ -22,7 +22,7 @@ export const deleteClient = async (req: HttpRequest, res: Response, next: NextFu
             }
 
             try {
-                const account = await AccountService.get(req.user.sub);
+                const { account } = await AccountService.get(req.user.sub);
                 const index = account.registrationAccessTokens.indexOf(rat.payload.jti);
 
                 account.registrationAccessTokens.splice(index, 1);

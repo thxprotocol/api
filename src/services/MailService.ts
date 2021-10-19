@@ -1,84 +1,38 @@
 import ejs from 'ejs';
-import { AccountDocument } from '../models/Account';
 import { sendMail } from '../util/mail';
 import { createRandomToken } from '../util/tokens';
 import path from 'path';
 import { API_URL, SECURE_KEY, WALLET_URL } from '../util/secrets';
 import { encryptString } from '../util/encrypt';
+import AccountService from './AccountService';
+
+const DURATION_TEN_MINUTES = Date.now() + 10 * 60 * 1000;
 
 export default class MailService {
-    static async sendConfirmationEmail(account: AccountDocument, returnUrl: string) {
-        try {
-            account.signupToken = createRandomToken();
-            account.signupTokenExpires = Date.now() + 1000 * 60 * 60 * 24; // 24 hours,
-
-            const html = await ejs.renderFile(
-                path.dirname(__dirname) + '/views/mail/signupConfirm.ejs',
-                {
-                    signupToken: account.signupToken,
-                    returnUrl,
-                    baseUrl: API_URL,
-                },
-                { async: true },
-            );
-
-            await sendMail(account.email, 'Please complete the sign up for your THX Account', html);
-
-            await account.save();
-
-            return { result: true };
-        } catch (error) {
-            return { error };
-        }
-    }
-
-    static async sendLoginLinkEmail(account: AccountDocument, password: string) {
+    static async sendLoginLinkEmail(email: string, password: string) {
         try {
             const secureKey = encryptString(password, SECURE_KEY.split(',')[0]);
-            const authToken = createRandomToken();
-            const encryptedAuthToken = encryptString(authToken, password);
+            const authenticationToken = encryptString(createRandomToken(), password);
             const html = await ejs.renderFile(
                 path.dirname(__dirname) + '/views/mail/loginLink.ejs',
                 {
-                    authenticationToken: encryptedAuthToken,
+                    authenticationToken,
                     secureKey,
                     returnUrl: WALLET_URL,
                     baseUrl: API_URL,
                 },
                 { async: true },
             );
+            const { account, error } = await AccountService.getByEmail(email);
 
-            await sendMail(account.email, 'A sign in is requested for your Web Wallet', html);
+            if (error) throw new Error(error);
 
-            account.authenticationToken = encryptedAuthToken;
-            account.authenticationTokenExpires = Date.now() + 10 * 60 * 1000; // 10 minutes
+            await sendMail(email, 'A sign in is requested for your Web Wallet', html);
 
-            await account.save();
-
-            return { result: true };
-        } catch (error) {
-            return { error };
-        }
-    }
-
-    static async sendResetPasswordEmail(account: AccountDocument, returnUrl: string, uid: string) {
-        try {
-            account.passwordResetToken = createRandomToken();
-            account.passwordResetExpires = Date.now() + 1000 * 60 * 20; // 20 minutes,
-            const html = await ejs.renderFile(
-                path.dirname(__dirname) + '/views/mail/resetPassword.ejs',
-                {
-                    passwordResetToken: account.passwordResetToken,
-                    uid,
-                    returnUrl,
-                    baseUrl: API_URL,
-                },
-                { async: true },
-            );
-
-            await sendMail(account.email, 'Reset your THX Password', html);
-
-            await account.save();
+            await AccountService.update(account.sub, {
+                authenticationToken,
+                authenticationTokenExpires: DURATION_TEN_MINUTES,
+            });
 
             return { result: true };
         } catch (error) {
