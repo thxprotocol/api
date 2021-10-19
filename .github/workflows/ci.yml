@@ -27,8 +27,5 @@ jobs:
             - name: Install dependencies
               run: npm install
 
-            - name: Build keys
-              run: npm run build:keys
-
             - name: Run test
-              run: docker compose -f docker-compose.ci.yml run node npm run test:ci
+              run: docker compose -f docker-compose.ci.yml run --rm api_ci_node npx jest --forceExit
