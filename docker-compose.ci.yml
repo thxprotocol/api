@@ -30,11 +30,9 @@ services:
         environment:
             - NODE_ENV=test
         depends_on:
-            - api_ci_mainnet
             - api_ci_testnet
             - api_ci_mongo
         links:
-            - api_ci_mainnet
             - api_ci_testnet
             - api_ci_mongo
         ports:
