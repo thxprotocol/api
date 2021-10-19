@@ -62,9 +62,6 @@ jobs:
             - name: Patch dependencies
               run: find ./node_modules -mtime +10950 -exec touch {} \;
 
-            - name: Run build:keys
-              run: npm run build:keys
-
             - name: Run build
               run: npm run build
 
