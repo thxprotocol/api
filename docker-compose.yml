@@ -77,10 +77,22 @@ services:
                 '--db=/ganache_data',
                 '-l 25000000 ',
             ]
+    redis:
+        container_name: thx_redis
+        image: redis:alpine
+        command: ["redis-server", "--appendonly", "yes"]
+        restart: always
+        ports:
+            - 6379:6379
+        volumes:
+            - ./cache/redis-data:/data/db
+        networks:
+            - api_network
 volumes:
     mongo-data:
     testnet-data:
     mainnet-data:
+    redis-data:
 
 networks:
     api_network:
