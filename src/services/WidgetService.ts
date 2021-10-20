@@ -10,24 +10,16 @@ export default class WidgetService {
         }
     }
 
-    static async getByIdAndAddress(rat: string, poolAddress: string) {
+    static async getForUserByPool(sub: string, poolAddress: string) {
         try {
-            const widget = await Widget.findOne({ rat, poolAddress });
-            return { widget };
+            const widgets = await Widget.find({ sub, 'metadata.poolAddress': poolAddress });
+            return { result: widgets.map((widget) => widget.rat) };
         } catch (error) {
             return { error };
         }
     }
 
-    static async getAll(sub: string) {
-        try {
-            return { result: (await Widget.find({ sub: sub })).map((widget) => widget.rat) };
-        } catch (error) {
-            return { error };
-        }
-    }
-
-    static async post(sub: string, rat: string, rewardId: number, poolAddress: string) {
+    static async create(sub: string, rat: string, rewardId: number, poolAddress: string) {
         try {
             const widget = new Widget({
                 sub,

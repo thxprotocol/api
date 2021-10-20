@@ -16,3 +16,7 @@ export const userPassword = 'mellon';
 export const userPassword2 = 'mellon';
 export const voterEmail = 'test.voter.bot@thx.network';
 export const newAddress = '0x253cA584af3E458392982EF246066A6750Fa0735';
+export const rewardId = 1;
+export const requestUris = ['http://localhost:8080'];
+export const redirectUris = ['http://localhost:8080'];
+export const postLogoutRedirectUris = ['http://localhost:8080'];
