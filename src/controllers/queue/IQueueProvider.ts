@@ -1,20 +1,21 @@
 interface addJobRequest {
-    queueName: string
-    jobName: string
-    job?: object,
+    queueName: string;
+    jobName: string;
+    job?: object;
     opts?: {
-        removeOnComplete: boolean
-    }
+        removeOnComplete: number;
+        removeOnFail: number;
+    };
 }
 
 interface registerQueueRequest {
-    queueName: string
+    queueName: string;
 }
 
 interface IQueueProvider {
-    register({ queueName }: registerQueueRequest): void
-    add({ queueName, job, jobName, opts }: addJobRequest): void
-    setUI(): void
+    register({ queueName }: registerQueueRequest): void;
+    add({ queueName, job, jobName, opts }: addJobRequest): void;
+    setUI(): void;
 }
 
-export { IQueueProvider, addJobRequest, registerQueueRequest }
+export { IQueueProvider, addJobRequest, registerQueueRequest };

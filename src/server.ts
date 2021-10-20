@@ -1,5 +1,5 @@
-import app from './app';
+import { application } from './app';
 
-const server = app.listen(app.get('port'));
+const server = application.listen(application.get('port'));
 
 export default server;

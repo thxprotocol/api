@@ -12,12 +12,14 @@ import rewardsRouter from './rewards/_.routing';
 import withdrawalsRouter from './withdrawals/_.routing';
 import authRouter from './auth/_.routing';
 import { checkJwt } from '../util/jwt';
+import { router as bullRouter } from 'bull-board';
 
 const router = express.Router();
 
 router.use('/ping', (req, res) => res.send('pong'));
 router.use('/health', healthRouter);
 router.use('/docs', docsRouter);
+router.use('/admin/queues', bullRouter);
 router.use(checkJwt);
 router.use('/', authRouter);
 router.use('/metrics', metricsRouter);
