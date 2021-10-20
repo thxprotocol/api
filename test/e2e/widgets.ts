@@ -116,11 +116,11 @@ describe('Widgets', () => {
                 .get('/v1/widgets/' + rat)
                 .set({ AssetPool: poolAddress, Authorization: dashboardAccessToken });
             expect(status).toBe(200);
-            expect(body.requestUris).toBe(requestUris);
+            expect(JSON.parse(body.requestUris)).toBe(requestUris);
             expect(body.clientId).toBeDefined();
             expect(body.clientSecret).toBeDefined();
             expect(body.registrationAccessToken).toBe(rat);
-            expect(body.metadata).toBe({
+            expect(JSON.parse(body.metadata)).toBe({
                 rewardId,
                 poolAddress,
             });
