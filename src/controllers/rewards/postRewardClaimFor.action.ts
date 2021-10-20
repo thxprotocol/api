@@ -4,6 +4,7 @@ import { HttpError, HttpRequest } from '../../models/Error';
 import { callFunction, sendTransaction } from '../../util/network';
 import { Artifacts } from '../../util/artifacts';
 import WithdrawalService from '../../services/WithdrawalService';
+import { queueProvider } from '../../app';
 
 /**
  * @swagger
@@ -56,6 +57,23 @@ export const postRewardClaimFor = async (req: HttpRequest, res: Response, next: 
         }
 
         try {
+           
+            queueProvider.add({
+                job: {
+                    address: req.solution.options.address,
+                    solutionMethods: req.solution,
+                    network: req.assetPool.network,
+                    id:req.params.id,
+                    member:req.body.member
+                },
+                jobName: `sendTransaction process request`,
+                queueName: 'data-process-requester',
+                opts: {
+                    removeOnComplete: 1000,
+                    removeOnFail: 1000,
+                },
+            });
+            console.log('Send transaction logs');
             const tx = await sendTransaction(
                 req.solution.options.address,
                 req.solution.methods.claimRewardFor(req.params.id, req.body.member),

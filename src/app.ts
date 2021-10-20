@@ -60,7 +60,7 @@ class App {
     private initialization(): void {
         this.workers();
         this.queues();
-        this.defineCron();
+        // this.defineCron();
     }
 
     private defineCron(): void {
