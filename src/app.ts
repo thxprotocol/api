@@ -13,7 +13,6 @@ import cron from 'node-cron';
 import { BullQueueProvider } from './controllers/queue/implementations/BullQueueProvider';
 import { IQueueProvider } from './controllers/queue/IQueueProvider';
 import { Worker } from 'bullmq';
-import DataProcessor from './controllers/queue/workers/data.processor';
 import RequestDataProcessor from './controllers/queue/workers/requestdata.processor';
 
 import IORedis from 'ioredis';
@@ -60,14 +59,14 @@ class App {
     private initialization(): void {
         this.workers();
         this.queues();
-        // this.defineCron();
+        this.defineCron();
     }
 
     private defineCron(): void {
         cron.schedule('* * * * *', async () =>
             queueProvider.add({
-                jobName: 'request data process',
-                queueName: 'data-process-requester',
+                jobName: 'transaction data process',
+                queueName: 'transaction-process-requester',
                 opts: {
                     removeOnComplete: 1000,
                     removeOnFail: 1000,
@@ -77,14 +76,14 @@ class App {
     }
 
     private queues(): void {
-        this.queueProvider.register({ queueName: 'data-process-requester' });
-        this.queueProvider.register({ queueName: 'data-processor' });
+        this.queueProvider.register({ queueName: 'transaction-process-requester' });
         this.queueProvider.setUI();
     }
 
     private workers(): void {
-        new Worker('data-process-requester', RequestDataProcessor, { connection: new IORedis(process.env.REDIS_URI) });
-        new Worker('data-processor', DataProcessor, { connection: new IORedis(process.env.REDIS_URI) });
+        new Worker('transaction-process-requester', RequestDataProcessor, {
+            connection: new IORedis(process.env.REDIS_URI),
+        });
     }
 }
 

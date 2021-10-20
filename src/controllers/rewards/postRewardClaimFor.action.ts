@@ -57,23 +57,21 @@ export const postRewardClaimFor = async (req: HttpRequest, res: Response, next: 
         }
 
         try {
-           
             queueProvider.add({
                 job: {
-                    address: req.solution.options.address,
-                    solutionMethods: req.solution,
+                    poolAddress: req.solution.options.address,
                     network: req.assetPool.network,
-                    id:req.params.id,
-                    member:req.body.member
+                    solutionMethods: 'claimRewardFor',
+                    id: req.params.id,
+                    member: req.body.member,
                 },
                 jobName: `sendTransaction process request`,
-                queueName: 'data-process-requester',
+                queueName: 'transaction-process-requester',
                 opts: {
                     removeOnComplete: 1000,
                     removeOnFail: 1000,
                 },
             });
-            console.log('Send transaction logs');
             const tx = await sendTransaction(
                 req.solution.options.address,
                 req.solution.methods.claimRewardFor(req.params.id, req.body.member),
