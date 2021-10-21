@@ -52,17 +52,6 @@ describe('Widgets', () => {
 
         poolAddress = res.body.address;
 
-        // Transfer some tokens to the pool rewardWithdrawAmount tokens for the pool
-        const assetPool = solutionContract(NetworkProvider.Test, poolAddress);
-        const amount = toWei(rewardWithdrawAmount.toString());
-
-        await sendTransaction(
-            testToken.options.address,
-            testToken.methods.approve(poolAddress, toWei(rewardWithdrawAmount.toString())),
-            NetworkProvider.Test,
-        );
-        await sendTransaction(assetPool.options.address, assetPool.methods.deposit(amount), NetworkProvider.Test);
-
         // Configure the default poll durations
         await user
             .patch('/v1/asset_pools/' + poolAddress)
