@@ -20,7 +20,7 @@ export const voter = web3.eth.accounts.privateKeyToAccount(VOTER_PK);
 export const depositor = web3.eth.accounts.privateKeyToAccount(DEPOSITOR_PK);
 
 export async function signupWithAddress(email: string, password: string) {
-    const account = AccountService.signup(email, password, true, true);
+    const account = await AccountService.signup(email, password, true, true);
     const wallet = new Web3().eth.accounts.create();
 
     account.address = wallet.address;
