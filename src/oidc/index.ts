@@ -116,7 +116,7 @@ router.post(
             });
         }
 
-        const account = AccountService.signup(
+        const account = await AccountService.signup(
             req.body.email,
             req.body.password,
             req.body.acceptTermsPrivacy,
