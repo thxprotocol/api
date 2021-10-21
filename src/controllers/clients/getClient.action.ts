@@ -27,3 +27,47 @@ export const getClient = async (req: HttpRequest, res: Response, next: NextFunct
         next(new HttpError(500, 'Could not return client information.', e));
     }
 };
+
+/**
+ * @swagger
+ * /clients/:rat:
+ *   get:
+ *     tags:
+ *       - Clients
+ *     description: Provides information about a client.
+ *     produces:
+ *       - application/json
+ *     parameters:
+ *       - name: rat
+ *         in: path
+ *         required: true
+ *         type: string
+ *     responses:
+ *       '200':
+ *         description: OK
+ *         schema:
+ *           type: object
+ *           properties:
+ *             requestUris:
+ *               type: array
+ *               items:
+ *                 type: string
+ *             clientId:
+ *               type: string
+ *             clientSecret:
+ *               type: string
+ *             registrationAccessToken:
+ *               type: string
+ *       '400':
+ *         description: Bad Request. Indicates incorrect body parameters.
+ *       '401':
+ *         description: Unauthorized. Authenticate your request please.
+ *       '403':
+ *         description: Forbidden. Your account does not have access to this client information.
+ *       '404':
+ *         description: Not Found. Client information not found.
+ *       '500':
+ *         description: Internal Server Error.
+ *       '502':
+ *         description: Bad Gateway. Received an invalid response from the network or database.
+ */

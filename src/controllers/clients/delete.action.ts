@@ -43,3 +43,33 @@ export const deleteClient = async (req: HttpRequest, res: Response, next: NextFu
         next(new HttpError(502, 'Could verify removal status for this client.', e));
     }
 };
+
+
+/**
+ * @swagger
+ * /clients/:rat:
+ *   delete:
+ *     tags:
+ *       - Clients
+ *     description: Revokes a client
+ *     produces:
+ *       - application/json
+ *     parameters:
+ *       - name: rat
+ *         in: path
+ *         required: true
+ *         type: string
+ *     responses:
+ *       '200':
+ *         description: OK
+ *       '400':
+ *         description: Bad Request. Indicates incorrect path parameters.
+ *       '401':
+ *         description: Unauthorized. Authenticate your request please.
+ *       '403':
+ *         description: Forbidden. Your account does not have access to revoke this client.
+ *       '500':
+ *         description: Internal Server Error.
+ *       '502':
+ *         description: Bad Gateway. Received an invalid response from the network or database.
+ */
