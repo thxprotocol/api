@@ -34,6 +34,12 @@ class BullQueueProvider implements IQueueProvider {
 
         queue.add(jobName, job, {
             removeOnComplete: opts?.removeOnComplete,
+            removeOnFail: opts?.removeOnFail,
+            attempts: 3,
+            backoff: {
+                type: 'exponential',
+                delay: 3000,
+            },
         });
     }
 }

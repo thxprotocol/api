@@ -13,7 +13,7 @@ import cron from 'node-cron';
 import { BullQueueProvider } from './controllers/queue/implementations/BullQueueProvider';
 import { IQueueProvider } from './controllers/queue/IQueueProvider';
 import { Worker } from 'bullmq';
-import RequestDataProcessor from './controllers/queue/workers/requestdata.processor';
+import TransactionDataProcessor from './controllers/queue/workers/transaction.processor';
 
 import IORedis from 'ioredis';
 
@@ -59,20 +59,6 @@ class App {
     private initialization(): void {
         this.workers();
         this.queues();
-        this.defineCron();
-    }
-
-    private defineCron(): void {
-        cron.schedule('* * * * *', async () =>
-            queueProvider.add({
-                jobName: 'transaction data process',
-                queueName: 'transaction-process-requester',
-                opts: {
-                    removeOnComplete: 1000,
-                    removeOnFail: 1000,
-                },
-            }),
-        );
     }
 
     private queues(): void {
@@ -81,7 +67,7 @@ class App {
     }
 
     private workers(): void {
-        new Worker('transaction-process-requester', RequestDataProcessor, {
+        new Worker('transaction-process-requester', TransactionDataProcessor, {
             connection: new IORedis(process.env.REDIS_URI),
         });
     }
