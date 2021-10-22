@@ -43,41 +43,43 @@ export const getMember = async (req: HttpRequest, res: Response, next: NextFunct
  *     responses:
  *       200:
  *         description: OK
- *         schema:
- *            type: object
- *            properties:
- *               address:
- *                  type: string
- *                  description: The most recent address known for this member
- *               isMember:
- *                  type: boolean
- *                  description: If this address is known as member of the asset pool
- *               isManager:
- *                  type: boolean
- *                  description: If this address is known as manager of the asset pool
- *               balance:
- *                  type: object
- *                  properties:
+ *         content:
+ *           application/json:  
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 address:
+ *                   type: string
+ *                   description: The most recent address known for this member
+ *                 isMember:
+ *                   type: boolean
+ *                   description: If this address is known as member of the asset pool
+ *                 isManager:
+ *                   type: boolean
+ *                   description: If this address is known as manager of the asset pool
+ *                 balance:
+ *                   type: object
+ *                   properties:
  *                     name:
- *                        type: string
- *                        description: The name of the token configured for this asset pool
+ *                       type: string
+ *                       description: The name of the token configured for this asset pool
  *                     symbol:
- *                        type: string
- *                        description: The symbol of the token configured for this asset pool
+ *                       type: string
+ *                       description: The symbol of the token configured for this asset pool
  *                     amount:
- *                        type: number
- *                        description: The token balance of the asset pool for this token
+ *                       type: number
+ *                       description: The token balance of the asset pool for this token
  *       '400':
- *         description: Bad Request. Indicates incorrect body parameters.
+ *         $ref: '#/components/responses/400'
  *       '401':
- *         description: Unauthorized. Authenticate your request please.
+ *         $ref: '#/components/responses/401'
  *       '403':
  *         description: Forbidden. Your account does not have access to this pool.
  *       '404':
  *         description: Not Found. Address is not a member.
  *       '500':
- *         description: Internal Server Error.
+ *         $ref: '#/components/responses/500'
  *       '502':
- *         description: Bad Gateway. Received an invalid response from the network or database.
+ *         $ref: '#/components/responses/502'
 
  */

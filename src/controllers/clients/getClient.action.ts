@@ -45,29 +45,31 @@ export const getClient = async (req: HttpRequest, res: Response, next: NextFunct
  *     responses:
  *       '200':
  *         description: OK
- *         schema:
- *           type: object
- *           properties:
- *             requestUris:
- *               type: array
- *               items:
- *                 type: string
- *             clientId:
- *               type: string
- *             clientSecret:
- *               type: string
- *             registrationAccessToken:
- *               type: string
+ *         content:
+ *           application/json:  
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 requestUris:
+ *                   type: array
+ *                   items:
+ *                     type: string
+ *                 clientId:
+ *                   type: string
+ *                 clientSecret:
+ *                   type: string
+ *                 registrationAccessToken:
+ *                   type: string
  *       '400':
- *         description: Bad Request. Indicates incorrect body parameters.
+ *         $ref: '#/components/responses/400'
  *       '401':
- *         description: Unauthorized. Authenticate your request please.
+ *         $ref: '#/components/responses/401'
  *       '403':
  *         description: Forbidden. Your account does not have access to this client information.
  *       '404':
  *         description: Not Found. Client information not found.
  *       '500':
- *         description: Internal Server Error.
+ *         $ref: '#/components/responses/500'
  *       '502':
- *         description: Bad Gateway. Received an invalid response from the network or database.
+ *         $ref: '#/components/responses/502'
  */

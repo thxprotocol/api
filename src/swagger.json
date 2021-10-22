@@ -18,6 +18,22 @@
       "bearerAuth": []
     }
   ],
+  "components": {
+    "responses": {
+      "400": {
+        "description": "Bad Request. Indicates incorrect body parameters"
+      },
+      "401": {
+        "description": "Unauthorized. Authenticate your request please."
+      },
+      "500": {
+        "description": "Internal Server Error."
+      },
+      "502": {
+        "description": "Bad Gateway. Received an invalid response from the network or database."
+      }
+    }
+  },
   "swagger": "2.0",
   "paths": {
     "/authentication_token": {
@@ -40,18 +56,22 @@
         "responses": {
           "200": {
             "description": "OK",
-            "schema": {
-              "type": "object",
-              "properties": {
-                "url": {
-                  "type": "string",
-                  "description": "One-time login link for wallet."
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "url": {
+                      "type": "string",
+                      "description": "One-time login link for wallet."
+                    }
+                  }
                 }
               }
             }
           },
           "401": {
-            "description": "Unauthorized. Authenticate your request please."
+            "$ref": "#/components/responses/401"
           },
           "403": {
             "description": "Forbidden. Password reset token is invalid or has expired."
@@ -60,10 +80,10 @@
             "description": "Not Found. Account does not exist."
           },
           "500": {
-            "description": "Internal Server Error."
+            "$ref": "#/components/responses/500"
           },
           "502": {
-            "description": "Bad Gateway. Received an invalid response from the network or database."
+            "$ref": "#/components/responses/502"
           }
         }
       }
@@ -103,27 +123,31 @@
         "responses": {
           "201": {
             "description": "Created",
-            "schema": {
-              "type": "object",
-              "properties": {
-                "address": {
-                  "type": "string",
-                  "description": "The address for the new account."
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "address": {
+                      "type": "string",
+                      "description": "The address for the new account."
+                    }
+                  }
                 }
               }
             }
           },
           "400": {
-            "description": "Bad Request. Indicated incorrect body parameters."
+            "$ref": "#/components/responses/400"
           },
           "422": {
             "description": "Duplicate. An account for this email already exists."
           },
           "500": {
-            "description": "Internal Server Error."
+            "$ref": "#/components/responses/500"
           },
           "502": {
-            "description": "Bad Gateway. Received an invalid response from the network or database."
+            "$ref": "#/components/responses/502"
           }
         }
       }
@@ -150,19 +174,19 @@
             "description": "OK"
           },
           "400": {
-            "description": "Bad Request. Indicates incorrect path parameters."
+            "$ref": "#/components/responses/400"
           },
           "401": {
-            "description": "Unauthorized. Authenticate your request please."
+            "$ref": "#/components/responses/401"
           },
           "403": {
             "description": "Forbidden. Your account does not have access to revoke this client."
           },
           "500": {
-            "description": "Internal Server Error."
+            "$ref": "#/components/responses/500"
           },
           "502": {
-            "description": "Bad Gateway. Received an invalid response from the network or database."
+            "$ref": "#/components/responses/502"
           }
         }
       },
@@ -185,32 +209,36 @@
         "responses": {
           "200": {
             "description": "OK",
-            "schema": {
-              "type": "object",
-              "properties": {
-                "requestUris": {
-                  "type": "array",
-                  "items": {
-                    "type": "string"
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "requestUris": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "clientId": {
+                      "type": "string"
+                    },
+                    "clientSecret": {
+                      "type": "string"
+                    },
+                    "registrationAccessToken": {
+                      "type": "string"
+                    }
                   }
-                },
-                "clientId": {
-                  "type": "string"
-                },
-                "clientSecret": {
-                  "type": "string"
-                },
-                "registrationAccessToken": {
-                  "type": "string"
                 }
               }
             }
           },
           "400": {
-            "description": "Bad Request. Indicates incorrect body parameters."
+            "$ref": "#/components/responses/400"
           },
           "401": {
-            "description": "Unauthorized. Authenticate your request please."
+            "$ref": "#/components/responses/401"
           },
           "403": {
             "description": "Forbidden. Your account does not have access to this client information."
@@ -219,10 +247,10 @@
             "description": "Not Found. Client information not found."
           },
           "500": {
-            "description": "Internal Server Error."
+            "$ref": "#/components/responses/500"
           },
           "502": {
-            "description": "Bad Gateway. Received an invalid response from the network or database."
+            "$ref": "#/components/responses/502"
           }
         }
       }
@@ -249,26 +277,136 @@
         "responses": {
           "201": {
             "description": "Created",
-            "schema": {
-              "rat": {
-                "type": "string"
+            "content": {
+              "application/json": {
+                "schema": {
+                  "rat": {
+                    "type": "string"
+                  }
+                }
               }
             }
           },
           "400": {
-            "description": "Bad Request. Indicates incorrect body parameters."
+            "$ref": "#/components/responses/400"
           },
           "401": {
-            "description": "Unauthorized. Authenticate your request please."
+            "$ref": "#/components/responses/401"
           },
           "403": {
             "description": "Forbidden. Your account does not have access to this pool."
           },
           "500": {
-            "description": "Internal Server Error."
+            "$ref": "#/components/responses/500"
           },
           "502": {
-            "description": "Bad Gateway. Received an invalid response from the network or database."
+            "$ref": "#/components/responses/502"
+          }
+        }
+      }
+    },
+    "/gas_station/call": {
+      "post": {
+        "tags": [
+          "Gas Station"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "call",
+            "in": "body",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "nonce",
+            "in": "body",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "sig",
+            "in": "body",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Ok"
+          },
+          "400": {
+            "$ref": "#/components/responses/400"
+          },
+          "401": {
+            "$ref": "#/components/responses/401"
+          },
+          "403": {
+            "description": "Forbidden. Your account does not have access to make this call."
+          },
+          "500": {
+            "$ref": "#/components/responses/500"
+          },
+          "502": {
+            "$ref": "#/components/responses/502"
+          }
+        }
+      }
+    },
+    "/gas_station/upgrade_address": {
+      "post": {
+        "tags": [
+          "Gas Station"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "newAddress",
+            "in": "body",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "call",
+            "in": "body",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "nonce",
+            "in": "body",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "sig",
+            "in": "body",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Ok"
+          },
+          "400": {
+            "$ref": "#/components/responses/400"
+          },
+          "401": {
+            "$ref": "#/components/responses/401"
+          },
+          "403": {
+            "description": "Forbidden. Your account does not have access to make this call."
+          },
+          "500": {
+            "$ref": "#/components/responses/500"
+          },
+          "502": {
+            "$ref": "#/components/responses/502"
           }
         }
       }
@@ -301,19 +439,19 @@
             "description": "OK"
           },
           "400": {
-            "description": "Bad Request. Indicates incorrect path parameters."
+            "$ref": "#/components/responses/400"
           },
           "401": {
-            "description": "Unauthorized. Authenticate your request please."
+            "$ref": "#/components/responses/401"
           },
           "403": {
             "description": "Forbidden. Your account does not have access to this pool."
           },
           "500": {
-            "description": "Internal Server Error."
+            "$ref": "#/components/responses/500"
           },
           "502": {
-            "description": "Bad Gateway. Received an invalid response from the network or database."
+            "$ref": "#/components/responses/502"
           }
         }
       },
@@ -342,35 +480,39 @@
         "responses": {
           "200": {
             "description": "OK",
-            "schema": {
-              "type": "object",
-              "properties": {
-                "address": {
-                  "type": "string",
-                  "description": "The most recent address known for this member"
-                },
-                "isMember": {
-                  "type": "boolean",
-                  "description": "If this address is known as member of the asset pool"
-                },
-                "isManager": {
-                  "type": "boolean",
-                  "description": "If this address is known as manager of the asset pool"
-                },
-                "balance": {
+            "content": {
+              "application/json": {
+                "schema": {
                   "type": "object",
                   "properties": {
-                    "name": {
+                    "address": {
                       "type": "string",
-                      "description": "The name of the token configured for this asset pool"
+                      "description": "The most recent address known for this member"
                     },
-                    "symbol": {
-                      "type": "string",
-                      "description": "The symbol of the token configured for this asset pool"
+                    "isMember": {
+                      "type": "boolean",
+                      "description": "If this address is known as member of the asset pool"
                     },
-                    "amount": {
-                      "type": "number",
-                      "description": "The token balance of the asset pool for this token"
+                    "isManager": {
+                      "type": "boolean",
+                      "description": "If this address is known as manager of the asset pool"
+                    },
+                    "balance": {
+                      "type": "object",
+                      "properties": {
+                        "name": {
+                          "type": "string",
+                          "description": "The name of the token configured for this asset pool"
+                        },
+                        "symbol": {
+                          "type": "string",
+                          "description": "The symbol of the token configured for this asset pool"
+                        },
+                        "amount": {
+                          "type": "number",
+                          "description": "The token balance of the asset pool for this token"
+                        }
+                      }
                     }
                   }
                 }
@@ -378,10 +520,10 @@
             }
           },
           "400": {
-            "description": "Bad Request. Indicates incorrect body parameters."
+            "$ref": "#/components/responses/400"
           },
           "401": {
-            "description": "Unauthorized. Authenticate your request please."
+            "$ref": "#/components/responses/401"
           },
           "403": {
             "description": "Forbidden. Your account does not have access to this pool."
@@ -390,10 +532,10 @@
             "description": "Not Found. Address is not a member."
           },
           "500": {
-            "description": "Internal Server Error."
+            "$ref": "#/components/responses/500"
           },
           "502": {
-            "description": "Bad Gateway. Received an invalid response from the network or database."
+            "$ref": "#/components/responses/502"
           }
         }
       },
@@ -427,10 +569,10 @@
             "description": "Redirect. GET /members/:address"
           },
           "400": {
-            "description": "Bad Request. Indicates incorrect body parameters."
+            "$ref": "#/components/responses/400"
           },
           "401": {
-            "description": "Unauthorized. Authenticate your request please."
+            "$ref": "#/components/responses/401"
           },
           "403": {
             "description": "Forbidden. Your account does not have access to this pool."
@@ -439,10 +581,10 @@
             "description": "Not Found. Address is not a member."
           },
           "500": {
-            "description": "Internal Server Error."
+            "$ref": "#/components/responses/500"
           },
           "502": {
-            "description": "Bad Gateway. Received an invalid response from the network or database."
+            "$ref": "#/components/responses/502"
           }
         }
       }
@@ -467,19 +609,23 @@
         "responses": {
           "200": {
             "description": "OK",
-            "schema": {
-              "type": "array",
-              "items": {
-                "type": "string",
-                "description": "The address of the member"
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "description": "The address of the member"
+                  }
+                }
               }
             }
           },
           "400": {
-            "description": "Bad Request. Indicates incorrect body parameters."
+            "$ref": "#/components/responses/400"
           },
           "401": {
-            "description": "Unauthorized. Authenticate your request please."
+            "$ref": "#/components/responses/401"
           },
           "403": {
             "description": "Forbidden. Your account does not have access to this pool."
@@ -488,10 +634,10 @@
             "description": "Not Found. Address is not a member."
           },
           "500": {
-            "description": "Internal Server Error."
+            "$ref": "#/components/responses/500"
           },
           "502": {
-            "description": "Bad Gateway. Received an invalid response from the network or database."
+            "$ref": "#/components/responses/502"
           }
         }
       },
@@ -525,19 +671,109 @@
             "description": "Redirect. GET /members/:address."
           },
           "400": {
-            "description": "Bad Request. Indicates incorrect body parameters."
+            "$ref": "#/components/responses/400"
           },
           "401": {
-            "description": "Unauthorized. Authenticate your request please."
+            "$ref": "#/components/responses/401"
           },
           "403": {
             "description": "Forbidden. Your account does not have access to this pool."
           },
           "500": {
-            "description": "Internal Server Error."
+            "$ref": "#/components/responses/500"
           },
           "502": {
-            "description": "Bad Gateway. Received an invalid response from the network or database."
+            "$ref": "#/components/responses/502"
+          }
+        }
+      }
+    },
+    "/metrics": {
+      "get": {
+        "tags": [
+          "Metrics"
+        ],
+        "description": "Gets metrics.",
+        "produces": [
+          "application/json"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "count_wallets": {
+                      "type": "number"
+                    },
+                    "count_applications": {
+                      "type": "number"
+                    },
+                    "count_asset_pools": {
+                      "type": "object",
+                      "properties": {
+                        "mainnet": {
+                          "type": "number"
+                        },
+                        "testnet": {
+                          "type": "number"
+                        }
+                      }
+                    },
+                    "count_transactions": {
+                      "type": "object",
+                      "properties": {
+                        "mainnet": {
+                          "type": "number"
+                        },
+                        "testnet": {
+                          "type": "number"
+                        }
+                      }
+                    },
+                    "avg_rewards_per_pool": {
+                      "type": "object",
+                      "properties": {
+                        "mainnet": {
+                          "type": "number"
+                        },
+                        "testnet": {
+                          "type": "number"
+                        }
+                      }
+                    },
+                    "avg_withdrawals_per_pool": {
+                      "type": "object",
+                      "properties": {
+                        "mainnet": {
+                          "type": "number"
+                        },
+                        "testnet": {
+                          "type": "number"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/401"
+          },
+          "403": {
+            "description": "Forbidden. Your account does not have access to get this information."
+          },
+          "404": {
+            "description": "Not Found. Details not found."
+          },
+          "500": {
+            "$ref": "#/components/responses/500"
+          },
+          "502": {
+            "$ref": "#/components/responses/502"
           }
         }
       }
@@ -568,30 +804,34 @@
         "responses": {
           "200": {
             "description": "OK",
-            "schema": {
-              "type": "object",
-              "properties": {
-                "base64": {
-                  "type": "string",
-                  "description": "Base64 string representing function call."
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "base64": {
+                      "type": "string",
+                      "description": "Base64 string representing function call."
+                    }
+                  }
                 }
               }
             }
           },
           "400": {
-            "description": "Bad Request. Indicates incorrect body parameters."
+            "$ref": "#/components/responses/400"
           },
           "401": {
-            "description": "Unauthorized. Authenticate your request please."
+            "$ref": "#/components/responses/401"
           },
           "403": {
             "description": "Forbidden. Your account does not have access to this pool."
           },
           "500": {
-            "description": "Internal Server Error."
+            "$ref": "#/components/responses/500"
           },
           "502": {
-            "description": "Bad Gateway. Received an invalid response from the network or database."
+            "$ref": "#/components/responses/502"
           }
         }
       },
@@ -637,16 +877,19 @@
             }
           },
           "400": {
-            "description": "Bad Request. Indicates incorrect body parameters."
+            "$ref": "#/components/responses/400"
           },
           "401": {
-            "description": "Unauthorized. Authenticate your request please."
+            "$ref": "#/components/responses/401"
           },
           "403": {
             "description": "Forbidden. Your account does not have access to this pool."
           },
           "500": {
-            "description": "Internal Server Error."
+            "$ref": "#/components/responses/500"
+          },
+          "502": {
+            "$ref": "#/components/responses/502"
           }
         }
       }
@@ -670,41 +913,45 @@
         ],
         "responses": {
           "200": {
-            "schema": {
-              "type": "array",
-              "items": {
-                "type": "object",
-                "properties": {
-                  "id": {
-                    "type": "number",
-                    "description": "Unique identifier of the reward."
-                  },
-                  "withdrawAmount": {
-                    "type": "number",
-                    "description": "Current size of the reward"
-                  },
-                  "withdrawDuration": {
-                    "type": "number",
-                    "description": "Current duration of the withdraw poll"
-                  },
-                  "state": {
-                    "type": "number",
-                    "description": "Current state of the reward [Disabled, Enabled]"
-                  },
-                  "poll": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
                     "type": "object",
                     "properties": {
                       "id": {
                         "type": "number",
-                        "description": "Unique identifier of the reward poll"
+                        "description": "Unique identifier of the reward."
                       },
                       "withdrawAmount": {
                         "type": "number",
-                        "description": "Proposed size of the reward"
+                        "description": "Current size of the reward"
                       },
                       "withdrawDuration": {
                         "type": "number",
-                        "description": "Proposed duration of the withdraw poll"
+                        "description": "Current duration of the withdraw poll"
+                      },
+                      "state": {
+                        "type": "number",
+                        "description": "Current state of the reward [Disabled, Enabled]"
+                      },
+                      "poll": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "number",
+                            "description": "Unique identifier of the reward poll"
+                          },
+                          "withdrawAmount": {
+                            "type": "number",
+                            "description": "Proposed size of the reward"
+                          },
+                          "withdrawDuration": {
+                            "type": "number",
+                            "description": "Proposed duration of the withdraw poll"
+                          }
+                        }
                       }
                     }
                   }
@@ -713,10 +960,10 @@
             }
           },
           "400": {
-            "description": "Bad Request. Indicates incorrect body parameters."
+            "$ref": "#/components/responses/400"
           },
           "401": {
-            "description": "Unauthorized. Authenticate your request please."
+            "$ref": "#/components/responses/401"
           },
           "403": {
             "description": "Forbidden. Your account does not have access to this pool."
@@ -725,10 +972,10 @@
             "description": "Not Found. Reward not found for this asset pool."
           },
           "500": {
-            "description": "Internal Server Error."
+            "$ref": "#/components/responses/500"
           },
           "502": {
-            "description": "Bad Gateway. Received an invalid response from the network or database."
+            "$ref": "#/components/responses/502"
           }
         }
       },
@@ -772,19 +1019,19 @@
             }
           },
           "400": {
-            "description": "Bad Request. Indicates incorrect body parameters."
+            "$ref": "#/components/responses/400"
           },
           "401": {
-            "description": "Unauthorized. Authenticate your request please."
+            "$ref": "#/components/responses/401"
           },
           "403": {
             "description": "Forbidden. Your account does not have access to this pool."
           },
           "500": {
-            "description": "Internal Server Error."
+            "$ref": "#/components/responses/500"
           },
           "502": {
-            "description": "Bad Gateway. Received an invalid response from the network or database."
+            "$ref": "#/components/responses/502"
           }
         }
       }
@@ -814,39 +1061,43 @@
         ],
         "responses": {
           "200": {
-            "schema": {
-              "type": "object",
-              "properties": {
-                "id": {
-                  "type": "number",
-                  "description": "Unique identifier of the reward."
-                },
-                "withdrawAmount": {
-                  "type": "number",
-                  "description": "Current size of the reward"
-                },
-                "withdrawDuration": {
-                  "type": "number",
-                  "description": "Current duration of the withdraw poll"
-                },
-                "state": {
-                  "type": "number",
-                  "description": "Current state of the reward [Disabled, Enabled]"
-                },
-                "poll": {
+            "content": {
+              "application/json": {
+                "schema": {
                   "type": "object",
                   "properties": {
                     "id": {
                       "type": "number",
-                      "description": "Unique identifier of the reward poll"
+                      "description": "Unique identifier of the reward."
                     },
                     "withdrawAmount": {
                       "type": "number",
-                      "description": "Proposed size of the reward"
+                      "description": "Current size of the reward"
                     },
                     "withdrawDuration": {
                       "type": "number",
-                      "description": "Proposed duration of the withdraw poll"
+                      "description": "Current duration of the withdraw poll"
+                    },
+                    "state": {
+                      "type": "number",
+                      "description": "Current state of the reward [Disabled, Enabled]"
+                    },
+                    "poll": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "number",
+                          "description": "Unique identifier of the reward poll"
+                        },
+                        "withdrawAmount": {
+                          "type": "number",
+                          "description": "Proposed size of the reward"
+                        },
+                        "withdrawDuration": {
+                          "type": "number",
+                          "description": "Proposed duration of the withdraw poll"
+                        }
+                      }
                     }
                   }
                 }
@@ -862,10 +1113,10 @@
             }
           },
           "400": {
-            "description": "Bad Request. Indicates incorrect body parameters."
+            "$ref": "#/components/responses/400"
           },
           "401": {
-            "description": "Unauthorized. Authenticate your request please."
+            "$ref": "#/components/responses/401"
           },
           "403": {
             "description": "Forbidden. Your account does not have access to this pool."
@@ -874,10 +1125,10 @@
             "description": "Not Found. Reward not found for this asset pool."
           },
           "500": {
-            "description": "Internal Server Error."
+            "$ref": "#/components/responses/500"
           },
           "502": {
-            "description": "Bad Gateway. Received an invalid response from the network or database."
+            "$ref": "#/components/responses/502"
           }
         }
       },
@@ -918,30 +1169,34 @@
         "responses": {
           "200": {
             "description": "OK",
-            "schema": {
-              "type": "object",
-              "properties": {
-                "base64": {
-                  "type": "string",
-                  "description": "Base64 string representing function call"
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "base64": {
+                      "type": "string",
+                      "description": "Base64 string representing function call"
+                    }
+                  }
                 }
               }
             }
           },
           "400": {
-            "description": "Bad Request. Indicates incorrect body parameters."
+            "$ref": "#/components/responses/400"
           },
           "401": {
-            "description": "Unauthorized. Authenticate your request please."
+            "$ref": "#/components/responses/401"
           },
           "403": {
             "description": "Forbidden. Your account does not have access to this pool."
           },
           "500": {
-            "description": "Internal Server Error."
+            "$ref": "#/components/responses/500"
           },
           "502": {
-            "description": "Bad Gateway. Received an invalid response from the network or database."
+            "$ref": "#/components/responses/502"
           }
         }
       }
@@ -972,30 +1227,34 @@
         "responses": {
           "200": {
             "description": "OK",
-            "schema": {
-              "type": "object",
-              "properties": {
-                "base64": {
-                  "type": "string",
-                  "description": "Base64 string representing function call"
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "base64": {
+                      "type": "string",
+                      "description": "Base64 string representing function call"
+                    }
+                  }
                 }
               }
             }
           },
           "400": {
-            "description": "Bad Request. Indicates incorrect body parameters."
+            "$ref": "#/components/responses/400"
           },
           "401": {
-            "description": "Unauthorized. Authenticate your request please."
+            "$ref": "#/components/responses/401"
           },
           "403": {
             "description": "Forbidden. Your account does not have access to this pool."
           },
           "500": {
-            "description": "Internal Server Error."
+            "$ref": "#/components/responses/500"
           },
           "502": {
-            "description": "Bad Gateway. Received an invalid response from the network or database."
+            "$ref": "#/components/responses/502"
           }
         }
       }
@@ -1026,30 +1285,34 @@
         "responses": {
           "200": {
             "description": "OK",
-            "schema": {
-              "type": "object",
-              "properties": {
-                "base64": {
-                  "type": "string",
-                  "description": "Base64 string representing function call"
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "base64": {
+                      "type": "string",
+                      "description": "Base64 string representing function call"
+                    }
+                  }
                 }
               }
             }
           },
           "400": {
-            "description": "Bad Request. Indicates incorrect body parameters."
+            "$ref": "#/components/responses/400"
           },
           "401": {
-            "description": "Unauthorized. Authenticate your request please."
+            "$ref": "#/components/responses/401"
           },
           "403": {
             "description": "Forbidden. Your account does not have access to this pool."
           },
           "500": {
-            "description": "Internal Server Error."
+            "$ref": "#/components/responses/500"
           },
           "502": {
-            "description": "Bad Gateway. Received an invalid response from the network or database."
+            "$ref": "#/components/responses/502"
           }
         }
       }
@@ -1086,30 +1349,252 @@
         "responses": {
           "200": {
             "description": "OK",
-            "schema": {
-              "type": "object",
-              "properties": {
-                "withdrawPoll": {
-                  "type": "string",
-                  "description": "Address off the withdraw poll"
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "withdrawPoll": {
+                      "type": "string",
+                      "description": "Address off the withdraw poll"
+                    }
+                  }
                 }
               }
             }
           },
           "400": {
-            "description": "Bad Request. Indicates incorrect body parameters."
+            "$ref": "#/components/responses/400"
           },
           "401": {
-            "description": "Unauthorized. Authenticate your request please."
+            "$ref": "#/components/responses/401"
           },
           "403": {
             "description": "Forbidden. Your account does not have access to this pool."
           },
           "500": {
-            "description": "Internal Server Error."
+            "$ref": "#/components/responses/500"
           },
           "502": {
-            "description": "Bad Gateway. Received an invalid response from the network or database."
+            "$ref": "#/components/responses/502"
+          }
+        }
+      }
+    },
+    "/widgets/:rat": {
+      "get": {
+        "tags": [
+          "Widgets"
+        ],
+        "description": "Gets the widget based on rat.",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "rat",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "requestUris": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "clientId": {
+                      "type": "string"
+                    },
+                    "clientSecret": {
+                      "type": "string"
+                    },
+                    "registrationAccessToken": {
+                      "type": "string"
+                    },
+                    "metadata": {
+                      "type": "object",
+                      "properties": {
+                        "rewardId": {
+                          "type": "number"
+                        },
+                        "poolAddress": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400"
+          },
+          "401": {
+            "$ref": "#/components/responses/401"
+          },
+          "403": {
+            "description": "Forbidden. Your account does not have access to this widget information."
+          },
+          "404": {
+            "description": "Not Found. Widget information not found."
+          },
+          "500": {
+            "$ref": "#/components/responses/500"
+          },
+          "502": {
+            "$ref": "#/components/responses/502"
+          }
+        }
+      }
+    },
+    "/widgets": {
+      "get": {
+        "tags": [
+          "Widgets"
+        ],
+        "description": "Gets all widget records.",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "asset_pool",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400"
+          },
+          "401": {
+            "$ref": "#/components/responses/401"
+          },
+          "403": {
+            "description": "Forbidden. Your account does not have access to this widget information."
+          },
+          "404": {
+            "description": "Not Found. Widget information not found."
+          },
+          "500": {
+            "$ref": "#/components/responses/500"
+          },
+          "502": {
+            "$ref": "#/components/responses/502"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Widgets"
+        ],
+        "description": "Post the widget",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "requestUris",
+            "in": "body",
+            "required": true,
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "postLogoutRedirectUris",
+            "in": "body",
+            "required": true,
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "metadata",
+            "in": "body",
+            "required": true,
+            "type": "object",
+            "properties": {
+              "rewardId": {
+                "type": "number"
+              },
+              "poolAddress": {
+                "type": "string"
+              }
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "rat": {
+                      "type": "string"
+                    },
+                    "sub": {
+                      "type": "string"
+                    },
+                    "metadata": {
+                      "type": "object",
+                      "properties": {
+                        "rewardId": {
+                          "type": "number"
+                        },
+                        "poolAddress": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/400"
+          },
+          "401": {
+            "$ref": "#/components/responses/401"
+          },
+          "403": {
+            "description": "Forbidden. Your account does not have access to create widget."
+          },
+          "500": {
+            "$ref": "#/components/responses/500"
+          },
+          "502": {
+            "$ref": "#/components/responses/502"
           }
         }
       }
@@ -1140,30 +1625,34 @@
         "responses": {
           "200": {
             "description": "OK",
-            "schema": {
-              "type": "object",
-              "properties": {
-                "base64": {
-                  "type": "string",
-                  "description": "Base64 string representing function call."
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "base64": {
+                      "type": "string",
+                      "description": "Base64 string representing function call."
+                    }
+                  }
                 }
               }
             }
           },
           "400": {
-            "description": "Bad Request. Indicates incorrect body parameters."
+            "$ref": "#/components/responses/400"
           },
           "401": {
-            "description": "Unauthorized. Authenticate your request please."
+            "$ref": "#/components/responses/401"
           },
           "403": {
             "description": "Forbidden. Your account does not have access to this pool."
           },
           "500": {
-            "description": "Internal Server Error."
+            "$ref": "#/components/responses/500"
           },
           "502": {
-            "description": "Bad Gateway. Received an invalid response from the network or database."
+            "$ref": "#/components/responses/502"
           }
         }
       },
@@ -1198,27 +1687,34 @@
         "responses": {
           "200": {
             "description": "OK",
-            "schema": {
-              "type": "object",
-              "properties": {
-                "base64": {
-                  "type": "string",
-                  "description": "Base64 string representing function call"
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "base64": {
+                      "type": "string",
+                      "description": "Base64 string representing function call"
+                    }
+                  }
                 }
               }
             }
           },
           "400": {
-            "description": "Bad Request. Indicates incorrect body parameters."
+            "$ref": "#/components/responses/400"
           },
           "401": {
-            "description": "Unauthorized. Authenticate your request please."
+            "$ref": "#/components/responses/401"
           },
           "403": {
             "description": "Forbidden. Your account does not have access to this pool."
           },
           "500": {
-            "description": "Internal Server Error."
+            "$ref": "#/components/responses/500"
+          },
+          "502": {
+            "$ref": "#/components/responses/502"
           }
         }
       }
@@ -1249,51 +1745,55 @@
         "responses": {
           "200": {
             "description": "OK",
-            "schema": {
-              "type": "object",
-              "properties": {
-                "id": {
-                  "type": "string",
-                  "description": "ID of the withdrawal."
-                },
-                "beneficiary": {
-                  "type": "string",
-                  "description": "Beneficiary of the reward."
-                },
-                "amount": {
-                  "type": "string",
-                  "description": "Rewarded amount for the beneficiary"
-                },
-                "approved": {
-                  "type": "string",
-                  "description": "Boolean reflecting the approved state of the withdrawal."
-                },
-                "state": {
-                  "type": "number",
-                  "description": "WithdrawState [Pending, Withdrawn]"
-                },
-                "poll": {
+            "content": {
+              "application/json": {
+                "schema": {
                   "type": "object",
                   "properties": {
-                    "startTime": {
-                      "type": "number",
-                      "description": "Timestamp for the start time of the poll."
+                    "id": {
+                      "type": "string",
+                      "description": "ID of the withdrawal."
                     },
-                    "endTime": {
-                      "type": "number",
-                      "description": "Timestamp for the end time of the poll."
+                    "beneficiary": {
+                      "type": "string",
+                      "description": "Beneficiary of the reward."
                     },
-                    "yesCounter": {
-                      "type": "number",
-                      "description": "Amount of yes votes for the poll."
+                    "amount": {
+                      "type": "string",
+                      "description": "Rewarded amount for the beneficiary"
                     },
-                    "noCounter": {
-                      "type": "number",
-                      "description": "Amount of no votes for the poll."
+                    "approved": {
+                      "type": "string",
+                      "description": "Boolean reflecting the approved state of the withdrawal."
                     },
-                    "totalVoted": {
+                    "state": {
                       "type": "number",
-                      "description": "Total amount of votes for the poll."
+                      "description": "WithdrawState [Pending, Withdrawn]"
+                    },
+                    "poll": {
+                      "type": "object",
+                      "properties": {
+                        "startTime": {
+                          "type": "number",
+                          "description": "Timestamp for the start time of the poll."
+                        },
+                        "endTime": {
+                          "type": "number",
+                          "description": "Timestamp for the end time of the poll."
+                        },
+                        "yesCounter": {
+                          "type": "number",
+                          "description": "Amount of yes votes for the poll."
+                        },
+                        "noCounter": {
+                          "type": "number",
+                          "description": "Amount of no votes for the poll."
+                        },
+                        "totalVoted": {
+                          "type": "number",
+                          "description": "Total amount of votes for the poll."
+                        }
+                      }
                     }
                   }
                 }
@@ -1301,19 +1801,19 @@
             }
           },
           "400": {
-            "description": "Bad Request. Indicates incorrect body parameters."
+            "$ref": "#/components/responses/400"
           },
           "401": {
-            "description": "Unauthorized. Authenticate your request please."
+            "$ref": "#/components/responses/401"
           },
           "403": {
             "description": "Forbidden. Your account does not have access to this pool."
           },
           "500": {
-            "description": "Internal Server Error."
+            "$ref": "#/components/responses/500"
           },
           "502": {
-            "description": "Bad Gateway. Received an invalid response from the network or database."
+            "$ref": "#/components/responses/502"
           }
         }
       }
@@ -1338,53 +1838,57 @@
         "responses": {
           "200": {
             "description": "OK",
-            "schema": {
-              "type": "array",
-              "items": {
-                "type": "object",
-                "properties": {
-                  "id": {
-                    "type": "string",
-                    "description": "ID of the withdrawal."
-                  },
-                  "beneficiary": {
-                    "type": "string",
-                    "description": "Beneficiary of the reward."
-                  },
-                  "amount": {
-                    "type": "string",
-                    "description": "Rewarded amount for the beneficiary"
-                  },
-                  "approved": {
-                    "type": "string",
-                    "description": "Boolean reflecting the approved state of the withdrawal."
-                  },
-                  "state": {
-                    "type": "number",
-                    "description": "WithdrawState [Pending, Withdrawn]"
-                  },
-                  "poll": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
                     "type": "object",
                     "properties": {
-                      "startTime": {
-                        "type": "number",
-                        "description": "Timestamp for the start time of the poll."
+                      "id": {
+                        "type": "string",
+                        "description": "ID of the withdrawal."
                       },
-                      "endTime": {
-                        "type": "number",
-                        "description": "Timestamp for the end time of the poll."
+                      "beneficiary": {
+                        "type": "string",
+                        "description": "Beneficiary of the reward."
                       },
-                      "yesCounter": {
-                        "type": "number",
-                        "description": "Amount of yes votes for the poll."
+                      "amount": {
+                        "type": "string",
+                        "description": "Rewarded amount for the beneficiary"
                       },
-                      "noCounter": {
-                        "type": "number",
-                        "description": "Amount of no votes for the poll."
+                      "approved": {
+                        "type": "string",
+                        "description": "Boolean reflecting the approved state of the withdrawal."
                       },
-                      "totalVoted": {
+                      "state": {
                         "type": "number",
-                        "description": "Total amount of votes for the poll."
+                        "description": "WithdrawState [Pending, Withdrawn]"
+                      },
+                      "poll": {
+                        "type": "object",
+                        "properties": {
+                          "startTime": {
+                            "type": "number",
+                            "description": "Timestamp for the start time of the poll."
+                          },
+                          "endTime": {
+                            "type": "number",
+                            "description": "Timestamp for the end time of the poll."
+                          },
+                          "yesCounter": {
+                            "type": "number",
+                            "description": "Amount of yes votes for the poll."
+                          },
+                          "noCounter": {
+                            "type": "number",
+                            "description": "Amount of no votes for the poll."
+                          },
+                          "totalVoted": {
+                            "type": "number",
+                            "description": "Total amount of votes for the poll."
+                          }
+                        }
                       }
                     }
                   }
@@ -1393,19 +1897,19 @@
             }
           },
           "400": {
-            "description": "Bad Request. Indicates incorrect body parameters."
+            "$ref": "#/components/responses/400"
           },
           "401": {
-            "description": "Unauthorized. Authenticate your request please."
+            "$ref": "#/components/responses/401"
           },
           "403": {
             "description": "Forbidden. Your account does not have access to this pool."
           },
           "500": {
-            "description": "Internal Server Error."
+            "$ref": "#/components/responses/500"
           },
           "502": {
-            "description": "Bad Gateway. Received an invalid response from the network or database."
+            "$ref": "#/components/responses/502"
           }
         }
       }
@@ -1442,27 +1946,34 @@
         "responses": {
           "201": {
             "description": "OK",
-            "schema": {
-              "type": "object",
-              "properties": {
-                "id": {
-                  "type": "integer",
-                  "description": "ID of the withdraw poll"
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "integer",
+                      "description": "ID of the withdraw poll"
+                    }
+                  }
                 }
               }
             }
           },
           "400": {
-            "description": "Bad Request. Indicates incorrect body parameters."
+            "$ref": "#/components/responses/400"
           },
           "401": {
-            "description": "Unauthorized. Authenticate your request please."
+            "$ref": "#/components/responses/401"
           },
           "403": {
             "description": "Forbidden. Your account does not have access to this pool."
           },
           "500": {
-            "description": "Internal Server Error."
+            "$ref": "#/components/responses/500"
+          },
+          "502": {
+            "$ref": "#/components/responses/502"
           }
         }
       }
@@ -1493,31 +2004,35 @@
         "responses": {
           "200": {
             "description": "OK",
-            "schema": {
-              "type": "object",
-              "optional": true,
-              "properties": {
-                "base64": {
-                  "type": "string",
-                  "description": "Base64 string representing function call if governance is disabled."
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "optional": true,
+                  "properties": {
+                    "base64": {
+                      "type": "string",
+                      "description": "Base64 string representing function call if governance is disabled."
+                    }
+                  }
                 }
               }
             }
           },
           "400": {
-            "description": "Bad Request. Indicates incorrect body parameters."
+            "$ref": "#/components/responses/400"
           },
           "401": {
-            "description": "Unauthorized. Authenticate your request please."
+            "$ref": "#/components/responses/401"
           },
           "403": {
             "description": "Forbidden. Your account does not have access to this pool."
           },
           "500": {
-            "description": "Internal Server Error."
+            "$ref": "#/components/responses/500"
           },
           "502": {
-            "description": "Bad Gateway. Received an invalid response from the network or database."
+            "$ref": "#/components/responses/502"
           }
         }
       }

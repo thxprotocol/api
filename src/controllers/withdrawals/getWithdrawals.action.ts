@@ -20,27 +20,29 @@ import WithdrawalService from '../../services/WithdrawalService';
  *     responses:
  *       '200':
  *         description: OK
- *         schema:
- *            type: array
- *            items:
- *              type: object
- *              properties:
- *                id:
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                  id:
  *                    type: string
  *                    description: ID of the withdrawal.
- *                beneficiary:
+ *                  beneficiary:
  *                    type: string
  *                    description: Beneficiary of the reward.
- *                amount:
+ *                  amount:
  *                    type: string
  *                    description: Rewarded amount for the beneficiary
- *                approved:
+ *                  approved:
  *                    type: string
  *                    description: Boolean reflecting the approved state of the withdrawal.
- *                state:
+ *                  state:
  *                    type: number
  *                    description: WithdrawState [Pending, Withdrawn]
- *                poll:
+ *                  poll:
  *                    type: object
  *                    properties:
  *                       startTime:
@@ -59,15 +61,15 @@ import WithdrawalService from '../../services/WithdrawalService';
  *                          type: number
  *                          description: Total amount of votes for the poll.
  *       '400':
- *         description: Bad Request. Indicates incorrect body parameters.
+ *         $ref: '#/components/responses/400'
  *       '401':
- *         description: Unauthorized. Authenticate your request please.
+ *         $ref: '#/components/responses/401'
  *       '403':
  *         description: Forbidden. Your account does not have access to this pool.
  *       '500':
- *         description: Internal Server Error.
+ *         $ref: '#/components/responses/500'
  *       '502':
- *         description: Bad Gateway. Received an invalid response from the network or database.
+ *         $ref: '#/components/responses/502'
  */
 export const getWithdrawals = async (req: HttpRequest, res: Response, next: NextFunction) => {
     try {

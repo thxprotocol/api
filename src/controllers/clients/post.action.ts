@@ -62,17 +62,19 @@ export const postClient = async (req: HttpRequest, res: Response, next: NextFunc
  *     responses:
  *       '201':
  *         description: Created
- *         schema:
- *           rat:
- *             type: string
+ *         content:
+ *           application/json: 
+ *             schema:
+ *               rat:
+ *                 type: string
  *       '400':
- *         description: Bad Request. Indicates incorrect body parameters.
+ *         $ref: '#/components/responses/400'
  *       '401':
- *         description: Unauthorized. Authenticate your request please.
+ *         $ref: '#/components/responses/401'
  *       '403':
  *         description: Forbidden. Your account does not have access to this pool.
  *       '500':
- *         description: Internal Server Error.
+ *         $ref: '#/components/responses/500'
  *       '502':
- *         description: Bad Gateway. Received an invalid response from the network or database.
+ *         $ref: '#/components/responses/502'
  */

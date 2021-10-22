@@ -40,20 +40,22 @@ export const postAuthenticationToken = async (req: Request, res: Response, next:
  *     responses:
  *       '200':
  *         description: OK
- *         schema:
- *            type: object
- *            properties:
- *               url:
- *                  type: string
- *                  description: One-time login link for wallet.
+ *         content:
+ *           application/json:  
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 url:
+ *                   type: string
+ *                   description: One-time login link for wallet.
  *       '401':
- *         description: Unauthorized. Authenticate your request please.
+ *         $ref: '#/components/responses/401'
  *       '403':
  *         description: Forbidden. Password reset token is invalid or has expired.
  *       '404':
  *         description: Not Found. Account does not exist.
  *       '500':
- *         description: Internal Server Error.
+ *         $ref: '#/components/responses/500'
  *       '502':
- *         description: Bad Gateway. Received an invalid response from the network or database.
+ *         $ref: '#/components/responses/502'
  */

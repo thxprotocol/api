@@ -27,20 +27,24 @@ import WithdrawalService from '../../services/WithdrawalService';
  *     responses:
  *       '201':
  *         description: OK
- *         schema:
- *            type: object
- *            properties:
- *               id:
- *                  type: integer
- *                  description: ID of the withdraw poll
+ *         content:
+ *           application/json:  
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 id:
+ *                   type: integer
+ *                   description: ID of the withdraw poll
  *       '400':
- *         description: Bad Request. Indicates incorrect body parameters.
+ *         $ref: '#/components/responses/400'
  *       '401':
- *         description: Unauthorized. Authenticate your request please.
+ *         $ref: '#/components/responses/401'
  *       '403':
  *         description: Forbidden. Your account does not have access to this pool.
  *       '500':
- *         description: Internal Server Error.
+ *         $ref: '#/components/responses/500'
+ *       '502':
+ *         $ref: '#/components/responses/502'
  */
 export const postWithdrawal = async (req: HttpRequest, res: Response, next: NextFunction) => {
     try {

@@ -63,13 +63,13 @@ export const deleteClient = async (req: HttpRequest, res: Response, next: NextFu
  *       '200':
  *         description: OK
  *       '400':
- *         description: Bad Request. Indicates incorrect path parameters.
+ *         $ref: '#/components/responses/400'
  *       '401':
- *         description: Unauthorized. Authenticate your request please.
+ *         $ref: '#/components/responses/401'
  *       '403':
  *         description: Forbidden. Your account does not have access to revoke this client.
  *       '500':
- *         description: Internal Server Error.
+ *         $ref: '#/components/responses/500'
  *       '502':
- *         description: Bad Gateway. Received an invalid response from the network or database.
+ *         $ref: '#/components/responses/502'
  */

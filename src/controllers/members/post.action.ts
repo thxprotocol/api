@@ -52,15 +52,15 @@ export async function postMember(req: HttpRequest, res: Response, next: NextFunc
  *       '200':
  *         description: OK
  *       '302':
- *          description: Redirect. GET /members/:address.
+ *         description: Redirect. GET /members/:address.
  *       '400':
- *         description: Bad Request. Indicates incorrect body parameters.
+ *         $ref: '#/components/responses/400'
  *       '401':
- *         description: Unauthorized. Authenticate your request please.
+ *         $ref: '#/components/responses/401'
  *       '403':
  *         description: Forbidden. Your account does not have access to this pool.
  *       '500':
- *         description: Internal Server Error.
+ *         $ref: '#/components/responses/500'
  *       '502':
- *         description: Bad Gateway. Received an invalid response from the network or database.
+ *         $ref: '#/components/responses/502'
  */
