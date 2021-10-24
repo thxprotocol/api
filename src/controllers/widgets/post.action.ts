@@ -67,9 +67,8 @@ export const postWidget = async (req: HttpRequest, res: Response, next: NextFunc
  *     responses:
  *       '201':
  *         description: OK
- *         content:
- *           application/json:  
- *             schema:
+ *         content: application/json
+ *         schema:
  *               type: object
  *               properties:
  *                 rat:

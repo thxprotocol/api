@@ -27,9 +27,8 @@ import { NextFunction, Request, Response } from 'express';
  *     responses:
  *       '200':
  *         description: OK
- *         content:
- *           application/json: 
- *             schema:
+ *         content: application/json 
+ *         schema:
  *               type: object
  *               properties:
  *                 base64:

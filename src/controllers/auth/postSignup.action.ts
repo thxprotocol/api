@@ -74,9 +74,8 @@ export const postSignup = async (req: HttpRequest, res: Response, next: NextFunc
  *     responses:
  *       '201':
  *         description: Created
- *         content:
- *           application/json:  
- *             schema:
+ *         content: application/json 
+ *         schema:
  *               type: object
  *               properties:
  *                 address:

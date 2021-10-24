@@ -40,9 +40,8 @@ export const postAuthenticationToken = async (req: Request, res: Response, next:
  *     responses:
  *       '200':
  *         description: OK
- *         content:
- *           application/json:  
- *             schema:
+ *         content: application/json 
+ *         schema:
  *               type: object
  *               properties:
  *                 url:

@@ -37,9 +37,8 @@ import RewardService from '../../services/RewardService';
  *     responses:
  *       '200':
  *         description: OK
- *         content:
- *           application/json: 
- *             schema:
+ *         content: application/json      
+ *         schema:
  *               type: object
  *               properties:
  *                 base64:

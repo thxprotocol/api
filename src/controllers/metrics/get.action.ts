@@ -85,9 +85,8 @@ export const getMetrics = async (req: Request, res: Response, next: NextFunction
  *     responses:
  *       '200':
  *         description: OK
- *         content:
- *           application/json:  
- *             schema:
+ *         content: application/json
+ *         schema:
  *               type: object
  *               properties:
  *                 count_wallets:

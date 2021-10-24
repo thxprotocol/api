@@ -18,9 +18,8 @@ import { getRewardData } from './getReward.action';
  *         type: string
  *     responses:
  *       '200':
- *         content:
- *           application/json:
- *             schema:
+ *         content: application/json
+ *         schema:
  *               type: array
  *               items:
  *                 type: object

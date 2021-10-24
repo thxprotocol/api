@@ -30,9 +30,8 @@ import WithdrawalService from '../../services/WithdrawalService';
  *     responses:
  *       '200':
  *         description: OK
- *         content:
- *           application/json: 
- *             schema:
+ *         content: application/json
+ *         schema:
  *               type: object
  *               properties:
  *                 withdrawPoll:

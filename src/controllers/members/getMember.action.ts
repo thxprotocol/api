@@ -43,9 +43,8 @@ export const getMember = async (req: HttpRequest, res: Response, next: NextFunct
  *     responses:
  *       200:
  *         description: OK
- *         content:
- *           application/json:  
- *             schema:
+ *         content: application/json           
+ *         schema:
  *               type: object
  *               properties:
  *                 address:

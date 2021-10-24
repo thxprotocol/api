@@ -27,9 +27,8 @@ import WithdrawalService from '../../services/WithdrawalService';
  *     responses:
  *       '201':
  *         description: OK
- *         content:
- *           application/json:  
- *             schema:
+ *         content: application/json 
+ *         schema:
  *               type: object
  *               properties:
  *                 id:

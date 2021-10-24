@@ -111,9 +111,8 @@ export const postRewardClaim = async (req: HttpRequest, res: Response, next: Nex
  *     responses:
  *       '200':
  *         description: OK
- *         content:
- *           application/json:  
- *             schema:
+ *         content: application/json
+ *         schema:
  *               type: object
  *               properties:
  *                 base64:

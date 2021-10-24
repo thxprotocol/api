@@ -67,9 +67,8 @@ export async function getRewardData(solution: Contract, rewardID: number, npid: 
  *         type: integer
  *     responses:
  *       '200':
- *         content:
- *           application/json:    
- *             schema:
+ *         content: application/json
+ *         schema:
  *               type: object
  *               properties:
  *                 id:

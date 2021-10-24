@@ -24,9 +24,8 @@ import { sendTransaction } from '../../util/network';
  *     responses:
  *       '200':
  *         description: OK
- *         content:
- *           application/json:  
- *             schema:
+ *         content: application/json
+ *         schema:
  *               type: object
  *               optional: true
  *               properties:
