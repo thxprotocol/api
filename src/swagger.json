@@ -56,16 +56,13 @@
         "responses": {
           "200": {
             "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "url": {
-                      "type": "string",
-                      "description": "One-time login link for wallet."
-                    }
-                  }
+            "content": "application/json",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "url": {
+                  "type": "string",
+                  "description": "One-time login link for wallet."
                 }
               }
             }
@@ -123,16 +120,13 @@
         "responses": {
           "201": {
             "description": "Created",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "address": {
-                      "type": "string",
-                      "description": "The address for the new account."
-                    }
-                  }
+            "content": "application/json",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "address": {
+                  "type": "string",
+                  "description": "The address for the new account."
                 }
               }
             }
@@ -209,27 +203,24 @@
         "responses": {
           "200": {
             "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "requestUris": {
-                      "type": "array",
-                      "items": {
-                        "type": "string"
-                      }
-                    },
-                    "clientId": {
-                      "type": "string"
-                    },
-                    "clientSecret": {
-                      "type": "string"
-                    },
-                    "registrationAccessToken": {
-                      "type": "string"
-                    }
+            "content": "application/json",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "requestUris": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
                   }
+                },
+                "clientId": {
+                  "type": "string"
+                },
+                "clientSecret": {
+                  "type": "string"
+                },
+                "registrationAccessToken": {
+                  "type": "string"
                 }
               }
             }
@@ -277,12 +268,12 @@
         "responses": {
           "201": {
             "description": "Created",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "rat": {
-                    "type": "string"
-                  }
+            "content": "application/json",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "rat": {
+                  "type": "string"
                 }
               }
             }
@@ -480,39 +471,36 @@
         "responses": {
           "200": {
             "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
+            "content": "application/json",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "address": {
+                  "type": "string",
+                  "description": "The most recent address known for this member"
+                },
+                "isMember": {
+                  "type": "boolean",
+                  "description": "If this address is known as member of the asset pool"
+                },
+                "isManager": {
+                  "type": "boolean",
+                  "description": "If this address is known as manager of the asset pool"
+                },
+                "balance": {
                   "type": "object",
                   "properties": {
-                    "address": {
+                    "name": {
                       "type": "string",
-                      "description": "The most recent address known for this member"
+                      "description": "The name of the token configured for this asset pool"
                     },
-                    "isMember": {
-                      "type": "boolean",
-                      "description": "If this address is known as member of the asset pool"
+                    "symbol": {
+                      "type": "string",
+                      "description": "The symbol of the token configured for this asset pool"
                     },
-                    "isManager": {
-                      "type": "boolean",
-                      "description": "If this address is known as manager of the asset pool"
-                    },
-                    "balance": {
-                      "type": "object",
-                      "properties": {
-                        "name": {
-                          "type": "string",
-                          "description": "The name of the token configured for this asset pool"
-                        },
-                        "symbol": {
-                          "type": "string",
-                          "description": "The symbol of the token configured for this asset pool"
-                        },
-                        "amount": {
-                          "type": "number",
-                          "description": "The token balance of the asset pool for this token"
-                        }
-                      }
+                    "amount": {
+                      "type": "number",
+                      "description": "The token balance of the asset pool for this token"
                     }
                   }
                 }
@@ -609,15 +597,12 @@
         "responses": {
           "200": {
             "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "type": "string",
-                    "description": "The address of the member"
-                  }
-                }
+            "content": "application/json",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "description": "The address of the member"
               }
             }
           },
@@ -700,60 +685,57 @@
         "responses": {
           "200": {
             "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
+            "content": "application/json",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "count_wallets": {
+                  "type": "number"
+                },
+                "count_applications": {
+                  "type": "number"
+                },
+                "count_asset_pools": {
                   "type": "object",
                   "properties": {
-                    "count_wallets": {
+                    "mainnet": {
                       "type": "number"
                     },
-                    "count_applications": {
+                    "testnet": {
+                      "type": "number"
+                    }
+                  }
+                },
+                "count_transactions": {
+                  "type": "object",
+                  "properties": {
+                    "mainnet": {
                       "type": "number"
                     },
-                    "count_asset_pools": {
-                      "type": "object",
-                      "properties": {
-                        "mainnet": {
-                          "type": "number"
-                        },
-                        "testnet": {
-                          "type": "number"
-                        }
-                      }
+                    "testnet": {
+                      "type": "number"
+                    }
+                  }
+                },
+                "avg_rewards_per_pool": {
+                  "type": "object",
+                  "properties": {
+                    "mainnet": {
+                      "type": "number"
                     },
-                    "count_transactions": {
-                      "type": "object",
-                      "properties": {
-                        "mainnet": {
-                          "type": "number"
-                        },
-                        "testnet": {
-                          "type": "number"
-                        }
-                      }
+                    "testnet": {
+                      "type": "number"
+                    }
+                  }
+                },
+                "avg_withdrawals_per_pool": {
+                  "type": "object",
+                  "properties": {
+                    "mainnet": {
+                      "type": "number"
                     },
-                    "avg_rewards_per_pool": {
-                      "type": "object",
-                      "properties": {
-                        "mainnet": {
-                          "type": "number"
-                        },
-                        "testnet": {
-                          "type": "number"
-                        }
-                      }
-                    },
-                    "avg_withdrawals_per_pool": {
-                      "type": "object",
-                      "properties": {
-                        "mainnet": {
-                          "type": "number"
-                        },
-                        "testnet": {
-                          "type": "number"
-                        }
-                      }
+                    "testnet": {
+                      "type": "number"
                     }
                   }
                 }
@@ -804,16 +786,13 @@
         "responses": {
           "200": {
             "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "base64": {
-                      "type": "string",
-                      "description": "Base64 string representing function call."
-                    }
-                  }
+            "content": "application/json",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "base64": {
+                  "type": "string",
+                  "description": "Base64 string representing function call."
                 }
               }
             }
@@ -913,45 +892,42 @@
         ],
         "responses": {
           "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
+            "content": "application/json",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "number",
+                    "description": "Unique identifier of the reward."
+                  },
+                  "withdrawAmount": {
+                    "type": "number",
+                    "description": "Current size of the reward"
+                  },
+                  "withdrawDuration": {
+                    "type": "number",
+                    "description": "Current duration of the withdraw poll"
+                  },
+                  "state": {
+                    "type": "number",
+                    "description": "Current state of the reward [Disabled, Enabled]"
+                  },
+                  "poll": {
                     "type": "object",
                     "properties": {
                       "id": {
                         "type": "number",
-                        "description": "Unique identifier of the reward."
+                        "description": "Unique identifier of the reward poll"
                       },
                       "withdrawAmount": {
                         "type": "number",
-                        "description": "Current size of the reward"
+                        "description": "Proposed size of the reward"
                       },
                       "withdrawDuration": {
                         "type": "number",
-                        "description": "Current duration of the withdraw poll"
-                      },
-                      "state": {
-                        "type": "number",
-                        "description": "Current state of the reward [Disabled, Enabled]"
-                      },
-                      "poll": {
-                        "type": "object",
-                        "properties": {
-                          "id": {
-                            "type": "number",
-                            "description": "Unique identifier of the reward poll"
-                          },
-                          "withdrawAmount": {
-                            "type": "number",
-                            "description": "Proposed size of the reward"
-                          },
-                          "withdrawDuration": {
-                            "type": "number",
-                            "description": "Proposed duration of the withdraw poll"
-                          }
-                        }
+                        "description": "Proposed duration of the withdraw poll"
                       }
                     }
                   }
@@ -1061,43 +1037,40 @@
         ],
         "responses": {
           "200": {
-            "content": {
-              "application/json": {
-                "schema": {
+            "content": "application/json",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "number",
+                  "description": "Unique identifier of the reward."
+                },
+                "withdrawAmount": {
+                  "type": "number",
+                  "description": "Current size of the reward"
+                },
+                "withdrawDuration": {
+                  "type": "number",
+                  "description": "Current duration of the withdraw poll"
+                },
+                "state": {
+                  "type": "number",
+                  "description": "Current state of the reward [Disabled, Enabled]"
+                },
+                "poll": {
                   "type": "object",
                   "properties": {
                     "id": {
                       "type": "number",
-                      "description": "Unique identifier of the reward."
+                      "description": "Unique identifier of the reward poll"
                     },
                     "withdrawAmount": {
                       "type": "number",
-                      "description": "Current size of the reward"
+                      "description": "Proposed size of the reward"
                     },
                     "withdrawDuration": {
                       "type": "number",
-                      "description": "Current duration of the withdraw poll"
-                    },
-                    "state": {
-                      "type": "number",
-                      "description": "Current state of the reward [Disabled, Enabled]"
-                    },
-                    "poll": {
-                      "type": "object",
-                      "properties": {
-                        "id": {
-                          "type": "number",
-                          "description": "Unique identifier of the reward poll"
-                        },
-                        "withdrawAmount": {
-                          "type": "number",
-                          "description": "Proposed size of the reward"
-                        },
-                        "withdrawDuration": {
-                          "type": "number",
-                          "description": "Proposed duration of the withdraw poll"
-                        }
-                      }
+                      "description": "Proposed duration of the withdraw poll"
                     }
                   }
                 }
@@ -1169,16 +1142,13 @@
         "responses": {
           "200": {
             "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "base64": {
-                      "type": "string",
-                      "description": "Base64 string representing function call"
-                    }
-                  }
+            "content": "application/json",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "base64": {
+                  "type": "string",
+                  "description": "Base64 string representing function call"
                 }
               }
             }
@@ -1227,16 +1197,13 @@
         "responses": {
           "200": {
             "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "base64": {
-                      "type": "string",
-                      "description": "Base64 string representing function call"
-                    }
-                  }
+            "content": "application/json",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "base64": {
+                  "type": "string",
+                  "description": "Base64 string representing function call"
                 }
               }
             }
@@ -1285,16 +1252,13 @@
         "responses": {
           "200": {
             "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "base64": {
-                      "type": "string",
-                      "description": "Base64 string representing function call"
-                    }
-                  }
+            "content": "application/json",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "base64": {
+                  "type": "string",
+                  "description": "Base64 string representing function call"
                 }
               }
             }
@@ -1349,16 +1313,13 @@
         "responses": {
           "200": {
             "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "withdrawPoll": {
-                      "type": "string",
-                      "description": "Address off the withdraw poll"
-                    }
-                  }
+            "content": "application/json",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "withdrawPoll": {
+                  "type": "string",
+                  "description": "Address off the withdraw poll"
                 }
               }
             }
@@ -1401,36 +1362,33 @@
         "responses": {
           "200": {
             "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
+            "content": "application/json",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "requestUris": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "clientId": {
+                  "type": "string"
+                },
+                "clientSecret": {
+                  "type": "string"
+                },
+                "registrationAccessToken": {
+                  "type": "string"
+                },
+                "metadata": {
                   "type": "object",
                   "properties": {
-                    "requestUris": {
-                      "type": "array",
-                      "items": {
-                        "type": "string"
-                      }
+                    "rewardId": {
+                      "type": "number"
                     },
-                    "clientId": {
+                    "poolAddress": {
                       "type": "string"
-                    },
-                    "clientSecret": {
-                      "type": "string"
-                    },
-                    "registrationAccessToken": {
-                      "type": "string"
-                    },
-                    "metadata": {
-                      "type": "object",
-                      "properties": {
-                        "rewardId": {
-                          "type": "number"
-                        },
-                        "poolAddress": {
-                          "type": "string"
-                        }
-                      }
                     }
                   }
                 }
@@ -1478,14 +1436,11 @@
         "responses": {
           "200": {
             "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  }
-                }
+            "content": "application/json",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
               }
             }
           },
@@ -1554,27 +1509,24 @@
         "responses": {
           "201": {
             "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
+            "content": "application/json",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "rat": {
+                  "type": "string"
+                },
+                "sub": {
+                  "type": "string"
+                },
+                "metadata": {
                   "type": "object",
                   "properties": {
-                    "rat": {
-                      "type": "string"
+                    "rewardId": {
+                      "type": "number"
                     },
-                    "sub": {
+                    "poolAddress": {
                       "type": "string"
-                    },
-                    "metadata": {
-                      "type": "object",
-                      "properties": {
-                        "rewardId": {
-                          "type": "number"
-                        },
-                        "poolAddress": {
-                          "type": "string"
-                        }
-                      }
                     }
                   }
                 }
@@ -1625,16 +1577,13 @@
         "responses": {
           "200": {
             "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "base64": {
-                      "type": "string",
-                      "description": "Base64 string representing function call."
-                    }
-                  }
+            "content": "application/json",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "base64": {
+                  "type": "string",
+                  "description": "Base64 string representing function call."
                 }
               }
             }
@@ -1687,16 +1636,13 @@
         "responses": {
           "200": {
             "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "base64": {
-                      "type": "string",
-                      "description": "Base64 string representing function call"
-                    }
-                  }
+            "content": "application/json",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "base64": {
+                  "type": "string",
+                  "description": "Base64 string representing function call"
                 }
               }
             }
@@ -1745,55 +1691,52 @@
         "responses": {
           "200": {
             "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
+            "content": "application/json",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "description": "ID of the withdrawal."
+                },
+                "beneficiary": {
+                  "type": "string",
+                  "description": "Beneficiary of the reward."
+                },
+                "amount": {
+                  "type": "string",
+                  "description": "Rewarded amount for the beneficiary"
+                },
+                "approved": {
+                  "type": "string",
+                  "description": "Boolean reflecting the approved state of the withdrawal."
+                },
+                "state": {
+                  "type": "number",
+                  "description": "WithdrawState [Pending, Withdrawn]"
+                },
+                "poll": {
                   "type": "object",
                   "properties": {
-                    "id": {
-                      "type": "string",
-                      "description": "ID of the withdrawal."
-                    },
-                    "beneficiary": {
-                      "type": "string",
-                      "description": "Beneficiary of the reward."
-                    },
-                    "amount": {
-                      "type": "string",
-                      "description": "Rewarded amount for the beneficiary"
-                    },
-                    "approved": {
-                      "type": "string",
-                      "description": "Boolean reflecting the approved state of the withdrawal."
-                    },
-                    "state": {
+                    "startTime": {
                       "type": "number",
-                      "description": "WithdrawState [Pending, Withdrawn]"
+                      "description": "Timestamp for the start time of the poll."
                     },
-                    "poll": {
-                      "type": "object",
-                      "properties": {
-                        "startTime": {
-                          "type": "number",
-                          "description": "Timestamp for the start time of the poll."
-                        },
-                        "endTime": {
-                          "type": "number",
-                          "description": "Timestamp for the end time of the poll."
-                        },
-                        "yesCounter": {
-                          "type": "number",
-                          "description": "Amount of yes votes for the poll."
-                        },
-                        "noCounter": {
-                          "type": "number",
-                          "description": "Amount of no votes for the poll."
-                        },
-                        "totalVoted": {
-                          "type": "number",
-                          "description": "Total amount of votes for the poll."
-                        }
-                      }
+                    "endTime": {
+                      "type": "number",
+                      "description": "Timestamp for the end time of the poll."
+                    },
+                    "yesCounter": {
+                      "type": "number",
+                      "description": "Amount of yes votes for the poll."
+                    },
+                    "noCounter": {
+                      "type": "number",
+                      "description": "Amount of no votes for the poll."
+                    },
+                    "totalVoted": {
+                      "type": "number",
+                      "description": "Total amount of votes for the poll."
                     }
                   }
                 }
@@ -1838,57 +1781,54 @@
         "responses": {
           "200": {
             "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
+            "content": "application/json",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "description": "ID of the withdrawal."
+                  },
+                  "beneficiary": {
+                    "type": "string",
+                    "description": "Beneficiary of the reward."
+                  },
+                  "amount": {
+                    "type": "string",
+                    "description": "Rewarded amount for the beneficiary"
+                  },
+                  "approved": {
+                    "type": "string",
+                    "description": "Boolean reflecting the approved state of the withdrawal."
+                  },
+                  "state": {
+                    "type": "number",
+                    "description": "WithdrawState [Pending, Withdrawn]"
+                  },
+                  "poll": {
                     "type": "object",
                     "properties": {
-                      "id": {
-                        "type": "string",
-                        "description": "ID of the withdrawal."
-                      },
-                      "beneficiary": {
-                        "type": "string",
-                        "description": "Beneficiary of the reward."
-                      },
-                      "amount": {
-                        "type": "string",
-                        "description": "Rewarded amount for the beneficiary"
-                      },
-                      "approved": {
-                        "type": "string",
-                        "description": "Boolean reflecting the approved state of the withdrawal."
-                      },
-                      "state": {
+                      "startTime": {
                         "type": "number",
-                        "description": "WithdrawState [Pending, Withdrawn]"
+                        "description": "Timestamp for the start time of the poll."
                       },
-                      "poll": {
-                        "type": "object",
-                        "properties": {
-                          "startTime": {
-                            "type": "number",
-                            "description": "Timestamp for the start time of the poll."
-                          },
-                          "endTime": {
-                            "type": "number",
-                            "description": "Timestamp for the end time of the poll."
-                          },
-                          "yesCounter": {
-                            "type": "number",
-                            "description": "Amount of yes votes for the poll."
-                          },
-                          "noCounter": {
-                            "type": "number",
-                            "description": "Amount of no votes for the poll."
-                          },
-                          "totalVoted": {
-                            "type": "number",
-                            "description": "Total amount of votes for the poll."
-                          }
-                        }
+                      "endTime": {
+                        "type": "number",
+                        "description": "Timestamp for the end time of the poll."
+                      },
+                      "yesCounter": {
+                        "type": "number",
+                        "description": "Amount of yes votes for the poll."
+                      },
+                      "noCounter": {
+                        "type": "number",
+                        "description": "Amount of no votes for the poll."
+                      },
+                      "totalVoted": {
+                        "type": "number",
+                        "description": "Total amount of votes for the poll."
                       }
                     }
                   }
@@ -1946,16 +1886,13 @@
         "responses": {
           "201": {
             "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "id": {
-                      "type": "integer",
-                      "description": "ID of the withdraw poll"
-                    }
-                  }
+            "content": "application/json",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "integer",
+                  "description": "ID of the withdraw poll"
                 }
               }
             }
@@ -2004,17 +1941,14 @@
         "responses": {
           "200": {
             "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "optional": true,
-                  "properties": {
-                    "base64": {
-                      "type": "string",
-                      "description": "Base64 string representing function call if governance is disabled."
-                    }
-                  }
+            "content": "application/json",
+            "schema": {
+              "type": "object",
+              "optional": true,
+              "properties": {
+                "base64": {
+                  "type": "string",
+                  "description": "Base64 string representing function call if governance is disabled."
                 }
               }
             }
