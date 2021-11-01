@@ -1,29 +1,24 @@
 import request from 'supertest';
 import server from '../../src/server';
-import { NetworkProvider, sendTransaction } from '../../src/util/network';
 import db from '../../src/util/database';
-import { timeTravel, signMethod, deployExampleToken, signupWithAddress } from './lib/network';
+import { deployExampleToken } from './lib/network';
 import {
     rewardPollDuration,
     proposeWithdrawPollDuration,
     rewardWithdrawAmount,
     rewardWithdrawDuration,
-    userEmail,
-    userPassword,
-    userEmail2,
-    userPassword2,
     rewardId,
     requestUris,
     redirectUris,
     postLogoutRedirectUris,
+    sub,
+    account,
 } from './lib/constants';
-import { solutionContract } from '../../src/util/network';
-import { toWei } from 'web3-utils';
 import { Contract } from 'web3-eth-contract';
-import { getAuthCodeToken } from './lib/authorizationCode';
+import { getToken } from './lib/jwt';
+import { mockPath, mockStart } from './lib/mock';
 
 const user = request.agent(server);
-const user2 = request.agent(server);
 
 describe('Widgets', () => {
     let poolAddress: string, dashboardAccessToken: string, widgetAccessToken: string, testToken: Contract, rat: string;
@@ -31,13 +26,19 @@ describe('Widgets', () => {
     beforeAll(async () => {
         await db.truncate();
 
-        await signupWithAddress(userEmail, userPassword);
-        widgetAccessToken = await getAuthCodeToken(user, 'openid user widget', userEmail, userPassword);
-
-        await signupWithAddress(userEmail2, userPassword2);
-        dashboardAccessToken = await getAuthCodeToken(user2, 'openid dashboard', userEmail2, userPassword2);
-
         testToken = await deployExampleToken();
+        widgetAccessToken = getToken('openid user widget');
+        dashboardAccessToken = getToken('openid dashboard');
+
+        mockStart();
+        mockPath('post', '/account', 200, function () {
+            if (poolAddress) account.memberships[0] = poolAddress;
+            return account;
+        });
+        mockPath('get', `/account/${sub}`, 200, function () {
+            if (poolAddress) account.memberships[0] = poolAddress;
+            return account;
+        });
 
         // Create an asset pool
         const res = await user
