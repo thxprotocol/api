@@ -20,13 +20,13 @@ export const postWidget = async (req: HttpRequest, res: Response, next: NextFunc
             },
         });
 
-        const rat = r.data.registration_access_token;
-        const { widget } = await WidgetService.post(
+        const { widget } = await WidgetService.create(
             req.user.sub,
-            rat,
+            r.data.registration_access_token,
             req.body.metadata.rewardId,
             req.body.metadata.poolAddress,
         );
+
         res.status(201).json(widget);
     } catch (e) {
         return next(new HttpError(502, 'Could not register your widget.'));

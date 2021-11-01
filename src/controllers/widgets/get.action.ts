@@ -18,7 +18,7 @@ export const getWidget = async (req: HttpRequest, res: Response, next: NextFunct
             return next(new HttpError(500, 'Could not find a client for this registration_access_token.'));
         }
 
-        const { widget } = await WidgetService.getByIdAndAddress(rat.payload.jti, req.query.asset_pool.toString());
+        const { widget } = await WidgetService.get(req.params.rat);
 
         if (!widget) {
             return next(new HttpError(500, 'Could not find a widget for this registration_access_token.'));

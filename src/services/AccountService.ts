@@ -67,7 +67,7 @@ export default class AccountService {
         try {
             await authClient({
                 method: 'GET',
-                url: `/account/email/${email}`,
+                url: `/account/email/${email}`, // TODO Should only return active accounts
                 headers: {
                     Authorization: await getAuthAccessToken(),
                 },
@@ -128,7 +128,44 @@ export default class AccountService {
         }
     }
 
+<<<<<<< HEAD
     static async remove(sub: string) {
+=======
+    static async signup(email: string, password: string, acceptTermsPrivacy: boolean, acceptUpdates: boolean) {
+        let account = await Account.findOne({ email, active: false });
+
+        if (!account) {
+            account = new Account({
+                active: false,
+            });
+        }
+
+        account.email = email;
+        account.password = password;
+        account.acceptTermsPrivacy = acceptTermsPrivacy || false;
+        account.acceptUpdates = acceptUpdates || false;
+        account.signupToken = createRandomToken();
+        account.signupTokenExpires = DURATION_TWENTYFOUR_HOURS;
+
+        return account;
+    }
+
+    static signupFor(email: string, password: string, address: string, poolAddress: string) {
+        const wallet = new Web3().eth.accounts.create();
+        const privateKey = address ? null : wallet.privateKey;
+
+        return new Account({
+            active: true,
+            address: address ? address : wallet.address,
+            privateKey: address ? privateKey : wallet.privateKey,
+            email,
+            password,
+            memberships: poolAddress ? [poolAddress] : [],
+        });
+    }
+
+    static async verifySignupToken(signupToken: string) {
+>>>>>>> develop
         try {
             const r = await authClient({
                 method: 'DELETE',

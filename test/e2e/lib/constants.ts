@@ -27,3 +27,7 @@ export const account: any = {
     burnProofs: [],
     registrationAccessTokens: [],
 };
+export const rewardId = 1;
+export const requestUris = ['http://localhost:8080'];
+export const redirectUris = ['http://localhost:8080'];
+export const postLogoutRedirectUris = ['http://localhost:8080'];
