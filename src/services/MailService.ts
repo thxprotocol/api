@@ -2,7 +2,7 @@ import ejs from 'ejs';
 import { sendMail } from '../util/mail';
 import { createRandomToken } from '../util/tokens';
 import path from 'path';
-import { API_URL, SECURE_KEY, WALLET_URL } from '../util/secrets';
+import { API_URL, WALLET_URL, SECURE_KEY } from '../util/secrets';
 import { encryptString } from '../util/encrypt';
 import AccountService from './AccountService';
 

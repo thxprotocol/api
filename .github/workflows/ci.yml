@@ -24,11 +24,11 @@ jobs:
               with:
                   node-version: ${{ matrix.node-version }}
 
+            - name: Start containers
+              run: docker compose -f docker-compose.ci.yml up -d
+
             - name: Install dependencies
               run: npm install
 
-            - name: Reset cache
-              run: npm run reset
-
             - name: Run test
-              run: docker compose -f docker-compose.ci.yml run --rm api_ci_node npx jest --forceExit
+              run: npm run test

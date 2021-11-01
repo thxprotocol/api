@@ -8,8 +8,8 @@ import { ASSET_POOL_FACTORY_ADDRESS, POOL_REGISTRY_ADDRESS } from '../../src/uti
 
 beforeAll(async () => {
     const web3 = getProvider(NetworkProvider.Test);
-    const factoryExists = !!(await web3.eth.getCode(ASSET_POOL_FACTORY_ADDRESS));
-    const registryExists = !!(await web3.eth.getCode(POOL_REGISTRY_ADDRESS));
+    const factoryExists = (await web3.eth.getCode(ASSET_POOL_FACTORY_ADDRESS)) !== '0x';
+    const registryExists = (await web3.eth.getCode(POOL_REGISTRY_ADDRESS)) !== '0x';
 
     if (!factoryExists || !registryExists) {
         console.log('Facets: ', await deployFacets(NetworkProvider.Test));

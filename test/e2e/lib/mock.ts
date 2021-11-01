@@ -1,10 +1,10 @@
 import nock from 'nock';
 import { account, userWalletAddress, userEmail2, userEmail, sub } from './constants';
 import { jwksResponse } from './jwt';
-import { AUTH_URL } from '../../../src/util/secrets';
+import { ISSUER } from '../../../src/util/secrets';
 
 export function mockPath(method: string, path: string, status: number, callback: any = {}) {
-    const n = nock(AUTH_URL).persist() as any;
+    const n = nock(ISSUER).persist() as any;
 
     return n[method](path).reply(status, callback);
 }

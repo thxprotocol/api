@@ -1,33 +1,20 @@
 import { IAssetPool } from '../models/AssetPool';
 import { ERC20Token, IAccountUpdates } from '../models/Account';
 import { callFunction } from '../util/network';
-import { AUTH_URL } from '../util/secrets';
-import Web3 from 'web3';
-import axios from 'axios';
+import { authClient, getAuthAccessToken } from '../util/auth';
 import ClientService from './ClientService';
 
 const ERROR_NO_ACCOUNT = 'Could not find an account for this address';
-const apiAccesstoken = '';
-
-axios.defaults.baseURL = AUTH_URL;
-axios.interceptors.request.use(
-    (config) => {
-        config.headers.Authorization = `Bearer ${apiAccesstoken}`;
-        // Do something before request is sent
-        return config;
-    },
-    function (error) {
-        // Do something with request error
-        return Promise.reject(error);
-    },
-);
 
 export default class AccountService {
     static async get(sub: string) {
         try {
-            const r = await axios({
+            const r = await authClient({
                 method: 'GET',
                 url: `/account/${sub}`,
+                headers: {
+                    Authorization: await getAuthAccessToken(),
+                },
             });
 
             return { account: r.data };
@@ -38,9 +25,12 @@ export default class AccountService {
 
     static async getByEmail(email: string) {
         try {
-            const r = await axios({
+            const r = await authClient({
                 method: 'GET',
                 url: `/account/email/${email}`,
+                headers: {
+                    Authorization: await getAuthAccessToken(),
+                },
             });
 
             if (!r.data) {
@@ -55,9 +45,12 @@ export default class AccountService {
 
     static async getByAddress(address: string) {
         try {
-            const r = await axios({
+            const r = await authClient({
                 method: 'GET',
                 url: `/account/address/${address}`,
+                headers: {
+                    Authorization: await getAuthAccessToken(),
+                },
             });
 
             if (!r.data) {
@@ -72,9 +65,12 @@ export default class AccountService {
 
     static async isEmailDuplicate(email: string) {
         try {
-            await axios({
+            await authClient({
                 method: 'GET',
                 url: `/account/email/${email}`,
+                headers: {
+                    Authorization: await getAuthAccessToken(),
+                },
             });
 
             return { result: true };
@@ -102,7 +98,7 @@ export default class AccountService {
         }: IAccountUpdates,
     ) {
         try {
-            const r = await axios({
+            const r = await authClient({
                 method: 'PATCH',
                 url: `/account/${sub}`,
                 data: {
@@ -116,6 +112,9 @@ export default class AccountService {
                     erc20,
                     authenticationToken,
                     authenticationTokenExpires,
+                },
+                headers: {
+                    Authorization: await getAuthAccessToken(),
                 },
             });
 
@@ -131,9 +130,12 @@ export default class AccountService {
 
     static async remove(sub: string) {
         try {
-            const r = await axios({
+            const r = await authClient({
                 method: 'DELETE',
                 url: `/account/${sub}`,
+                headers: {
+                    Authorization: await getAuthAccessToken(),
+                },
             });
 
             if (!r.data) {
@@ -146,21 +148,19 @@ export default class AccountService {
         }
     }
 
-    static async signupFor(email: string, password: string, address: string, poolAddress: string) {
+    static async signupFor(email: string, password: string, poolAddress: string, address?: string) {
         try {
-            const wallet = new Web3().eth.accounts.create();
-            const privateKey = address ? null : wallet.privateKey;
-
-            const r = await axios({
+            const r = await authClient({
                 method: 'POST',
                 url: '/account',
                 data: {
-                    active: true,
-                    address: address ? address : wallet.address,
-                    privateKey: address ? privateKey : wallet.privateKey,
                     email,
                     password,
-                    memberships: poolAddress ? [poolAddress] : [],
+                    address,
+                    poolAddress,
+                },
+                headers: {
+                    Authorization: await getAuthAccessToken(),
                 },
             });
 
