@@ -22,26 +22,27 @@ export const validateAssetPoolHeader = async (req: HttpRequest, res: Response, n
     try {
         // If there is a sub check the account for user membership
         if (req.user.sub) {
-            const { account } = await AccountService.get(req.user.sub);
-
             if (req.user.scope.includes('widget')) {
                 return next();
             }
+            const { result, error } = await AccountService.checkAssetPoolAccess(req.user.sub, req.header('AssetPool'));
 
-            if (!account.memberships || account.memberships.indexOf(req.header('AssetPool')) === -1) {
+            if (!result || error) {
                 throw new HttpError(401, 'Could not access this asset pool by sub.');
+            } else {
+                next();
             }
         }
         // If there is no sub check if client aud is equal to requested asset pool aud
         else if (req.user.aud) {
-            const assetPools = await AssetPool.find({ aud: req.user.aud, address: req.header('AssetPool') });
+            const assetPools = await AssetPool.find({ clientId: req.user.aud, address: req.header('AssetPool') });
 
             if (!assetPools) {
                 throw new HttpError(401, 'Could not access this asset pool by audience.');
+            } else {
+                next();
             }
         }
-
-        next();
     } catch (e) {
         next(e);
     }

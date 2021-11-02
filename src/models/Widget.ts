@@ -1,8 +1,8 @@
 import mongoose from 'mongoose';
 
 export type WidgetDocument = mongoose.Document & {
-    rat: string;
     sub: string;
+    clientId: string;
     metadata: {
         rewardId: number;
         poolAddress: string;
@@ -11,8 +11,8 @@ export type WidgetDocument = mongoose.Document & {
 
 const widgetSchema = new mongoose.Schema(
     {
-        rat: String,
         sub: String,
+        clientId: String,
         metadata: {
             rewardId: Number,
             poolAddress: String,

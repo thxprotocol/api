@@ -21,7 +21,11 @@ import { mockPath, mockStart } from './lib/mock';
 const user = request.agent(server);
 
 describe('Widgets', () => {
-    let poolAddress: string, dashboardAccessToken: string, widgetAccessToken: string, testToken: Contract, rat: string;
+    let poolAddress: string,
+        dashboardAccessToken: string,
+        widgetAccessToken: string,
+        testToken: Contract,
+        clientId: string;
 
     beforeAll(async () => {
         await db.truncate();
@@ -95,21 +99,20 @@ describe('Widgets', () => {
                 .set({ AssetPool: poolAddress, Authorization: dashboardAccessToken });
             expect(status).toBe(200);
             expect(body.length).toBe(1);
-            rat = body[0];
+            clientId = body[0];
             done();
         });
     });
 
-    describe('GET /widgets/:rat', () => {
+    describe('GET /widgets/:clientId', () => {
         it('HTTP 200', async (done) => {
             const { body, status } = await user
-                .get('/v1/widgets/' + rat)
+                .get('/v1/widgets/' + clientId)
                 .set({ AssetPool: poolAddress, Authorization: dashboardAccessToken });
             expect(status).toBe(200);
             expect(body.requestUris[0]).toBe(requestUris[0]);
             expect(body.clientId).toBeDefined();
             expect(body.clientSecret).toBeDefined();
-            expect(body.registrationAccessToken).toBe(rat);
             expect(body.metadata.rewardId).toBe(rewardId);
             expect(body.metadata.poolAddress).toBe(poolAddress);
             done();

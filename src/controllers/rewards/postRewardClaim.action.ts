@@ -39,7 +39,7 @@ export const postRewardClaim = async (req: HttpRequest, res: Response, next: Nex
                     if (error) {
                         throw new Error(error);
                     } else {
-                        const { error } = await AccountService.addMembershipForAddress(req.assetPool, account.address);
+                        const { error } = await AccountService.addMembership(account.id, req.assetPool);
 
                         if (error) {
                             throw new Error(error);

@@ -2,7 +2,8 @@ import { IAssetPool } from '../models/AssetPool';
 import { ERC20Token, IAccountUpdates } from '../models/Account';
 import { callFunction } from '../util/network';
 import { authClient, getAuthAccessToken } from '../util/auth';
-import ClientService from './ClientService';
+import { Membership } from '../models/Membership';
+import { ERROR_IS_NOT_MEMBER } from './MemberService';
 
 const ERROR_NO_ACCOUNT = 'Could not find an account for this address';
 
@@ -174,54 +175,16 @@ export default class AccountService {
         }
     }
 
-    static async addRatForAddress(address: string) {
+    static async checkAssetPoolAccess(sub: string, poolAddress: string) {
         try {
-            const { account, error } = await this.getByAddress(address);
-
-            if (error) return { error };
-
-            const { client } = await ClientService.create();
-
-            const rat = client.registration_access_token;
-
-            if (account.registrationAccessTokens.length) {
-                if (!account.registrationAccessTokens.includes(rat)) {
-                    account.registrationAccessTokens.push(rat);
-                }
-            } else {
-                account.registrationAccessTokens = [rat];
-            }
-
-            await this.update(account.sub, { registrationAccessTokens: account.registrationAccessTokens });
-
-            return { rat };
-        } catch (error) {
-            return { error };
-        }
-    }
-
-    static async addMembershipForAddress(assetPool: IAssetPool, address: string) {
-        try {
-            const { account, error } = await this.getByAddress(address);
-
-            if (error) throw new Error(error);
-
-            if (!account.memberships.includes(assetPool.address)) {
-                account.memberships.push(assetPool.address);
-            }
-
-            const tokenAddress = await callFunction(assetPool.solution.methods.getToken(), assetPool.network);
-            const hasERC20 = account.erc20.find((erc20: ERC20Token) => erc20.address === tokenAddress);
-
-            if (!hasERC20) {
-                account.erc20.push({ address: tokenAddress, network: assetPool.network });
-            }
-
-            await this.update(account.sub, {
-                registrationAccessTokens: account.registrationAccessTokens,
-                memberships: account.memberships,
-                erc20: account.erc20,
+            const membership = await Membership.findOne({
+                sub,
+                poolAddress,
             });
+
+            if (!membership) {
+                throw new Error(ERROR_IS_NOT_MEMBER);
+            }
 
             return { result: true };
         } catch (error) {
@@ -229,23 +192,45 @@ export default class AccountService {
         }
     }
 
-    static async removeMembershipForAddress(assetPool: IAssetPool, address: string) {
+    static async addMembership(sub: string, assetPool: IAssetPool, tokenAddress?: string) {
         try {
-            const { account, error } = await this.getByAddress(address);
+            const membership = await Membership.findOne({
+                sub,
+                network: assetPool.network,
+                poolAddress: assetPool.address,
+                tokenAddress: tokenAddress
+                    ? tokenAddress
+                    : await callFunction(assetPool.solution.methods.getToken(), assetPool.network),
+            });
 
-            if (error) throw new Error(error);
+            if (!membership) {
+                const membership = new Membership({
+                    sub,
+                    network: assetPool.network,
+                    poolAddress: assetPool.address,
+                    tokenAddress,
+                });
 
-            if (account && account.memberships) {
-                const index = account.memberships.indexOf(assetPool.solution.options.address);
-
-                if (index > -1) {
-                    account.memberships.splice(index, 1);
-                }
+                await membership.save();
             }
 
-            await this.update(account.sub, {
-                memberships: account.memberships,
+            return { result: true };
+        } catch (error) {
+            return { error };
+        }
+    }
+
+    static async removeMembership(sub: string, assetPool: IAssetPool) {
+        try {
+            const tokenAddress = await callFunction(assetPool.solution.methods.getToken(), assetPool.network);
+            const membership = await Membership.findOne({
+                sub,
+                network: assetPool.network,
+                poolAddress: assetPool.address,
+                tokenAddress,
             });
+
+            await membership.remove();
 
             return { result: true };
         } catch (error) {
