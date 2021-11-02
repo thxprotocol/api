@@ -48,12 +48,10 @@ export default class ClientService {
     static async remove(clientId: string) {
         try {
             const client = await Client.findOne({ clientId });
-            console.log(client);
             const r = await authClient({
                 method: 'DELETE',
                 url: `/reg/${client.clientId}?access_token=${client.registrationAccessToken}`,
             });
-            console.log(r.data);
 
             if (r.status !== 204) {
                 throw new Error();

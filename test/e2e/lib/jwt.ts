@@ -1,6 +1,6 @@
 import jwt from 'jsonwebtoken';
 import { AUTH_URL } from '../../../src/util/secrets';
-import { sub } from './constants';
+import { clientId, sub } from './constants';
 
 const privateKey = `-----BEGIN RSA PRIVATE KEY-----
 MIIEowIBAAKCAQEAwaZ3afW0/zYy3HfJwAAr83PDdZvADuSJ6jTZk1+jprdHdG6P
@@ -45,10 +45,15 @@ export const jwksResponse = {
 };
 
 export const getToken = (scope: string) => {
-    const payload = {
-        sub,
+    const payload: any = {
         scope,
     };
+
+    if (scope === 'openid admin') {
+        payload.aud = clientId;
+    } else {
+        payload.sub = sub;
+    }
 
     const options = {
         header: { kid: '0' },

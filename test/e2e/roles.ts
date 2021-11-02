@@ -165,9 +165,9 @@ describe('Roles', () => {
             user.get('/v1/members')
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
                 .end(async (err, res) => {
-                    console.log(res.body);
                     expect(res.status).toBe(200);
                     expect(res.body.length).toEqual(1);
+                    expect(res.body[0]).toBe(userWallet.address);
                     done();
                 });
         });
@@ -200,7 +200,6 @@ describe('Roles', () => {
             user.get('/v1/members')
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
                 .end(async (err, res) => {
-                    console.log(res.body);
                     expect(res.status).toBe(200);
                     expect(res.body.length).toEqual(0);
                     done();
