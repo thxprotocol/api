@@ -20,7 +20,7 @@ export const sub = '6074cbdd1459355fae4b6a14';
 export const userWalletAddress = '0xE1ea36CC205923b3fC3b46bb747BE4Fd6bE23E6C';
 export const userWalletPrivateKey = '0x668b4ef1e9a288a39974951746e366c632f21c653d3fff89ebe206bdb7194c58';
 export const account: any = {
-    sub,
+    id: sub,
     address: userWalletAddress,
     erc20: [],
     memberships: [],

@@ -29,7 +29,7 @@ export default class MailService {
 
             await sendMail(email, 'A sign in is requested for your Web Wallet', html);
 
-            await AccountService.update(account.sub, {
+            await AccountService.update(account.id, {
                 authenticationToken,
                 authenticationTokenExpires: DURATION_TEN_MINUTES,
             });

@@ -165,6 +165,7 @@ describe('Roles', () => {
             user.get('/v1/members')
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
                 .end(async (err, res) => {
+                    console.log(res.body);
                     expect(res.status).toBe(200);
                     expect(res.body.length).toEqual(1);
                     done();
@@ -194,11 +195,12 @@ describe('Roles', () => {
         });
     });
 
-    describe('GET /members', () => {
+    describe('GET /members (after DELETE)', () => {
         it('HTTP 200 if OK', (done) => {
             user.get('/v1/members')
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
                 .end(async (err, res) => {
+                    console.log(res.body);
                     expect(res.status).toBe(200);
                     expect(res.body.length).toEqual(0);
                     done();
