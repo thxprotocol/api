@@ -20,13 +20,12 @@ export const postAssetPool = async (req: HttpRequest, res: Response, next: NextF
                 if (error) throw new Error(error);
 
                 try {
-                    const account = await AccountService.get(req.user.sub);
-                    const { error } = await AccountService.addMembershipForAddress(assetPool, account.address);
+                    const { error } = await AccountService.addMembershipForSub(assetPool, req.user.sub);
 
                     if (error) throw new Error(error);
 
                     try {
-                        const { rat, error } = await AccountService.addRatForAddress(account.address);
+                        const { rat, error } = await AccountService.addRatForSub(req.user.sub);
 
                         if (error) throw new Error(error);
 

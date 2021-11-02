@@ -150,9 +150,9 @@ export default class AccountService {
         }
     }
 
-    static async addRatForAddress(address: string) {
+    static async addRatForSub(sub: string) {
         try {
-            const account = await Account.findOne({ address });
+            const account = await Account.findById(sub);
             const r = await axios({
                 method: 'POST',
                 url: ISSUER + '/reg',
@@ -184,22 +184,38 @@ export default class AccountService {
         }
     }
 
+    static async addMembership(account: AccountDocument, assetPool: IAssetPool) {
+        if (!account.memberships.includes(assetPool.address)) {
+            account.memberships.push(assetPool.address);
+        }
+
+        const tokenAddress = await callFunction(assetPool.solution.methods.getToken(), assetPool.network);
+        const hasERC20 = account.erc20.find((erc20: ERC20Token) => erc20.address === tokenAddress);
+
+        if (!hasERC20) {
+            account.erc20.push({ address: tokenAddress, network: assetPool.network });
+        }
+
+        await account.save();
+    }
+
+    static async addMembershipForSub(assetPool: IAssetPool, sub: string) {
+        try {
+            const account = await Account.findById(sub);
+
+            await this.addMembership(account, assetPool);
+
+            return { result: true };
+        } catch (error) {
+            return { error };
+        }
+    }
+
     static async addMembershipForAddress(assetPool: IAssetPool, address: string) {
         try {
             const account = await Account.findOne({ address });
 
-            if (!account.memberships.includes(assetPool.address)) {
-                account.memberships.push(assetPool.address);
-            }
-
-            const tokenAddress = await callFunction(assetPool.solution.methods.getToken(), assetPool.network);
-            const hasERC20 = account.erc20.find((erc20: ERC20Token) => erc20.address === tokenAddress);
-
-            if (!hasERC20) {
-                account.erc20.push({ address: tokenAddress, network: assetPool.network });
-            }
-
-            await account.save();
+            await this.addMembership(account, assetPool);
 
             return { result: true };
         } catch (error) {
