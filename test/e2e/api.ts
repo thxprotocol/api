@@ -3,21 +3,14 @@ import server from '../../src/server';
 import db from '../../src/util/database';
 import { callFunction, getAdmin, NetworkProvider, sendTransaction } from '../../src/util/network';
 import { timeTravel, signMethod, deployExampleToken, createWallet } from './lib/network';
-import {
-    rewardWithdrawAmount,
-    rewardWithdrawDuration,
-    mintAmount,
-    userWalletPrivateKey,
-    sub,
-    account,
-} from './lib/constants';
+import { rewardWithdrawAmount, rewardWithdrawDuration, mintAmount, userWalletPrivateKey } from './lib/constants';
 import { fromWei, toWei } from 'web3-utils';
 import { isAddress } from 'web3-utils';
 import { Contract } from 'web3-eth-contract';
 import { solutionContract } from '../../src/util/network';
 import { Account } from 'web3-core';
 import { getToken } from './lib/jwt';
-import { mockClear, mockPath, mockStart } from './lib/mock';
+import { mockClear, mockStart } from './lib/mock';
 
 const user = request.agent(server);
 
@@ -38,10 +31,6 @@ describe('Happy Flow', () => {
         userAccessToken = getToken('openid user');
 
         mockStart();
-        mockPath('get', `/account/${sub}`, 200, function () {
-            if (poolAddress) account.memberships[0] = poolAddress;
-            return account;
-        });
     });
 
     afterAll(async () => {

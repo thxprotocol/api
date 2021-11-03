@@ -3,11 +3,11 @@ import server from '../../src/server';
 import db from '../../src/util/database';
 import { getAdmin, NetworkProvider } from '../../src/util/network';
 import { createWallet, deployExampleToken, voter } from './lib/network';
-import { account, sub, userWalletPrivateKey } from './lib/constants';
+import { userWalletPrivateKey } from './lib/constants';
 import { Contract } from 'web3-eth-contract';
 import { getToken } from './lib/jwt';
 import { Account } from 'web3-core';
-import { mockClear, mockPath, mockStart } from './lib/mock';
+import { mockClear, mockStart } from './lib/mock';
 
 const user = request.agent(server);
 
@@ -25,14 +25,6 @@ describe('Roles', () => {
         userWallet = createWallet(userWalletPrivateKey);
 
         mockStart();
-        mockPath('post', '/account', 200, function () {
-            if (poolAddress) account.memberships[0] = poolAddress;
-            return account;
-        });
-        mockPath('get', `/account/${sub}`, 200, function () {
-            if (poolAddress) account.memberships[0] = poolAddress;
-            return account;
-        });
     });
 
     afterAll(async () => {

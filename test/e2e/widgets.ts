@@ -11,38 +11,23 @@ import {
     requestUris,
     redirectUris,
     postLogoutRedirectUris,
-    sub,
-    account,
 } from './lib/constants';
 import { Contract } from 'web3-eth-contract';
 import { getToken } from './lib/jwt';
-import { mockPath, mockStart } from './lib/mock';
+import { mockStart } from './lib/mock';
 
 const user = request.agent(server);
 
 describe('Widgets', () => {
-    let poolAddress: string,
-        dashboardAccessToken: string,
-        widgetAccessToken: string,
-        testToken: Contract,
-        clientId: string;
+    let poolAddress: string, dashboardAccessToken: string, testToken: Contract, clientId: string;
 
     beforeAll(async () => {
         await db.truncate();
 
         testToken = await deployExampleToken();
-        widgetAccessToken = getToken('openid user widget');
         dashboardAccessToken = getToken('openid dashboard');
 
         mockStart();
-        mockPath('post', '/account', 200, function () {
-            if (poolAddress) account.memberships[0] = poolAddress;
-            return account;
-        });
-        mockPath('get', `/account/${sub}`, 200, function () {
-            if (poolAddress) account.memberships[0] = poolAddress;
-            return account;
-        });
 
         // Create an asset pool
         const res = await user

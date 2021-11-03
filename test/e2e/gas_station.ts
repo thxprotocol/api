@@ -9,15 +9,13 @@ import {
     rewardWithdrawAmount,
     rewardWithdrawDuration,
     userWalletPrivateKey,
-    account,
-    sub,
 } from './lib/constants';
 import { solutionContract } from '../../src/util/network';
 import { toWei } from 'web3-utils';
 import { Contract } from 'web3-eth-contract';
 import { Account } from 'web3-core';
 import { getToken } from './lib/jwt';
-import { mockClear, mockPath, mockStart } from './lib/mock';
+import { mockClear, mockStart } from './lib/mock';
 
 const user = request.agent(server);
 
@@ -37,14 +35,6 @@ describe('Gas Station', () => {
         userWallet = createWallet(userWalletPrivateKey);
 
         mockStart();
-        mockPath('post', '/account', 200, function () {
-            if (poolAddress) account.memberships[0] = poolAddress;
-            return account;
-        });
-        mockPath('get', `/account/${sub}`, 200, function () {
-            if (poolAddress) account.memberships[0] = poolAddress;
-            return account;
-        });
 
         // Create an asset pool
         const res = await user

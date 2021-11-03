@@ -8,9 +8,9 @@ const ERROR_CREATE_ACCOUNT = 'Could not signup for an account';
 
 export const postAccount = async (req: HttpRequest, res: Response, next: NextFunction) => {
     async function checkDuplicateEmail() {
-        const { result } = await AccountService.isEmailDuplicate(req.body.email);
+        const { isDuplicate } = await AccountService.isEmailDuplicate(req.body.email);
 
-        if (result) {
+        if (isDuplicate) {
             throw new Error(ERROR_DUPLICATE_EMAIL);
         }
     }
@@ -28,26 +28,33 @@ export const postAccount = async (req: HttpRequest, res: Response, next: NextFun
         return account;
     }
 
+    async function addMember(account: any) {
+        const { error } = await MemberService.addMember(req.assetPool, account.address);
+
+        if (error) {
+            throw new Error(error);
+        }
+    }
+
+    async function addMembership(account: any) {
+        const { error } = await AccountService.addMembership(account.id, req.assetPool);
+
+        if (error) {
+            throw new Error(error);
+        }
+    }
+
     try {
         await checkDuplicateEmail();
 
         const account = await createAccount();
 
         if (req.assetPool) {
-            const { error } = await MemberService.addMember(req.assetPool, account.address);
-
-            if (error) {
-                throw new Error(error);
-            } else {
-                const { error } = await AccountService.addMembership(account.id, req.assetPool);
-
-                if (error) {
-                    throw new Error(error);
-                }
-            }
+            await addMember(account);
+            await addMembership(account);
         }
 
-        res.status(201).json({ address: account.address });
+        res.status(201).json({ id: account.id, address: account.address });
     } catch (error) {
         return next(new HttpError(502, error.message, error));
     }

@@ -35,7 +35,10 @@ export function mockStart() {
         client_secret: clientSecret,
         request_uris: requestUris,
     });
+
+    mockPath('get', `/account/${sub}`, 200, account);
     mockPath('patch', `/account/${sub}`, 200, {});
+    mockPath('post', '/account', 200, account);
     mockPath('get', `/account/email/${userEmail}`, 200, account);
     mockPath('get', `/account/email/${userEmail2}`, 404, {});
     mockPath('get', `/account/address/${userWalletAddress}`, 200, account);

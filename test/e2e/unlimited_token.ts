@@ -12,7 +12,6 @@ const user = request.agent(server);
 
 describe('Unlimited Supply Token', () => {
     let adminAccessToken: string,
-        userAccessToken: string,
         dashboardAccessToken: string,
         poolAddress: string,
         rewardID: string,
@@ -22,7 +21,6 @@ describe('Unlimited Supply Token', () => {
     beforeAll(async () => {
         adminAccessToken = getToken('openid admin');
         dashboardAccessToken = getToken('openid dashboard');
-        userAccessToken = getToken('openid user');
         userWallet = createWallet(userWalletPrivateKey);
 
         mockStart();
@@ -39,20 +37,6 @@ describe('Unlimited Supply Token', () => {
     afterAll(async () => {
         mockClear();
         await db.truncate();
-    });
-
-    describe('GET /account', () => {
-        it('HTTP 200', async (done) => {
-            user.get('/v1/account')
-                .set({
-                    Authorization: userAccessToken,
-                })
-                .end((err, res) => {
-                    expect(res.status).toBe(200);
-                    expect(res.body.privateKey).toBeUndefined();
-                    done();
-                });
-        });
     });
 
     describe('POST /asset_pools', () => {

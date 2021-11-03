@@ -1,7 +1,8 @@
 import { isAddress } from 'ethers/lib/utils';
-import { body, check } from 'express-validator';
+import { body, check, param } from 'express-validator';
 
 export const validations = {
+    getAccount: [param('id').exists()],
     postAccount: [
         body('email').exists(),
         body('password').exists(),

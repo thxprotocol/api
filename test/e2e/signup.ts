@@ -6,7 +6,7 @@ import { account, sub, userEmail2, userPassword2 } from './lib/constants';
 import { Contract } from 'web3-eth-contract';
 import { NetworkProvider } from '../../src/util/network';
 import { getToken } from './lib/jwt';
-import { mockClear, mockPath, mockStart } from './lib/mock';
+import { mockClear, mockStart } from './lib/mock';
 
 const user = request.agent(server);
 
@@ -14,7 +14,6 @@ describe('Signup', () => {
     let poolAddress: any,
         dashboardAccessToken: string,
         testToken: Contract,
-        userAccessToken: string,
         adminAccessToken: string,
         userAddress: string;
 
@@ -22,23 +21,8 @@ describe('Signup', () => {
         testToken = await deployExampleToken();
         adminAccessToken = getToken('openid admin');
         dashboardAccessToken = getToken('openid dashboard');
-        userAccessToken = getToken('openid user');
 
         mockStart();
-        mockPath('post', '/account', 200, function () {
-            if (poolAddress) {
-                account.memberships[0] = poolAddress;
-                account.erc20[0] = { network: NetworkProvider.Test, address: testToken.options.address };
-            }
-            return account;
-        });
-        mockPath('get', `/account/${sub}`, 200, function () {
-            if (poolAddress) {
-                account.memberships[0] = poolAddress;
-                account.erc20[0] = { network: NetworkProvider.Test, address: testToken.options.address };
-            }
-            return account;
-        });
     });
 
     afterAll(async () => {
@@ -73,8 +57,10 @@ describe('Signup', () => {
                     password: userPassword2,
                 })
                 .end(async (err, res) => {
+                    console.log(res.body);
                     expect(res.status).toBe(201);
-                    userAddress = res.body.address;
+                    expect(res.body.id).toBe(account.id);
+                    expect(res.body.address).toBe(account.address);
                     done();
                 });
         });
@@ -86,6 +72,7 @@ describe('Signup', () => {
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
                 .end(async (err, res) => {
                     expect(res.status).toBe(200);
+                    expect(res.body.isMember).toBe(true);
                     done();
                 });
         });
@@ -112,15 +99,18 @@ describe('Signup', () => {
     //     });
     // });
 
-    describe('GET /account', () => {
+    describe('GET /account/:id', () => {
         it('HTTP 200 if OK', (done) => {
-            user.get('/v1/account')
-                .set({ AssetPool: poolAddress, Authorization: userAccessToken })
+            user.get('/v1/account/' + sub)
+                .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
                 .end(async (err, res) => {
+                    console.log(res.body);
                     expect(res.status).toBe(200);
-                    expect(res.body.memberships[0]).toBe(poolAddress);
-                    expect(res.body.erc20[0].network).toBe(NetworkProvider.Test);
+                    expect(res.body.address).toBe(account.address);
+                    expect(res.body.memberships[0].address).toBe(poolAddress);
+                    expect(res.body.memberships[0].network).toBe(NetworkProvider.Test);
                     expect(res.body.erc20[0].address).toBe(testToken.options.address);
+                    expect(res.body.erc20[0].network).toBe(NetworkProvider.Test);
 
                     done();
                 });

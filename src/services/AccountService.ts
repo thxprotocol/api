@@ -1,14 +1,35 @@
 import { IAssetPool } from '../models/AssetPool';
-import { ERC20Token, IAccountUpdates } from '../models/Account';
+import { IAccountUpdates } from '../models/Account';
 import { callFunction } from '../util/network';
 import { authClient, getAuthAccessToken } from '../util/auth';
-import { Membership } from '../models/Membership';
+import { Membership, MembershipDocument } from '../models/Membership';
 import { ERROR_IS_NOT_MEMBER } from './MemberService';
 
 const ERROR_NO_ACCOUNT = 'Could not find an account for this address';
 
 export default class AccountService {
-    static async get(sub: string) {
+    private static async _get(sub: any) {
+        try {
+            const result = await Membership.find({ sub });
+            const memberships = result.map((r: MembershipDocument) => {
+                return {
+                    address: r.poolAddress,
+                    network: r.network,
+                };
+            });
+            const erc20 = result.map((r: MembershipDocument) => {
+                return {
+                    address: r.tokenAddress,
+                    network: r.network,
+                };
+            });
+            return { memberships, erc20 };
+        } catch (error) {
+            return { error };
+        }
+    }
+
+    static async getById(sub: string) {
         try {
             const r = await authClient({
                 method: 'GET',
@@ -18,7 +39,13 @@ export default class AccountService {
                 },
             });
 
-            return { account: r.data };
+            if (!r.data) {
+                throw new Error(ERROR_NO_ACCOUNT);
+            }
+
+            const account = { ...r.data, ...(await this._get(r.data.id)) };
+
+            return { account };
         } catch (error) {
             return { error };
         }
@@ -38,7 +65,9 @@ export default class AccountService {
                 throw new Error(ERROR_NO_ACCOUNT);
             }
 
-            return { account: r.data };
+            const account = { ...r.data, ...(await this._get(r.data.id)) };
+
+            return { account };
         } catch (error) {
             return { error };
         }
@@ -58,7 +87,9 @@ export default class AccountService {
                 throw new Error(ERROR_NO_ACCOUNT);
             }
 
-            return { account: r.data };
+            const account = { ...r.data, ...(await this._get(r.data.id)) };
+
+            return { account };
         } catch (error) {
             return { error };
         }
@@ -74,7 +105,7 @@ export default class AccountService {
                 },
             });
 
-            return { result: true };
+            return { isDuplicate: true };
         } catch (error) {
             if (error.status !== 404) {
                 return { error };
@@ -210,7 +241,6 @@ export default class AccountService {
                     poolAddress: assetPool.address,
                     tokenAddress,
                 });
-
                 await membership.save();
             }
 

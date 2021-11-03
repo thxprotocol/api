@@ -22,10 +22,6 @@ export const userWalletPrivateKey = '0x668b4ef1e9a288a39974951746e366c632f21c653
 export const account: any = {
     id: sub,
     address: userWalletAddress,
-    erc20: [],
-    memberships: [],
-    burnProofs: [],
-    registrationAccessTokens: [],
 };
 export const rewardId = 1;
 export const requestUris = ['http://localhost:8080'];

@@ -22,7 +22,7 @@ export const postRewardClaim = async (req: HttpRequest, res: Response, next: Nex
                 throw new Error(ERROR_REWARD_NOT_FOUND);
             }
 
-            const { account } = await AccountService.get(req.user.sub);
+            const { account } = await AccountService.getById(req.user.sub);
 
             if (!account.address) {
                 throw new Error(ERROR_ACCOUNT_NO_ADDRESS);

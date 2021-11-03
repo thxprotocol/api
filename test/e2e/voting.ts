@@ -9,15 +9,13 @@ import {
     rewardWithdrawDuration,
     proposeWithdrawPollDuration,
     userWalletPrivateKey,
-    account,
-    sub,
     tokenName,
     tokenSymbol,
 } from './lib/constants';
 import { isAddress } from 'web3-utils';
 import { Account } from 'web3-core';
 import { getToken } from './lib/jwt';
-import { mockClear, mockPath, mockStart } from './lib/mock';
+import { mockClear, mockStart } from './lib/mock';
 
 const user = request.agent(server);
 
@@ -26,7 +24,6 @@ describe('Voting', () => {
         userAccessToken: string,
         dashboardAccessToken: string,
         poolAddress: string,
-        poolTokenAddress: string,
         rewardID: string,
         withdrawalID: number,
         userWallet: Account;
@@ -38,35 +35,11 @@ describe('Voting', () => {
         userWallet = createWallet(userWalletPrivateKey);
 
         mockStart();
-        mockPath('post', '/account', 200, function () {
-            if (poolAddress) account.memberships[0] = poolAddress;
-            if (poolTokenAddress) account.erc20[0] = { network: NetworkProvider.Test, address: poolTokenAddress };
-            return account;
-        });
-        mockPath('get', `/account/${sub}`, 200, function () {
-            if (poolAddress) account.memberships[0] = poolAddress;
-            if (poolTokenAddress) account.erc20[0] = { network: NetworkProvider.Test, address: poolTokenAddress };
-            return account;
-        });
     });
 
     afterAll(async () => {
         mockClear();
         await db.truncate();
-    });
-
-    describe('GET /account', () => {
-        it('HTTP 200', async (done) => {
-            user.get('/v1/account')
-                .set({
-                    Authorization: userAccessToken,
-                })
-                .end((err, res) => {
-                    expect(res.status).toBe(200);
-                    expect(res.body.privateKey).toBeUndefined();
-                    done();
-                });
-        });
     });
 
     describe('POST /asset_pools', () => {
@@ -101,8 +74,6 @@ describe('Voting', () => {
                 .end(async (err, res) => {
                     expect(res.status).toBe(200);
                     expect(isAddress(res.body.token.address)).toBe(true);
-
-                    poolTokenAddress = res.body.token.address;
 
                     done();
                 });

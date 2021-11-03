@@ -1,61 +1,33 @@
 import request from 'supertest';
 import server from '../../src/server';
 import db from '../../src/util/database';
-import { rewardWithdrawAmount, tokenName, tokenSymbol, account, sub, userWalletPrivateKey } from './lib/constants';
+import { rewardWithdrawAmount, tokenName, tokenSymbol, userWalletPrivateKey } from './lib/constants';
 import { isAddress } from 'web3-utils';
 import { Account } from 'web3-core';
 import { getToken } from './lib/jwt';
-import { NetworkProvider } from '../../src/util/network';
 import { createWallet } from './lib/network';
-import { mockClear, mockPath, mockStart } from './lib/mock';
+import { mockClear, mockStart } from './lib/mock';
 
 const user = request.agent(server);
 
 describe('Propose Withdrawal', () => {
     let adminAccessToken: string,
-        userAccessToken: string,
         dashboardAccessToken: string,
         poolAddress: string,
-        poolTokenAddress: string,
         withdrawalID: number,
         userWallet: Account;
 
     beforeAll(async () => {
         adminAccessToken = getToken('openid admin');
         dashboardAccessToken = getToken('openid dashboard');
-        userAccessToken = getToken('openid user');
         userWallet = createWallet(userWalletPrivateKey);
 
         mockStart();
-        mockPath('post', '/account', 200, function () {
-            if (poolAddress) account.memberships[0] = poolAddress;
-            if (poolTokenAddress) account.erc20[0] = { network: NetworkProvider.Test, address: poolTokenAddress };
-            return account;
-        });
-        mockPath('get', `/account/${sub}`, 200, function () {
-            if (poolAddress) account.memberships[0] = poolAddress;
-            if (poolTokenAddress) account.erc20[0] = { network: NetworkProvider.Test, address: poolTokenAddress };
-            return account;
-        });
     });
 
     afterAll(async () => {
         mockClear();
         await db.truncate();
-    });
-
-    describe('GET /account', () => {
-        it('HTTP 200', async (done) => {
-            user.get('/v1/account')
-                .set({
-                    Authorization: userAccessToken,
-                })
-                .end((err, res) => {
-                    expect(res.status).toBe(200);
-                    expect(res.body.privateKey).toBeUndefined();
-                    done();
-                });
-        });
     });
 
     describe('POST /asset_pools', () => {
@@ -87,8 +59,6 @@ describe('Propose Withdrawal', () => {
                 .end(async (err, res) => {
                     expect(res.status).toBe(200);
                     expect(isAddress(res.body.token.address)).toBe(true);
-
-                    poolTokenAddress = res.body.token.address;
 
                     done();
                 });

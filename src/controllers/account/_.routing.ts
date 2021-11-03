@@ -1,7 +1,7 @@
 import express from 'express';
 import { getAccount } from './get.action';
 import { patchAccount } from './patch.action';
-import { deleteAccount } from './delete.action';
+// import { deleteAccount } from './delete.action';
 import { postAccount } from './post.action';
 import checkScopes from 'express-jwt-authz';
 import { parseHeader } from '../../util/network';
@@ -11,10 +11,10 @@ import { postLogin } from './postLogin.action';
 
 const router = express.Router();
 
-router.get('/', checkScopes(['user', 'widget', 'dashboard']), getAccount);
-router.patch('/', checkScopes(['user', 'dashboard']), patchAccount);
-router.delete('/', checkScopes(['user', 'dashboard']), deleteAccount);
+router.get('/:id', validate(validations.getAccount), checkScopes(['admin']), getAccount);
 router.post('/', validate(validations.postAccount), checkScopes(['admin']), parseHeader, postAccount);
 router.post('/login', validate(validations.postLogin), checkScopes(['admin']), postLogin);
+router.patch('/', checkScopes(['user', 'dashboard']), patchAccount);
+// router.delete('/', checkScopes(['user', 'dashboard']), deleteAccount);
 
 export default router;
