@@ -1,43 +1,31 @@
 import request from 'supertest';
 import server from '../../src/server';
-import { NetworkProvider, sendTransaction } from '../../src/util/network';
 import db from '../../src/util/database';
-import { timeTravel, signMethod, deployExampleToken, signupWithAddress } from './lib/network';
+import { deployExampleToken } from './lib/network';
 import {
     rewardPollDuration,
     proposeWithdrawPollDuration,
     rewardWithdrawAmount,
     rewardWithdrawDuration,
-    userEmail,
-    userPassword,
-    userEmail2,
-    userPassword2,
     rewardId,
     requestUris,
     redirectUris,
     postLogoutRedirectUris,
 } from './lib/constants';
-import { solutionContract } from '../../src/util/network';
-import { toWei } from 'web3-utils';
 import { Contract } from 'web3-eth-contract';
-import { getAuthCodeToken } from './lib/authorizationCode';
+import { getToken } from './lib/jwt';
+import { mockClear, mockStart } from './lib/mock';
 
 const user = request.agent(server);
-const user2 = request.agent(server);
 
 describe('Widgets', () => {
-    let poolAddress: string, dashboardAccessToken: string, widgetAccessToken: string, testToken: Contract, rat: string;
+    let poolAddress: string, dashboardAccessToken: string, testToken: Contract, clientId: string;
 
     beforeAll(async () => {
-        await db.truncate();
-
-        await signupWithAddress(userEmail, userPassword);
-        widgetAccessToken = await getAuthCodeToken(user, 'openid user widget', userEmail, userPassword);
-
-        await signupWithAddress(userEmail2, userPassword2);
-        dashboardAccessToken = await getAuthCodeToken(user2, 'openid dashboard', userEmail2, userPassword2);
-
         testToken = await deployExampleToken();
+        dashboardAccessToken = getToken('openid dashboard');
+
+        mockStart();
 
         // Create an asset pool
         const res = await user
@@ -68,6 +56,11 @@ describe('Widgets', () => {
         });
     });
 
+    afterAll(async () => {
+        await db.truncate();
+        mockClear();
+    });
+
     describe('POST /widgets/', () => {
         it('HTTP 200', async (done) => {
             const { status } = await user
@@ -94,21 +87,20 @@ describe('Widgets', () => {
                 .set({ AssetPool: poolAddress, Authorization: dashboardAccessToken });
             expect(status).toBe(200);
             expect(body.length).toBe(1);
-            rat = body[0];
+            clientId = body[0];
             done();
         });
     });
 
-    describe('GET /widgets/:rat', () => {
+    describe('GET /widgets/:clientId', () => {
         it('HTTP 200', async (done) => {
             const { body, status } = await user
-                .get('/v1/widgets/' + rat)
+                .get('/v1/widgets/' + clientId)
                 .set({ AssetPool: poolAddress, Authorization: dashboardAccessToken });
             expect(status).toBe(200);
             expect(body.requestUris[0]).toBe(requestUris[0]);
             expect(body.clientId).toBeDefined();
             expect(body.clientSecret).toBeDefined();
-            expect(body.registrationAccessToken).toBe(rat);
             expect(body.metadata.rewardId).toBe(rewardId);
             expect(body.metadata.poolAddress).toBe(poolAddress);
             done();

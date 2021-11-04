@@ -22,7 +22,7 @@ export const postRewardClaim = async (req: HttpRequest, res: Response, next: Nex
                 throw new Error(ERROR_REWARD_NOT_FOUND);
             }
 
-            const account = await AccountService.get(req.user.sub);
+            const { account } = await AccountService.getById(req.user.sub);
 
             if (!account.address) {
                 throw new Error(ERROR_ACCOUNT_NO_ADDRESS);
@@ -39,7 +39,7 @@ export const postRewardClaim = async (req: HttpRequest, res: Response, next: Nex
                     if (error) {
                         throw new Error(error);
                     } else {
-                        const { error } = await AccountService.addMembershipForAddress(req.assetPool, account.address);
+                        const { error } = await AccountService.addMembership(account.id, req.assetPool);
 
                         if (error) {
                             throw new Error(error);

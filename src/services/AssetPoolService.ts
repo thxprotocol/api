@@ -111,7 +111,7 @@ export default class AssetPoolService {
                 assetPool.network,
             );
 
-            return { result: true };
+            return { tokenAddress: address };
         } catch (error) {
             return { error };
         }
@@ -187,7 +187,7 @@ export default class AssetPoolService {
 
     static async getAll(sub: string) {
         try {
-            return { result: (await AssetPool.find({ sub: sub })).map((pool) => pool.address) };
+            return { result: (await AssetPool.find({ sub })).map((pool) => pool.address) };
         } catch (error) {
             return { error };
         }
@@ -197,6 +197,7 @@ export default class AssetPoolService {
         try {
             const assetPool = await AssetPool.findOne({ address: address });
             await assetPool.remove();
+            return { result: true };
         } catch (error) {
             return { error };
         }

@@ -4,45 +4,59 @@ import MemberService from '../../services/MemberService';
 import AccountService from '../../services/AccountService';
 
 const ERROR_DUPLICATE_EMAIL = 'An account with this e-mail address already exists.';
+const ERROR_CREATE_ACCOUNT = 'Could not signup for an account';
 
-export const postSignup = async (req: HttpRequest, res: Response, next: NextFunction) => {
-    try {
-        const { result, error } = await AccountService.isEmailDuplicate(req.body.email);
+export const postAccount = async (req: HttpRequest, res: Response, next: NextFunction) => {
+    async function checkDuplicateEmail() {
+        const { isDuplicate } = await AccountService.isEmailDuplicate(req.body.email);
 
-        if (result) {
+        if (isDuplicate) {
             throw new Error(ERROR_DUPLICATE_EMAIL);
         }
+    }
 
-        if (error) {
-            throw new Error(error);
-        }
-
-        const account = AccountService.signupFor(
+    async function createAccount() {
+        const { account, error } = await AccountService.signupFor(
             req.body.email,
             req.body.password,
             req.body.address,
             req.assetPool?.address,
         );
 
-        await account.save();
+        if (error) throw new Error(ERROR_CREATE_ACCOUNT);
+
+        return account;
+    }
+
+    async function addMember(account: any) {
+        const { error } = await MemberService.addMember(req.assetPool, account.address);
+
+        if (error) {
+            throw new Error(error);
+        }
+    }
+
+    async function addMembership(account: any) {
+        const { error } = await AccountService.addMembership(account.id, req.assetPool);
+
+        if (error) {
+            throw new Error(error);
+        }
+    }
+
+    try {
+        await checkDuplicateEmail();
+
+        const account = await createAccount();
 
         if (req.assetPool) {
-            const { error } = await MemberService.addMember(req.assetPool, account.address);
-
-            if (error) {
-                throw new Error(error);
-            } else {
-                const { error } = await AccountService.addMembershipForAddress(req.assetPool, account.address);
-
-                if (error) {
-                    throw new Error(error);
-                }
-            }
+            await addMember(account);
+            await addMembership(account);
         }
 
-        res.status(201).json({ address: account.address });
+        res.status(201).json({ id: account.id, address: account.address });
     } catch (error) {
-        return next(new HttpError(502, error.toString(), error));
+        return next(new HttpError(502, error.message, error));
     }
 };
 

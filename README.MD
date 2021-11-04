@@ -34,7 +34,8 @@ git submodule update;
 npm install;
 
 # 4. Extract docker volumes in ./cache
-unzip cache.zip;
+mkdir cache;
+unzip cache.zip -d ./cache;
 
 # 5. Start the containers
 docker compose up;
@@ -52,8 +53,8 @@ The thx_mainnet and thx_testnet containers will start with 2 prefilled wallets a
 ## 4. Testing
 
 ```
-# Run e2e tests on MemoryMongoDB and temporary Hardhat node
-docker compose -f docker-compose.ci.ytml run node npm test
+# Run e2e tests
+npm run test
 ```
 
 ## 5. Register clients

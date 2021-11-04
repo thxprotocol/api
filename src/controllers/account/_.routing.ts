@@ -1,17 +1,20 @@
 import express from 'express';
-import { validateAssetPoolHeader } from '../../util/validation';
 import { getAccount } from './get.action';
 import { patchAccount } from './patch.action';
-import { deleteAccount } from './delete.action';
+// import { deleteAccount } from './delete.action';
+import { postAccount } from './post.action';
 import checkScopes from 'express-jwt-authz';
-import { getAccountNonce } from './getNonce.action';
 import { parseHeader } from '../../util/network';
+import { validate } from '../../util/validation';
+import { validations } from './_.validation';
+import { postLogin } from './postLogin.action';
 
 const router = express.Router();
 
-router.get('/', checkScopes(['user', 'widget', 'dashboard']), getAccount);
-router.get('/nonce', checkScopes(['user', 'dashboard']), validateAssetPoolHeader, parseHeader, getAccountNonce);
+router.get('/:id', validate(validations.getAccount), checkScopes(['admin']), getAccount);
+router.post('/', validate(validations.postAccount), checkScopes(['admin']), parseHeader, postAccount);
+router.post('/login', validate(validations.postLogin), checkScopes(['admin']), postLogin);
 router.patch('/', checkScopes(['user', 'dashboard']), patchAccount);
-router.delete('/', checkScopes(['user', 'dashboard']), deleteAccount);
+// router.delete('/', checkScopes(['user', 'dashboard']), deleteAccount);
 
 export default router;

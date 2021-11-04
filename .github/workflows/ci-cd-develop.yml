@@ -27,11 +27,8 @@ jobs:
             - name: Install dependencies
               run: npm install
 
-            - name: Run build:keys
-              run: npm run build:keys
-
             - name: Run test
-              run: docker compose -f docker-compose.ci.yml run node npm run test:ci
+              run: npm run test
 
     deploy:
         name: CD Pipeline
@@ -64,9 +61,6 @@ jobs:
             # Prevent files from having a timestamp before 1980
             - name: Patch dependencies
               run: find ./node_modules -mtime +10950 -exec touch {} \;
-
-            - name: Run build:keys
-              run: npm run build:keys
 
             - name: Run build
               run: npm run build

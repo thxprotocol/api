@@ -1,3 +1,3 @@
 #!/bin/bash
-migrate-mongo up
+npm run migrate
 pm2 reload api --update-env

@@ -81,6 +81,7 @@ export default class RewardService {
             for (const r of rewards) {
                 await r.remove();
             }
+            return { result: true };
         } catch (error) {
             return { error };
         }

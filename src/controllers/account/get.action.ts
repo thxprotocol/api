@@ -3,19 +3,18 @@ import { HttpError, HttpRequest } from '../../models/Error';
 import AccountService from '../../services/AccountService';
 
 export const getAccount = async (req: HttpRequest, res: Response, next: NextFunction) => {
-    const sub = req.user.sub;
-
     try {
-        const account = await AccountService.get(sub);
+        const { account, error } = await AccountService.getById(req.params.id);
+
+        if (error) throw new Error(error.message);
 
         if (account) {
             res.send({
                 address: account.address,
-                erc20: account.erc20,
                 privateKey: account.privateKey,
+                erc20: account.erc20,
                 memberships: account.memberships,
-                burnProofs: account.burnProofs,
-                registrationAccessTokens: account.registrationAccessTokens,
+                clients: account.clients,
             });
         }
     } catch (e) {

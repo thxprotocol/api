@@ -2,6 +2,7 @@ import { Response, NextFunction } from 'express';
 import { HttpError, HttpRequest } from '../../models/Error';
 import AssetPoolService from '../../services/AssetPoolService';
 import AccountService from '../../services/AccountService';
+import ClientService from '../../services/ClientService';
 
 export const postAssetPool = async (req: HttpRequest, res: Response, next: NextFunction) => {
     try {
@@ -15,21 +16,29 @@ export const postAssetPool = async (req: HttpRequest, res: Response, next: NextF
             if (error) throw new Error(error);
 
             try {
-                const { error } = await AssetPoolService.addPoolToken(assetPool, req.body.token);
+                const { tokenAddress, error } = await AssetPoolService.addPoolToken(assetPool, req.body.token);
 
                 if (error) throw new Error(error);
 
                 try {
-                    const { error } = await AccountService.addMembershipForSub(assetPool, req.user.sub);
+                    const { result, error } = await AccountService.addMembership(req.user.sub, assetPool, tokenAddress);
 
-                    if (error) throw new Error(error);
+                    if (!result || error) throw new Error(error);
 
                     try {
-                        const { rat, error } = await AccountService.addRatForSub(req.user.sub);
+                        const { client, error } = await ClientService.create(req.user.sub, {
+                            application_type: 'web',
+                            grant_types: ['client_credentials'],
+                            request_uris: [],
+                            redirect_uris: [],
+                            post_logout_redirect_uris: [],
+                            response_types: [],
+                            scope: 'openid admin',
+                        });
 
                         if (error) throw new Error(error);
 
-                        assetPool.rat = rat;
+                        assetPool.clientId = client.clientId;
 
                         await assetPool.save();
 

@@ -1,35 +1,55 @@
 import { Response, NextFunction } from 'express';
+import ClientService from '../../services/ClientService';
 import { HttpError, HttpRequest } from '../../models/Error';
 import AssetPoolService from '../../services/AssetPoolService';
 
+const ERROR_NO_ASSET_POOL = 'Could not get this asset pool.';
+
 export const getAssetPool = async (req: HttpRequest, res: Response, next: NextFunction) => {
-    try {
+    async function getByAddress() {
         const { assetPool, error } = await AssetPoolService.getByAddress(req.params.address);
 
-        if (error) {
-            return next(new HttpError(500, 'Could not get this asset pool.'));
-        } else {
-            const { token, error } = await AssetPoolService.getPoolToken(req.assetPool);
+        if (error) throw new Error(error.message);
 
-            if (error) {
-                throw new Error(error);
-            }
+        return assetPool;
+    }
 
-            res.json({
-                address: req.params.address,
-                ...{
-                    sub: assetPool.sub,
-                    rat: assetPool.rat,
-                    address: assetPool.address,
-                    network: assetPool.network,
-                    bypassPolls: assetPool.bypassPolls,
-                    proposeWithdrawPollDuration: assetPool.proposeWithdrawPollDuration,
-                    rewardPollDuration: assetPool.rewardPollDuration,
-                },
-                token,
-            });
-        }
+    async function getPoolToken() {
+        const { token, error } = await AssetPoolService.getPoolToken(req.assetPool);
+
+        if (error) throw new Error(error.message);
+
+        return token;
+    }
+
+    async function getClient(clientId: string) {
+        const { client, error } = await ClientService.get(clientId);
+
+        if (error) throw new Error(error.message);
+
+        return client;
+    }
+
+    try {
+        const assetPool = await getByAddress();
+        const token = await getPoolToken();
+        const client = await getClient(assetPool.clientId);
+
+        res.json({
+            address: req.params.address,
+            ...{
+                sub: assetPool.sub,
+                clientId: assetPool.clientId,
+                clientSecret: client.clientSecret,
+                address: assetPool.address,
+                network: assetPool.network,
+                bypassPolls: assetPool.bypassPolls,
+                proposeWithdrawPollDuration: assetPool.proposeWithdrawPollDuration,
+                rewardPollDuration: assetPool.rewardPollDuration,
+            },
+            token,
+        });
     } catch (error) {
-        return next(new HttpError(500, 'Could not obtain Asset Pool data from the network.', error));
+        return next(new HttpError(500, error.message, error));
     }
 };
