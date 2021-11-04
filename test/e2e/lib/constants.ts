@@ -30,3 +30,4 @@ export const postLogoutRedirectUris = ['http://localhost:8080'];
 export const clientId = 'xxxxxxx';
 export const clientSecret = 'xxxxxxxxxxxxxx';
 export const registrationAccessToken = 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx';
+export const adminAddress = '0x08302CF8648A961c607e3e7Bd7B7Ec3230c2A6c5';

@@ -53,7 +53,6 @@ describe('Signup', () => {
                     password: userPassword2,
                 })
                 .end(async (err, res) => {
-                    console.log(res.body);
                     expect(res.status).toBe(201);
                     expect(res.body.id).toBe(account.id);
                     expect(res.body.address).toBe(account.address);
@@ -100,7 +99,6 @@ describe('Signup', () => {
             user.get('/v1/account/' + sub)
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
                 .end(async (err, res) => {
-                    console.log(res.body);
                     expect(res.status).toBe(200);
                     expect(res.body.address).toBe(account.address);
                     expect(res.body.memberships[0].address).toBe(poolAddress);

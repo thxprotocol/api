@@ -3,7 +3,13 @@ import server from '../../src/server';
 import db from '../../src/util/database';
 import { callFunction, getAdmin, NetworkProvider, sendTransaction } from '../../src/util/network';
 import { timeTravel, signMethod, deployExampleToken, createWallet } from './lib/network';
-import { rewardWithdrawAmount, rewardWithdrawDuration, mintAmount, userWalletPrivateKey } from './lib/constants';
+import {
+    rewardWithdrawAmount,
+    rewardWithdrawDuration,
+    mintAmount,
+    userWalletPrivateKey,
+    adminAddress,
+} from './lib/constants';
 import { fromWei, toWei } from 'web3-utils';
 import { isAddress } from 'web3-utils';
 import { Contract } from 'web3-eth-contract';
@@ -80,10 +86,7 @@ describe('Happy Flow', () => {
                     expect(
                         Number(
                             fromWei(
-                                await callFunction(
-                                    testToken.methods.balanceOf(getAdmin(NetworkProvider.Test).address),
-                                    NetworkProvider.Test,
-                                ),
+                                await callFunction(testToken.methods.balanceOf(adminAddress), NetworkProvider.Test),
                             ),
                         ),
                     ).toBe(Number(fromWei(mintAmount)) - rewardWithdrawAmount);
