@@ -14,7 +14,7 @@ import {
 } from './lib/constants';
 import { Contract } from 'web3-eth-contract';
 import { getToken } from './lib/jwt';
-import { mockStart } from './lib/mock';
+import { mockClear, mockStart } from './lib/mock';
 
 const user = request.agent(server);
 
@@ -22,8 +22,6 @@ describe('Widgets', () => {
     let poolAddress: string, dashboardAccessToken: string, testToken: Contract, clientId: string;
 
     beforeAll(async () => {
-        await db.truncate();
-
         testToken = await deployExampleToken();
         dashboardAccessToken = getToken('openid dashboard');
 
@@ -56,6 +54,11 @@ describe('Widgets', () => {
             withdrawAmount: rewardWithdrawAmount,
             withdrawDuration: rewardWithdrawDuration,
         });
+    });
+
+    afterAll(async () => {
+        await db.truncate();
+        mockClear();
     });
 
     describe('POST /widgets/', () => {

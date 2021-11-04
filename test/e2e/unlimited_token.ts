@@ -24,19 +24,11 @@ describe('Unlimited Supply Token', () => {
         userWallet = createWallet(userWalletPrivateKey);
 
         mockStart();
-        mockPath('post', '/account', 200, function () {
-            if (poolAddress) account.memberships[0] = poolAddress;
-            return account;
-        });
-        mockPath('get', `/account/${sub}`, 200, function () {
-            if (poolAddress) account.memberships[0] = poolAddress;
-            return account;
-        });
     });
 
     afterAll(async () => {
-        mockClear();
         await db.truncate();
+        mockClear();
     });
 
     describe('POST /asset_pools', () => {

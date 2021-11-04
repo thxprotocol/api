@@ -26,8 +26,8 @@ describe('Propose Withdrawal', () => {
     });
 
     afterAll(async () => {
-        mockClear();
         await db.truncate();
+        mockClear();
     });
 
     describe('POST /asset_pools', () => {

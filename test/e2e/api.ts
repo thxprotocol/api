@@ -34,8 +34,8 @@ describe('Happy Flow', () => {
     });
 
     afterAll(async () => {
-        mockClear();
         await db.truncate();
+        mockClear();
     });
 
     describe('POST /asset_pools', () => {

@@ -11,11 +11,7 @@ import { mockClear, mockStart } from './lib/mock';
 const user = request.agent(server);
 
 describe('Signup', () => {
-    let poolAddress: any,
-        dashboardAccessToken: string,
-        testToken: Contract,
-        adminAccessToken: string,
-        userAddress: string;
+    let poolAddress: any, dashboardAccessToken: string, testToken: Contract, adminAccessToken: string;
 
     beforeAll(async () => {
         testToken = await deployExampleToken();
@@ -26,8 +22,8 @@ describe('Signup', () => {
     });
 
     afterAll(async () => {
-        mockClear();
         await db.truncate();
+        mockClear();
     });
 
     describe('POST /asset_pools', () => {
@@ -68,7 +64,7 @@ describe('Signup', () => {
 
     describe('GET /members/:address', () => {
         it('HTTP 200 if OK', (done) => {
-            user.get('/v1/members/' + userAddress)
+            user.get('/v1/members/' + account.address)
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
                 .end(async (err, res) => {
                     expect(res.status).toBe(200);

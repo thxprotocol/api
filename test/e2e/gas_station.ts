@@ -83,8 +83,8 @@ describe('Gas Station', () => {
     });
 
     afterAll(async () => {
-        mockClear();
         await db.truncate();
+        mockClear();
     });
 
     describe('GET /reward', () => {
