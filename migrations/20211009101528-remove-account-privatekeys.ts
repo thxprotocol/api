@@ -1,9 +1,9 @@
 module.exports = {
-    async up(db, client) {
-        await db.collection('accounts').update({}, { $unset: { privateKeys: '' } });
+    async up(db: any) {
+        await db.collection('accounts').updateMany({}, { $unset: { privateKeys: '' } });
     },
 
-    async down(db, client) {
-        await db.collection('accounts').update({}, { $set: { privateKeys: '' } });
+    async down(db: any) {
+        await db.collection('accounts').updateMany({}, { $set: { privateKeys: '' } });
     },
 };
