@@ -1,3 +1,3 @@
 #!/bin/bash
+npm run build
 npm run migrate
-pm2 reload api --update-env
