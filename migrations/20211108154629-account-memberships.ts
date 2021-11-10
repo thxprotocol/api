@@ -2,7 +2,7 @@ module.exports = {
     async up(db: any) {
         const accountsColl = db.collection('accounts');
         const assetpoolsColl = db.collection('assetpools');
-        const membershipsColl = db.collection('memberships');
+        const membershipsColl = db.collection('membership');
 
         await (await accountsColl.find()).forEach(async (account: any) => {
             const sub = account._id.toString();
@@ -23,7 +23,7 @@ module.exports = {
 
     async down(db: any) {
         const accountsColl = db.collection('accounts');
-        const membershipsColl = db.collection('memberships');
+        const membershipsColl = db.collection('membership');
 
         await membershipsColl.find().forEach(async (membership: any) => {
             const account = await accountsColl.find({ _id: membership.sub });
