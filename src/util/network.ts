@@ -57,10 +57,14 @@ export async function getGasPrice(npid: NetworkProvider) {
         return await web3.eth.getGasPrice();
     }
 
-    const r: any = await axios.get('https://gasstation-mainnet.matic.network');
+    const r: any = await axios.get('https://gpoly.blockscan.com/gasapi.ashx?apikey=key&method=gasoracle');
 
-    if (r.data.fast <= MAXIMUM_GAS_PRICE) {
-        return web3.utils.toWei(r.data.fast.toString(), 'gwei').toString();
+    if (r.status !== 200) {
+        throw new Error('Gas station does not give gas price information.');
+    }
+
+    if (r.data.result.FastGasPrice <= MAXIMUM_GAS_PRICE) {
+        return web3.utils.toWei(r.data.result.FastGasPrice, 'gwei').toString();
     } else {
         throw new Error('Gas price exceeds configured cap');
     }
