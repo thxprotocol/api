@@ -5,13 +5,13 @@ import AccountService from '../../services/AccountService';
 
 export const patchAccount = async (req: HttpRequest, res: Response, next: NextFunction) => {
     try {
-        const { error } = await AccountService.update(req.user.sub, {
+        const { result, error } = await AccountService.update(req.user.sub, {
             address: req.body.address,
             memberships: req.body.memberships,
             burnProofs: req.body.burnProofs,
         });
 
-        if (error) {
+        if (!result || error) {
             if (error.code === 11000) {
                 next(new HttpError(422, 'A user for this e-mail already exists.', error));
                 return;
