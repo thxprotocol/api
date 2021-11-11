@@ -86,6 +86,10 @@ export default class AccountService {
             account.burnProofs = burnProofs || account.burnProofs;
 
             await account.save();
+
+            return {
+                result: true,
+            };
         } catch (error) {
             return { error };
         }
