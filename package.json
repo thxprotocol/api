@@ -25,10 +25,10 @@
         "test": "npx jest --coverage --runInBand --forceExit",
         "posttest": "docker compose -f docker-compose.ci.yml down",
         "deploy": "npx ts-node scripts/deployFacets.ts; npx ts-node scripts/deployAssetPoolFactory.ts; npx ts-node scripts/deployAssetPoolRegistry.ts",
-        "migrate": "ts-node node_modules/migrate-mongo/bin/migrate-mongo up -f migrate-mongo-config.ts",
-        "migrate:create": "sh -c 'ts-node node_modules/migrate-mongo/bin/migrate-mongo create $0 -f migrate-mongo-config.ts' ",
-        "migrate:status": "ts-node node_modules/migrate-mongo/bin/migrate-mongo status -f migrate-mongo-config.ts",
-        "migrate:down": "ts-node node_modules/migrate-mongo/bin/migrate-mongo down -f migrate-mongo-config.ts && npm run migrate:status"
+        "migrate": "npx ts-node node_modules/migrate-mongo/bin/migrate-mongo up -f migrate-mongo-config.ts",
+        "migrate:create": "sh -c 'npx ts-node node_modules/migrate-mongo/bin/migrate-mongo create $0 -f migrate-mongo-config.ts' ",
+        "migrate:status": "npx ts-node node_modules/migrate-mongo/bin/migrate-mongo status -f migrate-mongo-config.ts",
+        "migrate:down": "npx ts-node node_modules/migrate-mongo/bin/migrate-mongo down -f migrate-mongo-config.ts && npm run migrate:status"
     },
     "dependencies": {
         "@sendgrid/mail": "^7.4.2",
@@ -115,7 +115,8 @@
         "normalize-url": "4.5.1",
         "ws": "7.4.6",
         "tar": "4.4.18",
-        "yargs": "17.2.1"
+        "yargs": "17.2.1",
+        "apollo-server": "2.25.3"
     },
     "prettier": {
         "tabWidth": 4,

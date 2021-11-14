@@ -1,39 +1,66 @@
+import { ObjectId, Db } from 'mongodb';
+
 module.exports = {
-    async up(db: any) {
+    async up(db: Db) {
         const accountsColl = db.collection('accounts');
         const assetpoolsColl = db.collection('assetpools');
-        const membershipsColl = db.collection('memberships');
+        const membershipsColl = db.collection('membership');
 
-        await (await accountsColl.find()).forEach(async (account: any) => {
+        await accountsColl.find().forEach(async (account: any) => {
             const sub = account._id.toString();
+
             if (account.memberships) {
                 for (const poolAddress of account.memberships) {
                     const pool = await assetpoolsColl.findOne({ address: poolAddress });
-                    await membershipsColl.insertOne({
+                    const data = {
                         network: pool.network,
                         sub,
                         poolAddress,
-                    });
+                    };
+                    const membership = await membershipsColl.findOne(data);
+
+                    if (!membership) {
+                        await membershipsColl.insertOne(data);
+                    }
                 }
+            }
+        });
+
+        await assetpoolsColl.find().forEach(async (pool: any) => {
+            const data = {
+                network: pool.network,
+                sub: pool.sub,
+                poolAddress: pool.address,
+            };
+            const membership = await membershipsColl.findOne(data);
+
+            if (!membership) {
+                await membershipsColl.insertOne(data);
             }
         });
 
         await accountsColl.updateMany({}, { $unset: { memberships: '' } });
     },
 
-    async down(db: any) {
+    async down(db: Db) {
         const accountsColl = db.collection('accounts');
-        const membershipsColl = db.collection('memberships');
+        const membershipsColl = db.collection('membership');
+        const memberships = await membershipsColl.find().toArray();
 
-        await membershipsColl.find().forEach(async (membership: any) => {
-            const account = await accountsColl.find({ _id: membership.sub });
+        for (const membership of memberships) {
+            const account = await accountsColl.findOne({ _id: new ObjectId(membership.sub) });
 
-            account.memberships = account.memberships
-                ? account.memberships.push(membership.poolAddress)
-                : [membership.poolAddress];
+            if (account.memberships && !account.memberships.includes(membership.poolAddress)) {
+                account.memberships.push(membership.poolAddress);
+            } else {
+                account.memberships = [membership.poolAddress];
+            }
 
-            await accountsColl.updateOne({}, { $set: { memberships: account.memberships } });
-        });
+            await accountsColl.updateOne(
+                { _id: new ObjectId(membership.sub) },
+                { $set: { memberships: account.memberships } },
+            );
+        }
 
         await membershipsColl.deleteMany({});
     },

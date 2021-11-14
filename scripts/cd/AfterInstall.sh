@@ -1,3 +1,3 @@
 #!/bin/bash
-npm run build
+cd /home/ubuntu/api
 npm run migrate

@@ -66,6 +66,8 @@ describe('Happy Flow', () => {
     });
 
     describe('GET /asset_pools/:address', () => {
+        let balanceOfAdmin = '';
+
         it('Deposit assets in pool', async () => {
             const assetPool = solutionContract(NetworkProvider.Test, poolAddress);
             const amount = toWei(rewardWithdrawAmount.toString());
@@ -76,6 +78,8 @@ describe('Happy Flow', () => {
                 NetworkProvider.Test,
             );
             await sendTransaction(assetPool.options.address, assetPool.methods.deposit(amount), NetworkProvider.Test);
+
+            balanceOfAdmin = await callFunction(testToken.methods.balanceOf(adminAddress), NetworkProvider.Test);
         });
 
         it('HTTP 200 and expose pool information', async (done) => {
@@ -83,13 +87,7 @@ describe('Happy Flow', () => {
                 .set({ AssetPool: poolAddress, Authorization: dashboardAccessToken })
                 .end(async (err, res) => {
                     expect(res.status).toBe(200);
-                    expect(
-                        Number(
-                            fromWei(
-                                await callFunction(testToken.methods.balanceOf(adminAddress), NetworkProvider.Test),
-                            ),
-                        ),
-                    ).toBe(Number(fromWei(mintAmount)) - rewardWithdrawAmount);
+                    expect(Number(fromWei(balanceOfAdmin))).toBe(Number(fromWei(mintAmount)) - rewardWithdrawAmount);
                     expect(res.body.address).toEqual(poolAddress);
                     expect(res.body.token.address).toEqual(testToken.options.address);
                     expect(res.body.token.name).toEqual(await testToken.methods.name().call());
