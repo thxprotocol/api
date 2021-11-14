@@ -72,7 +72,7 @@ import WithdrawalService from '../../services/WithdrawalService';
  */
 export const getWithdrawals = async (req: HttpRequest, res: Response, next: NextFunction) => {
     try {
-        const { result, error } = await WithdrawalService.getWithdrawals(
+        const { result, error } = await WithdrawalService.getAll(
             req.solution.options.address,
             Number(req.query.page),
             Number(req.query.limit),

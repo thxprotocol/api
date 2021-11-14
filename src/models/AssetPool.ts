@@ -6,7 +6,7 @@ export type IAssetPool = mongoose.Document & {
     solution: Contract;
     network: number;
     sub: string;
-    rat: string;
+    clientId: string;
     blockNumber: number;
     transactionHash: string;
     bypassPolls: boolean;
@@ -25,7 +25,7 @@ const assetPoolSchema = new mongoose.Schema(
         address: String,
         network: Number,
         sub: String,
-        rat: String,
+        clientId: String,
         blockNumber: Number,
         transactionHash: String,
         bypassPolls: Boolean,

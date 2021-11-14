@@ -10,7 +10,7 @@ module.exports = {
     securityDefinitions: {
         bearerAuth: {
             description:
-                'JWT Authorization header using the Bearer scheme. \r\n\r\n Enter \'Bearer\' [space] and then your token in the text input below.\r\n\r\nExample: "Bearer 12345abcdef"',
+                'JWT Authorization header using the Bearer scheme. \r\n\r\n Enter \'Bearer\' [space] and then your token in the text input below.\r\n\r\nExample: "Bearer xxxxx.yyyyy.zzzzz"',
             type: 'apiKey',
             name: 'Authorization',
             scheme: 'bearer',

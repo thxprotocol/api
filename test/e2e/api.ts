@@ -2,67 +2,46 @@ import request from 'supertest';
 import server from '../../src/server';
 import db from '../../src/util/database';
 import { callFunction, getAdmin, NetworkProvider, sendTransaction } from '../../src/util/network';
-import { timeTravel, signMethod, deployExampleToken, signupWithAddress } from './lib/network';
+import { timeTravel, signMethod, deployExampleToken, createWallet } from './lib/network';
 import {
     rewardWithdrawAmount,
     rewardWithdrawDuration,
     mintAmount,
-    userEmail,
-    userPassword,
-    userEmail2,
-    userPassword2,
+    userWalletPrivateKey,
+    adminAddress,
 } from './lib/constants';
 import { fromWei, toWei } from 'web3-utils';
 import { isAddress } from 'web3-utils';
 import { Contract } from 'web3-eth-contract';
-import { getClientCredentialsToken } from './lib/clientCredentials';
-import { getAuthCodeToken } from './lib/authorizationCode';
 import { solutionContract } from '../../src/util/network';
 import { Account } from 'web3-core';
+import { getToken } from './lib/jwt';
+import { mockClear, mockStart } from './lib/mock';
 
-const admin = request(server);
 const user = request.agent(server);
-const user2 = request.agent(server);
 
 describe('Happy Flow', () => {
     let adminAccessToken: string,
         userAccessToken: string,
         dashboardAccessToken: string,
         poolAddress: string,
-        userAddress: string,
         withdrawPollID: string,
         userWallet: Account,
         testToken: Contract;
 
     beforeAll(async () => {
-        await db.truncate();
-
         testToken = await deployExampleToken();
+        userWallet = createWallet(userWalletPrivateKey);
+        adminAccessToken = getToken('openid admin');
+        dashboardAccessToken = getToken('openid dashboard');
+        userAccessToken = getToken('openid user');
 
-        const { accessToken } = await getClientCredentialsToken(admin);
-        adminAccessToken = accessToken;
-
-        userWallet = await signupWithAddress(userEmail, userPassword);
-        userAccessToken = await getAuthCodeToken(user, 'openid user', userEmail, userPassword);
-        userAddress = userWallet.address;
-
-        await signupWithAddress(userEmail2, userPassword2);
-        dashboardAccessToken = await getAuthCodeToken(user2, 'openid dashboard', userEmail2, userPassword2);
+        mockStart();
     });
 
-    describe('GET /account', () => {
-        it('HTTP 200', async (done) => {
-            user.get('/v1/account')
-                .set({
-                    Authorization: userAccessToken,
-                })
-                .end((err, res) => {
-                    expect(res.status).toBe(200);
-                    expect(res.body.privateKey).toBeUndefined();
-
-                    done();
-                });
-        });
+    afterAll(async () => {
+        await db.truncate();
+        mockClear();
     });
 
     describe('POST /asset_pools', () => {
@@ -70,7 +49,7 @@ describe('Happy Flow', () => {
             user.post('/v1/asset_pools')
                 .set('Authorization', dashboardAccessToken)
                 .send({
-                    network: 0,
+                    network: NetworkProvider.Test,
                     token: {
                         address: testToken.options.address,
                     },
@@ -78,6 +57,7 @@ describe('Happy Flow', () => {
                 .end(async (err, res) => {
                     expect(res.status).toBe(201);
                     expect(isAddress(res.body.address)).toBe(true);
+
                     poolAddress = res.body.address;
 
                     done();
@@ -86,6 +66,8 @@ describe('Happy Flow', () => {
     });
 
     describe('GET /asset_pools/:address', () => {
+        let balanceOfAdmin = '';
+
         it('Deposit assets in pool', async () => {
             const assetPool = solutionContract(NetworkProvider.Test, poolAddress);
             const amount = toWei(rewardWithdrawAmount.toString());
@@ -96,6 +78,8 @@ describe('Happy Flow', () => {
                 NetworkProvider.Test,
             );
             await sendTransaction(assetPool.options.address, assetPool.methods.deposit(amount), NetworkProvider.Test);
+
+            balanceOfAdmin = await callFunction(testToken.methods.balanceOf(adminAddress), NetworkProvider.Test);
         });
 
         it('HTTP 200 and expose pool information', async (done) => {
@@ -103,16 +87,7 @@ describe('Happy Flow', () => {
                 .set({ AssetPool: poolAddress, Authorization: dashboardAccessToken })
                 .end(async (err, res) => {
                     expect(res.status).toBe(200);
-                    expect(
-                        Number(
-                            fromWei(
-                                await callFunction(
-                                    testToken.methods.balanceOf(getAdmin(NetworkProvider.Test).address),
-                                    NetworkProvider.Test,
-                                ),
-                            ),
-                        ),
-                    ).toBe(Number(fromWei(mintAmount)) - rewardWithdrawAmount);
+                    expect(Number(fromWei(balanceOfAdmin))).toBe(Number(fromWei(mintAmount)) - rewardWithdrawAmount);
                     expect(res.body.address).toEqual(poolAddress);
                     expect(res.body.token.address).toEqual(testToken.options.address);
                     expect(res.body.token.name).toEqual(await testToken.methods.name().call());
@@ -191,7 +166,7 @@ describe('Happy Flow', () => {
 
         it('HTTP 302 when member is added', (done) => {
             user.post('/v1/members/')
-                .send({ address: userAddress })
+                .send({ address: userWallet.address })
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
                 .end(async (err, res) => {
                     expect(res.status).toBe(302);
@@ -202,7 +177,7 @@ describe('Happy Flow', () => {
         });
 
         it('HTTP 302 when member is added', (done) => {
-            user.patch(`/v1/members/${userAddress}`)
+            user.patch(`/v1/members/${userWallet.address}`)
                 .send({ isManager: true })
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
                 .end(async (err, res) => {

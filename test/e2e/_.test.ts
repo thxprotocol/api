@@ -1,17 +1,23 @@
 import mongoose from 'mongoose';
 import db from '../../src/util/database';
-import MongoAdapter from '../../src/oidc/adapter';
 import { deployFacets } from '../../scripts/lib/facets';
 import { deployFactory } from '../../scripts/lib/factory';
 import { deployRegistry } from '../../scripts/lib/registry';
-import { NetworkProvider } from '../../src/util/network';
+import { getProvider, NetworkProvider } from '../../src/util/network';
+import { ASSET_POOL_FACTORY_ADDRESS, POOL_REGISTRY_ADDRESS } from '../../src/util/secrets';
 
 beforeAll(async () => {
-    console.log('Facets: ', await deployFacets(NetworkProvider.Test));
-    console.log('Factory: ', await deployFactory(NetworkProvider.Test));
-    console.log('Registry: ', await deployRegistry(NetworkProvider.Test));
+    const web3 = getProvider(NetworkProvider.Test);
+    const factoryExists = (await web3.eth.getCode(ASSET_POOL_FACTORY_ADDRESS)) !== '0x';
+    const registryExists = (await web3.eth.getCode(POOL_REGISTRY_ADDRESS)) !== '0x';
 
-    await MongoAdapter.connect();
+    if (!factoryExists || !registryExists) {
+        console.log('Facets: ', await deployFacets(NetworkProvider.Test));
+        console.log('Factory: ', await deployFactory(NetworkProvider.Test));
+        console.log('Registry: ', await deployRegistry(NetworkProvider.Test));
+    } else {
+        console.log('Factory and registry available!');
+    }
 });
 
 afterAll(async () => {
@@ -19,7 +25,6 @@ afterAll(async () => {
     await mongoose.disconnect();
 });
 
-// require('./encrypt.ts');
 require('./api.ts');
 require('./widgets.ts');
 require('./signup.ts');
@@ -29,4 +34,3 @@ require('./unlimited_token.ts');
 require('./voting.ts');
 require('./roles.ts');
 require('./gas_station.ts');
-require('./oidc_admin.ts');

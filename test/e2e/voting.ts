@@ -2,25 +2,22 @@ import request from 'supertest';
 import server from '../../src/server';
 import db from '../../src/util/database';
 import { getAdmin, NetworkProvider } from '../../src/util/network';
-import { timeTravel, signMethod, signupWithAddress } from './lib/network';
+import { timeTravel, signMethod, createWallet } from './lib/network';
 import {
     rewardPollDuration,
     rewardWithdrawAmount,
     rewardWithdrawDuration,
-    userEmail,
-    userPassword,
     proposeWithdrawPollDuration,
-    userEmail2,
-    userPassword2,
+    userWalletPrivateKey,
+    tokenName,
+    tokenSymbol,
 } from './lib/constants';
 import { isAddress } from 'web3-utils';
 import { Account } from 'web3-core';
-import { getClientCredentialsToken } from './lib/clientCredentials';
-import { getAuthCodeToken } from './lib/authorizationCode';
+import { getToken } from './lib/jwt';
+import { mockClear, mockStart } from './lib/mock';
 
-const admin = request(server);
 const user = request.agent(server);
-const user2 = request.agent(server);
 
 describe('Voting', () => {
     let adminAccessToken: string,
@@ -29,35 +26,20 @@ describe('Voting', () => {
         poolAddress: string,
         rewardID: string,
         withdrawalID: number,
-        userAddress: string,
         userWallet: Account;
 
     beforeAll(async () => {
-        await db.truncate();
+        adminAccessToken = getToken('openid admin');
+        dashboardAccessToken = getToken('openid dashboard');
+        userAccessToken = getToken('openid user');
+        userWallet = createWallet(userWalletPrivateKey);
 
-        const { accessToken } = await getClientCredentialsToken(admin);
-        adminAccessToken = accessToken;
-
-        userWallet = await signupWithAddress(userEmail, userPassword);
-        userAccessToken = await getAuthCodeToken(user, 'openid user', userEmail, userPassword);
-        userAddress = userWallet.address;
-
-        await signupWithAddress(userEmail2, userPassword2);
-        dashboardAccessToken = await getAuthCodeToken(user2, 'openid dashboard', userEmail2, userPassword2);
+        mockStart();
     });
 
-    describe('GET /account', () => {
-        it('HTTP 200', async (done) => {
-            user.get('/v1/account')
-                .set({
-                    Authorization: userAccessToken,
-                })
-                .end((err, res) => {
-                    expect(res.status).toBe(200);
-                    expect(res.body.privateKey).toBeUndefined();
-                    done();
-                });
-        });
+    afterAll(async () => {
+        await db.truncate();
+        mockClear();
     });
 
     describe('POST /asset_pools', () => {
@@ -67,8 +49,8 @@ describe('Voting', () => {
                 .send({
                     network: 0,
                     token: {
-                        name: 'SparkBlue Token',
-                        symbol: 'SPARK',
+                        name: tokenName,
+                        symbol: tokenSymbol,
                         totalSupply: 0,
                     },
                 })
@@ -82,9 +64,24 @@ describe('Voting', () => {
                 });
         });
 
+        it('HTTP 200 (success)', async (done) => {
+            user.get('/v1/asset_pools/' + poolAddress)
+                .set({
+                    Authorization: dashboardAccessToken,
+                    AssetPool: poolAddress,
+                })
+                .send()
+                .end(async (err, res) => {
+                    expect(res.status).toBe(200);
+                    expect(isAddress(res.body.token.address)).toBe(true);
+
+                    done();
+                });
+        });
+
         it('HTTP 302 when member is added', (done) => {
             user.post('/v1/members/')
-                .send({ address: userAddress })
+                .send({ address: userWallet.address })
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
                 .end(async (err, res) => {
                     expect(res.status).toBe(302);
@@ -93,7 +90,7 @@ describe('Voting', () => {
         });
 
         it('HTTP 302 when member is promoted', (done) => {
-            user.patch(`/v1/members/${userAddress}`)
+            user.patch(`/v1/members/${userWallet.address}`)
                 .send({ isManager: true })
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
                 .end(async (err, res) => {

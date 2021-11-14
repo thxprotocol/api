@@ -1,35 +1,29 @@
 import request from 'supertest';
 import server from '../../src/server';
 import db from '../../src/util/database';
-import { deployExampleToken, mockUpgradeAddress, signupWithAddress } from './lib/network';
-import { userEmail, userEmail2, userPassword, userPassword2 } from './lib/constants';
+import { deployExampleToken } from './lib/network';
+import { account, sub, userEmail2, userPassword2 } from './lib/constants';
 import { Contract } from 'web3-eth-contract';
-import { getClientCredentialsToken } from './lib/clientCredentials';
-import { getAuthCodeToken } from './lib/authorizationCode';
 import { NetworkProvider } from '../../src/util/network';
+import { getToken } from './lib/jwt';
+import { mockClear, mockStart } from './lib/mock';
 
-const admin = request(server);
 const user = request.agent(server);
-const user2 = request.agent(server);
 
 describe('Signup', () => {
-    let poolAddress: any,
-        dashboardAccessToken: string,
-        testToken: Contract,
-        walletAccessToken: string,
-        adminAccessToken: string,
-        userAddress: string;
+    let poolAddress: any, dashboardAccessToken: string, testToken: Contract, adminAccessToken: string;
 
     beforeAll(async () => {
-        await db.truncate();
-
-        const { accessToken } = await getClientCredentialsToken(admin);
-        adminAccessToken = accessToken;
-
-        await signupWithAddress(userEmail2, userPassword2);
-        dashboardAccessToken = await getAuthCodeToken(user2, 'openid dashboard', userEmail2, userPassword2);
-
         testToken = await deployExampleToken();
+        adminAccessToken = getToken('openid admin');
+        dashboardAccessToken = getToken('openid dashboard');
+
+        mockStart();
+    });
+
+    afterAll(async () => {
+        await db.truncate();
+        mockClear();
     });
 
     describe('POST /asset_pools', () => {
@@ -50,18 +44,18 @@ describe('Signup', () => {
         });
     });
 
-    describe('POST /signup (+ membership)', () => {
-        it('HTTP 200', async (done) => {
-            user.post('/v1/signup')
+    describe('POST /account (+ membership)', () => {
+        it('HTTP 201', async (done) => {
+            user.post('/v1/account')
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
                 .send({
-                    email: userEmail,
-                    password: userPassword,
-                    confirmPassword: userPassword,
+                    email: userEmail2,
+                    password: userPassword2,
                 })
                 .end(async (err, res) => {
                     expect(res.status).toBe(201);
-                    userAddress = res.body.address;
+                    expect(res.body.id).toBe(account.id);
+                    expect(res.body.address).toBe(account.address);
                     done();
                 });
         });
@@ -69,10 +63,11 @@ describe('Signup', () => {
 
     describe('GET /members/:address', () => {
         it('HTTP 200 if OK', (done) => {
-            user.get('/v1/members/' + userAddress)
+            user.get('/v1/members/' + account.address)
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
                 .end(async (err, res) => {
                     expect(res.status).toBe(200);
+                    expect(res.body.isMember).toBe(true);
                     done();
                 });
         });
@@ -99,22 +94,17 @@ describe('Signup', () => {
     //     });
     // });
 
-    describe('GET /account', () => {
-        beforeAll(async () => {
-            // remove encoded private key to simulate upgrade_address
-            await mockUpgradeAddress(userEmail);
-
-            walletAccessToken = await getAuthCodeToken(user, 'openid user', userEmail, userPassword);
-        });
-
+    describe('GET /account/:id', () => {
         it('HTTP 200 if OK', (done) => {
-            user.get('/v1/account')
-                .set({ AssetPool: poolAddress, Authorization: walletAccessToken })
+            user.get('/v1/account/' + sub)
+                .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
                 .end(async (err, res) => {
                     expect(res.status).toBe(200);
-                    expect(res.body.memberships[0]).toBe(poolAddress);
-                    expect(res.body.erc20[0].network).toBe(NetworkProvider.Test);
+                    expect(res.body.address).toBe(account.address);
+                    expect(res.body.memberships[0].address).toBe(poolAddress);
+                    expect(res.body.memberships[0].network).toBe(NetworkProvider.Test);
                     expect(res.body.erc20[0].address).toBe(testToken.options.address);
+                    expect(res.body.erc20[0].network).toBe(NetworkProvider.Test);
 
                     done();
                 });

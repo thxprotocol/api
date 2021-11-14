@@ -2,32 +2,25 @@ import { Response, NextFunction } from 'express';
 import { HttpError, HttpRequest } from '../../models/Error';
 import WidgetService from '../../services/WidgetService';
 import ClientService from '../../services/ClientService';
-import RatService from '../../services/RatService';
 
 export const getWidget = async (req: HttpRequest, res: Response, next: NextFunction) => {
     try {
-        const { rat } = await RatService.get(req.params.rat);
-
-        if (!rat) {
-            return next(new HttpError(500, 'Could not find this registration_access_token.'));
-        }
-
-        const { client } = await ClientService.get(rat.payload['clientId']);
+        const { client } = await ClientService.get(req.params.clientId);
 
         if (!client) {
-            return next(new HttpError(500, 'Could not find a client for this registration_access_token.'));
+            return next(new HttpError(500, 'Could not find a client for this clientId.'));
         }
 
-        const { widget } = await WidgetService.get(req.params.rat);
+        const { widget } = await WidgetService.get(req.params.clientId);
 
         if (!widget) {
-            return next(new HttpError(500, 'Could not find a widget for this registration_access_token.'));
+            return next(new HttpError(500, 'Could not find a widget for this clientId.'));
         }
 
         res.json({
-            requestUris: client.payload['request_uris'],
-            clientId: client.payload['client_id'],
-            clientSecret: client.payload['client_secret'],
+            requestUris: client.requestUris,
+            clientId: client.clientId,
+            clientSecret: client.clientSecret,
             registrationAccessToken: req.params.rat,
             metadata: {
                 rewardId: widget.metadata.rewardId,

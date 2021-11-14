@@ -110,7 +110,7 @@ export default class WithdrawalService {
         }
     }
 
-    static async getWithdrawals(
+    static async getAll(
         poolAddress: string,
         page: number,
         limit: number,
@@ -140,6 +140,7 @@ export default class WithdrawalService {
             for (const w of withdrawals) {
                 await w.remove();
             }
+            return { result: true };
         } catch (error) {
             return { error };
         }

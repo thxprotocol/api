@@ -2,27 +2,22 @@ import request from 'supertest';
 import server from '../../src/server';
 import { NetworkProvider, sendTransaction } from '../../src/util/network';
 import db from '../../src/util/database';
-import { timeTravel, signMethod, deployExampleToken, signupWithAddress } from './lib/network';
+import { timeTravel, signMethod, createWallet, deployExampleToken } from './lib/network';
 import {
     rewardPollDuration,
     proposeWithdrawPollDuration,
     rewardWithdrawAmount,
     rewardWithdrawDuration,
-    userEmail,
-    userPassword,
-    userEmail2,
-    userPassword2,
+    userWalletPrivateKey,
 } from './lib/constants';
 import { solutionContract } from '../../src/util/network';
 import { toWei } from 'web3-utils';
 import { Contract } from 'web3-eth-contract';
-import { getAuthCodeToken } from './lib/authorizationCode';
-import { getClientCredentialsToken } from './lib/clientCredentials';
 import { Account } from 'web3-core';
+import { getToken } from './lib/jwt';
+import { mockClear, mockStart } from './lib/mock';
 
-const admin = request(server);
 const user = request.agent(server);
-const user2 = request.agent(server);
 
 describe('Gas Station', () => {
     let poolAddress: string,
@@ -33,18 +28,13 @@ describe('Gas Station', () => {
         userWallet: Account;
 
     beforeAll(async () => {
-        await db.truncate();
-
-        const { accessToken } = await getClientCredentialsToken(admin);
-        adminAccessToken = accessToken;
-
-        userWallet = await signupWithAddress(userEmail, userPassword);
-        userAccessToken = await getAuthCodeToken(user, 'openid user', userEmail, userPassword);
-
-        await signupWithAddress(userEmail2, userPassword2);
-        dashboardAccessToken = await getAuthCodeToken(user2, 'openid dashboard', userEmail2, userPassword2);
-
         testToken = await deployExampleToken();
+        adminAccessToken = getToken('openid admin');
+        dashboardAccessToken = getToken('openid dashboard');
+        userAccessToken = getToken('openid user');
+        userWallet = createWallet(userWalletPrivateKey);
+
+        mockStart();
 
         // Create an asset pool
         const res = await user
@@ -90,6 +80,11 @@ describe('Gas Station', () => {
             .post('/v1/members')
             .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
             .send({ address: userWallet.address });
+    });
+
+    afterAll(async () => {
+        await db.truncate();
+        mockClear();
     });
 
     describe('GET /reward', () => {

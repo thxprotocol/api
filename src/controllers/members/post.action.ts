@@ -16,7 +16,7 @@ export async function postMember(req: HttpRequest, res: Response, next: NextFunc
             if (error) {
                 throw new Error(error);
             } else {
-                const { error } = await AccountService.addMembershipForAddress(req.assetPool, account.address);
+                const { error } = await AccountService.addMembership(account.id, req.assetPool);
 
                 if (error) {
                     throw new Error(error);

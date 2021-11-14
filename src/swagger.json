@@ -1,12 +1,12 @@
 {
   "info": {
     "title": "THX API Specification",
-    "version": "1.0.0-beta.28"
+    "version": "1.0.0-beta.29"
   },
   "basePath": "/v1",
   "securityDefinitions": {
     "bearerAuth": {
-      "description": "JWT Authorization header using the Bearer scheme. \r\n\r\n Enter 'Bearer' [space] and then your token in the text input below.\r\n\r\nExample: \"Bearer 12345abcdef\"",
+      "description": "JWT Authorization header using the Bearer scheme. \r\n\r\n Enter 'Bearer' [space] and then your token in the text input below.\r\n\r\nExample: \"Bearer xxxxx.yyyyy.zzzzz\"",
       "type": "apiKey",
       "name": "Authorization",
       "scheme": "bearer",
@@ -36,55 +36,6 @@
   },
   "swagger": "2.0",
   "paths": {
-    "/authentication_token": {
-      "post": {
-        "tags": [
-          "Authentication"
-        ],
-        "description": "Returns a one-time login link for the wallet. Valid for 10 minutes.",
-        "produces": [
-          "application/json"
-        ],
-        "parameters": [
-          {
-            "name": "email",
-            "in": "body",
-            "required": true,
-            "type": "string"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": "application/json",
-            "schema": {
-              "type": "object",
-              "properties": {
-                "url": {
-                  "type": "string",
-                  "description": "One-time login link for wallet."
-                }
-              }
-            }
-          },
-          "401": {
-            "$ref": "#/components/responses/401"
-          },
-          "403": {
-            "description": "Forbidden. Password reset token is invalid or has expired."
-          },
-          "404": {
-            "description": "Not Found. Account does not exist."
-          },
-          "500": {
-            "$ref": "#/components/responses/500"
-          },
-          "502": {
-            "$ref": "#/components/responses/502"
-          }
-        }
-      }
-    },
     "/signup": {
       "post": {
         "tags": [
@@ -146,56 +97,19 @@
         }
       }
     },
-    "/clients/:rat": {
-      "delete": {
+    "/authentication_token": {
+      "post": {
         "tags": [
-          "Clients"
+          "Authentication"
         ],
-        "description": "Revokes a client",
+        "description": "Returns a one-time login link for the wallet. Valid for 10 minutes.",
         "produces": [
           "application/json"
         ],
         "parameters": [
           {
-            "name": "rat",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK"
-          },
-          "400": {
-            "$ref": "#/components/responses/400"
-          },
-          "401": {
-            "$ref": "#/components/responses/401"
-          },
-          "403": {
-            "description": "Forbidden. Your account does not have access to revoke this client."
-          },
-          "500": {
-            "$ref": "#/components/responses/500"
-          },
-          "502": {
-            "$ref": "#/components/responses/502"
-          }
-        }
-      },
-      "get": {
-        "tags": [
-          "Clients"
-        ],
-        "description": "Provides information about a client.",
-        "produces": [
-          "application/json"
-        ],
-        "parameters": [
-          {
-            "name": "rat",
-            "in": "path",
+            "name": "email",
+            "in": "body",
             "required": true,
             "type": "string"
           }
@@ -207,85 +121,21 @@
             "schema": {
               "type": "object",
               "properties": {
-                "requestUris": {
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  }
-                },
-                "clientId": {
-                  "type": "string"
-                },
-                "clientSecret": {
-                  "type": "string"
-                },
-                "registrationAccessToken": {
-                  "type": "string"
+                "url": {
+                  "type": "string",
+                  "description": "One-time login link for wallet."
                 }
               }
             }
-          },
-          "400": {
-            "$ref": "#/components/responses/400"
           },
           "401": {
             "$ref": "#/components/responses/401"
           },
           "403": {
-            "description": "Forbidden. Your account does not have access to this client information."
+            "description": "Forbidden. Password reset token is invalid or has expired."
           },
           "404": {
-            "description": "Not Found. Client information not found."
-          },
-          "500": {
-            "$ref": "#/components/responses/500"
-          },
-          "502": {
-            "$ref": "#/components/responses/502"
-          }
-        }
-      }
-    },
-    "/clients": {
-      "post": {
-        "tags": [
-          "Clients"
-        ],
-        "produces": [
-          "application/json"
-        ],
-        "parameters": [
-          {
-            "name": "request_uris",
-            "in": "body",
-            "required": true,
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "201": {
-            "description": "Created",
-            "content": "application/json",
-            "schema": {
-              "type": "object",
-              "properties": {
-                "rat": {
-                  "type": "string"
-                }
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/400"
-          },
-          "401": {
-            "$ref": "#/components/responses/401"
-          },
-          "403": {
-            "description": "Forbidden. Your account does not have access to this pool."
+            "description": "Not Found. Account does not exist."
           },
           "500": {
             "$ref": "#/components/responses/500"

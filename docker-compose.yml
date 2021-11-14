@@ -1,13 +1,13 @@
 version: '3.5'
 
 services:
-    mongo:
-        container_name: thx_mongo
+    api_mongo:
+        container_name: thx_api_mongo
         image: mongo
         env_file: .env
         restart: always
         networks:
-            - api_network
+            - thx_network
         ports:
             - 27017:27017
         environment:
@@ -16,15 +16,13 @@ services:
             MONGO_INITDB_DATABASE: admin
         volumes:
             - ./cache/mongo-data:/data/db
-            - ./fixture/db:/docker-entrypoint-initdb.d/fixture/db
             - ./scripts/mongo-init.sh:/docker-entrypoint-initdb.d/mongo-init.sh
 
-    node:
-        container_name: thx_node
+    api_node:
+        container_name: thx_api_node
         image: node:12
-        env_file: .env
         networks:
-            - api_network
+            - thx_network
         volumes:
             - ./:/usr/src/service
         working_dir: /usr/src/service
@@ -32,21 +30,21 @@ services:
         environment:
             - NODE_ENV=local
         depends_on:
-            - mongo
-            - mainnet
-            - testnet
+            - api_mongo
+            - api_mainnet
+            - api_testnet
         links:
-            - mongo
-            - mainnet
-            - testnet
+            - api_mongo
+            - api_mainnet
+            - api_testnet
         ports:
             - 3000:3000
 
-    testnet:
-        container_name: thx_testnet
+    api_testnet:
+        container_name: thx_api_testnet
         image: trufflesuite/ganache-cli:latest
         networks:
-            - api_network
+            - thx_network
         ports:
             - '8547:8545'
         volumes:
@@ -60,11 +58,11 @@ services:
                 '-l 25000000',
             ]
 
-    mainnet:
-        container_name: thx_mainnet
+    api_mainnet:
+        container_name: thx_api_mainnet
         image: trufflesuite/ganache-cli:latest
         networks:
-            - api_network
+            - thx_network
         ports:
             - '8546:8545'
         volumes:
@@ -83,5 +81,5 @@ volumes:
     mainnet-data:
 
 networks:
-    api_network:
-        name: api_network
+    thx_network:
+        name: thx_network

@@ -27,11 +27,8 @@ jobs:
             - name: Install dependencies
               run: npm install
 
-            - name: Run build:keys
-              run: npm run build:keys
-
             - name: Run test
-              run: docker compose -f docker-compose.ci.yml run node npm run test:ci
+              run: npm run test
 
     deploy:
         name: CD Pipeline
@@ -51,22 +48,13 @@ jobs:
               with:
                   submodules: true
 
-            # Initialize Node.js
             - name: Install Node.js ${{ matrix.node-version }}
               uses: actions/setup-node@v1
               with:
                   node-version: ${{ matrix.node-version }}
 
-            # Install project dependencies and build
             - name: Install dependencies
               run: npm install
-
-            # Prevent files from having a timestamp before 1980
-            - name: Patch dependencies
-              run: find ./node_modules -mtime +10950 -exec touch {} \;
-
-            - name: Run build:keys
-              run: npm run build:keys
 
             - name: Run build
               run: npm run build
@@ -76,7 +64,9 @@ jobs:
               run: |
                   curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
                   unzip awscliv2.zip
+                  rm awscliv2.zip
                   sudo ./aws/install --update
+
             # Configure AWS credentials
             - name: Configure AWS credentials
               uses: aws-actions/configure-aws-credentials@v1

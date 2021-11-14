@@ -1,60 +1,33 @@
 import request from 'supertest';
 import server from '../../src/server';
 import db from '../../src/util/database';
-import {
-    rewardWithdrawAmount,
-    userEmail,
-    userPassword,
-    tokenName,
-    tokenSymbol,
-    userEmail2,
-    userPassword2,
-} from './lib/constants';
+import { rewardWithdrawAmount, tokenName, tokenSymbol, userWalletPrivateKey } from './lib/constants';
 import { isAddress } from 'web3-utils';
 import { Account } from 'web3-core';
-import { signupWithAddress } from './lib/network';
-import { getAuthCodeToken } from './lib/authorizationCode';
-import { getClientCredentialsToken } from './lib/clientCredentials';
+import { getToken } from './lib/jwt';
+import { createWallet } from './lib/network';
+import { mockClear, mockStart } from './lib/mock';
 
-const admin = request(server);
 const user = request.agent(server);
-const user2 = request.agent(server);
 
-describe('ProposeWithdrawal', () => {
+describe('Propose Withdrawal', () => {
     let adminAccessToken: string,
-        userAccessToken: string,
         dashboardAccessToken: string,
         poolAddress: string,
         withdrawalID: number,
-        userAddress: string,
         userWallet: Account;
 
     beforeAll(async () => {
-        await db.truncate();
+        adminAccessToken = getToken('openid admin');
+        dashboardAccessToken = getToken('openid dashboard');
+        userWallet = createWallet(userWalletPrivateKey);
 
-        const { accessToken } = await getClientCredentialsToken(admin);
-        adminAccessToken = accessToken;
-
-        userWallet = await signupWithAddress(userEmail, userPassword);
-        userAccessToken = await getAuthCodeToken(user, 'openid user', userEmail, userPassword);
-        userAddress = userWallet.address;
-
-        await signupWithAddress(userEmail2, userPassword2);
-        dashboardAccessToken = await getAuthCodeToken(user2, 'openid dashboard', userEmail2, userPassword2);
+        mockStart();
     });
 
-    describe('GET /account', () => {
-        it('HTTP 200', async (done) => {
-            user.get('/v1/account')
-                .set({
-                    Authorization: userAccessToken,
-                })
-                .end((err, res) => {
-                    expect(res.status).toBe(200);
-                    expect(res.body.privateKey).toBeUndefined();
-                    done();
-                });
-        });
+    afterAll(async () => {
+        await db.truncate();
+        mockClear();
     });
 
     describe('POST /asset_pools', () => {
@@ -79,9 +52,21 @@ describe('ProposeWithdrawal', () => {
                 });
         });
 
+        it('HTTP 200 (success)', async (done) => {
+            user.get('/v1/asset_pools/' + poolAddress)
+                .set({ AssetPool: poolAddress, Authorization: dashboardAccessToken })
+                .send()
+                .end(async (err, res) => {
+                    expect(res.status).toBe(200);
+                    expect(isAddress(res.body.token.address)).toBe(true);
+
+                    done();
+                });
+        });
+
         it('HTTP 302 when member is added', (done) => {
             user.post('/v1/members/')
-                .send({ address: userAddress })
+                .send({ address: userWallet.address })
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
                 .end(async (err, res) => {
                     expect(res.status).toBe(302);
@@ -94,7 +79,7 @@ describe('ProposeWithdrawal', () => {
         it('HTTP 200 after proposing a withdrawal', async (done) => {
             user.post('/v1/withdrawals')
                 .send({
-                    member: userAddress,
+                    member: userWallet.address,
                     amount: rewardWithdrawAmount,
                 })
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
