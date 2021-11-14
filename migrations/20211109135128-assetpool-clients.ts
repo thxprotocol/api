@@ -28,7 +28,7 @@ module.exports = {
             }
         }
 
-        await clientColl.deleteMany({ payload: { $set: true } });
+        await clientColl.deleteMany({ payload: { $exists: true } });
     },
 
     async down() {
