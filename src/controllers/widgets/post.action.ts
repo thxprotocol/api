@@ -30,3 +30,64 @@ export const postWidget = async (req: HttpRequest, res: Response, next: NextFunc
         return next(new HttpError(502, 'Could not register your widget.'));
     }
 };
+
+/**
+ * @swagger
+ * /widgets:
+ *   post:
+ *     tags:
+ *       - Widgets
+ *     description: Post the widget
+ *     produces:
+ *       - application/json
+ *     parameters:
+ *       - name: requestUris
+ *         in: body
+ *         required: true
+ *         type: array
+ *         items:
+ *           type: string 
+ *       - name: postLogoutRedirectUris
+ *         in: body
+ *         required: true
+ *         type: array
+ *         items:
+ *           type: string
+ *       - name: metadata
+ *         in: body
+ *         required: true
+ *         type: object
+ *         properties:
+ *           rewardId:
+ *             type: number
+ *           poolAddress:
+ *             type: string    
+ *     responses:
+ *       '201':
+ *         description: OK
+ *         content: application/json
+ *         schema:
+ *               type: object
+ *               properties:
+ *                 rat:
+ *                   type: string
+ *                 sub:
+ *                   type: string
+ *                 metadata:
+ *                   type: object
+ *                   properties:
+ *                     rewardId:
+ *                       type: number
+ *                     poolAddress:
+ *                       type: string         
+ *       '400':
+ *         $ref: '#/components/responses/400'
+ *       '401':
+ *         $ref: '#/components/responses/401'
+ *       '403':
+ *         description: Forbidden. Your account does not have access to create widget.
+ *       '500':
+ *         $ref: '#/components/responses/500'
+ *       '502':
+ *         $ref: '#/components/responses/502'
+ */

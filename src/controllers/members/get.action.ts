@@ -31,21 +31,22 @@ export const getMembers = async (req: HttpRequest, res: Response, next: NextFunc
  *     responses:
  *        '200':
  *          description: OK
+ *          content: application/json
  *          schema:
- *            type: array
- *            items:
- *              type: string
- *              description: The address of the member
+ *                type: array
+ *                items:
+ *                  type: string
+ *                  description: The address of the member
  *        '400':
- *           description: Bad Request. Indicates incorrect body parameters.
+ *           $ref: '#/components/responses/400'
  *        '401':
- *           description: Unauthorized. Authenticate your request please.
+ *           $ref: '#/components/responses/401'
  *        '403':
  *           description: Forbidden. Your account does not have access to this pool.
  *        '404':
  *           description: Not Found. Address is not a member.
  *        '500':
- *           description: Internal Server Error.
+ *           $ref: '#/components/responses/500'
  *        '502':
- *           description: Bad Gateway. Received an invalid response from the network or database.
+ *           $ref: '#/components/responses/502'
  */

@@ -67,50 +67,51 @@ export async function getRewardData(solution: Contract, rewardID: number, npid: 
  *         type: integer
  *     responses:
  *       '200':
+ *         content: application/json
  *         schema:
- *           type: object
- *           properties:
- *             id:
- *               type: number
- *               description: Unique identifier of the reward.
- *             withdrawAmount:
- *               type: number
- *               description: Current size of the reward
- *             withdrawDuration:
- *               type: number
- *               description: Current duration of the withdraw poll
- *             state:
- *               type: number
- *               description: Current state of the reward [Disabled, Enabled]
- *             poll:
  *               type: object
  *               properties:
- *                  id:
- *                      type: number
- *                      description: Unique identifier of the reward poll
- *                  withdrawAmount:
- *                      type: number
- *                      description: Proposed size of the reward
- *                  withdrawDuration:
- *                      type: number
- *                      description: Proposed duration of the withdraw poll
+ *                 id:
+ *                   type: number
+ *                   description: Unique identifier of the reward.
+ *                 withdrawAmount:
+ *                   type: number
+ *                   description: Current size of the reward
+ *                 withdrawDuration:
+ *                   type: number
+ *                   description: Current duration of the withdraw poll
+ *                 state:
+ *                   type: number
+ *                   description: Current state of the reward [Disabled, Enabled]
+ *                 poll:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: number
+ *                       description: Unique identifier of the reward poll
+ *                     withdrawAmount:
+ *                       type: number
+ *                       description: Proposed size of the reward
+ *                     withdrawDuration:
+ *                       type: number
+ *                       description: Proposed duration of the withdraw poll
  *       '302':
  *          description: Redirect to `GET /rewards/:id`
  *          headers:
  *             Location:
  *                type: string
  *       '400':
- *         description: Bad Request. Indicates incorrect body parameters.
+ *         $ref: '#/components/responses/400'
  *       '401':
- *         description: Unauthorized. Authenticate your request please.
+ *         $ref: '#/components/responses/401'
  *       '403':
  *         description: Forbidden. Your account does not have access to this pool.
  *       '404':
  *         description: Not Found. Reward not found for this asset pool.
  *       '500':
- *         description: Internal Server Error.
+ *         $ref: '#/components/responses/500'
  *       '502':
- *         description: Bad Gateway. Received an invalid response from the network or database.
+ *         $ref: '#/components/responses/502'
  */
 export const getReward = async (req: HttpRequest, res: Response, next: NextFunction) => {
     try {
