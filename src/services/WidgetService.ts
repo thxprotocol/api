@@ -35,4 +35,14 @@ export default class WidgetService {
             return { error };
         }
     }
+
+    static async remove(clientId: string) {
+        try {
+            const widget = await Widget.findOne({ clientId });
+            await widget.remove();
+            return { result: true };
+        } catch (error) {
+            return { error };
+        }
+    }
 }

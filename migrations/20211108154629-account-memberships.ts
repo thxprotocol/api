@@ -12,15 +12,17 @@ module.exports = {
             if (account.memberships) {
                 for (const poolAddress of account.memberships) {
                     const pool = await assetpoolsColl.findOne({ address: poolAddress });
-                    const data = {
-                        network: pool.network,
-                        sub,
-                        poolAddress,
-                    };
-                    const membership = await membershipsColl.findOne(data);
+                    if (pool) {
+                        const data = {
+                            network: pool.network,
+                            sub,
+                            poolAddress,
+                        };
+                        const membership = await membershipsColl.findOne(data);
 
-                    if (!membership) {
-                        await membershipsColl.insertOne(data);
+                        if (!membership) {
+                            await membershipsColl.insertOne(data);
+                        }
                     }
                 }
             }
