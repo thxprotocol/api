@@ -66,7 +66,7 @@ describe('Happy Flow', () => {
     });
 
     describe('GET /asset_pools/:address', () => {
-        let balanceOfAdmin;
+        let balanceOfAdmin = '';
 
         it('Deposit assets in pool', async () => {
             const assetPool = solutionContract(NetworkProvider.Test, poolAddress);
