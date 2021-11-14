@@ -60,6 +60,8 @@ export default class ClientService {
             await client.remove();
             return { result: true };
         } catch (error) {
+            const client = await Client.findOne({ clientId });
+            await client.remove();
             return { error };
         }
     }
