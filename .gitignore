@@ -41,3 +41,4 @@ dist/**/*
 src/jwks.json
 scripts/local
 cache
+.backup
