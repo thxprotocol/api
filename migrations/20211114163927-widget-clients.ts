@@ -5,6 +5,7 @@ module.exports = {
         const clientColl = db.collection('client');
         const ratColl = db.collection('registration_access_token');
         const widgetColl = db.collection('widget');
+        const assetpoolsColl = db.collection('assetpools');
 
         for (const widget of await widgetColl.find().toArray()) {
             const rat = await ratColl.findOne({ _id: widget.rat });
@@ -21,10 +22,19 @@ module.exports = {
                     await clientColl.insertOne(clientData);
                 }
 
-                await widgetColl.updateOne(
-                    { metadata: widget.metadata, sub: widget.sub },
-                    { $unset: { rat: '' }, $set: { clientId: rat.payload.clientId } },
-                );
+                const pool = await assetpoolsColl.findOne({ clientId: rat.payload.clientId });
+
+                if (pool) {
+                    await widgetColl.updateOne(
+                        { rat: rat.payload.jti },
+                        {
+                            $set: { 'clientId': rat.payload.clientId, 'metadata.poolAddress': pool.address },
+                            $unset: { rat: '' },
+                        },
+                    );
+                } else {
+                    await widgetColl.deleteOne({ rat: rat.payload.jti });
+                }
             }
         }
 
