@@ -23,22 +23,23 @@ import { NextFunction, Request, Response } from 'express';
  *     responses:
  *       '200':
  *         description: OK
+ *         content: application/json
  *         schema:
- *            type: object
- *            properties:
- *               base64:
- *                  type: string
- *                  description: Base64 string representing function call.
+ *               type: object
+ *               properties:
+ *                 base64:
+ *                   type: string
+ *                   description: Base64 string representing function call.
  *       '400':
- *         description: Bad Request. Indicates incorrect body parameters.
+ *         $ref: '#/components/responses/400'
  *       '401':
- *         description: Unauthorized. Authenticate your request please.
+ *         $ref: '#/components/responses/401'
  *       '403':
  *         description: Forbidden. Your account does not have access to this pool.
  *       '500':
- *         description: Internal Server Error.
+ *         $ref: '#/components/responses/500'
  *       '502':
- *         description: Bad Gateway. Received an invalid response from the network or database.
+ *         $ref: '#/components/responses/502'
  */
 export const deleteVote = async (req: Request, res: Response, next: NextFunction) => {
     try {

@@ -71,3 +71,64 @@ export const getMetrics = async (req: Request, res: Response, next: NextFunction
         next(new HttpError(500, 'Could not get all API metrics.', error));
     }
 };
+
+
+/**
+ * @swagger
+ * /metrics:
+ *   get:
+ *     tags:
+ *       - Metrics
+ *     description: Gets metrics.
+ *     produces:
+ *       - application/json
+ *     responses:
+ *       '200':
+ *         description: OK
+ *         content: application/json
+ *         schema:
+ *               type: object
+ *               properties:
+ *                 count_wallets:
+ *                   type: number
+ *                 count_applications:
+ *                   type: number 
+ *                 count_asset_pools:
+ *                   type: object
+ *                   properties:
+ *                     mainnet:
+ *                       type: number
+ *                     testnet:
+ *                       type: number
+ *                 count_transactions:
+ *                   type: object
+ *                   properties:
+ *                     mainnet:
+ *                       type: number
+ *                     testnet:
+ *                       type: number
+ *                 avg_rewards_per_pool:
+ *                   type: object
+ *                   properties:
+ *                     mainnet:
+ *                       type: number
+ *                     testnet:
+ *                       type: number
+ *                 avg_withdrawals_per_pool:
+ *                   type: object
+ *                   properties:
+ *                     mainnet:
+ *                       type: number
+ *                     testnet:
+ *                       type: number
+ *       '401':
+ *         $ref: '#/components/responses/401'
+ *       '403':
+ *         description: Forbidden. Your account does not have access to get this information.
+ *       '404':
+ *         description: Not Found. Details not found.
+ *       '500':
+ *         $ref: '#/components/responses/500'
+ *       '502':
+ *         $ref: '#/components/responses/502'
+ */

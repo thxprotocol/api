@@ -88,18 +88,19 @@ export const postAccount = async (req: HttpRequest, res: Response, next: NextFun
  *     responses:
  *       '201':
  *         description: Created
+ *         content: application/json 
  *         schema:
- *             type: object
- *             properties:
- *                address:
+ *               type: object
+ *               properties:
+ *                 address:
  *                   type: string
  *                   description: The address for the new account.
  *       '400':
- *         description: Bad Request. Indicated incorrect body parameters.
+ *         $ref: '#/components/responses/400'
  *       '422':
  *         description: Duplicate. An account for this email already exists.
  *       '500':
- *         description: Internal Server Error.
+ *         $ref: '#/components/responses/500'
  *       '502':
- *         description: Bad Gateway. Received an invalid response from the network or database.
+ *         $ref: '#/components/responses/502'
  */

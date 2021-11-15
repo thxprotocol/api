@@ -34,13 +34,15 @@ import { NextFunction, Request, Response } from 'express';
  *                  type: string
  *                  description: Base64 string representing function call
  *       '400':
- *         description: Bad Request. Indicates incorrect body parameters.
+ *         $ref: '#/components/responses/400'
  *       '401':
- *         description: Unauthorized. Authenticate your request please.
+ *         $ref: '#/components/responses/401'
  *       '403':
  *         description: Forbidden. Your account does not have access to this pool.
  *       '500':
- *         description: Internal Server Error.
+ *         $ref: '#/components/responses/500'
+ *       '502':
+ *         $ref: '#/components/responses/502'
  */
 export const postVote = async (req: Request, res: Response, next: NextFunction) => {
     try {
