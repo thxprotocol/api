@@ -22,13 +22,13 @@ module.exports = {
                     await clientColl.insertOne(clientData);
                 }
 
-                const pool = await assetpoolsColl.findOne({ clientId: rat.payload.clientId });
+                const pool = await assetpoolsColl.findOne({ address: widget.metadata?.poolAddress });
 
                 if (pool) {
                     await widgetColl.updateOne(
                         { rat: rat.payload.jti },
                         {
-                            $set: { 'clientId': rat.payload.clientId, 'metadata.poolAddress': pool.address },
+                            $set: { clientId: rat.payload.clientId },
                             $unset: { rat: '' },
                         },
                     );
@@ -37,8 +37,6 @@ module.exports = {
                 }
             }
         }
-
-        await clientColl.updateMany({}, { $unset: { registrationAccessTokens: '' } });
     },
 
     async down() {
