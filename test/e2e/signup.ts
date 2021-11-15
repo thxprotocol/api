@@ -1,7 +1,7 @@
 import request from 'supertest';
 import server from '../../src/server';
 import db from '../../src/util/database';
-import { deployExampleToken } from './lib/network';
+import { deployExampleToken, voter } from './lib/network';
 import { account, sub, userEmail2, userPassword2 } from './lib/constants';
 import { Contract } from 'web3-eth-contract';
 import { NetworkProvider } from '../../src/util/network';
@@ -11,12 +11,17 @@ import { mockClear, mockStart } from './lib/mock';
 const user = request.agent(server);
 
 describe('Signup', () => {
-    let poolAddress: any, dashboardAccessToken: string, testToken: Contract, adminAccessToken: string;
+    let poolAddress: any,
+        dashboardAccessToken: string,
+        testToken: Contract,
+        adminAccessToken: string,
+        walletAccessToken: string;
 
     beforeAll(async () => {
         testToken = await deployExampleToken();
         adminAccessToken = getToken('openid admin');
         dashboardAccessToken = getToken('openid dashboard');
+        walletAccessToken = getToken('openid user');
 
         mockStart();
     });
@@ -106,6 +111,35 @@ describe('Signup', () => {
                     expect(res.body.erc20[0].address).toBe(testToken.options.address);
                     expect(res.body.erc20[0].network).toBe(NetworkProvider.Test);
 
+                    done();
+                });
+        });
+    });
+
+    describe('GET /account/', () => {
+        it('HTTP 200 if OK', (done) => {
+            user.get('/v1/account/')
+                .set({ AssetPool: poolAddress, Authorization: walletAccessToken })
+                .end(async (err, res) => {
+                    expect(res.status).toBe(200);
+                    expect(res.body.address).toBe(account.address);
+                    expect(res.body.memberships[0].address).toBe(poolAddress);
+                    expect(res.body.memberships[0].network).toBe(NetworkProvider.Test);
+                    expect(res.body.erc20[0].address).toBe(testToken.options.address);
+                    expect(res.body.erc20[0].network).toBe(NetworkProvider.Test);
+
+                    done();
+                });
+        });
+    });
+
+    describe('PATCH /account/', () => {
+        it('HTTP 200 if OK', (done) => {
+            user.patch('/v1/account/')
+                .set({ AssetPool: poolAddress, Authorization: walletAccessToken })
+                .send({ address: voter.address })
+                .end(async (err, res) => {
+                    expect(res.status).toBe(303);
                     done();
                 });
         });

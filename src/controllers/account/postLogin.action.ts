@@ -33,7 +33,7 @@ export const postLogin = async (req: Request, res: Response, next: NextFunction)
  *     responses:
  *       '200':
  *         description: OK
- *         content: application/json 
+ *         content: application/json
  *         schema:
  *               type: object
  *               properties:

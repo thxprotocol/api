@@ -2,9 +2,9 @@ import { Response, NextFunction } from 'express';
 import { HttpError, HttpRequest } from '../../models/Error';
 import AccountService from '../../services/AccountService';
 
-export const getAccountById = async (req: HttpRequest, res: Response, next: NextFunction) => {
+export const getAccount = async (req: HttpRequest, res: Response, next: NextFunction) => {
     try {
-        const { account, error } = await AccountService.getById(req.params.id);
+        const { account, error } = await AccountService.getById(req.user.sub);
 
         if (error) throw new Error(error.message);
 
