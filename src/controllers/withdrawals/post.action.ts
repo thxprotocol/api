@@ -12,18 +12,18 @@ import WithdrawalService from '../../services/WithdrawalService';
  *     produces:
  *       - application/json
  *     parameters:
- *       - name: AssetPool
+ *       - name: assetPool
  *         in: header
  *         required: true
  *         type: string
- *       - name: id
- *         in: path
- *         required: true
- *         type: integer
- *       - name: agree
+ *       - name: member
  *         in: body
  *         required: true
- *         type: boolean
+ *         type: string
+ *       - name: amount
+ *         in: body
+ *         required: true
+ *         type: number
  *     responses:
  *       '201':
  *         description: OK

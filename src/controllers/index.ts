@@ -10,6 +10,7 @@ import gasStationRouter from './gas_station/_.routing';
 import membersRouter from './members/_.routing';
 import rewardsRouter from './rewards/_.routing';
 import withdrawalsRouter from './withdrawals/_.routing';
+import membershipsRouter from './memberships/_.routing';
 import { checkJwt } from '../util/jwt';
 
 const router = express.Router();
@@ -27,5 +28,7 @@ router.use('/asset_pools', assetPoolsRouter);
 router.use('/members', membersRouter);
 router.use('/rewards', rewardsRouter);
 router.use('/withdrawals', withdrawalsRouter);
+router.use('/memberships', membershipsRouter);
+
 
 export default router;
