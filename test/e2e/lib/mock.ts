@@ -37,7 +37,7 @@ export function mockStart() {
     });
 
     mockPath('get', `/account/${sub}`, 200, account);
-    mockPath('patch', `/account/${sub}`, 200, {});
+    mockPath('patch', `/account/${sub}`, 204, {});
     mockPath('post', '/account', 200, account);
     mockPath('get', `/account/email/${userEmail}`, 200, account);
     mockPath('get', `/account/email/${userEmail2}`, 404, {});
