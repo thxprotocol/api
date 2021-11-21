@@ -42,6 +42,7 @@ export default class MemberService {
                     return {
                         member: {
                             id: memberId,
+                            address,
                             isMember,
                             isManager,
                             token: {
