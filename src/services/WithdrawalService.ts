@@ -34,6 +34,8 @@ export default class WithdrawalService {
             const event = findEvent('WithdrawPollCreated', events);
             const withdrawal = await this.save(assetPool, event.args.id, event.args.member);
 
+            await withdrawal.save();
+
             return { withdrawal };
         } catch (error) {
             return { error };

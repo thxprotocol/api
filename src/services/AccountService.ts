@@ -142,7 +142,7 @@ export default class AccountService {
                 },
             });
 
-            if (!r.data) {
+            if (r.status !== 204) {
                 throw new Error('Could not update');
             }
 

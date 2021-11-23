@@ -7,8 +7,6 @@ export const patchAccount = async (req: HttpRequest, res: Response, next: NextFu
     try {
         const { result, error } = await AccountService.update(req.user.sub, {
             address: req.body.address,
-            memberships: req.body.memberships,
-            burnProofs: req.body.burnProofs,
         });
 
         if (!result || error) {
