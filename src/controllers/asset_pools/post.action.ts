@@ -16,12 +16,12 @@ export const postAssetPool = async (req: HttpRequest, res: Response, next: NextF
             if (error) throw new Error(error);
 
             try {
-                const { tokenAddress, error } = await AssetPoolService.addPoolToken(assetPool, req.body.token);
+                const { error } = await AssetPoolService.addPoolToken(assetPool, req.body.token);
 
                 if (error) throw new Error(error);
 
                 try {
-                    const { result, error } = await AccountService.addMembership(req.user.sub, assetPool, tokenAddress);
+                    const { result, error } = await AccountService.addMembership(req.user.sub, assetPool);
 
                     if (!result || error) throw new Error(error);
 
