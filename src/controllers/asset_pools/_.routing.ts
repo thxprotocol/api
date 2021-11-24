@@ -15,7 +15,7 @@ router.post('/', checkScopes(['dashboard']), validate(validations.postAssetPool)
 router.get('/', checkScopes(['dashboard']), parseHeader, getAssetPools);
 router.get(
     '/:address',
-    checkScopes(['admin', 'user', 'dashboard']),
+    checkScopes(['admin', 'dashboard']),
     validateAssetPoolHeader,
     validate(validations.getAssetPool),
     parseHeader,

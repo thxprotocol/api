@@ -41,7 +41,7 @@ export default class AssetPoolService {
 
             return { assetPool };
         } catch (error) {
-            return error;
+            return { error };
         }
     }
 
@@ -66,7 +66,7 @@ export default class AssetPoolService {
                 },
             };
         } catch (error) {
-            return error;
+            return { error };
         }
     }
 

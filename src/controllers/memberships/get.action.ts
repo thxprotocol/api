@@ -43,7 +43,7 @@ export const getMembership = async (req: HttpRequest, res: Response, next: NextF
  *                    poolAddress:
  *                      type: string
  *                    tokenAddress:
- *                      type: string           
+ *                      type: string
  *        '400':
  *           $ref: '#/components/responses/400'
  *        '401':

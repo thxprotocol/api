@@ -8,8 +8,8 @@ import { deleteMembership } from './delete.action';
 
 const router = express.Router();
 
-router.get('/', checkScopes(['user', 'dashboard']), getMemberships);
-router.get('/:id', checkScopes(['user', 'dashboard']), validate(validations.getMembership), getMembership);
-router.delete('/:id', checkScopes(['user', 'dashboard']), validate(validations.deleteMembership), deleteMembership);
+router.get('/', checkScopes(['user']), getMemberships);
+router.get('/:id', checkScopes(['user']), validate(validations.getMembership), getMembership);
+router.delete('/:id', checkScopes(['user']), validate(validations.deleteMembership), deleteMembership);
 
 export default router;

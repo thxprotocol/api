@@ -4,11 +4,11 @@ import MembershipService from '../../services/MembershipService';
 
 export const getMemberships = async (req: HttpRequest, res: Response, next: NextFunction) => {
     try {
-        const { membership, error } = await MembershipService.get(req.user.sub);
+        const { memberships, error } = await MembershipService.get(req.user.sub);
 
         if (error) throw new Error(error);
 
-        res.json(membership);
+        res.json(memberships);
     } catch (error) {
         return next(new HttpError(502, error.toString(), error));
     }
@@ -39,7 +39,7 @@ export const getMemberships = async (req: HttpRequest, res: Response, next: Next
  *                    poolAddress:
  *                      type: string
  *                    tokenAddress:
- *                      type: string           
+ *                      type: string
  *        '400':
  *           $ref: '#/components/responses/400'
  *        '401':
