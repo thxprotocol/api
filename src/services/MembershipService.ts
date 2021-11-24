@@ -8,21 +8,7 @@ export default class MembershipService {
     static async get(sub: string) {
         try {
             const memberships = await Membership.find({ sub });
-            const result = [];
-
-            for (const membership of memberships) {
-                const { assetPool } = await AssetPoolService.getByAddress(membership.poolAddress);
-                const { token } = await AssetPoolService.getPoolToken(assetPool);
-
-                result.push({
-                    id: membership._id,
-                    token,
-                    poolAddress: membership.poolAddress,
-                    network: membership.network,
-                });
-            }
-
-            return { memberships: result };
+            return { memberships: memberships.map((m) => m._id.toString()) };
         } catch (error) {
             return { error: ERROR_MEMBERSHIP_GET_FAILED };
         }
