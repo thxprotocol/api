@@ -1,6 +1,5 @@
 import { IAssetPool } from '../models/AssetPool';
 import { IAccountUpdates } from '../models/Account';
-import { callFunction } from '../util/network';
 import { authClient, getAuthAccessToken } from '../util/auth';
 import { Membership, MembershipDocument } from '../models/Membership';
 import { ERROR_IS_NOT_MEMBER } from './MemberService';
@@ -17,13 +16,7 @@ export default class AccountService {
                     network: r.network,
                 };
             });
-            const erc20 = result.map((r: MembershipDocument) => {
-                return {
-                    address: r.tokenAddress,
-                    network: r.network,
-                };
-            });
-            return { memberships, erc20 };
+            return { memberships };
         } catch (error) {
             return { error };
         }
@@ -215,15 +208,12 @@ export default class AccountService {
         }
     }
 
-    static async addMembership(sub: string, assetPool: IAssetPool, tokenAddress?: string) {
+    static async addMembership(sub: string, assetPool: IAssetPool) {
         try {
             const membership = await Membership.findOne({
                 sub,
                 network: assetPool.network,
                 poolAddress: assetPool.address,
-                tokenAddress: tokenAddress
-                    ? tokenAddress
-                    : await callFunction(assetPool.solution.methods.getToken(), assetPool.network),
             });
 
             if (!membership) {
@@ -231,7 +221,6 @@ export default class AccountService {
                     sub,
                     network: assetPool.network,
                     poolAddress: assetPool.address,
-                    tokenAddress,
                 });
                 await membership.save();
             }
@@ -244,12 +233,10 @@ export default class AccountService {
 
     static async removeMembership(sub: string, assetPool: IAssetPool) {
         try {
-            const tokenAddress = await callFunction(assetPool.solution.methods.getToken(), assetPool.network);
             const membership = await Membership.findOne({
                 sub,
                 network: assetPool.network,
                 poolAddress: assetPool.address,
-                tokenAddress,
             });
 
             await membership.remove();
