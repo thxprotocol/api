@@ -12,9 +12,6 @@ export const getAccount = async (req: HttpRequest, res: Response, next: NextFunc
             res.send({
                 address: account.address,
                 privateKey: account.privateKey,
-                erc20: account.erc20,
-                memberships: account.memberships,
-                clients: account.clients,
             });
         }
     } catch (e) {

@@ -7,21 +7,6 @@ import { ERROR_IS_NOT_MEMBER } from './MemberService';
 const ERROR_NO_ACCOUNT = 'Could not find an account for this address';
 
 export default class AccountService {
-    private static async _get(sub: any) {
-        try {
-            const result = await Membership.find({ sub });
-            const memberships = result.map((r: MembershipDocument) => {
-                return {
-                    address: r.poolAddress,
-                    network: r.network,
-                };
-            });
-            return { memberships };
-        } catch (error) {
-            return { error };
-        }
-    }
-
     static async getById(sub: string) {
         try {
             const r = await authClient({
@@ -36,9 +21,7 @@ export default class AccountService {
                 throw new Error(ERROR_NO_ACCOUNT);
             }
 
-            const account = { ...r.data, ...(await this._get(r.data.id)) };
-
-            return { account };
+            return { account: r.data };
         } catch (error) {
             return { error };
         }
@@ -58,9 +41,7 @@ export default class AccountService {
                 throw new Error(ERROR_NO_ACCOUNT);
             }
 
-            const account = { ...r.data, ...(await this._get(r.data.id)) };
-
-            return { account };
+            return { account: r.data };
         } catch (error) {
             return { error };
         }
@@ -80,9 +61,7 @@ export default class AccountService {
                 throw new Error(ERROR_NO_ACCOUNT);
             }
 
-            const account = { ...r.data, ...(await this._get(r.data.id)) };
-
-            return { account };
+            return { account: r.data };
         } catch (error) {
             return { error };
         }

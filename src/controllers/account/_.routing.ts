@@ -1,5 +1,4 @@
 import express from 'express';
-import { getAccountById } from './get.action';
 import { getAccount } from './getAccount.action';
 import { patchAccount } from './patch.action';
 import { deleteAccount } from './delete.action';
@@ -16,7 +15,6 @@ router.get('/', checkScopes(['user', 'dashboard']), getAccount);
 router.patch('/', checkScopes(['user', 'dashboard']), patchAccount);
 router.delete('/', checkScopes(['user', 'dashboard']), deleteAccount);
 router.post('/', validate(validations.postAccount), checkScopes(['admin']), parseHeader, postAccount);
-router.get('/:id', validate(validations.getAccount), checkScopes(['admin']), getAccountById);
 router.post('/login', validate(validations.postLogin), checkScopes(['admin']), postLogin);
 
 export default router;

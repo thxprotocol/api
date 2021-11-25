@@ -15,7 +15,8 @@ describe('Signup', () => {
         dashboardAccessToken: string,
         testToken: Contract,
         adminAccessToken: string,
-        walletAccessToken: string;
+        walletAccessToken: string,
+        membershipID: string;
 
     beforeAll(async () => {
         testToken = await deployExampleToken();
@@ -99,23 +100,6 @@ describe('Signup', () => {
     //     });
     // });
 
-    describe('GET /account/:id', () => {
-        it('HTTP 200 if OK', (done) => {
-            user.get('/v1/account/' + sub)
-                .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
-                .end(async (err, res) => {
-                    expect(res.status).toBe(200);
-                    expect(res.body.address).toBe(account.address);
-                    expect(res.body.memberships[0].address).toBe(poolAddress);
-                    expect(res.body.memberships[0].network).toBe(NetworkProvider.Test);
-                    expect(res.body.erc20[0].address).toBe(testToken.options.address);
-                    expect(res.body.erc20[0].network).toBe(NetworkProvider.Test);
-
-                    done();
-                });
-        });
-    });
-
     describe('GET /account/', () => {
         it('HTTP 200 if OK', (done) => {
             user.get('/v1/account/')
@@ -123,10 +107,6 @@ describe('Signup', () => {
                 .end(async (err, res) => {
                     expect(res.status).toBe(200);
                     expect(res.body.address).toBe(account.address);
-                    expect(res.body.memberships[0].address).toBe(poolAddress);
-                    expect(res.body.memberships[0].network).toBe(NetworkProvider.Test);
-                    expect(res.body.erc20[0].address).toBe(testToken.options.address);
-                    expect(res.body.erc20[0].network).toBe(NetworkProvider.Test);
 
                     done();
                 });
@@ -140,6 +120,36 @@ describe('Signup', () => {
                 .send({ address: voter.address })
                 .end(async (err, res) => {
                     expect(res.status).toBe(303);
+                    done();
+                });
+        });
+    });
+
+    describe('GET /memberships/', () => {
+        it('HTTP 200 if OK', (done) => {
+            user.get('/v1/memberships/')
+                .set({ AssetPool: poolAddress, Authorization: walletAccessToken })
+                .end(async (err, res) => {
+                    expect(res.status).toBe(200);
+                    membershipID = res.body[0];
+                    done();
+                });
+        });
+    });
+
+    describe('GET /memberships/:id', () => {
+        it('HTTP 200 if OK', (done) => {
+            user.get('/v1/memberships/' + membershipID)
+                .set({ AssetPool: poolAddress, Authorization: walletAccessToken })
+                .end(async (err, res) => {
+                    expect(res.status).toBe(200);
+                    expect(res.body.id).toBe(membershipID);
+                    expect(res.body.poolAddress).toBe(poolAddress);
+                    expect(res.body.network).toBe(NetworkProvider.Test);
+                    expect(res.body.token.address).toBe(testToken.options.address);
+                    expect(res.body.token.symbol).toBeDefined();
+                    expect(res.body.token.name).toBeDefined();
+
                     done();
                 });
         });
