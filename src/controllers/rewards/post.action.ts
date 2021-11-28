@@ -1,11 +1,70 @@
 import { Response, NextFunction } from 'express';
 import { HttpError, HttpRequest } from '../../models/Error';
 import { VERSION } from '../../util/secrets';
-import { callFunction, sendTransaction } from '../../util/network';
 import { toWei } from 'web3-utils';
-import { parseLogs, findEvent } from '../../util/events';
-import { Artifacts } from '../../util/artifacts';
 import RewardService from '../../services/RewardService';
+import AssetPoolService from '../../services/AssetPoolService';
+import { RewardDocument } from '../../models/Reward';
+
+// enum ChannelType {
+//     None = 0,
+//     Google = 1,
+// }
+
+// enum ChannelAction {
+//     None = 0,
+//     Like = 1,
+// }
+
+export const postReward = async (req: HttpRequest, res: Response, next: NextFunction) => {
+    async function createReward(withdrawAmount: any, withdrawDuration: number) {
+        const { reward, error } = await RewardService.create(req.assetPool, withdrawAmount, withdrawDuration);
+        if (error) {
+            throw new Error(error.message);
+        }
+        return { reward };
+    }
+
+    async function canBypassRewardPoll() {
+        const { canBypassPoll, error } = await AssetPoolService.canBypassRewardPoll(req.assetPool);
+        if (error) {
+            throw new Error(error.message);
+        }
+        return canBypassPoll;
+    }
+
+    async function finalizeRewardPoll(reward: RewardDocument) {
+        const { error } = await RewardService.finalizePoll(req.assetPool, reward);
+        if (error) {
+            throw new Error(error.message);
+        }
+    }
+
+    try {
+        // MOCK
+        // req.body.channelType = ChannelType.Google;
+        // req.body.channelAction = ChannelAction.Like;
+        // req.body.channelItem = 'loremipsum';
+        // ENDMOCK
+
+        const withdrawAmount = toWei(req.body.withdrawAmount.toString());
+        const withdrawDuration = req.body.withdrawDuration;
+        // const condition = {
+        //     channel: req.body.channelType,
+        //     action: req.body.channelAction,
+        //     item: req.body.channelItem,
+        // };
+        const { reward } = await createReward(withdrawAmount, withdrawDuration);
+
+        if (await canBypassRewardPoll()) {
+            await finalizeRewardPoll(reward);
+        }
+
+        res.redirect(`/${VERSION}/rewards/${reward.id}`);
+    } catch (error) {
+        return next(new HttpError(502, error.message, error));
+    }
+};
 
 /**
  * @swagger
@@ -47,31 +106,3 @@ import RewardService from '../../services/RewardService';
  *       '502':
  *         $ref: '#/components/responses/502'
  */
-export const postReward = async (req: HttpRequest, res: Response, next: NextFunction) => {
-    try {
-        const withdrawAmount = toWei(req.body.withdrawAmount.toString());
-        const tx = await sendTransaction(
-            req.solution.options.address,
-            req.solution.methods.addReward(withdrawAmount, req.body.withdrawDuration),
-            req.assetPool.network,
-        );
-
-        try {
-            const events = parseLogs(Artifacts.IDefaultDiamond.abi, tx.logs);
-            const event = findEvent('RewardPollCreated', events);
-            const id = Number(event.args.rewardID);
-            const pollId = Number(event.args.id);
-
-            try {
-                await RewardService.create(req.assetPool, req.solution, id, pollId, 0);
-                res.redirect(`/${VERSION}/rewards/${id}`);
-            } catch (e) {
-                return next(new HttpError(502, e.message, e));
-            }
-        } catch (err) {
-            return next(new HttpError(500, 'Could not parse the transaction event logs.', err));
-        }
-    } catch (err) {
-        return next(new HttpError(502, 'Could not add the reward to the asset pool contract.', err));
-    }
-};

@@ -4,22 +4,89 @@ import { Artifacts } from '../util/artifacts';
 import { parseLogs, findEvent } from '../util/events';
 import { Reward, RewardDocument } from '../models/Reward';
 import WithdrawalService from './WithdrawalService';
-import { Contract } from 'web3-eth-contract';
+import { fromWei } from 'web3-utils';
+import BN from 'bn.js';
+import { toWei } from 'web3-utils';
+import { ConsoleTransportOptions } from 'winston/lib/winston/transports';
 
-const ERROR_REWARD_GET_FAILED = 'Could not get the reward information from the database';
-const TRANSACTION_EVENT_ERROR = 'Could not parse the transaction event logs.';
-const REWARD_ERROR = 'Could not finalize the reward.';
-const ERROR_GOVERNANCE_DISABLED = 'Could determine if governance is disabled for this reward.';
-const DATABASE_STORE_ERROR = 'Could not store the reward in the database.';
+// const ERROR_REWARD_GET_FAILED = 'Could not get the reward information from the database';
+// const TRANSACTION_EVENT_ERROR = 'Could not parse the transaction event logs.';
+// const REWARD_ERROR = 'Could not finalize the reward.';
+// const ERROR_GOVERNANCE_DISABLED = 'Could determine if governance is disabled for this reward.';
+// const DATABASE_STORE_ERROR = 'Could not store the reward in the database.';
+
+export enum RewardState {
+    Disabled = 0,
+    Enabled = 1,
+}
+
+export interface IRewardUpdates {
+    withdrawAmount: number;
+    withdrawDuration: number;
+}
 
 export default class RewardService {
-    static async get(poolAddress: string, rewardId: number) {
+    static async get(assetPool: IAssetPool, rewardId: number) {
         try {
-            const reward = await Reward.findOne({ poolAddress, id: rewardId });
+            const reward = await Reward.findOne({ poolAddress: assetPool.address, id: rewardId });
+            const { id, withdrawAmount, withdrawDuration, pollId, state } = await callFunction(
+                assetPool.solution.methods.getReward(rewardId),
+                assetPool.network,
+            );
 
-            return { reward };
+            reward.id = Number(id);
+            reward.withdrawAmount = Number(fromWei(withdrawAmount));
+            reward.withdrawDuration = Number(withdrawDuration);
+            reward.state = state;
+            reward.beneficiaries = reward.beneficiaries || [];
+            reward.pollId = Number(pollId);
+
+            return {
+                reward,
+            };
         } catch (error) {
-            return { error: ERROR_REWARD_GET_FAILED };
+            return { error };
+        }
+    }
+
+    static async getRewardPoll(assetPool: IAssetPool, pollId: number) {
+        try {
+            const withdrawAmount = Number(
+                fromWei(await callFunction(assetPool.solution.methods.getWithdrawAmount(pollId), assetPool.network)),
+            );
+            const withdrawDuration = Number(
+                await callFunction(assetPool.solution.methods.getWithdrawDuration(pollId), assetPool.network),
+            );
+            const startTime = Number(
+                await callFunction(assetPool.solution.methods.getStartTime(pollId), assetPool.network),
+            );
+            const endTime = Number(
+                await callFunction(assetPool.solution.methods.getEndTime(pollId), assetPool.network),
+            );
+            const yesCounter = Number(
+                await callFunction(assetPool.solution.methods.getYesCounter(pollId), assetPool.network),
+            );
+            const noCounter = Number(
+                await callFunction(assetPool.solution.methods.getNoCounter(pollId), assetPool.network),
+            );
+            const totalVoted = Number(
+                await callFunction(assetPool.solution.methods.getTotalVoted(pollId), assetPool.network),
+            );
+
+            return {
+                poll: {
+                    id: pollId,
+                    withdrawAmount,
+                    withdrawDuration,
+                    startTime,
+                    endTime,
+                    yesCounter,
+                    noCounter,
+                    totalVoted,
+                },
+            };
+        } catch (error) {
+            return { error };
         }
     }
 
@@ -87,60 +154,91 @@ export default class RewardService {
         }
     }
 
-    static async create(assetPool: IAssetPool, solution: Contract, id: number, pollId: number, state: number) {
+    static async create(assetPool: IAssetPool, withdrawAmount: BN, withdrawDuration: number) {
         try {
+            const tx = await sendTransaction(
+                assetPool.solution.options.address,
+                assetPool.solution.methods.addReward(withdrawAmount, withdrawDuration),
+                assetPool.network,
+            );
+            const events = parseLogs(Artifacts.IDefaultDiamond.abi, tx.logs);
+            const event = findEvent('RewardPollCreated', events);
+            const id = Number(event.args.rewardID);
             const reward = new Reward({
                 id,
-                poolAddress: solution.options.address,
-                withdrawAmount: await callFunction(solution.methods.getWithdrawAmount(id), assetPool.network),
-                withdrawDuration: await callFunction(solution.methods.getWithdrawDuration(id), assetPool.network),
-                state,
+                poolAddress: assetPool.solution.options.address,
+                withdrawAmount: await callFunction(assetPool.solution.methods.getWithdrawAmount(id), assetPool.network),
+                withdrawDuration: await callFunction(
+                    assetPool.solution.methods.getWithdrawDuration(id),
+                    assetPool.network,
+                ),
+                state: RewardState.Disabled,
             });
-            await reward.save();
-            try {
-                const duration = Number(
-                    await callFunction(solution.methods.getRewardPollDuration(), assetPool.network),
-                );
 
-                if (assetPool.bypassPolls && duration === 0) {
-                    try {
-                        await this.finalizePoll(assetPool, solution, reward, pollId);
-                    } catch (e) {
-                        throw new Error(e.message);
-                    }
-                }
-            } catch (e) {
-                throw new Error(ERROR_GOVERNANCE_DISABLED);
-            }
-        } catch (e) {
-            throw new Error(DATABASE_STORE_ERROR);
+            return { reward: await reward.save() };
+        } catch (error) {
+            return {
+                error,
+            };
         }
     }
 
-    static async finalizePoll(assetPool: IAssetPool, solution: Contract, reward: RewardDocument, pollId: number) {
+    static async update(assetPool: IAssetPool, rewardId: number, { withdrawAmount, withdrawDuration }: IRewardUpdates) {
         try {
+            const withdrawAmountInWei = toWei(withdrawAmount.toString());
             const tx = await sendTransaction(
-                solution.options.address,
-                solution.methods.rewardPollFinalize(pollId),
+                assetPool.solution.options.address,
+                assetPool.solution.methods.updateReward(rewardId, withdrawAmountInWei, withdrawDuration),
                 assetPool.network,
             );
+            const events = parseLogs(Artifacts.IDefaultDiamond.abi, tx.logs);
+            const event = findEvent('RewardPollCreated', events);
+            const pollId = Number(event.args.id);
 
-            try {
-                const events = parseLogs(Artifacts.IDefaultDiamond.abi, tx.logs);
-                const event = findEvent('RewardPollEnabled', events);
-                if (event) {
-                    reward.withdrawAmount = await callFunction(
-                        solution.methods.getWithdrawAmount(reward.id),
-                        assetPool.network,
-                    );
-                    reward.state = 1;
-                    await reward.save();
-                }
-            } catch (err) {
-                throw new Error(TRANSACTION_EVENT_ERROR);
+            return { pollId };
+        } catch (error) {
+            return { error };
+        }
+    }
+
+    static async finalizePoll(assetPool: IAssetPool, reward: RewardDocument) {
+        try {
+            const { pollId } = await callFunction(assetPool.solution.methods.getReward(reward.id), assetPool.network);
+            const tx = await sendTransaction(
+                assetPool.solution.options.address,
+                assetPool.solution.methods.rewardPollFinalize(pollId),
+                assetPool.network,
+            );
+            const events = parseLogs(Artifacts.IDefaultDiamond.abi, tx.logs);
+            const eventRewardPollEnabled = findEvent('RewardPollEnabled', events);
+            const eventRewardPollUpdated = findEvent('RewardPollUpdated', events);
+
+            if (eventRewardPollEnabled) {
+                reward.withdrawAmount = await callFunction(
+                    assetPool.solution.methods.getWithdrawAmount(reward.id),
+                    assetPool.network,
+                );
+                reward.withdrawDuration = await callFunction(
+                    assetPool.solution.methods.getWithdrawDuration(reward.id),
+                    assetPool.network,
+                );
+                reward.state = RewardState.Enabled;
+
+                await reward.save();
             }
-        } catch (e) {
-            throw new Error(REWARD_ERROR);
+
+            if (eventRewardPollUpdated) {
+                const withdrawAmount = Number(fromWei(eventRewardPollUpdated.args.amount.toString()));
+                const withdrawDuration = Number(eventRewardPollUpdated.args.duration);
+
+                reward.withdrawAmount = withdrawAmount;
+                reward.withdrawDuration = withdrawDuration;
+
+                await reward.save();
+            }
+            return { finalizedReward: reward };
+        } catch (error) {
+            return { error };
         }
     }
 

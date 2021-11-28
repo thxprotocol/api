@@ -7,16 +7,18 @@ export type RewardDocument = mongoose.Document & {
     poolAddress: string;
     state: number;
     beneficiaries: string[];
-    poll: {
-        id: number;
-        withdrawAmount: number;
-        withdrawDuration: number;
-        startTime: number;
-        endTime: number;
-        yesCounter: number;
-        noCounter: number;
-        totalVoted: number;
-    };
+    pollId: number;
+};
+
+export type RewardPollDocument = {
+    id: number;
+    withdrawAmount: number;
+    withdrawDuration: number;
+    startTime: number;
+    endTime: number;
+    yesCounter: number;
+    noCounter: number;
+    totalVoted: number;
 };
 
 const rewardSchema = new mongoose.Schema(

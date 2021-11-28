@@ -1,51 +1,49 @@
 import { Response, NextFunction } from 'express';
 import { HttpError, HttpRequest } from '../../models/Error';
-import { fromWei } from 'web3-utils';
-import { Contract } from 'web3-eth-contract';
-import { callFunction, NetworkProvider } from '../../util/network';
 import RewardService from '../../services/RewardService';
-import { RewardDocument } from '../../models/Reward';
 
-export async function getRewardData(solution: Contract, rewardID: number, npid: NetworkProvider) {
-    try {
-        const { reward } = await RewardService.get(solution.options.address, rewardID);
-        const beneficiaries = reward && reward.beneficiaries ? reward.beneficiaries : [];
+export const getReward = async (req: HttpRequest, res: Response, next: NextFunction) => {
+    async function getReward(rewardId: number) {
+        const { reward, error } = await RewardService.get(req.assetPool, rewardId);
 
-        try {
-            const { id, withdrawAmount, withdrawDuration, pollId, state } = await callFunction(
-                solution.methods.getReward(rewardID),
-                npid,
-            );
-            const reward = {
-                id: Number(id),
-                withdrawAmount: Number(fromWei(withdrawAmount)),
-                withdrawDuration: Number(withdrawDuration),
-                beneficiaries,
-                state: Number(state),
-            } as RewardDocument;
-
-            if (Number(pollId) > 0) {
-                reward.poll = {
-                    id: Number(pollId),
-                    withdrawAmount: Number(
-                        fromWei(await callFunction(solution.methods.getWithdrawAmount(pollId), npid)),
-                    ),
-                    withdrawDuration: Number(await callFunction(solution.methods.getWithdrawDuration(pollId), npid)),
-                    startTime: Number(await callFunction(solution.methods.getStartTime(pollId), npid)),
-                    endTime: Number(await callFunction(solution.methods.getEndTime(pollId), npid)),
-                    yesCounter: Number(await callFunction(solution.methods.getYesCounter(pollId), npid)),
-                    noCounter: Number(await callFunction(solution.methods.getNoCounter(pollId), npid)),
-                    totalVoted: Number(await callFunction(solution.methods.getTotalVoted(pollId), npid)),
-                };
-            }
-            return reward;
-        } catch (e) {
-            return;
+        if (!reward) {
+            next(new HttpError(404, 'Asset Pool reward not found.'));
         }
-    } catch (e) {
-        return;
+
+        if (error) {
+            throw new Error(error.message);
+        }
+
+        return reward;
     }
-}
+
+    async function getRewardPoll(pollId: number) {
+        if (pollId > 0) {
+            const { poll, error } = await RewardService.getRewardPoll(req.assetPool, pollId);
+            if (error) {
+                throw new Error(error.message);
+            }
+            return poll;
+        }
+    }
+
+    try {
+        const rewardId = Number(req.params.id);
+        const reward = await getReward(rewardId);
+        const poll = await getRewardPoll(reward.pollId);
+
+        res.json({
+            id: reward.id,
+            withdrawAmount: reward.withdrawAmount,
+            withdrawDuration: reward.withdrawDuration,
+            beneficiaries: reward.beneficiaries,
+            state: reward.state,
+            poll,
+        });
+    } catch (err) {
+        next(new HttpError(502, 'Asset Pool get reward failed.', err));
+    }
+};
 
 /**
  * @swagger
@@ -113,16 +111,3 @@ export async function getRewardData(solution: Contract, rewardID: number, npid: 
  *       '502':
  *         $ref: '#/components/responses/502'
  */
-export const getReward = async (req: HttpRequest, res: Response, next: NextFunction) => {
-    try {
-        const reward = await getRewardData(req.solution, Number(req.params.id), req.assetPool.network);
-
-        if (!reward) {
-            return next(new HttpError(404, 'Asset Pool reward not found.'));
-        }
-
-        res.json(reward);
-    } catch (err) {
-        next(new HttpError(502, 'Asset Pool get reward failed.', err));
-    }
-};

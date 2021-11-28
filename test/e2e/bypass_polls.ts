@@ -1,8 +1,8 @@
 import request from 'supertest';
 import server from '../../src/server';
 import db from '../../src/util/database';
-import { deployExampleToken } from './lib/network';
-import { rewardWithdrawAmount, rewardWithdrawDuration } from './lib/constants';
+import { deployExampleToken, timeTravel } from './lib/network';
+import { rewardPollDuration, rewardWithdrawAmount, rewardWithdrawDuration } from './lib/constants';
 import { Contract } from 'web3-eth-contract';
 import { isAddress } from 'web3-utils';
 import { getToken } from './lib/jwt';
@@ -150,7 +150,7 @@ describe('Bypass Polls', () => {
                     AssetPool: poolAddress,
                     Authorization: dashboardAccessToken,
                 })
-                .send({ bypassPolls: false })
+                .send({ bypassPolls: false, rewardPollDuration: rewardPollDuration })
                 .end(async (err, res) => {
                     expect(res.status).toBe(200);
 
@@ -208,7 +208,9 @@ describe('Bypass Polls', () => {
     });
 
     describe('POST /rewards/2/finalize (bypass disabled)', () => {
-        it('HTTP 200 reward storage OK', (done) => {
+        it('HTTP 200 reward storage OK', async (done) => {
+            await timeTravel(rewardPollDuration);
+
             user.post('/v1/rewards/2/poll/finalize')
                 .set({
                     AssetPool: poolAddress,

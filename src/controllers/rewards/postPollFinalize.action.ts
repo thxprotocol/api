@@ -1,7 +1,38 @@
+import RewardService from '../../services/RewardService';
 import { HttpError, HttpRequest } from '../../models/Error';
 import { NextFunction, Response } from 'express';
-import { getRewardData } from './getReward.action';
-import { callFunction, sendTransaction } from '../../util/network';
+import { RewardDocument } from '../../models/Reward';
+
+export const postPollFinalize = async (req: HttpRequest, res: Response, next: NextFunction) => {
+    async function getReward(rewardId: number) {
+        const { reward, error } = await RewardService.get(req.assetPool, rewardId);
+        if (!reward) {
+            next(new HttpError(404, 'No reward found for this ID.'));
+        }
+        if (error) {
+            throw new Error(error.message);
+        }
+        return reward;
+    }
+
+    async function finalizeRewardPoll(reward: RewardDocument) {
+        const { finalizedReward, error } = await RewardService.finalizePoll(req.assetPool, reward);
+        if (error) {
+            throw new Error(error.message);
+        }
+        return finalizedReward;
+    }
+
+    try {
+        const rewardId = Number(req.params.id);
+        const reward = await getReward(rewardId);
+        const finalizedReward = await finalizeRewardPoll(reward);
+
+        res.json(finalizedReward);
+    } catch (e) {
+        next(new HttpError(502, 'Could not finalize the reward poll.', e));
+    }
+};
 
 /**
  * @swagger
@@ -42,28 +73,3 @@ import { callFunction, sendTransaction } from '../../util/network';
  *       '502':
  *         $ref: '#/components/responses/502'
  */
-export const postPollFinalize = async (req: HttpRequest, res: Response, next: NextFunction) => {
-    try {
-        const { pollId } = await callFunction(req.solution.methods.getReward(req.params.id), req.assetPool.network);
-
-        await sendTransaction(
-            req.solution.options.address,
-            req.solution.methods.rewardPollFinalize(pollId),
-            req.assetPool.network,
-        );
-
-        try {
-            const reward = await getRewardData(req.solution, Number(req.params.id), req.assetPool.network);
-
-            if (!reward) {
-                return next(new HttpError(404, 'No reward found for this ID.'));
-            }
-
-            res.json(reward);
-        } catch (e) {
-            return next(new HttpError(502, 'Could not get reward data from the network.', e));
-        }
-    } catch (e) {
-        next(new HttpError(502, 'Could not finalize the reward poll.', e));
-    }
-};

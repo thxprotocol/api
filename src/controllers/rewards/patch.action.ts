@@ -1,12 +1,78 @@
 import { Response, NextFunction } from 'express';
 import { HttpRequest, HttpError } from '../../models/Error';
-import qrcode from 'qrcode';
-import { toWei, fromWei } from 'web3-utils';
-import { getRewardData } from './getReward.action';
-import { callFunction, sendTransaction } from '../../util/network';
-import { parseLogs, findEvent } from '../../util/events';
-import { Artifacts } from '../../util/artifacts';
-import RewardService from '../../services/RewardService';
+import RewardService, { IRewardUpdates } from '../../services/RewardService';
+import { RewardDocument } from '../../models/Reward';
+import AssetPoolService from '../../services/AssetPoolService';
+
+export async function patchReward(req: HttpRequest, res: Response, next: NextFunction) {
+    async function getReward(rewardId: number) {
+        const { reward, error } = await RewardService.get(req.assetPool, rewardId);
+        if (!reward) {
+            next(new HttpError(404, 'No reward found for this ID.'));
+        }
+        if (error) {
+            throw new Error(error.message);
+        }
+        return reward;
+    }
+
+    async function updateReward(rewardId: number, updates: IRewardUpdates) {
+        const { pollId, error } = await RewardService.update(req.assetPool, rewardId, updates);
+
+        if (error) {
+            throw new Error(error.message);
+        }
+
+        return pollId;
+    }
+
+    async function canBypassRewardPoll() {
+        const { canBypassPoll, error } = await AssetPoolService.canBypassRewardPoll(req.assetPool);
+        if (error) {
+            throw new Error(error.message);
+        }
+        return canBypassPoll;
+    }
+
+    async function finalizeRewardPoll(reward: RewardDocument) {
+        const { finalizedReward, error } = await RewardService.finalizePoll(req.assetPool, reward);
+        if (error) {
+            throw new Error(error.message);
+        }
+        return finalizedReward;
+    }
+
+    try {
+        let reward = await getReward(Number(req.params.id));
+        let withdrawAmount = reward.withdrawAmount;
+        let withdrawDuration = reward.withdrawDuration;
+        const shouldUpdateWithdrawAmount = req.body.withdrawAmount && reward.withdrawAmount !== req.body.withdrawAmount;
+        const shouldUpdateWithdrawDuration =
+            req.body.withdrawDuration && reward.withdrawDuration !== req.body.withdrawDuration;
+
+        if (!shouldUpdateWithdrawAmount && !shouldUpdateWithdrawDuration) {
+            return res.json(reward);
+        }
+
+        if (shouldUpdateWithdrawAmount) {
+            withdrawAmount = req.body.withdrawAmount;
+        }
+
+        if (shouldUpdateWithdrawDuration) {
+            withdrawDuration = Number(req.body.withdrawDuration);
+        }
+
+        await updateReward(reward.id, { withdrawAmount, withdrawDuration });
+
+        if (await canBypassRewardPoll()) {
+            reward = await finalizeRewardPoll(reward);
+        }
+
+        res.status(200).json(reward);
+    } catch (error) {
+        next(new HttpError(502, 'Could not get reward information from the pool.', error));
+    }
+}
 
 /**
  * @swagger
@@ -37,7 +103,7 @@ import RewardService from '../../services/RewardService';
  *     responses:
  *       '200':
  *         description: OK
- *         content: application/json      
+ *         content: application/json
  *         schema:
  *               type: object
  *               properties:
@@ -55,111 +121,3 @@ import RewardService from '../../services/RewardService';
  *       '502':
  *         $ref: '#/components/responses/502'
  */
-export const patchReward = async (req: HttpRequest, res: Response, next: NextFunction) => {
-    try {
-        let { withdrawAmount, withdrawDuration } = await callFunction(
-            req.solution.methods.getReward(req.params.id),
-            req.assetPool.network,
-        );
-
-        withdrawAmount = Number(fromWei(withdrawAmount.toString()));
-        withdrawDuration = Number(withdrawDuration);
-
-        if (
-            req.body.withdrawAmount &&
-            withdrawAmount === req.body.withdrawAmount &&
-            req.body.withdrawDuration &&
-            withdrawDuration === req.body.withdrawDuration
-        ) {
-            return res.json(await getRewardData(req.solution, Number(req.params.id), req.assetPool.network));
-        }
-
-        if (req.body.withdrawAmount && withdrawAmount !== req.body.withdrawAmount) {
-            withdrawAmount = toWei(req.body.withdrawAmount.toString());
-        }
-
-        if (req.body.withdrawDuration && withdrawDuration !== req.body.withdrawDuration) {
-            withdrawDuration = Number(req.body.withdrawDuration);
-        }
-
-        try {
-            const duration = Number(
-                await callFunction(req.solution.methods.getRewardPollDuration(), req.assetPool.network),
-            );
-
-            const tx = await sendTransaction(
-                req.solution.options.address,
-                req.solution.methods.updateReward(req.params.id, withdrawAmount, withdrawDuration),
-                req.assetPool.network,
-            );
-
-            if (req.assetPool.bypassPolls && duration === 0) {
-                try {
-                    const events = parseLogs(Artifacts.IDefaultDiamond.abi, tx.logs);
-                    const event = findEvent('RewardPollCreated', events);
-                    const id = Number(event.args.rewardID);
-                    const pollId = Number(event.args.id);
-
-                    try {
-                        const tx = await sendTransaction(
-                            req.solution.options.address,
-                            req.solution.methods.rewardPollFinalize(pollId),
-                            req.assetPool.network,
-                        );
-
-                        try {
-                            const events = parseLogs(Artifacts.IDefaultDiamond.abi, tx.logs);
-                            const event = findEvent('RewardPollUpdated', events);
-
-                            if (event) {
-                                const withdrawAmount = Number(fromWei(event.args.amount.toString()));
-                                const withdrawDuration = Number(event.args.duration);
-                                const { reward } = await RewardService.get(
-                                    req.solution.options.address,
-                                    Number(req.params.id),
-                                );
-
-                                reward.withdrawAmount = withdrawAmount;
-                                reward.withdrawDuration = withdrawDuration;
-                                reward.state = 1;
-
-                                await reward.save();
-                            }
-
-                            try {
-                                res.json(await getRewardData(req.solution, id, req.assetPool.network));
-                            } catch (e) {
-                                return next(new HttpError(502, 'Could not get reward information from the pool.', e));
-                            }
-                        } catch (err) {
-                            return next(new HttpError(500, 'Could not parse the transaction event logs.', err));
-                        }
-                    } catch (e) {
-                        return next(new HttpError(502, 'Could not finalize the reward.'));
-                    }
-                } catch (e) {
-                    return next(new HttpError(502, 'Could not update the reward.', e));
-                }
-            } else {
-                const base64 = await qrcode.toDataURL(
-                    JSON.stringify({
-                        assetPoolAddress: req.header('AssetPool'),
-                        contractAddress: req.header('AssetPool'),
-                        contract: 'AssetPool',
-                        method: 'updateReward',
-                        params: {
-                            id: req.params.id,
-                            withdrawAmount,
-                            withdrawDuration,
-                        },
-                    }),
-                );
-                res.json({ base64 });
-            }
-        } catch (e) {
-            return next(new HttpError(500, 'Could not determine if governance is enabled for this reward.', e));
-        }
-    } catch (error) {
-        return next(new HttpError(502, 'Could not get reward information from the pool.', error));
-    }
-};

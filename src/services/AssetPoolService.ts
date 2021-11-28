@@ -23,6 +23,21 @@ const ERROR_UPDATE_PROPOSE_WITHDRAW_POLL_DURATION =
 const ERROR_UPDATE_REWARD_POLL_DURATION = 'Could not update the rewardPollDuration for this asset pool.';
 
 export default class AssetPoolService {
+    static async canBypassRewardPoll(assetPool: IAssetPool) {
+        try {
+            const duration = Number(
+                await callFunction(assetPool.solution.methods.getRewardPollDuration(), assetPool.network),
+            );
+            const canBypassPoll = assetPool.bypassPolls || (!assetPool.bypassPolls && duration === 0);
+
+            return {
+                canBypassPoll,
+            };
+        } catch (error) {
+            return { error };
+        }
+    }
+
     static async getByAddress(address: string) {
         try {
             const assetPool = await AssetPool.findOne({ address });

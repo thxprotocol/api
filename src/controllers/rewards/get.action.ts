@@ -1,6 +1,38 @@
 import { Response, NextFunction } from 'express';
+import RewardService from '../../services/RewardService';
 import { HttpError, HttpRequest } from '../../models/Error';
-import { getRewardData } from './getReward.action';
+
+export const getRewards = async (req: HttpRequest, res: Response, next: NextFunction) => {
+    async function getReward(rewardId: number) {
+        const { reward, error } = await RewardService.get(req.assetPool, rewardId);
+
+        if (error) {
+            throw new Error(error.message);
+        }
+        return reward;
+    }
+
+    try {
+        const rewards = [];
+        let rewardId = 1;
+        while (rewardId >= 1) {
+            try {
+                const reward = await getReward(rewardId);
+                if (reward) {
+                    rewards.push(reward);
+                    rewardId++;
+                } else {
+                    break;
+                }
+            } catch (e) {
+                break;
+            }
+        }
+        res.json(rewards);
+    } catch (error) {
+        next(new HttpError(502, error.message, error));
+    }
+};
 
 /**
  * @swagger
@@ -61,30 +93,3 @@ import { getRewardData } from './getReward.action';
  *       '502':
  *         $ref: '#/components/responses/502'
  */
-export const getRewards = async (req: HttpRequest, res: Response, next: NextFunction) => {
-    try {
-        try {
-            const rewards = [];
-            let i = 1;
-            while (i >= 1) {
-                try {
-                    const reward = await getRewardData(req.solution, i, req.assetPool.network);
-                    if (reward) {
-                        rewards.push(reward);
-                        i++;
-                    } else {
-                        break;
-                    }
-                } catch (e) {
-                    break;
-                }
-            }
-            res.json(rewards);
-        } catch (err) {
-            next(new HttpError(404, 'Asset Pool get rewards failed.', err));
-            return;
-        }
-    } catch (err) {
-        next(new HttpError(502, 'Reward not found.', err));
-    }
-};
