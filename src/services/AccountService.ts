@@ -144,16 +144,15 @@ export default class AccountService {
         }
     }
 
-    static async signupFor(email: string, password: string, poolAddress: string, address?: string) {
+    static async signupFor(email: string, password: string, address?: string) {
         try {
             const r = await authClient({
                 method: 'POST',
                 url: '/account',
                 data: {
                     email,
-                    password,
+                    secret: password,
                     address,
-                    poolAddress,
                 },
                 headers: {
                     Authorization: await getAuthAccessToken(),
