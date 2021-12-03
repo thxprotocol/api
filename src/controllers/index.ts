@@ -19,7 +19,7 @@ router.use('/ping', (req, res) => res.send('pong'));
 router.use('/health', healthRouter);
 router.use('/docs', docsRouter);
 router.use(checkJwt);
-// router.use('/', authRouter);
+router.use('/', authRouter);
 router.use('/metrics', metricsRouter);
 router.use('/account', accountRouter);
 router.use('/widgets', widgetsRouter);
@@ -29,6 +29,5 @@ router.use('/members', membersRouter);
 router.use('/rewards', rewardsRouter);
 router.use('/withdrawals', withdrawalsRouter);
 router.use('/memberships', membershipsRouter);
-
 
 export default router;

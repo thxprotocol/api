@@ -1,5 +1,32 @@
 import mongoose from 'mongoose';
 
+export enum ChannelType {
+    None = 0,
+    Google = 1,
+}
+
+export enum ChannelAction {
+    None = 0,
+    Like = 1,
+    Subscribe = 2,
+}
+
+export enum RewardState {
+    Disabled = 0,
+    Enabled = 1,
+}
+
+export interface IRewardUpdates {
+    withdrawAmount: number;
+    withdrawDuration: number;
+}
+
+export interface IRewardCondition {
+    channelType: ChannelType;
+    channelAction: ChannelAction;
+    channelItem: string;
+}
+
 export type RewardDocument = mongoose.Document & {
     id: number;
     withdrawAmount: number;
@@ -7,6 +34,7 @@ export type RewardDocument = mongoose.Document & {
     poolAddress: string;
     state: number;
     beneficiaries: string[];
+    condition: IRewardCondition;
     pollId: number;
 };
 
@@ -28,6 +56,7 @@ const rewardSchema = new mongoose.Schema(
         withdrawDuration: Number,
         poolAddress: String,
         beneficiaries: [String],
+        condition: Number,
         state: Number,
     },
     { timestamps: true },

@@ -1,29 +1,22 @@
+import WithdrawalService from './WithdrawalService';
+import BN from 'bn.js';
 import { IAssetPool } from '../models/AssetPool';
+import { IAccount } from '../models/Account';
 import { sendTransaction, callFunction } from '../util/network';
 import { Artifacts } from '../util/artifacts';
 import { parseLogs, findEvent } from '../util/events';
-import { Reward, RewardDocument } from '../models/Reward';
-import WithdrawalService from './WithdrawalService';
+import {
+    ChannelAction,
+    ChannelType,
+    IRewardCondition,
+    IRewardUpdates,
+    Reward,
+    RewardDocument,
+    RewardState,
+} from '../models/Reward';
 import { fromWei } from 'web3-utils';
-import BN from 'bn.js';
 import { toWei } from 'web3-utils';
-import { ConsoleTransportOptions } from 'winston/lib/winston/transports';
-
-// const ERROR_REWARD_GET_FAILED = 'Could not get the reward information from the database';
-// const TRANSACTION_EVENT_ERROR = 'Could not parse the transaction event logs.';
-// const REWARD_ERROR = 'Could not finalize the reward.';
-// const ERROR_GOVERNANCE_DISABLED = 'Could determine if governance is disabled for this reward.';
-// const DATABASE_STORE_ERROR = 'Could not store the reward in the database.';
-
-export enum RewardState {
-    Disabled = 0,
-    Enabled = 1,
-}
-
-export interface IRewardUpdates {
-    withdrawAmount: number;
-    withdrawDuration: number;
-}
+import YouTubeDataService from './YouTubeDataService';
 
 export default class RewardService {
     static async get(assetPool: IAssetPool, rewardId: number) {
@@ -90,10 +83,34 @@ export default class RewardService {
         }
     }
 
-    static async canClaim(reward: RewardDocument, address: string) {
+    /**
+curl \
+  'https://youtube.googleapis.com/youtube/v3/videos?part=snippet%2CcontentDetails%2Cstatistics&myRating=like&key=[YOUR_API_KEY]' \
+  --header 'Authorization: Bearer [YOUR_ACCESS_TOKEN]' \
+  --header 'Accept: application/json' \
+  --compressed
+ */
+    static async canClaim(reward: RewardDocument, account: IAccount) {
         try {
-            const hasClaimed = reward.beneficiaries.includes(address);
-            return { canClaim: !hasClaimed };
+            const hasClaimed = reward.beneficiaries.includes(account.address);
+
+            if (hasClaimed) {
+                return { canClaim: false };
+            }
+
+            switch (reward.condition.channelType) {
+                case ChannelType.Google:
+                    switch (reward.condition.channelAction) {
+                        case ChannelAction.Like:
+                            return { canClaim: await YouTubeDataService.validateLike(reward) };
+                        case ChannelAction.Subscribe:
+                            return { canClaim: await YouTubeDataService.validateSubscribe(reward) };
+                        default:
+                            return { canClaim: false };
+                    }
+                default:
+                    return { canClaim: false };
+            }
         } catch (error) {
             return { error };
         }
@@ -154,7 +171,12 @@ export default class RewardService {
         }
     }
 
-    static async create(assetPool: IAssetPool, withdrawAmount: BN, withdrawDuration: number) {
+    static async create(
+        assetPool: IAssetPool,
+        withdrawAmount: BN,
+        withdrawDuration: number,
+        condition: null | IRewardCondition = null,
+    ) {
         try {
             const tx = await sendTransaction(
                 assetPool.solution.options.address,
@@ -172,6 +194,7 @@ export default class RewardService {
                     assetPool.solution.methods.getWithdrawDuration(id),
                     assetPool.network,
                 ),
+                condition,
                 state: RewardState.Disabled,
             });
 

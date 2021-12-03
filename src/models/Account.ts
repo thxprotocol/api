@@ -1,5 +1,9 @@
 import { NetworkProvider } from '../util/network';
-
+export interface IAccount {
+    address: string;
+    youtube: any;
+    id: string;
+}
 export interface ERC20Token {
     network: NetworkProvider;
     address: string;

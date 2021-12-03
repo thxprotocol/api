@@ -14,6 +14,7 @@ import { AssetPool, IAssetPool, IAssetPoolUpdates } from '../models/AssetPool';
 import { deployUnlimitedSupplyERC20Contract, deployLimitedSupplyERC20Contract, getProvider } from '../util/network';
 import { toWei, fromWei } from 'web3-utils';
 import { downgradeFromBypassPolls, updateToBypassPolls } from '../util/upgrades';
+import { AccountDocument } from '../../models/Account';
 
 const ERROR_NO_ASSETPOOL = 'Could not find asset pool for this address';
 const ERROR_DOWNGRADE_BYPASS_POLLS = 'Could not update set bypassPolls (false) for this asset pool.';
@@ -36,6 +37,10 @@ export default class AssetPoolService {
         } catch (error) {
             return { error };
         }
+    }
+
+    static async canBypassWithdrawPoll(assetPool: IAssetPool, account: AccountDocument) {
+        //
     }
 
     static async getByAddress(address: string) {

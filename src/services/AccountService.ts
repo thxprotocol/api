@@ -1,7 +1,7 @@
 import { IAssetPool } from '../models/AssetPool';
 import { IAccountUpdates } from '../models/Account';
 import { authClient, getAuthAccessToken } from '../util/auth';
-import { Membership, MembershipDocument } from '../models/Membership';
+import { Membership } from '../models/Membership';
 import { ERROR_IS_NOT_MEMBER } from './MemberService';
 
 const ERROR_NO_ACCOUNT = 'Could not find an account for this address';

@@ -102,10 +102,9 @@ export default class WithdrawalService {
             if (eventWithdrawn) {
                 withdrawal.state = WithdrawalState.Withdrawn;
             }
-            await withdrawal.save();
 
             return {
-                result: true,
+                finalizedWithdrawal: await withdrawal.save(),
             };
         } catch (error) {
             return { error };

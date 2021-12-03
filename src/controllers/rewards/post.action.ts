@@ -4,31 +4,31 @@ import { VERSION } from '../../util/secrets';
 import { toWei } from 'web3-utils';
 import RewardService from '../../services/RewardService';
 import AssetPoolService from '../../services/AssetPoolService';
-import { RewardDocument } from '../../models/Reward';
+import { RewardDocument, IRewardCondition } from '../../models/Reward';
 
-// enum ChannelType {
-//     None = 0,
-//     Google = 1,
-// }
-
-// enum ChannelAction {
-//     None = 0,
-//     Like = 1,
-// }
+const ERROR_CREATE_REWARD_FAILED = 'Could not create your reward';
+const ERROR_FINALIZE_REWARD_POLL_FAILED = 'Could not finalize your reward poll';
+const ERROR_BYPASS_POLL_CHECK_FAILED = 'Could not finalize your reward poll';
+const ERROR_NO_REWARD = 'Could not find a created reward';
 
 export const postReward = async (req: HttpRequest, res: Response, next: NextFunction) => {
-    async function createReward(withdrawAmount: any, withdrawDuration: number) {
-        const { reward, error } = await RewardService.create(req.assetPool, withdrawAmount, withdrawDuration);
+    async function createReward(withdrawAmount: any, withdrawDuration: number, condition: IRewardCondition) {
+        const { reward, error } = await RewardService.create(
+            req.assetPool,
+            withdrawAmount,
+            withdrawDuration,
+            condition,
+        );
         if (error) {
-            throw new Error(error.message);
+            return next(new HttpError(500, ERROR_CREATE_REWARD_FAILED, error));
         }
-        return { reward };
+        return reward;
     }
 
     async function canBypassRewardPoll() {
         const { canBypassPoll, error } = await AssetPoolService.canBypassRewardPoll(req.assetPool);
         if (error) {
-            throw new Error(error.message);
+            return next(new HttpError(500, ERROR_BYPASS_POLL_CHECK_FAILED, error));
         }
         return canBypassPoll;
     }
@@ -36,33 +36,27 @@ export const postReward = async (req: HttpRequest, res: Response, next: NextFunc
     async function finalizeRewardPoll(reward: RewardDocument) {
         const { error } = await RewardService.finalizePoll(req.assetPool, reward);
         if (error) {
-            throw new Error(error.message);
+            return next(new HttpError(500, ERROR_FINALIZE_REWARD_POLL_FAILED, error));
         }
     }
 
-    try {
-        // MOCK
-        // req.body.channelType = ChannelType.Google;
-        // req.body.channelAction = ChannelAction.Like;
-        // req.body.channelItem = 'loremipsum';
-        // ENDMOCK
+    const withdrawAmount = toWei(req.body.withdrawAmount.toString());
+    const withdrawDuration = req.body.withdrawDuration;
+    const withdrawCondition = {
+        channelType: req.body.channelType,
+        channelAction: req.body.channelAction,
+        channelItem: req.body.channelItem,
+    };
+    const reward = await createReward(withdrawAmount, withdrawDuration, withdrawCondition);
 
-        const withdrawAmount = toWei(req.body.withdrawAmount.toString());
-        const withdrawDuration = req.body.withdrawDuration;
-        // const condition = {
-        //     channel: req.body.channelType,
-        //     action: req.body.channelAction,
-        //     item: req.body.channelItem,
-        // };
-        const { reward } = await createReward(withdrawAmount, withdrawDuration);
-
+    if (reward) {
         if (await canBypassRewardPoll()) {
             await finalizeRewardPoll(reward);
         }
 
         res.redirect(`/${VERSION}/rewards/${reward.id}`);
-    } catch (error) {
-        return next(new HttpError(502, error.message, error));
+    } else {
+        return next(new HttpError(500, ERROR_NO_REWARD));
     }
 };
 
