@@ -1,8 +1,17 @@
 import axios from 'axios';
+import { RewardDocument } from '../models/Reward';
+import { IAccount } from '../models/Account';
 
 const ERROR_NO_DATA = 'Could not find an youtube data for this accesstoken';
 
 export default class YouTubeDataService {
+    static async validateLike(account: IAccount, reward: RewardDocument) {
+        return;
+    }
+    static async validateSubscribe(account: IAccount, reward: RewardDocument) {
+        return;
+    }
+
     static async getChannelList(accessToken: string) {
         try {
             const r = await axios({
@@ -85,10 +94,7 @@ export default class YouTubeDataService {
             const channel = await getChannels();
             const uploadsChannelId = channel.items[0].contentDetails.relatedPlaylists.uploads;
             const playlistItems = await getPlaylistItems(uploadsChannelId);
-            const videoIds = playlistItems.map((item: any) => {
-                console.log(item);
-                return item.contentDetails.videoId;
-            });
+            const videoIds = playlistItems.map((item: any) => item.contentDetails.videoId);
             const videos = await getVideos(videoIds);
 
             return {

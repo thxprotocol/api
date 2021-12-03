@@ -102,9 +102,9 @@ curl \
                 case ChannelType.Google:
                     switch (reward.condition.channelAction) {
                         case ChannelAction.Like:
-                            return { canClaim: await YouTubeDataService.validateLike(reward) };
+                            return { canClaim: await YouTubeDataService.validateLike(account, reward) };
                         case ChannelAction.Subscribe:
-                            return { canClaim: await YouTubeDataService.validateSubscribe(reward) };
+                            return { canClaim: await YouTubeDataService.validateSubscribe(account, reward) };
                         default:
                             return { canClaim: false };
                     }

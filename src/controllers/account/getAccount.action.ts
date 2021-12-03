@@ -1,7 +1,6 @@
 import { Response, NextFunction } from 'express';
 import { HttpError, HttpRequest } from '../../models/Error';
 import AccountService from '../../services/AccountService';
-import YouTubeDataService from '../../services/YouTubeDataService';
 
 export const getAccount = async (req: HttpRequest, res: Response, next: NextFunction) => {
     async function getAccount() {
@@ -10,37 +9,13 @@ export const getAccount = async (req: HttpRequest, res: Response, next: NextFunc
         return account;
     }
 
-    async function getYouTubeChannels(accessToken: string) {
-        const { channels, error } = await YouTubeDataService.getChannelList(accessToken);
-        if (error) throw new Error(error.message);
-        return channels;
-    }
-
-    async function getYouTubeVideos(accessToken: string) {
-        const { videos, error } = await YouTubeDataService.getVideoList(accessToken);
-        if (error) throw new Error(error.message);
-        return videos;
-    }
-
     try {
         const account = await getAccount();
-        const response = {
+
+        res.send({
             address: account.address,
             privateKey: account.privateKey,
-            youtube: {},
-        };
-
-        if (account.googleAccessToken) {
-            const channels = await getYouTubeChannels(account.googleAccessToken);
-            const videos = await getYouTubeVideos(account.googleAccessToken);
-
-            response['youtube'] = {
-                channels,
-                videos,
-            };
-        }
-
-        res.send(response);
+        });
     } catch (error) {
         next(new HttpError(502, error.message, error));
     }
