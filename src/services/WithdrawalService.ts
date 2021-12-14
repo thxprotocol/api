@@ -32,51 +32,49 @@ export default class WithdrawalService {
             );
             const events = parseLogs(Artifacts.IDefaultDiamond.abi, tx.logs);
             const event = findEvent('WithdrawPollCreated', events);
-            const withdrawal = await this.save(assetPool, event.args.id, event.args.member);
+            const { withdrawal } = await this.create(assetPool, event.args.id, event.args.member);
 
-            await withdrawal.save();
-
-            return { withdrawal };
+            return { withdrawal: await withdrawal.save() };
         } catch (error) {
             return { error };
         }
     }
 
-    static async save(assetPool: IAssetPool, id: number, memberId: number, rewardId?: number) {
-        const existingWithdrawal = await Withdrawal.findOne({ id, poolAddress: assetPool.address });
-
-        if (existingWithdrawal) {
-            return;
+    static async create(assetPool: IAssetPool, id: number, memberId: number, rewardId?: number) {
+        try {
+            return {
+                withdrawal: new Withdrawal({
+                    id,
+                    amount: Number(
+                        fromWei(await callFunction(assetPool.solution.methods.getAmount(id), assetPool.network)),
+                    ),
+                    poolAddress: assetPool.solution.options.address,
+                    beneficiary: await callFunction(
+                        assetPool.solution.methods.getAddressByMember(memberId),
+                        assetPool.network,
+                    ),
+                    approved: await callFunction(
+                        assetPool.solution.methods.withdrawPollApprovalState(id),
+                        assetPool.network,
+                    ),
+                    state: WithdrawalState.Pending,
+                    rewardId,
+                    poll: {
+                        startTime: Number(
+                            await callFunction(assetPool.solution.methods.getStartTime(id), assetPool.network),
+                        ),
+                        endTime: Number(
+                            await callFunction(assetPool.solution.methods.getEndTime(id), assetPool.network),
+                        ),
+                        yesCounter: 0,
+                        noCounter: 0,
+                        totalVoted: 0,
+                    },
+                }),
+            };
+        } catch (error) {
+            return { error };
         }
-
-        const amount = Number(fromWei(await callFunction(assetPool.solution.methods.getAmount(id), assetPool.network)));
-        const beneficiary = await callFunction(
-            assetPool.solution.methods.getAddressByMember(memberId),
-            assetPool.network,
-        );
-        const approved = await callFunction(
-            assetPool.solution.methods.withdrawPollApprovalState(id),
-            assetPool.network,
-        );
-        const startTime = Number(await callFunction(assetPool.solution.methods.getStartTime(id), assetPool.network));
-        const endTime = Number(await callFunction(assetPool.solution.methods.getEndTime(id), assetPool.network));
-
-        return new Withdrawal({
-            id,
-            amount,
-            poolAddress: assetPool.solution.options.address,
-            beneficiary,
-            approved,
-            state: WithdrawalState.Pending,
-            rewardId,
-            poll: {
-                startTime,
-                endTime,
-                yesCounter: 0,
-                noCounter: 0,
-                totalVoted: 0,
-            },
-        });
     }
 
     static async withdrawPollFinalize(assetPool: IAssetPool, withdrawalId: number) {
@@ -142,6 +140,16 @@ export default class WithdrawalService {
                 await w.remove();
             }
             return { result: true };
+        } catch (error) {
+            return { error };
+        }
+    }
+
+    static async hasClaimedOnce(poolAddress: string, beneficiary: string, rewardId: number) {
+        try {
+            const withdrawal = await Withdrawal.findOne({ beneficiary, rewardId, poolAddress });
+
+            return { withdrawal };
         } catch (error) {
             return { error };
         }

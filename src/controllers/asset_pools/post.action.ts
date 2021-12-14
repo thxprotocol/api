@@ -1,8 +1,8 @@
 import { Response, NextFunction } from 'express';
 import { HttpError, HttpRequest } from '../../models/Error';
 import AssetPoolService from '../../services/AssetPoolService';
-import AccountService from '../../services/AccountService';
 import ClientService from '../../services/ClientService';
+import MembershipService from '../../services/MembershipService';
 
 export const postAssetPool = async (req: HttpRequest, res: Response, next: NextFunction) => {
     try {
@@ -21,7 +21,7 @@ export const postAssetPool = async (req: HttpRequest, res: Response, next: NextF
                 if (error) throw new Error(error);
 
                 try {
-                    const { result, error } = await AccountService.addMembership(req.user.sub, assetPool);
+                    const { result, error } = await MembershipService.addMembership(req.user.sub, assetPool);
 
                     if (!result || error) throw new Error(error);
 

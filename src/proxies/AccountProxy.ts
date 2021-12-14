@@ -1,12 +1,9 @@
-import { IAssetPool } from '../models/AssetPool';
 import { IAccountUpdates } from '../models/Account';
 import { authClient, getAuthAccessToken } from '../util/auth';
-import { Membership } from '../models/Membership';
-import { ERROR_IS_NOT_MEMBER } from './MemberService';
 
 const ERROR_NO_ACCOUNT = 'Could not find an account for this address';
 
-export default class AccountService {
+export default class AccountProxy {
     static async getById(sub: string) {
         try {
             const r = await authClient({
@@ -82,7 +79,7 @@ export default class AccountService {
             if (error.status !== 404) {
                 return { error };
             }
-            return { result: true };
+            return { isDuplicate: false };
         }
     }
 
@@ -95,6 +92,7 @@ export default class AccountService {
             acceptUpdates,
             authenticationToken,
             authenticationTokenExpires,
+            googleAccess,
         }: IAccountUpdates,
     ) {
         try {
@@ -108,6 +106,7 @@ export default class AccountService {
                     acceptUpdates,
                     authenticationToken,
                     authenticationTokenExpires,
+                    googleAccess,
                 },
                 headers: {
                     Authorization: await getAuthAccessToken(),
@@ -164,62 +163,6 @@ export default class AccountService {
             }
 
             return { account: r.data };
-        } catch (error) {
-            return { error };
-        }
-    }
-
-    static async checkAssetPoolAccess(sub: string, poolAddress: string) {
-        try {
-            const membership = await Membership.findOne({
-                sub,
-                poolAddress,
-            });
-
-            if (!membership) {
-                throw new Error(ERROR_IS_NOT_MEMBER);
-            }
-
-            return { result: true };
-        } catch (error) {
-            return { error };
-        }
-    }
-
-    static async addMembership(sub: string, assetPool: IAssetPool) {
-        try {
-            const membership = await Membership.findOne({
-                sub,
-                network: assetPool.network,
-                poolAddress: assetPool.address,
-            });
-
-            if (!membership) {
-                const membership = new Membership({
-                    sub,
-                    network: assetPool.network,
-                    poolAddress: assetPool.address,
-                });
-                await membership.save();
-            }
-
-            return { result: true };
-        } catch (error) {
-            return { error };
-        }
-    }
-
-    static async removeMembership(sub: string, assetPool: IAssetPool) {
-        try {
-            const membership = await Membership.findOne({
-                sub,
-                network: assetPool.network,
-                poolAddress: assetPool.address,
-            });
-
-            await membership.remove();
-
-            return { result: true };
         } catch (error) {
             return { error };
         }

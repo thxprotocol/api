@@ -1,8 +1,11 @@
 import { NetworkProvider } from '../util/network';
 export interface IAccount {
+    id: string;
     address: string;
     youtube: any;
-    id: string;
+    privateKey: string;
+    googleAccessToken: string;
+    googleAccessTokenExpires: number;
 }
 export interface ERC20Token {
     network: NetworkProvider;
@@ -18,11 +21,8 @@ export interface IAccountUpdates {
     acceptTermsPrivacy?: boolean;
     acceptUpdates?: boolean;
     address?: string;
-    memberships?: string[];
     privateKey?: string;
-    burnProofs?: string[];
-    registrationAccessTokens?: string[];
-    erc20?: ERC20Token[];
     authenticationToken?: string;
     authenticationTokenExpires?: number;
+    googleAccess?: string;
 }

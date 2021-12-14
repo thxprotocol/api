@@ -1,3 +1,4 @@
+import YouTubeDataProxy from '../proxies/YoutubeDataProxy';
 import WithdrawalService from './WithdrawalService';
 import BN from 'bn.js';
 import { IAssetPool } from '../models/AssetPool';
@@ -16,7 +17,6 @@ import {
 } from '../models/Reward';
 import { fromWei } from 'web3-utils';
 import { toWei } from 'web3-utils';
-import YouTubeDataService from './YouTubeDataService';
 
 export default class RewardService {
     static async get(assetPool: IAssetPool, rewardId: number) {
@@ -31,7 +31,6 @@ export default class RewardService {
             reward.withdrawAmount = Number(fromWei(withdrawAmount));
             reward.withdrawDuration = Number(withdrawDuration);
             reward.state = state;
-            reward.beneficiaries = reward.beneficiaries || [];
             reward.pollId = Number(pollId);
 
             return {
@@ -83,31 +82,50 @@ export default class RewardService {
         }
     }
 
-    /**
-curl \
-  'https://youtube.googleapis.com/youtube/v3/videos?part=snippet%2CcontentDetails%2Cstatistics&myRating=like&key=[YOUR_API_KEY]' \
-  --header 'Authorization: Bearer [YOUR_ACCESS_TOKEN]' \
-  --header 'Accept: application/json' \
-  --compressed
- */
-    static async canClaim(reward: RewardDocument, account: IAccount) {
-        try {
-            const hasClaimed = reward.beneficiaries.includes(account.address);
+    static async canClaim(assetPool: IAssetPool, reward: RewardDocument, account: IAccount) {
+        async function validateLike(channelItem: string) {
+            const { result, error } = await YouTubeDataProxy.validateLike(account, channelItem);
+            if (error) throw new Error('Could not validate like');
+            return result;
+        }
 
-            if (hasClaimed) {
+        async function validateSubscribe(channelItem: string) {
+            const { result, error } = await YouTubeDataProxy.validateSubscribe(account, channelItem);
+            if (error) throw new Error('Could not validate subscribe');
+            return result;
+        }
+
+        try {
+            const { withdrawal } = await WithdrawalService.hasClaimedOnce(
+                assetPool.address,
+                account.address,
+                reward.id,
+            );
+
+            if (withdrawal && reward.isClaimOnce) {
                 return { canClaim: false };
+            }
+
+            if (!reward.condition) {
+                return { canClaim: true };
             }
 
             switch (reward.condition.channelType) {
                 case ChannelType.Google:
                     switch (reward.condition.channelAction) {
                         case ChannelAction.Like:
-                            return { canClaim: await YouTubeDataService.validateLike(account, reward) };
+                            return {
+                                canClaim: await validateLike(reward.condition.channelItem),
+                            };
                         case ChannelAction.Subscribe:
-                            return { canClaim: await YouTubeDataService.validateSubscribe(account, reward) };
+                            return {
+                                canClaim: await validateSubscribe(reward.condition.channelItem),
+                            };
+                        // Extend with more cases within this channel
                         default:
                             return { canClaim: false };
                     }
+                // Extend with more channels
                 default:
                     return { canClaim: false };
             }
@@ -123,10 +141,14 @@ curl \
                 assetPool.solution.methods.claimRewardFor(rewardId, address),
                 assetPool.network,
             );
-
             const events = parseLogs(Artifacts.IDefaultDiamond.abi, tx.logs);
             const event = findEvent('WithdrawPollCreated', events);
-            const withdrawal = await WithdrawalService.save(assetPool, event.args.id, event.args.member);
+            const { withdrawal } = await WithdrawalService.create(
+                assetPool,
+                event.args.id,
+                event.args.member,
+                rewardId,
+            );
 
             return { withdrawal };
         } catch (error) {
@@ -142,18 +164,7 @@ curl \
                 throw new Error('fail');
             }
 
-            const reward = await Reward.findOne({ poolAddress: assetPool.address, id: rewardId });
-
-            if (reward.beneficiaries.length) {
-                reward.beneficiaries.push(address);
-            } else {
-                reward.beneficiaries = [address];
-            }
-
-            await reward.save();
-            await withdrawal.save();
-
-            return { withdrawal };
+            return { withdrawal: await withdrawal.save() };
         } catch (error) {
             return { error };
         }
@@ -176,6 +187,8 @@ curl \
         withdrawAmount: BN,
         withdrawDuration: number,
         condition: null | IRewardCondition = null,
+        isMembershipRequired: boolean,
+        isClaimOnce: boolean,
     ) {
         try {
             const tx = await sendTransaction(
@@ -196,6 +209,8 @@ curl \
                 ),
                 condition,
                 state: RewardState.Disabled,
+                isMembershipRequired,
+                isClaimOnce,
             });
 
             return { reward: await reward.save() };

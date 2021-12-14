@@ -1,9 +1,35 @@
 import { Response, NextFunction } from 'express';
-import { parseLogs, findEvent } from '../../util/events';
 import { HttpError, HttpRequest } from '../../models/Error';
-import { callFunction, sendTransaction } from '../../util/network';
-import { Artifacts } from '../../util/artifacts';
-import WithdrawalService from '../../services/WithdrawalService';
+import RewardService from '../../services/RewardService';
+
+const ERROR_NO_REWARD = 'Could not find a reward for this id';
+
+export const postRewardClaimFor = async (req: HttpRequest, res: Response, next: NextFunction) => {
+    async function getReward(rewardId: number) {
+        const { reward, error } = await RewardService.get(req.assetPool, rewardId);
+        if (error) return next(new HttpError(500, error.message, error));
+        return reward;
+    }
+
+    async function claimRewardFor(rewardId: number, address: string) {
+        const { withdrawal, error } = await RewardService.claimRewardFor(req.assetPool, rewardId, address);
+        if (error) throw new Error(error.message);
+        return withdrawal;
+    }
+
+    try {
+        const rewardId = Number(req.params.id);
+        const reward = await getReward(rewardId);
+
+        if (!reward) return next(new HttpError(400, ERROR_NO_REWARD));
+
+        const withdrawal = await claimRewardFor(reward.id, req.body.member);
+
+        return res.json({ withdrawal });
+    } catch (error) {
+        return next(new HttpError(502, error.message, error));
+    }
+};
 
 /**
  * @swagger
@@ -48,44 +74,3 @@ import WithdrawalService from '../../services/WithdrawalService';
  *       '502':
  *         $ref: '#/components/responses/502'
  */
-export const postRewardClaimFor = async (req: HttpRequest, res: Response, next: NextFunction) => {
-    try {
-        const result = await callFunction(req.solution.methods.getReward(req.params.id), req.assetPool.network);
-
-        if (!result) {
-            throw new Error(result);
-        }
-
-        try {
-            const tx = await sendTransaction(
-                req.solution.options.address,
-                req.solution.methods.claimRewardFor(req.params.id, req.body.member),
-                req.assetPool.network,
-            );
-
-            try {
-                const events = parseLogs(Artifacts.IDefaultDiamond.abi, tx.logs);
-                const event = findEvent('WithdrawPollCreated', events);
-                const rewardId = Number(req.params.id);
-                const withdrawal = await WithdrawalService.save(
-                    req.assetPool,
-                    event.args.id,
-                    event.args.member,
-                    rewardId,
-                );
-                if (!withdrawal) {
-                    return next(new HttpError(500, 'Withdrawal already exists.'));
-                }
-                await withdrawal.save();
-
-                res.json({ withdrawal: withdrawal.id });
-            } catch (err) {
-                return next(new HttpError(500, 'Could not parse the transaction for this reward claim.', err));
-            }
-        } catch (err) {
-            return next(new HttpError(502, 'Could not claim the reward for this member.', err));
-        }
-    } catch (err) {
-        next(new HttpError(502, 'Could not find this reward on the network.', err));
-    }
-};

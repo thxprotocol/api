@@ -1,14 +1,15 @@
 import { Response, NextFunction } from 'express';
 import { HttpError, HttpRequest } from '../../models/Error';
 import MemberService from '../../services/MemberService';
-import AccountService from '../../services/AccountService';
+import AccountProxy from '../../proxies/AccountProxy';
+import MembershipService from '../../services/MembershipService';
 
 const ERROR_DUPLICATE_EMAIL = 'An account with this e-mail address already exists.';
 const ERROR_CREATE_ACCOUNT = 'Could not signup for an account';
 
 export const postAccount = async (req: HttpRequest, res: Response, next: NextFunction) => {
     async function checkDuplicateEmail() {
-        const { isDuplicate } = await AccountService.isEmailDuplicate(req.body.email);
+        const { isDuplicate } = await AccountProxy.isEmailDuplicate(req.body.email);
 
         if (isDuplicate) {
             throw new Error(ERROR_DUPLICATE_EMAIL);
@@ -16,7 +17,7 @@ export const postAccount = async (req: HttpRequest, res: Response, next: NextFun
     }
 
     async function createAccount() {
-        const { account, error } = await AccountService.signupFor(req.body.email, req.body.password, req.body.address);
+        const { account, error } = await AccountProxy.signupFor(req.body.email, req.body.password, req.body.address);
 
         if (error) throw new Error(ERROR_CREATE_ACCOUNT);
 
@@ -32,7 +33,7 @@ export const postAccount = async (req: HttpRequest, res: Response, next: NextFun
     }
 
     async function addMembership(account: any) {
-        const { error } = await AccountService.addMembership(account.id, req.assetPool);
+        const { error } = await MembershipService.addMembership(account.id, req.assetPool);
 
         if (error) {
             throw new Error(error);

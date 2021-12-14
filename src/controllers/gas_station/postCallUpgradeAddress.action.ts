@@ -3,7 +3,7 @@ import { callFunction, sendTransaction } from '../../util/network';
 import { HttpError, HttpRequest } from '../../models/Error';
 import { parseLogs, findEvent } from '../../util/events';
 import { Artifacts } from '../../util/artifacts';
-import AccountService from '../../services/AccountService';
+import AccountProxy from '../../proxies/AccountProxy';
 import WithdrawalService from '../../services/WithdrawalService';
 import MemberService from '../../services/MemberService';
 
@@ -30,7 +30,7 @@ export const postCallUpgradeAddress = async (req: HttpRequest, res: Response, ne
 
             if (event) {
                 try {
-                    const { account } = await AccountService.getByAddress(event.args.previousAddress);
+                    const { account } = await AccountProxy.getByAddress(event.args.previousAddress);
 
                     account.address = event.args.newAddress;
                     account.privateKey = '';
@@ -70,7 +70,6 @@ export const postCallUpgradeAddress = async (req: HttpRequest, res: Response, ne
         return next(new HttpError(502, 'Could not add the new address as a member.', e));
     }
 };
-
 
 /**
  * @swagger

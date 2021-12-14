@@ -1,9 +1,9 @@
+import AccountProxy from '../../proxies/AccountProxy';
+import MembershipService from '../../services/MembershipService';
 import AssetPoolService from '../../services/AssetPoolService';
 import RewardService from '../../services/RewardService';
 import MemberService from '../../services/MemberService';
-import AccountService from '../../services/AccountService';
 import WithdrawalService from '../../services/WithdrawalService';
-
 import { Response, NextFunction } from 'express';
 import { HttpError, HttpRequest } from '../../models/Error';
 import { RewardDocument } from '../../models/Reward';
@@ -13,89 +13,58 @@ import { IAccount } from '../../models/Account';
 const ERROR_REWARD_NOT_FOUND = 'The reward for this ID does not exist.';
 const ERROR_ACCOUNT_NO_ADDRESS = 'The authenticated account has not wallet address. Sign in the Web Wallet once.';
 const ERROR_REWARD_ALREADY_CLAIMED = 'Reward already claimed for this address.';
+const ERROR_INCORRECT_SCOPE = 'No subscription is found for this type of access token.';
+const ERROR_CLAIM_ONCE_FAILED = 'ClaimRewardForOnce failed';
+const ERROR_WITHDRAWAL_NOT_FOUND = 'No withdrawal found failed.';
+const ERROR_CAIM_NOT_ALLOWED = 'Could not claim this reward due to the claim conditions.';
+const ERROR_NO_MEMBER = 'Could not claim this reward since you are not a member of the pool.';
 
 export const postRewardClaim = async (req: HttpRequest, res: Response, next: NextFunction) => {
     async function getReward(rewardId: number) {
         const { reward, error } = await RewardService.get(req.assetPool, rewardId);
-
-        if (error) {
-            return next(new HttpError(500, error.message, error));
-        }
-
-        if (!reward) {
-            throw new Error(ERROR_REWARD_NOT_FOUND);
-        }
-
+        if (error) throw new Error(error.message);
         return reward;
     }
 
     async function getAccount(sub: string) {
-        const { account } = await AccountService.getById(sub);
-
-        if (!account.address) {
-            return next(new HttpError(500, ERROR_ACCOUNT_NO_ADDRESS));
-        }
+        const { account, error } = await AccountProxy.getById(sub);
+        if (error) throw new Error(error.message);
+        if (!account.address) throw new Error(ERROR_ACCOUNT_NO_ADDRESS);
         return account;
     }
 
     async function checkIsMember(address: string) {
         const { isMember, error } = await MemberService.isMember(req.assetPool, address);
-
-        if (error) {
-            return next(new HttpError(500, error.message, error));
-        }
+        if (error) throw new Error(error.message);
         return isMember;
     }
 
     async function addMember(address: string) {
         const { error } = await MemberService.addMember(req.assetPool, address);
-
-        if (error) {
-            return next(new HttpError(500, error.message, error));
-        }
+        if (error) throw new Error(error.message);
     }
 
     async function addMembership(sub: string) {
-        const { error } = await AccountService.addMembership(sub, req.assetPool);
-
-        if (error) {
-            return next(new HttpError(500, error.message, error));
-        }
+        const { error } = await MembershipService.addMembership(sub, req.assetPool);
+        if (error) throw new Error(error.message);
     }
 
-    async function checkCanClaim(reward: RewardDocument, address: string) {
-        const { canClaim, error } = await RewardService.canClaim(reward, address);
-
-        if (error) {
-            return next(new HttpError(500, error.message, error));
-        }
-
-        if (!canClaim) {
-            throw new Error(ERROR_REWARD_ALREADY_CLAIMED);
-        }
-
+    async function checkCanClaim(reward: RewardDocument, account: IAccount) {
+        const { canClaim, error } = await RewardService.canClaim(req.assetPool, reward, account);
+        if (error) throw new Error(error.message);
         return canClaim;
     }
 
     async function claimRewardOnce(rewardId: number, address: string) {
         const { withdrawal, error } = await RewardService.claimRewardForOnce(req.assetPool, rewardId, address);
-
-        if (error) {
-            throw new Error('ClaimRewardForOnce failed');
-        }
-
-        if (!withdrawal) {
-            throw new Error('No withdrawal found failed');
-        }
-
+        if (error) throw new Error(ERROR_CLAIM_ONCE_FAILED);
+        if (!withdrawal) throw new Error(ERROR_WITHDRAWAL_NOT_FOUND);
         return withdrawal;
     }
 
-    async function canBypassWithdrawPoll(account: IAccount) {
-        const { canBypassPoll, error } = await AssetPoolService.canBypassWithdrawPoll(req.assetPool, account);
-        if (error) {
-            return next(new HttpError(500, error.message, error));
-        }
+    async function canBypassWithdrawPoll(account: IAccount, reward: RewardDocument) {
+        const { canBypassPoll, error } = await AssetPoolService.canBypassWithdrawPoll(req.assetPool, account, reward);
+        if (error) throw new Error(error.message);
         return canBypassPoll;
     }
 
@@ -104,31 +73,45 @@ export const postRewardClaim = async (req: HttpRequest, res: Response, next: Nex
             req.assetPool,
             withdrawal.id,
         );
-
-        if (error) {
-            return next(new HttpError(500, error.message, error));
-        }
+        if (error) throw new Error(error.message);
         return finalizedWithdrawal;
     }
 
-    const rewardId = Number(req.params.id);
-    const reward = await getReward(rewardId);
-    const account = await getAccount(req.user.sub);
-    const isMember = await checkIsMember(account.address);
+    try {
+        const rewardId = Number(req.params.id);
+        const sub = req.user.sub;
 
-    if (!reward) return next(new HttpError(500, ERROR_REWARD_NOT_FOUND));
+        if (!sub) return next(new HttpError(500, ERROR_INCORRECT_SCOPE));
 
-    if (!isMember) {
-        await addMember(account.address);
-        await addMembership(account.id);
-    }
+        const reward = await getReward(rewardId);
 
-    const canClaim = await checkCanClaim(reward, account.address);
+        if (!reward) {
+            return next(new HttpError(500, ERROR_REWARD_NOT_FOUND));
+        }
 
-    if (canClaim) {
+        const account = await getAccount(sub);
+        const isMember = await checkIsMember(account.address);
+
+        if (reward.isMembershipRequired && !isMember) {
+            return next(new HttpError(403, ERROR_NO_MEMBER));
+        }
+
+        if (!reward.isMembershipRequired && !isMember) {
+            await addMember(account.address);
+            await addMembership(account.id);
+        }
+
+        const canClaim = await checkCanClaim(reward, account);
+
+        if (!canClaim) {
+            return next(new HttpError(403, ERROR_CAIM_NOT_ALLOWED));
+        }
+
         let withdrawal = await claimRewardOnce(rewardId, account.address);
 
-        if (withdrawal && (await canBypassWithdrawPoll(account))) {
+        const canByPass = await canBypassWithdrawPoll(account, reward);
+
+        if (withdrawal && canByPass) {
             const finalizedWithdrawal = await finalizeWithdrawPoll(withdrawal);
 
             if (finalizedWithdrawal) {
@@ -136,7 +119,9 @@ export const postRewardClaim = async (req: HttpRequest, res: Response, next: Nex
             }
         }
 
-        res.status(200).json(withdrawal);
+        return res.json(withdrawal);
+    } catch (error) {
+        return next(new HttpError(500, error.message, error));
     }
 };
 

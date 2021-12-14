@@ -1,7 +1,7 @@
 import { Response, Request, NextFunction } from 'express';
 import { HttpError } from '../../models/Error';
 import { getAdmin, getProvider, NetworkProvider } from '../../util/network';
-// import AccountService from '../../services/AccountService';
+// import AccountProxy from '../../proxies/AccountProxy';
 import AssetPoolService from '../../services/AssetPoolService';
 import RewardService from '../../services/RewardService';
 import WithdrawalService from '../../services/WithdrawalService';
@@ -72,7 +72,6 @@ export const getMetrics = async (req: Request, res: Response, next: NextFunction
     }
 };
 
-
 /**
  * @swagger
  * /metrics:
@@ -92,7 +91,7 @@ export const getMetrics = async (req: Request, res: Response, next: NextFunction
  *                 count_wallets:
  *                   type: number
  *                 count_applications:
- *                   type: number 
+ *                   type: number
  *                 count_asset_pools:
  *                   type: object
  *                   properties:

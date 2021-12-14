@@ -2,7 +2,7 @@ import { body, validationResult } from 'express-validator';
 import { Response, Request, NextFunction } from 'express';
 import { HttpError, HttpRequest } from '../models/Error';
 import { AssetPool } from '../models/AssetPool';
-import AccountService from '../services/AccountService';
+import AssetPoolService from '../services/AssetPoolService';
 
 export const validate = (validations: any) => {
     return async (req: Request, res: Response, next: NextFunction) => {
@@ -19,32 +19,28 @@ export const validate = (validations: any) => {
 };
 
 export const validateAssetPoolHeader = async (req: HttpRequest, res: Response, next: NextFunction) => {
-    try {
-        // If there is a sub check the account for user membership
-        if (req.user.sub) {
-            if (req.user.scope.includes('widget')) {
-                return next();
-            }
-            const { result, error } = await AccountService.checkAssetPoolAccess(req.user.sub, req.header('AssetPool'));
-
-            if (!result || error) {
-                throw new HttpError(401, 'Could not access this asset pool by sub.');
-            } else {
-                next();
-            }
+    // If there is a sub check the account for user membership
+    if (req.user.sub) {
+        if (req.user.scope.includes('widget')) {
+            return next();
         }
-        // If there is no sub check if client aud is equal to requested asset pool aud
-        else if (req.user.aud) {
-            const assetPools = await AssetPool.find({ clientId: req.user.aud, address: req.header('AssetPool') });
+        const { result, error } = await AssetPoolService.checkAssetPoolAccess(req.user.sub, req.header('AssetPool'));
 
-            if (!assetPools) {
-                throw new HttpError(401, 'Could not access this asset pool by audience.');
-            } else {
-                next();
-            }
+        if (!result || error) {
+            return next(new HttpError(401, 'Could not access this asset pool by sub.'));
+        } else {
+            return next();
         }
-    } catch (e) {
-        next(e);
+    }
+    // If there is no sub check if client aud is equal to requested asset pool aud
+    if (req.user.aud) {
+        const assetPools = await AssetPool.find({ clientId: req.user.aud, address: req.header('AssetPool') });
+
+        if (!assetPools) {
+            return next(new HttpError(401, 'Could not access this asset pool by audience.'));
+        } else {
+            return next();
+        }
     }
 };
 

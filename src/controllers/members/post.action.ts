@@ -1,12 +1,13 @@
 import MemberService from '../../services/MemberService';
-import AccountService from '../../services/AccountService';
+import MembershipService from '../../services/MembershipService';
+import AccountProxy from '../../proxies/AccountProxy';
 import { NextFunction, Response } from 'express';
 import { HttpRequest, HttpError } from '../../models/Error';
 import { VERSION } from '../../util/secrets';
 
 export async function postMember(req: HttpRequest, res: Response, next: NextFunction) {
     try {
-        const { account, error } = await AccountService.getByAddress(req.body.address);
+        const { account, error } = await AccountProxy.getByAddress(req.body.address);
 
         if (error) {
             throw new Error(error);
@@ -16,7 +17,7 @@ export async function postMember(req: HttpRequest, res: Response, next: NextFunc
             if (error) {
                 throw new Error(error);
             } else {
-                const { error } = await AccountService.addMembership(account.id, req.assetPool);
+                const { error } = await MembershipService.addMembership(account.id, req.assetPool);
 
                 if (error) {
                     throw new Error(error);

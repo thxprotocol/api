@@ -224,7 +224,7 @@ export const tokenContract = (npid: NetworkProvider, address: string): Contract 
 };
 
 export async function parseHeader(req: HttpRequest, res: Response, next: NextFunction) {
-    const address = req.header('AssetPool') || req.params.address;
+    const address = req.header('AssetPool');
 
     if (address && isAddress(address)) {
         const assetPool = await AssetPool.findOne({ address });

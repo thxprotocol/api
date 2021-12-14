@@ -4,7 +4,7 @@ import { createRandomToken } from '../util/tokens';
 import path from 'path';
 import { API_URL, WALLET_URL, SECURE_KEY } from '../util/secrets';
 import { encryptString } from '../util/encrypt';
-import AccountService from './AccountService';
+import AccountProxy from '../proxies/AccountProxy';
 
 const DURATION_TEN_MINUTES = Date.now() + 10 * 60 * 1000;
 
@@ -23,13 +23,13 @@ export default class MailService {
                 },
                 { async: true },
             );
-            const { account, error } = await AccountService.getByEmail(email);
+            const { account, error } = await AccountProxy.getByEmail(email);
 
             if (error) throw new Error(error);
 
             await sendMail(email, 'A sign in is requested for your Web Wallet', html);
 
-            await AccountService.update(account.id, {
+            await AccountProxy.update(account.id, {
                 authenticationToken,
                 authenticationTokenExpires: DURATION_TEN_MINUTES,
             });

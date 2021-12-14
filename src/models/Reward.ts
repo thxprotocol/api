@@ -33,9 +33,10 @@ export type RewardDocument = mongoose.Document & {
     withdrawDuration: number;
     poolAddress: string;
     state: number;
-    beneficiaries: string[];
     condition: IRewardCondition;
     pollId: number;
+    isMembershipRequired: boolean;
+    isClaimOnce: boolean;
 };
 
 export type RewardPollDocument = {
@@ -56,7 +57,13 @@ const rewardSchema = new mongoose.Schema(
         withdrawDuration: Number,
         poolAddress: String,
         beneficiaries: [String],
-        condition: Number,
+        condition: {
+            channelType: Number,
+            channelAction: Number,
+            channelItem: String,
+        },
+        isMembershipRequired: Boolean,
+        isClaimOnce: Boolean,
         state: Number,
     },
     { timestamps: true },

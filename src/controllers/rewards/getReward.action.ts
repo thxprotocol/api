@@ -36,7 +36,7 @@ export const getReward = async (req: HttpRequest, res: Response, next: NextFunct
             id: reward.id,
             withdrawAmount: reward.withdrawAmount,
             withdrawDuration: reward.withdrawDuration,
-            beneficiaries: reward.beneficiaries,
+            condition: reward.condition,
             state: reward.state,
             poll,
         });
