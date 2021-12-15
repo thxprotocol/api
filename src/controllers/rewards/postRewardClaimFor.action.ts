@@ -25,7 +25,7 @@ export const postRewardClaimFor = async (req: HttpRequest, res: Response, next: 
 
         const withdrawal = await claimRewardFor(reward.id, req.body.member);
 
-        return res.json({ withdrawal });
+        return res.json(withdrawal);
     } catch (error) {
         return next(new HttpError(502, error.message, error));
     }
