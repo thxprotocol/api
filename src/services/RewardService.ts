@@ -106,20 +106,20 @@ export default class RewardService {
                 return { canClaim: false };
             }
 
-            if (!reward.condition) {
+            if (!reward.withdrawCondition) {
                 return { canClaim: true };
             }
 
-            switch (reward.condition.channelType) {
+            switch (reward.withdrawCondition.channelType) {
                 case ChannelType.Google:
-                    switch (reward.condition.channelAction) {
+                    switch (reward.withdrawCondition.channelAction) {
                         case ChannelAction.Like:
                             return {
-                                canClaim: await validateLike(reward.condition.channelItem),
+                                canClaim: await validateLike(reward.withdrawCondition.channelItem),
                             };
                         case ChannelAction.Subscribe:
                             return {
-                                canClaim: await validateSubscribe(reward.condition.channelItem),
+                                canClaim: await validateSubscribe(reward.withdrawCondition.channelItem),
                             };
                         // Extend with more cases within this channel
                         default:
@@ -186,9 +186,9 @@ export default class RewardService {
         assetPool: IAssetPool,
         withdrawAmount: BN,
         withdrawDuration: number,
-        condition: null | IRewardCondition = null,
         isMembershipRequired: boolean,
         isClaimOnce: boolean,
+        withdrawCondition?: IRewardCondition,
     ) {
         try {
             const tx = await sendTransaction(
@@ -207,7 +207,7 @@ export default class RewardService {
                     assetPool.solution.methods.getWithdrawDuration(id),
                     assetPool.network,
                 ),
-                condition,
+                withdrawCondition,
                 state: RewardState.Disabled,
                 isMembershipRequired,
                 isClaimOnce,

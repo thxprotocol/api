@@ -15,7 +15,7 @@ export const postReward = async (req: HttpRequest, res: Response, next: NextFunc
     async function createReward(
         withdrawAmount: any,
         withdrawDuration: number,
-        condition: IRewardCondition,
+        withdrawCondition: IRewardCondition,
         isMembershipRequired: boolean,
         isClaimOnce: boolean,
     ) {
@@ -23,9 +23,9 @@ export const postReward = async (req: HttpRequest, res: Response, next: NextFunc
             req.assetPool,
             withdrawAmount,
             withdrawDuration,
-            condition,
             isMembershipRequired,
             isClaimOnce,
+            withdrawCondition,
         );
 
         if (error) return next(new HttpError(500, ERROR_CREATE_REWARD_FAILED, error));
@@ -48,7 +48,7 @@ export const postReward = async (req: HttpRequest, res: Response, next: NextFunc
 
     const withdrawAmount = toWei(req.body.withdrawAmount.toString());
     const withdrawDuration = req.body.withdrawDuration;
-    const withdrawCondition = req.body.condition;
+    const withdrawCondition = req.body.withdrawCondition;
     const isMembershipRequired = req.body.isMembershipRequired;
     const isClaimOnce = req.body.isClaimOnce;
     const reward = await createReward(

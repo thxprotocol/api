@@ -4,9 +4,9 @@ export const validations = {
     postReward: [
         body('withdrawAmount').exists().isNumeric(),
         body('withdrawDuration').exists().isNumeric(),
-        body('condition.channelType').optional().isNumeric(),
-        body('condition.channelAction').optional().isNumeric(),
-        body('condition.channelItem').optional().isString(),
+        body('withdrawCondition.channelType').optional().isNumeric(),
+        body('withdrawCondition.channelAction').optional().isNumeric(),
+        body('withdrawCondition.channelItem').optional().isString(),
     ],
     getRewards: [header('AssetPool').exists()],
     getReward: [param('id').exists().isNumeric()],

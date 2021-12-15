@@ -29,14 +29,14 @@ export interface IRewardCondition {
 
 export type RewardDocument = mongoose.Document & {
     id: number;
-    withdrawAmount: number;
-    withdrawDuration: number;
     poolAddress: string;
     state: number;
-    condition: IRewardCondition;
-    pollId: number;
     isMembershipRequired: boolean;
     isClaimOnce: boolean;
+    withdrawAmount: number;
+    withdrawDuration: number;
+    withdrawCondition: IRewardCondition;
+    pollId: number;
 };
 
 export type RewardPollDocument = {
@@ -53,18 +53,18 @@ export type RewardPollDocument = {
 const rewardSchema = new mongoose.Schema(
     {
         id: Number,
+        poolAddress: String,
+        state: Number,
+        isMembershipRequired: Boolean,
+        isClaimOnce: Boolean,
         withdrawAmount: Number,
         withdrawDuration: Number,
-        poolAddress: String,
-        beneficiaries: [String],
-        condition: {
+        withdrawCondition: {
             channelType: Number,
             channelAction: Number,
             channelItem: String,
         },
-        isMembershipRequired: Boolean,
-        isClaimOnce: Boolean,
-        state: Number,
+        pollId: Number,
     },
     { timestamps: true },
 );

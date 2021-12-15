@@ -12,7 +12,6 @@ import { IAccount } from '../../models/Account';
 
 const ERROR_REWARD_NOT_FOUND = 'The reward for this ID does not exist.';
 const ERROR_ACCOUNT_NO_ADDRESS = 'The authenticated account has not wallet address. Sign in the Web Wallet once.';
-const ERROR_REWARD_ALREADY_CLAIMED = 'Reward already claimed for this address.';
 const ERROR_INCORRECT_SCOPE = 'No subscription is found for this type of access token.';
 const ERROR_CLAIM_ONCE_FAILED = 'ClaimRewardForOnce failed';
 const ERROR_WITHDRAWAL_NOT_FOUND = 'No withdrawal found failed.';
@@ -85,9 +84,7 @@ export const postRewardClaim = async (req: HttpRequest, res: Response, next: Nex
 
         const reward = await getReward(rewardId);
 
-        if (!reward) {
-            return next(new HttpError(500, ERROR_REWARD_NOT_FOUND));
-        }
+        if (!reward) return next(new HttpError(500, ERROR_REWARD_NOT_FOUND));
 
         const account = await getAccount(sub);
         const isMember = await checkIsMember(account.address);
