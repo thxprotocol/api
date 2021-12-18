@@ -28,7 +28,7 @@ export const postReward = async (req: HttpRequest, res: Response, next: NextFunc
             withdrawCondition,
         );
 
-        if (error) return next(new HttpError(500, ERROR_CREATE_REWARD_FAILED, error));
+        if (error) throw new Error(ERROR_CREATE_REWARD_FAILED);
 
         return reward;
     }
@@ -36,33 +36,37 @@ export const postReward = async (req: HttpRequest, res: Response, next: NextFunc
     async function canBypassRewardPoll() {
         const { canBypassPoll, error } = await AssetPoolService.canBypassRewardPoll(req.assetPool);
 
-        if (error) return next(new HttpError(500, ERROR_BYPASS_POLL_CHECK_FAILED, error));
+        if (error) throw new Error(ERROR_BYPASS_POLL_CHECK_FAILED);
 
         return canBypassPoll;
     }
 
     async function finalizeRewardPoll(reward: RewardDocument) {
         const { error } = await RewardService.finalizePoll(req.assetPool, reward);
-        if (error) return next(new HttpError(500, ERROR_FINALIZE_REWARD_POLL_FAILED, error));
+        if (error) throw new Error(ERROR_FINALIZE_REWARD_POLL_FAILED);
     }
 
-    const withdrawAmount = toWei(req.body.withdrawAmount.toString());
-    const withdrawDuration = req.body.withdrawDuration;
-    const withdrawCondition = req.body.withdrawCondition;
-    const isMembershipRequired = req.body.isMembershipRequired;
-    const isClaimOnce = req.body.isClaimOnce;
-    const reward = await createReward(
-        withdrawAmount,
-        withdrawDuration,
-        withdrawCondition,
-        isMembershipRequired,
-        isClaimOnce,
-    );
+    try {
+        const withdrawAmount = toWei(req.body.withdrawAmount.toString());
+        const withdrawDuration = req.body.withdrawDuration;
+        const withdrawCondition = req.body.withdrawCondition;
+        const isMembershipRequired = req.body.isMembershipRequired;
+        const isClaimOnce = req.body.isClaimOnce;
+        const reward = await createReward(
+            withdrawAmount,
+            withdrawDuration,
+            withdrawCondition,
+            isMembershipRequired,
+            isClaimOnce,
+        );
 
-    if (!reward) return next(new HttpError(500, ERROR_NO_REWARD));
-    if (await canBypassRewardPoll()) await finalizeRewardPoll(reward);
+        if (!reward) return next(new HttpError(500, ERROR_NO_REWARD));
+        if (await canBypassRewardPoll()) await finalizeRewardPoll(reward);
 
-    res.redirect(`/${VERSION}/rewards/${reward.id}`);
+        res.redirect(`/${VERSION}/rewards/${reward.id}`);
+    } catch (error) {
+        next(new HttpError(500, error.message, error));
+    }
 };
 
 /**
