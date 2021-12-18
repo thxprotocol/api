@@ -1,7 +1,8 @@
 import { NextFunction, Response } from 'express';
 import { HttpError, HttpRequest } from '../../models/Error';
 import MemberService, { ERROR_IS_NOT_MEMBER } from '../../services/MemberService';
-import AccountService from '../../services/AccountService';
+import AccountProxy from '../../proxies/AccountProxy';
+import MembershipService from '../../services/MembershipService';
 
 export const deleteMember = async (req: HttpRequest, res: Response, next: NextFunction) => {
     try {
@@ -17,8 +18,8 @@ export const deleteMember = async (req: HttpRequest, res: Response, next: NextFu
             if (error) {
                 throw new Error(error);
             } else {
-                const { account } = await AccountService.getByAddress(req.params.address);
-                const { error } = await AccountService.removeMembership(account.id, req.assetPool);
+                const { account } = await AccountProxy.getByAddress(req.params.address);
+                const { error } = await MembershipService.removeMembership(account.id, req.assetPool);
 
                 if (error) throw new Error(error);
 

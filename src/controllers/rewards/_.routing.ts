@@ -51,8 +51,8 @@ router.patch(
 );
 router.post(
     '/:id/claim',
-    checkScopes(['widget']),
-    validateAssetPoolHeader,
+    checkScopes(['widget', 'user']),
+    // validateAssetPoolHeader,
     validate(validations.postRewardClaim),
     parseHeader,
     postRewardClaim,

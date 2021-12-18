@@ -1,20 +1,22 @@
 import { Response, NextFunction } from 'express';
 import { HttpError, HttpRequest } from '../../models/Error';
-import AccountService from '../../services/AccountService';
+import AccountProxy from '../../proxies/AccountProxy';
 
 export const getAccount = async (req: HttpRequest, res: Response, next: NextFunction) => {
-    try {
-        const { account, error } = await AccountService.getById(req.user.sub);
-
+    async function getAccount() {
+        const { account, error } = await AccountProxy.getById(req.user.sub);
         if (error) throw new Error(error.message);
+        return account;
+    }
 
-        if (account) {
-            res.send({
-                address: account.address,
-                privateKey: account.privateKey,
-            });
-        }
-    } catch (e) {
-        next(new HttpError(502, 'Account find failed', e));
+    try {
+        const account = await getAccount();
+
+        res.send({
+            address: account.address,
+            privateKey: account.privateKey,
+        });
+    } catch (error) {
+        next(new HttpError(502, error.message, error));
     }
 };

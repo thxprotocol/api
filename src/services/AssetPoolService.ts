@@ -14,6 +14,10 @@ import { AssetPool, IAssetPool, IAssetPoolUpdates } from '../models/AssetPool';
 import { deployUnlimitedSupplyERC20Contract, deployLimitedSupplyERC20Contract, getProvider } from '../util/network';
 import { toWei, fromWei } from 'web3-utils';
 import { downgradeFromBypassPolls, updateToBypassPolls } from '../util/upgrades';
+import { RewardDocument } from '../models/Reward';
+import { IAccount } from '../models/Account';
+import { Membership } from '../models/Membership';
+import { ERROR_IS_NOT_MEMBER } from './MemberService';
 
 const ERROR_NO_ASSETPOOL = 'Could not find asset pool for this address';
 const ERROR_DOWNGRADE_BYPASS_POLLS = 'Could not update set bypassPolls (false) for this asset pool.';
@@ -23,12 +27,47 @@ const ERROR_UPDATE_PROPOSE_WITHDRAW_POLL_DURATION =
 const ERROR_UPDATE_REWARD_POLL_DURATION = 'Could not update the rewardPollDuration for this asset pool.';
 
 export default class AssetPoolService {
+    static async checkAssetPoolAccess(sub: string, poolAddress: string) {
+        try {
+            const membership = await Membership.findOne({
+                sub,
+                poolAddress,
+            });
+
+            if (!membership) throw new Error(ERROR_IS_NOT_MEMBER);
+
+            return { result: true };
+        } catch (error) {
+            return { error };
+        }
+    }
+
     static async canBypassRewardPoll(assetPool: IAssetPool) {
         try {
             const duration = Number(
                 await callFunction(assetPool.solution.methods.getRewardPollDuration(), assetPool.network),
             );
             const canBypassPoll = assetPool.bypassPolls || (!assetPool.bypassPolls && duration === 0);
+
+            return {
+                canBypassPoll,
+            };
+        } catch (error) {
+            return { error };
+        }
+    }
+
+    static async canBypassWithdrawPoll(assetPool: IAssetPool, account: IAccount, reward: RewardDocument) {
+        try {
+            const { withdrawDuration } = await callFunction(
+                assetPool.solution.methods.getReward(reward.id),
+                assetPool.network,
+            );
+            const duration = Number(withdrawDuration);
+            const isNotCustodial = !account.privateKey;
+            const canBypassPoll =
+                (assetPool.bypassPolls && isNotCustodial) ||
+                (!assetPool.bypassPolls && duration === 0 && isNotCustodial);
 
             return {
                 canBypassPoll,

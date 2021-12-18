@@ -5,7 +5,6 @@ import { HttpError, HttpRequest } from '../../models/Error';
 export const getRewards = async (req: HttpRequest, res: Response, next: NextFunction) => {
     async function getReward(rewardId: number) {
         const { reward, error } = await RewardService.get(req.assetPool, rewardId);
-
         if (error) {
             throw new Error(error.message);
         }

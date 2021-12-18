@@ -256,9 +256,9 @@ describe('Happy Flow', () => {
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
                 .end(async (err, res) => {
                     expect(res.status).toBe(200);
-                    expect(res.body.withdrawal).toEqual(3);
+                    expect(res.body.id).toEqual(3);
 
-                    withdrawPollID = res.body.withdrawal;
+                    withdrawPollID = res.body.id;
 
                     done();
                 });

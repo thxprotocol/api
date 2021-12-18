@@ -73,7 +73,7 @@ import WithdrawalService from '../../services/WithdrawalService';
  */
 export const getWithdrawal = async (req: HttpRequest, res: Response, next: NextFunction) => {
     try {
-        const { withdrawal } = await WithdrawalService.get(req.solution.options.address, Number(req.params.id));
+        const { withdrawal, error } = await WithdrawalService.get(req.assetPool, Number(req.params.id));
 
         if (!withdrawal) {
             return next(new HttpError(404, 'Could not find a withdrawal for this ID.'));

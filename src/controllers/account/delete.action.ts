@@ -1,10 +1,10 @@
 import { Response, NextFunction } from 'express';
 import { HttpRequest, HttpError } from '../../models/Error';
-import AccountService from '../../services/AccountService';
+import AccountProxy from '../../proxies/AccountProxy';
 
 export const deleteAccount = async (req: HttpRequest, res: Response, next: NextFunction) => {
     try {
-        const { error } = await AccountService.remove(req.user.sub);
+        const { error } = await AccountProxy.remove(req.user.sub);
 
         if (error) throw new Error(error);
 

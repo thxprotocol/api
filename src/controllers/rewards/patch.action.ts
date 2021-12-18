@@ -1,8 +1,8 @@
+import RewardService from '../../services/RewardService';
+import AssetPoolService from '../../services/AssetPoolService';
 import { Response, NextFunction } from 'express';
 import { HttpRequest, HttpError } from '../../models/Error';
-import RewardService, { IRewardUpdates } from '../../services/RewardService';
-import { RewardDocument } from '../../models/Reward';
-import AssetPoolService from '../../services/AssetPoolService';
+import { RewardDocument, IRewardUpdates } from '../../models/Reward';
 
 export async function patchReward(req: HttpRequest, res: Response, next: NextFunction) {
     async function getReward(rewardId: number) {

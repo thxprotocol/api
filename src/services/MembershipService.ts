@@ -1,3 +1,4 @@
+import { IAssetPool } from '../models/AssetPool';
 import { Membership } from '../models/Membership';
 import AssetPoolService from './AssetPoolService';
 
@@ -30,6 +31,45 @@ export default class MembershipService {
             };
         } catch (error) {
             return { error: ERROR_MEMBERSHIP_GET_FAILED };
+        }
+    }
+
+    static async addMembership(sub: string, assetPool: IAssetPool) {
+        try {
+            const membership = await Membership.findOne({
+                sub,
+                network: assetPool.network,
+                poolAddress: assetPool.address,
+            });
+
+            if (!membership) {
+                const membership = new Membership({
+                    sub,
+                    network: assetPool.network,
+                    poolAddress: assetPool.address,
+                });
+                await membership.save();
+            }
+
+            return { result: true };
+        } catch (error) {
+            return { error };
+        }
+    }
+
+    static async removeMembership(sub: string, assetPool: IAssetPool) {
+        try {
+            const membership = await Membership.findOne({
+                sub,
+                network: assetPool.network,
+                poolAddress: assetPool.address,
+            });
+
+            await membership.remove();
+
+            return { result: true };
+        } catch (error) {
+            return { error };
         }
     }
 

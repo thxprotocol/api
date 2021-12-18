@@ -1,29 +1,22 @@
+import YouTubeDataProxy from '../proxies/YoutubeDataProxy';
+import WithdrawalService from './WithdrawalService';
+import BN from 'bn.js';
 import { IAssetPool } from '../models/AssetPool';
+import { IAccount } from '../models/Account';
 import { sendTransaction, callFunction } from '../util/network';
 import { Artifacts } from '../util/artifacts';
 import { parseLogs, findEvent } from '../util/events';
-import { Reward, RewardDocument } from '../models/Reward';
-import WithdrawalService from './WithdrawalService';
+import {
+    ChannelAction,
+    ChannelType,
+    IRewardCondition,
+    IRewardUpdates,
+    Reward,
+    RewardDocument,
+    RewardState,
+} from '../models/Reward';
 import { fromWei } from 'web3-utils';
-import BN from 'bn.js';
 import { toWei } from 'web3-utils';
-import { ConsoleTransportOptions } from 'winston/lib/winston/transports';
-
-// const ERROR_REWARD_GET_FAILED = 'Could not get the reward information from the database';
-// const TRANSACTION_EVENT_ERROR = 'Could not parse the transaction event logs.';
-// const REWARD_ERROR = 'Could not finalize the reward.';
-// const ERROR_GOVERNANCE_DISABLED = 'Could determine if governance is disabled for this reward.';
-// const DATABASE_STORE_ERROR = 'Could not store the reward in the database.';
-
-export enum RewardState {
-    Disabled = 0,
-    Enabled = 1,
-}
-
-export interface IRewardUpdates {
-    withdrawAmount: number;
-    withdrawDuration: number;
-}
 
 export default class RewardService {
     static async get(assetPool: IAssetPool, rewardId: number) {
@@ -38,7 +31,6 @@ export default class RewardService {
             reward.withdrawAmount = Number(fromWei(withdrawAmount));
             reward.withdrawDuration = Number(withdrawDuration);
             reward.state = state;
-            reward.beneficiaries = reward.beneficiaries || [];
             reward.pollId = Number(pollId);
 
             return {
@@ -90,10 +82,53 @@ export default class RewardService {
         }
     }
 
-    static async canClaim(reward: RewardDocument, address: string) {
+    static async canClaim(assetPool: IAssetPool, reward: RewardDocument, account: IAccount) {
+        async function validateLike(channelItem: string) {
+            const { result, error } = await YouTubeDataProxy.validateLike(account, channelItem);
+            if (error) throw new Error('Could not validate like');
+            return result;
+        }
+
+        async function validateSubscribe(channelItem: string) {
+            const { result, error } = await YouTubeDataProxy.validateSubscribe(account, channelItem);
+            if (error) throw new Error('Could not validate subscribe');
+            return result;
+        }
+
         try {
-            const hasClaimed = reward.beneficiaries.includes(address);
-            return { canClaim: !hasClaimed };
+            const { withdrawal } = await WithdrawalService.hasClaimedOnce(
+                assetPool.address,
+                account.address,
+                reward.id,
+            );
+
+            if (withdrawal && reward.isClaimOnce) {
+                return { canClaim: false };
+            }
+
+            if (!reward.withdrawCondition) {
+                return { canClaim: true };
+            }
+
+            switch (reward.withdrawCondition.channelType) {
+                case ChannelType.Google:
+                    switch (reward.withdrawCondition.channelAction) {
+                        case ChannelAction.Like:
+                            return {
+                                canClaim: await validateLike(reward.withdrawCondition.channelItem),
+                            };
+                        case ChannelAction.Subscribe:
+                            return {
+                                canClaim: await validateSubscribe(reward.withdrawCondition.channelItem),
+                            };
+                        // Extend with more cases within this channel
+                        default:
+                            return { canClaim: false };
+                    }
+                // Extend with more channels
+                default:
+                    return { canClaim: false };
+            }
         } catch (error) {
             return { error };
         }
@@ -106,35 +141,14 @@ export default class RewardService {
                 assetPool.solution.methods.claimRewardFor(rewardId, address),
                 assetPool.network,
             );
-
             const events = parseLogs(Artifacts.IDefaultDiamond.abi, tx.logs);
             const event = findEvent('WithdrawPollCreated', events);
-            const withdrawal = await WithdrawalService.save(assetPool, event.args.id, event.args.member);
-
-            return { withdrawal };
-        } catch (error) {
-            return { error };
-        }
-    }
-
-    static async claimRewardForOnce(assetPool: IAssetPool, rewardId: number, address: string) {
-        try {
-            const { withdrawal, error } = await this.claimRewardFor(assetPool, rewardId, address);
-
-            if (error) {
-                throw new Error('fail');
-            }
-
-            const reward = await Reward.findOne({ poolAddress: assetPool.address, id: rewardId });
-
-            if (reward.beneficiaries.length) {
-                reward.beneficiaries.push(address);
-            } else {
-                reward.beneficiaries = [address];
-            }
-
-            await reward.save();
-            await withdrawal.save();
+            const { withdrawal } = await WithdrawalService.create(
+                assetPool,
+                event.args.id,
+                event.args.member,
+                rewardId,
+            );
 
             return { withdrawal };
         } catch (error) {
@@ -154,7 +168,14 @@ export default class RewardService {
         }
     }
 
-    static async create(assetPool: IAssetPool, withdrawAmount: BN, withdrawDuration: number) {
+    static async create(
+        assetPool: IAssetPool,
+        withdrawAmount: BN,
+        withdrawDuration: number,
+        isMembershipRequired: boolean,
+        isClaimOnce: boolean,
+        withdrawCondition?: IRewardCondition,
+    ) {
         try {
             const tx = await sendTransaction(
                 assetPool.solution.options.address,
@@ -172,7 +193,10 @@ export default class RewardService {
                     assetPool.solution.methods.getWithdrawDuration(id),
                     assetPool.network,
                 ),
+                withdrawCondition,
                 state: RewardState.Disabled,
+                isMembershipRequired,
+                isClaimOnce,
             });
 
             return { reward: await reward.save() };

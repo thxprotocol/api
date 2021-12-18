@@ -85,9 +85,9 @@ describe('Propose Withdrawal', () => {
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
                 .end(async (err, res) => {
                     expect(res.status).toBe(201);
-                    expect(res.body.withdrawal.id).toBe(1);
+                    expect(res.body.id).toBe(1);
 
-                    withdrawalID = res.body.withdrawal.id;
+                    withdrawalID = res.body.id;
 
                     done();
                 });

@@ -132,7 +132,7 @@ export default class MemberService {
             const isMember = await callFunction(assetPool.solution.methods.isMember(address), assetPool.network);
             return { isMember };
         } catch (error) {
-            return { error: ERROR_IS_MEMBER_FAILED };
+            return { error };
         }
     }
 

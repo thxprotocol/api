@@ -54,8 +54,10 @@ export const postWithdrawal = async (req: HttpRequest, res: Response, next: Next
         );
 
         if (error) throw new Error(error);
+
         await withdrawal.save();
-        res.status(201).json({ withdrawal });
+
+        res.status(201).json(withdrawal);
     } catch (error) {
         next(new HttpError(500, error.toString(), error));
     }

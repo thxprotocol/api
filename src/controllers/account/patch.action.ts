@@ -1,12 +1,13 @@
 import { Response, NextFunction } from 'express';
 import { HttpError, HttpRequest } from '../../models/Error';
 import { VERSION } from '../../util/secrets';
-import AccountService from '../../services/AccountService';
+import AccountProxy from '../../proxies/AccountProxy';
 
 export const patchAccount = async (req: HttpRequest, res: Response, next: NextFunction) => {
     try {
-        const { result, error } = await AccountService.update(req.user.sub, {
+        const { result, error } = await AccountProxy.update(req.user.sub, {
             address: req.body.address,
+            googleAccess: req.body.googleAccess,
         });
 
         if (!result || error) {
