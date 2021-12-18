@@ -26,6 +26,7 @@ const required = [
     'RATE_LIMIT_REWARD_GIVE_WINDOW',
     'MINIMUM_GAS_LIMIT',
     'MAXIMUM_GAS_PRICE',
+    'INITIAL_ACCESS_TOKEN',
 ];
 
 required.forEach((value: string) => {
@@ -64,3 +65,4 @@ export const RATE_LIMIT_REWARD_GIVE_WINDOW = Number(process.env.RATE_LIMIT_REWAR
 export const MINIMUM_GAS_LIMIT = Number(process.env.MINIMUM_GAS_LIMIT);
 export const MAXIMUM_GAS_PRICE = Number(process.env.MAXIMUM_GAS_PRICE);
 export const FIXED_GAS_PRICE = Number(process.env.FIXED_GAS_PRICE);
+export const INITIAL_ACCESS_TOKEN = process.env.INITIAL_ACCESS_TOKEN;
