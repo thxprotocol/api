@@ -1,5 +1,6 @@
 import { authClient } from '../util/auth';
 import { Client } from '../models/Client';
+import { INITIAL_ACCESS_TOKEN } from '../util/secrets';
 
 export default class ClientService {
     static async get(clientId: string) {
@@ -28,6 +29,9 @@ export default class ClientService {
             const r = await authClient({
                 method: 'POST',
                 url: '/reg',
+                headers: {
+                    Authorization: `Bearer ${INITIAL_ACCESS_TOKEN}`,
+                },
                 data,
             });
 

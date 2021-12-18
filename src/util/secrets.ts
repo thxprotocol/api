@@ -26,6 +26,7 @@ const required = [
     'RATE_LIMIT_REWARD_GIVE_WINDOW',
     'MINIMUM_GAS_LIMIT',
     'MAXIMUM_GAS_PRICE',
+    'INITIAL_ACCESS_TOKEN',
 ];
 
 required.forEach((value: string) => {
@@ -67,3 +68,4 @@ export const FIXED_GAS_PRICE = Number(process.env.FIXED_GAS_PRICE);
 export const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
 export const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
 export const GOOGLE_REDIRECT_URI = process.env.GOOGLE_REDIRECT_URI;
+export const INITIAL_ACCESS_TOKEN = process.env.INITIAL_ACCESS_TOKEN;
