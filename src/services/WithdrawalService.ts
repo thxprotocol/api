@@ -9,10 +9,10 @@ import { paginatedResults } from '../util/pagination';
 const ERROR_NO_WITHDRAWAL = 'Could not find an withdrawal for this beneficiary';
 
 export default class WithdrawalService {
-    static async get(poolAddress: string, withdrawalId: number) {
+    static async get(assetPool: IAssetPool, withdrawalId: number) {
         try {
             const withdrawal = await Withdrawal.findOne({
-                poolAddress,
+                poolAddress: assetPool.address,
                 id: withdrawalId,
             });
             return { withdrawal };
@@ -42,35 +42,35 @@ export default class WithdrawalService {
 
     static async create(assetPool: IAssetPool, id: number, memberId: number, rewardId?: number) {
         try {
+            const withdrawal = new Withdrawal({
+                id,
+                amount: Number(
+                    fromWei(await callFunction(assetPool.solution.methods.getAmount(id), assetPool.network)),
+                ),
+                poolAddress: assetPool.solution.options.address,
+                beneficiary: await callFunction(
+                    assetPool.solution.methods.getAddressByMember(memberId),
+                    assetPool.network,
+                ),
+                approved: await callFunction(
+                    assetPool.solution.methods.withdrawPollApprovalState(id),
+                    assetPool.network,
+                ),
+                state: WithdrawalState.Pending,
+                rewardId,
+                poll: {
+                    startTime: Number(
+                        await callFunction(assetPool.solution.methods.getStartTime(id), assetPool.network),
+                    ),
+                    endTime: Number(await callFunction(assetPool.solution.methods.getEndTime(id), assetPool.network)),
+                    yesCounter: 0,
+                    noCounter: 0,
+                    totalVoted: 0,
+                },
+            });
+
             return {
-                withdrawal: new Withdrawal({
-                    id,
-                    amount: Number(
-                        fromWei(await callFunction(assetPool.solution.methods.getAmount(id), assetPool.network)),
-                    ),
-                    poolAddress: assetPool.solution.options.address,
-                    beneficiary: await callFunction(
-                        assetPool.solution.methods.getAddressByMember(memberId),
-                        assetPool.network,
-                    ),
-                    approved: await callFunction(
-                        assetPool.solution.methods.withdrawPollApprovalState(id),
-                        assetPool.network,
-                    ),
-                    state: WithdrawalState.Pending,
-                    rewardId,
-                    poll: {
-                        startTime: Number(
-                            await callFunction(assetPool.solution.methods.getStartTime(id), assetPool.network),
-                        ),
-                        endTime: Number(
-                            await callFunction(assetPool.solution.methods.getEndTime(id), assetPool.network),
-                        ),
-                        yesCounter: 0,
-                        noCounter: 0,
-                        totalVoted: 0,
-                    },
-                }),
+                withdrawal: await withdrawal.save(),
             };
         } catch (error) {
             return { error };

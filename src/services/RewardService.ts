@@ -156,20 +156,6 @@ export default class RewardService {
         }
     }
 
-    static async claimRewardForOnce(assetPool: IAssetPool, rewardId: number, address: string) {
-        try {
-            const { withdrawal, error } = await this.claimRewardFor(assetPool, rewardId, address);
-
-            if (error) {
-                throw new Error('fail');
-            }
-
-            return { withdrawal: await withdrawal.save() };
-        } catch (error) {
-            return { error };
-        }
-    }
-
     static async removeAllForAddress(address: string) {
         try {
             const rewards = await Reward.find({ poolAddress: address });

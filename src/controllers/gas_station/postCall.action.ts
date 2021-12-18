@@ -52,7 +52,6 @@ export const postCall = async (req: HttpRequest, res: Response, next: NextFuncti
     }
 };
 
-
 /**
  * @swagger
  * /gas_station/call:
