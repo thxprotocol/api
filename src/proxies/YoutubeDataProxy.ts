@@ -13,11 +13,9 @@ export default class YoutubeDataProxy {
                 },
             });
 
-            if (!r.data) {
-                throw new Error(ERROR_NO_YOUTUBE);
-            }
+            if (!r.data) throw new Error(ERROR_NO_YOUTUBE);
 
-            return { channels: r.data.channels, videos: r.data.videos };
+            return { isAuthorized: r.data.isAuthorized, channels: r.data.channels, videos: r.data.videos };
         } catch (error) {
             return { error };
         }
@@ -33,9 +31,7 @@ export default class YoutubeDataProxy {
                 },
             });
 
-            if (!r.data) {
-                throw new Error(ERROR_NO_YOUTUBE);
-            }
+            if (!r.data) throw new Error(ERROR_NO_YOUTUBE);
 
             return { result: r.data.result };
         } catch (error) {
@@ -53,9 +49,7 @@ export default class YoutubeDataProxy {
                 },
             });
 
-            if (!r.data) {
-                throw new Error(ERROR_NO_YOUTUBE);
-            }
+            if (!r.data) throw new Error(ERROR_NO_YOUTUBE);
 
             return { result: r.data.result };
         } catch (error) {

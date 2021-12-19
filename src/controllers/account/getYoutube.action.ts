@@ -4,15 +4,18 @@ import { HttpError, HttpRequest } from '../../models/Error';
 
 export const getYoutube = async (req: HttpRequest, res: Response, next: NextFunction) => {
     async function getYouTube() {
-        const { channels, videos, error } = await YoutubeDataProxy.getYoutube(req.user.sub);
+        const { isAuthorized, channels, videos, error } = await YoutubeDataProxy.getYoutube(req.user.sub);
         if (error) throw new Error(error.message);
-        return { channels, videos };
+        return { isAuthorized, channels, videos };
     }
 
     try {
-        const { channels, videos } = await getYouTube();
+        const { isAuthorized, channels, videos } = await getYouTube();
+
+        if (!isAuthorized) return res.json({ isAuthorized });
 
         res.send({
+            isAuthorized,
             channels,
             videos,
         });
