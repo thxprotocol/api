@@ -150,7 +150,7 @@ export default class AccountProxy {
                 url: '/account',
                 data: {
                     email,
-                    secret: password,
+                    password,
                     address,
                 },
                 headers: {
