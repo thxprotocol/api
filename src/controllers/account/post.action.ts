@@ -11,7 +11,7 @@ export const postAccount = async (req: HttpRequest, res: Response, next: NextFun
         const { isDuplicate } = await AccountService.isEmailDuplicate(req.body.email);
 
         if (isDuplicate) {
-            throw new Error(ERROR_DUPLICATE_EMAIL);
+            throw new HttpError(400, ERROR_DUPLICATE_EMAIL);
         }
     }
 
@@ -51,6 +51,7 @@ export const postAccount = async (req: HttpRequest, res: Response, next: NextFun
 
         res.status(201).json({ id: account.id, address: account.address });
     } catch (error) {
+        if (error instanceof HttpError) next(error);
         return next(new HttpError(502, error.message, error));
     }
 };
