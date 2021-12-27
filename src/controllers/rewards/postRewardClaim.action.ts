@@ -87,6 +87,13 @@ export const postRewardClaim = async (req: HttpRequest, res: Response, next: Nex
         if (!reward) return next(new HttpError(500, ERROR_REWARD_NOT_FOUND));
 
         const account = await getAccount(sub);
+
+        const canClaim = await checkCanClaim(reward, account);
+
+        if (!canClaim) {
+            return next(new HttpError(403, ERROR_CAIM_NOT_ALLOWED));
+        }
+
         const isMember = await checkIsMember(account.address);
 
         if (reward.isMembershipRequired && !isMember) {
@@ -96,12 +103,6 @@ export const postRewardClaim = async (req: HttpRequest, res: Response, next: Nex
         if (!reward.isMembershipRequired && !isMember) {
             await addMember(account.address);
             await addMembership(account.id);
-        }
-
-        const canClaim = await checkCanClaim(reward, account);
-
-        if (!canClaim) {
-            return next(new HttpError(403, ERROR_CAIM_NOT_ALLOWED));
         }
 
         let withdrawal = await claimRewardOnce(rewardId, account.address);
