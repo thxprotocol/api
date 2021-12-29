@@ -12,11 +12,13 @@ import rewardsRouter from './rewards/_.routing';
 import withdrawalsRouter from './withdrawals/_.routing';
 import membershipsRouter from './memberships/_.routing';
 import { checkJwt } from '../util/jwt';
+import { getCirculatingSupply } from './token/getToken.action';
 
 const router = express.Router();
 
 router.use('/ping', (req, res) => res.send('pong'));
 router.use('/health', healthRouter);
+router.use('/token/cs', getCirculatingSupply);
 router.use('/docs', docsRouter);
 router.use(checkJwt);
 router.use('/', authRouter);
