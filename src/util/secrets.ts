@@ -66,3 +66,4 @@ export const MINIMUM_GAS_LIMIT = Number(process.env.MINIMUM_GAS_LIMIT);
 export const MAXIMUM_GAS_PRICE = Number(process.env.MAXIMUM_GAS_PRICE);
 export const FIXED_GAS_PRICE = Number(process.env.FIXED_GAS_PRICE);
 export const INITIAL_ACCESS_TOKEN = process.env.INITIAL_ACCESS_TOKEN;
+export const CIRCULATING_SUPPLY = process.env.CIRCULATING_SUPPLY;
