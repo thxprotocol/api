@@ -4,17 +4,21 @@ import { getAdmin, getProvider, NetworkProvider } from '../../util/network';
 // import AccountProxy from '../../proxies/AccountProxy';
 import AssetPoolService from '../../services/AssetPoolService';
 import WithdrawalService from '../../services/WithdrawalService';
+import MembershipService from '../../services/MembershipService';
 
 export const getMetrics = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const web3Main = getProvider(NetworkProvider.Main);
         const web3Test = getProvider(NetworkProvider.Test);
         const address = getAdmin(NetworkProvider.Main).address;
-
-        const jsonData = {
+        const metrics = {
             count_asset_pools: {
                 mainnet: await AssetPoolService.countByNetwork(NetworkProvider.Main),
                 testnet: await AssetPoolService.countByNetwork(NetworkProvider.Test),
+            },
+            count_memberships: {
+                mainnet: await MembershipService.countByNetwork(NetworkProvider.Main),
+                testnet: await MembershipService.countByNetwork(NetworkProvider.Test),
             },
             count_withdrawals: {
                 mainnet: await WithdrawalService.countByNetwork(NetworkProvider.Main),
@@ -30,7 +34,7 @@ export const getMetrics = async (req: Request, res: Response, next: NextFunction
             },
         };
 
-        res.header('Content-Type', 'application/json').send(JSON.stringify(jsonData, null, 4));
+        res.json(metrics);
     } catch (error) {
         next(new HttpError(500, 'Could not get all API metrics.', error));
     }
