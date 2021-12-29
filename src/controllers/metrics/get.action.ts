@@ -1,9 +1,9 @@
 import { Response, Request, NextFunction } from 'express';
 import { HttpError } from '../../models/Error';
 import { getAdmin, getProvider, NetworkProvider } from '../../util/network';
-// import AccountService from '../../services/AccountService';
 import AssetPoolService from '../../services/AssetPoolService';
 import WithdrawalService from '../../services/WithdrawalService';
+import MembershipService from '../../services/MembershipService';
 
 export const getMetrics = async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -15,6 +15,10 @@ export const getMetrics = async (req: Request, res: Response, next: NextFunction
             count_asset_pools: {
                 mainnet: await AssetPoolService.countByNetwork(NetworkProvider.Main),
                 testnet: await AssetPoolService.countByNetwork(NetworkProvider.Test),
+            },
+            count_memberships: {
+                mainnet: await MembershipService.countByNetwork(NetworkProvider.Main),
+                testnet: await MembershipService.countByNetwork(NetworkProvider.Test),
             },
             count_withdrawals: {
                 mainnet: await WithdrawalService.countByNetwork(NetworkProvider.Main),
@@ -36,7 +40,6 @@ export const getMetrics = async (req: Request, res: Response, next: NextFunction
     }
 };
 
-
 /**
  * @swagger
  * /metrics:
@@ -56,7 +59,7 @@ export const getMetrics = async (req: Request, res: Response, next: NextFunction
  *                 count_wallets:
  *                   type: number
  *                 count_applications:
- *                   type: number 
+ *                   type: number
  *                 count_asset_pools:
  *                   type: object
  *                   properties:

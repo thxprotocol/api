@@ -1,3 +1,4 @@
+import { NetworkProvider } from '../util/network';
 import { Membership } from '../models/Membership';
 import AssetPoolService from './AssetPoolService';
 
@@ -41,6 +42,14 @@ export default class MembershipService {
             return { result: true };
         } catch (error) {
             return { error: ERROR_MEMBERSHIP_DELETE_FAILED };
+        }
+    }
+
+    static async countByNetwork(network: NetworkProvider) {
+        try {
+            return await Membership.countDocuments({ network });
+        } catch (error) {
+            return { error };
         }
     }
 }
