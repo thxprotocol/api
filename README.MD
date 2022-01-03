@@ -18,7 +18,7 @@ This repository holds the code for the THX API project. A REST API that can be u
 ## 1. Prerequisites
 
 -   Docker
--   Nodejs 12.x
+-   Nodejs 16.x
 
 ## 2. Installing
 
@@ -33,11 +33,7 @@ git submodule update;
 # 3. Install packages
 npm install;
 
-# 4. Extract docker volumes in ./cache
-mkdir cache;
-unzip cache.zip -d ./cache;
-
-# 5. Start the containers
+# 4. Start the containers
 docker compose up;
 ```
 
