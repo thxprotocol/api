@@ -119,6 +119,10 @@
         "yargs": "17.2.1",
         "apollo-server": "2.25.3"
     },
+    "engines": {
+        "npm": ">=8.0.0",
+        "node": ">=16.0.0"
+    },
     "prettier": {
         "tabWidth": 4,
         "singleQuote": true,
