@@ -16,6 +16,9 @@ jobs:
               with:
                   submodules: true
 
+            - name: Copy .env.ci to .env
+              run: cp .env.ci .env
+
             - name: Install Node.js ${{ matrix.node-version }}
               uses: actions/setup-node@v1
               with:
