@@ -1,9 +1,10 @@
-name: CI/CD Production
+name: CI/CD build Docker image
 
 on:
     push:
         branches:
             - master
+            - develop
 
 jobs:
     buildAndTest:
@@ -11,7 +12,7 @@ jobs:
         runs-on: ubuntu-latest
         strategy:
             matrix:
-                node-version: ['12.x']
+                node-version: ['16.x']
 
         steps:
             - name: Checkout repository
@@ -36,11 +37,11 @@ jobs:
         strategy:
             matrix:
                 python-version: [3.8]
-                node-version: ['12.x']
+                node-version: ['16.x']
                 appname: ['api']
-                deploy-group: ['master']
-                s3-bucket: ['aws-deployments-api-master']
-                s3-filename: ['api-master-${{ github.sha }}']
+                deploy-group: ['{github.ref_name}']
+                s3-bucket: ['aws-deployments-api-{github.ref_name}']
+                s3-filename: ['api-{github.ref_name}-${{ github.sha }}']
 
         needs: buildAndTest
         steps:
