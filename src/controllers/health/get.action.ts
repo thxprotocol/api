@@ -16,9 +16,11 @@ async function getNetworkDetails(npid: NetworkProvider, constants: { factory: st
     const provider = getProvider(npid);
     const address = getAdmin(npid).address;
     const balance = await provider.eth.getBalance(address);
+    const gasPrice = await provider.eth.getGasPrice();
 
     return {
         admin: address,
+        gasPrice: fromWei(gasPrice, 'gwei'),
         balance: fromWei(balance, 'ether'),
         factory: constants.factory,
         registry: constants.registry,
