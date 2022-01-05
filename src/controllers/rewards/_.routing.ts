@@ -13,7 +13,7 @@ import { parseHeader } from '../../util/network';
 import { postVote } from './postVote.action';
 import { deleteVote } from './deleteVote.action';
 import { postPollFinalize } from './postPollFinalize.action';
-import { rateLimitRewardGive } from '../../util/ratelimiter';
+import { rateLimitRewardClaim, rateLimitRewardGive } from '../../util/ratelimiter';
 
 const router = express.Router();
 
@@ -52,7 +52,7 @@ router.patch(
 router.post(
     '/:id/claim',
     checkScopes(['widget', 'user']),
-    // validateAssetPoolHeader,
+    // rateLimitRewardClaim,
     validate(validations.postRewardClaim),
     parseHeader,
     postRewardClaim,
