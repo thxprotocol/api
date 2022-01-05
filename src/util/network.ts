@@ -66,9 +66,9 @@ export async function getGasPrice(npid: NetworkProvider) {
 
     if (r.data.result.FastGasPrice > MAXIMUM_GAS_PRICE) {
         throw new Error('Gas price exceeds configured cap');
+    } else {
+        return web3.utils.toWei(r.data.result.FastGasPrice, 'gwei').toString();
     }
-
-    return web3.utils.toWei(r.data.result.FastGasPrice, 'gwei').toString();
 }
 
 export const getAdmin = (npid: NetworkProvider) => {
