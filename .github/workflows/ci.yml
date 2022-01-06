@@ -6,11 +6,6 @@ jobs:
     buildAndTest:
         name: CI Pipeline
         runs-on: ubuntu-latest
-        if: github.ref != 'refs/heads/infra-update'
-
-        strategy:
-            matrix:
-                node-version: ['16.x']
 
         steps:
             - name: Checkout repository
@@ -18,19 +13,14 @@ jobs:
               with:
                   submodules: true
 
-            - name: Copy .env.ci to .env
-              run: cp .env.ci .env
-
-            - name: Install Node.js ${{ matrix.node-version }}
-              uses: actions/setup-node@v1
-              with:
-                  node-version: ${{ matrix.node-version }}
-
-            - name: Install dependencies
-              run: npm install
+            - name: Run dependencies
+              run: docker compose -f docker-compose.ci.yml up thx_api_ci_mongo thx_api_ci_testnet -d
 
             - name: Run test
-              run: npm run test
+              run: docker compose -f docker-compose.ci.yml run thx_api_ci npm run test
+
+            - name: Shut down dependencies
+              run: docker compose -f docker-compose.ci.yml down
 
     deploy:
         name: CD Pipeline
@@ -115,6 +105,7 @@ jobs:
             - name: Login to Amazon ECR
               id: login-ecr
               uses: aws-actions/amazon-ecr-login@v1
+
             - name: Docker meta
               id: meta
               uses: docker/metadata-action@v3
@@ -124,6 +115,7 @@ jobs:
                   tags: |
                       type=ref,event=branch
                       type=sha
+
             - name: Build
               uses: docker/build-push-action@v2
               with:
