@@ -93,7 +93,7 @@ jobs:
         runs-on: ubuntu-latest
         if: github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/master' || github.ref == 'refs/heads/infra-update'
 
-        # needs: buildAndTest
+        needs: buildAndTest
         steps:
             - name: Configure AWS credentials
               uses: aws-actions/configure-aws-credentials@v1
@@ -105,13 +105,15 @@ jobs:
             - name: Login to Amazon ECR
               id: login-ecr
               uses: aws-actions/amazon-ecr-login@v1
+              with:
+                  registry: 275440070213.dkr.ecr.eu-west-3.amazonaws.com
 
             - name: Docker meta
               id: meta
               uses: docker/metadata-action@v3
               with:
                   images: |
-                      275440070213.dkr.ecr.eu-west-3.amazonaws.com/thx
+                      thx/api
                   tags: |
                       type=ref,event=branch
                       type=sha
