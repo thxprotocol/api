@@ -14,10 +14,10 @@ jobs:
                   submodules: true
 
             - name: Run dependencies
-              run: docker compose -f docker-compose.ci.yml up thx_api_ci_mongo thx_api_ci_testnet -d
+              run: docker compose -f docker-compose.ci.yml up api_ci_mongo api_ci_testnet -d
 
             - name: Run test
-              run: docker compose -f docker-compose.ci.yml run thx_api_ci npm run test
+              run: docker compose -f docker-compose.ci.yml run api_ci npm run test
 
             - name: Shut down dependencies
               run: docker compose -f docker-compose.ci.yml down
