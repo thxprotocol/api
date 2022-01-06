@@ -112,7 +112,7 @@ jobs:
               uses: docker/metadata-action@v3
               with:
                   images: |
-                      275440070213.dkr.ecr.eu-west-3.amazonaws.com/thx/api
+                      275440070213.dkr.ecr.eu-west-3.amazonaws.com/api
                   tags: |
                       type=ref,event=branch
                       type=sha
