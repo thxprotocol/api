@@ -1,4 +1,5 @@
 import YouTubeDataProxy from '../proxies/YoutubeDataProxy';
+import TwitterDataProxy from '../proxies/TwitterDataProxy';
 import WithdrawalService from './WithdrawalService';
 import BN from 'bn.js';
 import { IAssetPool } from '../models/AssetPool';
@@ -6,17 +7,8 @@ import { IAccount } from '../models/Account';
 import { sendTransaction, callFunction } from '../util/network';
 import { Artifacts } from '../util/artifacts';
 import { parseLogs, findEvent } from '../util/events';
-import {
-    ChannelAction,
-    ChannelType,
-    IRewardCondition,
-    IRewardUpdates,
-    Reward,
-    RewardDocument,
-    RewardState,
-} from '../models/Reward';
+import { ChannelAction, IRewardCondition, IRewardUpdates, Reward, RewardDocument, RewardState } from '../models/Reward';
 import { fromWei } from 'web3-utils';
-import { toWei } from 'web3-utils';
 
 export default class RewardService {
     static async get(assetPool: IAssetPool, rewardId: number) {
@@ -83,16 +75,35 @@ export default class RewardService {
     }
 
     static async canClaim(assetPool: IAssetPool, reward: RewardDocument, account: IAccount) {
-        async function validateLike(channelItem: string) {
+        async function validateYouTubeLike(channelItem: string) {
             const { result, error } = await YouTubeDataProxy.validateLike(account, channelItem);
-            if (error) throw new Error('Could not validate like');
+            if (error) throw new Error('Could not validate YouTube like');
             return result;
         }
 
-        async function validateSubscribe(channelItem: string) {
+        async function validateYouTubeSubscribe(channelItem: string) {
             const { result, error } = await YouTubeDataProxy.validateSubscribe(account, channelItem);
-            if (error) throw new Error('Could not validate subscribe');
+            if (error) throw new Error('Could not validate YouTube subscribe');
             return result;
+        }
+
+        async function validateTwitterLike(channelItem: string) {
+            const { result, error } = await TwitterDataProxy.validateLike(account, channelItem);
+            if (error) throw new Error('Could not validate Twitter like');
+            return result;
+        }
+
+        async function validate(channelAction: ChannelAction, channelItem: string) {
+            switch (channelAction) {
+                case ChannelAction.YouTubeLike:
+                    return await validateYouTubeLike(channelItem);
+                case ChannelAction.YouTubeSubscribe:
+                    return await validateYouTubeSubscribe(channelItem);
+                case ChannelAction.TwitterLike:
+                    return await validateTwitterLike(channelItem);
+                default:
+                    return false;
+            }
         }
 
         try {
@@ -110,25 +121,12 @@ export default class RewardService {
                 return { canClaim: true };
             }
 
-            switch (reward.withdrawCondition.channelType) {
-                case ChannelType.Google:
-                    switch (reward.withdrawCondition.channelAction) {
-                        case ChannelAction.Like:
-                            return {
-                                canClaim: await validateLike(reward.withdrawCondition.channelItem),
-                            };
-                        case ChannelAction.Subscribe:
-                            return {
-                                canClaim: await validateSubscribe(reward.withdrawCondition.channelItem),
-                            };
-                        // Extend with more cases within this channel
-                        default:
-                            return { canClaim: false };
-                    }
-                // Extend with more channels
-                default:
-                    return { canClaim: false };
-            }
+            const canClaim = await validate(
+                reward.withdrawCondition.channelAction,
+                reward.withdrawCondition.channelItem,
+            );
+
+            return { canClaim };
         } catch (error) {
             return { error };
         }
