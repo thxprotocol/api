@@ -11,14 +11,28 @@ import { name, version, license } from '../../../package.json';
 import { getAdmin, getProvider, NetworkProvider } from '../../util/network';
 import { fromWei } from 'web3-utils';
 import { Facets } from '../../util/facets';
+import axios from 'axios';
+
+async function getMainnetGasPrice() {
+    const web3 = getProvider(NetworkProvider.Main);
+    const r = await axios.get('https://gpoly.blockscan.com/gasapi.ashx?apikey=key&method=gasoracle');
+
+    if (r.status !== 200) {
+        throw new Error('Gas station does not give gas price information.');
+    }
+
+    return web3.utils.toWei(r.data.result.FastGasPrice, 'gwei');
+}
 
 async function getNetworkDetails(npid: NetworkProvider, constants: { factory: string; registry: string }) {
     const provider = getProvider(npid);
     const address = getAdmin(npid).address;
     const balance = await provider.eth.getBalance(address);
+    const gasPrice = npid === NetworkProvider.Main ? await getMainnetGasPrice() : await provider.eth.getGasPrice();
 
     return {
         admin: address,
+        gasPrice: fromWei(gasPrice, 'gwei'),
         balance: fromWei(balance, 'ether'),
         factory: constants.factory,
         registry: constants.registry,
