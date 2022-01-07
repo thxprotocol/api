@@ -17,7 +17,7 @@ export default class TwitterDataProxy {
             if (r.status !== 200) throw new Error(ERROR_NO_TWITTER);
             if (!r.data) throw new Error(ERROR_NO_TWITTER);
 
-            return { isAuthorized: r.data.isAuthorized, tweets: r.data.tweets };
+            return { isAuthorized: r.data.isAuthorized, tweets: r.data.tweets, users: r.data.users };
         } catch (error) {
             return { error };
         }
@@ -46,6 +46,24 @@ export default class TwitterDataProxy {
             const r = await authClient({
                 method: 'GET',
                 url: `/account/${account.id}/twitter/retweet/${channelItem}`,
+                headers: {
+                    Authorization: await getAuthAccessToken(),
+                },
+            });
+
+            if (!r.data) throw new Error(ERROR_NO_TWITTER);
+
+            return { result: r.data.result };
+        } catch (error) {
+            return { error };
+        }
+    }
+
+    static async validateFollow(account: IAccount, channelItem: string) {
+        try {
+            const r = await authClient({
+                method: 'GET',
+                url: `/account/${account.id}/twitter/follow/${channelItem}`,
                 headers: {
                     Authorization: await getAuthAccessToken(),
                 },

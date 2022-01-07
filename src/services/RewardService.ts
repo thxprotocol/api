@@ -8,7 +8,7 @@ import { sendTransaction, callFunction } from '../util/network';
 import { Artifacts } from '../util/artifacts';
 import { parseLogs, findEvent } from '../util/events';
 import { ChannelAction, IRewardCondition, IRewardUpdates, Reward, RewardDocument, RewardState } from '../models/Reward';
-import { fromWei } from 'web3-utils';
+import { fromWei, toWei } from 'web3-utils';
 
 export default class RewardService {
     static async get(assetPool: IAssetPool, rewardId: number) {
@@ -80,19 +80,26 @@ export default class RewardService {
             if (error) throw new Error('Could not validate YouTube like');
             return result;
         }
-
         async function validateYouTubeSubscribe(channelItem: string) {
             const { result, error } = await YouTubeDataProxy.validateSubscribe(account, channelItem);
             if (error) throw new Error('Could not validate YouTube subscribe');
             return result;
         }
-
         async function validateTwitterLike(channelItem: string) {
             const { result, error } = await TwitterDataProxy.validateLike(account, channelItem);
             if (error) throw new Error('Could not validate Twitter like');
             return result;
         }
-
+        async function validateTwitterRetweet(channelItem: string) {
+            const { result, error } = await TwitterDataProxy.validateRetweet(account, channelItem);
+            if (error) throw new Error('Could not validate Twitter retweet');
+            return result;
+        }
+        async function validateTwitterFollow(channelItem: string) {
+            const { result, error } = await TwitterDataProxy.validateFollow(account, channelItem);
+            if (error) throw new Error('Could not validate Twitter follow');
+            return result;
+        }
         async function validate(channelAction: ChannelAction, channelItem: string) {
             switch (channelAction) {
                 case ChannelAction.YouTubeLike:
@@ -101,6 +108,10 @@ export default class RewardService {
                     return await validateYouTubeSubscribe(channelItem);
                 case ChannelAction.TwitterLike:
                     return await validateTwitterLike(channelItem);
+                case ChannelAction.TwitterRetweet:
+                    return await validateTwitterRetweet(channelItem);
+                case ChannelAction.TwitterFollow:
+                    return await validateTwitterFollow(channelItem);
                 default:
                     return false;
             }

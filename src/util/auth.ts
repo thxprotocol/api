@@ -1,24 +1,39 @@
 import axios from 'axios';
 import { AUTH_CLIENT_ID, AUTH_CLIENT_SECRET, AUTH_URL } from '../util/secrets';
 
+let authAccessToken = '';
+let authAccessTokenExpires = 0;
+
 axios.defaults.baseURL = AUTH_URL;
 
-export async function getAuthAccessToken() {
-    const basicAuthHeader = 'Basic ' + Buffer.from(`${AUTH_CLIENT_ID}:${AUTH_CLIENT_SECRET}`).toString('base64');
+async function requestAuthAccessToken() {
     const data = new URLSearchParams();
     data.append('grant_type', 'client_credentials');
     data.append('scope', 'openid account:read account:write');
+
     const r = await axios({
         url: '/token',
         method: 'POST',
         headers: {
             'Content-Type': 'application/x-www-form-urlencoded',
-            'Authorization': basicAuthHeader,
+            'Authorization': 'Basic ' + Buffer.from(`${AUTH_CLIENT_ID}:${AUTH_CLIENT_SECRET}`).toString('base64'),
         },
         data,
     });
 
-    return `Bearer ${r.data.access_token}`;
+    if (r.status !== 200) throw new Error('Auth access token request failed');
+
+    return r.data;
+}
+
+export async function getAuthAccessToken() {
+    if (Date.now() > authAccessTokenExpires) {
+        const { access_token, expires_in } = await requestAuthAccessToken();
+        authAccessToken = access_token;
+        authAccessTokenExpires = Date.now() + expires_in * 1000;
+    }
+
+    return `Bearer ${authAccessToken}`;
 }
 
 export const authClient = axios;
