@@ -1,7 +1,5 @@
-import { Db } from 'mongodb';
-
 module.exports = {
-    async up(db: Db) {
+    async up(db) {
         const rewardsColl = db.collection('rewards');
 
         for (const reward of await rewardsColl.find().toArray()) {
@@ -20,7 +18,7 @@ module.exports = {
         }
     },
 
-    async down(db: Db) {
+    async down(db) {
         const rewardsColl = db.collection('rewards');
 
         for (const reward of await rewardsColl.find().toArray()) {

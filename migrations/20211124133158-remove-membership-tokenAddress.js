@@ -1,7 +1,5 @@
-import { Db } from 'mongodb';
-
 module.exports = {
-    async up(db: Db) {
+    async up(db) {
         await db.collection('membership').updateMany({}, { $unset: { tokenAddress: '' } });
     },
 };

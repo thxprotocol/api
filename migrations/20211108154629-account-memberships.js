@@ -1,12 +1,12 @@
-import { ObjectId, Db } from 'mongodb';
+import { ObjectId } from 'mongodb';
 
 module.exports = {
-    async up(db: Db) {
+    async up(db) {
         const accountsColl = db.collection('accounts');
         const assetpoolsColl = db.collection('assetpools');
         const membershipsColl = db.collection('membership');
 
-        await accountsColl.find().forEach(async (account: any) => {
+        await accountsColl.find().forEach(async (account) => {
             const sub = account._id.toString();
 
             if (account.memberships) {
@@ -28,7 +28,7 @@ module.exports = {
             }
         });
 
-        await assetpoolsColl.find().forEach(async (pool: any) => {
+        await assetpoolsColl.find().forEach(async (pool) => {
             const data = {
                 network: pool.network,
                 sub: pool.sub,
@@ -44,7 +44,7 @@ module.exports = {
         await accountsColl.updateMany({}, { $unset: { memberships: '' } });
     },
 
-    async down(db: Db) {
+    async down(db) {
         const accountsColl = db.collection('accounts');
         const membershipsColl = db.collection('membership');
         const memberships = await membershipsColl.find().toArray();

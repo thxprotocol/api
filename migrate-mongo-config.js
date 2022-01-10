@@ -1,9 +1,9 @@
-import dotenv from 'dotenv';
+const dotenv = require('dotenv');
 
 dotenv.config();
 
-export = {
-    migrationFileExtension: '.ts',
+module.exports = {
+    migrationFileExtension: '.js',
     mongodb: {
         url: process.env.MONGODB_URI,
         databaseName: process.env.MONGODB_NAME,

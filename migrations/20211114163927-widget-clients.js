@@ -1,7 +1,5 @@
-import { Db } from 'mongodb';
-
 module.exports = {
-    async up(db: Db) {
+    async up(db) {
         const clientColl = db.collection('client');
         const ratColl = db.collection('registration_access_token');
         const widgetColl = db.collection('widget');
