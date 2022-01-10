@@ -20,7 +20,9 @@ module.exports = {
                     await clientColl.insertOne(clientData);
                 }
 
-                const pool = await assetpoolsColl.findOne({ address: widget.metadata?.poolAddress });
+                const pool = await assetpoolsColl.findOne({
+                    address: widget.metadata ? widget.metadata.poolAddress : '',
+                });
 
                 if (pool) {
                     await widgetColl.updateOne(
