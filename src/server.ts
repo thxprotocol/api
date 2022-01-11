@@ -7,8 +7,10 @@ import { logger } from './util/logger';
 const server = http.createServer(app);
 
 const healthcheck: HealthCheck = async () => {
-    const status = [{ info: { dbConnected: db.isConnected() } }];
-    return Promise.resolve(status);
+    const status = { dbConnected: db.readyState() === 1 };
+
+    const method = Object.values(status).filter((i) => !i).length === 0 ? Promise.resolve : Promise.reject;
+    return method(status);
 };
 
 function onSignal(): Promise<any> {
@@ -19,6 +21,7 @@ function onSignal(): Promise<any> {
 const options = {
     healthChecks: {
         '/healthcheck': healthcheck,
+        'verbatim': true,
     },
     onSignal,
 };

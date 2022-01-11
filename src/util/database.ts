@@ -43,12 +43,12 @@ const truncate = async () => {
     }
 };
 
-const isConnected = () => {
-    return mongoose.connection.readyState !== 0;
+const readyState = () => {
+    return mongoose.connection.readyState;
 };
 
 const disconnect = async () => {
-    if (isConnected()) {
+    if (mongoose.connection.readyState !== 0) {
         await mongoose.disconnect();
     }
 };
@@ -57,5 +57,5 @@ export default {
     connect,
     truncate,
     disconnect,
-    isConnected,
+    readyState,
 };
