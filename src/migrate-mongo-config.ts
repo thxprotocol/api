@@ -1,18 +1,15 @@
-import dotenv from 'dotenv';
-
-dotenv.config();
+import { MONGODB_URI } from './util/secrets';
 
 export = {
     migrationFileExtension: '.ts',
     mongodb: {
-        url: process.env.MONGODB_URI,
-        databaseName: process.env.MONGODB_NAME,
+        url: MONGODB_URI,
         options: {
             useNewUrlParser: true,
             useUnifiedTopology: true,
         },
     },
-    migrationsDir: 'migrations',
+    migrationsDir: 'src/migrations',
     changelogCollectionName: 'changelog',
     useFileHash: false,
 };
