@@ -23,10 +23,10 @@
         "reset": "rm -rf ./cache && unzip cache.zip -d ./cache && rm -rf ./cache/__MACOSX",
         "test": "npx jest --coverage --runInBand",
         "deploy": "npx ts-node scripts/deployFacets.ts; npx ts-node scripts/deployAssetPoolFactory.ts; npx ts-node scripts/deployAssetPoolRegistry.ts",
-        "migrate": "node_modules/.bin/ts-node node_modules/migrate-mongo/bin/migrate-mongo up -f migrate-mongo-config.ts",
-        "migrate:create": "sh -c 'node_modules/.bin/ts-node node_modules/.bin/migrate-mongo create $0 -f migrate-mongo-config.ts' ",
-        "migrate:status": "node_modules/.bin/ts-node node_modules/.bin/migrate-mongo status -f migrate-mongo-config.ts",
-        "migrate:down": "node_modules/.bin/ts-node node_modules/.bin/migrate-mongo down -f migrate-mongo-config.ts && npm run migrate:status"
+        "migrate": "npx ts-node node_modules/.bin/migrate-mongo up -f migrate-mongo-config.ts",
+        "migrate:create": "sh -c 'npx ts-node node_modules/.bin/migrate-mongo create $0 -f migrate-mongo-config.ts' ",
+        "migrate:status": "npx ts-node node_modules/.bin/migrate-mongo status -f migrate-mongo-config.ts",
+        "migrate:down": "npx ts-node node_modules/.bin/migrate-mongo down -f migrate-mongo-config.ts && npm run migrate:status"
     },
     "dependencies": {
         "@godaddy/terminus": "^4.9.0",
