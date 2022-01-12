@@ -1,17 +1,11 @@
 import http from 'http';
-import { createTerminus, HealthCheck } from '@godaddy/terminus';
+import { createTerminus } from '@godaddy/terminus';
 import app from './app';
 import db from './util/database';
+import { healthCheck } from './util/healthcheck';
 import { logger } from './util/logger';
 
 const server = http.createServer(app);
-
-const healthcheck: HealthCheck = async () => {
-    const status = { dbConnected: db.readyState() === 1 };
-
-    const method = Object.values(status).filter((i) => !i).length === 0 ? Promise.resolve : Promise.reject;
-    return method(status);
-};
 
 function onSignal(): Promise<any> {
     logger.info('Server is starting cleanup');
@@ -20,10 +14,11 @@ function onSignal(): Promise<any> {
 
 const options = {
     healthChecks: {
-        '/healthcheck': healthcheck,
+        '/healthcheck': healthCheck,
         'verbatim': true,
     },
     onSignal,
+    logger: logger.error,
 };
 
 createTerminus(server, options);
