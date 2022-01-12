@@ -84,6 +84,7 @@ describe('Widgets', () => {
                 .set({ AssetPool: poolAddress, Authorization: dashboardAccessToken })
                 .expect((res: request.Response) => {
                     expect(res.body.length).toBe(1);
+                    clientId = res.body[0];
                 })
                 .expect(200, done);
         });

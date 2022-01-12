@@ -163,6 +163,7 @@ describe('Voting', () => {
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
                 .expect((res: request.Response) => {
                     expect(res.body.id).toEqual(1);
+                    rewardID = res.body.id;
                 })
                 .expect(200, done);
         });

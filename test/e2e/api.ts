@@ -1,7 +1,7 @@
 import request from 'supertest';
 import server from '../../src/server';
 import db from '../../src/util/database';
-import { callFunction, getAdmin, NetworkProvider, sendTransaction } from '../../src/util/network';
+import { callFunction, NetworkProvider, sendTransaction } from '../../src/util/network';
 import { timeTravel, signMethod, deployExampleToken, createWallet } from './lib/network';
 import {
     rewardWithdrawAmount,
