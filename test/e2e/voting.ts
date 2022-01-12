@@ -43,7 +43,7 @@ describe('Voting', () => {
     });
 
     describe('POST /asset_pools', () => {
-        it('HTTP 201 (success)', async (done) => {
+        it('HTTP 201 (success)', (done) => {
             user.post('/v1/asset_pools')
                 .set('Authorization', dashboardAccessToken)
                 .send({
@@ -54,49 +54,39 @@ describe('Voting', () => {
                         totalSupply: 0,
                     },
                 })
-                .end(async (err, res) => {
-                    expect(res.status).toBe(201);
+                .expect((res: request.Response) => {
                     expect(isAddress(res.body.address)).toBe(true);
 
                     poolAddress = res.body.address;
-
-                    done();
-                });
+                })
+                .expect(201, done);
         });
 
-        it('HTTP 200 (success)', async (done) => {
+        it('HTTP 200 (success)', (done) => {
             user.get('/v1/asset_pools/' + poolAddress)
                 .set({
                     Authorization: dashboardAccessToken,
                     AssetPool: poolAddress,
                 })
                 .send()
-                .end(async (err, res) => {
-                    expect(res.status).toBe(200);
+                .expect((res: request.Response) => {
                     expect(isAddress(res.body.token.address)).toBe(true);
-
-                    done();
-                });
+                })
+                .expect(200, done);
         });
 
         it('HTTP 302 when member is added', (done) => {
             user.post('/v1/members/')
                 .send({ address: userWallet.address })
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
-                .end(async (err, res) => {
-                    expect(res.status).toBe(302);
-                    done();
-                });
+                .expect(302, done);
         });
 
         it('HTTP 302 when member is promoted', (done) => {
             user.patch(`/v1/members/${userWallet.address}`)
                 .send({ isManager: true })
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
-                .end(async (err, res) => {
-                    expect(res.status).toBe(302);
-                    done();
-                });
+                .expect(302, done);
         });
     });
 
@@ -109,23 +99,17 @@ describe('Voting', () => {
                     rewardPollDuration: rewardPollDuration,
                     proposeWithdrawPollDuration: proposeWithdrawPollDuration,
                 })
-                .end(async (err, res) => {
-                    expect(res.status).toBe(200);
-
-                    done();
-                });
+                .expect(200, done);
         });
 
         it('HTTP 200 updated values', (done) => {
             user.get('/v1/asset_pools/' + poolAddress)
                 .set({ AssetPool: poolAddress, Authorization: dashboardAccessToken })
-                .end(async (err, res) => {
-                    expect(res.status).toBe(200);
+                .expect((res: request.Response) => {
                     expect(Number(res.body.proposeWithdrawPollDuration)).toEqual(proposeWithdrawPollDuration);
                     expect(Number(res.body.rewardPollDuration)).toEqual(rewardPollDuration);
-
-                    done();
-                });
+                })
+                .expect(200, done);
         });
 
         it('HTTP 500 if incorrect rewardPollDuration type (string) sent ', (done) => {
@@ -134,10 +118,7 @@ describe('Voting', () => {
                 .send({
                     rewardPollDuration: 'fivehundred',
                 })
-                .end(async (err, res) => {
-                    expect(res.status).toBe(400);
-                    done();
-                });
+                .expect(400, done);
         });
 
         it('HTTP 500 if incorrect proposeWithdrawPollDuration type (string) is sent ', (done) => {
@@ -146,23 +127,18 @@ describe('Voting', () => {
                 .send({
                     proposeWithdrawPollDuration: 'fivehundred',
                 })
-                .end(async (err, res) => {
-                    expect(res.status).toBe(400);
-                    done();
-                });
+                .expect(400, done);
         });
 
         it('HTTP should still have the correct values', (done) => {
             user.get('/v1/asset_pools/' + poolAddress)
                 .set({ AssetPool: poolAddress, Authorization: dashboardAccessToken })
-                .end(async (err, res) => {
-                    expect(res.status).toBe(200);
+                .expect((res: request.Response) => {
                     expect(res.body.bypassPolls).toEqual(false);
                     expect(Number(res.body.proposeWithdrawPollDuration)).toEqual(proposeWithdrawPollDuration);
                     expect(Number(res.body.rewardPollDuration)).toEqual(rewardPollDuration);
-
-                    done();
-                });
+                })
+                .expect(200, done);
         });
     });
 
@@ -176,26 +152,19 @@ describe('Voting', () => {
                     withdrawAmount: rewardWithdrawAmount,
                     withdrawDuration: rewardWithdrawDuration,
                 })
-                .end(async (err, res) => {
-                    expect(res.status).toBe(302);
-
+                .expect((res: request.Response) => {
                     redirectURL = res.headers.location;
-
-                    done();
-                });
+                })
+                .expect(302, done);
         });
 
         it('HTTP 200 after redirect', (done) => {
             user.get(redirectURL)
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
-                .end(async (err, res) => {
-                    expect(res.status).toBe(200);
+                .expect((res: request.Response) => {
                     expect(res.body.id).toEqual(1);
-
-                    rewardID = res.body.id;
-
-                    done();
-                });
+                })
+                .expect(200, done);
         });
     });
 
@@ -206,41 +175,35 @@ describe('Voting', () => {
                 .send({
                     agree: true,
                 })
-                .end(async (err, res) => {
-                    expect(res.status).toBe(200);
+                .expect((res: request.Response) => {
                     expect(res.body.base64).toContain('data:image/png;base64');
-
-                    done();
-                });
+                })
+                .expect(200, done);
         });
 
-        it('HTTP 302 when tx is handled', async (done) => {
+        it('HTTP 302 when tx is handled', async () => {
             const { call, nonce, sig } = await signMethod(poolAddress, 'rewardPollVote', [1, true], userWallet);
 
-            user.post('/v1/gas_station/call')
+            await user
+                .post('/v1/gas_station/call')
                 .set({ AssetPool: poolAddress, Authorization: userAccessToken })
                 .send({
                     call,
                     nonce,
                     sig,
                 })
-                .end((err, res) => {
-                    expect(res.status).toBe(200);
-                    done();
-                });
+                .expect(200);
         });
 
         it('HTTP 200 and increase yesCounter with 1', (done) => {
             user.get('/v1/rewards/' + rewardID)
                 .set({ AssetPool: poolAddress, Authorization: userAccessToken })
-                .end(async (err, res) => {
-                    expect(res.status).toBe(200);
+                .expect((res: request.Response) => {
                     expect(Number(res.body.poll.totalVoted)).toEqual(1);
                     expect(Number(res.body.poll.yesCounter)).toEqual(1);
                     expect(Number(res.body.poll.noCounter)).toEqual(0);
-
-                    done();
-                });
+                })
+                .expect(200, done);
         });
     });
 
@@ -249,49 +212,43 @@ describe('Voting', () => {
             await timeTravel(rewardPollDuration);
         });
 
-        it('HTTP 200 after finalizing the poll', async (done) => {
+        it('HTTP 200 after finalizing the poll', (done) => {
             user.post(`/v1/rewards/${rewardID}/poll/finalize`)
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
-                .end(async (err, res) => {
-                    expect(res.status).toBe(200);
+                .expect((res: request.Response) => {
                     expect(res.body.state).toBe(1);
                     expect(res.body.poll).toBeUndefined();
-
-                    done();
-                });
+                })
+                .expect(200, done);
         });
     });
 
     describe('POST /rewards/:id/give', () => {
-        it('HTTP 200 after giving a reward', async (done) => {
+        it('HTTP 200 after giving a reward', (done) => {
             user.post(`/v1/rewards/${rewardID}/give`)
                 .send({
                     member: userWallet.address,
                 })
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
-                .end(async (err, res) => {
-                    expect(res.status).toBe(200);
+                .expect((res: request.Response) => {
                     expect(res.body.id).toBe(2);
 
                     withdrawalID = res.body.id;
-
-                    done();
-                });
+                })
+                .expect(200, done);
         });
     });
 
     describe('GET /withdrawals?member=:address', () => {
-        it('HTTP 200 and return a list of 1 item', async (done) => {
+        it('HTTP 200 and return a list of 1 item', (done) => {
             user.get(`/v1/withdrawals?member=${userWallet.address}&page=1&limit=2`)
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
-                .end(async (err, res) => {
-                    expect(res.status).toBe(200);
+                .expect((res: request.Response) => {
                     expect(res.body.results.length).toBe(1);
 
                     withdrawalID = res.body.results[0].id;
-
-                    done();
-                });
+                })
+                .expect(200, done);
         });
     });
 
@@ -302,15 +259,13 @@ describe('Voting', () => {
                 .send({
                     agree: true,
                 })
-                .end(async (err, res) => {
-                    expect(res.status).toBe(200);
+                .expect((res: request.Response) => {
                     expect(res.body.base64).toContain('data:image/png;base64');
-
-                    done();
-                });
+                })
+                .expect(200, done);
         });
 
-        it('HTTP 302 when tx is handled', async (done) => {
+        it('HTTP 302 when tx is handled', async () => {
             const { call, nonce, sig } = await signMethod(
                 poolAddress,
                 'withdrawPollVote',
@@ -318,30 +273,26 @@ describe('Voting', () => {
                 getAdmin(NetworkProvider.Test),
             );
 
-            user.post('/v1/gas_station/call')
+            await user
+                .post('/v1/gas_station/call')
                 .set({ AssetPool: poolAddress, Authorization: userAccessToken })
                 .send({
                     call,
                     nonce,
                     sig,
                 })
-                .end((err, res) => {
-                    expect(res.status).toBe(200);
-                    done();
-                });
+                .expect(200);
         });
 
         it('HTTP 200 and increase yesCounter with 1', (done) => {
             user.get('/v1/withdrawals/' + withdrawalID)
                 .set({ AssetPool: poolAddress, Authorization: userAccessToken })
-                .end(async (err, res) => {
-                    expect(res.status).toBe(200);
+                .expect((res: request.Response) => {
                     expect(res.body.poll.totalVoted).toEqual(1);
                     expect(res.body.poll.yesCounter).toEqual(1);
                     expect(res.body.poll.noCounter).toEqual(0);
-
-                    done();
-                });
+                })
+                .expect(200, done);
         });
     });
 
@@ -353,15 +304,13 @@ describe('Voting', () => {
         it('HTTP 200 and 0 balance', (done) => {
             user.get('/v1/members/' + userWallet.address)
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
-                .end(async (err, res) => {
-                    expect(res.status).toBe(200);
+                .expect((res: request.Response) => {
                     expect(res.body.token.balance).toBe(0);
-
-                    done();
-                });
+                })
+                .expect(200, done);
         });
 
-        it('HTTP 200 OK', async (done) => {
+        it('HTTP 200 OK', async () => {
             const { call, nonce, sig } = await signMethod(
                 poolAddress,
                 'withdrawPollFinalize',
@@ -369,29 +318,24 @@ describe('Voting', () => {
                 userWallet,
             );
 
-            user.post('/v1/gas_station/call')
+            await user
+                .post('/v1/gas_station/call')
                 .send({
                     call,
                     nonce,
                     sig,
                 })
                 .set({ AssetPool: poolAddress, Authorization: userAccessToken })
-                .end(async (err, res) => {
-                    expect(res.status).toBe(200);
-
-                    done();
-                });
+                .expect(200);
         });
 
         it('HTTP 200 and increased balance', (done) => {
             user.get('/v1/members/' + userWallet.address)
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
-                .end(async (err, res) => {
-                    expect(res.status).toBe(200);
+                .expect((res: request.Response) => {
                     expect(res.body.token.balance).toBe(1000);
-
-                    done();
-                });
+                })
+                .expect(200, done);
         });
     });
 });

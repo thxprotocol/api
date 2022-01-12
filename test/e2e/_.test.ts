@@ -6,7 +6,7 @@ import { deployRegistry } from '../../scripts/lib/registry';
 import { getProvider, NetworkProvider } from '../../src/util/network';
 import { ASSET_POOL_FACTORY_ADDRESS, POOL_REGISTRY_ADDRESS } from '../../src/util/secrets';
 
-beforeAll(async (done) => {
+beforeAll(async () => {
     const web3 = getProvider(NetworkProvider.Test);
     const factoryExists = (await web3.eth.getCode(ASSET_POOL_FACTORY_ADDRESS)) !== '0x';
     const registryExists = (await web3.eth.getCode(POOL_REGISTRY_ADDRESS)) !== '0x';
@@ -18,8 +18,6 @@ beforeAll(async (done) => {
     } else {
         console.log('Factory and registry available!');
     }
-
-    done();
 });
 
 afterAll(async () => {
