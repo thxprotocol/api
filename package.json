@@ -52,6 +52,7 @@
         "lodash": "^4.17.21",
         "lusca": "^1.6.1",
         "migrate-mongo": "^8.2.3",
+        "mongodb": "^3.7.3",
         "mongoose": "^5.13.9",
         "morgan": "^1.10.0",
         "morgan-json": "^1.1.0",
