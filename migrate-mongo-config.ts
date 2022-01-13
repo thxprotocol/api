@@ -1,4 +1,4 @@
-import { MONGODB_URI } from './util/secrets';
+import { MONGODB_URI } from './src/util/secrets';
 
 export = {
     migrationFileExtension: '.ts',
@@ -9,7 +9,7 @@ export = {
             useUnifiedTopology: true,
         },
     },
-    migrationsDir: 'src/migrations',
+    migrationsDir: 'migrations',
     changelogCollectionName: 'changelog',
     useFileHash: false,
 };
