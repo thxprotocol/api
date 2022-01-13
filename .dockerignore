@@ -2,3 +2,4 @@ node_modules
 .github
 cache
 dist
+docker-compose*
