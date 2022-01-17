@@ -20,12 +20,12 @@ const dbConnected: HealthCheck = async () => {
 };
 
 const migrationsApplied: HealthCheck = async () => {
-    // config.set(migrateMongoConfig);
+    config.set(migrateMongoConfig);
 
-    // const pendingMigrations = (await status(connection.db)).filter((migration) => migration.appliedAt === 'PENDING');
-    // if (pendingMigrations.length > 0) {
-    //     throw new Error('Not all migrations applied');
-    // }
+    const pendingMigrations = (await status(connection.db)).filter((migration) => migration.appliedAt === 'PENDING');
+    if (pendingMigrations.length > 0) {
+        throw new Error('Not all migrations applied');
+    }
 
     return;
 };
