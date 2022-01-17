@@ -1,4 +1,4 @@
-FROM node:16-alpine  as develop
+FROM node:16-alpine as develop
 
 WORKDIR /usr/src/app
 
@@ -17,12 +17,13 @@ FROM node:16-alpine as production
 
 WORKDIR /usr/src/app
 
-COPY --from=develop ./usr/src/app/dist ./
 COPY package* ./
 
 RUN apk add --virtual .build g++ make py3-pip && \
     npm install --production --ci && \
     apk del .build
+
+COPY --from=develop ./usr/src/app/dist ./
 
 EXPOSE 3001
 
