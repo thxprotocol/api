@@ -11,7 +11,7 @@ module.exports = {
             useUnifiedTopology: true,
         },
     },
-    migrationsDir: 'migrations',
+    migrationsDir: 'src/migrations',
     changelogCollectionName: 'changelog',
     useFileHash: false,
 };

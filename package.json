@@ -23,10 +23,10 @@
         "reset": "rm -rf ./cache && unzip cache.zip -d ./cache && rm -rf ./cache/__MACOSX",
         "test": "npx jest --coverage --runInBand",
         "deploy": "npx ts-node scripts/deployFacets.ts; npx ts-node scripts/deployAssetPoolFactory.ts; npx ts-node scripts/deployAssetPoolRegistry.ts",
-        "migrate": "migrate-mongo up",
-        "migrate:create": "sh -c 'migrate-mongo create $0' ",
-        "migrate:status": "migrate-mongo status",
-        "migrate:down": "migrate-mongo down && npm run migrate:status"
+        "migrate": "migrate-mongo up -f src/migrate-mongo-config.js",
+        "migrate:create": "sh -c 'migrate-mongo create -f src/migrate-mongo-config.js $0'",
+        "migrate:status": "migrate-mongo status -f src/migrate-mongo-config.js",
+        "migrate:down": "migrate-mongo down -f src/migrate-mongo-config.js && npm run migrate:status"
     },
     "dependencies": {
         "@godaddy/terminus": "^4.9.0",
