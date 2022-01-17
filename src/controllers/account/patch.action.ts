@@ -8,6 +8,7 @@ export const patchAccount = async (req: HttpRequest, res: Response, next: NextFu
         const { result, error } = await AccountProxy.update(req.user.sub, {
             address: req.body.address,
             googleAccess: req.body.googleAccess,
+            twitterAccess: req.body.twitterAccess,
         });
 
         if (!result || error) {

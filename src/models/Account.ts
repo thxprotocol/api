@@ -25,4 +25,5 @@ export interface IAccountUpdates {
     authenticationToken?: string;
     authenticationTokenExpires?: number;
     googleAccess?: string;
+    twitterAccess?: string;
 }

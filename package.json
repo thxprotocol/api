@@ -23,10 +23,10 @@
         "reset": "rm -rf ./cache && unzip cache.zip -d ./cache && rm -rf ./cache/__MACOSX",
         "test": "npx jest --coverage --runInBand",
         "deploy": "npx ts-node scripts/deployFacets.ts; npx ts-node scripts/deployAssetPoolFactory.ts; npx ts-node scripts/deployAssetPoolRegistry.ts",
-        "migrate": "npx ts-node node_modules/.bin/migrate-mongo up -f src/migrate-mongo-config.ts",
-        "migrate:create": "sh -c 'npx ts-node node_modules/.bin/migrate-mongo create $0 -f migrate-mongo-config.ts' ",
-        "migrate:status": "npx ts-node node_modules/.bin/migrate-mongo status -f migrate-mongo-config.ts",
-        "migrate:down": "npx ts-node node_modules/.bin/migrate-mongo down -f migrate-mongo-config.ts && npm run migrate:status"
+        "migrate": "migrate-mongo up",
+        "migrate:create": "sh -c 'migrate-mongo create $0' ",
+        "migrate:status": "migrate-mongo status",
+        "migrate:down": "migrate-mongo down && npm run migrate:status"
     },
     "dependencies": {
         "@godaddy/terminus": "^4.9.0",
@@ -57,7 +57,7 @@
         "morgan": "^1.10.0",
         "morgan-json": "^1.1.0",
         "nodemailer": "^6.6.1",
-        "qrcode": "^1.4.4",
+        "qrcode": "^1.5.0",
         "swagger-ui-express": "^4.3.0",
         "web3": "^1.3.6",
         "winston": "^3.2.1",

@@ -9,10 +9,12 @@ import { validate } from '../../util/validation';
 import { validations } from './_.validation';
 import { postLogin } from './postLogin.action';
 import { getYoutube } from './getYoutube.action';
+import { getTwitter } from './getTwitter.action';
 
 const router = express.Router();
 
 router.get('/', checkScopes(['user', 'dashboard']), getAccount);
+router.get('/twitter', checkScopes(['dashboard']), getTwitter);
 router.get('/youtube', checkScopes(['dashboard']), getYoutube);
 router.patch('/', checkScopes(['user', 'dashboard']), patchAccount);
 router.delete('/', checkScopes(['user', 'dashboard']), deleteAccount);

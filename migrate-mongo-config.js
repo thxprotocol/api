@@ -1,9 +1,11 @@
-import { MONGODB_URI } from './src/util/secrets';
+const dotenv = require('dotenv');
 
-export = {
-    migrationFileExtension: '.ts',
+dotenv.config();
+
+module.exports = {
+    migrationFileExtension: '.js',
     mongodb: {
-        url: MONGODB_URI,
+        url: process.env.MONGODB_URI,
         options: {
             useNewUrlParser: true,
             useUnifiedTopology: true,

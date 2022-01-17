@@ -13,6 +13,7 @@ export const getAccount = async (req: HttpRequest, res: Response, next: NextFunc
         const account = await getAccount();
 
         res.send({
+            id: account.id,
             address: account.address,
             privateKey: account.privateKey,
         });

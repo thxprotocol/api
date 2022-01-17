@@ -54,7 +54,7 @@ export const postRewardClaim = async (req: HttpRequest, res: Response, next: Nex
         return canClaim;
     }
 
-    async function claimRewardOnce(rewardId: number, address: string) {
+    async function claimRewardFor(rewardId: number, address: string) {
         const { withdrawal, error } = await RewardService.claimRewardFor(req.assetPool, rewardId, address);
         if (error) throw new Error(ERROR_CLAIM_ONCE_FAILED);
         if (!withdrawal) throw new Error(ERROR_WITHDRAWAL_NOT_FOUND);
@@ -105,7 +105,7 @@ export const postRewardClaim = async (req: HttpRequest, res: Response, next: Nex
             await addMembership(account.id);
         }
 
-        let withdrawal = await claimRewardOnce(rewardId, account.address);
+        let withdrawal = await claimRewardFor(rewardId, account.address);
 
         const canByPass = await canBypassWithdrawPoll(account, reward);
 

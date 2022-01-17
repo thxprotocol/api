@@ -19,6 +19,7 @@ import { HttpError, HttpRequest } from '../models/Error';
 import { AssetPool } from '../models/AssetPool';
 import { Contract } from 'web3-eth-contract';
 import { Artifacts } from './artifacts';
+import { logger } from './logger';
 
 export enum NetworkProvider {
     Test = 0,
@@ -53,20 +54,20 @@ export async function getGasPrice(npid: NetworkProvider) {
         return web3.utils.toWei(FIXED_GAS_PRICE.toString(), 'gwei').toString();
     }
 
-    if (ENVIRONMENT === 'test' || ENVIRONMENT === 'local') {
+    if (ENVIRONMENT === 'test' || ENVIRONMENT === 'local' || npid === NetworkProvider.Test) {
         return await web3.eth.getGasPrice();
     }
 
-    const r: any = await axios.get('https://gpoly.blockscan.com/gasapi.ashx?apikey=key&method=gasoracle');
+    const r = await axios.get('https://gpoly.blockscan.com/gasapi.ashx?apikey=key&method=gasoracle');
 
     if (r.status !== 200) {
         throw new Error('Gas station does not give gas price information.');
     }
 
-    if (r.data.result.FastGasPrice <= MAXIMUM_GAS_PRICE) {
-        return web3.utils.toWei(r.data.result.FastGasPrice, 'gwei').toString();
-    } else {
+    if (r.data.result.FastGasPrice > MAXIMUM_GAS_PRICE) {
         throw new Error('Gas price exceeds configured cap');
+    } else {
+        return web3.utils.toWei(r.data.result.FastGasPrice, 'gwei').toString();
     }
 }
 
@@ -93,6 +94,8 @@ export async function deployContract(abi: any, bytecode: any, arg: any[], npid: 
             arguments: arg,
         })
         .estimateGas();
+
+    logger.info({ to: '', fn: 'deployContract', gas, gasPrice, network: npid });
     return await contract
         .deploy({
             data: bytecode,
@@ -131,7 +134,7 @@ export async function sendTransaction(to: string, fn: any, npid: NetworkProvider
         },
         PRIVATE_KEY,
     );
-
+    logger.info({ to, fn: fn.name, estimate, gas, gasPrice, network: npid });
     return await web3.eth.sendSignedTransaction(sig.rawTransaction);
 }
 
@@ -152,7 +155,7 @@ export async function sendTransactionValue(to: string, value: string, npid: Netw
         },
         PRIVATE_KEY,
     );
-
+    logger.info({ to, value, estimate, gas, gasPrice, network: npid });
     return await web3.eth.sendSignedTransaction(sig.rawTransaction);
 }
 

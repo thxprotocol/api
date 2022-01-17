@@ -93,6 +93,7 @@ export default class AccountProxy {
             authenticationToken,
             authenticationTokenExpires,
             googleAccess,
+            twitterAccess,
         }: IAccountUpdates,
     ) {
         try {
@@ -107,6 +108,7 @@ export default class AccountProxy {
                     authenticationToken,
                     authenticationTokenExpires,
                     googleAccess,
+                    twitterAccess,
                 },
                 headers: {
                     Authorization: await getAuthAccessToken(),

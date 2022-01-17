@@ -3,50 +3,26 @@ import { HttpError } from '../../models/Error';
 import { getAdmin, getProvider, NetworkProvider } from '../../util/network';
 // import AccountProxy from '../../proxies/AccountProxy';
 import AssetPoolService from '../../services/AssetPoolService';
-import RewardService from '../../services/RewardService';
 import WithdrawalService from '../../services/WithdrawalService';
-import ClientService from '../../services/ClientService';
-
-async function getAvgRewardsPerPool(npid: number) {
-    const rewardsPerPool = [];
-    const { assetPools, error } = await AssetPoolService.findByNetwork(npid);
-    if (error) throw new Error(error);
-    for (const p of assetPools) {
-        const count = await RewardService.countByPoolAddress(p.address);
-        rewardsPerPool.push(count);
-    }
-
-    const sum = Number(rewardsPerPool.reduce((a: number, b: number) => a + b, 0));
-
-    return sum / assetPools.length || 0;
-}
-
-async function getAvgWithdrawsPerPool(npid: number) {
-    const withdrawalsPerPool = [];
-    const { assetPools } = await AssetPoolService.findByNetwork(npid);
-
-    for (const p of assetPools) {
-        const count = await WithdrawalService.countByPoolAddress(p.address);
-        withdrawalsPerPool.push(count);
-    }
-
-    const sum = Number(withdrawalsPerPool.reduce((a: number, b: number) => a + b, 0));
-
-    return sum / assetPools.length || 0;
-}
+import MembershipService from '../../services/MembershipService';
 
 export const getMetrics = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const web3Main = getProvider(NetworkProvider.Main);
         const web3Test = getProvider(NetworkProvider.Test);
         const address = getAdmin(NetworkProvider.Main).address;
-
-        const jsonData = {
-            // count_wallets: await AccountService.count(),
-            count_applications: await ClientService.countScope('openid admin'),
+        const metrics = {
             count_asset_pools: {
                 mainnet: await AssetPoolService.countByNetwork(NetworkProvider.Main),
                 testnet: await AssetPoolService.countByNetwork(NetworkProvider.Test),
+            },
+            count_memberships: {
+                mainnet: await MembershipService.countByNetwork(NetworkProvider.Main),
+                testnet: await MembershipService.countByNetwork(NetworkProvider.Test),
+            },
+            count_withdrawals: {
+                mainnet: await WithdrawalService.countByNetwork(NetworkProvider.Main),
+                testnet: await WithdrawalService.countByNetwork(NetworkProvider.Test),
             },
             count_transactions: {
                 mainnet:
@@ -56,17 +32,9 @@ export const getMetrics = async (req: Request, res: Response, next: NextFunction
                     (await web3Test.eth.getTransactionCount(address)) +
                     (await web3Test.eth.getTransactionCount('0xe583A501276B2E64178512e83972581f98e9290c')), // Including rotated account for realistic total
             },
-            avg_rewards_per_pool: {
-                mainnet: await getAvgRewardsPerPool(NetworkProvider.Main),
-                testnet: await getAvgRewardsPerPool(NetworkProvider.Test),
-            },
-            avg_withdrawals_per_pool: {
-                mainnet: await getAvgWithdrawsPerPool(NetworkProvider.Main),
-                testnet: await getAvgWithdrawsPerPool(NetworkProvider.Test),
-            },
         };
 
-        res.header('Content-Type', 'application/json').send(JSON.stringify(jsonData, null, 4));
+        res.json(metrics);
     } catch (error) {
         next(new HttpError(500, 'Could not get all API metrics.', error));
     }

@@ -1,5 +1,5 @@
 import { IAssetPool } from '../models/AssetPool';
-import { callFunction, sendTransaction } from '../util/network';
+import { callFunction, NetworkProvider, sendTransaction } from '../util/network';
 import { Artifacts } from '../util/artifacts';
 import { parseLogs, findEvent } from '../util/events';
 import { Withdrawal, WithdrawalState } from '../models/Withdrawal';
@@ -169,10 +169,9 @@ export default class WithdrawalService {
         }
     }
 
-    static async countByPoolAddress(poolAddress: string) {
+    static async countByNetwork(network: NetworkProvider) {
         try {
-            const count = Withdrawal.countDocuments({ poolAddress });
-            return count;
+            return await Withdrawal.countDocuments({ network });
         } catch (error) {
             return { error };
         }

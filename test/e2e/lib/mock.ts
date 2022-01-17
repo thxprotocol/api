@@ -21,7 +21,7 @@ export function mockPath(method: string, path: string, status: number, callback:
 
 export function mockStart() {
     mockPath('get', '/jwks', 200, jwksResponse);
-    mockPath('post', '/token', 201, async () => {
+    mockPath('post', '/token', 200, async () => {
         return {
             access_token: getToken('openid account:read account:write'),
         };

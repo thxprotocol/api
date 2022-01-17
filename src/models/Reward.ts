@@ -3,12 +3,15 @@ import mongoose from 'mongoose';
 export enum ChannelType {
     None = 0,
     Google = 1,
+    Twitter = 2,
 }
 
 export enum ChannelAction {
-    None = 0,
-    Like = 1,
-    Subscribe = 2,
+    YouTubeLike = 0,
+    YouTubeSubscribe = 1,
+    TwitterLike = 2,
+    TwitterRetweet = 3,
+    TwitterFollow = 4,
 }
 
 export enum RewardState {
