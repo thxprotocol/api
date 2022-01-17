@@ -27,4 +27,4 @@ COPY --from=develop ./usr/src/app/dist ./
 
 EXPOSE 3001
 
-CMD [ "npm", "run", "start" ]
+CMD [ "node", "src/server.js" ]
