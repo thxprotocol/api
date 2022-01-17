@@ -26,7 +26,8 @@
         "migrate": "migrate-mongo up -f src/migrate-mongo-config.js",
         "migrate:create": "sh -c 'migrate-mongo create -f src/migrate-mongo-config.js $0'",
         "migrate:status": "migrate-mongo status -f src/migrate-mongo-config.js",
-        "migrate:down": "migrate-mongo down -f src/migrate-mongo-config.js && npm run migrate:status"
+        "migrate:down": "migrate-mongo down -f src/migrate-mongo-config.js && npm run migrate:status",
+        "start": "npm run migrate && node src/server.js"
     },
     "dependencies": {
         "@godaddy/terminus": "^4.9.0",
