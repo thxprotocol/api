@@ -33,7 +33,7 @@ describe('Roles', () => {
     });
 
     describe('POST /asset_pools', () => {
-        it('HTTP 200', async (done) => {
+        it('HTTP 200', (done) => {
             user.post('/v1/asset_pools')
                 .set({ Authorization: dashboardAccessToken })
                 .send({

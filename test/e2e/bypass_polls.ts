@@ -208,9 +208,11 @@ describe('Bypass Polls', () => {
     });
 
     describe('POST /rewards/2/finalize (bypass disabled)', () => {
-        it('HTTP 200 reward storage OK', async (done) => {
+        beforeAll(async () => {
             await timeTravel(rewardPollDuration);
+        });
 
+        it('HTTP 200 reward storage OK', (done) => {
             user.post('/v1/rewards/2/poll/finalize')
                 .set({
                     AssetPool: poolAddress,
