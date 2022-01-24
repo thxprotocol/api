@@ -19,6 +19,8 @@ WORKDIR /usr/src/app
 
 COPY package* ./
 
+RUN npm config set update-notifier false
+
 RUN apk add --virtual .build g++ make py3-pip && \
     npm install --production --ci && \
     apk del .build
