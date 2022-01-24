@@ -27,17 +27,24 @@ export const postRewardClaimFor = async (req: HttpRequest, res: Response, next: 
             reward.withdrawAmount,
             rewardId,
         );
-        const job = await JobService.claimRewardFor(
-            req.assetPool,
-            withdrawal._id.toString(),
-            rewardId,
-            req.body.member,
-        );
+        const id = withdrawal._id.toString();
+        const job = await JobService.claimRewardFor(req.assetPool, id, rewardId, req.body.member);
 
         withdrawal.jobId = job.attrs._id.toString();
         await withdrawal.save();
 
-        return res.json(withdrawal);
+        return res.json({
+            id,
+            job,
+            withdrawalId: withdrawal.withdrawalId,
+            beneficiary: withdrawal.beneficiary,
+            amount: withdrawal.amount,
+            approved: withdrawal.approved,
+            state: withdrawal.state,
+            poll: withdrawal.poll,
+            createdAt: withdrawal.createdAt,
+            updatedAt: withdrawal.updatedAt,
+        });
     } catch (error) {
         return next(new HttpError(502, error.message, error));
     }

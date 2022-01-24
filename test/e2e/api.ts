@@ -25,6 +25,7 @@ describe('Happy Flow', () => {
         userAccessToken: string,
         dashboardAccessToken: string,
         poolAddress: string,
+        withdrawDocumentId: string,
         withdrawPollID: string,
         userWallet: Account,
         testToken: Contract;
@@ -45,7 +46,7 @@ describe('Happy Flow', () => {
     });
 
     describe('POST /asset_pools', () => {
-        it('HTTP 201 (success)', async (done) => {
+        it('HTTP 201 (success)', (done) => {
             user.post('/v1/asset_pools')
                 .set('Authorization', dashboardAccessToken)
                 .send({
@@ -82,7 +83,7 @@ describe('Happy Flow', () => {
             balanceOfAdmin = await callFunction(testToken.methods.balanceOf(adminAddress), NetworkProvider.Test);
         });
 
-        it('HTTP 200 and expose pool information', async (done) => {
+        it('HTTP 200 and expose pool information', (done) => {
             user.get('/v1/asset_pools/' + poolAddress)
                 .set({ AssetPool: poolAddress, Authorization: dashboardAccessToken })
                 .end(async (err, res) => {
@@ -217,19 +218,17 @@ describe('Happy Flow', () => {
     });
 
     describe('POST /rewards/:id/claim', () => {
-        it('HTTP 302 when tx is handled', async (done) => {
+        it('HTTP 302 when tx is handled', async () => {
             const { call, nonce, sig } = await signMethod(poolAddress, 'claimReward', [1], userWallet);
-            user.post('/v1/gas_station/call')
+            await user
+                .post('/v1/gas_station/call')
                 .send({
                     call,
                     nonce,
                     sig,
                 })
                 .set({ AssetPool: poolAddress, Authorization: userAccessToken })
-                .end(async (err, res) => {
-                    expect(res.status).toBe(200);
-                    done();
-                });
+                .expect(200);
         });
 
         it('HTTP 200 after return state Pending', (done) => {
@@ -248,7 +247,7 @@ describe('Happy Flow', () => {
     });
 
     describe('POST /rewards/:id/give', () => {
-        it('HTTP 200 when tx is handled', async (done) => {
+        it('HTTP 200 when tx is handled', (done) => {
             user.post('/v1/rewards/1/give')
                 .send({
                     member: userWallet.address,
@@ -256,9 +255,16 @@ describe('Happy Flow', () => {
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
                 .end(async (err, res) => {
                     expect(res.status).toBe(200);
-                    expect(res.body.id).toEqual(3);
+                    expect(res.body.id).toBeDefined();
+                    expect(res.body.job).toBeDefined();
+                    expect(res.body.beneficiary).toEqual(userWallet.address);
+                    expect(res.body.amount).toEqual(rewardWithdrawAmount);
+                    expect(res.body.state).toEqual(0);
+                    expect(res.body.createdAt).toBeDefined();
+                    expect(res.body.updatedAt).toBeDefined();
+                    expect(res.body.withdrawalId).toBeUndefined();
 
-                    withdrawPollID = res.body.id;
+                    withdrawDocumentId = res.body.id;
 
                     done();
                 });
@@ -266,14 +272,23 @@ describe('Happy Flow', () => {
     });
 
     describe('GET /withdrawals/:id', () => {
+        beforeAll(async () => {
+            await new Promise((r) => setTimeout(r, 5000));
+        });
+
         it('HTTP 200 and return state Approved', (done) => {
-            user.get(`/v1/withdrawals/${withdrawPollID}`)
+            user.get(`/v1/withdrawals/${withdrawDocumentId}`)
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
-                .end(async (err, res) => {
+                .end((err, res) => {
                     expect(res.status).toBe(200);
+                    expect(res.body.id).toBeDefined();
+                    expect(res.body.job).toBeUndefined();
                     expect(res.body.amount).toEqual(rewardWithdrawAmount);
                     expect(res.body.beneficiary).toEqual(userWallet.address);
                     expect(res.body.approved).toEqual(true);
+                    expect(res.body.withdrawalId).toEqual(3);
+
+                    withdrawPollID = res.body.withdrawalId;
 
                     done();
                 });
@@ -285,7 +300,7 @@ describe('Happy Flow', () => {
             await timeTravel(rewardWithdrawDuration);
         });
 
-        it('HTTP 302 and redirect to withdrawal', async (done) => {
+        it('HTTP 302 and redirect to withdrawal', async () => {
             const { call, nonce, sig } = await signMethod(
                 poolAddress,
                 'withdrawPollFinalize',
@@ -293,18 +308,15 @@ describe('Happy Flow', () => {
                 userWallet,
             );
 
-            user.post('/v1/gas_station/call')
+            await user
+                .post('/v1/gas_station/call')
                 .send({
                     call,
                     nonce,
                     sig,
                 })
                 .set({ AssetPool: poolAddress, Authorization: userAccessToken })
-                .end(async (err, res) => {
-                    expect(res.status).toBe(200);
-
-                    done();
-                });
+                .expect(200);
         });
 
         it('HTTP 200 and have the minted amount balance again', (done) => {
@@ -333,7 +345,7 @@ describe('Happy Flow', () => {
     });
 
     describe('GET /withdrawals (before proposed withdrawal)', () => {
-        it('HTTP 200 and returns 2 items', async (done) => {
+        it('HTTP 200 and returns 2 items', (done) => {
             user.get(`/v1/withdrawals?member=${userWallet.address}&page=1&limit=2`)
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
                 .end(async (err, res) => {
@@ -346,7 +358,7 @@ describe('Happy Flow', () => {
     });
 
     describe('GET /withdrawals for withdrawn state', () => {
-        it('HTTP 200 and returns 1 items', async (done) => {
+        it('HTTP 200 and returns 1 items', (done) => {
             user.get('/v1/withdrawals?state=1&page=1&limit=2')
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
                 .end(async (err, res) => {
@@ -357,7 +369,7 @@ describe('Happy Flow', () => {
                 });
         });
 
-        it('HTTP 200 and returns 2 item for state = 0', async (done) => {
+        it('HTTP 200 and returns 2 item for state = 0', (done) => {
             user.get('/v1/withdrawals?state=0&page=1&limit=2')
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
                 .end(async (err, res) => {
@@ -368,7 +380,7 @@ describe('Happy Flow', () => {
                 });
         });
 
-        it('HTTP 200 and returns 0 items for state = 0 and rewardId = 1 since rewardId is unknown for claimed rewards.', async (done) => {
+        it('HTTP 200 and returns 0 items for state = 0 and rewardId = 1 since rewardId is unknown for claimed rewards.', (done) => {
             user.get('/v1/withdrawals?state=0&rewardId=1&page=1&limit=2')
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
                 .end(async (err, res) => {
@@ -379,7 +391,7 @@ describe('Happy Flow', () => {
                 });
         });
 
-        it('HTTP 200 and returns 1 item for state = 1 and rewardId = 1', async (done) => {
+        it('HTTP 200 and returns 1 item for state = 1 and rewardId = 1', (done) => {
             user.get('/v1/withdrawals?state=1&rewardId=1&page=1&limit=2')
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
                 .end(async (err, res) => {
@@ -390,7 +402,7 @@ describe('Happy Flow', () => {
                 });
         });
 
-        it('HTTP 200 and returns 1 item state = 1 and rewardId = 1 and member address', async (done) => {
+        it('HTTP 200 and returns 1 item state = 1 and rewardId = 1 and member address', (done) => {
             user.get(`/v1/withdrawals?member=${userWallet.address}&state=1&rewardId=1&page=1&limit=2`)
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
                 .end(async (err, res) => {
@@ -401,7 +413,7 @@ describe('Happy Flow', () => {
                 });
         });
 
-        it('HTTP 200 and returns 0 items for unknown rewardId', async (done) => {
+        it('HTTP 200 and returns 0 items for unknown rewardId', (done) => {
             user.get('/v1/withdrawals?state=1&rewardId=2&page=1&limit=2')
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
                 .end(async (err, res) => {
@@ -412,7 +424,7 @@ describe('Happy Flow', () => {
                 });
         });
 
-        it('HTTP 200 and returns 2 items for page=1 and limit=2', async (done) => {
+        it('HTTP 200 and returns 2 items for page=1 and limit=2', (done) => {
             user.get('/v1/withdrawals?page=1&limit=2')
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
                 .end(async (err, res) => {

@@ -16,6 +16,9 @@ export default class RewardService {
     static async get(assetPool: IAssetPool, rewardId: number) {
         try {
             const reward = await Reward.findOne({ poolAddress: assetPool.address, id: rewardId });
+
+            if (!reward) return { reward };
+
             const { id, withdrawAmount, withdrawDuration, pollId, state } = await callFunction(
                 assetPool.solution.methods.getReward(rewardId),
                 assetPool.network,

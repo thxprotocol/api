@@ -22,6 +22,8 @@ export type WithdrawalDocument = mongoose.Document & {
         noCounter: number;
         totalVoted: number;
     } | null;
+    createdAt: Date;
+    updatedAt: Date;
 };
 
 const withdrawalSchema = new mongoose.Schema(
@@ -41,6 +43,8 @@ const withdrawalSchema = new mongoose.Schema(
             noCounter: Number,
             totalVoted: Number,
         },
+        createdAt: Date,
+        updatedAt: Date,
     },
     { timestamps: true },
 );

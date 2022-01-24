@@ -15,7 +15,7 @@ export const validations = {
         query('rewardId').optional().isNumeric(),
         query('state').optional().isNumeric(),
     ],
-    getWithdrawal: [param('id').exists().isNumeric()],
+    getWithdrawal: [param('id').exists().isString()],
     postWithdrawal: [
         body('member')
             .exists()

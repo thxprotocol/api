@@ -3,6 +3,7 @@ import { MONGODB_URI } from './secrets';
 import { Job } from 'agenda';
 import { solutionContract } from './network';
 import AssetPoolService from '../services/AssetPoolService';
+import { logger } from './logger';
 
 export async function parseJobData(job: Job) {
     const id = job.attrs._id.toString();
@@ -22,10 +23,10 @@ export const agenda = new Agenda({
     processEvery: '5 seconds',
 });
 
-agenda.on('complete', (job) => {
-    console.log(`Job ${job.attrs.name} finished`);
+agenda.on('complete', (job: Job) => {
+    logger.info({ job: job.attrs.name, status: 'complete' });
 });
 
-agenda.on('start', (job) => {
-    console.log('Job %s starting', job.attrs.name);
+agenda.on('start', (job: Job) => {
+    logger.info({ job: job.attrs.name, status: 'start' });
 });

@@ -161,7 +161,7 @@ export default class WithdrawalService {
                 ...(poolAddress ? { poolAddress } : {}),
                 ...(beneficiary ? { beneficiary } : {}),
                 ...(rewardId || rewardId === 0 ? { rewardId } : {}),
-                // ...(state || state === 0 ? { state } : {}),
+                ...(state === 0 || state === 1 ? { state } : {}),
             };
             const result = await paginatedResults(Withdrawal, page, limit, query);
 
