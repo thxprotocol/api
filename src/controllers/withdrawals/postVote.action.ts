@@ -1,6 +1,7 @@
 import qrcode from 'qrcode';
 import { HttpError } from '../../models/Error';
 import { NextFunction, Request, Response } from 'express';
+import WithdrawalService from '../../services/WithdrawalService';
 
 /**
  * @swagger
@@ -27,7 +28,7 @@ import { NextFunction, Request, Response } from 'express';
  *     responses:
  *       '200':
  *         description: OK
- *         content: application/json 
+ *         content: application/json
  *         schema:
  *               type: object
  *               properties:
@@ -47,12 +48,13 @@ import { NextFunction, Request, Response } from 'express';
  */
 export const postVote = async (req: Request, res: Response, next: NextFunction) => {
     try {
+        const { withdrawal } = await WithdrawalService.getById(req.params.id);
         const base64 = await qrcode.toDataURL(
             JSON.stringify({
                 assetPoolAddress: req.header('AssetPool'),
                 method: 'vote',
                 params: {
-                    id: req.params.id,
+                    id: withdrawal.withdrawalId,
                     agree: req.body.agree,
                 },
             }),

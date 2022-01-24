@@ -13,7 +13,19 @@ export const postWithdrawal = async (req: HttpRequest, res: Response, next: Next
         withdrawal.jobId = job.attrs._id.toString();
         await withdrawal.save();
 
-        res.status(201).json(withdrawal);
+        res.status(201).json({
+            id: withdrawal.id,
+            job,
+            withdrawalId: withdrawal.withdrawalId,
+            rewardId: withdrawal.rewardId,
+            beneficiary: withdrawal.beneficiary,
+            amount: withdrawal.amount,
+            approved: withdrawal.approved,
+            state: withdrawal.state,
+            poll: withdrawal.poll,
+            createdAt: withdrawal.createdAt,
+            updatedAt: withdrawal.updatedAt,
+        });
     } catch (error) {
         next(new HttpError(500, error.toString(), error));
     }

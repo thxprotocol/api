@@ -25,8 +25,8 @@ export const validations = {
         ,
         body('amount').exists().isNumeric(),
     ],
-    postWithdrawalWithdraw: [param('id').exists().isNumeric()],
-    postVote: [param('id').exists().isNumeric(), header('AssetPool').exists()],
-    deleteVote: [param('id').exists().isNumeric(), header('AssetPool').exists()],
-    postPollFinalize: [param('id').exists().isNumeric()],
+    postWithdrawalWithdraw: [param('id').exists().isString()],
+    postVote: [param('id').exists().isString(), header('AssetPool').exists()],
+    deleteVote: [param('id').exists().isString(), header('AssetPool').exists()],
+    postPollFinalize: [param('id').exists().isString()],
 };

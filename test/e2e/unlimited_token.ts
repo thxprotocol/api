@@ -1,12 +1,12 @@
 import request from 'supertest';
 import server from '../../src/server';
 import db from '../../src/util/database';
-import { account, rewardWithdrawAmount, sub, tokenName, tokenSymbol, userWalletPrivateKey } from './lib/constants';
+import { rewardWithdrawAmount, tokenName, tokenSymbol, userWalletPrivateKey } from './lib/constants';
 import { isAddress } from 'web3-utils';
 import { Account } from 'web3-core';
 import { createWallet } from './lib/network';
 import { getToken } from './lib/jwt';
-import { mockClear, mockPath, mockStart } from './lib/mock';
+import { mockClear, mockStart } from './lib/mock';
 
 const user = request.agent(server);
 
@@ -15,7 +15,7 @@ describe('Unlimited Supply Token', () => {
         dashboardAccessToken: string,
         poolAddress: string,
         rewardID: string,
-        withdrawalID: number,
+        withdrawalDocumentId: number,
         userWallet: Account;
 
     beforeAll(async () => {
@@ -150,7 +150,7 @@ describe('Unlimited Supply Token', () => {
                     expect(res.status).toBe(200);
                     expect(res.body.id).toBe(2);
 
-                    withdrawalID = res.body.id;
+                    withdrawalDocumentId = res.body.id;
 
                     done();
                 });
@@ -158,6 +158,10 @@ describe('Unlimited Supply Token', () => {
     });
 
     describe('POST /withdrawals/:id/withdraw', () => {
+        beforeAll(async () => {
+            await new Promise((r) => setTimeout(r, 5000));
+        });
+
         it('HTTP 200 and 0 balance', (done) => {
             user.get('/v1/members/' + userWallet.address)
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
@@ -170,7 +174,7 @@ describe('Unlimited Supply Token', () => {
         });
 
         it('HTTP 200 OK', async (done) => {
-            user.post(`/v1/withdrawals/${withdrawalID}/withdraw`)
+            user.post(`/v1/withdrawals/${withdrawalDocumentId}/withdraw`)
                 .send()
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
                 .end(async (err, res) => {

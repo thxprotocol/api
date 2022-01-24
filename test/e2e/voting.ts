@@ -25,7 +25,8 @@ describe('Voting', () => {
         dashboardAccessToken: string,
         poolAddress: string,
         rewardID: string,
-        withdrawalID: number,
+        withdrawalId: number,
+        withdrawalDocumentId: number,
         userWallet: Account;
 
     beforeAll(async () => {
@@ -43,7 +44,7 @@ describe('Voting', () => {
     });
 
     describe('POST /asset_pools', () => {
-        it('HTTP 201 (success)', async (done) => {
+        it('HTTP 201 (success)', (done) => {
             user.post('/v1/asset_pools')
                 .set('Authorization', dashboardAccessToken)
                 .send({
@@ -64,7 +65,7 @@ describe('Voting', () => {
                 });
         });
 
-        it('HTTP 200 (success)', async (done) => {
+        it('HTTP 200 (success)', (done) => {
             user.get('/v1/asset_pools/' + poolAddress)
                 .set({
                     Authorization: dashboardAccessToken,
@@ -214,20 +215,17 @@ describe('Voting', () => {
                 });
         });
 
-        it('HTTP 302 when tx is handled', async (done) => {
+        it('HTTP 302 when tx is handled', async () => {
             const { call, nonce, sig } = await signMethod(poolAddress, 'rewardPollVote', [1, true], userWallet);
-
-            user.post('/v1/gas_station/call')
+            const { status } = await user
+                .post('/v1/gas_station/call')
                 .set({ AssetPool: poolAddress, Authorization: userAccessToken })
                 .send({
                     call,
                     nonce,
                     sig,
-                })
-                .end((err, res) => {
-                    expect(res.status).toBe(200);
-                    done();
                 });
+            expect(status).toBe(200);
         });
 
         it('HTTP 200 and increase yesCounter with 1', (done) => {
@@ -249,7 +247,7 @@ describe('Voting', () => {
             await timeTravel(rewardPollDuration);
         });
 
-        it('HTTP 200 after finalizing the poll', async (done) => {
+        it('HTTP 200 after finalizing the poll', (done) => {
             user.post(`/v1/rewards/${rewardID}/poll/finalize`)
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
                 .end(async (err, res) => {
@@ -263,7 +261,7 @@ describe('Voting', () => {
     });
 
     describe('POST /rewards/:id/give', () => {
-        it('HTTP 200 after giving a reward', async (done) => {
+        it('HTTP 200 after giving a reward', (done) => {
             user.post(`/v1/rewards/${rewardID}/give`)
                 .send({
                     member: userWallet.address,
@@ -271,9 +269,9 @@ describe('Voting', () => {
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
                 .end(async (err, res) => {
                     expect(res.status).toBe(200);
-                    expect(res.body.id).toBe(2);
+                    expect(res.body.id).toBeDefined();
 
-                    withdrawalID = res.body.id;
+                    withdrawalDocumentId = res.body.id;
 
                     done();
                 });
@@ -281,14 +279,18 @@ describe('Voting', () => {
     });
 
     describe('GET /withdrawals?member=:address', () => {
-        it('HTTP 200 and return a list of 1 item', async (done) => {
+        beforeAll(async () => {
+            await new Promise((r) => setTimeout(r, 5000));
+        });
+
+        it('HTTP 200 and return a list of 1 item', (done) => {
             user.get(`/v1/withdrawals?member=${userWallet.address}&page=1&limit=2`)
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
                 .end(async (err, res) => {
                     expect(res.status).toBe(200);
                     expect(res.body.results.length).toBe(1);
 
-                    withdrawalID = res.body.results[0].id;
+                    withdrawalId = res.body.results[0].withdrawalId;
 
                     done();
                 });
@@ -297,7 +299,7 @@ describe('Voting', () => {
 
     describe('POST /withdrawals/:id/vote', () => {
         it('HTTP 200 and base64 string for the yes vote', (done) => {
-            user.post(`/v1/withdrawals/${withdrawalID}/vote`)
+            user.post(`/v1/withdrawals/${withdrawalDocumentId}/vote`)
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
                 .send({
                     agree: true,
@@ -310,29 +312,28 @@ describe('Voting', () => {
                 });
         });
 
-        it('HTTP 302 when tx is handled', async (done) => {
+        it('HTTP 302 when tx is handled', async () => {
             const { call, nonce, sig } = await signMethod(
                 poolAddress,
                 'withdrawPollVote',
-                [withdrawalID, true],
+                [withdrawalId, true],
                 getAdmin(NetworkProvider.Test),
             );
 
-            user.post('/v1/gas_station/call')
+            const { status } = await user
+                .post('/v1/gas_station/call')
                 .set({ AssetPool: poolAddress, Authorization: userAccessToken })
                 .send({
                     call,
                     nonce,
                     sig,
-                })
-                .end((err, res) => {
-                    expect(res.status).toBe(200);
-                    done();
                 });
+
+            expect(status).toEqual(200);
         });
 
         it('HTTP 200 and increase yesCounter with 1', (done) => {
-            user.get('/v1/withdrawals/' + withdrawalID)
+            user.get('/v1/withdrawals/' + withdrawalDocumentId)
                 .set({ AssetPool: poolAddress, Authorization: userAccessToken })
                 .end(async (err, res) => {
                     expect(res.status).toBe(200);
@@ -361,26 +362,23 @@ describe('Voting', () => {
                 });
         });
 
-        it('HTTP 200 OK', async (done) => {
+        it('HTTP 200 OK', async () => {
             const { call, nonce, sig } = await signMethod(
                 poolAddress,
                 'withdrawPollFinalize',
-                [withdrawalID],
+                [withdrawalId],
                 userWallet,
             );
-
-            user.post('/v1/gas_station/call')
+            const { status } = await user
+                .post('/v1/gas_station/call')
                 .send({
                     call,
                     nonce,
                     sig,
                 })
-                .set({ AssetPool: poolAddress, Authorization: userAccessToken })
-                .end(async (err, res) => {
-                    expect(res.status).toBe(200);
+                .set({ AssetPool: poolAddress, Authorization: userAccessToken });
 
-                    done();
-                });
+            expect(status).toEqual(200);
         });
 
         it('HTTP 200 and increased balance', (done) => {

@@ -33,7 +33,7 @@ describe('Signup', () => {
     });
 
     describe('POST /asset_pools', () => {
-        it('HTTP 200', async (done) => {
+        it('HTTP 200', (done) => {
             user.post('/v1/asset_pools')
                 .set({ Authorization: dashboardAccessToken })
                 .send({
@@ -51,7 +51,7 @@ describe('Signup', () => {
     });
 
     describe('POST /account (+ membership)', () => {
-        it('HTTP 201', async (done) => {
+        it('HTTP 201', (done) => {
             user.post('/v1/account')
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
                 .send({

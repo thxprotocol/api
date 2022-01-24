@@ -3,6 +3,8 @@ import { HttpError, HttpRequest } from '../../models/Error';
 import { NextFunction, Response } from 'express';
 import { sendTransaction } from '../../util/network';
 
+import WithdrawalService from '../../services/WithdrawalService';
+
 /**
  * @swagger
  * /withdrawals/:id/withdraw:
@@ -45,12 +47,12 @@ import { sendTransaction } from '../../util/network';
  */
 export const postPollFinalize = async (req: HttpRequest, res: Response, next: NextFunction) => {
     switch (req.assetPool.bypassPolls) {
-        // BypassPolls enabled
         case true:
             try {
+                const { withdrawal } = await WithdrawalService.getById(req.params.id);
                 await sendTransaction(
                     req.solution.options.address,
-                    req.solution.methods.withdrawPollFinalize(req.params.id),
+                    req.solution.methods.withdrawPollFinalize(withdrawal.withdrawalId),
                     req.assetPool.network,
                 );
 
@@ -59,15 +61,15 @@ export const postPollFinalize = async (req: HttpRequest, res: Response, next: Ne
                 next(new HttpError(500, 'Could not finalize the withdraw poll.', err));
             }
             break;
-        // BypassPolls disabled
         case false:
             try {
+                const { withdrawal } = await WithdrawalService.getById(req.params.id);
                 const base64 = await qrcode.toDataURL(
                     JSON.stringify({
                         assetPoolAddress: req.solution.options.address,
                         method: 'withdrawPollFinalize',
                         params: {
-                            id: req.params.id,
+                            id: withdrawal.withdrawalId,
                         },
                     }),
                 );

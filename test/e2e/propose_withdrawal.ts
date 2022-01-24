@@ -14,7 +14,7 @@ describe('Propose Withdrawal', () => {
     let adminAccessToken: string,
         dashboardAccessToken: string,
         poolAddress: string,
-        withdrawalID: number,
+        withdrawalDocumentId: number,
         userWallet: Account;
 
     beforeAll(async () => {
@@ -85,9 +85,28 @@ describe('Propose Withdrawal', () => {
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
                 .end(async (err, res) => {
                     expect(res.status).toBe(201);
-                    expect(res.body.id).toBe(1);
+                    expect(res.body.withdrawalId).toBeUndefined();
 
-                    withdrawalID = res.body.id;
+                    withdrawalDocumentId = res.body.id;
+
+                    done();
+                });
+        });
+    });
+
+    describe('GET /withdrawals/:id', () => {
+        beforeAll(async () => {
+            await new Promise((r) => setTimeout(r, 5000));
+        });
+
+        it('HTTP 200 when job is completed', async (done) => {
+            user.get(`/v1/withdrawals/${withdrawalDocumentId}`)
+                .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
+                .end(async (err, res) => {
+                    expect(res.status).toBe(200);
+                    expect(res.body.withdrawalId).toBeUndefined();
+
+                    withdrawalDocumentId = res.body.id;
 
                     done();
                 });
@@ -107,7 +126,7 @@ describe('Propose Withdrawal', () => {
         });
 
         it('HTTP 200 OK', async (done) => {
-            user.post(`/v1/withdrawals/${withdrawalID}/withdraw`)
+            user.post(`/v1/withdrawals/${withdrawalDocumentId}/withdraw`)
                 .send()
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
                 .end(async (err, res) => {
