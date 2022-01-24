@@ -1,5 +1,5 @@
 import cors from 'cors';
-import { AUTH_URL, API_URL, WALLET_URL, DASHBOARD_URL, WIDGETS_URL } from '../util/secrets';
+import { AUTH_URL, API_URL, WALLET_URL, DASHBOARD_URL, WIDGETS_URL } from './secrets';
 
 export const corsHandler = cors(async (req: any, callback: Function) => {
     const origin = req.header('Origin');

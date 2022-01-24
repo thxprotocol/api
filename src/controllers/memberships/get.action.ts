@@ -1,14 +1,17 @@
 import { NextFunction, Response } from 'express';
 import { HttpError, HttpRequest } from '../../models/Error';
+
 import MembershipService from '../../services/MembershipService';
+import WithdrawalService from '../../services/WithdrawalService';
+import AccountProxy from '../../proxies/AccountProxy';
 
 export const getMembership = async (req: HttpRequest, res: Response, next: NextFunction) => {
     try {
-        const { membership, error } = await MembershipService.getById(req.params.id);
+        const { membership } = await MembershipService.getById(req.params.id);
+        const { account } = await AccountProxy.getById(req.user.sub);
+        const { pending } = await WithdrawalService.getPendingBalance(account, membership.poolAddress);
 
-        if (error) throw new Error(error);
-
-        res.json(membership);
+        res.json({ ...membership, pendingBalance: pending });
     } catch (error) {
         return next(new HttpError(502, error.toString(), error));
     }

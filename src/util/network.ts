@@ -9,7 +9,7 @@ import {
     FIXED_GAS_PRICE,
     MINIMUM_GAS_LIMIT,
     MAXIMUM_GAS_PRICE,
-} from '../util/secrets';
+} from './secrets';
 import Web3 from 'web3';
 import axios from 'axios';
 import BN from 'bn.js';

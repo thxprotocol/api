@@ -2,9 +2,10 @@ import { Response, NextFunction } from 'express';
 import { HttpError, HttpRequest } from '../../models/Error';
 import { VERSION } from '../../util/secrets';
 import { toWei } from 'web3-utils';
+import { RewardDocument, IRewardCondition } from '../../models/Reward';
+
 import RewardService from '../../services/RewardService';
 import AssetPoolService from '../../services/AssetPoolService';
-import { RewardDocument, IRewardCondition } from '../../models/Reward';
 
 const ERROR_CREATE_REWARD_FAILED = 'Could not create your reward';
 const ERROR_FINALIZE_REWARD_POLL_FAILED = 'Could not finalize your reward poll';

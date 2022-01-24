@@ -6,9 +6,6 @@ import { RewardDocument } from '../../models/Reward';
 export const postPollFinalize = async (req: HttpRequest, res: Response, next: NextFunction) => {
     async function getReward(rewardId: number) {
         const { reward, error } = await RewardService.get(req.assetPool, rewardId);
-        if (!reward) {
-            next(new HttpError(404, 'No reward found for this ID.'));
-        }
         if (error) {
             throw new Error(error.message);
         }
@@ -26,6 +23,7 @@ export const postPollFinalize = async (req: HttpRequest, res: Response, next: Ne
     try {
         const rewardId = Number(req.params.id);
         const reward = await getReward(rewardId);
+        if (!reward) return next(new HttpError(404, 'No reward found for this ID.'));
         const finalizedReward = await finalizeRewardPoll(reward);
 
         res.json(finalizedReward);

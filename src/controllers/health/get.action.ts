@@ -6,7 +6,6 @@ import {
     TESTNET_ASSET_POOL_FACTORY_ADDRESS,
     TESTNET_POOL_REGISTRY_ADDRESS,
 } from '../../util/secrets';
-import { VERSION } from '../../util/secrets';
 import { name, version, license } from '../../../package.json';
 import { getAdmin, getProvider, NetworkProvider } from '../../util/network';
 import { fromWei } from 'web3-utils';
@@ -43,9 +42,9 @@ async function getNetworkDetails(npid: NetworkProvider, constants: { factory: st
 export const getHealth = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const jsonData = {
-            name: `${name} (${VERSION})`,
-            version: version,
-            license: license,
+            name,
+            version,
+            license,
             testnet: await getNetworkDetails(NetworkProvider.Test, {
                 factory: TESTNET_ASSET_POOL_FACTORY_ADDRESS,
                 registry: TESTNET_POOL_REGISTRY_ADDRESS,

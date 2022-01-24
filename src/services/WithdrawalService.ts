@@ -5,15 +5,22 @@ import { parseLogs, findEvent } from '../util/events';
 import { Withdrawal, WithdrawalState } from '../models/Withdrawal';
 import { toWei, fromWei } from 'web3-utils';
 import { paginatedResults } from '../util/pagination';
+import { IAccount } from '../models/Account';
 
 const ERROR_NO_WITHDRAWAL = 'Could not find an withdrawal for this beneficiary';
+
+interface IWithdrawalUpdates {
+    withdrawalId: number;
+    memberId: number;
+    rewardId?: number;
+}
 
 export default class WithdrawalService {
     static async get(assetPool: IAssetPool, withdrawalId: number) {
         try {
             const withdrawal = await Withdrawal.findOne({
                 poolAddress: assetPool.address,
-                id: withdrawalId,
+                withdrawalId,
             });
             return { withdrawal };
         } catch (error) {
@@ -21,71 +28,103 @@ export default class WithdrawalService {
         }
     }
 
-    static async proposeWithdrawal(assetPool: IAssetPool, memberAddress: string, amount: number) {
+    static async getById(id: string) {
         try {
-            // Check if is member
-            const amountInWei = toWei(amount.toString());
-            const tx = await sendTransaction(
-                assetPool.address,
-                assetPool.solution.methods.proposeWithdraw(amountInWei, memberAddress),
+            const withdrawal = await Withdrawal.findById(id);
+
+            return { withdrawal };
+        } catch (error) {
+            return { error };
+        }
+    }
+
+    static async schedule(assetPool: IAssetPool, beneficiary: string, amount: number, rewardId?: number) {
+        const withdrawal = new Withdrawal({
+            amount,
+            rewardId,
+            beneficiary,
+            poolAddress: assetPool.solution.options.address,
+            state: WithdrawalState.Pending,
+        });
+
+        return await withdrawal.save();
+    }
+
+    static async getPendingBalance(account: IAccount, poolAddress: string) {
+        try {
+            const withdrawals = await Withdrawal.find({
+                poolAddress,
+                beneficiary: account.address,
+                state: 0,
+            });
+            const pending = withdrawals.map((item) => item.amount).reduce((prev, curr) => prev + curr, 0);
+
+            return { pending };
+        } catch (error) {
+            return { error };
+        }
+    }
+
+    // Invoked from job
+    static async proposeWithdraw(assetPool: IAssetPool, id: string, beneficiary: string, amount: number) {
+        const amountInWei = toWei(amount.toString());
+        const tx = await sendTransaction(
+            assetPool.address,
+            assetPool.solution.methods.proposeWithdraw(amountInWei, beneficiary),
+            assetPool.network,
+        );
+        const events = parseLogs(Artifacts.IDefaultDiamond.abi, tx.logs);
+        const event = findEvent('WithdrawPollCreated', events);
+
+        return await this.update(assetPool, id, {
+            withdrawalId: event.args.id,
+            memberId: event.args.member,
+        });
+    }
+
+    // Invoked from job
+    static async update(assetPool: IAssetPool, id: string, { withdrawalId, memberId }: IWithdrawalUpdates) {
+        const { withdrawal } = await this.getById(id);
+
+        if (memberId) {
+            withdrawal.beneficiary = await callFunction(
+                assetPool.solution.methods.getAddressByMember(memberId),
                 assetPool.network,
             );
-            const events = parseLogs(Artifacts.IDefaultDiamond.abi, tx.logs);
-            const event = findEvent('WithdrawPollCreated', events);
-            const { withdrawal } = await this.create(assetPool, event.args.id, event.args.member);
-
-            return { withdrawal: await withdrawal.save() };
-        } catch (error) {
-            return { error };
         }
-    }
 
-    static async create(assetPool: IAssetPool, id: number, memberId: number, rewardId?: number) {
-        try {
-            const withdrawal = new Withdrawal({
-                id,
-                amount: Number(
-                    fromWei(await callFunction(assetPool.solution.methods.getAmount(id), assetPool.network)),
+        if (withdrawalId) {
+            withdrawal.withdrawalId = withdrawalId; // TODO make migration for this
+            withdrawal.amount = Number(
+                fromWei(await callFunction(assetPool.solution.methods.getAmount(withdrawalId), assetPool.network)),
+            );
+            withdrawal.approved = await callFunction(
+                assetPool.solution.methods.withdrawPollApprovalState(withdrawalId),
+                assetPool.network,
+            );
+            const poll = {
+                startTime: Number(
+                    await callFunction(assetPool.solution.methods.getStartTime(withdrawalId), assetPool.network),
                 ),
-                poolAddress: assetPool.solution.options.address,
-                beneficiary: await callFunction(
-                    assetPool.solution.methods.getAddressByMember(memberId),
-                    assetPool.network,
+                endTime: Number(
+                    await callFunction(assetPool.solution.methods.getEndTime(withdrawalId), assetPool.network),
                 ),
-                approved: await callFunction(
-                    assetPool.solution.methods.withdrawPollApprovalState(id),
-                    assetPool.network,
-                ),
-                state: WithdrawalState.Pending,
-                rewardId,
-                poll: {
-                    startTime: Number(
-                        await callFunction(assetPool.solution.methods.getStartTime(id), assetPool.network),
-                    ),
-                    endTime: Number(await callFunction(assetPool.solution.methods.getEndTime(id), assetPool.network)),
-                    yesCounter: 0,
-                    noCounter: 0,
-                    totalVoted: 0,
-                },
-            });
-
-            return {
-                withdrawal: await withdrawal.save(),
+                yesCounter: 0,
+                noCounter: 0,
+                totalVoted: 0,
             };
-        } catch (error) {
-            return { error };
+            withdrawal.poll = poll;
         }
+
+        return await withdrawal.save();
     }
 
-    static async withdrawPollFinalize(assetPool: IAssetPool, withdrawalId: number) {
+    static async withdrawPollFinalize(assetPool: IAssetPool, id: string) {
         try {
-            const withdrawal = await Withdrawal.findOne({
-                poolAddress: assetPool.address,
-                id: withdrawalId,
-            });
+            const withdrawal = await Withdrawal.findById(id);
             const tx = await sendTransaction(
                 assetPool.solution.options.address,
-                assetPool.solution.methods.withdrawPollFinalize(withdrawalId),
+                assetPool.solution.methods.withdrawPollFinalize(withdrawal.withdrawalId),
                 assetPool.network,
             );
 
@@ -122,7 +161,7 @@ export default class WithdrawalService {
                 ...(poolAddress ? { poolAddress } : {}),
                 ...(beneficiary ? { beneficiary } : {}),
                 ...(rewardId || rewardId === 0 ? { rewardId } : {}),
-                ...(state || state === 0 ? { state } : {}),
+                // ...(state || state === 0 ? { state } : {}),
             };
             const result = await paginatedResults(Withdrawal, page, limit, query);
 

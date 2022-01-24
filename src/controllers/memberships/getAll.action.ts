@@ -1,5 +1,6 @@
 import { NextFunction, Response } from 'express';
 import { HttpError, HttpRequest } from '../../models/Error';
+
 import MembershipService from '../../services/MembershipService';
 
 export const getMemberships = async (req: HttpRequest, res: Response, next: NextFunction) => {

@@ -39,23 +39,23 @@ class EventIndexer {
 
     async onWithdrawPollCreated(npid: NetworkProvider, address: string, args: any) {
         try {
-            const id = args.id;
+            const withdrawalId = args.id;
             const memberId = args.member;
-            const existingWithdrawal = await Withdrawal.findOne({ id, poolAddress: address });
+            const existingWithdrawal = await Withdrawal.findOne({ withdrawalId, poolAddress: address });
 
             if (existingWithdrawal) {
                 return;
             }
 
             const solution = solutionContract(npid, address);
-            const amount = Number(fromWei(await callFunction(solution.methods.getAmount(id), npid)));
+            const amount = Number(fromWei(await callFunction(solution.methods.getAmount(withdrawalId), npid)));
             const beneficiary = await callFunction(solution.methods.getAddressByMember(memberId), npid);
-            const approved = await callFunction(solution.methods.withdrawPollApprovalState(id), npid);
-            const startTime = Number(await callFunction(solution.methods.getStartTime(id), npid));
-            const endTime = Number(await callFunction(solution.methods.getEndTime(id), npid));
+            const approved = await callFunction(solution.methods.withdrawPollApprovalState(withdrawalId), npid);
+            const startTime = Number(await callFunction(solution.methods.getStartTime(withdrawalId), npid));
+            const endTime = Number(await callFunction(solution.methods.getEndTime(withdrawalId), npid));
 
             const withdrawal = new Withdrawal({
-                id,
+                withdrawalId,
                 amount,
                 poolAddress: solution.options.address,
                 beneficiary,
@@ -78,8 +78,8 @@ class EventIndexer {
 
     async onWithdrawn(npid: NetworkProvider, address: string, args: any) {
         try {
-            const id = args.id;
-            const withdrawal = await Withdrawal.findOne({ id, poolAddress: address });
+            const withdrawalId = args.id;
+            const withdrawal = await Withdrawal.findOne({ withdrawalId, poolAddress: address });
 
             withdrawal.state = WithdrawalState.Withdrawn;
 
@@ -91,8 +91,8 @@ class EventIndexer {
 
     async onWithdrawPollFinalized(npid: NetworkProvider, address: string, args: any) {
         try {
-            const id = args.id;
-            const withdrawal = await Withdrawal.findOne({ id, poolAddress: address });
+            const withdrawalId = args.id;
+            const withdrawal = await Withdrawal.findOne({ withdrawalId, poolAddress: address });
 
             withdrawal.poll = null;
 

@@ -4,7 +4,7 @@ services:
     api_mongo:
         container_name: thx_api_mongo
         image: mongo
-        env_file: .env
+        env_file: .env 
         restart: always
         networks:
             - thx_network
@@ -26,7 +26,7 @@ services:
         volumes:
             - ./:/usr/src/service
         working_dir: /usr/src/service
-        command: bash -c "npm run watch:debug"
+        command: bash -c "npm run deploy && npm run watch:debug"
         environment:
             - NODE_ENV=local
         depends_on:
@@ -39,7 +39,7 @@ services:
             - api_testnet
         ports:
             - 3000:3000
-
+       
     api_testnet:
         container_name: thx_api_testnet
         image: trufflesuite/ganache-cli:latest
@@ -47,13 +47,10 @@ services:
             - thx_network
         ports:
             - '8547:8545'
-        # volumes:
-        #     - ./cache/testnet-data:/ganache_data
         command: [
                 'ganache-cli',
                 "--account='0x873c254263b17925b686f971d7724267710895f1585bb0533db8e693a2af32ff,100000000000000000000'",
                 "--account='0x5a05e38394194379795422d2e8c1d33e90033d90defec4880174c39198f707e3,100000000000000000000'",
-                # '--db=/ganache_data',
                 '-l 25000000',
             ]
 
@@ -64,20 +61,15 @@ services:
             - thx_network
         ports:
             - '8546:8545'
-        # volumes:
-        #     - ./cache/mainnet-data:/ganache_data
         command: [
                 'ganache-cli',
                 "--account='0x873c254263b17925b686f971d7724267710895f1585bb0533db8e693a2af32ff,100000000000000000000'",
                 "--account='0x5a05e38394194379795422d2e8c1d33e90033d90defec4880174c39198f707e3,100000000000000000000'",
-                # '--db=/ganache_data',
                 '-l 25000000 ',
             ]
 volumes:
     mongo-data:
-    # testnet-data:
-    # mainnet-data:
-
+    
 networks:
     thx_network:
         name: thx_network

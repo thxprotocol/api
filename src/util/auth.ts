@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { AUTH_CLIENT_ID, AUTH_CLIENT_SECRET, AUTH_URL } from '../util/secrets';
+import { AUTH_CLIENT_ID, AUTH_CLIENT_SECRET, AUTH_URL } from './secrets';
 
 let authAccessToken = '';
 let authAccessTokenExpires = 0;

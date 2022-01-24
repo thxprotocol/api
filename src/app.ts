@@ -8,10 +8,14 @@ import { requestLogger } from './util/logger';
 import { corsHandler } from './util/cors';
 import { errorHandler, notFoundHandler } from './util/error';
 import { PORT, VERSION, MONGODB_URI } from './util/secrets';
+import { agenda } from './util/agenda';
 
 const app = express();
 
-db.connect(MONGODB_URI);
+(async function () {
+    await db.connect(MONGODB_URI);
+    await agenda.start();
+})();
 
 app.set('trust proxy', true);
 app.set('port', PORT);

@@ -6,12 +6,14 @@ export enum WithdrawalState {
 }
 
 export type WithdrawalDocument = mongoose.Document & {
-    id: number;
     poolAddress: string;
     beneficiary: string;
     amount: number;
     approved: boolean;
     state: number;
+    job: any;
+    jobId: string;
+    withdrawalId: number;
     rewardId: number;
     poll: {
         startTime: number;
@@ -24,12 +26,13 @@ export type WithdrawalDocument = mongoose.Document & {
 
 const withdrawalSchema = new mongoose.Schema(
     {
-        id: Number,
         poolAddress: String,
         beneficiary: String,
         amount: Number,
         approved: Boolean,
         state: Number,
+        jobId: String,
+        withdrawalId: Number,
         rewardId: Number,
         poll: {
             startTime: Number,

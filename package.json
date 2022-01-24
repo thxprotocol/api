@@ -9,9 +9,9 @@
     "license": "AGPL-3.0",
     "scripts": {
         "preinstall": "npx npm-force-resolutions",
-        "serve:debug": "nodemon --inspect dist/src/server.js",
-        "lint": "npx tsc --noEmit && npx eslint \"src/**/*.ts\" \"test/**/*.ts\" --quiet --fix",
-        "build": "npm run build:sass && npm run build:assets && npm run build:docs && npx tsc",
+        "serve:debug": "nodemon --legacy-watch ./dist/src/server.js",
+        "lint": "tsc -p ./tsconfig.json && eslint \"./src/**/*.ts\" \"./test/**/*.ts\" --quiet --fix",
+        "build": "npm run build:sass && npm run build:assets && npm run build:docs && tsc -p ./tsconfig.json",
         "build:assets": "mkdir -p dist/src/public && cp -R src/public/* dist/src/public/. && cp -R src/views dist/src/.",
         "build:docs": "swagger-jsdoc -d ./src/swaggerDef.js -o ./src/swagger.json",
         "build:sass": "sass src/main.scss src/public/main.css",
@@ -20,7 +20,6 @@
         "watch:sass": "sass --watch src/main.scss dist/src/public/main.css",
         "watch:node": "nodemon dist/src/server.js",
         "watch:debug": "concurrently -k -p \"[{name}]\" -n \"TypeScript,Node\" -c \"yellow.bold,cyan.bold,green.bold\" \"npm run watch:ts\" \"npm run watch:sass\" \"npm run serve:debug\"",
-        "reset": "rm -rf ./cache && unzip cache.zip -d ./cache && rm -rf ./cache/__MACOSX",
         "pretest": "docker compose -f docker-compose.ci.yml up -d",
         "test": "npx jest --coverage --runInBand --forceExit",
         "posttest": "docker compose -f docker-compose.ci.yml down",
@@ -32,6 +31,7 @@
     },
     "dependencies": {
         "@sendgrid/mail": "^7.4.2",
+        "agenda": "^4.2.1",
         "async": "^3.1.0",
         "axios": "^0.21.3",
         "bcrypt-nodejs": "^0.0.3",
@@ -61,6 +61,7 @@
     },
     "devDependencies": {
         "@thxnetwork/artifacts": "^1.0.1",
+        "@types/agenda": "^4.1.0",
         "@types/async": "^3.0.2",
         "@types/bcrypt-nodejs": "^0.0.30",
         "@types/bluebird": "^3.5.27",
@@ -77,7 +78,7 @@
         "@types/lodash": "^4.14.141",
         "@types/lusca": "^1.6.1",
         "@types/mongoose": "^5.5.18",
-        "@types/node": "^12.7.8",
+        "@types/node": "^12.20.42",
         "@types/nodemailer": "^6.2.1",
         "@types/request": "^2.48.3",
         "@types/request-promise": "^4.1.44",
@@ -108,7 +109,7 @@
         "swagger-ui-express": "^4.1.4",
         "ts-jest": "^24.1.0",
         "ts-node": "^8.4.1",
-        "typescript": "^3.6.3",
+        "typescript": "^4.5.1-rc",
         "winston-daily-rotate-file": "^4.5.5"
     },
     "resolutions": {
@@ -170,8 +171,9 @@
             "dist/*",
             "src/types/",
             "contracts/**/*.{j,t}s?(x)",
-            "**/*.d.ts",
-            "node_modules"
+            "./**/*.d.ts",
+            "./node_modules",
+            "./node_modules/agenda/**/*.d.ts"
         ],
         "overrides": [
             {
