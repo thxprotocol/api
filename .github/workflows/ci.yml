@@ -91,8 +91,8 @@ jobs:
     buildAndPushImage:
         name: Build and Push docker image
         runs-on: ubuntu-latest
-        if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/auto-deploy'
-        # needs: buildAndTest
+        if: github.ref == 'refs/heads/main'
+        needs: buildAndTest
         steps:
             - name: Configure AWS credentials
               uses: aws-actions/configure-aws-credentials@v1
@@ -126,7 +126,7 @@ jobs:
     autodeploy:
         name: Auto deploy main to dev.api.thx.network
         runs-on: ubuntu-latest
-        if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/auto-deploy'
+        if: github.ref == 'refs/heads/main'
         needs: buildAndPushImage
         steps:
             - name: Install Node.js 16.x
