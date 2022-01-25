@@ -32,7 +32,7 @@ describe('Unlimited Supply Token', () => {
     });
 
     describe('POST /asset_pools', () => {
-        it('HTTP 201 (success)', async (done) => {
+        it('HTTP 201 (success)', (done) => {
             user.post('/v1/asset_pools')
                 .set('Authorization', dashboardAccessToken)
                 .send({
@@ -140,7 +140,7 @@ describe('Unlimited Supply Token', () => {
     });
 
     describe('POST /rewards/:id/give', () => {
-        it('HTTP 200 after giving a reward', async (done) => {
+        it('HTTP 200 after giving a reward', (done) => {
             user.post(`/v1/rewards/${rewardID}/give`)
                 .send({
                     member: userWallet.address,
@@ -148,7 +148,7 @@ describe('Unlimited Supply Token', () => {
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
                 .end(async (err, res) => {
                     expect(res.status).toBe(200);
-                    expect(res.body.id).toBe(2);
+                    expect(res.body.withdrawalId).toBeUndefined();
 
                     withdrawalDocumentId = res.body.id;
 
@@ -173,7 +173,7 @@ describe('Unlimited Supply Token', () => {
                 });
         });
 
-        it('HTTP 200 OK', async (done) => {
+        it('HTTP 200 OK', (done) => {
             user.post(`/v1/withdrawals/${withdrawalDocumentId}/withdraw`)
                 .send()
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })

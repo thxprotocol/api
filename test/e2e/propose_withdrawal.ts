@@ -31,7 +31,7 @@ describe('Propose Withdrawal', () => {
     });
 
     describe('POST /asset_pools', () => {
-        it('HTTP 201 (success)', async (done) => {
+        it('HTTP 201 (success)', (done) => {
             user.post('/v1/asset_pools')
                 .set('Authorization', dashboardAccessToken)
                 .send({
@@ -52,7 +52,7 @@ describe('Propose Withdrawal', () => {
                 });
         });
 
-        it('HTTP 200 (success)', async (done) => {
+        it('HTTP 200 (success)', (done) => {
             user.get('/v1/asset_pools/' + poolAddress)
                 .set({ AssetPool: poolAddress, Authorization: dashboardAccessToken })
                 .send()
@@ -76,7 +76,7 @@ describe('Propose Withdrawal', () => {
     });
 
     describe('POST /withdrawals', () => {
-        it('HTTP 200 after proposing a withdrawal', async (done) => {
+        it('HTTP 201 after proposing a withdrawal', (done) => {
             user.post('/v1/withdrawals')
                 .send({
                     member: userWallet.address,
@@ -99,14 +99,12 @@ describe('Propose Withdrawal', () => {
             await new Promise((r) => setTimeout(r, 5000));
         });
 
-        it('HTTP 200 when job is completed', async (done) => {
+        it('HTTP 200 when job is completed', (done) => {
             user.get(`/v1/withdrawals/${withdrawalDocumentId}`)
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
                 .end(async (err, res) => {
                     expect(res.status).toBe(200);
-                    expect(res.body.withdrawalId).toBeUndefined();
-
-                    withdrawalDocumentId = res.body.id;
+                    expect(res.body.withdrawalId).toBeDefined();
 
                     done();
                 });
@@ -125,7 +123,7 @@ describe('Propose Withdrawal', () => {
                 });
         });
 
-        it('HTTP 200 OK', async (done) => {
+        it('HTTP 200 OK', (done) => {
             user.post(`/v1/withdrawals/${withdrawalDocumentId}/withdraw`)
                 .send()
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
