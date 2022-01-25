@@ -1,13 +1,13 @@
 import { JobAttributesData } from 'agenda';
+import { ObjectId } from 'agenda/node_modules/mongodb';
 import { IAssetPool } from '../models/AssetPool';
 import { agenda } from '../util/agenda';
 
 export default class JobService {
     static async getJob(jobId: string): Promise<JobAttributesData> {
-        const jobs = await agenda.jobs({ _id: jobId });
-        const job = jobs[0];
+        const jobs = await agenda.jobs({ _id: new ObjectId(jobId) });
 
-        return job;
+        return jobs[0];
     }
 
     static async proposeWithdraw(assetPool: IAssetPool, id: string, beneficiary: string, amount: number) {
