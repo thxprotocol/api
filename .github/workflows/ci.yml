@@ -91,8 +91,7 @@ jobs:
     buildAndPushImage:
         name: Build and Push docker image
         runs-on: ubuntu-latest
-        if: github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/master' || github.ref == 'refs/heads/infra-update'
-
+        if: github.ref == 'refs/heads/main'
         needs: buildAndTest
         steps:
             - name: Configure AWS credentials
@@ -123,3 +122,27 @@ jobs:
                   push: true
                   tags: ${{ steps.meta.outputs.tags }}
                   labels: ${{ steps.meta.outputs.labels }}
+
+    autodeploy:
+        name: Auto deploy main to dev.api.thx.network
+        runs-on: ubuntu-latest
+        if: github.ref == 'refs/heads/main'
+        needs: buildAndPushImage
+        steps:
+            - name: Install Node.js 16.x
+              uses: actions/setup-node@v1
+              with:
+                  node-version: 16.x
+
+            - name: Install deploy-scripts
+              run: npm install -g thxprotocol/deploy-scripts
+
+            - name: Configure AWS credentials
+              uses: aws-actions/configure-aws-credentials@v1
+              with:
+                  aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID_DEPLOY }}
+                  aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY_DEPLOY }}
+                  aws-region: eu-west-3
+
+            - name: Deploy-script
+              run: thx-deploy ApiDev sha-$(echo ${{github.sha}} | cut -c1-7)
