@@ -91,8 +91,6 @@ jobs:
         name: Build and Push docker image
         runs-on: ubuntu-latest
         if: github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/master' || github.ref == 'refs/heads/auto-deploy'
-        outputs:
-            imageTag: ${{ steps.vars.outputs.sha_short }}
         # needs: buildAndTest
         steps:
             - name: Configure AWS credentials
@@ -124,18 +122,12 @@ jobs:
                   tags: ${{ steps.meta.outputs.tags }}
                   labels: ${{ steps.meta.outputs.labels }}
 
-            - name: Set outputs
-              id: vars
-              run: echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
-
     autodeploy:
         name: Auto deploy main to dev.api.thx.network
         runs-on: ubuntu-latest
         if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/auto-deploy'
         needs: buildAndPushImage
         steps:
-            - run: echo sha-${{needs.buildAndPushImage.outputs.imageTag}}
-
             - name: Install Node.js 16.x
               uses: actions/setup-node@v1
               with:
@@ -151,5 +143,10 @@ jobs:
                   aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY_DEPLOY }}
                   aws-region: eu-west-3
 
+            - id: get-tag
+              run: |
+                  tag=sha-$(echo ${{github.sha}} | cut -c1-7)
+                  echo "::set-output name=tag::$tag"
+
             - name: Deploy-script
-              run: thx-deploy ApiDev ${{needs.buildAndPushImage.outputs.imageTag}}
+              run: thx-deploy ApiDev ${{steps.getTag.outputs.tag}}
