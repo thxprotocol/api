@@ -25,13 +25,13 @@ afterAll(async () => {
     await mongoose.disconnect();
 });
 
-// require('./api.ts');
-// require('./widgets.ts');
-// require('./signup.ts');
-// require('./bypass_polls.ts');
-// require('./propose_withdrawal.ts');
-// require('./unlimited_token.ts');
-// require('./voting.ts');
-// require('./roles.ts');
-// require('./gas_station.ts');
+require('./api.ts');
+require('./widgets.ts');
+require('./signup.ts');
+require('./bypass_polls.ts');
+require('./propose_withdrawal.ts');
+require('./unlimited_token.ts');
+require('./voting.ts');
+require('./roles.ts');
+require('./gas_station.ts');
 require('./transaction_queue.ts');
