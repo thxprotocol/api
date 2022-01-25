@@ -1,5 +1,5 @@
-import mongoose from 'mongoose';
 import db from '../../src/util/database';
+import server from '../../src/server';
 import { deployFacets } from '../../scripts/lib/facets';
 import { deployFactory } from '../../scripts/lib/factory';
 import { deployRegistry } from '../../scripts/lib/registry';
@@ -22,7 +22,7 @@ beforeAll(async () => {
 
 afterAll(async () => {
     await db.disconnect();
-    await mongoose.disconnect();
+    await server.close();
 });
 
 require('./api.ts');

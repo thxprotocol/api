@@ -1,6 +1,20 @@
 version: '3.5'
 
 services:
+    api_ci:
+        container_name: thx_api_ci
+        build:
+            context: .
+            target: develop
+        env_file: .env.ci
+        ports:
+            - 3002:3001
+        depends_on:
+            - api_ci_mongo
+            - api_ci_testnet
+        networks:
+            - thx_ci_network
+
     api_ci_mongo:
         container_name: thx_api_ci_mongo
         image: mongo
