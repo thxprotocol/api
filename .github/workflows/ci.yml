@@ -31,9 +31,9 @@ jobs:
                 python-version: [3.8]
                 node-version: ['16.x']
                 appname: ['api']
-                deploy-group: ['{github.ref_name}']
-                s3-bucket: ['aws-deployments-api-{github.ref_name}']
-                s3-filename: ['api-{github.ref_name}-${{ github.sha }}']
+                deploy-group: ['${{github.ref_name}}']
+                s3-bucket: ['aws-deployments-api-${{github.ref_name}}']
+                s3-filename: ['api-${{github.ref_name}}-${{ github.sha }}']
 
         needs: buildAndTest
         steps:
