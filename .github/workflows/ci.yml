@@ -87,7 +87,6 @@ jobs:
     #                --file-exists-behavior OVERWRITE \
     #                --s3-location bucket=${{ matrix.s3-bucket }},key=${{ matrix.s3-filename }}.zip,bundleType=zip \
     #                --ignore-application-stop-failures \
-
     buildAndPushImage:
         name: Build and Push docker image
         runs-on: ubuntu-latest
