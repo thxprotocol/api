@@ -126,7 +126,7 @@ jobs:
 
             - name: Set outputs
               id: vars
-              run: echo "::set-output name=sha_short::sha-$(git rev-parse --short HEAD)"
+              run: echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
 
     autodeploy:
         name: Auto deploy main to dev.api.thx.network
@@ -134,7 +134,7 @@ jobs:
         if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/auto-deploy'
         needs: buildAndPushImage
         steps:
-            - run: echo ${{needs.buildAndPushImage.outputs.imageTag}}
+            - run: echo sha-${{needs.buildAndPushImage.outputs.imageTag}}
 
             - name: Install Node.js 16.x
               uses: actions/setup-node@v1
@@ -142,7 +142,14 @@ jobs:
                   node-version: 16.x
 
             - name: Install deploy-scripts
-              run: npm install -g thxnetwork/deploy-scritps
+              run: npm install -g thxnetwork/deploy-scripts
+
+            - name: Configure AWS credentials
+              uses: aws-actions/configure-aws-credentials@v1
+              with:
+                  aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID_DEPLOY }}
+                  aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY_DEPLOY }}
+                  aws-region: eu-west-3
 
             - name: Deploy-script
-              run: thx-deploy hoihoi ${{needs.buildAndPushImage.outputs.imageTag}}
+              run: thx-deploy ApiDev ${{needs.buildAndPushImage.outputs.imageTag}}
