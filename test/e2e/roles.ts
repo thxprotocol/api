@@ -42,11 +42,10 @@ describe('Roles', () => {
                         address: testToken.options.address,
                     },
                 })
-                .end(async (err, res) => {
-                    expect(res.status).toBe(201);
+                .expect((res: request.Response) => {
                     poolAddress = res.body.address;
-                    done();
-                });
+                })
+                .expect(201, done);
         });
     });
 
@@ -55,18 +54,12 @@ describe('Roles', () => {
             const admin = getAdmin(NetworkProvider.Test);
             user.get('/v1/members/' + admin.address)
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
-                .end(async (err, res) => {
-                    expect(res.status).toBe(200);
-                    done();
-                });
+                .expect(200, done);
         });
         it('HTTP 404 if not found', (done) => {
             user.get('/v1/members/' + voter.address)
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
-                .end(async (err, res) => {
-                    expect(res.status).toBe(404);
-                    done();
-                });
+                .expect(404, done);
         });
     });
 
@@ -77,24 +70,21 @@ describe('Roles', () => {
             user.post('/v1/members/')
                 .send({ address: userWallet.address })
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
-                .end(async (err, res) => {
-                    expect(res.status).toBe(302);
+                .expect((res: request.Response) => {
                     redirectURL = res.headers.location;
-
-                    done();
-                });
+                })
+                .expect(302, done);
         });
 
         it('HTTP 200 for redirect', (done) => {
             user.get(redirectURL)
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
-                .end(async (err, res) => {
-                    expect(res.status).toBe(200);
+                .expect((res: request.Response) => {
                     expect(res.body.isMember).toEqual(true);
                     expect(res.body.isManager).toEqual(false);
                     expect(res.body.token.balance).toEqual(0);
-                    done();
-                });
+                })
+                .expect(200, done);
         });
     });
 
@@ -105,23 +95,21 @@ describe('Roles', () => {
             user.patch('/v1/members/' + userWallet.address)
                 .send({ isManager: true })
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
-                .end(async (err, res) => {
-                    expect(res.status).toBe(302);
+                .expect((res: request.Response) => {
                     redirectURL = res.headers.location;
-                    done();
-                });
+                })
+                .expect(302, done);
         });
 
         it('HTTP 200 and isManager true', (done) => {
             user.get(redirectURL)
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
-                .end(async (err, res) => {
-                    expect(res.status).toBe(200);
+                .expect((res: request.Response) => {
                     expect(res.body.isMember).toEqual(true);
                     expect(res.body.isManager).toEqual(true);
                     expect(res.body.token.balance).toEqual(0);
-                    done();
-                });
+                })
+                .expect(200, done);
         });
     });
 
@@ -132,23 +120,21 @@ describe('Roles', () => {
             user.patch('/v1/members/' + userWallet.address)
                 .send({ isManager: false })
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
-                .end(async (err, res) => {
-                    expect(res.status).toBe(302);
+                .expect((res: request.Response) => {
                     redirectURL = res.headers.location;
-                    done();
-                });
+                })
+                .expect(302, done);
         });
 
         it('HTTP 200 and isManager: false', (done) => {
             user.get(redirectURL)
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
-                .end(async (err, res) => {
-                    expect(res.status).toBe(200);
+                .expect((res: request.Response) => {
                     expect(res.body.isMember).toEqual(true);
                     expect(res.body.isManager).toEqual(false);
                     expect(res.body.token.balance).toEqual(0);
-                    done();
-                });
+                })
+                .expect(200, done);
         });
     });
 
@@ -156,12 +142,11 @@ describe('Roles', () => {
         it('HTTP 200 if OK', (done) => {
             user.get('/v1/members')
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
-                .end(async (err, res) => {
-                    expect(res.status).toBe(200);
+                .expect((res: request.Response) => {
                     expect(res.body.length).toEqual(1);
                     expect(res.body[0]).toBe(userWallet.address);
-                    done();
-                });
+                })
+                .expect(200, done);
         });
     });
 
@@ -169,10 +154,7 @@ describe('Roles', () => {
         it('HTTP 200 if OK', (done) => {
             user.delete('/v1/members/' + userWallet.address)
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
-                .end(async (err, res) => {
-                    expect(res.status).toBe(204);
-                    done();
-                });
+                .expect(204, done);
         });
     });
 
@@ -180,10 +162,7 @@ describe('Roles', () => {
         it('HTTP 404 if not found', (done) => {
             user.get('/v1/members/' + userWallet.address)
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
-                .end(async (err, res) => {
-                    expect(res.status).toBe(404);
-                    done();
-                });
+                .expect(404, done);
         });
     });
 
@@ -191,11 +170,10 @@ describe('Roles', () => {
         it('HTTP 200 if OK', (done) => {
             user.get('/v1/members')
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
-                .end(async (err, res) => {
-                    expect(res.status).toBe(200);
+                .expect((res: request.Response) => {
                     expect(res.body.length).toEqual(0);
-                    done();
-                });
+                })
+                .expect(200, done);
         });
     });
 });

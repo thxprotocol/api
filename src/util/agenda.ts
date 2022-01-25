@@ -1,6 +1,5 @@
-import { Agenda } from 'agenda';
+import { Agenda, Job } from 'agenda';
 import { MONGODB_URI } from './secrets';
-import { Job } from 'agenda';
 import { solutionContract } from './network';
 import AssetPoolService from '../services/AssetPoolService';
 import { logger } from './logger';

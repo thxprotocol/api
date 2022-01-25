@@ -88,65 +88,18 @@ describe('Gas Station', () => {
     });
 
     describe('GET /reward', () => {
-        it('HTTP 200', async () => {
-            const { body, status } = await user
-                .get('/v1/rewards/1')
-                .set({ AssetPool: poolAddress, Authorization: adminAccessToken });
-            expect(status).toBe(200);
-            expect(body.state).toBe(0);
+        it('HTTP 200', (done) => {
+            user.get('/v1/rewards/1')
+                .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
+                .expect((res: request.Response) => {
+                    expect(res.body.state).toBe(0);
+                })
+                .expect(200, done);
         });
     });
 
     describe('POST /gas_station/call (vote)', () => {
-        it('HTTP 302 when call is ok', async () => {
-            const { call, nonce, sig } = await signMethod(poolAddress, 'rewardPollVote', [1, true], userWallet);
-            const { status } = await user
-                .post('/v1/gas_station/call')
-                .set({ AssetPool: poolAddress, Authorization: userAccessToken })
-                .send({
-                    call,
-                    nonce,
-                    sig,
-                });
-
-            expect(status).toBe(200);
-        });
-
-        it('HTTP 200 when redirect is ok', async () => {
-            const { status, body } = await user
-                .get('/v1/rewards/1')
-                .set({ AssetPool: poolAddress, Authorization: adminAccessToken });
-            expect(status).toBe(200);
-            expect(body.poll.yesCounter).toBe(1);
-        });
-    });
-
-    describe('POST /gas_station/base_poll (revokeVote)', () => {
-        it('HTTP 302 when revokeVote call is ok', async () => {
-            const { call, nonce, sig } = await signMethod(poolAddress, 'rewardPollRevokeVote', [1], userWallet);
-            const { status } = await user
-                .post('/v1/gas_station/call')
-                .set({ AssetPool: poolAddress, Authorization: userAccessToken })
-                .send({
-                    call,
-                    nonce,
-                    sig,
-                });
-            expect(status).toBe(200);
-        });
-
-        it('HTTP 200 when redirect is ok', async () => {
-            const { status, body } = await user
-                .get('/v1/rewards/1')
-                .set({ AssetPool: poolAddress, Authorization: adminAccessToken });
-
-            expect(status).toBe(200);
-            expect(body.poll.yesCounter).toBe(0);
-        });
-    });
-
-    describe('POST /gas_station/base_poll (finalize)', () => {
-        it('HTTP 302 when vote call is ok', async () => {
+        it('HTTP 200 when call is ok', async () => {
             const { call, nonce, sig } = await signMethod(poolAddress, 'rewardPollVote', [1, true], userWallet);
             await user
                 .post('/v1/gas_station/call')
@@ -155,32 +108,78 @@ describe('Gas Station', () => {
                     call,
                     nonce,
                     sig,
-                });
+                })
+                .expect(200);
         });
 
-        it('HTTP 302 when finalize call is ok', async () => {
-            await timeTravel(rewardPollDuration);
+        it('HTTP 200 when redirect is ok', (done) => {
+            user.get('/v1/rewards/1')
+                .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
+                .expect((res: request.Response) => {
+                    expect(res.body.poll.yesCounter).toBe(1);
+                })
+                .expect(200, done);
+        });
+    });
 
-            const { call, nonce, sig } = await signMethod(poolAddress, 'rewardPollFinalize', [1], userWallet);
-            const { status } = await user
+    describe('POST /gas_station/base_poll (revokeVote)', () => {
+        it('HTTP 200 when revokeVote call is ok', async () => {
+            const { call, nonce, sig } = await signMethod(poolAddress, 'rewardPollRevokeVote', [1], userWallet);
+            await user
                 .post('/v1/gas_station/call')
                 .set({ AssetPool: poolAddress, Authorization: userAccessToken })
                 .send({
                     call,
                     nonce,
                     sig,
-                });
-            expect(status).toBe(200);
+                })
+                .expect(200);
         });
 
-        it('HTTP 200 when redirect is ok', async () => {
-            const { status, body } = await user
-                .get('/v1/rewards/1')
-                .set({ AssetPool: poolAddress, Authorization: adminAccessToken });
+        it('HTTP 200 when redirect is ok', (done) => {
+            user.get('/v1/rewards/1')
+                .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
+                .expect((res: request.Response) => {
+                    expect(res.body.poll.yesCounter).toBe(0);
+                })
 
-            expect(status).toBe(200);
-            expect(body.state).toBe(1);
-            expect(body.poll).toBeUndefined();
+                .expect(200, done);
+        });
+    });
+
+    describe('POST /gas_station/base_poll (finalize)', () => {
+        it('HTTP 302 when vote call is ok', async () => {
+            const { call, nonce, sig } = await signMethod(poolAddress, 'rewardPollVote', [1, true], userWallet);
+            user.post('/v1/gas_station/call').set({ AssetPool: poolAddress, Authorization: userAccessToken }).send({
+                call,
+                nonce,
+                sig,
+            });
+        });
+
+        it('HTTP 200 when finalize call is ok', async () => {
+            await timeTravel(rewardPollDuration);
+
+            const { call, nonce, sig } = await signMethod(poolAddress, 'rewardPollFinalize', [1], userWallet);
+            await user
+                .post('/v1/gas_station/call')
+                .set({ AssetPool: poolAddress, Authorization: userAccessToken })
+                .send({
+                    call,
+                    nonce,
+                    sig,
+                })
+                .expect(200);
+        });
+
+        it('HTTP 200 when redirect is ok', (done) => {
+            user.get('/v1/rewards/1')
+                .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
+                .expect((res: request.Response) => {
+                    expect(res.body.state).toBe(1);
+                    expect(res.body.poll).toBeUndefined();
+                })
+                .expect(200, done);
         });
     });
 });

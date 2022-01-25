@@ -74,27 +74,19 @@ describe('Widgets', () => {
                     redirectUris,
                     postLogoutRedirectUris,
                 })
-                .end((err, { status, body }) => {
-                    expect(status).toBe(201);
-                    done();
-                });
+                .expect(201, done);
         });
     });
 
     describe('GET /widgets', () => {
         it('HTTP 200', (done) => {
             user.get('/v1/widgets?asset_pool=' + poolAddress)
-                .set({
-                    AssetPool: poolAddress,
-                    Authorization: dashboardAccessToken,
+                .set({ AssetPool: poolAddress, Authorization: dashboardAccessToken })
+                .expect((res: request.Response) => {
+                    expect(res.body.length).toBe(1);
+                    clientId = res.body[0];
                 })
-                .end((err, { status, body }) => {
-                    expect(status).toBe(200);
-                    expect(body.length).toBe(1);
-                    clientId = body[0];
-
-                    done();
-                });
+                .expect(200, done);
         });
     });
 
@@ -102,16 +94,14 @@ describe('Widgets', () => {
         it('HTTP 200', (done) => {
             user.get('/v1/widgets/' + clientId)
                 .set({ AssetPool: poolAddress, Authorization: dashboardAccessToken })
-                .end((err, { status, body }) => {
-                    expect(status).toBe(200);
-                    expect(body.requestUris[0]).toBe(requestUris[0]);
-                    expect(body.clientId).toBeDefined();
-                    expect(body.clientSecret).toBeDefined();
-                    expect(body.metadata.rewardId).toBe(rewardId);
-                    expect(body.metadata.poolAddress).toBe(poolAddress);
-
-                    done();
-                });
+                .expect((res: request.Response) => {
+                    expect(res.body.requestUris[0]).toBe(requestUris[0]);
+                    expect(res.body.clientId).toBeDefined();
+                    expect(res.body.clientSecret).toBeDefined();
+                    expect(res.body.metadata.rewardId).toBe(rewardId);
+                    expect(res.body.metadata.poolAddress).toBe(poolAddress);
+                })
+                .expect(200, done);
         });
     });
 });

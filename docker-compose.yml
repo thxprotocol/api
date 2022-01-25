@@ -20,20 +20,16 @@ services:
 
     api_node:
         container_name: thx_api_node
-        image: node:12
+        image: node:16
         networks:
             - thx_network
         volumes:
             - ./:/usr/src/service
         working_dir: /usr/src/service
-        command: bash -c "npm run deploy && npm run watch:debug"
+        command: sh -c "npm run watch:debug"
         environment:
             - NODE_ENV=local
         depends_on:
-            - api_mongo
-            - api_mainnet
-            - api_testnet
-        links:
             - api_mongo
             - api_mainnet
             - api_testnet

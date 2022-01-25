@@ -42,11 +42,10 @@ describe('Signup', () => {
                         address: testToken.options.address,
                     },
                 })
-                .end(async (err, res) => {
-                    expect(res.status).toBe(201);
+                .expect((res: request.Response) => {
                     poolAddress = res.body.address;
-                    done();
-                });
+                })
+                .expect(201, done);
         });
     });
 
@@ -58,12 +57,11 @@ describe('Signup', () => {
                     email: userEmail2,
                     password: userPassword2,
                 })
-                .end(async (err, res) => {
-                    expect(res.status).toBe(201);
+                .expect((res: request.Response) => {
                     expect(res.body.id).toBe(account.id);
                     expect(res.body.address).toBe(account.address);
-                    done();
-                });
+                })
+                .expect(201, done);
         });
     });
 
@@ -71,11 +69,10 @@ describe('Signup', () => {
         it('HTTP 200 if OK', (done) => {
             user.get('/v1/members/' + account.address)
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
-                .end(async (err, res) => {
-                    expect(res.status).toBe(200);
+                .expect((res: request.Response) => {
                     expect(res.body.isMember).toBe(true);
-                    done();
-                });
+                })
+                .expect(200, done);
         });
     });
 
@@ -93,10 +90,7 @@ describe('Signup', () => {
     //                 call,
     //                 sig,
     //             })
-    //             .end(async (err, res) => {
-    //                 expect(res.status).toBe(200);
-    //                 done();
-    //             });
+    //             .expect(200, done);
     //     });
     // });
 
@@ -104,12 +98,10 @@ describe('Signup', () => {
         it('HTTP 200 if OK', (done) => {
             user.get('/v1/account/')
                 .set({ AssetPool: poolAddress, Authorization: walletAccessToken })
-                .end(async (err, res) => {
-                    expect(res.status).toBe(200);
+                .expect((res: request.Response) => {
                     expect(res.body.address).toBe(account.address);
-
-                    done();
-                });
+                })
+                .expect(200, done);
         });
     });
 
@@ -118,10 +110,7 @@ describe('Signup', () => {
             user.patch('/v1/account/')
                 .set({ AssetPool: poolAddress, Authorization: walletAccessToken })
                 .send({ address: voter.address })
-                .end(async (err, res) => {
-                    expect(res.status).toBe(303);
-                    done();
-                });
+                .expect(303, done);
         });
     });
 
@@ -129,11 +118,10 @@ describe('Signup', () => {
         it('HTTP 200 if OK', (done) => {
             user.get('/v1/memberships/')
                 .set({ AssetPool: poolAddress, Authorization: walletAccessToken })
-                .end(async (err, res) => {
-                    expect(res.status).toBe(200);
+                .expect((res: request.Response) => {
                     membershipID = res.body[0];
-                    done();
-                });
+                })
+                .expect(200, done);
         });
     });
 
@@ -141,17 +129,15 @@ describe('Signup', () => {
         it('HTTP 200 if OK', (done) => {
             user.get('/v1/memberships/' + membershipID)
                 .set({ AssetPool: poolAddress, Authorization: walletAccessToken })
-                .end(async (err, res) => {
-                    expect(res.status).toBe(200);
+                .expect((res: request.Response) => {
                     expect(res.body.id).toBe(membershipID);
                     expect(res.body.poolAddress).toBe(poolAddress);
                     expect(res.body.network).toBe(NetworkProvider.Test);
                     expect(res.body.token.address).toBe(testToken.options.address);
                     expect(res.body.token.symbol).toBeDefined();
                     expect(res.body.token.name).toBeDefined();
-
-                    done();
-                });
+                })
+                .expect(200, done);
         });
     });
 });
