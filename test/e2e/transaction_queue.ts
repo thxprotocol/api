@@ -8,7 +8,8 @@ import { getToken } from './lib/jwt';
 import { createWallet } from './lib/network';
 import { mockClear, mockStart } from './lib/mock';
 import { agenda } from '../../src/util/agenda';
-import { Job } from 'agenda';
+import { Job as IJob } from 'agenda';
+import { Job } from '../../src/models/Job';
 
 const user = request.agent(server);
 
@@ -26,11 +27,14 @@ describe('Transaction Queue', () => {
         walletAccessToken = getToken('openid user');
         userWallet = createWallet(userWalletPrivateKey);
 
+        await Job.deleteMany({});
+
         mockStart();
     });
 
     afterAll(async () => {
         await db.truncate();
+
         mockClear();
     });
 
@@ -47,9 +51,9 @@ describe('Transaction Queue', () => {
                         totalSupply: 0,
                     },
                 })
-                .expect(async (res: Response) => {
-                    expect(isAddress(res.body.address)).toBe(true);
-                    poolAddress = res.body.address;
+                .expect(async ({ body }: Response) => {
+                    expect(isAddress(body.address)).toBe(true);
+                    poolAddress = body.address;
                 })
                 .expect(201);
         });
@@ -115,7 +119,7 @@ describe('Transaction Queue', () => {
         it('should cast 3 complete events', (done) => {
             let index = 0;
 
-            agenda.on('complete:proposeWithdraw', (job: Job) => {
+            agenda.on('complete:proposeWithdraw', (job: IJob) => {
                 expect(job.attrs.data.id).toBe(withdrawalDocumentIdList[index]);
                 index++;
 

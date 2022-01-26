@@ -5,6 +5,7 @@ import { deployFactory } from '../../scripts/lib/factory';
 import { deployRegistry } from '../../scripts/lib/registry';
 import { getProvider, NetworkProvider } from '../../src/util/network';
 import { ASSET_POOL_FACTORY_ADDRESS, POOL_REGISTRY_ADDRESS } from '../../src/util/secrets';
+import { agenda } from '../../src/util/agenda';
 
 beforeAll(async () => {
     const web3 = getProvider(NetworkProvider.Test);
@@ -21,8 +22,9 @@ beforeAll(async () => {
 });
 
 afterAll(async () => {
+    await agenda.close();
     await db.disconnect();
-    await server.close();
+    server.close();
 });
 
 require('./api.ts');
@@ -33,5 +35,5 @@ require('./propose_withdrawal.ts');
 require('./unlimited_token.ts');
 require('./voting.ts');
 require('./roles.ts');
-require('./gas_station.ts');
 require('./transaction_queue.ts');
+require('./gas_station.ts');

@@ -37,7 +37,7 @@ describe('Gas Station', () => {
         mockStart();
 
         // Create an asset pool
-        const res = await user
+        const { body } = await user
             .post('/v1/asset_pools')
             .set({ Authorization: dashboardAccessToken })
             .send({
@@ -47,7 +47,7 @@ describe('Gas Station', () => {
                 },
             });
 
-        poolAddress = res.body.address;
+        poolAddress = body.address;
 
         // Transfer some tokens to the pool rewardWithdrawAmount tokens for the pool
         const assetPool = solutionContract(NetworkProvider.Test, poolAddress);
@@ -91,8 +91,8 @@ describe('Gas Station', () => {
         it('HTTP 200', (done) => {
             user.get('/v1/rewards/1')
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
-                .expect((res: request.Response) => {
-                    expect(res.body.state).toBe(0);
+                .expect(({ body }: request.Response) => {
+                    expect(body.state).toBe(0);
                 })
                 .expect(200, done);
         });
@@ -115,8 +115,8 @@ describe('Gas Station', () => {
         it('HTTP 200 when redirect is ok', (done) => {
             user.get('/v1/rewards/1')
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
-                .expect((res: request.Response) => {
-                    expect(res.body.poll.yesCounter).toBe(1);
+                .expect(({ body }: request.Response) => {
+                    expect(body.poll.yesCounter).toBe(1);
                 })
                 .expect(200, done);
         });
@@ -139,8 +139,8 @@ describe('Gas Station', () => {
         it('HTTP 200 when redirect is ok', (done) => {
             user.get('/v1/rewards/1')
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
-                .expect((res: request.Response) => {
-                    expect(res.body.poll.yesCounter).toBe(0);
+                .expect(({ body }: request.Response) => {
+                    expect(body.poll.yesCounter).toBe(0);
                 })
 
                 .expect(200, done);
@@ -148,36 +148,34 @@ describe('Gas Station', () => {
     });
 
     describe('POST /gas_station/base_poll (finalize)', () => {
-        it('HTTP 302 when vote call is ok', async () => {
-            const { call, nonce, sig } = await signMethod(poolAddress, 'rewardPollVote', [1, true], userWallet);
-            user.post('/v1/gas_station/call').set({ AssetPool: poolAddress, Authorization: userAccessToken }).send({
-                call,
-                nonce,
-                sig,
-            });
-        });
+        // it('HTTP 302 when vote call is ok', async () => {
+        //     const data = await signMethod(poolAddress, 'rewardPollVote', [1, true], userWallet);
+
+        //     await user
+        //         .post('/v1/gas_station/call')
+        //         .set({ AssetPool: poolAddress, Authorization: userAccessToken })
+        //         .send(data)
+        //         .expect(200);
+        // });
 
         it('HTTP 200 when finalize call is ok', async () => {
             await timeTravel(rewardPollDuration);
 
-            const { call, nonce, sig } = await signMethod(poolAddress, 'rewardPollFinalize', [1], userWallet);
+            const data = await signMethod(poolAddress, 'rewardPollFinalize', [1], userWallet);
+
             await user
                 .post('/v1/gas_station/call')
                 .set({ AssetPool: poolAddress, Authorization: userAccessToken })
-                .send({
-                    call,
-                    nonce,
-                    sig,
-                })
+                .send(data)
                 .expect(200);
         });
 
         it('HTTP 200 when redirect is ok', (done) => {
             user.get('/v1/rewards/1')
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
-                .expect((res: request.Response) => {
-                    expect(res.body.state).toBe(1);
-                    expect(res.body.poll).toBeUndefined();
+                .expect(({ body }: request.Response) => {
+                    expect(body.state).toBe(1);
+                    expect(body.poll).toBeUndefined();
                 })
                 .expect(200, done);
         });
