@@ -18,8 +18,7 @@ jobs:
 
             - name: Run test
               run: |
-                  docker compose -f docker-compose.ci.yml run api_ci npm run test
-                  docker logs thx_api_ci
+                  docker-compose -f docker-compose.ci.yml run api_ci npm run test
 
             - name: Shut down dependencies
               run: docker compose -f docker-compose.ci.yml down
