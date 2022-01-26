@@ -26,7 +26,7 @@ services:
         volumes:
             - ./:/usr/src/service
         working_dir: /usr/src/service
-        command: sh -c "npm run watch:debug"
+        command: sh -c "npm run deploy && npm run watch:debug"
         environment:
             - NODE_ENV=local
         depends_on:
