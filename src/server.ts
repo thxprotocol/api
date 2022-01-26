@@ -1,7 +1,7 @@
 import http from 'http';
-import { createTerminus } from '@godaddy/terminus';
 import app from './app';
 import db from './util/database';
+import { createTerminus } from '@godaddy/terminus';
 import { healthCheck } from './util/healthcheck';
 import { logger } from './util/logger';
 

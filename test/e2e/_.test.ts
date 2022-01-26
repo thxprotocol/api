@@ -22,7 +22,7 @@ beforeAll(async () => {
 });
 
 afterAll(async () => {
-    await agenda.close();
+    await agenda.stop();
     await db.disconnect();
     server.close();
 });
