@@ -148,15 +148,15 @@ describe('Gas Station', () => {
     });
 
     describe('POST /gas_station/base_poll (finalize)', () => {
-        // it('HTTP 302 when vote call is ok', async () => {
-        //     const data = await signMethod(poolAddress, 'rewardPollVote', [1, true], userWallet);
+        it('HTTP 302 when vote call is ok', async () => {
+            const data = await signMethod(poolAddress, 'rewardPollVote', [1, true], userWallet);
 
-        //     await user
-        //         .post('/v1/gas_station/call')
-        //         .set({ AssetPool: poolAddress, Authorization: userAccessToken })
-        //         .send(data)
-        //         .expect(200);
-        // });
+            await user
+                .post('/v1/gas_station/call')
+                .set({ AssetPool: poolAddress, Authorization: userAccessToken })
+                .send(data)
+                .expect(200);
+        });
 
         it('HTTP 200 when finalize call is ok', async () => {
             await timeTravel(rewardPollDuration);

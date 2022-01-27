@@ -46,10 +46,8 @@ export async function deployExampleToken() {
 export async function signMethod(poolAddress: string, name: string, params: any[], account: Account) {
     const solution = solutionContract(NetworkProvider.Test, poolAddress);
     const abi: any = Artifacts.IDefaultDiamond.abi.find((fn) => fn.name === name);
-    console.log('call nonce');
     const nonce =
         Number(await callFunction(solution.methods.getLatestNonce(account.address), NetworkProvider.Test)) + 1;
-    console.log(nonce);
     const call = web3.eth.abi.encodeFunctionCall(abi, params);
     const hash = soliditySha3(call, nonce);
     const sig = web3.eth.accounts.sign(hash, account.privateKey).signature;

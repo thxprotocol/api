@@ -34,6 +34,6 @@ require('./bypass_polls.ts');
 require('./propose_withdrawal.ts');
 require('./unlimited_token.ts');
 require('./voting.ts');
+require('./gas_station.ts');
 require('./roles.ts');
 require('./transaction_queue.ts');
-require('./gas_station.ts');

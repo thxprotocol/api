@@ -14,7 +14,6 @@ import { Job } from '../../src/models/Job';
 const user = request.agent(server);
 
 describe('Transaction Queue', () => {
-    const withdrawalDocumentIdList: string[] = [];
     let adminAccessToken: string,
         dashboardAccessToken: string,
         walletAccessToken: string,
@@ -27,12 +26,15 @@ describe('Transaction Queue', () => {
         walletAccessToken = getToken('openid user');
         userWallet = createWallet(userWalletPrivateKey);
 
+        // Since db.truncate() doesnt remove the jobs
         await Job.deleteMany({});
 
         mockStart();
     });
 
     afterAll(async () => {
+        await agenda.stop();
+        await agenda.close();
         await db.truncate();
 
         mockClear();
@@ -68,6 +70,8 @@ describe('Transaction Queue', () => {
     });
 
     describe('POST /withdrawals 3x (gasPrice < MAXIMUM_GAS_PRICE)', () => {
+        const withdrawalDocumentIdList: string[] = [];
+
         it('should disable job queue', async () => {
             await agenda.disable({ name: 'proposeWithdraw' });
         });
@@ -118,13 +122,28 @@ describe('Transaction Queue', () => {
 
         it('should cast 3 complete events', (done) => {
             let index = 0;
+            const lastIndex = withdrawalDocumentIdList.length - 1;
 
-            agenda.on('complete:proposeWithdraw', (job: IJob) => {
-                expect(job.attrs.data.id).toBe(withdrawalDocumentIdList[index]);
-                index++;
+            // This callback tests the order of the cast complete events
+            const callback = (job: IJob) => {
+                console.log(job.attrs.data.id, index);
+                expect(job.attrs.data.id).toBe(withdrawalDocumentIdList[index++]);
 
-                if (index === withdrawalDocumentIdList.length) done();
-            });
+                // End test when the last item is completed
+                console.log(withdrawalDocumentIdList, lastIndex, index);
+                if (job.attrs.data.id === withdrawalDocumentIdList[lastIndex]) {
+                    agenda.off('complete:proposeWithdraw', callback);
+                    done();
+                }
+            };
+
+            agenda.on('complete:proposeWithdraw', callback);
+        });
+
+        // Buy some time to finish the async tests
+        afterAll(async () => {
+            await new Promise((r) => setTimeout(r, 5000));
+            await agenda.disable({ name: 'proposeWithdraw' });
         });
     });
 });
