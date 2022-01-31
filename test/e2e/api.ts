@@ -17,6 +17,7 @@ import { solutionContract } from '../../src/util/network';
 import { Account } from 'web3-core';
 import { getToken } from './lib/jwt';
 import { mockClear, mockStart } from './lib/mock';
+import { agenda, eventNameProcessWithdrawals } from '../../src/util/agenda';
 
 const user = request.agent(server);
 
@@ -242,10 +243,12 @@ describe('Happy Flow', () => {
                 .expect(200, done);
         });
 
-        it('wait 7s for the job processor to process the withdrawal', (done) => {
-            setTimeout(() => {
+        it('should wait for queue to succeed', (done) => {
+            const callback = () => {
+                agenda.off(`success:${eventNameProcessWithdrawals}`, callback);
                 done();
-            }, 7000);
+            };
+            agenda.on(`success:${eventNameProcessWithdrawals}`, callback);
         });
     });
 

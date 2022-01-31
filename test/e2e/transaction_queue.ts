@@ -213,10 +213,6 @@ describe('Transaction Queue', () => {
             agenda.on('fail:processWithdrawals', callback);
         });
 
-        it('wait 1s to let the event callback update the withdrawal with failReason', async () => {
-            await new Promise((r) => setTimeout(r, 1000));
-        });
-
         it('should see a withdrawal with failReason', async () => {
             await user
                 .get(`/v1/withdrawals/${withdrawalDocumentId}`)
