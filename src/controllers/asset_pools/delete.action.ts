@@ -40,10 +40,10 @@ export async function deleteAssetPool(req: HttpRequest, res: Response, next: Nex
     }
 
     try {
-        await removeRewards(req.solution.options.address);
-        await removeWithdrawals(req.solution.options.address);
+        await removeRewards(req.assetPool.solution.options.address);
+        await removeWithdrawals(req.assetPool.solution.options.address);
         await removeClient(req.assetPool.clientId);
-        await removeAssetPool(req.solution.options.address);
+        await removeAssetPool(req.assetPool.solution.options.address);
 
         res.status(204).end();
     } catch (error) {

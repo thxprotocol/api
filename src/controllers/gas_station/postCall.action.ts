@@ -17,8 +17,8 @@ const eventNames = [
 export const postCall = async (req: HttpRequest, res: Response, next: NextFunction) => {
     try {
         const tx = await sendTransaction(
-            req.solution.options.address,
-            req.solution.methods.call(req.body.call, req.body.nonce, req.body.sig),
+            req.assetPool.solution.options.address,
+            req.assetPool.solution.methods.call(req.body.call, req.body.nonce, req.body.sig),
             req.assetPool.network,
         );
         const events = parseLogs(Artifacts.IDefaultDiamond.abi, tx.logs);
@@ -40,7 +40,7 @@ export const postCall = async (req: HttpRequest, res: Response, next: NextFuncti
                     const callback = indexer[`on${eventName}`];
 
                     if (callback) {
-                        await callback(req.assetPool.network, req.solution.options.address, event.args);
+                        await callback(req.assetPool.network, req.assetPool.solution.options.address, event.args);
                     }
                 }
             }

@@ -1,5 +1,6 @@
-import { Contract } from 'web3-eth-contract';
 import mongoose from 'mongoose';
+import { solutionContract } from '../util/network';
+import { Contract } from 'web3-eth-contract';
 
 export type IAssetPool = mongoose.Document & {
     address: string;
@@ -32,4 +33,9 @@ const assetPoolSchema = new mongoose.Schema(
     },
     { timestamps: true },
 );
+
+assetPoolSchema.virtual('solution').get(function () {
+    return solutionContract(this.network, this.address);
+});
+
 export const AssetPool = mongoose.model<IAssetPool>('AssetPool', assetPoolSchema);

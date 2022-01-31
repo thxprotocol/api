@@ -4,8 +4,10 @@ import { deployFacets } from '../../scripts/lib/facets';
 import { deployFactory } from '../../scripts/lib/factory';
 import { deployRegistry } from '../../scripts/lib/registry';
 import { getProvider, NetworkProvider } from '../../src/util/network';
-import { ASSET_POOL_FACTORY_ADDRESS, POOL_REGISTRY_ADDRESS } from '../../src/util/secrets';
+import { ASSET_POOL_FACTORY_ADDRESS, MAXIMUM_GAS_PRICE, POOL_REGISTRY_ADDRESS } from '../../src/util/secrets';
 import { agenda } from '../../src/util/agenda';
+import { mockClear, mockUrl } from './lib/mock';
+import { Job } from '../../src/models/Job';
 
 beforeAll(async () => {
     const web3 = getProvider(NetworkProvider.Test);
@@ -19,12 +21,29 @@ beforeAll(async () => {
     } else {
         console.log('Factory and registry available!');
     }
+
+    // Remove persistent jobs that are not known in the bundle
+    // agenda.purge() should do that, but does not work for some reason
+    await Job.deleteMany({});
+
+    // Mock gas price to be lower than configured cap for all tests. Be aware that
+    // the tx_queue test will override this mock.
+    mockUrl('get', 'https://gpoly.blockscan.com', '/gasapi.ashx?apikey=key&method=gasoracle', 200, {
+        result: {
+            FastGasPrice: (MAXIMUM_GAS_PRICE - 1).toString(),
+        },
+    });
 });
 
 afterAll(async () => {
     await agenda.stop();
+    await agenda.close();
+
     await db.disconnect();
+
     server.close();
+
+    mockClear();
 });
 
 require('./api.ts');

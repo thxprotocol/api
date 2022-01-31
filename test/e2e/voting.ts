@@ -16,6 +16,7 @@ import { isAddress } from 'web3-utils';
 import { Account } from 'web3-core';
 import { getToken } from './lib/jwt';
 import { mockClear, mockStart } from './lib/mock';
+import { agenda, eventNameProcessWithdrawals } from '../../src/util/agenda';
 
 const user = request.agent(server);
 
@@ -242,8 +243,12 @@ describe('Voting', () => {
     });
 
     describe('GET /withdrawals?member=:address', () => {
-        beforeAll(async () => {
-            await new Promise((r) => setTimeout(r, 5000));
+        it('should wait for queue to succeed', (done) => {
+            const callback = () => {
+                agenda.off(`success:${eventNameProcessWithdrawals}`, callback);
+                done();
+            };
+            agenda.on(`success:${eventNameProcessWithdrawals}`, callback);
         });
 
         it('HTTP 200 and return a list of 1 item', (done) => {

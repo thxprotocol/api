@@ -1,21 +1,27 @@
 import { NextFunction, Response } from 'express';
 import { HttpError, HttpRequest } from '../../models/Error';
+import { IAssetPool } from '../../models/AssetPool';
+import { WithdrawalType } from '../../models/Withdrawal';
+
 import WithdrawalService from '../../services/WithdrawalService';
-import JobService from '../../services/JobService';
-import '../../jobs/proposeWithdraw';
+import { agenda, eventNameProcessWithdrawals } from '../../util/agenda';
+
+export async function jobProposeWithdraw(assetPool: IAssetPool, id: string, amount: number, beneficiary: string) {
+    await WithdrawalService.proposeWithdraw(assetPool, id, beneficiary, amount);
+}
 
 export const postWithdrawal = async (req: HttpRequest, res: Response, next: NextFunction) => {
     try {
-        const withdrawal = await WithdrawalService.schedule(req.assetPool, req.body.member, req.body.amount);
-        const id = withdrawal._id.toString();
-        const job = await JobService.proposeWithdraw(req.assetPool, id, req.body.member, req.body.amount);
-
-        withdrawal.jobId = job.attrs._id.toString();
-        await withdrawal.save();
+        const withdrawal = await WithdrawalService.schedule(
+            req.assetPool,
+            WithdrawalType.ProposeWithdraw,
+            req.body.member,
+            req.body.amount,
+        );
 
         res.status(201).json({
             id: withdrawal.id,
-            job,
+            type: withdrawal.type,
             withdrawalId: withdrawal.withdrawalId,
             rewardId: withdrawal.rewardId,
             beneficiary: withdrawal.beneficiary,

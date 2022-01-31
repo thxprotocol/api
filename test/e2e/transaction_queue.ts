@@ -1,15 +1,16 @@
 import request, { Response } from 'supertest';
 import server from '../../src/server';
 import db from '../../src/util/database';
+import { Job } from 'agenda';
 import { rewardWithdrawAmount, tokenName, tokenSymbol, userWalletPrivateKey } from './lib/constants';
 import { isAddress } from 'web3-utils';
 import { Account } from 'web3-core';
 import { getToken } from './lib/jwt';
-import { createWallet } from './lib/network';
-import { mockClear, mockStart } from './lib/mock';
+import { createWallet, voter } from './lib/network';
+import { mockClear, mockStart, mockUrl } from './lib/mock';
 import { agenda } from '../../src/util/agenda';
-import { Job as IJob } from 'agenda';
-import { Job } from '../../src/models/Job';
+import { MAXIMUM_GAS_PRICE } from '../../src/util/secrets';
+import WithdrawalService from '../../src/services/WithdrawalService';
 
 const user = request.agent(server);
 
@@ -25,9 +26,6 @@ describe('Transaction Queue', () => {
         dashboardAccessToken = getToken('openid dashboard');
         walletAccessToken = getToken('openid user');
         userWallet = createWallet(userWalletPrivateKey);
-
-        // Since db.truncate() doesnt remove the jobs
-        await Job.deleteMany({});
 
         mockStart();
     });
@@ -69,15 +67,15 @@ describe('Transaction Queue', () => {
         });
     });
 
-    describe('POST /withdrawals 3x (gasPrice < MAXIMUM_GAS_PRICE)', () => {
-        const withdrawalDocumentIdList: string[] = [];
+    describe('POST /withdrawals 5x (gasPrice < MAXIMUM_GAS_PRICE)', () => {
+        let withdrawalDocumentIdList: any = [];
 
-        it('should disable job queue', async () => {
-            await agenda.disable({ name: 'proposeWithdraw' });
+        it('should disable job processor', async () => {
+            await agenda.disable({ name: 'processWithdrawals' });
         });
 
-        it('should propose 3 withdrawals', async () => {
-            for (const index of [0, 1, 2]) {
+        it('should propose 5 withdrawals', async () => {
+            for (let index = 0; index < 5; index++) {
                 await user
                     .post('/v1/withdrawals')
                     .send({
@@ -86,6 +84,7 @@ describe('Transaction Queue', () => {
                     })
                     .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
                     .expect(({ body }: Response) => {
+                        expect(body.type).toEqual(2);
                         expect(body.withdrawalId).toBeUndefined();
 
                         withdrawalDocumentIdList[index] = body.id;
@@ -94,56 +93,139 @@ describe('Transaction Queue', () => {
             }
         });
 
-        it('should see 3 proposed withdrawals', async () => {
+        it('should see 5 proposed withdrawals', async () => {
             await user
                 .get('/v1/withdrawals?page=1&limit=10')
                 .set({ AssetPool: poolAddress, Authorization: walletAccessToken })
                 .expect(({ body }: Response) => {
-                    expect(body.results.length).toEqual(3);
-                    expect(body.total).toEqual(3);
+                    expect(body.results.length).toEqual(5);
+                    expect(body.total).toEqual(5);
 
-                    for (const result of body.results) {
-                        expect(result.job).toBeDefined();
+                    const newestFirstList = withdrawalDocumentIdList.reverse();
+
+                    for (const index in body.results) {
+                        const result = body.results[index];
+                        expect(result.id).toEqual(newestFirstList[index]);
                     }
                 })
                 .expect(200);
         });
+    });
 
-        it('should have 3 jobs scheduled', async () => {
-            const jobs = await agenda.jobs({});
-
-            expect(jobs.length).toEqual(3);
-            expect(withdrawalDocumentIdList.length).toEqual(3);
+    describe('POST /withdrawals 1x (gasPrice > MAXIMUM_GAS_PRICE)', () => {
+        it('should mock exceeding gas price', async () => {
+            mockClear();
+            mockStart();
+            mockUrl('get', 'https://gpoly.blockscan.com', '/gasapi.ashx?apikey=key&method=gasoracle', 200, {
+                result: { FastGasPrice: (MAXIMUM_GAS_PRICE + 1).toString() },
+            });
         });
 
-        it('should start job queue', async () => {
-            await agenda.enable({ name: 'proposeWithdraw' });
+        it('should propose 1 withdrawal for member', async () => {
+            await user
+                .post('/v1/withdrawals')
+                .send({
+                    member: userWallet.address,
+                    amount: rewardWithdrawAmount,
+                })
+                .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
+                .expect(({ body }: Response) => {
+                    expect(body.type).toEqual(2);
+                    expect(body.withdrawalId).toBeUndefined();
+                })
+                .expect(201);
         });
 
-        it('should cast 3 complete events', (done) => {
-            let index = 0;
-            const lastIndex = withdrawalDocumentIdList.length - 1;
+        it('should enable job processor', async () => {
+            await agenda.enable({ name: 'processWithdrawals' });
+        });
 
-            // This callback tests the order of the cast complete events
-            const callback = (job: IJob) => {
-                console.log(job.attrs.data.id, index);
-                expect(job.attrs.data.id).toBe(withdrawalDocumentIdList[index++]);
+        it('should cast a fail event', (done) => {
+            const callback = async (error: Error, job: Job) => {
+                agenda.off('fail:processWithdrawals', callback);
 
-                // End test when the last item is completed
-                console.log(withdrawalDocumentIdList, lastIndex, index);
-                if (job.attrs.data.id === withdrawalDocumentIdList[lastIndex]) {
-                    agenda.off('complete:proposeWithdraw', callback);
-                    done();
-                }
+                const { withdrawal } = await WithdrawalService.getById(job.attrs.data.currentWithdrawalDocument);
+
+                expect(withdrawal).toBeDefined();
+                expect(withdrawal.withdrawalId).toBeUndefined();
+                expect(withdrawal.failReason).toBeUndefined();
+
+                done();
+            };
+            agenda.on('fail:processWithdrawals', callback);
+        });
+
+        it('should remove exceeding gas price mock', async () => {
+            mockClear();
+            mockStart();
+            mockUrl('get', 'https://gpoly.blockscan.com', '/gasapi.ashx?apikey=key&method=gasoracle', 200, {
+                result: { FastGasPrice: (MAXIMUM_GAS_PRICE - 1).toString() },
+            });
+        });
+
+        it('should cast a success event', (done) => {
+            const callback = () => {
+                agenda.off('success:processWithdrawals', callback);
+                done();
+            };
+            agenda.on('success:processWithdrawals', callback);
+        });
+    });
+
+    describe('POST /withdrawals 1x (failReason)', () => {
+        let withdrawalDocumentId = '',
+            failReason = '';
+
+        it('should disable job processor', async () => {
+            await agenda.disable({ name: 'processWithdrawals' });
+        });
+
+        it('should propose 1 withdrawal for unknown member', async () => {
+            await user
+                .post('/v1/withdrawals')
+                .send({
+                    member: voter.address,
+                    amount: rewardWithdrawAmount,
+                })
+                .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
+                .expect(({ body }: Response) => {
+                    expect(body.type).toEqual(2);
+                    expect(body.withdrawalId).toBeUndefined();
+
+                    withdrawalDocumentId = body.id;
+                })
+                .expect(201);
+        });
+
+        it('should enable job processor', async () => {
+            await agenda.enable({ name: 'processWithdrawals' });
+        });
+
+        it('should cast a fail event', (done) => {
+            const callback = async (error: Error, job: Job) => {
+                failReason = job.attrs.failReason;
+                const currentWithdrawalDocument = job.attrs.data.currentWithdrawalDocument;
+                expect(currentWithdrawalDocument).toEqual(withdrawalDocumentId);
+                agenda.off('fail:processWithdrawals', callback);
+                done();
             };
 
-            agenda.on('complete:proposeWithdraw', callback);
+            agenda.on('fail:processWithdrawals', callback);
         });
 
-        // Buy some time to finish the async tests
-        afterAll(async () => {
-            await new Promise((r) => setTimeout(r, 5000));
-            await agenda.disable({ name: 'proposeWithdraw' });
+        it('wait 1s to let the event callback update the withdrawal with failReason', async () => {
+            await new Promise((r) => setTimeout(r, 1000));
+        });
+
+        it('should see a withdrawal with failReason', async () => {
+            await user
+                .get(`/v1/withdrawals/${withdrawalDocumentId}`)
+                .set({ AssetPool: poolAddress, Authorization: walletAccessToken })
+                .expect(({ body }: Response) => {
+                    expect(body.id).toEqual(withdrawalDocumentId);
+                    expect(body.failReason).toEqual(failReason);
+                })
+                .expect(200);
         });
     });
 });

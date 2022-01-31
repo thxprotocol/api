@@ -81,13 +81,12 @@ export const getWithdrawal = async (req: HttpRequest, res: Response, next: NextF
             return next(new HttpError(404, 'Could not find a withdrawal for this ID.'));
         }
 
-        const job = await JobService.getJob(withdrawal.jobId);
         const id = withdrawal._id.toString();
 
         res.json({
             id,
-            job,
             withdrawalId: withdrawal.withdrawalId,
+            failReason: withdrawal.failReason,
             beneficiary: withdrawal.beneficiary,
             amount: withdrawal.amount,
             approved: withdrawal.approved,

@@ -7,6 +7,7 @@ import { Account } from 'web3-core';
 import { getToken } from './lib/jwt';
 import { createWallet } from './lib/network';
 import { mockClear, mockStart } from './lib/mock';
+import { agenda, eventNameProcessWithdrawals } from '../../src/util/agenda';
 
 const user = request.agent(server);
 
@@ -85,8 +86,12 @@ describe('Propose Withdrawal', () => {
     });
 
     describe('GET /withdrawals/:id', () => {
-        beforeAll(async () => {
-            await new Promise((r) => setTimeout(r, 5000));
+        it('should wait for queue to succeed', (done) => {
+            const callback = () => {
+                agenda.off(`success:${eventNameProcessWithdrawals}`, callback);
+                done();
+            };
+            agenda.on(`success:${eventNameProcessWithdrawals}`, callback);
         });
 
         it('HTTP 200 when job is completed', (done) => {

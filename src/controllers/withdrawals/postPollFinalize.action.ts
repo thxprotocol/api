@@ -51,8 +51,8 @@ export const postPollFinalize = async (req: HttpRequest, res: Response, next: Ne
             try {
                 const { withdrawal } = await WithdrawalService.getById(req.params.id);
                 await sendTransaction(
-                    req.solution.options.address,
-                    req.solution.methods.withdrawPollFinalize(withdrawal.withdrawalId),
+                    req.assetPool.address,
+                    req.assetPool.solution.methods.withdrawPollFinalize(withdrawal.withdrawalId),
                     req.assetPool.network,
                 );
 
@@ -66,7 +66,7 @@ export const postPollFinalize = async (req: HttpRequest, res: Response, next: Ne
                 const { withdrawal } = await WithdrawalService.getById(req.params.id);
                 const base64 = await qrcode.toDataURL(
                     JSON.stringify({
-                        assetPoolAddress: req.solution.options.address,
+                        assetPoolAddress: req.assetPool.address,
                         method: 'withdrawPollFinalize',
                         params: {
                             id: withdrawal.withdrawalId,

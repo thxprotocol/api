@@ -1,10 +1,9 @@
-import { toWei } from 'web3-utils';
-import { getGasPrice, NetworkProvider } from './network';
+import { getGasPriceFromOracle, NetworkProvider } from './network';
 import { MAXIMUM_GAS_PRICE } from './secrets';
 
-export async function checkGasPrice(npid: NetworkProvider) {
-    const gasPrice = Number(await getGasPrice(npid));
-    const maxPrice = Number(toWei(String(MAXIMUM_GAS_PRICE), 'gwei'));
+export async function checkGasPrice() {
+    const gasPrice = Number(await getGasPriceFromOracle('FastGasPrice'));
+    const maxPrice = Number(MAXIMUM_GAS_PRICE);
 
     return gasPrice > maxPrice;
 }

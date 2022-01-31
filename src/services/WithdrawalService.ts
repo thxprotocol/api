@@ -2,7 +2,7 @@ import { IAssetPool } from '../models/AssetPool';
 import { callFunction, NetworkProvider, sendTransaction } from '../util/network';
 import { Artifacts } from '../util/artifacts';
 import { parseLogs, findEvent } from '../util/events';
-import { Withdrawal, WithdrawalState } from '../models/Withdrawal';
+import { Withdrawal, WithdrawalState, WithdrawalType } from '../models/Withdrawal';
 import { toWei, fromWei } from 'web3-utils';
 import { paginatedResults } from '../util/pagination';
 import { IAccount } from '../models/Account';
@@ -38,8 +38,22 @@ export default class WithdrawalService {
         }
     }
 
-    static async schedule(assetPool: IAssetPool, beneficiary: string, amount: number, rewardId?: number) {
+    static async getAllScheduled() {
+        return await Withdrawal.find({
+            failReason: { $exists: false },
+            withdrawalId: { $exists: false },
+        }).sort({ createdAt: -1 });
+    }
+
+    static async schedule(
+        assetPool: IAssetPool,
+        type: WithdrawalType,
+        beneficiary: string,
+        amount: number,
+        rewardId?: number,
+    ) {
         const withdrawal = new Withdrawal({
+            type,
             amount,
             rewardId,
             beneficiary,

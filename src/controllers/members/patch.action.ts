@@ -41,7 +41,10 @@ import { VERSION } from '../../util/secrets';
  */
 export const patchMember = async (req: HttpRequest, res: Response, next: NextFunction) => {
     try {
-        const isMember = await callFunction(req.solution.methods.isMember(req.params.address), req.assetPool.network);
+        const isMember = await callFunction(
+            req.assetPool.solution.methods.isMember(req.params.address),
+            req.assetPool.network,
+        );
 
         if (!isMember) {
             next(new HttpError(404, 'Address is not a member.'));
@@ -49,8 +52,8 @@ export const patchMember = async (req: HttpRequest, res: Response, next: NextFun
         }
 
         await sendTransaction(
-            req.solution.options.address,
-            req.solution.methods[req.body.isManager ? 'addManager' : 'removeManager'](req.params.address),
+            req.assetPool.address,
+            req.assetPool.solution.methods[req.body.isManager ? 'addManager' : 'removeManager'](req.params.address),
             req.assetPool.network,
         );
 

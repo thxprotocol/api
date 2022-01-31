@@ -158,7 +158,7 @@ describe('Happy Flow', () => {
                 .expect(302, done);
         });
 
-        it('HTTP 302 when member is added', (done) => {
+        it('HTTP 302 when member is patched', (done) => {
             user.patch(`/v1/members/${userWallet.address}`)
                 .send({ isManager: true })
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
@@ -228,41 +228,39 @@ describe('Happy Flow', () => {
                     member: userWallet.address,
                 })
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
-                .expect(async (res: request.Response) => {
-                    expect(res.status).toBe(200);
-                    expect(res.body.id).toBeDefined();
-                    expect(res.body.job).toBeDefined();
-                    expect(res.body.beneficiary).toEqual(userWallet.address);
-                    expect(res.body.amount).toEqual(rewardWithdrawAmount);
-                    expect(res.body.state).toEqual(0);
-                    expect(res.body.createdAt).toBeDefined();
-                    expect(res.body.updatedAt).toBeDefined();
-                    expect(res.body.withdrawalId).toBeUndefined();
+                .expect(async ({ body }: request.Response) => {
+                    expect(body.id).toBeDefined();
+                    expect(body.beneficiary).toEqual(userWallet.address);
+                    expect(body.amount).toEqual(rewardWithdrawAmount);
+                    expect(body.state).toEqual(0);
+                    expect(body.createdAt).toBeDefined();
+                    expect(body.updatedAt).toBeDefined();
+                    expect(body.withdrawalId).toBeUndefined();
 
-                    withdrawDocumentId = res.body.id;
+                    withdrawDocumentId = body.id;
                 })
                 .expect(200, done);
+        });
+
+        it('wait 7s for the job processor to process the withdrawal', (done) => {
+            setTimeout(() => {
+                done();
+            }, 7000);
         });
     });
 
     describe('GET /withdrawals/:id', () => {
-        beforeAll(async () => {
-            await new Promise((r) => setTimeout(r, 5000));
-        });
-
         it('HTTP 200 and return state Approved', (done) => {
             user.get(`/v1/withdrawals/${withdrawDocumentId}`)
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
-                .expect(async (res: request.Response) => {
-                    expect(res.status).toBe(200);
-                    expect(res.body.id).toBeDefined();
-                    expect(res.body.job).toBeUndefined();
-                    expect(res.body.amount).toEqual(rewardWithdrawAmount);
-                    expect(res.body.beneficiary).toEqual(userWallet.address);
-                    expect(res.body.approved).toEqual(true);
-                    expect(res.body.withdrawalId).toEqual(3);
+                .expect(async ({ body }: request.Response) => {
+                    expect(body.id).toBeDefined();
+                    expect(body.amount).toEqual(rewardWithdrawAmount);
+                    expect(body.beneficiary).toEqual(userWallet.address);
+                    expect(body.approved).toEqual(true);
+                    expect(body.withdrawalId).toEqual(3);
 
-                    withdrawPollID = res.body.withdrawalId;
+                    withdrawPollID = body.withdrawalId;
                 })
                 .expect(200, done);
         });

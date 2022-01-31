@@ -7,6 +7,7 @@ import { Account } from 'web3-core';
 import { createWallet } from './lib/network';
 import { getToken } from './lib/jwt';
 import { mockClear, mockStart } from './lib/mock';
+import { agenda, eventNameProcessWithdrawals } from '../../src/util/agenda';
 
 const user = request.agent(server);
 
@@ -138,8 +139,12 @@ describe('Unlimited Supply Token', () => {
     });
 
     describe('POST /withdrawals/:id/withdraw', () => {
-        beforeAll(async () => {
-            await new Promise((r) => setTimeout(r, 5000));
+        it('should wait for queue to succeed', (done) => {
+            const callback = () => {
+                agenda.off(`success:${eventNameProcessWithdrawals}`, callback);
+                done();
+            };
+            agenda.on(`success:${eventNameProcessWithdrawals}`, callback);
         });
 
         it('HTTP 200 and 0 balance', (done) => {

@@ -6,10 +6,6 @@ export const getReward = async (req: HttpRequest, res: Response, next: NextFunct
     async function getReward(rewardId: number) {
         const { reward, error } = await RewardService.get(req.assetPool, rewardId);
 
-        if (!reward) {
-            next(new HttpError(404, 'Asset Pool reward not found.'));
-        }
-
         if (error) {
             throw new Error(error.message);
         }
@@ -30,6 +26,11 @@ export const getReward = async (req: HttpRequest, res: Response, next: NextFunct
     try {
         const rewardId = Number(req.params.id);
         const reward = await getReward(rewardId);
+
+        if (!reward) {
+            return next(new HttpError(404, 'Asset Pool reward not found.'));
+        }
+
         const poll = await getRewardPoll(reward.pollId);
 
         res.json({

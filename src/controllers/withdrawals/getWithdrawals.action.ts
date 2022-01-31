@@ -2,13 +2,12 @@ import { NextFunction, Response } from 'express';
 import { HttpError, HttpRequest } from '../../models/Error';
 
 import WithdrawalService from '../../services/WithdrawalService';
-import JobService from '../../services/JobService';
 
 export const getWithdrawals = async (req: HttpRequest, res: Response, next: NextFunction) => {
     try {
         const withdrawals = [];
         const { result, error } = await WithdrawalService.getAll(
-            req.solution.options.address,
+            req.assetPool.address,
             Number(req.query.page),
             Number(req.query.limit),
             req.query.member && req.query.member.length > 0 ? String(req.query.member) : undefined,
@@ -19,12 +18,11 @@ export const getWithdrawals = async (req: HttpRequest, res: Response, next: Next
         if (error) throw new Error(error);
 
         for (const w of result.results) {
-            const job = await JobService.getJob(w.jobId);
-
             withdrawals.push({
                 id: w.id,
-                job,
+                type: w.type,
                 withdrawalId: w.withdrawalId,
+                failReason: w.failReason,
                 rewardId: w.rewardId,
                 beneficiary: w.beneficiary,
                 amount: w.amount,
@@ -38,6 +36,7 @@ export const getWithdrawals = async (req: HttpRequest, res: Response, next: Next
         result.results = withdrawals;
         res.json(result);
     } catch (err) {
+        console.log(err);
         next(new HttpError(502, 'Could not get all withdrawal information from the network.', err));
     }
 };
