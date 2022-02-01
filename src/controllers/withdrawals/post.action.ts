@@ -1,14 +1,8 @@
 import { NextFunction, Response } from 'express';
 import { HttpError, HttpRequest } from '../../models/Error';
-import { IAssetPool } from '../../models/AssetPool';
 import { WithdrawalType } from '../../models/Withdrawal';
 
 import WithdrawalService from '../../services/WithdrawalService';
-import { agenda, eventNameProcessWithdrawals } from '../../util/agenda';
-
-export async function jobProposeWithdraw(assetPool: IAssetPool, id: string, amount: number, beneficiary: string) {
-    await WithdrawalService.proposeWithdraw(assetPool, id, beneficiary, amount);
-}
 
 export const postWithdrawal = async (req: HttpRequest, res: Response, next: NextFunction) => {
     try {

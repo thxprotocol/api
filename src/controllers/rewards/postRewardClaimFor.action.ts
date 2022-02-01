@@ -1,18 +1,12 @@
 import { Response, NextFunction } from 'express';
 import { HttpError, HttpRequest } from '../../models/Error';
-import { IAssetPool } from '../../models/AssetPool';
 import { WithdrawalType } from '../../models/Withdrawal';
-import { agenda, eventNameProcessWithdrawals } from '../../util/agenda';
 
 import RewardService from '../../services/RewardService';
 import WithdrawalService from '../../services/WithdrawalService';
 import MemberService, { ERROR_IS_NOT_MEMBER } from '../../services/MemberService';
 
 const ERROR_NO_REWARD = 'Could not find a reward for this id';
-
-export async function jobClaimRewardFor(assetPool: IAssetPool, id: string, rewardId: number, beneficiary: string) {
-    await RewardService.claimRewardFor(assetPool, id, rewardId, beneficiary);
-}
 
 export const postRewardClaimFor = async (req: HttpRequest, res: Response, next: NextFunction) => {
     try {

@@ -2,12 +2,8 @@ import { Response, NextFunction } from 'express';
 import { HttpError, HttpRequest } from '../../models/Error';
 import { RewardDocument } from '../../models/Reward';
 import { IAccount } from '../../models/Account';
-import { IAssetPool } from '../../models/AssetPool';
 import { WithdrawalType } from '../../models/Withdrawal';
-import { agenda, eventNameProcessWithdrawals } from '../../util/agenda';
 
-import MembershipService from '../../services/MembershipService';
-import AssetPoolService from '../../services/AssetPoolService';
 import AccountProxy from '../../proxies/AccountProxy';
 import RewardService from '../../services/RewardService';
 import MemberService from '../../services/MemberService';
@@ -18,32 +14,6 @@ const ERROR_ACCOUNT_NO_ADDRESS = 'The authenticated account has not wallet addre
 const ERROR_INCORRECT_SCOPE = 'No subscription is found for this type of access token.';
 const ERROR_CAIM_NOT_ALLOWED = 'Could not claim this reward due to the claim conditions.';
 const ERROR_NO_MEMBER = 'Could not claim this reward since you are not a member of the pool.';
-const ERROR_CAN_NOT_CLAIM = 'Claim conditions are currently not valid.';
-
-export async function jobClaimReward(assetPool: IAssetPool, id: string, rewardId: number, beneficiary: string) {
-    const { account } = await AccountProxy.getByAddress(beneficiary);
-    const { reward } = await RewardService.get(assetPool, rewardId);
-    const { canClaim } = await RewardService.canClaim(assetPool, reward, account);
-    const { isMember } = await MemberService.isMember(assetPool, beneficiary);
-    const shouldAddMember = !reward.isMembershipRequired && !isMember;
-
-    if (!canClaim) {
-        throw new Error(ERROR_CAN_NOT_CLAIM);
-    }
-
-    if (shouldAddMember) {
-        await MemberService.addMember(assetPool, beneficiary);
-        await MembershipService.addMembership(account._id.toString(), assetPool);
-    }
-
-    await RewardService.claimRewardFor(assetPool, id, rewardId, beneficiary);
-
-    const { canBypassPoll } = await AssetPoolService.canBypassWithdrawPoll(assetPool, account, reward);
-
-    if (canBypassPoll) {
-        await WithdrawalService.withdrawPollFinalize(assetPool, id);
-    }
-}
 
 export async function postRewardClaim(req: HttpRequest, res: Response, next: NextFunction) {
     async function getReward(rewardId: number) {

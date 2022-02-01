@@ -2,11 +2,10 @@ import { Agenda, Job } from 'agenda';
 import { MONGODB_URI } from './secrets';
 import { logger } from './logger';
 import { Withdrawal, WithdrawalType } from '../models/Withdrawal';
-import { ERROR_GAS_PRICE_EXCEEDS_CAP } from '../util/network';
 
-import { jobClaimReward } from '../controllers/rewards/postRewardClaim.action';
-import { jobClaimRewardFor } from '../controllers/rewards/postRewardClaimFor.action';
-import { jobProposeWithdraw } from '../controllers/withdrawals/post.action';
+import { jobClaimReward } from '../jobs/claimReward';
+import { jobClaimRewardFor } from '../jobs/claimRewardFor';
+import { jobProposeWithdraw } from '../jobs/proposeWithdrawal';
 
 import AssetPoolService from '../services/AssetPoolService';
 import WithdrawalService from '../services/WithdrawalService';
@@ -33,7 +32,7 @@ agenda.define(eventNameProcessWithdrawals, async (job: Job) => {
     const withdrawals = await WithdrawalService.getAllScheduled();
     for (const index in withdrawals) {
         const w = withdrawals[index];
-        const documentId = w._id.toString();
+        const documentId = String(w._id);
         const { assetPool } = await AssetPoolService.getByAddress(w.poolAddress);
 
         // Pass a reference to the withdrawal in this job attr data
@@ -63,20 +62,5 @@ agenda.define(eventNameProcessWithdrawals, async (job: Job) => {
 
 agenda.on(`fail:${eventNameProcessWithdrawals}`, async (error: Error, job: Job) => {
     await updateFailReason(job.attrs.data.documentId, error.message);
-});
-
-// The complete:* event is cast for both success and fail scenarios
-agenda.on(`complete:${eventNameProcessWithdrawals}`, async (job: Job) => {
-    job.schedule('in 5 seconds');
-    await job.save();
-});
-
-agenda.on('start', (job: Job) => {
-    logger.info({ id: job.attrs._id.toString(), job: job.attrs.name, status: 'start' });
-});
-agenda.on('fail', (error: Error, job: Job) => {
-    logger.error({ id: job.attrs._id.toString(), job: job.attrs.name, status: 'fail', error: error.toString() });
-});
-agenda.on('success', (job: Job) => {
-    logger.info({ id: job.attrs._id.toString(), job: job.attrs.name, status: 'success' });
+    logger.error({ id: String(job.attrs._id), job: job.attrs.name, status: 'fail', error: error.message });
 });

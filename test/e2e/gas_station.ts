@@ -50,7 +50,7 @@ describe('Gas Station', () => {
         poolAddress = body.address;
 
         // Transfer some tokens to the pool rewardWithdrawAmount tokens for the pool
-        const assetPool = solutionContract(NetworkProvider.Test, poolAddress);
+        const solution = solutionContract(NetworkProvider.Test, poolAddress);
         const amount = toWei(rewardWithdrawAmount.toString());
 
         await sendTransaction(
@@ -58,7 +58,7 @@ describe('Gas Station', () => {
             testToken.methods.approve(poolAddress, toWei(rewardWithdrawAmount.toString())),
             NetworkProvider.Test,
         );
-        await sendTransaction(assetPool.options.address, assetPool.methods.deposit(amount), NetworkProvider.Test);
+        await sendTransaction(solution.options.address, solution.methods.deposit(amount), NetworkProvider.Test);
 
         // Configure the default poll durations
         await user
@@ -70,7 +70,7 @@ describe('Gas Station', () => {
             });
 
         // Create a reward
-        await user.post('/v1/rewards/').set({ AssetPool: poolAddress, Authorization: adminAccessToken }).send({
+        await user.post('/v1/rewards/').set({ AssetPool: poolAddress, Authorization: dashboardAccessToken }).send({
             withdrawAmount: rewardWithdrawAmount,
             withdrawDuration: rewardWithdrawDuration,
         });
