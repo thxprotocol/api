@@ -47,9 +47,7 @@ export default class AssetPoolService {
             const duration = Number(
                 await callFunction(assetPool.solution.methods.getRewardPollDuration(), assetPool.network),
             );
-            console.log(duration, assetPool.bypassPolls);
             const canBypassPoll = assetPool.bypassPolls || (!assetPool.bypassPolls && duration === 0);
-            console.log(canBypassPoll);
             return {
                 canBypassPoll,
             };

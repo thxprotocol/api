@@ -101,9 +101,10 @@ describe('Gas Station', () => {
             user.get('/v1/rewards/1')
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
                 .expect(({ body }: request.Response) => {
+                    console.log(body);
                     expect(body.state).toBe(0);
                     expect(body.withdrawAmount).toBe(0);
-                    expect(body.withdrawDuration).toBe(rewardWithdrawDuration);
+                    expect(body.withdrawDuration).toBe(0);
                 })
                 .expect(200, done);
         });
@@ -196,6 +197,8 @@ describe('Gas Station', () => {
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
                 .expect(({ body }: request.Response) => {
                     expect(body.state).toBe(1);
+                    expect(body.withdrawAmount).toBe(rewardWithdrawAmount);
+                    expect(body.withdrawDuration).toBe(rewardWithdrawDuration);
                     expect(body.poll).toBeUndefined();
                 })
                 .expect(200, done);

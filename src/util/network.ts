@@ -53,7 +53,7 @@ export async function getGasPriceFromOracle(type: string) {
     const r = await axios.get('https://gpoly.blockscan.com/gasapi.ashx?apikey=key&method=gasoracle');
 
     if (r.status !== 200) {
-        throw new Error('Gas station does not give gas price information.');
+        throw new Error('Gas oracle does not give gas price information.');
     }
     return r.data.result[type];
 }
