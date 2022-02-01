@@ -136,7 +136,7 @@ describe('Bypass Polls', () => {
                     AssetPool: poolAddress,
                     Authorization: dashboardAccessToken,
                 })
-                .send({ bypassPolls: false, rewardPollDuration: rewardPollDuration })
+                .send({ bypassPolls: false, rewardPollDuration })
                 .expect(200, done);
         });
 
@@ -186,7 +186,6 @@ describe('Bypass Polls', () => {
     describe('POST /rewards/2/finalize (bypass disabled)', () => {
         it('HTTP 200 reward storage OK', async () => {
             await timeTravel(rewardPollDuration);
-
             await user
                 .post('/v1/rewards/2/poll/finalize')
                 .set({

@@ -1,12 +1,13 @@
 import request from 'supertest';
 import server from '../../src/server';
 import db from '../../src/util/database';
-import { account, rewardWithdrawAmount, sub, tokenName, tokenSymbol, userWalletPrivateKey } from './lib/constants';
+import { rewardWithdrawAmount, tokenName, tokenSymbol, userWalletPrivateKey } from './lib/constants';
 import { isAddress } from 'web3-utils';
 import { Account } from 'web3-core';
 import { createWallet } from './lib/network';
 import { getToken } from './lib/jwt';
-import { mockClear, mockPath, mockStart } from './lib/mock';
+import { mockClear, mockStart } from './lib/mock';
+import { agenda, eventNameProcessWithdrawals } from '../../src/util/agenda';
 
 const user = request.agent(server);
 
@@ -15,7 +16,7 @@ describe('Unlimited Supply Token', () => {
         dashboardAccessToken: string,
         poolAddress: string,
         rewardID: string,
-        withdrawalID: number,
+        withdrawalDocumentId: number,
         userWallet: Account;
 
     beforeAll(async () => {
@@ -129,15 +130,23 @@ describe('Unlimited Supply Token', () => {
                 })
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
                 .expect((res: request.Response) => {
-                    expect(res.body.id).toBe(2);
+                    expect(res.body.withdrawalId).toBeUndefined();
 
-                    withdrawalID = res.body.id;
+                    withdrawalDocumentId = res.body.id;
                 })
                 .expect(200, done);
         });
     });
 
     describe('POST /withdrawals/:id/withdraw', () => {
+        it('should wait for queue to succeed', (done) => {
+            const callback = () => {
+                agenda.off(`success:${eventNameProcessWithdrawals}`, callback);
+                done();
+            };
+            agenda.on(`success:${eventNameProcessWithdrawals}`, callback);
+        });
+
         it('HTTP 200 and 0 balance', (done) => {
             user.get('/v1/members/' + userWallet.address)
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
@@ -148,7 +157,7 @@ describe('Unlimited Supply Token', () => {
         });
 
         it('HTTP 200 OK', (done) => {
-            user.post(`/v1/withdrawals/${withdrawalID}/withdraw`)
+            user.post(`/v1/withdrawals/${withdrawalDocumentId}/withdraw`)
                 .send()
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
                 .expect(200, done);

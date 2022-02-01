@@ -7,6 +7,7 @@ import { Account } from 'web3-core';
 import { getToken } from './lib/jwt';
 import { createWallet } from './lib/network';
 import { mockClear, mockStart } from './lib/mock';
+import { agenda, eventNameProcessWithdrawals } from '../../src/util/agenda';
 
 const user = request.agent(server);
 
@@ -14,7 +15,7 @@ describe('Propose Withdrawal', () => {
     let adminAccessToken: string,
         dashboardAccessToken: string,
         poolAddress: string,
-        withdrawalID: number,
+        withdrawalDocumentId: number,
         userWallet: Account;
 
     beforeAll(async () => {
@@ -68,7 +69,7 @@ describe('Propose Withdrawal', () => {
     });
 
     describe('POST /withdrawals', () => {
-        it('HTTP 200 after proposing a withdrawal', (done) => {
+        it('HTTP 201 after proposing a withdrawal', (done) => {
             user.post('/v1/withdrawals')
                 .send({
                     member: userWallet.address,
@@ -76,11 +77,30 @@ describe('Propose Withdrawal', () => {
                 })
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
                 .expect((res: request.Response) => {
-                    expect(res.body.id).toBe(1);
+                    expect(res.body.withdrawalId).toBeUndefined();
 
-                    withdrawalID = res.body.id;
+                    withdrawalDocumentId = res.body.id;
                 })
                 .expect(201, done);
+        });
+    });
+
+    describe('GET /withdrawals/:id', () => {
+        it('should wait for queue to succeed', (done) => {
+            const callback = () => {
+                agenda.off(`success:${eventNameProcessWithdrawals}`, callback);
+                done();
+            };
+            agenda.on(`success:${eventNameProcessWithdrawals}`, callback);
+        });
+
+        it('HTTP 200 when job is completed', (done) => {
+            user.get(`/v1/withdrawals/${withdrawalDocumentId}`)
+                .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
+                .expect((res: request.Response) => {
+                    expect(res.body.withdrawalId).toBeDefined();
+                })
+                .expect(200, done);
         });
     });
 
@@ -95,7 +115,7 @@ describe('Propose Withdrawal', () => {
         });
 
         it('HTTP 200 OK', (done) => {
-            user.post(`/v1/withdrawals/${withdrawalID}/withdraw`)
+            user.post(`/v1/withdrawals/${withdrawalDocumentId}/withdraw`)
                 .send()
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
                 .expect(200, done);

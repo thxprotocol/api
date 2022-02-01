@@ -1,6 +1,35 @@
-import { HttpError, HttpRequest } from '../../models/Error';
 import { NextFunction, Response } from 'express';
+import { HttpError, HttpRequest } from '../../models/Error';
+import { WithdrawalType } from '../../models/Withdrawal';
+
 import WithdrawalService from '../../services/WithdrawalService';
+
+export const postWithdrawal = async (req: HttpRequest, res: Response, next: NextFunction) => {
+    try {
+        const withdrawal = await WithdrawalService.schedule(
+            req.assetPool,
+            WithdrawalType.ProposeWithdraw,
+            req.body.member,
+            req.body.amount,
+        );
+
+        res.status(201).json({
+            id: withdrawal.id,
+            type: withdrawal.type,
+            withdrawalId: withdrawal.withdrawalId,
+            rewardId: withdrawal.rewardId,
+            beneficiary: withdrawal.beneficiary,
+            amount: withdrawal.amount,
+            approved: withdrawal.approved,
+            state: withdrawal.state,
+            poll: withdrawal.poll,
+            createdAt: withdrawal.createdAt,
+            updatedAt: withdrawal.updatedAt,
+        });
+    } catch (error) {
+        next(new HttpError(500, error.toString(), error));
+    }
+};
 
 /**
  * @swagger
@@ -45,20 +74,3 @@ import WithdrawalService from '../../services/WithdrawalService';
  *       '502':
  *         $ref: '#/components/responses/502'
  */
-export const postWithdrawal = async (req: HttpRequest, res: Response, next: NextFunction) => {
-    try {
-        const { withdrawal, error } = await WithdrawalService.proposeWithdrawal(
-            req.assetPool,
-            req.body.member,
-            req.body.amount,
-        );
-
-        if (error) throw new Error(error);
-
-        await withdrawal.save();
-
-        res.status(201).json(withdrawal);
-    } catch (error) {
-        next(new HttpError(500, error.toString(), error));
-    }
-};

@@ -1,31 +1,45 @@
 import { Response, NextFunction } from 'express';
 import { HttpError, HttpRequest } from '../../models/Error';
+import { WithdrawalType } from '../../models/Withdrawal';
+
 import RewardService from '../../services/RewardService';
+import WithdrawalService from '../../services/WithdrawalService';
+import MemberService, { ERROR_IS_NOT_MEMBER } from '../../services/MemberService';
 
 const ERROR_NO_REWARD = 'Could not find a reward for this id';
 
 export const postRewardClaimFor = async (req: HttpRequest, res: Response, next: NextFunction) => {
-    async function getReward(rewardId: number) {
-        const { reward, error } = await RewardService.get(req.assetPool, rewardId);
-        if (error) return next(new HttpError(500, error.message, error));
-        return reward;
-    }
-
-    async function claimRewardFor(rewardId: number, address: string) {
-        const { withdrawal, error } = await RewardService.claimRewardFor(req.assetPool, rewardId, address);
-        if (error) throw new Error(error.message);
-        return withdrawal;
-    }
-
     try {
         const rewardId = Number(req.params.id);
-        const reward = await getReward(rewardId);
+        const { reward } = await RewardService.get(req.assetPool, rewardId);
 
         if (!reward) return next(new HttpError(400, ERROR_NO_REWARD));
 
-        const withdrawal = await claimRewardFor(reward.id, req.body.member);
+        const { isMember } = await MemberService.isMember(req.assetPool, req.body.member);
 
-        return res.json(withdrawal);
+        if (!isMember && reward.isMembershipRequired) return next(new HttpError(403, ERROR_IS_NOT_MEMBER));
+
+        const withdrawal = await WithdrawalService.schedule(
+            req.assetPool,
+            WithdrawalType.ClaimRewardFor,
+            req.body.member,
+            reward.withdrawAmount,
+            rewardId,
+        );
+        const id = withdrawal._id.toString();
+
+        return res.json({
+            id,
+            type: withdrawal.type,
+            withdrawalId: withdrawal.withdrawalId,
+            beneficiary: withdrawal.beneficiary,
+            amount: withdrawal.amount,
+            approved: withdrawal.approved,
+            state: withdrawal.state,
+            poll: withdrawal.poll,
+            createdAt: withdrawal.createdAt,
+            updatedAt: withdrawal.updatedAt,
+        });
     } catch (error) {
         return next(new HttpError(502, error.message, error));
     }

@@ -1,6 +1,3 @@
-import YouTubeDataProxy from '../proxies/YoutubeDataProxy';
-import TwitterDataProxy from '../proxies/TwitterDataProxy';
-import WithdrawalService from './WithdrawalService';
 import BN from 'bn.js';
 import { IAssetPool } from '../models/AssetPool';
 import { IAccount } from '../models/Account';
@@ -10,10 +7,18 @@ import { parseLogs, findEvent } from '../util/events';
 import { ChannelAction, IRewardCondition, IRewardUpdates, Reward, RewardDocument, RewardState } from '../models/Reward';
 import { fromWei, toWei } from 'web3-utils';
 
+import WithdrawalService from './WithdrawalService';
+
+import YouTubeDataProxy from '../proxies/YoutubeDataProxy';
+import TwitterDataProxy from '../proxies/TwitterDataProxy';
+
 export default class RewardService {
     static async get(assetPool: IAssetPool, rewardId: number) {
         try {
             const reward = await Reward.findOne({ poolAddress: assetPool.address, id: rewardId });
+
+            if (!reward) return { reward };
+
             const { id, withdrawAmount, withdrawDuration, pollId, state } = await callFunction(
                 assetPool.solution.methods.getReward(rewardId),
                 assetPool.network,
@@ -124,11 +129,11 @@ export default class RewardService {
                 reward.id,
             );
 
-            if (withdrawal && reward.isClaimOnce) {
+            if (reward.isClaimOnce && withdrawal) {
                 return { canClaim: false };
             }
 
-            if (!reward.withdrawCondition) {
+            if (!reward.withdrawCondition || !reward.withdrawCondition.channelType) {
                 return { canClaim: true };
             }
 
@@ -143,26 +148,20 @@ export default class RewardService {
         }
     }
 
-    static async claimRewardFor(assetPool: IAssetPool, rewardId: number, address: string) {
-        try {
-            const tx = await sendTransaction(
-                assetPool.solution.options.address,
-                assetPool.solution.methods.claimRewardFor(rewardId, address),
-                assetPool.network,
-            );
-            const events = parseLogs(Artifacts.IDefaultDiamond.abi, tx.logs);
-            const event = findEvent('WithdrawPollCreated', events);
-            const { withdrawal } = await WithdrawalService.create(
-                assetPool,
-                event.args.id,
-                event.args.member,
-                rewardId,
-            );
+    static async claimRewardFor(assetPool: IAssetPool, id: string, rewardId: number, beneficiary: string) {
+        const tx = await sendTransaction(
+            assetPool.solution.options.address,
+            assetPool.solution.methods.claimRewardFor(rewardId, beneficiary),
+            assetPool.network,
+        );
+        const events = parseLogs(Artifacts.IDefaultDiamond.abi, tx.logs);
+        const event = findEvent('WithdrawPollCreated', events);
 
-            return { withdrawal };
-        } catch (error) {
-            return { error };
-        }
+        return await WithdrawalService.update(assetPool, id, {
+            withdrawalId: event.args.id,
+            memberId: event.args.member,
+            rewardId,
+        });
     }
 
     static async removeAllForAddress(address: string) {
@@ -269,6 +268,7 @@ export default class RewardService {
 
                 await reward.save();
             }
+
             return { finalizedReward: reward };
         } catch (error) {
             return { error };

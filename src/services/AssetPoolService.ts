@@ -48,7 +48,6 @@ export default class AssetPoolService {
                 await callFunction(assetPool.solution.methods.getRewardPollDuration(), assetPool.network),
             );
             const canBypassPoll = assetPool.bypassPolls || (!assetPool.bypassPolls && duration === 0);
-
             return {
                 canBypassPoll,
             };
@@ -80,7 +79,6 @@ export default class AssetPoolService {
     static async getByAddress(address: string) {
         try {
             const assetPool = await AssetPool.findOne({ address });
-            assetPool.solution = solutionContract(assetPool.network, address);
 
             if (!assetPool) {
                 throw new Error(ERROR_NO_ASSETPOOL);
@@ -186,17 +184,14 @@ export default class AssetPoolService {
                     'Could not find a confirmation event in factory transaction. Check API health status at /v1/health.',
                 );
             }
-            const solution = solutionContract(network, event.args.assetPool);
             const assetPool = new AssetPool({
-                address: solution.options.address,
                 sub,
+                address: event.args.assetPool,
                 blockNumber: event.blockNumber,
                 transactionHash: event.transactionHash,
                 bypassPolls: true,
                 network: network,
             });
-
-            assetPool.solution = solution;
 
             return { assetPool };
         } catch (error) {

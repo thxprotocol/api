@@ -17,6 +17,7 @@ import { solutionContract } from '../../src/util/network';
 import { Account } from 'web3-core';
 import { getToken } from './lib/jwt';
 import { mockClear, mockStart } from './lib/mock';
+import { agenda, eventNameProcessWithdrawals } from '../../src/util/agenda';
 
 const user = request.agent(server);
 
@@ -25,6 +26,7 @@ describe('Happy Flow', () => {
         userAccessToken: string,
         dashboardAccessToken: string,
         poolAddress: string,
+        withdrawDocumentId: string,
         withdrawPollID: string,
         userWallet: Account,
         testToken: Contract;
@@ -157,7 +159,7 @@ describe('Happy Flow', () => {
                 .expect(302, done);
         });
 
-        it('HTTP 302 when member is added', (done) => {
+        it('HTTP 302 when member is patched', (done) => {
             user.patch(`/v1/members/${userWallet.address}`)
                 .send({ isManager: true })
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
@@ -227,23 +229,41 @@ describe('Happy Flow', () => {
                     member: userWallet.address,
                 })
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
-                .expect(async (res: request.Response) => {
-                    expect(res.body.id).toEqual(3);
+                .expect(async ({ body }: request.Response) => {
+                    expect(body.id).toBeDefined();
+                    expect(body.beneficiary).toEqual(userWallet.address);
+                    expect(body.amount).toEqual(rewardWithdrawAmount);
+                    expect(body.state).toEqual(0);
+                    expect(body.createdAt).toBeDefined();
+                    expect(body.updatedAt).toBeDefined();
+                    expect(body.withdrawalId).toBeUndefined();
 
-                    withdrawPollID = res.body.id;
+                    withdrawDocumentId = body.id;
                 })
                 .expect(200, done);
+        });
+
+        it('should wait for queue to succeed', (done) => {
+            const callback = () => {
+                agenda.off(`success:${eventNameProcessWithdrawals}`, callback);
+                done();
+            };
+            agenda.on(`success:${eventNameProcessWithdrawals}`, callback);
         });
     });
 
     describe('GET /withdrawals/:id', () => {
         it('HTTP 200 and return state Approved', (done) => {
-            user.get(`/v1/withdrawals/${withdrawPollID}`)
+            user.get(`/v1/withdrawals/${withdrawDocumentId}`)
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
-                .expect(async (res: request.Response) => {
-                    expect(res.body.amount).toEqual(rewardWithdrawAmount);
-                    expect(res.body.beneficiary).toEqual(userWallet.address);
-                    expect(res.body.approved).toEqual(true);
+                .expect(async ({ body }: request.Response) => {
+                    expect(body.id).toBeDefined();
+                    expect(body.amount).toEqual(rewardWithdrawAmount);
+                    expect(body.beneficiary).toEqual(userWallet.address);
+                    expect(body.approved).toEqual(true);
+                    expect(body.withdrawalId).toEqual(3);
+
+                    withdrawPollID = body.withdrawalId;
                 })
                 .expect(200, done);
         });

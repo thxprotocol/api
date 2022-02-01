@@ -1,5 +1,7 @@
 import { NextFunction, Response } from 'express';
 import { HttpRequest, HttpError } from '../../models/Error';
+
+import JobService from '../../services/JobService';
 import WithdrawalService from '../../services/WithdrawalService';
 
 /**
@@ -73,14 +75,18 @@ import WithdrawalService from '../../services/WithdrawalService';
  */
 export const getWithdrawal = async (req: HttpRequest, res: Response, next: NextFunction) => {
     try {
-        const { withdrawal, error } = await WithdrawalService.get(req.assetPool, Number(req.params.id));
+        const { withdrawal } = await WithdrawalService.getById(req.params.id);
 
         if (!withdrawal) {
             return next(new HttpError(404, 'Could not find a withdrawal for this ID.'));
         }
 
+        const id = withdrawal._id.toString();
+
         res.json({
-            id: withdrawal.id,
+            id,
+            withdrawalId: withdrawal.withdrawalId,
+            failReason: withdrawal.failReason,
             beneficiary: withdrawal.beneficiary,
             amount: withdrawal.amount,
             approved: withdrawal.approved,

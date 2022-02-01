@@ -2,37 +2,32 @@ import { Response, Request, NextFunction } from 'express';
 import { HttpError } from '../../models/Error';
 import {
     ASSET_POOL_FACTORY_ADDRESS,
+    MAXIMUM_GAS_PRICE,
     POOL_REGISTRY_ADDRESS,
     TESTNET_ASSET_POOL_FACTORY_ADDRESS,
     TESTNET_POOL_REGISTRY_ADDRESS,
 } from '../../util/secrets';
-import { VERSION } from '../../util/secrets';
 import { name, version, license } from '../../../package.json';
-import { getAdmin, getProvider, NetworkProvider } from '../../util/network';
+import { getAdmin, getGasPriceFromOracle, getProvider, NetworkProvider } from '../../util/network';
 import { fromWei } from 'web3-utils';
 import { Facets } from '../../util/facets';
-import axios from 'axios';
+import { agenda, eventNameProcessWithdrawals } from '../../util/agenda';
 
-async function getMainnetGasPrice() {
-    const web3 = getProvider(NetworkProvider.Main);
-    const r = await axios.get('https://gpoly.blockscan.com/gasapi.ashx?apikey=key&method=gasoracle');
-
-    if (r.status !== 200) {
-        throw new Error('Gas station does not give gas price information.');
-    }
-
-    return web3.utils.toWei(r.data.result.FastGasPrice, 'gwei');
-}
+import WithdrawalService from '../../services/WithdrawalService';
 
 async function getNetworkDetails(npid: NetworkProvider, constants: { factory: string; registry: string }) {
     const provider = getProvider(npid);
     const address = getAdmin(npid).address;
     const balance = await provider.eth.getBalance(address);
-    const gasPrice = npid === NetworkProvider.Main ? await getMainnetGasPrice() : await provider.eth.getGasPrice();
+    const gasPrice =
+        npid === NetworkProvider.Main
+            ? await getGasPriceFromOracle('FastGasPrice')
+            : fromWei(await provider.eth.getGasPrice(), 'gwei');
 
     return {
         admin: address,
-        gasPrice: fromWei(gasPrice, 'gwei'),
+        gasPrice: gasPrice,
+        maxGasPrice: MAXIMUM_GAS_PRICE,
         balance: fromWei(balance, 'ether'),
         factory: constants.factory,
         registry: constants.registry,
@@ -42,10 +37,16 @@ async function getNetworkDetails(npid: NetworkProvider, constants: { factory: st
 
 export const getHealth = async (req: Request, res: Response, next: NextFunction) => {
     try {
+        const job = (await agenda.jobs({ name: eventNameProcessWithdrawals }))[0];
         const jsonData = {
-            name: `${name} (${VERSION})`,
-            version: version,
-            license: license,
+            name,
+            version,
+            license,
+            queue: {
+                scheduledWithdrawals: (await WithdrawalService.getAllScheduled()).length,
+                lastRunAt: job.attrs.lastRunAt,
+                lastFailedAt: job.attrs.failedAt,
+            },
             testnet: await getNetworkDetails(NetworkProvider.Test, {
                 factory: TESTNET_ASSET_POOL_FACTORY_ADDRESS,
                 registry: TESTNET_POOL_REGISTRY_ADDRESS,

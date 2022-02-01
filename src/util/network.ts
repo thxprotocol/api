@@ -6,10 +6,9 @@ import {
     ASSET_POOL_FACTORY_ADDRESS,
     TESTNET_RPC,
     RPC,
-    FIXED_GAS_PRICE,
     MINIMUM_GAS_LIMIT,
     MAXIMUM_GAS_PRICE,
-} from '../util/secrets';
+} from './secrets';
 import Web3 from 'web3';
 import axios from 'axios';
 import BN from 'bn.js';
@@ -20,6 +19,7 @@ import { AssetPool } from '../models/AssetPool';
 import { Contract } from 'web3-eth-contract';
 import { Artifacts } from './artifacts';
 import { logger } from './logger';
+import { toWei } from 'web3-utils';
 
 export enum NetworkProvider {
     Test = 0,
@@ -27,6 +27,7 @@ export enum NetworkProvider {
 }
 
 export const ADDRESS_ZERO = '0x0000000000000000000000000000000000000000';
+export const ERROR_GAS_PRICE_EXCEEDS_CAP = 'Gas price exceeds configured cap';
 
 export const getProvider = (npid: NetworkProvider) => {
     let web3: Web3;
@@ -47,28 +48,30 @@ export const getProvider = (npid: NetworkProvider) => {
     return web3;
 };
 
-export async function getGasPrice(npid: NetworkProvider) {
-    const web3 = getProvider(npid);
-
-    if (FIXED_GAS_PRICE > 0) {
-        return web3.utils.toWei(FIXED_GAS_PRICE.toString(), 'gwei').toString();
-    }
-
-    if (ENVIRONMENT === 'test' || ENVIRONMENT === 'local' || npid === NetworkProvider.Test) {
-        return await web3.eth.getGasPrice();
-    }
-
+// Type: SafeGasPrice, ProposeGasPrice, FastGasPrice
+export async function getGasPriceFromOracle(type: string) {
     const r = await axios.get('https://gpoly.blockscan.com/gasapi.ashx?apikey=key&method=gasoracle');
 
     if (r.status !== 200) {
-        throw new Error('Gas station does not give gas price information.');
+        throw new Error('Gas oracle does not give gas price information.');
+    }
+    return r.data.result[type];
+}
+
+export async function getGasPrice(npid: NetworkProvider) {
+    const web3 = getProvider(npid);
+
+    if (ENVIRONMENT === 'local' || (ENVIRONMENT !== 'test' && npid === NetworkProvider.Test)) {
+        return await web3.eth.getGasPrice();
     }
 
-    if (r.data.result.FastGasPrice > MAXIMUM_GAS_PRICE) {
-        throw new Error('Gas price exceeds configured cap');
-    } else {
-        return web3.utils.toWei(r.data.result.FastGasPrice, 'gwei').toString();
+    const gasPrice = await getGasPriceFromOracle('FastGasPrice');
+
+    if (gasPrice > MAXIMUM_GAS_PRICE) {
+        throw new Error(ERROR_GAS_PRICE_EXCEEDS_CAP);
     }
+
+    return toWei(gasPrice, 'gwei').toString();
 }
 
 export const getAdmin = (npid: NetworkProvider) => {
@@ -236,7 +239,6 @@ export async function parseHeader(req: HttpRequest, res: Response, next: NextFun
             return next(new HttpError(404, 'Asset Pool is not found in database.'));
         }
 
-        (req as HttpRequest).solution = assetPool.solution = solutionContract(assetPool.network, address);
         (req as HttpRequest).assetPool = assetPool;
     }
 

@@ -1,15 +1,17 @@
 import http from 'http';
-import { createTerminus } from '@godaddy/terminus';
 import app from './app';
 import db from './util/database';
+import { createTerminus } from '@godaddy/terminus';
 import { healthCheck } from './util/healthcheck';
 import { logger } from './util/logger';
+import { agenda } from './util/agenda';
 
 const server = http.createServer(app);
 
+// Called on server close
 function onSignal(): Promise<any> {
     logger.info('Server is starting cleanup');
-    return Promise.all([db.disconnect()]);
+    return Promise.all([db.disconnect(), agenda.stop()]);
 }
 
 const options = {

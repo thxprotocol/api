@@ -24,7 +24,7 @@ export default class MembershipService {
 
             return {
                 membership: {
-                    id: membership._id,
+                    id: membership._id.toString(),
                     token,
                     poolAddress: membership.poolAddress,
                     network: membership.network,

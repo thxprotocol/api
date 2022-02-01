@@ -9,20 +9,23 @@ import MemberService from '../../services/MemberService';
 
 export const postCallUpgradeAddress = async (req: HttpRequest, res: Response, next: NextFunction) => {
     try {
-        const isMember = await callFunction(req.solution.methods.isMember(req.body.newAddress), req.assetPool.network);
+        const isMember = await callFunction(
+            req.assetPool.solution.methods.isMember(req.body.newAddress),
+            req.assetPool.network,
+        );
 
         if (!isMember) {
             await sendTransaction(
-                req.solution.options.address,
-                req.solution.methods.addMember(req.body.newAddress),
+                req.assetPool.solution.options.address,
+                req.assetPool.solution.methods.addMember(req.body.newAddress),
                 req.assetPool.network,
             );
         }
 
         try {
             const tx = await sendTransaction(
-                req.solution.options.address,
-                req.solution.methods.call(req.body.call, req.body.nonce, req.body.sig),
+                req.assetPool.solution.options.address,
+                req.assetPool.solution.methods.call(req.body.call, req.body.nonce, req.body.sig),
                 req.assetPool.network,
             );
             const events = parseLogs(Artifacts.IDefaultDiamond.abi, tx.logs);

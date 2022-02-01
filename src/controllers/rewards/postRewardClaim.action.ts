@@ -1,24 +1,21 @@
-import AccountProxy from '../../proxies/AccountProxy';
-import MembershipService from '../../services/MembershipService';
-import AssetPoolService from '../../services/AssetPoolService';
-import RewardService from '../../services/RewardService';
-import MemberService from '../../services/MemberService';
-import WithdrawalService from '../../services/WithdrawalService';
 import { Response, NextFunction } from 'express';
 import { HttpError, HttpRequest } from '../../models/Error';
 import { RewardDocument } from '../../models/Reward';
-import { WithdrawalDocument } from '../../models/Withdrawal';
 import { IAccount } from '../../models/Account';
+import { WithdrawalType } from '../../models/Withdrawal';
+
+import AccountProxy from '../../proxies/AccountProxy';
+import RewardService from '../../services/RewardService';
+import MemberService from '../../services/MemberService';
+import WithdrawalService from '../../services/WithdrawalService';
 
 const ERROR_REWARD_NOT_FOUND = 'The reward for this ID does not exist.';
 const ERROR_ACCOUNT_NO_ADDRESS = 'The authenticated account has not wallet address. Sign in the Web Wallet once.';
 const ERROR_INCORRECT_SCOPE = 'No subscription is found for this type of access token.';
-const ERROR_CLAIM_ONCE_FAILED = 'ClaimRewardForOnce failed';
-const ERROR_WITHDRAWAL_NOT_FOUND = 'No withdrawal found failed.';
 const ERROR_CAIM_NOT_ALLOWED = 'Could not claim this reward due to the claim conditions.';
 const ERROR_NO_MEMBER = 'Could not claim this reward since you are not a member of the pool.';
 
-export const postRewardClaim = async (req: HttpRequest, res: Response, next: NextFunction) => {
+export async function postRewardClaim(req: HttpRequest, res: Response, next: NextFunction) {
     async function getReward(rewardId: number) {
         const { reward, error } = await RewardService.get(req.assetPool, rewardId);
         if (error) throw new Error(error.message);
@@ -38,42 +35,10 @@ export const postRewardClaim = async (req: HttpRequest, res: Response, next: Nex
         return isMember;
     }
 
-    async function addMember(address: string) {
-        const { error } = await MemberService.addMember(req.assetPool, address);
-        if (error) throw new Error(error.message);
-    }
-
-    async function addMembership(sub: string) {
-        const { error } = await MembershipService.addMembership(sub, req.assetPool);
-        if (error) throw new Error(error.message);
-    }
-
     async function checkCanClaim(reward: RewardDocument, account: IAccount) {
         const { canClaim, error } = await RewardService.canClaim(req.assetPool, reward, account);
         if (error) throw new Error(error.message);
         return canClaim;
-    }
-
-    async function claimRewardFor(rewardId: number, address: string) {
-        const { withdrawal, error } = await RewardService.claimRewardFor(req.assetPool, rewardId, address);
-        if (error) throw new Error(ERROR_CLAIM_ONCE_FAILED);
-        if (!withdrawal) throw new Error(ERROR_WITHDRAWAL_NOT_FOUND);
-        return withdrawal;
-    }
-
-    async function canBypassWithdrawPoll(account: IAccount, reward: RewardDocument) {
-        const { canBypassPoll, error } = await AssetPoolService.canBypassWithdrawPoll(req.assetPool, account, reward);
-        if (error) throw new Error(error.message);
-        return canBypassPoll;
-    }
-
-    async function finalizeWithdrawPoll(withdrawal: WithdrawalDocument) {
-        const { finalizedWithdrawal, error } = await WithdrawalService.withdrawPollFinalize(
-            req.assetPool,
-            withdrawal.id,
-        );
-        if (error) throw new Error(error.message);
-        return finalizedWithdrawal;
     }
 
     try {
@@ -88,40 +53,29 @@ export const postRewardClaim = async (req: HttpRequest, res: Response, next: Nex
 
         const account = await getAccount(sub);
 
+        // Check if the claim conditions are currently valid, recheck in job
         const canClaim = await checkCanClaim(reward, account);
 
-        if (!canClaim) {
-            return next(new HttpError(403, ERROR_CAIM_NOT_ALLOWED));
-        }
+        if (!canClaim) return next(new HttpError(403, ERROR_CAIM_NOT_ALLOWED));
 
+        // Check for membership separate since we might need to add a membership in the job
         const isMember = await checkIsMember(account.address);
 
-        if (reward.isMembershipRequired && !isMember) {
-            return next(new HttpError(403, ERROR_NO_MEMBER));
-        }
+        if (!isMember && reward.isMembershipRequired) return next(new HttpError(403, ERROR_NO_MEMBER));
 
-        if (!reward.isMembershipRequired && !isMember) {
-            await addMember(account.address);
-            await addMembership(account.id);
-        }
-
-        let withdrawal = await claimRewardFor(rewardId, account.address);
-
-        const canByPass = await canBypassWithdrawPoll(account, reward);
-
-        if (withdrawal && canByPass) {
-            const finalizedWithdrawal = await finalizeWithdrawPoll(withdrawal);
-
-            if (finalizedWithdrawal) {
-                withdrawal = finalizedWithdrawal;
-            }
-        }
+        const withdrawal = await WithdrawalService.schedule(
+            req.assetPool,
+            WithdrawalType.ClaimReward,
+            account.address,
+            reward.withdrawAmount,
+            reward.id,
+        );
 
         return res.json(withdrawal);
     } catch (error) {
         return next(new HttpError(500, error.message, error));
     }
-};
+}
 
 /**
  * @swagger

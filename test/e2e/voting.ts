@@ -16,6 +16,7 @@ import { isAddress } from 'web3-utils';
 import { Account } from 'web3-core';
 import { getToken } from './lib/jwt';
 import { mockClear, mockStart } from './lib/mock';
+import { agenda, eventNameProcessWithdrawals } from '../../src/util/agenda';
 
 const user = request.agent(server);
 
@@ -25,7 +26,8 @@ describe('Voting', () => {
         dashboardAccessToken: string,
         poolAddress: string,
         rewardID: string,
-        withdrawalID: number,
+        withdrawalId: number,
+        withdrawalDocumentId: number,
         userWallet: Account;
 
     beforeAll(async () => {
@@ -232,22 +234,29 @@ describe('Voting', () => {
                 })
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
                 .expect((res: request.Response) => {
-                    expect(res.body.id).toBe(2);
+                    expect(res.body.id).toBeDefined();
 
-                    withdrawalID = res.body.id;
+                    withdrawalDocumentId = res.body.id;
                 })
                 .expect(200, done);
         });
     });
 
     describe('GET /withdrawals?member=:address', () => {
+        it('should wait for queue to succeed', (done) => {
+            const callback = () => {
+                agenda.off(`success:${eventNameProcessWithdrawals}`, callback);
+                done();
+            };
+            agenda.on(`success:${eventNameProcessWithdrawals}`, callback);
+        });
+
         it('HTTP 200 and return a list of 1 item', (done) => {
             user.get(`/v1/withdrawals?member=${userWallet.address}&page=1&limit=2`)
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
                 .expect((res: request.Response) => {
                     expect(res.body.results.length).toBe(1);
-
-                    withdrawalID = res.body.results[0].id;
+                    withdrawalId = res.body.results[0].withdrawalId;
                 })
                 .expect(200, done);
         });
@@ -255,7 +264,7 @@ describe('Voting', () => {
 
     describe('POST /withdrawals/:id/vote', () => {
         it('HTTP 200 and base64 string for the yes vote', (done) => {
-            user.post(`/v1/withdrawals/${withdrawalID}/vote`)
+            user.post(`/v1/withdrawals/${withdrawalDocumentId}/vote`)
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
                 .send({
                     agree: true,
@@ -270,7 +279,7 @@ describe('Voting', () => {
             const { call, nonce, sig } = await signMethod(
                 poolAddress,
                 'withdrawPollVote',
-                [withdrawalID, true],
+                [withdrawalId, true],
                 getAdmin(NetworkProvider.Test),
             );
 
@@ -286,7 +295,7 @@ describe('Voting', () => {
         });
 
         it('HTTP 200 and increase yesCounter with 1', (done) => {
-            user.get('/v1/withdrawals/' + withdrawalID)
+            user.get('/v1/withdrawals/' + withdrawalDocumentId)
                 .set({ AssetPool: poolAddress, Authorization: userAccessToken })
                 .expect((res: request.Response) => {
                     expect(res.body.poll.totalVoted).toEqual(1);
@@ -315,7 +324,7 @@ describe('Voting', () => {
             const { call, nonce, sig } = await signMethod(
                 poolAddress,
                 'withdrawPollFinalize',
-                [withdrawalID],
+                [withdrawalId],
                 userWallet,
             );
 
