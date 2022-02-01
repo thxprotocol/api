@@ -101,7 +101,6 @@ describe('Gas Station', () => {
             user.get('/v1/rewards/1')
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
                 .expect(({ body }: request.Response) => {
-                    console.log(body);
                     expect(body.state).toBe(0);
                     expect(body.withdrawAmount).toBe(0);
                     expect(body.withdrawDuration).toBe(0);

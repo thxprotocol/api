@@ -40,15 +40,6 @@ describe('Widgets', () => {
 
         poolAddress = res.body.address;
 
-        // Configure the default poll durations
-        await user
-            .patch('/v1/asset_pools/' + poolAddress)
-            .set({ AssetPool: poolAddress, Authorization: dashboardAccessToken })
-            .send({
-                rewardPollDuration,
-                proposeWithdrawPollDuration,
-            });
-
         // Create a reward
         await user.post('/v1/rewards/').set({ AssetPool: poolAddress, Authorization: dashboardAccessToken }).send({
             withdrawAmount: rewardWithdrawAmount,
