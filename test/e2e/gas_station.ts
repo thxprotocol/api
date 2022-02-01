@@ -104,6 +104,8 @@ describe('Gas Station', () => {
                     expect(body.state).toBe(0);
                     expect(body.withdrawAmount).toBe(0);
                     expect(body.withdrawDuration).toBe(0);
+                    expect(body.poll.withdrawAmount).toBe(rewardWithdrawAmount);
+                    expect(body.poll.withdrawDuration).toBe(rewardWithdrawDuration);
                 })
                 .expect(200, done);
         });
