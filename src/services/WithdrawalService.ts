@@ -1,5 +1,5 @@
 import { IAssetPool } from '../models/AssetPool';
-import { callFunction, NetworkProvider, sendTransaction } from '../util/network';
+import { callFunction, ERROR_GAS_PRICE_EXCEEDS_CAP, NetworkProvider, sendTransaction } from '../util/network';
 import { Artifacts } from '../util/artifacts';
 import { parseLogs, findEvent } from '../util/events';
 import { Withdrawal, WithdrawalState, WithdrawalType } from '../models/Withdrawal';
@@ -40,7 +40,7 @@ export default class WithdrawalService {
 
     static async getAllScheduled() {
         return await Withdrawal.find({
-            failReason: { $exists: false },
+            $or: [{ failReason: ERROR_GAS_PRICE_EXCEEDS_CAP }, { failReason: { $exists: false } }, { failReason: '' }],
             withdrawalId: { $exists: false },
         }).sort({ createdAt: -1 });
     }
@@ -200,7 +200,12 @@ export default class WithdrawalService {
 
     static async hasClaimedOnce(poolAddress: string, beneficiary: string, rewardId: number) {
         try {
-            const withdrawal = await Withdrawal.findOne({ beneficiary, rewardId, poolAddress });
+            const withdrawal = await Withdrawal.findOne({
+                beneficiary,
+                rewardId,
+                poolAddress,
+                state: WithdrawalState.Withdrawn,
+            });
 
             return { withdrawal };
         } catch (error) {

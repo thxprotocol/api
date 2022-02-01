@@ -21,17 +21,26 @@ export const agenda = new Agenda({
     maxConcurrency: 1,
 });
 
+async function updateFailReason(id: string, failReason: string) {
+    const withdrawal = await Withdrawal.findById(id);
+    if (withdrawal) {
+        withdrawal.failReason = failReason;
+        await withdrawal.save();
+    }
+}
+
 agenda.define(eventNameProcessWithdrawals, async (job: Job) => {
     const withdrawals = await WithdrawalService.getAllScheduled();
     for (const index in withdrawals) {
         const w = withdrawals[index];
+        const documentId = w._id.toString();
         const { assetPool } = await AssetPoolService.getByAddress(w.poolAddress);
 
         // Pass a reference to the withdrawal in this job attr data
         // so we can check for the failReason and update the
         // withdrawal document accordingly if it fails.
         job.attrs.data = {
-            currentWithdrawalDocument: w._id.toString(),
+            documentId,
         };
         await job.save();
 
@@ -46,24 +55,14 @@ agenda.define(eventNameProcessWithdrawals, async (job: Job) => {
                 await jobProposeWithdraw(assetPool, w.id, w.amount, w.beneficiary);
                 break;
         }
+        // If no error is caught remove the failReason that potentially got stored in
+        // an earlier run.
+        if (w.failReason) await updateFailReason(documentId, '');
     }
 });
 
 agenda.on(`fail:${eventNameProcessWithdrawals}`, async (error: Error, job: Job) => {
-    // If gas pricing was not the cause of the job failing, then
-    // update the related withdrawal with the error message so
-    // users can re-enqueue the item from the UI if required.
-    if (error.message !== ERROR_GAS_PRICE_EXCEEDS_CAP) {
-        try {
-            const id = job.attrs.data.currentWithdrawalDocument;
-            const withdrawal = await Withdrawal.findById(id);
-
-            withdrawal.failReason = error.message;
-            await withdrawal.save();
-        } catch (error) {
-            logger.error({ error: error.message });
-        }
-    }
+    await updateFailReason(job.attrs.data.documentId, error.message);
 });
 
 // The complete:* event is cast for both success and fail scenarios

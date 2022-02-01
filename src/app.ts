@@ -13,18 +13,10 @@ import { agenda, eventNameProcessWithdrawals } from './util/agenda';
 const app = express();
 
 (async function () {
-    // Connect to the mongo db instance
     await db.connect(MONGODB_URI);
-
-    // Start agenda job processing
+    await agenda.stop();
     await agenda.start();
-
-    // Create a processWithdrawals job if it does not exist in the db
-    const jobs = await agenda.jobs({ name: eventNameProcessWithdrawals });
-
-    if (!jobs.length) {
-        await agenda.every('5 seconds', eventNameProcessWithdrawals);
-    }
+    await agenda.every('5 seconds', eventNameProcessWithdrawals);
 })();
 
 app.set('trust proxy', true);

@@ -45,7 +45,7 @@ export async function jobClaimReward(assetPool: IAssetPool, id: string, rewardId
     }
 }
 
-export const postRewardClaim = async (req: HttpRequest, res: Response, next: NextFunction) => {
+export async function postRewardClaim(req: HttpRequest, res: Response, next: NextFunction) {
     async function getReward(rewardId: number) {
         const { reward, error } = await RewardService.get(req.assetPool, rewardId);
         if (error) throw new Error(error.message);
@@ -105,7 +105,7 @@ export const postRewardClaim = async (req: HttpRequest, res: Response, next: Nex
     } catch (error) {
         return next(new HttpError(500, error.message, error));
     }
-};
+}
 
 /**
  * @swagger

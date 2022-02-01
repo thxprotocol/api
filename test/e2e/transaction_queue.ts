@@ -144,7 +144,7 @@ describe('Transaction Queue', () => {
             const callback = async (error: Error, job: Job) => {
                 agenda.off('fail:processWithdrawals', callback);
 
-                const { withdrawal } = await WithdrawalService.getById(job.attrs.data.currentWithdrawalDocument);
+                const { withdrawal } = await WithdrawalService.getById(job.attrs.data.documentId);
 
                 expect(withdrawal).toBeDefined();
                 expect(withdrawal.withdrawalId).toBeUndefined();
@@ -204,8 +204,8 @@ describe('Transaction Queue', () => {
         it('should cast a fail event', (done) => {
             const callback = async (error: Error, job: Job) => {
                 failReason = job.attrs.failReason;
-                const currentWithdrawalDocument = job.attrs.data.currentWithdrawalDocument;
-                expect(currentWithdrawalDocument).toEqual(withdrawalDocumentId);
+                const documentId = job.attrs.data.documentId;
+                expect(documentId).toEqual(withdrawalDocumentId);
                 agenda.off('fail:processWithdrawals', callback);
                 done();
             };

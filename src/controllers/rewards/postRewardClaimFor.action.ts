@@ -36,6 +36,7 @@ export const postRewardClaimFor = async (req: HttpRequest, res: Response, next: 
 
         return res.json({
             id,
+            type: withdrawal.type,
             withdrawalId: withdrawal.withdrawalId,
             beneficiary: withdrawal.beneficiary,
             amount: withdrawal.amount,
