@@ -48,7 +48,7 @@ export const postReward = async (req: HttpRequest, res: Response, next: NextFunc
     }
 
     try {
-        const withdrawAmount = toWei(req.body.withdrawAmount.toString());
+        const withdrawAmount = toWei(String(req.body.withdrawAmount));
         const withdrawDuration = req.body.withdrawDuration;
         const withdrawCondition = req.body.withdrawCondition;
         const isMembershipRequired = req.body.isMembershipRequired;

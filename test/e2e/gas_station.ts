@@ -35,51 +35,6 @@ describe('Gas Station', () => {
         userWallet = createWallet(userWalletPrivateKey);
 
         mockStart();
-
-        // Create an asset pool
-        const { body } = await user
-            .post('/v1/asset_pools')
-            .set({ Authorization: dashboardAccessToken })
-            .send({
-                network: 0,
-                token: {
-                    address: testToken.options.address,
-                },
-            });
-
-        poolAddress = body.address;
-
-        // Transfer some tokens to the pool rewardWithdrawAmount tokens for the pool
-        const solution = solutionContract(NetworkProvider.Test, poolAddress);
-        const amount = toWei(rewardWithdrawAmount.toString());
-
-        await sendTransaction(
-            testToken.options.address,
-            testToken.methods.approve(poolAddress, toWei(rewardWithdrawAmount.toString())),
-            NetworkProvider.Test,
-        );
-        await sendTransaction(solution.options.address, solution.methods.deposit(amount), NetworkProvider.Test);
-
-        // Configure the default poll durations
-        await user
-            .patch('/v1/asset_pools/' + poolAddress)
-            .set({ AssetPool: poolAddress, Authorization: dashboardAccessToken })
-            .send({
-                rewardPollDuration,
-                proposeWithdrawPollDuration,
-            });
-
-        // Create a reward
-        await user.post('/v1/rewards/').set({ AssetPool: poolAddress, Authorization: dashboardAccessToken }).send({
-            withdrawAmount: rewardWithdrawAmount,
-            withdrawDuration: rewardWithdrawDuration,
-        });
-
-        // Add a member
-        await user
-            .post('/v1/members')
-            .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
-            .send({ address: userWallet.address });
     });
 
     afterAll(async () => {
@@ -87,14 +42,80 @@ describe('Gas Station', () => {
         mockClear();
     });
 
-    describe('GET /reward', () => {
-        it('HTTP 200', (done) => {
+    describe('POST /asset_pools', () => {
+        it('201 OK', async () => {
+            const { body } = await user
+                .post('/v1/asset_pools')
+                .set({ Authorization: dashboardAccessToken })
+                .send({
+                    network: 0,
+                    token: {
+                        address: testToken.options.address,
+                    },
+                });
+
+            poolAddress = body.address;
+        });
+
+        it('Deposit into pool', async () => {
+            // Transfer some tokens to the pool rewardWithdrawAmount tokens for the pool
+            const solution = solutionContract(NetworkProvider.Test, poolAddress);
+            const amount = toWei(rewardWithdrawAmount.toString());
+
+            await sendTransaction(
+                testToken.options.address,
+                testToken.methods.approve(poolAddress, toWei(rewardWithdrawAmount.toString())),
+                NetworkProvider.Test,
+            );
+            await sendTransaction(solution.options.address, solution.methods.deposit(amount), NetworkProvider.Test);
+        });
+    });
+
+    describe('PATCH /asset_pools/:address', () => {
+        it('should set rewardPollDuration and proposeWithdrawPollDuration', async () => {
+            // Configure the default poll durations
+            await user
+                .patch('/v1/asset_pools/' + poolAddress)
+                .set({ AssetPool: poolAddress, Authorization: dashboardAccessToken })
+                .send({
+                    bypassPolls: false,
+                    rewardPollDuration,
+                    proposeWithdrawPollDuration,
+                });
+        });
+    });
+
+    describe('POST /rewards', () => {
+        it('should ', async () => {
+            await user
+                .post('/v1/rewards/')
+                .set({ AssetPool: poolAddress, Authorization: dashboardAccessToken })
+                .send({
+                    withdrawAmount: rewardWithdrawAmount,
+                    withdrawDuration: rewardWithdrawDuration,
+                })
+                .expect(302);
+        });
+
+        it('should have state Pending (0)', (done) => {
             user.get('/v1/rewards/1')
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
                 .expect(({ body }: request.Response) => {
                     expect(body.state).toBe(0);
+                    expect(body.withdrawAmount).toBe(0);
+                    expect(body.withdrawDuration).toBe(rewardWithdrawDuration);
                 })
                 .expect(200, done);
+        });
+    });
+
+    describe('POST /members', () => {
+        it('200 ok', async () => {
+            // Add a member
+            await user
+                .post('/v1/members')
+                .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
+                .send({ address: userWallet.address });
         });
     });
 

@@ -136,7 +136,7 @@ describe('Bypass Polls', () => {
                     AssetPool: poolAddress,
                     Authorization: dashboardAccessToken,
                 })
-                .send({ bypassPolls: false, rewardPollDuration: rewardPollDuration })
+                .send({ bypassPolls: false, rewardPollDuration })
                 .expect(200, done);
         });
 

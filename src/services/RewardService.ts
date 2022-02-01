@@ -235,16 +235,19 @@ export default class RewardService {
 
     static async finalizePoll(assetPool: IAssetPool, reward: RewardDocument) {
         try {
+            console.log(reward);
             const { pollId } = await callFunction(assetPool.solution.methods.getReward(reward.id), assetPool.network);
+            console.log(pollId);
             const tx = await sendTransaction(
                 assetPool.solution.options.address,
                 assetPool.solution.methods.rewardPollFinalize(pollId),
                 assetPool.network,
             );
+            console.log(tx);
             const events = parseLogs(Artifacts.IDefaultDiamond.abi, tx.logs);
             const eventRewardPollEnabled = findEvent('RewardPollEnabled', events);
             const eventRewardPollUpdated = findEvent('RewardPollUpdated', events);
-
+            console.log(eventRewardPollEnabled, eventRewardPollUpdated);
             if (eventRewardPollEnabled) {
                 reward.withdrawAmount = await callFunction(
                     assetPool.solution.methods.getWithdrawAmount(reward.id),
@@ -268,6 +271,7 @@ export default class RewardService {
 
                 await reward.save();
             }
+
             return { finalizedReward: reward };
         } catch (error) {
             return { error };
