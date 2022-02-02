@@ -4,7 +4,10 @@ module.exports = {
 
         for (const withdrawal of await withdrawalsColl.find().toArray()) {
             if (withdrawal.id) {
-                await withdrawalsColl.updateOne({ $set: { withdrawalId: withdrawal.id }, $unset: { id: null } });
+                await withdrawalsColl.updateOne(
+                    { _id: withdrawal._id },
+                    { $set: { withdrawalId: withdrawal.id }, $unset: { id: null } },
+                );
             }
         }
     },
