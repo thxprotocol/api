@@ -12,8 +12,8 @@ const formatWinston = winston.format.combine(
     winston.format.json(),
 );
 
-const instance = winston.createLogger({
-    level: 'info',
+export const logger = winston.createLogger({
+    level: 'http',
     format: formatWinston,
     transports: [
         new winston.transports.DailyRotateFile({
@@ -34,14 +34,9 @@ const instance = winston.createLogger({
     ],
 });
 
-if (ENVIRONMENT !== 'production' && ENVIRONMENT !== 'development') {
-    instance.add(new winston.transports.Console());
-    instance.debug('Logging initialized at debug level');
+if (ENVIRONMENT !== 'production') {
+    logger.add(new winston.transports.Console());
 }
-
-// morgan.token('timestamp', function getTimestamp() {
-//     return new Date().toISOString().replace('T', ' ').substr(0, 19);
-// });
 
 const formatMorgan = json({
     'method': ':method',
@@ -54,8 +49,7 @@ const formatMorgan = json({
     'user-agent': ':user-agent',
 });
 
-export const logger = instance;
 export const requestLogger = morgan(formatMorgan, {
     skip: (req: Request) => req.baseUrl && req.baseUrl.startsWith(`/${VERSION}/ping`),
-    stream: { write: (message: string) => instance.info(JSON.parse(message)) },
+    stream: { write: (message: string) => logger.http(JSON.parse(message)) },
 });
