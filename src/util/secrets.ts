@@ -45,6 +45,7 @@ if (process.env.NODE_ENV === 'test') {
 }
 
 export const VERSION = 'v1';
+export const NODE_ENV = process.env.NODE_ENV || 'development';
 export const ISSUER = process.env.ISSUER;
 export const SECURE_KEY = process.env.SECURE_KEY;
 export const AUTH_URL = process.env.AUTH_URL;

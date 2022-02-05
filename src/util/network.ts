@@ -7,6 +7,7 @@ import {
     RPC,
     MINIMUM_GAS_LIMIT,
     MAXIMUM_GAS_PRICE,
+    NODE_ENV,
 } from './secrets';
 import Web3 from 'web3';
 import axios from 'axios';
@@ -19,7 +20,6 @@ import { Contract } from 'web3-eth-contract';
 import { Artifacts } from './artifacts';
 import { logger } from './logger';
 import { toWei } from 'web3-utils';
-import app from '../app';
 
 export enum NetworkProvider {
     Test = 0,
@@ -61,10 +61,7 @@ export async function getGasPriceFromOracle(type: string) {
 export async function getGasPrice(npid: NetworkProvider) {
     const web3 = getProvider(npid);
 
-    if (
-        ['development', 'local'].includes(app.get('env')) ||
-        (app.get('env') !== 'test' && npid === NetworkProvider.Test)
-    ) {
+    if (['development', 'local'].includes(NODE_ENV) || (NODE_ENV !== 'test' && npid === NetworkProvider.Test)) {
         return await web3.eth.getGasPrice();
     }
 
