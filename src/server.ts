@@ -14,7 +14,7 @@ const options = {
         'verbatim': true,
     },
     onSignal: (): Promise<any> => {
-        logger.info('Server is starting cleanup');
+        logger.info('Server shutting down');
         return Promise.all([db.disconnect(), agenda.stop()]);
     },
     logger: logger.error,
