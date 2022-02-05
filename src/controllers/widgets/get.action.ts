@@ -32,7 +32,6 @@ export const getWidget = async (req: HttpRequest, res: Response, next: NextFunct
     }
 };
 
-
 /**
  * @swagger
  * /widgets/:rat:

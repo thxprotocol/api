@@ -1,4 +1,4 @@
-import { getGasPriceFromOracle, NetworkProvider } from './network';
+import { getGasPriceFromOracle } from './network';
 import { MAXIMUM_GAS_PRICE } from './secrets';
 
 export async function checkGasPrice() {

@@ -3,8 +3,6 @@ import ClientService from '../../services/ClientService';
 import { HttpError, HttpRequest } from '../../models/Error';
 import AssetPoolService from '../../services/AssetPoolService';
 
-const ERROR_NO_ASSET_POOL = 'Could not get this asset pool.';
-
 export const getAssetPool = async (req: HttpRequest, res: Response, next: NextFunction) => {
     async function getByAddress() {
         const { assetPool, error } = await AssetPoolService.getByAddress(req.params.address);

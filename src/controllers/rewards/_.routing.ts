@@ -13,7 +13,7 @@ import { parseHeader } from '../../util/network';
 import { postVote } from './postVote.action';
 import { deleteVote } from './deleteVote.action';
 import { postPollFinalize } from './postPollFinalize.action';
-import { rateLimitRewardClaim, rateLimitRewardGive } from '../../util/ratelimiter';
+import { rateLimitRewardGive } from '../../util/ratelimiter';
 
 const router = express.Router();
 
