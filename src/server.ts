@@ -25,6 +25,7 @@ const options = {
 
 createTerminus(server, options);
 
+logger.info(`server is starting on port ${app.get('port')}`);
 server.listen(app.get('port'));
 
 export default server;
