@@ -5,6 +5,7 @@ import { createTerminus } from '@godaddy/terminus';
 import { healthCheck } from './util/healthcheck';
 import { logger } from './util/logger';
 import { agenda } from './util/agenda';
+import { ENVIRONMENT } from './util/secrets';
 
 const server = http.createServer(app);
 
@@ -25,7 +26,7 @@ const options = {
 
 createTerminus(server, options);
 
-logger.info(`Server is starting on port ${app.get('port')}`);
+logger.info(`Server is starting on port: ${app.get('port')}, env: ${ENVIRONMENT}`);
 server.listen(app.get('port'));
 
 export default server;
