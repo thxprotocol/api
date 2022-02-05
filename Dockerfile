@@ -9,7 +9,7 @@ RUN npm install --ci
 
 COPY . .
 
-CMD [ "ts-node", "src/server.ts" ]
+CMD [ "npx", "ts-node", "src/server.ts" ]
 
 FROM node:16-alpine as build
 
