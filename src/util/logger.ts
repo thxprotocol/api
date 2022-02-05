@@ -1,9 +1,8 @@
 import morgan from 'morgan';
 import json from 'morgan-json';
 import winston from 'winston';
-import 'winston-daily-rotate-file';
 import { Request } from 'express';
-import { ENVIRONMENT, VERSION } from './secrets';
+import { VERSION } from './secrets';
 
 const formatWinston = winston.format.combine(
     winston.format.timestamp({
@@ -15,28 +14,8 @@ const formatWinston = winston.format.combine(
 export const logger = winston.createLogger({
     level: 'http',
     format: formatWinston,
-    transports: [
-        new winston.transports.DailyRotateFile({
-            filename: 'logs/error/%DATE%.log',
-            datePattern: 'YYYY-MM-DD-HH',
-            zippedArchive: true,
-            maxSize: '5m',
-            maxFiles: '30d',
-            level: 'error',
-        }),
-        new winston.transports.DailyRotateFile({
-            filename: 'logs/combined/%DATE%.log',
-            datePattern: 'YYYY-MM-DD-HH',
-            zippedArchive: true,
-            maxSize: '5m',
-            maxFiles: '30d',
-        }),
-    ],
+    transports: [new winston.transports.Console()],
 });
-
-if (ENVIRONMENT !== 'production') {
-    logger.add(new winston.transports.Console());
-}
 
 const formatMorgan = json({
     'method': ':method',
