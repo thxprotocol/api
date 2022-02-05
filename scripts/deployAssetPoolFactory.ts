@@ -1,8 +1,5 @@
-import dotenv from 'dotenv';
 import { NetworkProvider } from '../src/util/network';
 import { deployFactory } from './lib/factory';
-
-dotenv.config();
 
 async function main() {
     console.log('Asset Pool Factory [Test]: ', await deployFactory(NetworkProvider.Test));
