@@ -1,6 +1,5 @@
 import { NextFunction, Response } from 'express';
 import {
-    ENVIRONMENT,
     PRIVATE_KEY,
     TESTNET_ASSET_POOL_FACTORY_ADDRESS,
     ASSET_POOL_FACTORY_ADDRESS,
@@ -20,6 +19,7 @@ import { Contract } from 'web3-eth-contract';
 import { Artifacts } from './artifacts';
 import { logger } from './logger';
 import { toWei } from 'web3-utils';
+import app from '../app';
 
 export enum NetworkProvider {
     Test = 0,
@@ -61,7 +61,10 @@ export async function getGasPriceFromOracle(type: string) {
 export async function getGasPrice(npid: NetworkProvider) {
     const web3 = getProvider(npid);
 
-    if (ENVIRONMENT === 'local' || (ENVIRONMENT !== 'test' && npid === NetworkProvider.Test)) {
+    if (
+        ['development', 'local'].includes(app.get('env')) ||
+        (app.get('env') !== 'test' && npid === NetworkProvider.Test)
+    ) {
         return await web3.eth.getGasPrice();
     }
 
