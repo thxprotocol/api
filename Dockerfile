@@ -1,5 +1,7 @@
 FROM node:16-alpine as develop
 
+ENV NODE_ENV=develop
+
 WORKDIR /usr/src/app
 
 RUN apk add g++ make py3-pip
@@ -13,6 +15,8 @@ CMD [ "ts-node", "src/server.ts" ]
 
 FROM node:16-alpine as build
 
+ENV NODE_ENV=develop
+
 WORKDIR /usr/src/app
 
 COPY --from=develop ./usr/src/app/ ./
@@ -22,6 +26,8 @@ RUN npm run build
 CMD [ "node", "dist/src/server.js" ]
 
 FROM node:16-alpine as production
+
+ENV NODE_ENV=production
 
 WORKDIR /usr/src/app
 
