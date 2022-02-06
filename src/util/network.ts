@@ -11,7 +11,8 @@ import {
 import Web3 from 'web3';
 import axios from 'axios';
 import BN from 'bn.js';
-import { isAddress, toWei } from 'web3-utils';
+import { Account } from 'web3-core';
+import { isAddress } from 'web3-utils';
 import { utils } from 'ethers/lib';
 import { HttpError, HttpRequest } from '../models/Error';
 import { AssetPool } from '../models/AssetPool';
@@ -29,25 +30,22 @@ export enum NetworkProvider {
 
 export const ADDRESS_ZERO = '0x0000000000000000000000000000000000000000';
 
-export const getProvider = (npid: NetworkProvider) => {
-    let web3: Web3;
+const testnet = new Web3(TESTNET_RPC);
+const testnetAdmin = testnet.eth.accounts.privateKeyToAccount(process.env.PRIVATE_KEY);
+testnet.eth.defaultAccount = testnetAdmin.address;
 
+const mainnet = new Web3(RPC);
+const mainnetAdmin = mainnet.eth.accounts.privateKeyToAccount(process.env.PRIVATE_KEY);
+mainnet.eth.defaultAccount = mainnetAdmin.address;
+
+export const getProvider = (npid: NetworkProvider) => {
     switch (npid) {
         default:
         case NetworkProvider.Test:
-            web3 = new Web3(TESTNET_RPC);
-            break;
+            return { web3: testnet, admin: testnetAdmin };
         case NetworkProvider.Main:
-            web3 = new Web3(RPC);
-            break;
+            return { web3: mainnet, admin: mainnetAdmin };
     }
-
-    const admin = web3.eth.accounts.privateKeyToAccount(process.env.PRIVATE_KEY);
-
-    web3.eth.accounts.wallet.add(admin);
-    web3.eth.defaultAccount = admin.address;
-
-    return { web3, admin };
 };
 
 // Type: safeLow, standard, fast

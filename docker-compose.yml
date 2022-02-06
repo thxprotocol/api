@@ -38,7 +38,7 @@ services:
        
     api_testnet:
         container_name: thx_api_testnet
-        image: trufflesuite/ganache:v7.0.1
+        image: trufflesuite/ganache:v7.0.2
         networks:
             - thx_network
         ports:
@@ -51,7 +51,7 @@ services:
 
     api_mainnet:
         container_name: thx_api_mainnet
-        image: trufflesuite/ganache:v7.0.1
+        image: trufflesuite/ganache:v7.0.2
         networks:
             - thx_network
         ports:
