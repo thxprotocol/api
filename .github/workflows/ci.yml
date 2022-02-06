@@ -14,7 +14,7 @@ jobs:
                   submodules: true
 
             - name: Run dependencies
-              run: docker compose -f docker-compose.ci.yml up api_ci_mongo api_ci_testnet -d
+              run: docker compose -f docker-compose.ci.yml up api_ci_mongo api_ci_mainnet -d
 
             - name: Run test
               run: |

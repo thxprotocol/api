@@ -32,13 +32,13 @@ describe('Happy Flow', () => {
         testToken: Contract;
 
     beforeAll(async () => {
+        mockStart();
+
         testToken = await deployExampleToken();
         userWallet = createWallet(userWalletPrivateKey);
         adminAccessToken = getToken('openid admin');
         dashboardAccessToken = getToken('openid dashboard');
         userAccessToken = getToken('openid user');
-
-        mockStart();
     });
 
     afterAll(async () => {
@@ -51,7 +51,7 @@ describe('Happy Flow', () => {
             user.post('/v1/asset_pools')
                 .set('Authorization', dashboardAccessToken)
                 .send({
-                    network: NetworkProvider.Test,
+                    network: 1,
                     token: {
                         address: testToken.options.address,
                     },
@@ -68,17 +68,17 @@ describe('Happy Flow', () => {
         let balanceOfAdmin = '';
 
         it('Deposit assets in pool', async () => {
-            const assetPool = solutionContract(NetworkProvider.Test, poolAddress);
+            const assetPool = solutionContract(NetworkProvider.Main, poolAddress);
             const amount = toWei(rewardWithdrawAmount.toString());
 
             await sendTransaction(
                 testToken.options.address,
                 testToken.methods.approve(poolAddress, toWei(rewardWithdrawAmount.toString())),
-                NetworkProvider.Test,
+                NetworkProvider.Main,
             );
-            await sendTransaction(assetPool.options.address, assetPool.methods.deposit(amount), NetworkProvider.Test);
+            await sendTransaction(assetPool.options.address, assetPool.methods.deposit(amount), NetworkProvider.Main);
 
-            balanceOfAdmin = await callFunction(testToken.methods.balanceOf(adminAddress), NetworkProvider.Test);
+            balanceOfAdmin = await callFunction(testToken.methods.balanceOf(adminAddress), NetworkProvider.Main);
         });
 
         it('HTTP 200 and expose pool information', async () => {

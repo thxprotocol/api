@@ -11,7 +11,7 @@ export const FacetCutAction = {
 };
 
 export async function updateAssetPool(artifacts: any, solution: Contract, npid: NetworkProvider) {
-    const web3 = getProvider(npid);
+    const { web3 } = getProvider(npid);
 
     const diamondCuts = [];
     for (const artifact of artifacts) {
