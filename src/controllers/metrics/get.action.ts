@@ -1,16 +1,15 @@
 import { Response, Request, NextFunction } from 'express';
 import { HttpError } from '../../models/Error';
-import { getAdmin, getProvider, NetworkProvider } from '../../util/network';
-// import AccountProxy from '../../proxies/AccountProxy';
+import { getProvider, NetworkProvider } from '../../util/network';
 import AssetPoolService from '../../services/AssetPoolService';
 import WithdrawalService from '../../services/WithdrawalService';
 import MembershipService from '../../services/MembershipService';
 
 export const getMetrics = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const web3Main = getProvider(NetworkProvider.Main);
-        const web3Test = getProvider(NetworkProvider.Test);
-        const address = getAdmin(NetworkProvider.Main).address;
+        const providerTest = getProvider(NetworkProvider.Main);
+        const providerMain = getProvider(NetworkProvider.Test);
+
         const metrics = {
             count_asset_pools: {
                 mainnet: await AssetPoolService.countByNetwork(NetworkProvider.Main),
@@ -26,11 +25,11 @@ export const getMetrics = async (req: Request, res: Response, next: NextFunction
             },
             count_transactions: {
                 mainnet:
-                    (await web3Main.eth.getTransactionCount(address)) +
-                    (await web3Main.eth.getTransactionCount('0xe583A501276B2E64178512e83972581f98e9290c')), // Including rotated account for realistic total
+                    (await providerMain.web3.eth.getTransactionCount(providerMain.admin.address)) +
+                    (await providerMain.web3.eth.getTransactionCount('0xe583A501276B2E64178512e83972581f98e9290c')), // Including rotated account for accurate total
                 testnet:
-                    (await web3Test.eth.getTransactionCount(address)) +
-                    (await web3Test.eth.getTransactionCount('0xe583A501276B2E64178512e83972581f98e9290c')), // Including rotated account for realistic total
+                    (await providerTest.web3.eth.getTransactionCount(providerTest.admin.address)) +
+                    (await providerTest.web3.eth.getTransactionCount('0xe583A501276B2E64178512e83972581f98e9290c')), // Including rotated account for accurate total
             },
         };
 

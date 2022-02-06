@@ -1,7 +1,7 @@
 import request from 'supertest';
 import server from '../../src/server';
 import db from '../../src/util/database';
-import { getAdmin, NetworkProvider } from '../../src/util/network';
+import { getProvider, NetworkProvider } from '../../src/util/network';
 import { timeTravel, signMethod, createWallet } from './lib/network';
 import {
     rewardPollDuration,
@@ -49,7 +49,7 @@ describe('Voting', () => {
             user.post('/v1/asset_pools')
                 .set('Authorization', dashboardAccessToken)
                 .send({
-                    network: 0,
+                    network: 1,
                     token: {
                         name: tokenName,
                         symbol: tokenSymbol,
@@ -276,12 +276,8 @@ describe('Voting', () => {
         });
 
         it('HTTP 302 when tx is handled', async () => {
-            const { call, nonce, sig } = await signMethod(
-                poolAddress,
-                'withdrawPollVote',
-                [withdrawalId, true],
-                getAdmin(NetworkProvider.Test),
-            );
+            const { admin } = getProvider(NetworkProvider.Main);
+            const { call, nonce, sig } = await signMethod(poolAddress, 'withdrawPollVote', [withdrawalId, true], admin);
 
             await user
                 .post('/v1/gas_station/call')

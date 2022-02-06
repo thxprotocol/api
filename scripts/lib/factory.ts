@@ -1,17 +1,10 @@
-import {
-    deployContract,
-    getAdmin,
-    getProvider,
-    getSelectors,
-    NetworkProvider,
-    sendTransaction,
-} from '../../src/util/network';
+import { deployContract, getProvider, getSelectors, NetworkProvider, sendTransaction } from '../../src/util/network';
 import { FacetCutAction } from '../../src/util/upgrades';
 import { Artifacts } from '../../src/util/artifacts';
 import { Facets } from '../../src/util/facets';
 
 export async function deployFactory(npid: NetworkProvider) {
-    const web3 = getProvider(npid);
+    const { web3, admin } = getProvider(npid);
     let defaultDiamond: any[] = [
         Artifacts.AccessControl,
         Artifacts.MemberAccess,
@@ -56,15 +49,14 @@ export async function deployFactory(npid: NetworkProvider) {
             functionSelectors: getSelectors(facet),
         };
     });
-    const from = getAdmin(npid).address;
     const diamond = await deployContract(
         Artifacts.Diamond.abi,
         Artifacts.Diamond.bytecode,
-        [factoryDiamond, [from]],
+        [factoryDiamond, [admin.address]],
         npid,
     );
     const abi: any = Artifacts.IAssetPoolFactory.abi;
-    const factory = new web3.eth.Contract(abi, diamond.options.address, { from });
+    const factory = new web3.eth.Contract(abi, diamond.options.address);
 
     await sendTransaction(factory.options.address, factory.methods.initialize(defaultDiamond), npid);
 

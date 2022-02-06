@@ -2,14 +2,20 @@ import request, { Response } from 'supertest';
 import server from '../../src/server';
 import db from '../../src/util/database';
 import { Job } from 'agenda';
-import { rewardWithdrawAmount, tokenName, tokenSymbol, userWalletPrivateKey } from './lib/constants';
+import {
+    exceedingFeeData,
+    feeData,
+    rewardWithdrawAmount,
+    tokenName,
+    tokenSymbol,
+    userWalletPrivateKey,
+} from './lib/constants';
 import { isAddress } from 'web3-utils';
 import { Account } from 'web3-core';
 import { getToken } from './lib/jwt';
 import { createWallet, voter } from './lib/network';
 import { mockClear, mockStart, mockUrl } from './lib/mock';
 import { agenda } from '../../src/util/agenda';
-import { MAXIMUM_GAS_PRICE } from '../../src/util/secrets';
 import WithdrawalService from '../../src/services/WithdrawalService';
 
 const user = request.agent(server);
@@ -44,7 +50,7 @@ describe('Transaction Queue', () => {
                 .post('/v1/asset_pools')
                 .set('Authorization', dashboardAccessToken)
                 .send({
-                    network: 0,
+                    network: 1,
                     token: {
                         name: tokenName,
                         symbol: tokenSymbol,
@@ -115,10 +121,8 @@ describe('Transaction Queue', () => {
     describe('POST /withdrawals 1x (gasPrice > MAXIMUM_GAS_PRICE)', () => {
         it('should mock exceeding gas price', async () => {
             mockClear();
+            mockUrl('get', 'https://gasstation-mainnet.matic.network', '/v2', 200, exceedingFeeData);
             mockStart();
-            mockUrl('get', 'https://gpoly.blockscan.com', '/gasapi.ashx?apikey=key&method=gasoracle', 200, {
-                result: { FastGasPrice: (MAXIMUM_GAS_PRICE + 1).toString() },
-            });
         });
 
         it('should propose 1 withdrawal for member', async () => {
@@ -158,9 +162,7 @@ describe('Transaction Queue', () => {
         it('should remove exceeding gas price mock', async () => {
             mockClear();
             mockStart();
-            mockUrl('get', 'https://gpoly.blockscan.com', '/gasapi.ashx?apikey=key&method=gasoracle', 200, {
-                result: { FastGasPrice: (MAXIMUM_GAS_PRICE - 1).toString() },
-            });
+            mockUrl('get', 'https://gasstation-mainnet.matic.network', '/v2', 200, feeData);
         });
 
         it('should cast a success event', (done) => {

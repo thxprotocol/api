@@ -16,6 +16,8 @@ import { Contract } from 'web3-eth-contract';
 import { Account } from 'web3-core';
 import { getToken } from './lib/jwt';
 import { mockClear, mockStart } from './lib/mock';
+import { Artifacts } from '../../src/util/artifacts';
+import { findEvent, parseLogs } from '../../src/util/events';
 
 const user = request.agent(server);
 
@@ -28,13 +30,13 @@ describe('Gas Station', () => {
         userWallet: Account;
 
     beforeAll(async () => {
+        mockStart();
+
         testToken = await deployExampleToken();
         adminAccessToken = getToken('openid admin');
         dashboardAccessToken = getToken('openid dashboard');
         userAccessToken = getToken('openid user');
         userWallet = createWallet(userWalletPrivateKey);
-
-        mockStart();
     });
 
     afterAll(async () => {
@@ -48,26 +50,28 @@ describe('Gas Station', () => {
                 .post('/v1/asset_pools')
                 .set({ Authorization: dashboardAccessToken })
                 .send({
-                    network: 0,
+                    network: 1,
                     token: {
                         address: testToken.options.address,
                     },
-                });
+                })
+                .expect(201);
 
             poolAddress = body.address;
+            console.log(poolAddress);
         });
 
         it('Deposit into pool', async () => {
             // Transfer some tokens to the pool rewardWithdrawAmount tokens for the pool
-            const solution = solutionContract(NetworkProvider.Test, poolAddress);
+            const solution = solutionContract(NetworkProvider.Main, poolAddress);
             const amount = toWei(rewardWithdrawAmount.toString());
 
             await sendTransaction(
                 testToken.options.address,
                 testToken.methods.approve(poolAddress, toWei(rewardWithdrawAmount.toString())),
-                NetworkProvider.Test,
+                NetworkProvider.Main,
             );
-            await sendTransaction(solution.options.address, solution.methods.deposit(amount), NetworkProvider.Test);
+            await sendTransaction(solution.options.address, solution.methods.deposit(amount), NetworkProvider.Main);
         });
     });
 
@@ -112,12 +116,13 @@ describe('Gas Station', () => {
     });
 
     describe('POST /members', () => {
-        it('200 ok', async () => {
+        it('302 Found', async () => {
             // Add a member
             await user
                 .post('/v1/members')
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
-                .send({ address: userWallet.address });
+                .send({ address: userWallet.address })
+                .expect(302);
         });
     });
 
@@ -131,6 +136,9 @@ describe('Gas Station', () => {
                     call,
                     nonce,
                     sig,
+                })
+                .expect(({ body }: request.Response) => {
+                    console.log(body);
                 })
                 .expect(200);
         });

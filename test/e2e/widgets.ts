@@ -26,30 +26,41 @@ describe('Widgets', () => {
         dashboardAccessToken = getToken('openid dashboard');
 
         mockStart();
-
-        // Create an asset pool
-        const res = await user
-            .post('/v1/asset_pools')
-            .set({ Authorization: dashboardAccessToken })
-            .send({
-                network: 0,
-                token: {
-                    address: testToken.options.address,
-                },
-            });
-
-        poolAddress = res.body.address;
-
-        // Create a reward
-        await user.post('/v1/rewards/').set({ AssetPool: poolAddress, Authorization: dashboardAccessToken }).send({
-            withdrawAmount: rewardWithdrawAmount,
-            withdrawDuration: rewardWithdrawDuration,
-        });
     });
 
     afterAll(async () => {
         await db.truncate();
         mockClear();
+    });
+
+    describe('POST /asset_pools', () => {
+        it('HTTP 200', (done) => {
+            user.post('/v1/asset_pools')
+                .set({ Authorization: dashboardAccessToken })
+                .send({
+                    network: 1,
+                    token: {
+                        address: testToken.options.address,
+                    },
+                })
+                .expect(({ body }: request.Response) => {
+                    poolAddress = body.address;
+                })
+                .expect(201, done);
+        });
+    });
+
+    describe('POST /rewards', () => {
+        it('HTTP 200', async () => {
+            await user
+                .post('/v1/rewards/')
+                .set({ AssetPool: poolAddress, Authorization: dashboardAccessToken })
+                .send({
+                    withdrawAmount: rewardWithdrawAmount,
+                    withdrawDuration: rewardWithdrawDuration,
+                })
+                .expect(302);
+        });
     });
 
     describe('POST /widgets/', () => {

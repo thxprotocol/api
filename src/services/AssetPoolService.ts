@@ -1,7 +1,6 @@
 import { findEvent, parseLogs } from '../util/events';
 import {
     callFunction,
-    getAdmin,
     getAssetPoolFactory,
     NetworkProvider,
     sendTransaction,
@@ -147,8 +146,8 @@ export default class AssetPoolService {
     static async addPoolToken(assetPool: IAssetPool, token: any) {
         try {
             if (token.address) {
-                const provider = getProvider(assetPool.network);
-                const code = await provider.eth.getCode(token.address);
+                const { web3 } = getProvider(assetPool.network);
+                const code = await web3.eth.getCode(token.address);
 
                 if (code === '0x') {
                     throw new Error(`No data found at ERC20 address ${token.address}`);
@@ -201,34 +200,23 @@ export default class AssetPoolService {
 
     static async init(assetPool: IAssetPool) {
         try {
-            const adminAddress = getAdmin(assetPool.network).address;
+            const { admin } = getProvider(assetPool.network);
             const poolRegistryAddress =
                 assetPool.network === NetworkProvider.Test ? TESTNET_POOL_REGISTRY_ADDRESS : POOL_REGISTRY_ADDRESS;
-            const tx = await sendTransaction(
+
+            await sendTransaction(
                 assetPool.solution.options.address,
                 assetPool.solution.methods.setPoolRegistry(poolRegistryAddress),
                 assetPool.network,
             );
 
-            if (!tx) {
-                // check for event here
-            }
+            await sendTransaction(
+                assetPool.solution.options.address,
+                assetPool.solution.methods.initializeGasStation(admin.address),
+                assetPool.network,
+            );
 
-            try {
-                const tx = await sendTransaction(
-                    assetPool.solution.options.address,
-                    assetPool.solution.methods.initializeGasStation(adminAddress),
-                    assetPool.network,
-                );
-
-                if (!tx) {
-                    // check for event here
-                }
-
-                return { result: true };
-            } catch (error) {
-                return { error };
-            }
+            return { result: true };
         } catch (error) {
             return { error };
         }

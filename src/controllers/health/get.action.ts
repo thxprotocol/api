@@ -2,13 +2,12 @@ import { Response, Request, NextFunction } from 'express';
 import { HttpError } from '../../models/Error';
 import {
     ASSET_POOL_FACTORY_ADDRESS,
-    MAXIMUM_GAS_PRICE,
     POOL_REGISTRY_ADDRESS,
     TESTNET_ASSET_POOL_FACTORY_ADDRESS,
     TESTNET_POOL_REGISTRY_ADDRESS,
 } from '../../util/secrets';
 import { name, version, license } from '../../../package.json';
-import { getAdmin, getGasPriceFromOracle, getProvider, NetworkProvider } from '../../util/network';
+import { getProvider, NetworkProvider, getEstimatesFromOracle } from '../../util/network';
 import { fromWei } from 'web3-utils';
 import { Facets } from '../../util/facets';
 import { agenda, eventNameProcessWithdrawals } from '../../util/agenda';
@@ -16,18 +15,14 @@ import { agenda, eventNameProcessWithdrawals } from '../../util/agenda';
 import WithdrawalService from '../../services/WithdrawalService';
 
 async function getNetworkDetails(npid: NetworkProvider, constants: { factory: string; registry: string }) {
-    const provider = getProvider(npid);
-    const address = getAdmin(npid).address;
-    const balance = await provider.eth.getBalance(address);
-    const gasPrice =
-        npid === NetworkProvider.Main
-            ? await getGasPriceFromOracle('FastGasPrice')
-            : fromWei(await provider.eth.getGasPrice(), 'gwei');
+    const { web3 } = getProvider(npid);
+    const admin = web3.eth.defaultAccount;
+    const balance = await web3.eth.getBalance(admin);
+    const feeData = await getEstimatesFromOracle(npid);
 
     return {
-        admin: address,
-        gasPrice: gasPrice,
-        maxGasPrice: MAXIMUM_GAS_PRICE,
+        admin,
+        feeData,
         balance: fromWei(balance, 'ether'),
         factory: constants.factory,
         registry: constants.registry,

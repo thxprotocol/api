@@ -11,7 +11,7 @@ services:
             - 3002:3001
         depends_on:
             - api_ci_mongo
-            - api_ci_testnet
+            - api_ci_mainnet
         networks:
             - thx_ci_network
 
@@ -31,18 +31,18 @@ services:
             DB_USER: $MONGODB_USER
             DB_PASSWORD: $MONGODB_PASSWORD
 
-    api_ci_testnet:
-        container_name: thx_api_ci_testnet
-        image: trufflesuite/ganache-cli:latest
+    api_ci_mainnet:
+        container_name: thx_api_ci_mainnet
+        image: trufflesuite/ganache:v7.0.2
         networks:
             - thx_ci_network
         ports:
             - '8549:8545'
         command:
             [
-                'ganache-cli',
                 "--account='0x873c254263b17925b686f971d7724267710895f1585bb0533db8e693a2af32ff,100000000000000000000'",
                 "--account='0x5a05e38394194379795422d2e8c1d33e90033d90defec4880174c39198f707e3,100000000000000000000'",
+                "--hardfork='london'",
                 '-l 25000000',
             ]
 

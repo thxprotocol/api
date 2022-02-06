@@ -30,17 +30,15 @@ async function updateFailReason(id: string, failReason: string) {
 
 agenda.define(eventNameProcessWithdrawals, async (job: Job) => {
     const withdrawals = await WithdrawalService.getAllScheduled();
-    for (const index in withdrawals) {
-        const w = withdrawals[index];
+
+    for (const w of withdrawals) {
         const documentId = String(w._id);
         const { assetPool } = await AssetPoolService.getByAddress(w.poolAddress);
 
         // Pass a reference to the withdrawal in this job attr data
         // so we can check for the failReason and update the
         // withdrawal document accordingly if it fails.
-        job.attrs.data = {
-            documentId,
-        };
+        job.attrs.data = { documentId };
         await job.save();
 
         switch (w.type) {

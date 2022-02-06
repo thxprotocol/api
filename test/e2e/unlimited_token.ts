@@ -37,7 +37,7 @@ describe('Unlimited Supply Token', () => {
             user.post('/v1/asset_pools')
                 .set('Authorization', dashboardAccessToken)
                 .send({
-                    network: 0,
+                    network: 1,
                     token: {
                         name: tokenName,
                         symbol: tokenSymbol,

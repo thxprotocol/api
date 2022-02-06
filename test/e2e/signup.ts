@@ -37,7 +37,7 @@ describe('Signup', () => {
             user.post('/v1/asset_pools')
                 .set({ Authorization: dashboardAccessToken })
                 .send({
-                    network: NetworkProvider.Test,
+                    network: NetworkProvider.Main,
                     token: {
                         address: testToken.options.address,
                     },
@@ -132,7 +132,7 @@ describe('Signup', () => {
                 .expect((res: request.Response) => {
                     expect(res.body.id).toBe(membershipID);
                     expect(res.body.poolAddress).toBe(poolAddress);
-                    expect(res.body.network).toBe(NetworkProvider.Test);
+                    expect(res.body.network).toBe(NetworkProvider.Main);
                     expect(res.body.token.address).toBe(testToken.options.address);
                     expect(res.body.token.symbol).toBeDefined();
                     expect(res.body.token.name).toBeDefined();
