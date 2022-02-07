@@ -24,9 +24,8 @@ const required = [
     'SENDGRID_API_KEY',
     'RATE_LIMIT_REWARD_GIVE',
     'RATE_LIMIT_REWARD_GIVE_WINDOW',
-    'MINIMUM_GAS_LIMIT',
-    'MAXIMUM_GAS_PRICE',
     'INITIAL_ACCESS_TOKEN',
+    'MAX_FEE_PER_GAS',
 ];
 
 required.forEach((value: string) => {
@@ -39,13 +38,14 @@ required.forEach((value: string) => {
 // This allows you to use a single .env file with both regular and test configuration. This allows for an
 // easy to use setup locally without having hardcoded credentials during test runs.
 if (process.env.NODE_ENV === 'test') {
-    if (process.env.PORT_TEST !== undefined) process.env.PORT = process.env.PORT_TEST;
-    if (process.env.MONGODB_URI_TEST !== undefined) process.env.MONGODB_URI = process.env.MONGODB_URI_TEST;
-    if (process.env.TESTNET_RPC_TEST !== undefined) process.env.TESTNET_RPC = process.env.TESTNET_RPC_TEST;
+    if (process.env.PORT_TEST_OVERRIDE !== undefined) process.env.PORT = process.env.PORT_TEST_OVERRIDE;
+    if (process.env.MONGODB_URI_TEST_OVERRIDE !== undefined)
+        process.env.MONGODB_URI = process.env.MONGODB_URI_TEST_OVERRIDE;
+    if (process.env.RPC_TEST_OVERRIDE !== undefined) process.env.RPC = process.env.RPC_TEST_OVERRIDE;
 }
 
 export const VERSION = 'v1';
-export const ENVIRONMENT = process.env.NODE_ENV;
+export const NODE_ENV = process.env.NODE_ENV || 'development';
 export const ISSUER = process.env.ISSUER;
 export const SECURE_KEY = process.env.SECURE_KEY;
 export const AUTH_URL = process.env.AUTH_URL;
@@ -72,11 +72,11 @@ export const RATE_LIMIT_REWARD_GIVE = Number(process.env.RATE_LIMIT_REWARD_GIVE)
 export const RATE_LIMIT_REWARD_CLAIM = Number(process.env.RATE_LIMIT_REWARD_CLAIM);
 export const RATE_LIMIT_REWARD_GIVE_WINDOW = Number(process.env.RATE_LIMIT_REWARD_GIVE_WINDOW);
 export const RATE_LIMIT_REWARD_CLAIM_WINDOW = Number(process.env.RATE_LIMIT_REWARD_CLAIM_WINDOW);
-export const MINIMUM_GAS_LIMIT = Number(process.env.MINIMUM_GAS_LIMIT);
-export const MAXIMUM_GAS_PRICE = Number(process.env.MAXIMUM_GAS_PRICE);
-export const FIXED_GAS_PRICE = Number(process.env.FIXED_GAS_PRICE);
 export const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
 export const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
 export const GOOGLE_REDIRECT_URI = process.env.GOOGLE_REDIRECT_URI;
 export const INITIAL_ACCESS_TOKEN = process.env.INITIAL_ACCESS_TOKEN;
 export const CIRCULATING_SUPPLY = process.env.CIRCULATING_SUPPLY;
+export const MAX_FEE_PER_GAS = process.env.MAX_FEE_PER_GAS;
+
+export const MINIMUM_GAS_LIMIT = 54680;

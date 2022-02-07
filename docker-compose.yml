@@ -4,7 +4,7 @@ services:
     api_mongo:
         container_name: thx_api_mongo
         image: mongo
-        env_file: .env 
+        env_file: .env.example
         restart: always
         networks:
             - thx_network
@@ -18,6 +18,22 @@ services:
             - ./cache/mongo-data:/data/db
             - ./scripts/mongo-init.sh:/docker-entrypoint-initdb.d/mongo-init.sh
 
+    api:
+        container_name: thx_api
+        build:
+            context: .
+            target: develop
+        env_file:
+            - .env.example
+            - .env.docker
+        ports:
+            - 3002:3000
+        depends_on:
+            - api_mongo
+            - api_mainnet
+        networks:
+            - thx_network
+
     api_node:
         container_name: thx_api_node
         image: node:16
@@ -27,8 +43,11 @@ services:
             - ./:/usr/src/service
         working_dir: /usr/src/service
         command: sh -c "npm run deploy && npm run watch:debug"
+        env_file: 
+            - .env.example
+            - .env.docker
         environment:
-            - NODE_ENV=local
+            - NODE_ENV=development
         depends_on:
             - api_mongo
             - api_mainnet
@@ -38,13 +57,12 @@ services:
        
     api_testnet:
         container_name: thx_api_testnet
-        image: trufflesuite/ganache-cli:latest
+        image: trufflesuite/ganache:v7.0.2
         networks:
             - thx_network
         ports:
             - '8547:8545'
         command: [
-                'ganache-cli',
                 "--account='0x873c254263b17925b686f971d7724267710895f1585bb0533db8e693a2af32ff,100000000000000000000'",
                 "--account='0x5a05e38394194379795422d2e8c1d33e90033d90defec4880174c39198f707e3,100000000000000000000'",
                 '-l 25000000',
@@ -52,13 +70,12 @@ services:
 
     api_mainnet:
         container_name: thx_api_mainnet
-        image: trufflesuite/ganache-cli:latest
+        image: trufflesuite/ganache:v7.0.2
         networks:
             - thx_network
         ports:
             - '8546:8545'
         command: [
-                'ganache-cli',
                 "--account='0x873c254263b17925b686f971d7724267710895f1585bb0533db8e693a2af32ff,100000000000000000000'",
                 "--account='0x5a05e38394194379795422d2e8c1d33e90033d90defec4880174c39198f707e3,100000000000000000000'",
                 '-l 25000000 ',

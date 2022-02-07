@@ -8,23 +8,33 @@ import { agenda } from './util/agenda';
 
 const server = http.createServer(app);
 
-// Called on server close
-function onSignal(): Promise<any> {
-    logger.info('Server is starting cleanup');
-    return Promise.all([db.disconnect(), agenda.stop()]);
-}
-
 const options = {
     healthChecks: {
         '/healthcheck': healthCheck,
         'verbatim': true,
     },
-    onSignal,
+    onSignal: (): Promise<any> => {
+        logger.info('Server shutting down');
+        return Promise.all([db.disconnect(), agenda.stop()]);
+    },
     logger: logger.error,
 };
 
 createTerminus(server, options);
 
+process.on('uncaughtException', function (err: Error) {
+    if (err) {
+        logger.error({
+            message: 'Uncaught Exception was thrown, shutting down',
+            errorName: err.name,
+            errorMessage: err.message,
+            stack: err.stack,
+        });
+        process.exit(1);
+    }
+});
+
+logger.info(`Server is starting on port: ${app.get('port')}, env: ${app.get('env')}`);
 server.listen(app.get('port'));
 
 export default server;

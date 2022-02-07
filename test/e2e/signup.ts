@@ -2,7 +2,7 @@ import request from 'supertest';
 import server from '../../src/server';
 import db from '../../src/util/database';
 import { deployExampleToken, voter } from './lib/network';
-import { account, sub, userEmail2, userPassword2 } from './lib/constants';
+import { account, userEmail2, userPassword2 } from './lib/constants';
 import { Contract } from 'web3-eth-contract';
 import { NetworkProvider } from '../../src/util/network';
 import { getToken } from './lib/jwt';
@@ -37,7 +37,7 @@ describe('Signup', () => {
             user.post('/v1/asset_pools')
                 .set({ Authorization: dashboardAccessToken })
                 .send({
-                    network: NetworkProvider.Test,
+                    network: NetworkProvider.Main,
                     token: {
                         address: testToken.options.address,
                     },
@@ -132,7 +132,7 @@ describe('Signup', () => {
                 .expect((res: request.Response) => {
                     expect(res.body.id).toBe(membershipID);
                     expect(res.body.poolAddress).toBe(poolAddress);
-                    expect(res.body.network).toBe(NetworkProvider.Test);
+                    expect(res.body.network).toBe(NetworkProvider.Main);
                     expect(res.body.token.address).toBe(testToken.options.address);
                     expect(res.body.token.symbol).toBeDefined();
                     expect(res.body.token.name).toBeDefined();

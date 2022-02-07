@@ -9,6 +9,7 @@ import {
     clientSecret,
     registrationAccessToken,
     requestUris,
+    feeData,
 } from './constants';
 import { getToken, jwksResponse } from './jwt';
 import { ISSUER } from '../../../src/util/secrets';
@@ -46,6 +47,11 @@ export function mockStart() {
     mockAuthPath('get', `/account/email/${userEmail}`, 200, account);
     mockAuthPath('get', `/account/email/${userEmail2}`, 404, {});
     mockAuthPath('get', `/account/address/${userWalletAddress}`, 200, account);
+
+    // Mock gas price to be lower than configured cap for all tests. Be aware that
+    // the tx_queue test will override this mock.
+    mockUrl('get', 'https://gasstation-mainnet.matic.network', '/v2', 200, feeData);
+    mockUrl('get', 'https://gasstation-mumbai.matic.today', '/v2', 200, feeData);
 }
 
 export function mockClear() {
