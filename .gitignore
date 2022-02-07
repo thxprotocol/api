@@ -21,7 +21,7 @@ coverage
 
 # API keys and secrets
 .env*
-!.env.ci
+!.env.docker
 !.env.example
 
 # Dependency directory
