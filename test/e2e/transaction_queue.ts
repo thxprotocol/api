@@ -74,7 +74,7 @@ describe('Transaction Queue', () => {
     });
 
     describe('POST /withdrawals 5x (gasPrice < MAXIMUM_GAS_PRICE)', () => {
-        let withdrawalDocumentIdList: any = [];
+        const withdrawalDocumentIdList: any = [];
 
         it('should disable job processor', async () => {
             await agenda.disable({ name: 'processWithdrawals' });

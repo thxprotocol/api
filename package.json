@@ -10,7 +10,8 @@
     "scripts": {
         "preinstall": "npx npm-force-resolutions",
         "serve:debug": "nodemon --legacy-watch ./dist/src/server.js",
-        "lint": "tsc -p ./tsconfig.json && eslint \"./src/**/*.ts\" \"./test/**/*.ts\" --quiet --fix",
+        "lint": "tsc -p ./tsconfig.json && eslint \"./src/**/*.ts\" \"./test/**/*.ts\"",
+        "lint:fix": "tsc -p ./tsconfig.json && eslint \"./src/**/*.ts\" \"./test/**/*.ts\" --fix",
         "build": "npm run build:sass && npm run build:assets && npm run build:docs && tsc -p ./tsconfig.json",
         "build:assets": "mkdir -p dist/src/public && cp -R src/public/* dist/src/public/. && cp -R src/views dist/src/.",
         "build:docs": "swagger-jsdoc -d ./src/swaggerDef.js -o ./src/swagger.json",
@@ -62,8 +63,7 @@
         "qrcode": "^1.5.0",
         "swagger-ui-express": "^4.3.0",
         "web3": "^1.7.0",
-        "winston": "^3.2.1",
-        "winston-daily-rotate-file": "^4.5.5"
+        "winston": "^3.2.1"
     },
     "devDependencies": {
         "@types/async": "^3.0.2",
@@ -141,7 +141,6 @@
         "extends": [
             "eslint:recommended",
             "plugin:@typescript-eslint/recommended",
-            "prettier/@typescript-eslint",
             "plugin:prettier/recommended"
         ],
         "parserOptions": {

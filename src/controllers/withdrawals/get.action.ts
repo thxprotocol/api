@@ -1,7 +1,6 @@
 import { NextFunction, Response } from 'express';
 import { HttpRequest, HttpError } from '../../models/Error';
 
-import JobService from '../../services/JobService';
 import WithdrawalService from '../../services/WithdrawalService';
 
 /**

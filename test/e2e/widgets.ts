@@ -3,8 +3,6 @@ import server from '../../src/server';
 import db from '../../src/util/database';
 import { deployExampleToken } from './lib/network';
 import {
-    rewardPollDuration,
-    proposeWithdrawPollDuration,
     rewardWithdrawAmount,
     rewardWithdrawDuration,
     rewardId,

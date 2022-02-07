@@ -31,5 +31,5 @@ const migrationsApplied: HealthCheck = async () => {
 };
 
 export const healthCheck: HealthCheck = () => {
-    return Promise.all([dbConnected(), migrationsApplied()]);
+    return Promise.all([dbConnected, migrationsApplied]);
 };

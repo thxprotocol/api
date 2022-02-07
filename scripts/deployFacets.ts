@@ -1,8 +1,5 @@
-import dotenv from 'dotenv';
 import { NetworkProvider } from '../src/util/network';
 import { deployFacets } from './lib/facets';
-
-dotenv.config();
 
 async function main() {
     console.log('Facets [Test]:', await deployFacets(NetworkProvider.Test));

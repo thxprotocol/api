@@ -1,7 +1,7 @@
 import cors from 'cors';
 import { AUTH_URL, API_URL, WALLET_URL, DASHBOARD_URL, WIDGETS_URL } from './secrets';
 
-export const corsHandler = cors(async (req: any, callback: Function) => {
+export const corsHandler = cors(async (req: any, callback: any) => {
     const origin = req.header('Origin');
     const allowedOrigins = [AUTH_URL, API_URL, WALLET_URL, DASHBOARD_URL, WIDGETS_URL];
 

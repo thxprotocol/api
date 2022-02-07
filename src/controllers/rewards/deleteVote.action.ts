@@ -23,7 +23,7 @@ import { NextFunction, Request, Response } from 'express';
  *     responses:
  *       '200':
  *         description: OK
- *         content: application/json    
+ *         content: application/json
  *         schema:
  *               type: object
  *               properties:
