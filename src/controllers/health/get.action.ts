@@ -32,7 +32,7 @@ async function getNetworkDetails(npid: NetworkProvider, constants: { factory: st
 
 export const getHealth = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const job = (await agenda.jobs({ name: eventNameProcessWithdrawals }))[0];
+        const job = (await agenda.jobs({ name: eventNameProcessWithdrawals, type: 'single' }))[0];
         const jsonData = {
             name,
             version,
