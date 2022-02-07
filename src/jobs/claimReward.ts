@@ -21,18 +21,15 @@ export async function jobClaimReward(assetPool: IAssetPool, id: string, rewardId
     }
 
     if (shouldAddMember) {
-        // TX
         await MemberService.addMember(assetPool, beneficiary);
         await MembershipService.addMembership(account._id.toString(), assetPool);
     }
 
-    // TX
     await RewardService.claimRewardFor(assetPool, id, rewardId, beneficiary);
 
     const { canBypassPoll } = await AssetPoolService.canBypassWithdrawPoll(assetPool, account, reward);
 
     if (canBypassPoll) {
-        // TX
         await WithdrawalService.withdrawPollFinalize(assetPool, id);
     }
 }
