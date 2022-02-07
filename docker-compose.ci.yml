@@ -6,7 +6,9 @@ services:
         build:
             context: .
             target: develop
-        env_file: .env.ci
+        env_file:
+            - .env.example
+            - .env.ci
         ports:
             - 3002:3001
         depends_on:
@@ -18,7 +20,9 @@ services:
     api_ci_mongo:
         container_name: thx_api_ci_mongo
         image: mongo
-        env_file: .env.ci
+        env_file:
+            - .env.example
+            - .env.ci
         networks:
             - thx_ci_network
         ports:
@@ -27,9 +31,6 @@ services:
             MONGO_INITDB_ROOT_USERNAME: root
             MONGO_INITDB_ROOT_PASSWORD: root
             MONGO_INITDB_DATABASE: admin
-            DB_NAME: $MONGODB_NAME
-            DB_USER: $MONGODB_USER
-            DB_PASSWORD: $MONGODB_PASSWORD
 
     api_ci_mainnet:
         container_name: thx_api_ci_mainnet

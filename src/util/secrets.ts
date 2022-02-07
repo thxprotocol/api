@@ -38,9 +38,10 @@ required.forEach((value: string) => {
 // This allows you to use a single .env file with both regular and test configuration. This allows for an
 // easy to use setup locally without having hardcoded credentials during test runs.
 if (process.env.NODE_ENV === 'test') {
-    if (process.env.PORT_TEST !== undefined) process.env.PORT = process.env.PORT_TEST;
-    if (process.env.MONGODB_URI_TEST !== undefined) process.env.MONGODB_URI = process.env.MONGODB_URI_TEST;
-    if (process.env.MAINNET_RPC_TEST !== undefined) process.env.RPC = process.env.MAINNET_RPC_TEST;
+    if (process.env.PORT_TEST_OVERRIDE !== undefined) process.env.PORT = process.env.PORT_TEST_OVERRIDE;
+    if (process.env.MONGODB_URI_TEST_OVERRIDE !== undefined)
+        process.env.MONGODB_URI = process.env.MONGODB_URI_TEST_OVERRIDE;
+    if (process.env.RPC_TEST_OVERRIDE !== undefined) process.env.RPC = process.env.RPC_TEST_OVERRIDE;
 }
 
 export const VERSION = 'v1';
