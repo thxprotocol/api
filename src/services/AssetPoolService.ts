@@ -5,7 +5,6 @@ import {
     getAssetPoolFactory,
     NetworkProvider,
     sendTransaction,
-    solutionContract,
     tokenContract,
 } from '../util/network';
 import { Artifacts } from '../util/artifacts';

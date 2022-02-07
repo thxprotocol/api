@@ -2,7 +2,7 @@ import request from 'supertest';
 import server from '../../src/server';
 import db from '../../src/util/database';
 import { deployExampleToken, voter } from './lib/network';
-import { account, sub, userEmail2, userPassword2 } from './lib/constants';
+import { account, userEmail2, userPassword2 } from './lib/constants';
 import { Contract } from 'web3-eth-contract';
 import { NetworkProvider } from '../../src/util/network';
 import { getToken } from './lib/jwt';

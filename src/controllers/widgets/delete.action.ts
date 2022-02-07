@@ -15,7 +15,7 @@ export const deleteWidget = async (req: HttpRequest, res: Response, next: NextFu
             throw new Error(error);
         } else {
             await ClientService.remove(req.params.clientId);
-            
+
             res.status(204).end();
         }
     } catch (e) {

@@ -46,7 +46,7 @@ export const postWidget = async (req: HttpRequest, res: Response, next: NextFunc
  *         required: true
  *         type: array
  *         items:
- *           type: string 
+ *           type: string
  *       - name: postLogoutRedirectUris
  *         in: body
  *         required: true
@@ -61,7 +61,7 @@ export const postWidget = async (req: HttpRequest, res: Response, next: NextFunc
  *           rewardId:
  *             type: number
  *           poolAddress:
- *             type: string    
+ *             type: string
  *     responses:
  *       '201':
  *         description: OK
@@ -79,7 +79,7 @@ export const postWidget = async (req: HttpRequest, res: Response, next: NextFunc
  *                     rewardId:
  *                       type: number
  *                     poolAddress:
- *                       type: string         
+ *                       type: string
  *       '400':
  *         $ref: '#/components/responses/400'
  *       '401':

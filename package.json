@@ -10,7 +10,8 @@
     "scripts": {
         "preinstall": "npx npm-force-resolutions",
         "serve:debug": "nodemon --legacy-watch ./dist/src/server.js",
-        "lint": "tsc -p ./tsconfig.json && eslint \"./src/**/*.ts\" \"./test/**/*.ts\" --quiet --fix",
+        "lint": "tsc -p ./tsconfig.json && eslint \"./src/**/*.ts\" \"./test/**/*.ts\"",
+        "lint:fix": "tsc -p ./tsconfig.json && eslint \"./src/**/*.ts\" \"./test/**/*.ts\" --fix",
         "build": "npm run build:sass && npm run build:assets && npm run build:docs && tsc -p ./tsconfig.json",
         "build:assets": "mkdir -p dist/src/public && cp -R src/public/* dist/src/public/. && cp -R src/views dist/src/.",
         "build:docs": "swagger-jsdoc -d ./src/swaggerDef.js -o ./src/swagger.json",
@@ -142,7 +143,6 @@
         "extends": [
             "eslint:recommended",
             "plugin:@typescript-eslint/recommended",
-            "prettier/@typescript-eslint",
             "plugin:prettier/recommended"
         ],
         "parserOptions": {

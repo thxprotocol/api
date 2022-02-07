@@ -13,6 +13,12 @@ const router = express.Router();
 router.get('/', checkScopes(['dashboard']), validate(validations.getWidgets), getWidgets);
 router.get('/:clientId', checkScopes(['dashboard']), validate(validations.getWidget), validateClientAccess, getWidget);
 router.post('/', checkScopes(['dashboard']), validate(validations.postWidget), postWidget);
-router.delete('/:clientId', checkScopes(['dashboard']), validate(validations.deleteWidget), validateClientAccess, deleteWidget);
+router.delete(
+    '/:clientId',
+    checkScopes(['dashboard']),
+    validate(validations.deleteWidget),
+    validateClientAccess,
+    deleteWidget,
+);
 
 export default router;
