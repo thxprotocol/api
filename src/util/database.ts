@@ -16,7 +16,7 @@ const connect = async (url: string) => {
         logger.error(`MongoDB connection error. Please make sure MongoDB is running. ${err}`);
     });
 
-    mongoose.connection.on('reconnectFailed', (err) => {
+    mongoose.connection.on('reconnectFailed', () => {
         logger.error('Unable to recoonect to MongoDB');
         process.exit();
     });

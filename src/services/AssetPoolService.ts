@@ -1,11 +1,5 @@
 import { findEvent, parseLogs } from '../util/events';
-import {
-    callFunction,
-    getAssetPoolFactory,
-    NetworkProvider,
-    sendTransaction,
-    tokenContract,
-} from '../util/network';
+import { callFunction, getAssetPoolFactory, NetworkProvider, sendTransaction, tokenContract } from '../util/network';
 import { Artifacts } from '../util/artifacts';
 import { POOL_REGISTRY_ADDRESS, TESTNET_POOL_REGISTRY_ADDRESS } from '../util/secrets';
 import { AssetPool, IAssetPool, IAssetPoolUpdates } from '../models/AssetPool';

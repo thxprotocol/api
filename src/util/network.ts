@@ -11,7 +11,6 @@ import {
 import Web3 from 'web3';
 import axios from 'axios';
 import BN from 'bn.js';
-import { Account } from 'web3-core';
 import { isAddress } from 'web3-utils';
 import { utils } from 'ethers/lib';
 import { HttpError, HttpRequest } from '../models/Error';
