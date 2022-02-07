@@ -1,7 +1,7 @@
 import request from 'supertest';
 import server from '../../src/server';
 import db from '../../src/util/database';
-import { getAdmin, NetworkProvider } from '../../src/util/network';
+import { getProvider, NetworkProvider } from '../../src/util/network';
 import { createWallet, deployExampleToken, voter } from './lib/network';
 import { userWalletPrivateKey } from './lib/constants';
 import { Contract } from 'web3-eth-contract';
@@ -37,7 +37,7 @@ describe('Roles', () => {
             user.post('/v1/asset_pools')
                 .set({ Authorization: dashboardAccessToken })
                 .send({
-                    network: 0,
+                    network: NetworkProvider.Main,
                     token: {
                         address: testToken.options.address,
                     },
@@ -51,7 +51,7 @@ describe('Roles', () => {
 
     describe('GET /members/:address', () => {
         it('HTTP 200 if OK', (done) => {
-            const admin = getAdmin(NetworkProvider.Test);
+            const { admin } = getProvider(NetworkProvider.Main);
             user.get('/v1/members/' + admin.address)
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
                 .expect(200, done);

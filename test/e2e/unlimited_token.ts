@@ -1,6 +1,7 @@
 import request from 'supertest';
 import server from '../../src/server';
 import db from '../../src/util/database';
+import { NetworkProvider } from '../../src/util/network';
 import { rewardWithdrawAmount, tokenName, tokenSymbol, userWalletPrivateKey } from './lib/constants';
 import { isAddress } from 'web3-utils';
 import { Account } from 'web3-core';
@@ -37,7 +38,7 @@ describe('Unlimited Supply Token', () => {
             user.post('/v1/asset_pools')
                 .set('Authorization', dashboardAccessToken)
                 .send({
-                    network: 0,
+                    network: NetworkProvider.Main,
                     token: {
                         name: tokenName,
                         symbol: tokenSymbol,

@@ -36,7 +36,6 @@ export const getWithdrawals = async (req: HttpRequest, res: Response, next: Next
         result.results = withdrawals;
         res.json(result);
     } catch (err) {
-        console.log(err);
         next(new HttpError(502, 'Could not get all withdrawal information from the network.', err));
     }
 };

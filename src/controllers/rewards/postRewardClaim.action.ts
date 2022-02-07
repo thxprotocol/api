@@ -3,6 +3,7 @@ import { HttpError, HttpRequest } from '../../models/Error';
 import { RewardDocument } from '../../models/Reward';
 import { IAccount } from '../../models/Account';
 import { WithdrawalType } from '../../models/Withdrawal';
+import { agenda, eventNameProcessWithdrawals } from '../../util/agenda';
 
 import AccountProxy from '../../proxies/AccountProxy';
 import RewardService from '../../services/RewardService';
@@ -70,6 +71,8 @@ export async function postRewardClaim(req: HttpRequest, res: Response, next: Nex
             reward.withdrawAmount,
             reward.id,
         );
+
+        agenda.now(eventNameProcessWithdrawals, null);
 
         return res.json(withdrawal);
     } catch (error) {

@@ -13,15 +13,9 @@ jobs:
               with:
                   submodules: true
 
-            - name: Run dependencies
-              run: docker compose -f docker-compose.ci.yml up api_ci_mongo api_ci_testnet -d
-
             - name: Run test
               run: |
-                  docker-compose -f docker-compose.ci.yml run api_ci npm run test
-
-            - name: Shut down dependencies
-              run: docker compose -f docker-compose.ci.yml down
+                  docker-compose run api npm run test
 
     deploy:
         name: CD Pipeline

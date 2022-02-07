@@ -16,8 +16,8 @@ const connect = async (url: string) => {
         logger.error(`MongoDB connection error. Please make sure MongoDB is running. ${err}`);
     });
 
-    mongoose.connection.on('reconnectFailed', (err) => {
-        logger.error('Unable to recoonect to MongoDB');
+    mongoose.connection.on('reconnectFailed', () => {
+        logger.error('Unable to reconnect to MongoDB');
         process.exit();
     });
 
@@ -34,7 +34,7 @@ const truncate = async () => {
     if (mongoose.connection.readyState !== 0) {
         const { collections } = mongoose.connection;
         const promises = Object.keys(collections).map((collection) => {
-            if (collection !== 'jobs') return mongoose.connection.collection(collection).deleteMany({});
+            return mongoose.connection.collection(collection).deleteMany({});
         });
 
         await Promise.all(promises);

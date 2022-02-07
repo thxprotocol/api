@@ -6,8 +6,7 @@ import {
     TESTNET_RPC,
     RPC,
     MINIMUM_GAS_LIMIT,
-    MAXIMUM_GAS_PRICE,
-    NODE_ENV,
+    MAX_FEE_PER_GAS,
 } from './secrets';
 import Web3 from 'web3';
 import axios from 'axios';
@@ -19,7 +18,9 @@ import { AssetPool } from '../models/AssetPool';
 import { Contract } from 'web3-eth-contract';
 import { Artifacts } from './artifacts';
 import { logger } from './logger';
-import { toWei } from 'web3-utils';
+
+const ERROR_NO_FEEDATA = 'Could not get fee data from oracle';
+export const ERROR_MAX_FEE_PER_GAS = 'MaxFeePerGas from oracle exceeds configured cap';
 
 export enum NetworkProvider {
     Test = 0,
@@ -27,70 +28,59 @@ export enum NetworkProvider {
 }
 
 export const ADDRESS_ZERO = '0x0000000000000000000000000000000000000000';
-export const ERROR_GAS_PRICE_EXCEEDS_CAP = 'Gas price exceeds configured cap';
+
+const testnet = new Web3(TESTNET_RPC);
+const testnetAdmin = testnet.eth.accounts.privateKeyToAccount(process.env.PRIVATE_KEY);
+testnet.eth.defaultAccount = testnetAdmin.address;
+
+const mainnet = new Web3(RPC);
+const mainnetAdmin = mainnet.eth.accounts.privateKeyToAccount(process.env.PRIVATE_KEY);
+mainnet.eth.defaultAccount = mainnetAdmin.address;
 
 export const getProvider = (npid: NetworkProvider) => {
-    let web3: Web3;
-
     switch (npid) {
         default:
         case NetworkProvider.Test:
-            web3 = new Web3(TESTNET_RPC);
-            break;
+            return { web3: testnet, admin: testnetAdmin };
         case NetworkProvider.Main:
-            web3 = new Web3(RPC);
-            break;
+            return { web3: mainnet, admin: mainnetAdmin };
     }
-    const account = web3.eth.accounts.privateKeyToAccount(process.env.PRIVATE_KEY);
-
-    web3.eth.accounts.wallet.add(account);
-
-    return web3;
 };
 
-// Type: SafeGasPrice, ProposeGasPrice, FastGasPrice
-export async function getGasPriceFromOracle(type: string) {
-    const r = await axios.get('https://gpoly.blockscan.com/gasapi.ashx?apikey=key&method=gasoracle');
+// Type: safeLow, standard, fast
+export async function getEstimatesFromOracle(npid: NetworkProvider, type = 'fast') {
+    const url =
+        npid === NetworkProvider.Main
+            ? 'https://gasstation-mainnet.matic.network/v2'
+            : 'https://gasstation-mumbai.matic.today/v2';
+    const r = await axios.get(url);
 
     if (r.status !== 200) {
-        throw new Error('Gas oracle does not give gas price information.');
+        throw new Error(ERROR_NO_FEEDATA);
     }
-    return r.data.result[type];
+
+    const { maxPriorityFee, maxFee } = r.data[type];
+    const estimatedBaseFee = r.data.estimatedBaseFee;
+    const blockTime = r.data.blockTime;
+    const blockNumber = r.data.blockNumber;
+
+    return {
+        baseFee: Number(estimatedBaseFee).toFixed(12),
+        maxPriorityFeePerGas: Math.ceil(maxPriorityFee),
+        maxFeePerGas: Math.ceil(maxFee),
+        blockTime,
+        blockNumber,
+    };
 }
-
-export async function getGasPrice(npid: NetworkProvider) {
-    const web3 = getProvider(npid);
-
-    if (['development', 'local'].includes(NODE_ENV) || (NODE_ENV !== 'test' && npid === NetworkProvider.Test)) {
-        return await web3.eth.getGasPrice();
-    }
-
-    const gasPrice = await getGasPriceFromOracle('FastGasPrice');
-
-    if (gasPrice > MAXIMUM_GAS_PRICE) {
-        throw new Error(ERROR_GAS_PRICE_EXCEEDS_CAP);
-    }
-
-    return toWei(gasPrice, 'gwei').toString();
-}
-
-export const getAdmin = (npid: NetworkProvider) => {
-    const web3 = getProvider(npid);
-    return web3.eth.accounts.wallet.add(PRIVATE_KEY);
-};
 
 export const getBalance = (npid: NetworkProvider, address: string) => {
-    const web3 = getProvider(npid);
+    const { web3 } = getProvider(npid);
     return web3.eth.getBalance(address);
 };
 
 export async function deployContract(abi: any, bytecode: any, arg: any[], npid: NetworkProvider): Promise<Contract> {
-    const web3 = getProvider(npid);
-    const contract = new web3.eth.Contract(abi, null, {
-        from: getAdmin(npid).address,
-    });
-    const gasPrice = await getGasPrice(npid);
-    const from = getAdmin(npid).address;
+    const { web3 } = getProvider(npid);
+    const contract = new web3.eth.Contract(abi);
     const gas = await contract
         .deploy({
             data: bytecode,
@@ -98,7 +88,6 @@ export async function deployContract(abi: any, bytecode: any, arg: any[], npid: 
         })
         .estimateGas();
 
-    logger.info({ to: '', fn: 'deployContract', gas, gasPrice, network: npid });
     return await contract
         .deploy({
             data: bytecode,
@@ -106,60 +95,55 @@ export async function deployContract(abi: any, bytecode: any, arg: any[], npid: 
         })
         .send({
             gas,
-            from,
-            gasPrice,
+            from: web3.eth.defaultAccount,
         });
 }
 
+// TODO This is redundant since defaultAccount is set and from not needed
 export async function callFunction(fn: any, npid: NetworkProvider) {
-    const from = getAdmin(npid).address;
+    const { admin } = getProvider(npid);
 
     return await fn.call({
-        from,
+        from: admin.address,
     });
 }
 
-export async function sendTransaction(to: string, fn: any, npid: NetworkProvider) {
-    const web3 = getProvider(npid);
-    const from = getAdmin(npid).address;
-    const gasPrice = await getGasPrice(npid);
-
+export async function sendTransaction(to: string, fn: any, npid: NetworkProvider, limit: number | null = null) {
+    const { web3, admin } = getProvider(npid);
     const data = fn.encodeABI();
-    const estimate = await fn.estimateGas({ from, to });
-    const gas = estimate < MINIMUM_GAS_LIMIT ? MINIMUM_GAS_LIMIT : estimate;
+    const estimate = await fn.estimateGas({ from: admin.address });
+    const gas = limit ? limit : estimate < MINIMUM_GAS_LIMIT ? MINIMUM_GAS_LIMIT : estimate;
+    const feeData = await getEstimatesFromOracle(npid);
+
+    if (feeData.maxFeePerGas > Number(MAX_FEE_PER_GAS)) {
+        throw new Error(ERROR_MAX_FEE_PER_GAS);
+    }
+
     const sig = await web3.eth.accounts.signTransaction(
         {
             gas,
-            gasPrice,
             to,
-            from,
+            maxPriorityFeePerGas: feeData.maxPriorityFeePerGas,
             data,
         },
         PRIVATE_KEY,
     );
-    logger.info({ to, fn: fn.name, estimate, gas, gasPrice, network: npid });
-    return await web3.eth.sendSignedTransaction(sig.rawTransaction);
-}
+    const receipt = await web3.eth.sendSignedTransaction(sig.rawTransaction);
 
-export async function sendTransactionValue(to: string, value: string, npid: NetworkProvider) {
-    const web3 = getProvider(npid);
-    const from = getAdmin(npid).address;
-    const gasPrice = await getGasPrice(npid);
-
-    const estimate = await web3.eth.estimateGas({ from, to, value });
-    const gas = estimate < MINIMUM_GAS_LIMIT ? MINIMUM_GAS_LIMIT : estimate;
-    const sig = await web3.eth.accounts.signTransaction(
-        {
-            gas,
-            gasPrice,
-            to,
-            from,
-            value,
+    logger.info({
+        fn: fn.name,
+        feeData,
+        to,
+        transactionHash: receipt.transactionHash,
+        receipt: {
+            gasUsed: receipt.gasUsed,
+            effectiveGasPrice: receipt.effectiveGasPrice,
+            gasCosts: receipt.gasUsed * receipt.effectiveGasPrice,
         },
-        PRIVATE_KEY,
-    );
-    logger.info({ to, value, estimate, gas, gasPrice, network: npid });
-    return await web3.eth.sendSignedTransaction(sig.rawTransaction);
+        network: npid,
+    });
+
+    return receipt;
 }
 
 export function getSelectors(contract: Contract) {
@@ -171,19 +155,11 @@ export function getSelectors(contract: Contract) {
 }
 
 export const getAssetPoolFactory = (npid: NetworkProvider): Contract => {
-    const admin = getAdmin(npid);
-    const web3 = getProvider(npid);
-
-    switch (npid) {
-        case NetworkProvider.Test:
-            return new web3.eth.Contract(Artifacts.IAssetPoolFactory.abi as any, TESTNET_ASSET_POOL_FACTORY_ADDRESS, {
-                from: admin.address,
-            });
-        case NetworkProvider.Main:
-            return new web3.eth.Contract(Artifacts.IAssetPoolFactory.abi as any, ASSET_POOL_FACTORY_ADDRESS, {
-                from: admin.address,
-            });
-    }
+    const { web3 } = getProvider(npid);
+    const contract = new web3.eth.Contract(Artifacts.IAssetPoolFactory.abi as any);
+    if (npid === NetworkProvider.Test) contract.options.address = TESTNET_ASSET_POOL_FACTORY_ADDRESS;
+    if (npid === NetworkProvider.Main) contract.options.address = ASSET_POOL_FACTORY_ADDRESS;
+    return contract;
 };
 
 export async function deployUnlimitedSupplyERC20Contract(
@@ -216,17 +192,13 @@ export async function deployLimitedSupplyERC20Contract(
 }
 
 export const solutionContract = (npid: NetworkProvider, address: string): Contract => {
-    const web3 = getProvider(npid);
-    return new web3.eth.Contract(Artifacts.IDefaultDiamond.abi as any, address, {
-        from: getAdmin(npid).address,
-    });
+    const { web3 } = getProvider(npid);
+    return new web3.eth.Contract(Artifacts.IDefaultDiamond.abi as any, address);
 };
 
 export const tokenContract = (npid: NetworkProvider, address: string): Contract => {
-    const web3 = getProvider(npid);
-    return new web3.eth.Contract(Artifacts.ERC20.abi as any, address, {
-        from: getAdmin(npid).address,
-    });
+    const { web3 } = getProvider(npid);
+    return new web3.eth.Contract(Artifacts.ERC20.abi as any, address);
 };
 
 export async function parseHeader(req: HttpRequest, res: Response, next: NextFunction) {
