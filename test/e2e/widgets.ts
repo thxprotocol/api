@@ -1,6 +1,7 @@
 import request from 'supertest';
 import server from '../../src/server';
 import db from '../../src/util/database';
+import { NetworkProvider } from '../../src/util/network';
 import { deployExampleToken } from './lib/network';
 import {
     rewardWithdrawAmount,
@@ -36,7 +37,7 @@ describe('Widgets', () => {
             user.post('/v1/asset_pools')
                 .set({ Authorization: dashboardAccessToken })
                 .send({
-                    network: 1,
+                    network: NetworkProvider.Main,
                     token: {
                         address: testToken.options.address,
                     },

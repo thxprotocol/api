@@ -48,7 +48,7 @@ describe('Gas Station', () => {
                 .post('/v1/asset_pools')
                 .set({ Authorization: dashboardAccessToken })
                 .send({
-                    network: 1,
+                    network: NetworkProvider.Main,
                     token: {
                         address: testToken.options.address,
                     },

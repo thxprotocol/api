@@ -7,6 +7,7 @@ import { Contract } from 'web3-eth-contract';
 import { isAddress } from 'web3-utils';
 import { getToken } from './lib/jwt';
 import { mockClear, mockStart } from './lib/mock';
+import { NetworkProvider } from '../../src/util/network';
 
 const user = request.agent(server);
 
@@ -35,7 +36,7 @@ describe('Bypass Polls', () => {
             user.post('/v1/asset_pools')
                 .set('Authorization', dashboardAccessToken)
                 .send({
-                    network: 1,
+                    network: NetworkProvider.Main,
                     token: {
                         address: testToken.options.address,
                     },

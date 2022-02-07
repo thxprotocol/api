@@ -33,19 +33,19 @@ export const registrationAccessToken = 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx';
 export const adminAddress = '0x08302CF8648A961c607e3e7Bd7B7Ec3230c2A6c5';
 export const feeData = {
     fast: {
-        maxPriorityFee: 30,
-        maxFee: 32,
+        maxPriorityFee: 30.095297764066665,
+        maxFee: 30.095297785066666,
     },
-    estimatedBaseFee: 2.2e-8,
+    estimatedBaseFee: 2.1e-8,
     blockTime: 2,
     blockNumber: 24539906,
 };
 export const exceedingFeeData = {
     fast: {
-        maxPriorityFee: 30,
+        maxPriorityFee: 30.095297764066665,
         maxFee: 401,
     },
-    estimatedBaseFee: 2.2e-8,
+    estimatedBaseFee: 2.1e-8,
     blockTime: 3,
     blockNumber: 24539906,
 };

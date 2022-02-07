@@ -3,10 +3,14 @@ import { HttpError, HttpRequest } from '../../models/Error';
 import { WithdrawalType } from '../../models/Withdrawal';
 import { agenda, eventNameProcessWithdrawals } from '../../util/agenda';
 
+import MemberService, { ERROR_IS_NOT_MEMBER } from '../../services/MemberService';
 import WithdrawalService from '../../services/WithdrawalService';
 
 export const postWithdrawal = async (req: HttpRequest, res: Response, next: NextFunction) => {
     try {
+        const { isMember } = await MemberService.isMember(req.assetPool, req.body.member);
+        if (!isMember) throw new Error(ERROR_IS_NOT_MEMBER);
+
         const withdrawal = await WithdrawalService.schedule(
             req.assetPool,
             WithdrawalType.ProposeWithdraw,
@@ -30,7 +34,7 @@ export const postWithdrawal = async (req: HttpRequest, res: Response, next: Next
             updatedAt: withdrawal.updatedAt,
         });
     } catch (error) {
-        next(new HttpError(500, error.toString(), error));
+        next(new HttpError(500, error.message, error));
     }
 };
 

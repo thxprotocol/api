@@ -66,8 +66,8 @@ export async function getEstimatesFromOracle(npid: NetworkProvider, type = 'fast
 
     return {
         baseFee: Number(estimatedBaseFee).toFixed(12),
-        maxPriorityFeePerGas: String(maxPriorityFee),
-        maxFeePerGas: String(maxFee),
+        maxPriorityFeePerGas: Math.ceil(maxPriorityFee),
+        maxFeePerGas: Math.ceil(maxFee),
         blockTime,
         blockNumber,
     };
@@ -115,7 +115,7 @@ export async function sendTransaction(to: string, fn: any, npid: NetworkProvider
     const gas = limit ? limit : estimate < MINIMUM_GAS_LIMIT ? MINIMUM_GAS_LIMIT : estimate;
     const feeData = await getEstimatesFromOracle(npid);
 
-    if (Number(feeData.maxFeePerGas) > Number(MAX_FEE_PER_GAS)) {
+    if (feeData.maxFeePerGas > Number(MAX_FEE_PER_GAS)) {
         throw new Error(ERROR_MAX_FEE_PER_GAS);
     }
 
