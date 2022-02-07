@@ -46,8 +46,6 @@ services:
         env_file: 
             - .env.example
             - .env.docker
-        environment:
-            - NODE_ENV=development
         depends_on:
             - api_mongo
             - api_mainnet
