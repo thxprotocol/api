@@ -1,6 +1,5 @@
 import { NextFunction, Response } from 'express';
 import {
-    ENVIRONMENT,
     PRIVATE_KEY,
     TESTNET_ASSET_POOL_FACTORY_ADDRESS,
     ASSET_POOL_FACTORY_ADDRESS,
@@ -8,6 +7,7 @@ import {
     RPC,
     MINIMUM_GAS_LIMIT,
     MAXIMUM_GAS_PRICE,
+    NODE_ENV,
 } from './secrets';
 import Web3 from 'web3';
 import axios from 'axios';
@@ -61,7 +61,7 @@ export async function getGasPriceFromOracle(type: string) {
 export async function getGasPrice(npid: NetworkProvider) {
     const web3 = getProvider(npid);
 
-    if (ENVIRONMENT === 'local' || (ENVIRONMENT !== 'test' && npid === NetworkProvider.Test)) {
+    if (['development', 'local'].includes(NODE_ENV) || (NODE_ENV !== 'test' && npid === NetworkProvider.Test)) {
         return await web3.eth.getGasPrice();
     }
 

@@ -9,7 +9,7 @@ RUN npm install --ci
 
 COPY . .
 
-CMD [ "ts-node", "src/server.ts" ]
+CMD [ "npx", "ts-node", "src/server.ts" ]
 
 FROM node:16-alpine as build
 
@@ -22,6 +22,8 @@ RUN npm run build
 CMD [ "node", "dist/src/server.js" ]
 
 FROM node:16-alpine as production
+
+ENV NODE_ENV=production
 
 WORKDIR /usr/src/app
 
