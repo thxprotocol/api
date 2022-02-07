@@ -7,7 +7,7 @@ services:
         env_file: .env.example
         restart: always
         networks:
-            - thx_network
+            - thx_network_api
         ports:
             - 27017:27017
         environment:
@@ -15,7 +15,7 @@ services:
             MONGO_INITDB_ROOT_PASSWORD: root
             MONGO_INITDB_DATABASE: admin
         volumes:
-            - ./cache/mongo-data:/data/db
+            - mongo-data:/data/db
             - ./scripts/mongo-init.sh:/docker-entrypoint-initdb.d/mongo-init.sh
 
     api:
@@ -32,13 +32,13 @@ services:
             - api_mongo
             - api_mainnet
         networks:
-            - thx_network
+            - thx_network_api
 
     api_node:
         container_name: thx_api_node
         image: node:16
         networks:
-            - thx_network
+            - thx_network_api
         volumes:
             - ./:/usr/src/service
         working_dir: /usr/src/service
@@ -57,7 +57,7 @@ services:
         container_name: thx_api_testnet
         image: trufflesuite/ganache:v7.0.2
         networks:
-            - thx_network
+            - thx_network_api
         ports:
             - '8547:8545'
         command: [
@@ -70,7 +70,7 @@ services:
         container_name: thx_api_mainnet
         image: trufflesuite/ganache:v7.0.2
         networks:
-            - thx_network
+            - thx_network_api
         ports:
             - '8546:8545'
         command: [
@@ -82,5 +82,4 @@ volumes:
     mongo-data:
     
 networks:
-    thx_network:
-        name: thx_network
+    thx_network_api:
