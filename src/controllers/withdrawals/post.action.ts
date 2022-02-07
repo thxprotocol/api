@@ -1,6 +1,7 @@
 import { NextFunction, Response } from 'express';
 import { HttpError, HttpRequest } from '../../models/Error';
 import { WithdrawalType } from '../../models/Withdrawal';
+import { agenda, eventNameProcessWithdrawals } from '../../util/agenda';
 
 import WithdrawalService from '../../services/WithdrawalService';
 
@@ -12,6 +13,8 @@ export const postWithdrawal = async (req: HttpRequest, res: Response, next: Next
             req.body.member,
             req.body.amount,
         );
+
+        agenda.now(eventNameProcessWithdrawals, null);
 
         res.status(201).json({
             id: withdrawal.id,

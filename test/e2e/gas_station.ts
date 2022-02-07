@@ -58,7 +58,6 @@ describe('Gas Station', () => {
                 .expect(201);
 
             poolAddress = body.address;
-            console.log(poolAddress);
         });
 
         it('Deposit into pool', async () => {

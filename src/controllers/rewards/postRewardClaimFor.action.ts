@@ -5,6 +5,7 @@ import { WithdrawalType } from '../../models/Withdrawal';
 import RewardService from '../../services/RewardService';
 import WithdrawalService from '../../services/WithdrawalService';
 import MemberService, { ERROR_IS_NOT_MEMBER } from '../../services/MemberService';
+import { agenda, eventNameProcessWithdrawals } from '../../util/agenda';
 
 const ERROR_NO_REWARD = 'Could not find a reward for this id';
 
@@ -26,10 +27,11 @@ export const postRewardClaimFor = async (req: HttpRequest, res: Response, next: 
             reward.withdrawAmount,
             rewardId,
         );
-        const id = withdrawal._id.toString();
+
+        agenda.now(eventNameProcessWithdrawals, null);
 
         return res.json({
-            id,
+            id: String(withdrawal._id),
             type: withdrawal.type,
             withdrawalId: withdrawal.withdrawalId,
             beneficiary: withdrawal.beneficiary,
