@@ -16,8 +16,6 @@ import { Contract } from 'web3-eth-contract';
 import { Account } from 'web3-core';
 import { getToken } from './lib/jwt';
 import { mockClear, mockStart } from './lib/mock';
-import { Artifacts } from '../../src/util/artifacts';
-import { findEvent, parseLogs } from '../../src/util/events';
 
 const user = request.agent(server);
 
@@ -58,7 +56,6 @@ describe('Gas Station', () => {
                 .expect(201);
 
             poolAddress = body.address;
-            console.log(poolAddress);
         });
 
         it('Deposit into pool', async () => {
@@ -136,9 +133,6 @@ describe('Gas Station', () => {
                     call,
                     nonce,
                     sig,
-                })
-                .expect(({ body }: request.Response) => {
-                    console.log(body);
                 })
                 .expect(200);
         });
