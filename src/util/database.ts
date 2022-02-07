@@ -36,7 +36,7 @@ const truncate = async () => {
     if (mongoose.connection.readyState !== 0) {
         const { collections } = mongoose.connection;
         const promises = Object.keys(collections).map((collection) => {
-            if (collection !== 'jobs') return mongoose.connection.collection(collection).deleteMany({});
+            return mongoose.connection.collection(collection).deleteMany({});
         });
 
         await Promise.all(promises);
