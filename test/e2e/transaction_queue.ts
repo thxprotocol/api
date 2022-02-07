@@ -150,7 +150,6 @@ describe('Transaction Queue', () => {
                 done();
             };
             agenda.on(`fail:${eventNameProcessWithdrawals}`, callback);
-            agenda.now(eventNameProcessWithdrawals, null);
         });
 
         it('should remove exceeding gas price mock', async () => {
@@ -164,7 +163,6 @@ describe('Transaction Queue', () => {
                 done();
             };
             agenda.on(`success:${eventNameProcessWithdrawals}`, callback);
-            agenda.now(eventNameProcessWithdrawals, null);
         });
     });
 
@@ -204,7 +202,6 @@ describe('Transaction Queue', () => {
                 done();
             };
             agenda.on(`success:${eventNameProcessWithdrawals}`, callback);
-            agenda.now(eventNameProcessWithdrawals, null);
         });
 
         it('should see a withdrawal with failReason', async () => {
