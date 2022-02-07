@@ -35,13 +35,13 @@ afterAll(async () => {
     mockClear();
 });
 
-require('./api.test');
-require('./widgets.test');
-require('./signup.test');
-require('./bypass_polls.test');
-require('./propose_withdrawal.test');
-require('./unlimited_token.test');
-require('./voting.test');
-require('./gas_station.test');
-require('./roles.test');
-require('./transaction_queue.test');
+require('./api.ts');
+require('./widgets.ts');
+require('./signup.ts');
+require('./bypass_polls.ts');
+require('./propose_withdrawal.ts');
+require('./unlimited_token.ts');
+require('./voting.ts');
+require('./gas_station.ts');
+require('./roles.ts');
+require('./transaction_queue.ts');
