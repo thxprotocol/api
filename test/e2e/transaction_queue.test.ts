@@ -1,7 +1,6 @@
 import request, { Response } from 'supertest';
 import server from '../../src/server';
 import db from '../../src/util/database';
-import { Job } from 'agenda';
 import {
     exceedingFeeData,
     feeData,
@@ -13,10 +12,10 @@ import {
 import { isAddress } from 'web3-utils';
 import { Account } from 'web3-core';
 import { getToken } from './lib/jwt';
-import { createWallet, voter } from './lib/network';
+import { createWallet } from './lib/network';
 import { mockClear, mockStart, mockUrl } from './lib/mock';
 import { agenda, eventNameProcessWithdrawals } from '../../src/util/agenda';
-import { ERROR_MAX_FEE_PER_GAS } from '../../src/util/network';
+import { ERROR_MAX_FEE_PER_GAS, NetworkProvider } from '../../src/util/network';
 
 const user = request.agent(server);
 
@@ -50,7 +49,7 @@ describe('Transaction Queue', () => {
                 .post('/v1/asset_pools')
                 .set('Authorization', dashboardAccessToken)
                 .send({
-                    network: 1,
+                    network: NetworkProvider.Main,
                     token: {
                         name: tokenName,
                         symbol: tokenSymbol,
@@ -144,7 +143,7 @@ describe('Transaction Queue', () => {
         });
 
         it('should cast a fail event', (done) => {
-            const callback = async (error: Error, job: Job) => {
+            const callback = async (error: Error) => {
                 agenda.off(`fail:${eventNameProcessWithdrawals}`, callback);
                 expect(error.message).toBe(ERROR_MAX_FEE_PER_GAS);
                 done();
@@ -173,11 +172,11 @@ describe('Transaction Queue', () => {
             await agenda.disable({ name: eventNameProcessWithdrawals });
         });
 
-        it('should propose 1 withdrawal for unknown member', async () => {
+        it('should propose 1 withdrawal for a member', async () => {
             await user
                 .post('/v1/withdrawals')
                 .send({
-                    member: voter.address,
+                    member: userWallet.address,
                     amount: rewardWithdrawAmount,
                 })
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
@@ -188,6 +187,12 @@ describe('Transaction Queue', () => {
                     withdrawalDocumentId = body.id;
                 })
                 .expect(201);
+        });
+
+        it('should mock a 502 status for gas station', async () => {
+            mockClear();
+            mockUrl('get', 'https://gasstation-mainnet.matic.network', '/v2', 502, feeData);
+            mockStart();
         });
 
         it('should enable job processor', async () => {

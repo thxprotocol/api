@@ -49,7 +49,7 @@ describe('Voting', () => {
             user.post('/v1/asset_pools')
                 .set('Authorization', dashboardAccessToken)
                 .send({
-                    network: 1,
+                    network: NetworkProvider.Main,
                     token: {
                         name: tokenName,
                         symbol: tokenSymbol,
