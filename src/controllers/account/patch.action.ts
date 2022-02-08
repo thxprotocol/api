@@ -1,9 +1,9 @@
-import { Response, NextFunction } from 'express';
-import { HttpError, HttpRequest } from '../../models/Error';
+import { Request, Response, NextFunction } from 'express';
+import { HttpError } from '../../models/Error';
 import { VERSION } from '../../util/secrets';
 import AccountProxy from '../../proxies/AccountProxy';
 
-export const patchAccount = async (req: HttpRequest, res: Response, next: NextFunction) => {
+export const patchAccount = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { result, error } = await AccountProxy.update(req.user.sub, {
             address: req.body.address,

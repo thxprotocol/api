@@ -1,5 +1,5 @@
-import { Response, NextFunction } from 'express';
-import { HttpError, HttpRequest } from '../../models/Error';
+import { Request, Response, NextFunction } from 'express';
+import { HttpError } from '../../models/Error';
 import { VERSION } from '../../util/secrets';
 import { toWei } from 'web3-utils';
 import { RewardDocument, IRewardCondition } from '../../models/Reward';
@@ -12,7 +12,7 @@ const ERROR_FINALIZE_REWARD_POLL_FAILED = 'Could not finalize your reward poll';
 const ERROR_BYPASS_POLL_CHECK_FAILED = 'Could not check your governance setting';
 const ERROR_NO_REWARD = 'Could not find a created reward';
 
-export const postReward = async (req: HttpRequest, res: Response, next: NextFunction) => {
+export const postReward = async (req: Request, res: Response, next: NextFunction) => {
     async function createReward(
         withdrawAmount: any,
         withdrawDuration: number,

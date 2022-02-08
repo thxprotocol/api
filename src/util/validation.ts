@@ -1,6 +1,6 @@
 import { body, validationResult } from 'express-validator';
 import { Response, Request, NextFunction } from 'express';
-import { HttpError, HttpRequest } from '../models/Error';
+import { HttpError } from '../models/Error';
 import { AssetPool } from '../models/AssetPool';
 import AssetPoolService from '../services/AssetPoolService';
 
@@ -18,7 +18,7 @@ export const validate = (validations: any) => {
     };
 };
 
-export const validateAssetPoolHeader = async (req: HttpRequest, res: Response, next: NextFunction) => {
+export const validateAssetPoolHeader = async (req: Request, res: Response, next: NextFunction) => {
     // If there is a sub check the account for user membership
     if (req.user.sub) {
         if (req.user.scope.includes('widget')) {

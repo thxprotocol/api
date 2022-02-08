@@ -1,6 +1,4 @@
 import { logger } from '../util/logger';
-import { Request } from 'express';
-import { IAssetPool } from './AssetPool';
 
 export class HttpError extends Error {
     timestamp: number;
@@ -20,10 +18,4 @@ export class HttpError extends Error {
         this.status = status;
         this.timestamp = Date.now();
     }
-}
-
-export interface HttpRequest extends Request {
-    origin?: string;
-    user?: any;
-    assetPool?: IAssetPool;
 }

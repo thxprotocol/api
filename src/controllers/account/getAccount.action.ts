@@ -1,8 +1,8 @@
-import { Response, NextFunction } from 'express';
-import { HttpError, HttpRequest } from '../../models/Error';
+import { Request, Response, NextFunction } from 'express';
+import { HttpError } from '../../models/Error';
 import AccountProxy from '../../proxies/AccountProxy';
 
-export const getAccount = async (req: HttpRequest, res: Response, next: NextFunction) => {
+export const getAccount = async (req: Request, res: Response, next: NextFunction) => {
     async function getAccount() {
         const { account, error } = await AccountProxy.getById(req.user.sub);
         if (error) throw new Error(error.message);

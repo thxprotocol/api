@@ -1,6 +1,6 @@
 import qrcode from 'qrcode';
-import { HttpError, HttpRequest } from '../../models/Error';
-import { NextFunction, Response } from 'express';
+import { HttpError } from '../../models/Error';
+import { Request, NextFunction, Response } from 'express';
 import { sendTransaction } from '../../util/network';
 
 import WithdrawalService from '../../services/WithdrawalService';
@@ -45,7 +45,7 @@ import WithdrawalService from '../../services/WithdrawalService';
  *       '502':
  *         $ref: '#/components/responses/502'
  */
-export const postPollFinalize = async (req: HttpRequest, res: Response, next: NextFunction) => {
+export const postPollFinalize = async (req: Request, res: Response, next: NextFunction) => {
     switch (req.assetPool.bypassPolls) {
         case true:
             try {

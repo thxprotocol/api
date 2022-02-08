@@ -1,8 +1,8 @@
-import { Response, NextFunction } from 'express';
-import { HttpRequest, HttpError } from '../../models/Error';
+import { Response, NextFunction, Request } from 'express';
+import { HttpError } from '../../models/Error';
 import AccountProxy from '../../proxies/AccountProxy';
 
-export const deleteAccount = async (req: HttpRequest, res: Response, next: NextFunction) => {
+export const deleteAccount = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { error } = await AccountProxy.remove(req.user.sub);
 

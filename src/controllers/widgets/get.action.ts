@@ -1,9 +1,9 @@
-import { Response, NextFunction } from 'express';
-import { HttpError, HttpRequest } from '../../models/Error';
+import { Request, Response, NextFunction } from 'express';
+import { HttpError } from '../../models/Error';
 import WidgetService from '../../services/WidgetService';
 import ClientService from '../../services/ClientService';
 
-export const getWidget = async (req: HttpRequest, res: Response, next: NextFunction) => {
+export const getWidget = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { client } = await ClientService.get(req.params.clientId);
 

@@ -1,13 +1,13 @@
-import { Response, NextFunction } from 'express';
+import { Request, Response, NextFunction } from 'express';
 import { callFunction, sendTransaction } from '../../util/network';
-import { HttpError, HttpRequest } from '../../models/Error';
+import { HttpError } from '../../models/Error';
 import { parseLogs, findEvent } from '../../util/events';
 import { Artifacts } from '../../util/artifacts';
 import AccountProxy from '../../proxies/AccountProxy';
 import WithdrawalService from '../../services/WithdrawalService';
 import MemberService from '../../services/MemberService';
 
-export const postCallUpgradeAddress = async (req: HttpRequest, res: Response, next: NextFunction) => {
+export const postCallUpgradeAddress = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const isMember = await callFunction(
             req.assetPool.solution.methods.isMember(req.body.newAddress),

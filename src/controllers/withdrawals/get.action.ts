@@ -1,5 +1,5 @@
-import { NextFunction, Response } from 'express';
-import { HttpRequest, HttpError } from '../../models/Error';
+import { Request, NextFunction, Response } from 'express';
+import { HttpError } from '../../models/Error';
 
 import WithdrawalService from '../../services/WithdrawalService';
 
@@ -72,7 +72,7 @@ import WithdrawalService from '../../services/WithdrawalService';
  *       '502':
  *         $ref: '#/components/responses/502'
  */
-export const getWithdrawal = async (req: HttpRequest, res: Response, next: NextFunction) => {
+export const getWithdrawal = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { withdrawal } = await WithdrawalService.getById(req.params.id);
 

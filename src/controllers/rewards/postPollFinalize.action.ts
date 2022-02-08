@@ -1,9 +1,9 @@
 import RewardService from '../../services/RewardService';
-import { HttpError, HttpRequest } from '../../models/Error';
-import { NextFunction, Response } from 'express';
+import { HttpError } from '../../models/Error';
+import { Request, NextFunction, Response } from 'express';
 import { RewardDocument } from '../../models/Reward';
 
-export const postPollFinalize = async (req: HttpRequest, res: Response, next: NextFunction) => {
+export const postPollFinalize = async (req: Request, res: Response, next: NextFunction) => {
     async function getReward(rewardId: number) {
         const { reward, error } = await RewardService.get(req.assetPool, rewardId);
         if (error) {

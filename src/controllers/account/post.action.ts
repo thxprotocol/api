@@ -1,5 +1,5 @@
-import { Response, NextFunction } from 'express';
-import { HttpError, HttpRequest } from '../../models/Error';
+import { Request, Response, NextFunction } from 'express';
+import { HttpError } from '../../models/Error';
 import MemberService from '../../services/MemberService';
 import AccountProxy from '../../proxies/AccountProxy';
 import MembershipService from '../../services/MembershipService';
@@ -7,7 +7,7 @@ import MembershipService from '../../services/MembershipService';
 const ERROR_DUPLICATE_EMAIL = 'An account with this e-mail address already exists.';
 const ERROR_CREATE_ACCOUNT = 'Could not signup for an account';
 
-export const postAccount = async (req: HttpRequest, res: Response, next: NextFunction) => {
+export const postAccount = async (req: Request, res: Response, next: NextFunction) => {
     async function checkDuplicateEmail() {
         const { isDuplicate } = await AccountProxy.isEmailDuplicate(req.body.email);
 

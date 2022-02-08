@@ -1,10 +1,10 @@
-import { Response, NextFunction } from 'express';
-import { HttpError, HttpRequest } from '../../models/Error';
+import { Request, Response, NextFunction } from 'express';
+import { HttpError } from '../../models/Error';
 import { WIDGETS_URL } from '../../util/secrets';
 import WidgetService from '../../services/WidgetService';
 import ClientService from '../../services/ClientService';
 
-export const postWidget = async (req: HttpRequest, res: Response, next: NextFunction) => {
+export const postWidget = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { client, error } = await ClientService.create(req.user.sub, {
             application_type: 'web',

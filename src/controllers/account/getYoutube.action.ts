@@ -1,8 +1,8 @@
 import YoutubeDataProxy from '../../proxies/YoutubeDataProxy';
-import { Response, NextFunction } from 'express';
-import { HttpError, HttpRequest } from '../../models/Error';
+import { Request, Response, NextFunction } from 'express';
+import { HttpError } from '../../models/Error';
 
-export const getYoutube = async (req: HttpRequest, res: Response, next: NextFunction) => {
+export const getYoutube = async (req: Request, res: Response, next: NextFunction) => {
     async function getYouTube() {
         const { isAuthorized, channels, videos, error } = await YoutubeDataProxy.getYoutube(req.user.sub);
         if (error) throw new Error(error.message);

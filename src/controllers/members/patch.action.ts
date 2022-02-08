@@ -1,6 +1,6 @@
-import { NextFunction, Response } from 'express';
+import { Request, NextFunction, Response } from 'express';
 import { callFunction, sendTransaction } from '../../util/network';
-import { HttpRequest, HttpError } from '../../models/Error';
+import { HttpError } from '../../models/Error';
 import { VERSION } from '../../util/secrets';
 
 /**
@@ -39,7 +39,7 @@ import { VERSION } from '../../util/secrets';
  *       '502':
  *         $ref: '#/components/responses/502'
  */
-export const patchMember = async (req: HttpRequest, res: Response, next: NextFunction) => {
+export const patchMember = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const isMember = await callFunction(
             req.assetPool.solution.methods.isMember(req.params.address),

@@ -1,10 +1,10 @@
-import { NextFunction, Response } from 'express';
-import { HttpError, HttpRequest } from '../../models/Error';
+import { Request, NextFunction, Response } from 'express';
+import { HttpError } from '../../models/Error';
 import MemberService, { ERROR_IS_NOT_MEMBER } from '../../services/MemberService';
 import AccountProxy from '../../proxies/AccountProxy';
 import MembershipService from '../../services/MembershipService';
 
-export const deleteMember = async (req: HttpRequest, res: Response, next: NextFunction) => {
+export const deleteMember = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { isMember, error } = await MemberService.isMember(req.assetPool, req.params.address);
 
