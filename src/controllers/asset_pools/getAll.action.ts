@@ -1,8 +1,8 @@
-import { Response, NextFunction } from 'express';
-import { HttpError, HttpRequest } from '../../models/Error';
+import { Request, Response, NextFunction } from 'express';
+import { HttpError } from '../../models/Error';
 import AssetPoolService from '../../services/AssetPoolService';
 
-export const getAssetPools = async (req: HttpRequest, res: Response, next: NextFunction) => {
+export const getAssetPools = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { result, error } = await AssetPoolService.getAll(req.user.sub);
         if (error) throw new Error(error);

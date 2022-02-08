@@ -1,11 +1,11 @@
 import MemberService from '../../services/MemberService';
 import MembershipService from '../../services/MembershipService';
 import AccountProxy from '../../proxies/AccountProxy';
-import { NextFunction, Response } from 'express';
-import { HttpRequest, HttpError } from '../../models/Error';
+import { Request, NextFunction, Response } from 'express';
+import { HttpError } from '../../models/Error';
 import { VERSION } from '../../util/secrets';
 
-export async function postMember(req: HttpRequest, res: Response, next: NextFunction) {
+export async function postMember(req: Request, res: Response, next: NextFunction) {
     try {
         const { account, error } = await AccountProxy.getByAddress(req.body.address);
 

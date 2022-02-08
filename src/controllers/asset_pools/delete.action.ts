@@ -1,5 +1,5 @@
-import { Response, NextFunction } from 'express';
-import { HttpRequest, HttpError } from '../../models/Error';
+import { Request, Response, NextFunction } from 'express';
+import { HttpError } from '../../models/Error';
 import RewardService from '../../services/RewardService';
 import WithdrawalService from '../../services/WithdrawalService';
 import ClientService from '../../services/ClientService';
@@ -10,7 +10,7 @@ const ERROR_REMOVE_WITHDRAWALS = 'Could not remove withdrawals.';
 const ERROR_REMOVE_CLIENT = 'Could not remove client.';
 const ERROR_REMOVE_ASSETPOOL = 'Could not remove asset pool.';
 
-export async function deleteAssetPool(req: HttpRequest, res: Response, next: NextFunction) {
+export async function deleteAssetPool(req: Request, res: Response, next: NextFunction) {
     async function removeAssetPool(address: string) {
         const { error } = await AssetPoolService.removeByAddress(address);
         if (error) {

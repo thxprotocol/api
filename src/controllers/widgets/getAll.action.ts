@@ -1,10 +1,10 @@
-import { Response, NextFunction } from 'express';
-import { HttpError, HttpRequest } from '../../models/Error';
+import { Request, Response, NextFunction } from 'express';
+import { HttpError } from '../../models/Error';
 import WidgetService from '../../services/WidgetService';
 
 const ERROR_WIDGET_FETCH_DATEBASE = 'Could not fetch widgets from database';
 
-export const getWidgets = async (req: HttpRequest, res: Response, next: NextFunction) => {
+export const getWidgets = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { result, error } = await WidgetService.getForUserByPool(req.user.sub, req.query.asset_pool.toString());
 

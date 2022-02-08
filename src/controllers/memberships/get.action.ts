@@ -1,11 +1,11 @@
-import { NextFunction, Response } from 'express';
-import { HttpError, HttpRequest } from '../../models/Error';
+import { Request, NextFunction, Response } from 'express';
+import { HttpError } from '../../models/Error';
 
 import MembershipService from '../../services/MembershipService';
 import WithdrawalService from '../../services/WithdrawalService';
 import AccountProxy from '../../proxies/AccountProxy';
 
-export const getMembership = async (req: HttpRequest, res: Response, next: NextFunction) => {
+export const getMembership = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { membership } = await MembershipService.getById(req.params.id);
         const { account } = await AccountProxy.getById(req.user.sub);

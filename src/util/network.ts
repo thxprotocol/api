@@ -1,4 +1,4 @@
-import { NextFunction, Response } from 'express';
+import { Request, NextFunction, Response } from 'express';
 import {
     PRIVATE_KEY,
     TESTNET_ASSET_POOL_FACTORY_ADDRESS,
@@ -13,7 +13,7 @@ import axios from 'axios';
 import BN from 'bn.js';
 import { isAddress } from 'web3-utils';
 import { utils } from 'ethers/lib';
-import { HttpError, HttpRequest } from '../models/Error';
+import { HttpError } from '../models/Error';
 import { AssetPool } from '../models/AssetPool';
 import { Contract } from 'web3-eth-contract';
 import { Artifacts } from './artifacts';
@@ -201,7 +201,7 @@ export const tokenContract = (npid: NetworkProvider, address: string): Contract 
     return new web3.eth.Contract(Artifacts.ERC20.abi as any, address);
 };
 
-export async function parseHeader(req: HttpRequest, res: Response, next: NextFunction) {
+export async function parseHeader(req: Request, res: Response, next: NextFunction) {
     const address = req.header('AssetPool');
 
     if (address && isAddress(address)) {
@@ -211,7 +211,7 @@ export async function parseHeader(req: HttpRequest, res: Response, next: NextFun
             return next(new HttpError(404, 'Asset Pool is not found in database.'));
         }
 
-        (req as HttpRequest).assetPool = assetPool;
+        req.assetPool = assetPool;
     }
 
     return next();

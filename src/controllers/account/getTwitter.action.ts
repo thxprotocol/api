@@ -1,8 +1,8 @@
 import TwitterDataProxy from '../../proxies/TwitterDataProxy';
-import { Response, NextFunction } from 'express';
-import { HttpError, HttpRequest } from '../../models/Error';
+import { Request, Response, NextFunction } from 'express';
+import { HttpError } from '../../models/Error';
 
-export const getTwitter = async (req: HttpRequest, res: Response, next: NextFunction) => {
+export const getTwitter = async (req: Request, res: Response, next: NextFunction) => {
     async function getTwitterData() {
         const { isAuthorized, tweets, users, error } = await TwitterDataProxy.getTwitter(req.user.sub);
         if (error) throw new Error(error.message);

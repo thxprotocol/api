@@ -1,12 +1,12 @@
-import { NextFunction, Response } from 'express';
-import { HttpError, HttpRequest } from '../../models/Error';
+import { Request, NextFunction, Response } from 'express';
+import { HttpError } from '../../models/Error';
 import { WithdrawalType } from '../../models/Withdrawal';
 import { agenda, eventNameProcessWithdrawals } from '../../util/agenda';
 
 import MemberService, { ERROR_IS_NOT_MEMBER } from '../../services/MemberService';
 import WithdrawalService from '../../services/WithdrawalService';
 
-export const postWithdrawal = async (req: HttpRequest, res: Response, next: NextFunction) => {
+export const postWithdrawal = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { isMember } = await MemberService.isMember(req.assetPool, req.body.member);
         if (!isMember) throw new Error(ERROR_IS_NOT_MEMBER);

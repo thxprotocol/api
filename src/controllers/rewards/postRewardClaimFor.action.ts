@@ -1,5 +1,5 @@
-import { Response, NextFunction } from 'express';
-import { HttpError, HttpRequest } from '../../models/Error';
+import { Request, Response, NextFunction } from 'express';
+import { HttpError } from '../../models/Error';
 import { WithdrawalType } from '../../models/Withdrawal';
 
 import RewardService from '../../services/RewardService';
@@ -9,7 +9,7 @@ import { agenda, eventNameProcessWithdrawals } from '../../util/agenda';
 
 const ERROR_NO_REWARD = 'Could not find a reward for this id';
 
-export const postRewardClaimFor = async (req: HttpRequest, res: Response, next: NextFunction) => {
+export const postRewardClaimFor = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const rewardId = Number(req.params.id);
         const { reward } = await RewardService.get(req.assetPool, rewardId);

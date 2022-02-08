@@ -1,6 +1,6 @@
-import { Response, NextFunction } from 'express';
+import { Request, Response, NextFunction } from 'express';
 import { sendTransaction } from '../../util/network';
-import { HttpError, HttpRequest } from '../../models/Error';
+import { HttpError } from '../../models/Error';
 import { hex2a, parseLogs, findEvent } from '../../util/events';
 import { Artifacts } from '../../util/artifacts';
 import { eventIndexer } from '../../util/indexer';
@@ -14,7 +14,7 @@ const eventNames = [
     'WithdrawPollRevokedVote',
 ];
 
-export const postCall = async (req: HttpRequest, res: Response, next: NextFunction) => {
+export const postCall = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const tx = await sendTransaction(
             req.assetPool.solution.options.address,

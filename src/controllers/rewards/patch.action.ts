@@ -1,10 +1,10 @@
 import RewardService from '../../services/RewardService';
 import AssetPoolService from '../../services/AssetPoolService';
-import { Response, NextFunction } from 'express';
-import { HttpRequest, HttpError } from '../../models/Error';
+import { Request, Response, NextFunction } from 'express';
+import { HttpError } from '../../models/Error';
 import { RewardDocument, IRewardUpdates } from '../../models/Reward';
 
-export async function patchReward(req: HttpRequest, res: Response, next: NextFunction) {
+export async function patchReward(req: Request, res: Response, next: NextFunction) {
     async function getReward(rewardId: number) {
         const { reward, error } = await RewardService.get(req.assetPool, rewardId);
         if (!reward) {

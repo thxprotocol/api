@@ -1,5 +1,5 @@
-import { Response, NextFunction } from 'express';
-import { HttpError, HttpRequest } from '../../models/Error';
+import { Request, Response, NextFunction } from 'express';
+import { HttpError } from '../../models/Error';
 import { RewardDocument } from '../../models/Reward';
 import { IAccount } from '../../models/Account';
 import { WithdrawalType } from '../../models/Withdrawal';
@@ -16,7 +16,7 @@ const ERROR_INCORRECT_SCOPE = 'No subscription is found for this type of access 
 const ERROR_CAIM_NOT_ALLOWED = 'Could not claim this reward due to the claim conditions.';
 const ERROR_NO_MEMBER = 'Could not claim this reward since you are not a member of the pool.';
 
-export async function postRewardClaim(req: HttpRequest, res: Response, next: NextFunction) {
+export async function postRewardClaim(req: Request, res: Response, next: NextFunction) {
     async function getReward(rewardId: number) {
         const { reward, error } = await RewardService.get(req.assetPool, rewardId);
         if (error) throw new Error(error.message);

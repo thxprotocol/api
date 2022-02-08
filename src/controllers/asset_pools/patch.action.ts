@@ -1,8 +1,8 @@
-import { Response, NextFunction } from 'express';
-import { HttpRequest, HttpError } from '../../models/Error';
+import { Request, Response, NextFunction } from 'express';
+import { HttpError } from '../../models/Error';
 import AssetPoolService from '../../services/AssetPoolService';
 
-export const patchAssetPool = async (req: HttpRequest, res: Response, next: NextFunction) => {
+export const patchAssetPool = async (req: Request, res: Response, next: NextFunction) => {
     const { assetPool, error } = await AssetPoolService.getByAddress(req.params.address);
 
     if (error) throw new Error(error);

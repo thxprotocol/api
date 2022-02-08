@@ -1,9 +1,9 @@
-import { NextFunction, Response } from 'express';
-import { HttpError, HttpRequest } from '../../models/Error';
+import { Request, NextFunction, Response } from 'express';
+import { HttpError } from '../../models/Error';
 
 import WithdrawalService from '../../services/WithdrawalService';
 
-export const getWithdrawals = async (req: HttpRequest, res: Response, next: NextFunction) => {
+export const getWithdrawals = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const withdrawals = [];
         const { result, error } = await WithdrawalService.getAll(
