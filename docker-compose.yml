@@ -61,8 +61,6 @@ services:
     api_mainnet:
         container_name: thx_api_mainnet
         image: trufflesuite/ganache:v7.0.2
-        networks:
-            - thx_network_api
         ports:
             - '8546:8545'
         command: [
