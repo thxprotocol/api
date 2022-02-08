@@ -27,7 +27,7 @@ services:
             - .env.example
             - .env.docker
         ports:
-            - 3002:3000
+            - 3002:3001
         depends_on:
             - api_mongo
             - api_mainnet
@@ -51,7 +51,7 @@ services:
             - api_mainnet
             - api_testnet
         ports:
-            - 3000:3000
+            - 3001:3001
        
     api_testnet:
         container_name: thx_api_testnet

@@ -19,7 +19,7 @@ COPY --from=develop ./usr/src/app/ ./
 
 RUN npm run build
 
-CMD [ "node", "dist/src/server.js" ]
+CMD [ "dist/src/server.js" ]
 
 FROM node:16-alpine as production
 
@@ -39,4 +39,4 @@ COPY --from=build ./usr/src/app/dist ./
 
 EXPOSE 3001
 
-CMD [ "node", "src/server.js" ]
+CMD [ "src/server.js" ]
