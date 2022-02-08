@@ -13,7 +13,7 @@ import withdrawalsRouter from './withdrawals/_.routing';
 import membershipsRouter from './memberships/_.routing';
 import tokenRouter from './token/_.routing';
 import { checkJwt } from '../util/jwt';
-import { ignoreTransaction } from 'util/newrelic';
+import { ignoreTransaction } from '../util/newrelic';
 
 const router = express.Router();
 
