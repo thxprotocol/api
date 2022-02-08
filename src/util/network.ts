@@ -114,6 +114,7 @@ export async function sendTransaction(to: string, fn: any, npid: NetworkProvider
     const estimate = await fn.estimateGas({ from: admin.address });
     const gas = limit ? limit : estimate < MINIMUM_GAS_LIMIT ? MINIMUM_GAS_LIMIT : estimate;
     const feeData = await getEstimatesFromOracle(npid);
+    const nonce = await web3.eth.getTransactionCount(admin.address, 'pending');
 
     if (feeData.maxFeePerGas > Number(MAX_FEE_PER_GAS)) {
         throw new Error(ERROR_MAX_FEE_PER_GAS);
@@ -125,6 +126,7 @@ export async function sendTransaction(to: string, fn: any, npid: NetworkProvider
             to,
             maxPriorityFeePerGas: feeData.maxPriorityFeePerGas,
             data,
+            nonce,
         },
         PRIVATE_KEY,
     );
