@@ -19,6 +19,8 @@ export const agenda = new Agenda({
         collection: 'jobs',
     },
     maxConcurrency: 1,
+    lockLimit: 1,
+    processEvery: '1 second',
 });
 
 async function updateFailReason(withdrawal: WithdrawalDocument, failReason: string) {
