@@ -1,3 +1,4 @@
+import { fromWei } from 'web3-utils';
 import db from '../../src/util/database';
 import server from '../../src/server';
 import { deployFacets } from '../../scripts/lib/facets';
@@ -8,8 +9,10 @@ import { ASSET_POOL_FACTORY_ADDRESS, POOL_REGISTRY_ADDRESS } from '../../src/uti
 import { agenda } from '../../src/util/agenda';
 import { mockClear, mockStart } from './lib/mock';
 
+let balanceDiff = 0;
+
 beforeAll(async () => {
-    const { web3 } = getProvider(NetworkProvider.Main);
+    const { web3, admin } = getProvider(NetworkProvider.Main);
     const factoryExists = (await web3.eth.getCode(ASSET_POOL_FACTORY_ADDRESS)) !== '0x';
     const registryExists = (await web3.eth.getCode(POOL_REGISTRY_ADDRESS)) !== '0x';
 
@@ -22,9 +25,16 @@ beforeAll(async () => {
     } else {
         console.log('Factory and registry available!');
     }
+
+    balanceDiff = Number(fromWei(await web3.eth.getBalance(admin.address)));
+    console.log('Admin balance:', balanceDiff);
 });
 
 afterAll(async () => {
+    const { web3, admin } = getProvider(NetworkProvider.Main);
+    const balance = Number(fromWei(await web3.eth.getBalance(admin.address)));
+    console.log('Admin balance:', `${balance} (${balanceDiff - balance})`);
+
     await agenda.stop();
     await agenda.close();
 
