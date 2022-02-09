@@ -1,3 +1,4 @@
+import './util/newrelic';
 import http from 'http';
 import app from './app';
 import db from './util/database';
