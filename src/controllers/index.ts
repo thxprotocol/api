@@ -13,14 +13,10 @@ import withdrawalsRouter from './withdrawals/_.routing';
 import membershipsRouter from './memberships/_.routing';
 import tokenRouter from './token/_.routing';
 import { checkJwt } from '../util/jwt';
-import { ignoreTransaction } from '../util/newrelic';
 
 const router = express.Router();
 
-router.use('/ping', (_req, res) => {
-    ignoreTransaction();
-    res.send('pong');
-});
+router.use('/ping', (_req, res) => res.send('pong'));
 router.use('/health', healthRouter);
 router.use('/token', tokenRouter);
 router.use('/docs', docsRouter);
