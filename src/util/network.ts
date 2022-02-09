@@ -11,6 +11,7 @@ import {
 import Web3 from 'web3';
 import axios from 'axios';
 import BN from 'bn.js';
+import { toWei } from 'web3-utils';
 import { isAddress } from 'web3-utils';
 import { utils } from 'ethers/lib';
 import { HttpError } from '../models/Error';
@@ -59,15 +60,14 @@ export async function getEstimatesFromOracle(npid: NetworkProvider, type = 'fast
         throw new Error(ERROR_NO_FEEDATA);
     }
 
-    const { maxPriorityFee, maxFee } = r.data[type];
     const estimatedBaseFee = r.data.estimatedBaseFee;
     const blockTime = r.data.blockTime;
     const blockNumber = r.data.blockNumber;
 
     return {
         baseFee: Number(estimatedBaseFee).toFixed(12),
-        maxPriorityFeePerGas: Math.ceil(maxPriorityFee),
-        maxFeePerGas: Math.ceil(maxFee),
+        maxPriorityFeePerGas: r.data[type].maxPriorityFee,
+        maxFeePerGas: r.data[type].maxFee,
         blockTime,
         blockNumber,
     };
@@ -100,6 +100,7 @@ export async function deployContract(abi: any, bytecode: any, arg: any[], npid: 
 }
 
 // TODO This is redundant since defaultAccount is set and from not needed
+// Should be re-introduced when a gas admin per pool is available.
 export async function callFunction(fn: any, npid: NetworkProvider) {
     const { admin } = getProvider(npid);
 
@@ -108,15 +109,21 @@ export async function callFunction(fn: any, npid: NetworkProvider) {
     });
 }
 
-export async function sendTransaction(to: string, fn: any, npid: NetworkProvider, limit: number | null = null) {
+// gasLimit is set for methods that have incorrect default gas estimates, resulting in tx running out of gas
+export async function sendTransaction(to: string, fn: any, npid: NetworkProvider, gasLimit: number | null = null) {
     const { web3, admin } = getProvider(npid);
     const data = fn.encodeABI();
     const estimate = await fn.estimateGas({ from: admin.address });
-    const gas = limit ? limit : estimate < MINIMUM_GAS_LIMIT ? MINIMUM_GAS_LIMIT : estimate;
-    const feeData = await getEstimatesFromOracle(npid);
+    // MINIMUM_GAS_LIMIT is set for tx that have a lower estimate than allowed by the network
+    const gas = gasLimit ? gasLimit : estimate < MINIMUM_GAS_LIMIT ? MINIMUM_GAS_LIMIT : estimate;
     const nonce = await web3.eth.getTransactionCount(admin.address, 'pending');
+    const feeData = await getEstimatesFromOracle(npid);
+    const maxFeePerGasLimit = toWei(String(MAX_FEE_PER_GAS), 'gwei');
+    const maxFeePerGas = toWei(String(Math.ceil(feeData.maxFeePerGas)), 'gwei');
+    // const maxPriorityFeePerGas = toWei(String(Math.ceil(feeData.maxPriorityFeePerGas)), 'gwei');
 
-    if (feeData.maxFeePerGas > Number(MAX_FEE_PER_GAS)) {
+    // This comparison is in gwei
+    if (Number(maxFeePerGas) > Number(maxFeePerGasLimit)) {
         throw new Error(ERROR_MAX_FEE_PER_GAS);
     }
 
@@ -124,7 +131,7 @@ export async function sendTransaction(to: string, fn: any, npid: NetworkProvider
         {
             gas,
             to,
-            maxPriorityFeePerGas: feeData.maxPriorityFeePerGas,
+            // maxPriorityFeePerGas: feeData.maxPriorityFeePerGas,
             data,
             nonce,
         },
@@ -134,10 +141,10 @@ export async function sendTransaction(to: string, fn: any, npid: NetworkProvider
 
     logger.info({
         fn: fn.name,
-        feeData,
         to,
-        transactionHash: receipt.transactionHash,
+        feeData,
         receipt: {
+            transactionHash: receipt.transactionHash,
             gasUsed: receipt.gasUsed,
             effectiveGasPrice: receipt.effectiveGasPrice,
             gasCosts: receipt.gasUsed * receipt.effectiveGasPrice,
