@@ -78,6 +78,37 @@ export async function getEstimatesFromOracle(npid: NetworkProvider, type = 'fast
     };
 }
 
+export const getAdmin = (npid: NetworkProvider) => {
+    const { web3 } = getProvider(npid);
+    return web3.eth.accounts.wallet.add(PRIVATE_KEY);
+};
+
+export async function getGasPriceFromOracle(type: string) {
+    const r = await axios.get('https://gpoly.blockscan.com/gasapi.ashx?apikey=key&method=gasoracle');
+
+    if (r.status !== 200) {
+        throw new Error('Gas oracle does not give gas price information.');
+    }
+    return r.data.result[type];
+}
+
+export async function getGasPrice(npid: NetworkProvider) {
+    const ENVIRONMENT = process.env.ENV;
+    const { web3 } = getProvider(npid);
+
+    if (ENVIRONMENT === 'local' || (ENVIRONMENT !== 'test' && npid === NetworkProvider.Test)) {
+        return await web3.eth.getGasPrice();
+    }
+
+    const gasPrice = await getGasPriceFromOracle('FastGasPrice');
+
+    if (gasPrice > MAX_FEE_PER_GAS) {
+        throw new Error(ERROR_MAX_FEE_PER_GAS);
+    }
+
+    return toWei(gasPrice, 'gwei').toString();
+}
+
 export const getBalance = (npid: NetworkProvider, address: string) => {
     const { web3 } = getProvider(npid);
     return web3.eth.getBalance(address);
@@ -147,7 +178,27 @@ export async function callFunction(fn: any, npid: NetworkProvider) {
     });
 }
 
-// gasLimit is set for methods that have incorrect default gas estimates, resulting in tx running out of gas
+export async function sendTransactionValue(to: string, value: string | number | BN, npid: NetworkProvider) {
+    const { web3 } = getProvider(npid);
+    const from = getAdmin(npid).address;
+    const gasPrice = await getGasPrice(npid);
+
+    const estimate = await web3.eth.estimateGas({ from, to, value });
+    const gas = estimate < MINIMUM_GAS_LIMIT ? MINIMUM_GAS_LIMIT : estimate;
+    const sig = await web3.eth.accounts.signTransaction(
+        {
+            gas,
+            gasPrice,
+            to,
+            from,
+            value,
+        },
+        PRIVATE_KEY,
+    );
+    logger.info({ to, value, estimate, gas, gasPrice, network: npid });
+    return await web3.eth.sendSignedTransaction(sig.rawTransaction);
+}
+
 export async function sendTransaction(to: string, fn: any, npid: NetworkProvider, gasLimit: number | null = null) {
     const { web3, admin } = getProvider(npid);
     const data = fn.encodeABI();

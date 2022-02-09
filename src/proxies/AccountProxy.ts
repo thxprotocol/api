@@ -88,6 +88,7 @@ export default class AccountProxy {
         {
             address,
             privateKey,
+            gasAdmin,
             acceptTermsPrivacy,
             acceptUpdates,
             authenticationToken,
@@ -102,6 +103,7 @@ export default class AccountProxy {
                 url: `/account/${sub}`,
                 data: {
                     address,
+                    gasAdmin,
                     privateKey,
                     acceptTermsPrivacy,
                     acceptUpdates,

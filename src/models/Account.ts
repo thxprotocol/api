@@ -3,6 +3,7 @@ export interface IAccount {
     id: string;
     address: string;
     privateKey: string;
+    gasAdmin?: string;
     googleAccess: boolean;
     twitterAccess: boolean;
     youtube?: any;
@@ -19,6 +20,7 @@ export interface AuthToken {
 }
 
 export interface IAccountUpdates {
+    gasAdmin?: string;
     acceptTermsPrivacy?: boolean;
     acceptUpdates?: boolean;
     address?: string;

@@ -5,10 +5,16 @@ import { AssetPool } from '../../models/AssetPool';
 import AssetPoolService from '../../services/AssetPoolService';
 import ClientService from '../../services/ClientService';
 import MembershipService from '../../services/MembershipService';
+import { GasAdminService } from '../../services/GasAdminService';
 
 export const postAssetPool = async (req: Request, res: Response, next: NextFunction) => {
     try {
+        const gasAdmin = new GasAdminService();
+
         const { assetPool, error } = await AssetPoolService.deploy(req.user.sub, req.body.network);
+
+        await gasAdmin.init(req.user.sub);
+        await gasAdmin.getAccount(req.body.network);
 
         if (error) throw new Error(error);
 

@@ -10,6 +10,8 @@ import { RewardDocument } from '../models/Reward';
 import { IAccount } from '../models/Account';
 import { Membership } from '../models/Membership';
 import { ERROR_IS_NOT_MEMBER } from './MemberService';
+import { GasAdminService } from './GasAdminService';
+import { logger } from '../util/logger';
 
 const ERROR_NO_ASSETPOOL = 'Could not find asset pool for this address';
 const ERROR_DOWNGRADE_BYPASS_POLLS = 'Could not update set bypassPolls (false) for this asset pool.';
