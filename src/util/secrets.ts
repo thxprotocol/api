@@ -77,6 +77,6 @@ export const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
 export const GOOGLE_REDIRECT_URI = process.env.GOOGLE_REDIRECT_URI;
 export const INITIAL_ACCESS_TOKEN = process.env.INITIAL_ACCESS_TOKEN;
 export const CIRCULATING_SUPPLY = process.env.CIRCULATING_SUPPLY;
-export const MAX_FEE_PER_GAS = process.env.MAX_FEE_PER_GAS;
+export const MAX_FEE_PER_GAS = String(process.env.MAX_FEE_PER_GAS);
 
 export const MINIMUM_GAS_LIMIT = 54680;
