@@ -1,3 +1,4 @@
+import newrelic from 'newrelic';
 import { Request, NextFunction, Response } from 'express';
 import {
     PRIVATE_KEY,
@@ -63,6 +64,10 @@ export async function getEstimatesFromOracle(npid: NetworkProvider, type = 'fast
     const estimatedBaseFee = r.data.estimatedBaseFee;
     const blockTime = r.data.blockTime;
     const blockNumber = r.data.blockNumber;
+
+    newrelic.recordMetric('Network/Gas/BaseFee', Number(estimatedBaseFee));
+    newrelic.recordMetric('Network/Gas/MaxPriorityFee', Number(r.data[type].maxPriorityFee));
+    newrelic.recordMetric('Network/Gas/MaxFeePerGas', Number(r.data[type].maxFee));
 
     return {
         baseFee: Number(estimatedBaseFee).toFixed(12),

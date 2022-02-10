@@ -1,6 +1,7 @@
+import newrelic from 'newrelic';
 import { Request, NextFunction, Response } from 'express';
 import { HttpError } from '../../models/Error';
-import { WithdrawalState, WithdrawalType } from '../../models/Withdrawal';
+import { Withdrawal, WithdrawalState, WithdrawalType } from '../../models/Withdrawal';
 import { agenda, eventNameProcessWithdrawals } from '../../util/agenda';
 
 import MemberService, { ERROR_IS_NOT_MEMBER } from '../../services/MemberService';
@@ -25,6 +26,11 @@ export const postWithdrawal = async (req: Request, res: Response, next: NextFunc
         );
 
         agenda.now(eventNameProcessWithdrawals, null);
+
+        Withdrawal.countDocuments({}, (_err, count) => newrelic.recordMetric('/Withdrawal/TotalCount', count));
+        Withdrawal.countDocuments({ state: WithdrawalState.Deferred }, (_err, count) =>
+            newrelic.recordMetric('/Withdrawal/DeferredCount', count),
+        );
 
         res.status(201).json({
             id: withdrawal.id,
