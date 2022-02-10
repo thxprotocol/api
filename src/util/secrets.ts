@@ -1,6 +1,6 @@
 import dotenv from 'dotenv';
 
-dotenv.config({ override: true });
+dotenv.config();
 
 const required = [
     'ISSUER',

@@ -11,9 +11,7 @@ services:
             target: develop
         env_file:
             - .env.example
-            - .env.docker
-        networks:
-            - thx_network
+            - .env.ci
         ports:
             - 3001:3000
         depends_on:

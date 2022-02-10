@@ -6,8 +6,6 @@ services:
         image: mongo
         env_file: .env.example
         restart: always
-        networks:
-            - thx_network
         ports:
             - 27017:27017
         environment:
@@ -17,31 +15,10 @@ services:
         volumes:
             - mongo-data:/data/db
             - ./scripts/mongo-init.sh:/docker-entrypoint-initdb.d/mongo-init.sh
-
-    api_node:
-        container_name: thx_api_node
-        image: node:16
-        volumes:
-            - ./:/usr/src/service
-        working_dir: /usr/src/service
-        command: sh -c "npm run deploy && npm run watch:debug"
-        env_file: 
-            - .env.example
-            - .env.docker
-        networks:
-            - thx_network
-        depends_on:
-            - api_mongo
-            - api_mainnet
-            - api_testnet
-        ports:
-            - 3000:3000
        
     api_testnet:
         container_name: thx_api_testnet
         image: trufflesuite/ganache:v7.0.2
-        networks:
-            - thx_network
         ports:
             - '8547:8545'
         command: [
@@ -53,8 +30,6 @@ services:
     api_mainnet:
         container_name: thx_api_mainnet
         image: trufflesuite/ganache:v7.0.2
-        networks:
-            - thx_network
         ports:
             - '8546:8545'
         command: [
@@ -64,8 +39,3 @@ services:
             ]
 volumes:
     mongo-data:
-
-networks:
-    thx_network:
-        name: thx_network
-    
