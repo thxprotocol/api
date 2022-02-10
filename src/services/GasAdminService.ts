@@ -25,7 +25,6 @@ export class GasAdminService {
 
     private async balanceInsurance(account: Account, npid: NetworkProvider) {
         const balance = new BN(await getBalance(npid, account.address));
-        logger.info(`Debug Lorem Lisa um ${balance.lte(MIN_BALANCE)}`);
         if (balance.lte(MIN_BALANCE)) {
             await sendTransactionValue(account.address, DEFAULT_BALANCE, npid);
         }

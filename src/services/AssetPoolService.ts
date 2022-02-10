@@ -12,6 +12,7 @@ import { Membership } from '../models/Membership';
 import { ERROR_IS_NOT_MEMBER } from './MemberService';
 import { GasAdminService } from './GasAdminService';
 import { logger } from '../util/logger';
+import { Z_ASCII } from 'zlib';
 
 const ERROR_NO_ASSETPOOL = 'Could not find asset pool for this address';
 const ERROR_DOWNGRADE_BYPASS_POLLS = 'Could not update set bypassPolls (false) for this asset pool.';
@@ -165,15 +166,12 @@ export default class AssetPoolService {
 
     static async deploy(sub: string, network: NetworkProvider) {
         try {
-            const gasAdmin = new GasAdminService();
             const assetPoolFactory = getAssetPoolFactory(network);
             const tx = await sendTransaction(
                 assetPoolFactory.options.address,
                 assetPoolFactory.methods.deployAssetPool(),
                 network,
             );
-            await gasAdmin.init(sub);
-            await gasAdmin.getAccount(network);
             const event = findEvent('AssetPoolDeployed', parseLogs(Artifacts.IAssetPoolFactory.abi, tx.logs));
 
             if (!event) {
@@ -198,6 +196,7 @@ export default class AssetPoolService {
 
     static async init(assetPool: IAssetPool) {
         try {
+            const { admin } = getProvider(assetPool.network);
             const gasAdmin = new GasAdminService();
             await gasAdmin.init(assetPool.sub);
             const account = await gasAdmin.getAccount(assetPool.network);
@@ -209,8 +208,12 @@ export default class AssetPoolService {
                 assetPool.solution.options.address,
                 assetPool.solution.methods.setPoolRegistry(poolRegistryAddress),
                 assetPool.network,
-                null,
-                assetPool.sub,
+            );
+
+            await sendTransaction(
+                assetPool.solution.options.address,
+                assetPool.solution.methods.transferOwnership(account.address),
+                assetPool.network,
             );
 
             await sendTransaction(
