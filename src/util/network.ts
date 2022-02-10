@@ -84,26 +84,57 @@ export const getBalance = (npid: NetworkProvider, address: string) => {
 };
 
 export async function deployContract(abi: any, bytecode: any, arg: any[], npid: NetworkProvider): Promise<Contract> {
-    const { web3 } = getProvider(npid);
+    const { web3, admin } = getProvider(npid);
     const contract = new web3.eth.Contract(abi);
-    const gasPrice = await web3.eth.getGasPrice();
     const gas = await contract
         .deploy({
             data: bytecode,
             arguments: arg,
         })
         .estimateGas();
-
-    return await contract
+    const data = contract
         .deploy({
             data: bytecode,
             arguments: arg,
         })
-        .send({
+        .encodeABI();
+    const nonce = await web3.eth.getTransactionCount(admin.address, 'pending');
+    const feeData = await getEstimatesFromOracle(npid);
+    const maxFeePerGasLimit = Number(toWei(MAX_FEE_PER_GAS, 'gwei'));
+    const maxFeePerGas = Number(toWei(String(Math.ceil(feeData.maxFeePerGas)), 'gwei'));
+    const maxPriorityFeePerGas = Number(toWei(String(Math.ceil(feeData.maxPriorityFeePerGas)), 'gwei'));
+
+    // This comparison is in gwei
+    if (maxFeePerGas > maxFeePerGasLimit) {
+        throw new Error(ERROR_MAX_FEE_PER_GAS);
+    }
+
+    const sig = await web3.eth.accounts.signTransaction(
+        {
             gas,
-            from: web3.eth.defaultAccount,
-            gasPrice,
-        });
+            maxPriorityFeePerGas,
+            data,
+            nonce,
+        },
+        PRIVATE_KEY,
+    );
+    const receipt = await web3.eth.sendSignedTransaction(sig.rawTransaction);
+
+    logger.info({
+        to: receipt.contractAddress,
+        feeData,
+        receipt: {
+            transactionHash: receipt.transactionHash,
+            gasUsed: receipt.gasUsed,
+            effectiveGasPrice: receipt.effectiveGasPrice,
+            gasCosts: receipt.gasUsed * receipt.effectiveGasPrice,
+        },
+        network: npid,
+    });
+
+    contract.options.address = receipt.contractAddress;
+
+    return contract;
 }
 
 // TODO This is redundant since defaultAccount is set and from not needed
