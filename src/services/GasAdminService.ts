@@ -1,9 +1,15 @@
+import BN from 'bn.js';
+import { Account } from 'web3-core';
 import { IAccount } from '../models/Account';
 import AccountProxy from '../proxies/AccountProxy';
-import { getProvider, NetworkProvider, sendTransactionValue } from '../util/network';
+import { getBalance, getProvider, NetworkProvider, sendTransactionValue } from '../util/network';
 import { encryptString } from '../util/encrypt';
 import { decryptString } from '../util/decrypt';
 import { SECURE_KEY } from '../util/secrets';
+import { logger } from '../util/logger';
+
+export const DEFAULT_BALANCE = new BN(2);
+export const MIN_BALANCE = new BN(0.75);
 
 export class GasAdminService {
     account: IAccount;
@@ -15,6 +21,14 @@ export class GasAdminService {
             ...account,
             gasAdmin: account.gasAdmin && decryptString(account.gasAdmin, SECURE_KEY.split(',')[0]),
         };
+    }
+
+    private async balanceInsurance(account: Account, npid: NetworkProvider) {
+        const balance = new BN(await getBalance(npid, account.address));
+        logger.info(`Debug Lorem Lisa um ${balance.lte(MIN_BALANCE)}`);
+        if (balance.lte(MIN_BALANCE)) {
+            await sendTransactionValue(account.address, DEFAULT_BALANCE, npid);
+        }
     }
 
     private async create(npid: NetworkProvider) {
@@ -30,7 +44,7 @@ export class GasAdminService {
         const { error } = await AccountProxy.update(this.account.id, account);
         if (error) throw new Error(error.message);
         // send transaction
-        await sendTransactionValue(gasAccount.address, 2, npid);
+        await sendTransactionValue(gasAccount.address, MIN_BALANCE, npid);
         // mutate internal value
         this.account = account;
         return gasAccount;
@@ -42,6 +56,7 @@ export class GasAdminService {
             return await this.create(npid);
         }
         const account = web3.eth.accounts.privateKeyToAccount(this.account.gasAdmin);
+        await this.balanceInsurance(account, npid);
         return account;
     }
 }

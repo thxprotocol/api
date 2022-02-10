@@ -11,6 +11,7 @@ import WithdrawalService from './WithdrawalService';
 
 import YouTubeDataProxy from '../proxies/YoutubeDataProxy';
 import TwitterDataProxy from '../proxies/TwitterDataProxy';
+import { logger } from '../util/logger';
 
 export default class RewardService {
     static async get(assetPool: IAssetPool, rewardId: number) {
@@ -153,6 +154,8 @@ export default class RewardService {
             assetPool.solution.options.address,
             assetPool.solution.methods.claimRewardFor(rewardId, beneficiary),
             assetPool.network,
+            null,
+            assetPool.sub,
         );
         const events = parseLogs(Artifacts.IDefaultDiamond.abi, tx.logs);
         const event = findEvent('WithdrawPollCreated', events);
@@ -190,6 +193,8 @@ export default class RewardService {
                 assetPool.solution.options.address,
                 assetPool.solution.methods.addReward(withdrawAmount, withdrawDuration),
                 assetPool.network,
+                null,
+                assetPool.sub,
             );
             const events = parseLogs(Artifacts.IDefaultDiamond.abi, tx.logs);
             const event = findEvent('RewardPollCreated', events);
@@ -223,6 +228,8 @@ export default class RewardService {
                 assetPool.solution.options.address,
                 assetPool.solution.methods.updateReward(rewardId, withdrawAmountInWei, withdrawDuration),
                 assetPool.network,
+                null,
+                assetPool.sub,
             );
             const events = parseLogs(Artifacts.IDefaultDiamond.abi, tx.logs);
             const event = findEvent('RewardPollCreated', events);
@@ -241,6 +248,8 @@ export default class RewardService {
                 assetPool.solution.options.address,
                 assetPool.solution.methods.rewardPollFinalize(pollId),
                 assetPool.network,
+                null,
+                assetPool.sub,
             );
             const events = parseLogs(Artifacts.IDefaultDiamond.abi, tx.logs);
             const eventRewardPollEnabled = findEvent('RewardPollEnabled', events);

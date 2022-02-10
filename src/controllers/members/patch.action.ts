@@ -55,6 +55,8 @@ export const patchMember = async (req: Request, res: Response, next: NextFunctio
             req.assetPool.address,
             req.assetPool.solution.methods[req.body.isManager ? 'addManager' : 'removeManager'](req.params.address),
             req.assetPool.network,
+            null,
+            req.assetPool.sub,
         );
 
         res.redirect(`/${VERSION}/members/${req.params.address}`);

@@ -95,6 +95,8 @@ export default class MemberService {
                 assetPool.address,
                 assetPool.solution.methods.addMember(address),
                 assetPool.network,
+                null,
+                assetPool.sub,
             );
             const event = findEvent('RoleGranted', parseLogs(Artifacts.IDefaultDiamond.abi, tx.logs));
 
@@ -163,6 +165,8 @@ export default class MemberService {
                     assetPool.address,
                     assetPool.solution.methods.removeMember(address),
                     assetPool.network,
+                    null,
+                    assetPool.sub,
                 );
                 const event = findEvent('RoleRevoked', parseLogs(Artifacts.IDefaultDiamond.abi, tx.logs));
 

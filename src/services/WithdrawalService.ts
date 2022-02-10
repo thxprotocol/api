@@ -88,6 +88,8 @@ export default class WithdrawalService {
             assetPool.address,
             assetPool.solution.methods.proposeWithdraw(amountInWei, beneficiary),
             assetPool.network,
+            null,
+            assetPool.sub,
         );
         const events = parseLogs(Artifacts.IDefaultDiamond.abi, tx.logs);
         const event = findEvent('WithdrawPollCreated', events);
@@ -147,6 +149,8 @@ export default class WithdrawalService {
                 assetPool.solution.options.address,
                 assetPool.solution.methods.withdrawPollFinalize(withdrawal.withdrawalId),
                 assetPool.network,
+                null,
+                assetPool.sub,
             );
 
             const events = parseLogs(Artifacts.IDefaultDiamond.abi, tx.logs);

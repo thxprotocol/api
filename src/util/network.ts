@@ -1,4 +1,5 @@
 import newrelic from 'newrelic';
+import { Account } from 'web3-core';
 import { Request, NextFunction, Response } from 'express';
 import {
     PRIVATE_KEY,
@@ -15,6 +16,7 @@ import BN from 'bn.js';
 import { toWei } from 'web3-utils';
 import { isAddress } from 'web3-utils';
 import { utils } from 'ethers/lib';
+import { GasAdminService } from '../services/GasAdminService';
 import { HttpError } from '../models/Error';
 import { AssetPool } from '../models/AssetPool';
 import { Contract } from 'web3-eth-contract';
@@ -179,18 +181,17 @@ export async function callFunction(fn: any, npid: NetworkProvider) {
 }
 
 export async function sendTransactionValue(to: string, value: string | number | BN, npid: NetworkProvider) {
-    const { web3 } = getProvider(npid);
-    const from = getAdmin(npid).address;
+    const { web3, admin } = getProvider(npid);
     const gasPrice = await getGasPrice(npid);
 
-    const estimate = await web3.eth.estimateGas({ from, to, value });
+    const estimate = await web3.eth.estimateGas({ from: admin.address, to, value });
     const gas = estimate < MINIMUM_GAS_LIMIT ? MINIMUM_GAS_LIMIT : estimate;
     const sig = await web3.eth.accounts.signTransaction(
         {
             gas,
             gasPrice,
             to,
-            from,
+            from: admin.address,
             value,
         },
         PRIVATE_KEY,
@@ -199,17 +200,32 @@ export async function sendTransactionValue(to: string, value: string | number | 
     return await web3.eth.sendSignedTransaction(sig.rawTransaction);
 }
 
-export async function sendTransaction(to: string, fn: any, npid: NetworkProvider, gasLimit: number | null = null) {
+export async function sendTransaction(
+    to: string,
+    fn: any,
+    npid: NetworkProvider,
+    gasLimit: number | null = null,
+    sub?: string,
+) {
+    let account: Account;
     const { web3, admin } = getProvider(npid);
     const data = fn.encodeABI();
-    const estimate = await fn.estimateGas({ from: admin.address });
-    // MINIMUM_GAS_LIMIT is set for tx that have a lower estimate than allowed by the network
+
+    if (sub) {
+        const gasAdmin = new GasAdminService();
+        await gasAdmin.init(sub);
+        account = await gasAdmin.getAccount(npid);
+    } else {
+        account = admin;
+    }
+
+    const estimate = await fn.estimateGas({ from: account.address });
     const gas = gasLimit ? gasLimit : estimate < MINIMUM_GAS_LIMIT ? MINIMUM_GAS_LIMIT : estimate;
-    const nonce = await web3.eth.getTransactionCount(admin.address, 'pending');
     const feeData = await getEstimatesFromOracle(npid);
     const maxFeePerGasLimit = Number(toWei(MAX_FEE_PER_GAS, 'gwei'));
     const maxFeePerGas = Number(toWei(String(Math.ceil(feeData.maxFeePerGas)), 'gwei'));
     const maxPriorityFeePerGas = Number(toWei(String(Math.ceil(feeData.maxPriorityFeePerGas)), 'gwei'));
+    const nonce = await web3.eth.getTransactionCount(admin.address, 'pending');
 
     // This comparison is in gwei
     if (maxFeePerGas > maxFeePerGasLimit) {
@@ -224,7 +240,7 @@ export async function sendTransaction(to: string, fn: any, npid: NetworkProvider
             data,
             nonce,
         },
-        PRIVATE_KEY,
+        account.privateKey,
     );
     const receipt = await web3.eth.sendSignedTransaction(sig.rawTransaction);
 

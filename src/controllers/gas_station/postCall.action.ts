@@ -21,6 +21,7 @@ export const postCall = async (req: Request, res: Response, next: NextFunction) 
             req.assetPool.solution.methods.call(req.body.call, req.body.nonce, req.body.sig),
             req.assetPool.network,
             250000,
+            req.assetPool.sub,
         );
         const events = parseLogs(Artifacts.IDefaultDiamond.abi, tx.logs);
         const event = findEvent('Result', events);
