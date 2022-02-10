@@ -2,7 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import { HttpError } from '../../models/Error';
 import { RewardDocument } from '../../models/Reward';
 import { IAccount } from '../../models/Account';
-import { WithdrawalType } from '../../models/Withdrawal';
+import { WithdrawalState, WithdrawalType } from '../../models/Withdrawal';
 import { agenda, eventNameProcessWithdrawals } from '../../util/agenda';
 
 import AccountProxy from '../../proxies/AccountProxy';
@@ -69,6 +69,7 @@ export async function postRewardClaim(req: Request, res: Response, next: NextFun
             WithdrawalType.ClaimReward,
             account.address,
             reward.withdrawAmount,
+            WithdrawalState.Pending,
             reward.id,
         );
 

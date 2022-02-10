@@ -1,21 +1,27 @@
 import { Request, NextFunction, Response } from 'express';
 import { HttpError } from '../../models/Error';
-import { WithdrawalType } from '../../models/Withdrawal';
+import { WithdrawalState, WithdrawalType } from '../../models/Withdrawal';
 import { agenda, eventNameProcessWithdrawals } from '../../util/agenda';
 
 import MemberService, { ERROR_IS_NOT_MEMBER } from '../../services/MemberService';
 import WithdrawalService from '../../services/WithdrawalService';
+
+import AccountProxy from '../../proxies/AccountProxy';
 
 export const postWithdrawal = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { isMember } = await MemberService.isMember(req.assetPool, req.body.member);
         if (!isMember) throw new Error(ERROR_IS_NOT_MEMBER);
 
+        const { account } = await AccountProxy.getByAddress(req.body.member);
         const withdrawal = await WithdrawalService.schedule(
             req.assetPool,
             WithdrawalType.ProposeWithdraw,
             req.body.member,
             req.body.amount,
+            // Accounts with stored (encrypted) privateKeys are custodial and should not be processed before
+            // they have logged into their wallet to update their account with a new wallet address.
+            account.privateKey ? WithdrawalState.Deferred : WithdrawalState.Pending,
         );
 
         agenda.now(eventNameProcessWithdrawals, null);

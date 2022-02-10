@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { callFunction, sendTransaction } from '../../util/network';
+import { WithdrawalState } from '../../models/Withdrawal';
 import { HttpError } from '../../models/Error';
 import { parseLogs, findEvent } from '../../util/events';
 import { Artifacts } from '../../util/artifacts';
@@ -47,6 +48,8 @@ export const postCallUpgradeAddress = async (req: Request, res: Response, next: 
                         if (error) throw new Error(error);
                         for (const withdrawal of withdrawals) {
                             withdrawal.beneficiary = event.args.newAddress;
+                            withdrawal.state = WithdrawalState.Pending;
+
                             await withdrawal.save();
                         }
 
