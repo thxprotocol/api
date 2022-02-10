@@ -17,7 +17,7 @@ This repository holds the code for the THX API project. A REST API that can be u
 ## 1. Prerequisites
 
 -   Docker
--   (NVM)[https://github.com/nvm-sh/nvm]
+-   [NVM](https://github.com/nvm-sh/nvm)
 
 We use docker to run our dependencies like mongo and ganache in. We run the development server locally, managing a common node version using Node Version Manager.
 You can also manually install the correct node version but usage of NVM is recommended.
