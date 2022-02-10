@@ -6,6 +6,8 @@ services:
         image: mongo
         env_file: .env.example
         restart: always
+        networks:
+            - thx_network
         ports:
             - 27017:27017
         environment:
@@ -24,6 +26,8 @@ services:
         env_file:
             - .env.example
             - .env.docker
+        networks:
+            - thx_network
         ports:
             - 3002:3001
         depends_on:
@@ -40,6 +44,8 @@ services:
         env_file: 
             - .env.example
             - .env.docker
+        networks:
+            - thx_network
         depends_on:
             - api_mongo
             - api_mainnet
@@ -50,6 +56,8 @@ services:
     api_testnet:
         container_name: thx_api_testnet
         image: trufflesuite/ganache:v7.0.2
+        networks:
+            - thx_network
         ports:
             - '8547:8545'
         command: [
@@ -61,6 +69,8 @@ services:
     api_mainnet:
         container_name: thx_api_mainnet
         image: trufflesuite/ganache:v7.0.2
+        networks:
+            - thx_network
         ports:
             - '8546:8545'
         command: [
@@ -70,4 +80,7 @@ services:
             ]
 volumes:
     mongo-data:
+
+networks:
+    thx_network:
     
