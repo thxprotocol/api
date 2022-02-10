@@ -9,7 +9,7 @@
     "license": "AGPL-3.0",
     "scripts": {
         "preinstall": "npx npm-force-resolutions",
-        "serve:debug": "nodemon --inspect ./dist/src/server.js",
+        "serve:debug": "nodemon --inspect=7000 ./dist/src/server.js",
         "lint": "tsc -p ./tsconfig.json && eslint \"./src/**/*.ts\" \"./test/**/*.ts\"",
         "lint:fix": "tsc -p ./tsconfig.json && eslint \"./src/**/*.ts\" \"./test/**/*.ts\" --fix",
         "dev": "docker compose up -d && npm run watch:debug",
