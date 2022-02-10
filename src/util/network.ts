@@ -86,6 +86,7 @@ export const getBalance = (npid: NetworkProvider, address: string) => {
 export async function deployContract(abi: any, bytecode: any, arg: any[], npid: NetworkProvider): Promise<Contract> {
     const { web3 } = getProvider(npid);
     const contract = new web3.eth.Contract(abi);
+    const { maxFeePerGas } = await getEstimatesFromOracle(npid);
     const gas = await contract
         .deploy({
             data: bytecode,
@@ -101,6 +102,7 @@ export async function deployContract(abi: any, bytecode: any, arg: any[], npid: 
         .send({
             gas,
             from: web3.eth.defaultAccount,
+            gasPrice: maxFeePerGas,
         });
 }
 
