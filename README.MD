@@ -1,5 +1,4 @@
-[![CI/CD Production](https://github.com/thxprotocol/api/workflows/CI/CD%20Production/badge.svg)](https://github.com/thxprotocol/api/actions/workflows/ci-cd-master.yml)
-[![CI/CD Staging](https://github.com/thxprotocol/api/workflows/CI/CD%20Staging/badge.svg)](https://github.com/thxprotocol/api/actions/workflows/ci-cd-develop.yml)
+[![CI](https://github.com/thxprotocol/api/actions/workflows/ci.yml/badge.svg)](https://github.com/thxprotocol/api/actions/workflows/ci.yml)
 
 # THX API
 
@@ -18,23 +17,32 @@ This repository holds the code for the THX API project. A REST API that can be u
 ## 1. Prerequisites
 
 -   Docker
--   Nodejs 16.x
+-   [NVM](https://github.com/nvm-sh/nvm)
+
+We use docker to run our dependencies like mongo and ganache in. We run the development server locally, managing a common node version using Node Version Manager.
+You can also manually install the correct node version but usage of NVM is recommended.
 
 ## 2. Installing
 
 ```
-# 1. Provide environment variables
-cp .env.example .env;
+# 1. Install/activate current nodejs defined in .nvmrc
+nvm use
 
-# 2. Checkout SCSS submodule
-git submodule init;
-git submodule update;
+# 2. Provide environment variables
+cp .env.example .env
 
-# 3. Install packages
-npm install;
+# 3. Checkout SCSS submodule
+git submodule init
+git submodule update
 
-# 4. Start the containers
-docker compose up;
+# 4. Install packages
+npm install --ci
+
+# 5. Start working (docker compose up -d && npm run watch:debug)
+npm run dev
+
+# 6. shut down dependencies
+docker compose down
 ```
 
 ## 3. Usage

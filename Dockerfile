@@ -19,6 +19,8 @@ COPY --from=develop ./usr/src/app/ ./
 
 RUN npm run build
 
+COPY newrelic.js dist/newrelic.js
+
 CMD [ "dist/src/server.js" ]
 
 FROM node:16-alpine as production
@@ -36,7 +38,5 @@ RUN apk add --virtual .build g++ make py3-pip && \
     apk del .build
 
 COPY --from=build ./usr/src/app/dist ./
-
-EXPOSE 3001
 
 CMD [ "src/server.js" ]
