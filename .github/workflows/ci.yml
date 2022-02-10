@@ -15,7 +15,7 @@ jobs:
 
             - name: Run test
               run: |
-                  docker-compose run api npm run test
+                  docker-compose -f docker-compose.yml -r docker-compose.ci.yml run api npm run test
 
     deploy:
         name: CD Pipeline
