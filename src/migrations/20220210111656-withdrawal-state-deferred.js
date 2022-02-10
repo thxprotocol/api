@@ -3,11 +3,8 @@ module.exports = {
         const withdrawalsColl = db.collection('withdrawals');
 
         for (const withdrawal of await withdrawalsColl.find().toArray()) {
-            if (withdrawal.id) {
-                await withdrawalsColl.updateOne(
-                    { _id: withdrawal._id },
-                    { $set: { withdrawalId: withdrawal.id }, $unset: { id: null } },
-                );
+            if (withdrawal.state === 0) {
+                await withdrawalsColl.updateOne({ _id: withdrawal._id }, { $set: { state: -1 } });
             }
         }
     },
@@ -16,12 +13,11 @@ module.exports = {
         const withdrawalsColl = db.collection('withdrawals');
 
         for (const withdrawal of await withdrawalsColl.find().toArray()) {
-            if (withdrawal.withdrawalId) {
+            if (withdrawal.state === -1) {
                 await withdrawalsColl.updateOne(
                     { _id: withdrawal._id },
                     {
-                        $set: { id: withdrawal.withdrawalId },
-                        $unset: { withdrawalId: null },
+                        $set: { state: 0 },
                     },
                 );
             }

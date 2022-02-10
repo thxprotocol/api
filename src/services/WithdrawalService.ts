@@ -42,6 +42,7 @@ export default class WithdrawalService {
         return await Withdrawal.find({
             $or: [{ failReason: ERROR_MAX_FEE_PER_GAS }, { failReason: { $exists: false } }, { failReason: '' }],
             withdrawalId: { $exists: false },
+            state: WithdrawalState.Pending,
         }).sort({ createdAt: -1 });
     }
 
@@ -50,6 +51,7 @@ export default class WithdrawalService {
         type: WithdrawalType,
         beneficiary: string,
         amount: number,
+        state = WithdrawalState.Pending,
         rewardId?: number,
     ) {
         const withdrawal = new Withdrawal({
@@ -58,7 +60,7 @@ export default class WithdrawalService {
             rewardId,
             beneficiary,
             poolAddress: assetPool.solution.options.address,
-            state: WithdrawalState.Pending,
+            state,
         });
 
         return await withdrawal.save();
