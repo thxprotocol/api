@@ -35,7 +35,11 @@ process.on('uncaughtException', function (err: Error) {
     }
 });
 
-logger.info(`Server is starting on port: ${app.get('port')}, env: ${app.get('env')}`);
+logger.info({
+    message: `Server is starting on port: ${app.get('port')}, env: ${app.get('env')}`,
+    port: app.get('port'),
+    env: app.get('env'),
+});
 server.listen(app.get('port'));
 
 export default server;
