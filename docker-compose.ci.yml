@@ -6,9 +6,7 @@ version: '3.5'
 services:
     api:
         container_name: thx_api
-        build:
-            context: .
-            target: develop
+        image: thx/api_ci
         env_file:
             - .env.example
             - .env.ci
