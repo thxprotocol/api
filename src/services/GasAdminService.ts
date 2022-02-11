@@ -6,7 +6,6 @@ import { getBalance, getProvider, NetworkProvider, sendTransactionValue } from '
 import { encryptString } from '../util/encrypt';
 import { decryptString } from '../util/decrypt';
 import { SECURE_KEY } from '../util/secrets';
-import { logger } from '../util/logger';
 
 export const DEFAULT_BALANCE = new BN(2);
 export const MIN_BALANCE = new BN(0.75);
