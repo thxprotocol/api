@@ -94,23 +94,6 @@ export async function getGasPriceFromOracle(type: string) {
     return r.data.result[type];
 }
 
-export async function getGasPrice(npid: NetworkProvider) {
-    const ENVIRONMENT = process.env.ENV;
-    const { web3 } = getProvider(npid);
-
-    if (ENVIRONMENT === 'local' || (ENVIRONMENT !== 'test' && npid === NetworkProvider.Test)) {
-        return await web3.eth.getGasPrice();
-    }
-
-    const gasPrice = await getGasPriceFromOracle('FastGasPrice');
-
-    if (gasPrice > MAX_FEE_PER_GAS) {
-        throw new Error(ERROR_MAX_FEE_PER_GAS);
-    }
-
-    return toWei(gasPrice, 'gwei').toString();
-}
-
 export const getBalance = (npid: NetworkProvider, address: string) => {
     const { web3 } = getProvider(npid);
     return web3.eth.getBalance(address);
@@ -182,21 +165,27 @@ export async function callFunction(fn: any, npid: NetworkProvider) {
 
 export async function sendTransactionValue(to: string, value: string | number | BN, npid: NetworkProvider) {
     const { web3, admin } = getProvider(npid);
-    const gasPrice = await getGasPrice(npid);
-
+    const feeData = await getEstimatesFromOracle(npid);
+    const maxFeePerGasLimit = Number(toWei(MAX_FEE_PER_GAS, 'gwei'));
+    const maxFeePerGas = Number(toWei(String(Math.ceil(feeData.maxFeePerGas)), 'gwei'));
+    const maxPriorityFeePerGas = Number(toWei(String(Math.ceil(feeData.maxPriorityFeePerGas)), 'gwei'));
+    // This comparison is in gwei
+    if (maxFeePerGas > maxFeePerGasLimit) {
+        throw new Error(ERROR_MAX_FEE_PER_GAS);
+    }
     const estimate = await web3.eth.estimateGas({ from: admin.address, to, value });
     const gas = estimate < MINIMUM_GAS_LIMIT ? MINIMUM_GAS_LIMIT : estimate;
     const sig = await web3.eth.accounts.signTransaction(
         {
             gas,
-            gasPrice,
+            maxPriorityFeePerGas,
             to,
             from: admin.address,
             value,
         },
         PRIVATE_KEY,
     );
-    logger.info({ to, value, estimate, gas, gasPrice, network: npid });
+    logger.info({ to, value, estimate, gas, feeData, network: npid });
     return await web3.eth.sendSignedTransaction(sig.rawTransaction);
 }
 
@@ -207,6 +196,7 @@ export async function sendTransaction(
     gasLimit: number | null = null,
     sub?: string,
 ) {
+    console.log(sub);
     let account: Account;
     const { web3, admin } = getProvider(npid);
     const data = fn.encodeABI();
@@ -215,6 +205,7 @@ export async function sendTransaction(
         const gasAdmin = new GasAdminService();
         await gasAdmin.init(sub);
         account = await gasAdmin.getAccount(npid);
+        web3.eth.defaultAccount = account.address;
     } else {
         account = admin;
     }
@@ -239,6 +230,7 @@ export async function sendTransaction(
             maxPriorityFeePerGas,
             data,
             nonce,
+            from: web3.utils.toChecksumAddress(account.address),
         },
         account.privateKey,
     );

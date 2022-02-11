@@ -200,8 +200,8 @@ export default class AssetPoolService {
             await gasAdmin.init(assetPool.sub);
             const account = await gasAdmin.getAccount(assetPool.network);
 
-            const owner = await assetPool.solution.methods.owner().send();
-            logger.info({ owner, admin: admin.address });
+            const owner = await callFunction(assetPool.solution.methods.owner(), assetPool.network);
+            console.log({ owner, admin: admin.address, gasAdmin: account.address });
 
             const poolRegistryAddress =
                 assetPool.network === NetworkProvider.Test ? TESTNET_POOL_REGISTRY_ADDRESS : POOL_REGISTRY_ADDRESS;
@@ -211,6 +211,10 @@ export default class AssetPoolService {
                 assetPool.solution.methods.transferOwnership(account.address),
                 assetPool.network,
             );
+
+            const owner2 = await callFunction(assetPool.solution.methods.owner(), assetPool.network);
+            console.log({ owner2, admin: admin.address, gasAdmin: account.address });
+            console.log('ownership transfered');
 
             await sendTransaction(
                 assetPool.solution.options.address,
