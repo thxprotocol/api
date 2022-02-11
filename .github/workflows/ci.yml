@@ -21,6 +21,7 @@ jobs:
               with:
                   context: .
                   load: true
+                  target: develop
                   tags: thx/api_ci:latest
                   cache-from: type=gha
                   cache-to: type=gha,mode=max
