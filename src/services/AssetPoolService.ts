@@ -155,6 +155,8 @@ export default class AssetPoolService {
                 assetPool.solution.options.address,
                 assetPool.solution.methods.addToken(address),
                 assetPool.network,
+                null,
+                assetPool.sub,
             );
 
             return { tokenAddress: address };
@@ -195,13 +197,9 @@ export default class AssetPoolService {
 
     static async init(assetPool: IAssetPool) {
         try {
-            const { admin } = getProvider(assetPool.network);
             const gasAdmin = new GasAdminService();
             await gasAdmin.init(assetPool.sub);
             const account = await gasAdmin.getAccount(assetPool.network);
-
-            const owner = await callFunction(assetPool.solution.methods.owner(), assetPool.network);
-            console.log({ owner, admin: admin.address, gasAdmin: account.address });
 
             const poolRegistryAddress =
                 assetPool.network === NetworkProvider.Test ? TESTNET_POOL_REGISTRY_ADDRESS : POOL_REGISTRY_ADDRESS;
@@ -211,10 +209,6 @@ export default class AssetPoolService {
                 assetPool.solution.methods.transferOwnership(account.address),
                 assetPool.network,
             );
-
-            const owner2 = await callFunction(assetPool.solution.methods.owner(), assetPool.network);
-            console.log({ owner2, admin: admin.address, gasAdmin: account.address });
-            console.log('ownership transfered');
 
             await sendTransaction(
                 assetPool.solution.options.address,
@@ -278,6 +272,8 @@ export default class AssetPoolService {
                     assetPool.solution.options.address,
                     assetPool.solution.methods.setRewardPollDuration(rewardPollDuration),
                     assetPool.network,
+                    null,
+                    assetPool.sub,
                 );
                 assetPool.rewardPollDuration = rewardPollDuration;
                 await assetPool.save();
@@ -293,6 +289,8 @@ export default class AssetPoolService {
                     assetPool.solution.options.address,
                     assetPool.solution.methods.setProposeWithdrawPollDuration(proposeWithdrawPollDuration),
                     assetPool.network,
+                    null,
+                    assetPool.sub,
                 );
                 assetPool.proposeWithdrawPollDuration = proposeWithdrawPollDuration;
                 await assetPool.save();

@@ -50,7 +50,7 @@ export class GasAdminService {
 
     public async getAccount(npid: NetworkProvider) {
         const { web3 } = getProvider(npid);
-        if (!this.account.gasAdmin) {
+        if (this.account.gasAdmin === undefined) {
             return await this.create(npid);
         }
         const account = web3.eth.accounts.privateKeyToAccount(this.account.gasAdmin);

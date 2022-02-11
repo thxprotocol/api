@@ -196,7 +196,6 @@ export async function sendTransaction(
     gasLimit: number | null = null,
     sub?: string,
 ) {
-    console.log(sub);
     let account: Account;
     const { web3, admin } = getProvider(npid);
     const data = fn.encodeABI();
@@ -208,6 +207,7 @@ export async function sendTransaction(
         web3.eth.defaultAccount = account.address;
     } else {
         account = admin;
+        web3.eth.defaultAccount = admin.address;
     }
 
     const estimate = await fn.estimateGas({ from: account.address });

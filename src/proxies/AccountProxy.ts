@@ -17,7 +17,6 @@ export default class AccountProxy {
             if (!r.data) {
                 throw new Error(ERROR_NO_ACCOUNT);
             }
-
             return { account: r.data };
         } catch (error) {
             return { error };
