@@ -11,7 +11,6 @@ import WithdrawalService from './WithdrawalService';
 
 import YouTubeDataProxy from '../proxies/YoutubeDataProxy';
 import TwitterDataProxy from '../proxies/TwitterDataProxy';
-import { logger } from '../util/logger';
 
 export default class RewardService {
     static async get(assetPool: IAssetPool, rewardId: number) {

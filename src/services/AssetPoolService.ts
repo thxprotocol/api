@@ -172,7 +172,7 @@ export default class AssetPoolService {
                 network,
             );
             const event = findEvent('AssetPoolDeployed', parseLogs(Artifacts.IAssetPoolFactory.abi, tx.logs));
-            
+
             if (!event) {
                 throw new Error(
                     'Could not find a confirmation event in factory transaction. Check API health status at /v1/health.',
