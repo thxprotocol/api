@@ -12,7 +12,6 @@ import { Membership } from '../models/Membership';
 import { ERROR_IS_NOT_MEMBER } from './MemberService';
 import { GasAdminService } from './GasAdminService';
 import { logger } from '../util/logger';
-import { Z_ASCII } from 'zlib';
 
 const ERROR_NO_ASSETPOOL = 'Could not find asset pool for this address';
 const ERROR_DOWNGRADE_BYPASS_POLLS = 'Could not update set bypassPolls (false) for this asset pool.';
@@ -173,7 +172,7 @@ export default class AssetPoolService {
                 network,
             );
             const event = findEvent('AssetPoolDeployed', parseLogs(Artifacts.IAssetPoolFactory.abi, tx.logs));
-
+            
             if (!event) {
                 throw new Error(
                     'Could not find a confirmation event in factory transaction. Check API health status at /v1/health.',
@@ -201,19 +200,24 @@ export default class AssetPoolService {
             await gasAdmin.init(assetPool.sub);
             const account = await gasAdmin.getAccount(assetPool.network);
 
+            const owner = await assetPool.solution.methods.owner().send();
+            logger.info({ owner, admin: admin.address });
+
             const poolRegistryAddress =
                 assetPool.network === NetworkProvider.Test ? TESTNET_POOL_REGISTRY_ADDRESS : POOL_REGISTRY_ADDRESS;
 
             await sendTransaction(
                 assetPool.solution.options.address,
-                assetPool.solution.methods.setPoolRegistry(poolRegistryAddress),
+                assetPool.solution.methods.transferOwnership(account.address),
                 assetPool.network,
             );
 
             await sendTransaction(
                 assetPool.solution.options.address,
-                assetPool.solution.methods.transferOwnership(account.address),
+                assetPool.solution.methods.setPoolRegistry(poolRegistryAddress),
                 assetPool.network,
+                null,
+                assetPool.sub,
             );
 
             await sendTransaction(
