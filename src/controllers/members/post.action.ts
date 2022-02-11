@@ -10,7 +10,7 @@ export async function postMember(req: Request, res: Response, next: NextFunction
         const { account, error } = await AccountProxy.getByAddress(req.body.address);
 
         if (error) {
-            throw new Error(error);
+            throw error;
         } else {
             const { error } = await MemberService.addMember(req.assetPool, req.body.address);
 

@@ -36,10 +36,7 @@ export const postCallUpgradeAddress = async (req: Request, res: Response, next: 
                 try {
                     const { account } = await AccountProxy.getByAddress(event.args.previousAddress);
 
-                    account.address = event.args.newAddress;
-                    account.privateKey = '';
-
-                    await account.save();
+                    await AccountProxy.update(account.id, { address: event.args.newAddress });
 
                     try {
                         const { withdrawals, error } = await WithdrawalService.getByBeneficiary(

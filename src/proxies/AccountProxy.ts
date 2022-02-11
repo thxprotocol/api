@@ -1,4 +1,4 @@
-import { IAccountUpdates } from '../models/Account';
+import { IAccount, IAccountUpdates } from '../models/Account';
 import { authClient, getAuthAccessToken } from '../util/auth';
 
 const ERROR_NO_ACCOUNT = 'Could not find an account for this address';
@@ -44,7 +44,7 @@ export default class AccountProxy {
         }
     }
 
-    static async getByAddress(address: string) {
+    static async getByAddress(address: string): Promise<{ account?: IAccount; error?: Error }> {
         try {
             const r = await authClient({
                 method: 'GET',

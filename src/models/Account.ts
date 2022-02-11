@@ -2,10 +2,11 @@ import { NetworkProvider } from '../util/network';
 export interface IAccount {
     id: string;
     address: string;
-    youtube: any;
     privateKey: string;
-    googleAccessToken: string;
-    googleAccessTokenExpires: number;
+    googleAccess: boolean;
+    twitterAccess: boolean;
+    youtube?: any;
+    twitter?: any;
 }
 export interface ERC20Token {
     network: NetworkProvider;

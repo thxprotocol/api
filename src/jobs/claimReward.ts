@@ -22,7 +22,7 @@ export async function jobClaimReward(assetPool: IAssetPool, id: string, rewardId
 
     if (shouldAddMember) {
         await MemberService.addMember(assetPool, beneficiary);
-        await MembershipService.addMembership(account._id.toString(), assetPool);
+        await MembershipService.addMembership(account.id, assetPool);
     }
 
     await RewardService.claimRewardFor(assetPool, id, rewardId, beneficiary);
