@@ -47,6 +47,9 @@ jobs:
               with:
                   registry: 275440070213.dkr.ecr.eu-west-3.amazonaws.com
 
+            - name: Set up Docker Buildx
+              uses: docker/setup-buildx-action@v1
+
             - name: Docker meta
               id: meta
               uses: docker/metadata-action@v3
