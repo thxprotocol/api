@@ -41,10 +41,7 @@ npm install --ci
 # 5. Start working (docker compose up -d && npm run watch:debug)
 npm run dev
 
-# 6. Deploy contracts to ganache network
-npm run deploy
-
-# 7. shut down dependencies
+# 6. shut down dependencies
 docker compose down
 ```
 

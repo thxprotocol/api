@@ -13,19 +13,6 @@ jobs:
               with:
                   submodules: true
 
-            - name: Set up Docker Buildx
-              uses: docker/setup-buildx-action@v1
-
-            - name: Build image with cache
-              uses: docker/build-push-action@v2
-              with:
-                  context: .
-                  load: true
-                  target: develop
-                  tags: thx/api_ci:latest
-                  cache-from: type=gha
-                  cache-to: type=gha,mode=max
-
             - name: Run test
               run: |
                   docker-compose -f docker-compose.yml -f docker-compose.ci.yml run api npm run test
@@ -48,9 +35,6 @@ jobs:
               with:
                   registry: 275440070213.dkr.ecr.eu-west-3.amazonaws.com
 
-            - name: Set up Docker Buildx
-              uses: docker/setup-buildx-action@v1
-
             - name: Docker meta
               id: meta
               uses: docker/metadata-action@v3
@@ -67,8 +51,6 @@ jobs:
                   push: true
                   tags: ${{ steps.meta.outputs.tags }}
                   labels: ${{ steps.meta.outputs.labels }}
-                  cache-from: type=gha
-                  cache-to: type=gha,mode=max
 
     autodeploy:
         name: Auto deploy main to dev.api.thx.network
