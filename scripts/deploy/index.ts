@@ -5,18 +5,32 @@ import { deployRegistry } from './lib/registry';
 import { logger } from '../../src/util/logger';
 logger.level = 'warning';
 
-async function deploy(network: NetworkProvider.Test | NetworkProvider.Main) {
-    console.log('Facets: ', await deployFacets(NetworkProvider.Main));
-    console.log('Factory: ', await deployFactory(NetworkProvider.Main));
-    console.log('Registry: ', await deployRegistry(NetworkProvider.Main));
+const names = {
+    [NetworkProvider.Main]: 'Main',
+    [NetworkProvider.Test]: 'Test',
+};
 
-    // console.log('Facets:', await deployFacets(network));
-    // console.log('Asset Pool Factory: ', await deployFactory(network));
-    // console.log('Asset Pool Registry:', await deployRegistry(network));
+async function deploy(network: NetworkProvider.Test | NetworkProvider.Main) {
+    console.log(`Facets: [${names[network]}]`, await deployFacets(network));
+    console.log(`Factory: [${names[network]}]`, await deployFactory(network));
+    console.log(`Registry: [${names[network]}]`, await deployRegistry(network));
     console.log('*** UPDATE YOUR .ENV ***');
 }
 
-deploy(NetworkProvider.Main)
+const arg = process.argv[2];
+const jobs = [];
+if (arg) {
+    const provider = arg.toLocaleLowerCase() === 'main' ? NetworkProvider.Main : NetworkProvider.Test;
+    console.log('Deploying to network', names[provider]);
+    jobs.push(deploy(provider));
+} else {
+    console.log('Deploying to Main and Test');
+
+    jobs.push(deploy(NetworkProvider.Main));
+    jobs.push(deploy(NetworkProvider.Test));
+}
+
+Promise.all(jobs)
     .then(() => process.exit(0))
     .catch((error) => {
         console.error(error);
