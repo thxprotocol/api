@@ -7,7 +7,7 @@ import BaseController from './util/base';
 // Name controllers by their CRUD operation (CreatePromoCodeController,
 // ReadPromoCodeController, UpdatePromoCodeController,
 // DeletePromoCodeController)
-export class CreatePromoCodeController extends BaseController {
+class CreatePromoCodeController extends BaseController {
     promoCodeService: PromoCodeService;
 
     // Maybe it makes sense to start properly constructing instances of services here?
@@ -16,6 +16,12 @@ export class CreatePromoCodeController extends BaseController {
     constructor() {
         super();
         this.promoCodeService = new PromoCodeService();
+
+        // Not used to having to do this, but thats probably the luxury frameworks
+        // come with. A package like auto-bind might come in handy here.
+        // https://www.npmjs.com/package/auto-bind
+        this.validate = this.validate.bind(this);
+        this.exec = this.exec.bind(this);
     }
 
     // Moving validation into the controller class will help understand what
@@ -33,3 +39,5 @@ export class CreatePromoCodeController extends BaseController {
         res.json(promoCode);
     }
 }
+
+export default CreatePromoCodeController;

@@ -2,8 +2,6 @@
 import { Response, Request, NextFunction } from 'express';
 import { validationResult } from 'express-validator';
 import { isAddress } from 'web3-utils';
-// modals (should actually only exist on service level)
-import { AssetPool } from '../../../models/AssetPool';
 // services
 import AssetPoolService from '../../../services/AssetPoolService';
 // utils
