@@ -1,6 +1,6 @@
-import { Artifacts } from '../../src/util/artifacts';
-import { deployContract, NetworkProvider } from '../../src/util/network';
-import { COLLECTOR } from '../../src/util/secrets';
+import { Artifacts } from '../../../src/util/artifacts';
+import { deployContract, NetworkProvider } from '../../../src/util/network';
+import { COLLECTOR } from '../../../src/util/secrets';
 
 export async function deployRegistry(npid: NetworkProvider) {
     const registry = await deployContract(

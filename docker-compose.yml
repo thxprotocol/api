@@ -30,7 +30,7 @@ services:
 
     api_mainnet:
         container_name: thx_api_mainnet
-        image: public.ecr.aws/o5j5y3t5/ganache:latest
+        image: trufflesuite/ganache:v7.0.2
         ports:
             - '8546:8545'
         command: [

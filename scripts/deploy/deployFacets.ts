@@ -1,8 +1,8 @@
-import { NetworkProvider } from '../src/util/network';
+import { NetworkProvider } from '../../src/util/network';
 import { deployFacets } from './lib/facets';
 
 async function main() {
-    console.log('Facets [Test]:', await deployFacets(NetworkProvider.Test));
+    // console.log('Facets [Test]:', await deployFacets(NetworkProvider.Test));
     console.log('Facets [Main]:', await deployFacets(NetworkProvider.Main));
     console.log('*** UPDATE YOUR .ENV ***');
 }
