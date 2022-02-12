@@ -1,7 +1,5 @@
-import qrcode from 'qrcode';
 import { HttpError } from '../../models/Error';
 import { Request, NextFunction, Response } from 'express';
-import { sendTransaction } from '../../util/network';
 
 import WithdrawalService from '../../services/WithdrawalService';
 
@@ -46,38 +44,10 @@ import WithdrawalService from '../../services/WithdrawalService';
  *         $ref: '#/components/responses/502'
  */
 export const postPollFinalize = async (req: Request, res: Response, next: NextFunction) => {
-    switch (req.assetPool.bypassPolls) {
-        case true:
-            try {
-                const { withdrawal } = await WithdrawalService.getById(req.params.id);
-                await sendTransaction(
-                    req.assetPool.address,
-                    req.assetPool.solution.methods.withdrawPollFinalize(withdrawal.withdrawalId),
-                    req.assetPool.network,
-                );
-
-                return res.status(200).end();
-            } catch (err) {
-                next(new HttpError(500, 'Could not finalize the withdraw poll.', err));
-            }
-            break;
-        case false:
-            try {
-                const { withdrawal } = await WithdrawalService.getById(req.params.id);
-                const base64 = await qrcode.toDataURL(
-                    JSON.stringify({
-                        assetPoolAddress: req.assetPool.address,
-                        method: 'withdrawPollFinalize',
-                        params: {
-                            id: withdrawal.withdrawalId,
-                        },
-                    }),
-                );
-
-                return res.json({ base64 });
-            } catch (err) {
-                next(new HttpError(500, 'Could not encode the QR image properly.', err));
-            }
-            break;
+    try {
+        const { finalizedWithdrawal } = await WithdrawalService.withdrawPollFinalize(req.assetPool, req.params.id);
+        res.json(finalizedWithdrawal);
+    } catch (error) {
+        next(new HttpError(500, error.message, error));
     }
 };
