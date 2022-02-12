@@ -1,9 +1,5 @@
 import { PromoCode } from '../models/PromoCode';
-
-interface IPromoCodeData {
-    value: string;
-    expiry: Date;
-}
+import { IPromoCodeData } from '../interfaces/IPromoCode';
 
 class PromoCodeService {
     async create(data: IPromoCodeData) {
