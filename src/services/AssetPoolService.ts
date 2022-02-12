@@ -19,6 +19,10 @@ const ERROR_UPDATE_PROPOSE_WITHDRAW_POLL_DURATION =
 const ERROR_UPDATE_REWARD_POLL_DURATION = 'Could not update the rewardPollDuration for this asset pool.';
 
 export default class AssetPoolService {
+    static async getByClientIdAndAddress(clientId: string, address: string) {
+        return await AssetPool.find({ clientId, address });
+    }
+
     static async checkAssetPoolAccess(sub: string, poolAddress: string) {
         try {
             const membership = await Membership.findOne({
