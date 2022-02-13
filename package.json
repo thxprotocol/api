@@ -209,7 +209,10 @@
         "testEnvironment": "node",
         "setupFilesAfterEnv": [
             "<rootDir>/test/e2e/lib/setup.ts"
-        ]
+        ],
+        "moduleNameMapper": {
+            "^@/(.*)$": "<rootDir>/src/$1"
+        }
     },
     "nodemonConfig": {
         "ignore": [
