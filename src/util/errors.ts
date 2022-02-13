@@ -54,6 +54,10 @@ class AmountExceedsAllowanceError extends BadRequestError {
     message = 'Transfer amount exceeds allowance';
 }
 
+class InsufficientBalanceError extends BadRequestError {
+    message = 'Transfer amount exceeds balance';
+}
+
 export {
     BaseError,
     UnauthorizedError,
@@ -63,4 +67,5 @@ export {
     SubjectUnauthorizedError,
     AudienceForbiddenError,
     AmountExceedsAllowanceError,
+    InsufficientBalanceError,
 };

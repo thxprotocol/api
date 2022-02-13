@@ -4,7 +4,7 @@ import { toWei } from 'web3-utils';
 import { callFunction, getProvider, sendTransaction, tokenContract } from '../../../util/network';
 import { getPromoCodeById } from '../../../services/PromoCodeService';
 import AccountProxy from '../../../proxies/AccountProxy';
-import { AmountExceedsAllowanceError } from '../../../util/errors';
+import { AmountExceedsAllowanceError, InsufficientBalanceError } from '../../../util/errors';
 
 const redeemPromoCodeValidation = [param('id').isString().isLength({ min: 23, max: 25 })];
 
@@ -22,6 +22,12 @@ async function RedeemPromoCodeController(req: Request, res: Response, next: Next
 
     if (allowance < amount) {
         throw new AmountExceedsAllowanceError();
+    }
+
+    const balance = await callFunction(token.methods.balanceOf(account.address), req.assetPool.network);
+
+    if (balance < amount) {
+        throw new InsufficientBalanceError();
     }
 
     const tx = await sendTransaction(
