@@ -24,7 +24,7 @@
         "watch:debug": "concurrently -k -p \"[{name}]\" -n \"TypeScript,Node\" -c \"yellow.bold,cyan.bold,green.bold\" \"npm run watch:ts\" \"npm run watch:sass\" \"npm run serve:debug\"",
         "test": "npx jest --coverage --runInBand",
         "test:debug": "npx jest --coverage --runInBand --detectOpenHandles",
-        "deploy": "npx ts-node scripts/deployFacets.ts; npx ts-node scripts/deployAssetPoolFactory.ts; npx ts-node scripts/deployAssetPoolRegistry.ts",
+        "deploy": "npx ts-node -r tsconfig-paths/register scripts/deployFacets.ts; npx ts-node -r tsconfig-paths/register scripts/deployAssetPoolFactory.ts; npx ts-node -r tsconfig-paths/register scripts/deployAssetPoolRegistry.ts",
         "migrate": "migrate-mongo up -f src/migrate-mongo-config.js",
         "migrate:create": "sh -c 'migrate-mongo create -f src/migrate-mongo-config.js $0'",
         "migrate:status": "migrate-mongo status -f src/migrate-mongo-config.js",
@@ -64,6 +64,7 @@
         "nodemailer": "^6.6.1",
         "qrcode": "^1.5.0",
         "swagger-ui-express": "^4.3.0",
+        "tsconfig-paths": "^3.12.0",
         "web3": "^1.7.0",
         "winston": "^3.2.1"
     },
