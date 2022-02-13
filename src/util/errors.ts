@@ -47,7 +47,7 @@ class SubjectUnauthorizedError extends ForbiddenError {
 }
 
 class AudienceForbiddenError extends UnauthorizedError {
-    message = 'Not authorized for subject of access token';
+    message = 'Forbidden for audience of access token';
 }
 
 class AmountExceedsAllowanceError extends BadRequestError {

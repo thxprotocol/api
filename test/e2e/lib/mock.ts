@@ -10,6 +10,9 @@ import {
     registrationAccessToken,
     requestUris,
     feeData,
+    userWalletAddress2,
+    account2,
+    sub2,
 } from './constants';
 import { getToken, jwksResponse } from './jwt';
 import { ISSUER } from '../../../src/util/secrets';
@@ -41,12 +44,18 @@ export function mockStart() {
         request_uris: requestUris,
     });
 
+    // Account 1 (Dashboard)
     mockAuthPath('get', `/account/${sub}`, 200, account);
     mockAuthPath('patch', `/account/${sub}`, 204, {});
     mockAuthPath('post', '/account', 200, account);
     mockAuthPath('get', `/account/email/${userEmail}`, 200, account);
-    mockAuthPath('get', `/account/email/${userEmail2}`, 404, {});
     mockAuthPath('get', `/account/address/${userWalletAddress}`, 200, account);
+    // Account 2 (Web Wallet)
+    mockAuthPath('get', `/account/${sub2}`, 200, account2);
+    mockAuthPath('patch', `/account/${sub2}`, 204, {});
+    mockAuthPath('post', '/account', 200, account2);
+    mockAuthPath('get', `/account/address/${userWalletAddress2}`, 200, account2);
+    mockAuthPath('get', `/account/email/${userEmail2}`, 404, {});
 
     // Mock gas price to be lower than configured cap for all tests. Be aware that
     // the tx_queue test will override this mock.

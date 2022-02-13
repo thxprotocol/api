@@ -13,7 +13,7 @@ import { createWallet, deployExampleToken } from '../../../test/e2e/lib/network'
 import { toWei } from 'web3-utils';
 import { findEvent, parseLogs } from '../../util/events';
 import { Artifacts } from '../../util/artifacts';
-import { userWalletPrivateKey } from '../../../test/e2e/lib/constants';
+import { userWalletPrivateKey2 } from '../../../test/e2e/lib/constants';
 import { AmountExceedsAllowanceError } from '../../util/errors';
 
 const http = request.agent(server);
@@ -36,8 +36,7 @@ describe('PromoCodes', () => {
         testToken = await deployExampleToken();
         dashboardAccessToken = getToken('openid dashboard promo_codes:read promo_codes:write members:write');
         userAccessToken = getToken('openid user promo_codes:read');
-        userWallet = createWallet(userWalletPrivateKey);
-        console.log(userWallet.address);
+        userWallet = createWallet(userWalletPrivateKey2);
     });
 
     // This should move to a more abstract level and be effective for every test
@@ -156,7 +155,7 @@ describe('PromoCodes', () => {
                 .set({ Authorization: userAccessToken })
                 .expect(({ body }: Response) => {
                     expect(body.id).toEqual(promoCode.id);
-                    expect(body.value).toEqual(value);
+                    expect(body.value).toBeUndefined();
                     expect(body.price).toEqual(price);
                     expect(Date.parse(body.expiry)).toEqual(expiry);
                 })

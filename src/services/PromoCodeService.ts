@@ -4,6 +4,7 @@ import { IPromoCodeData } from '../interfaces/IPromoCodeData';
 import { paginatedResults } from '../util/pagination';
 import { AmountExceedsAllowanceError, InsufficientBalanceError, PromoCodeNotFoundError } from '../util/errors';
 import { callFunction, NetworkProvider, sendTransaction, tokenContract } from '../util/network';
+import { IAssetPool } from 'models/AssetPool';
 
 async function createPromoCode(data: IPromoCodeData) {
     return await PromoCode.create(data);
@@ -24,15 +25,17 @@ async function listPromoCodesForSub(sub: string, page = 1, limit = 10) {
     return await paginatedResults(PromoCode, page, limit, { sub });
 }
 
+// Checks for allowance and balance to be sufficient and transfers
+// promoCode price amount from token owner to spender address (pool owner)
 async function redeemTokens(
-    tokenAddress: string,
+    assetPool: IAssetPool,
     owner: string,
     spender: string,
     price: number,
     npid: NetworkProvider,
 ) {
+    const tokenAddress = await callFunction(assetPool.solution.methods.getToken(), assetPool.network);
     const token = tokenContract(npid, tokenAddress);
-
     const amount = toWei(String(price));
     const allowance = await callFunction(token.methods.allowance(owner, spender), npid);
 

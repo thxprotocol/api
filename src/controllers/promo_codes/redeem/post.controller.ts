@@ -9,12 +9,14 @@ const redeemPromoCodeValidation = [param('id').isString().isLength({ min: 23, ma
 async function RedeemPromoCodeController(req: Request, res: Response, next: NextFunction) {
     const { admin } = getProvider(req.assetPool.network);
     const promoCode = await getPromoCodeById(req.params.id);
-    const tokenAddress = await callFunction(req.assetPool.solution.methods.getToken(), req.assetPool.network);
     const { account } = await AccountProxy.getById(req.user.sub);
 
-    await redeemTokens(tokenAddress, account.address, admin.address, promoCode.price, req.assetPool.network);
+    // Transfers the promo code
+    await redeemTokens(req.assetPool, account.address, admin.address, promoCode.price, req.assetPool.network);
 
-    res.end(200);
+    // Unlock
+
+    res.json(promoCode);
 }
 
 export { redeemPromoCodeValidation };
