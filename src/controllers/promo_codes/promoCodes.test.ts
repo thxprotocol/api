@@ -184,8 +184,7 @@ describe('PromoCodes', () => {
             http.post(`/v1/promo_codes/${promoCode.id}/redeem`)
                 .set({ Authorization: userAccessToken, AssetPool: poolAddress })
                 .expect(({ body }: Response) => {
-                    console.log(body);
-                    // expect(body.error.message).toEqual('Route not found');
+                    expect(body.value).toEqual(value);
                 })
                 .expect(200, done);
         });
