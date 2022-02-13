@@ -219,6 +219,9 @@
         "ignore": [
             "logs/*",
             "scripts/*"
-        ]
+        ],
+        "execMap": {
+            "js": "TS_NODE_BASEURL=./dist node -r tsconfig-paths/register"
+        }
     }
 }
