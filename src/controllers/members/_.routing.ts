@@ -14,7 +14,7 @@ const router = express.Router();
 router.get('/', checkScopes(['admin']), validateAssetPoolHeader, parseHeader, getMembers);
 router.post(
     '/',
-    checkScopes(['admin']),
+    checkScopes(['admin', 'members:write']),
     validateAssetPoolHeader,
     validate(validations.postMember),
     parseHeader,
