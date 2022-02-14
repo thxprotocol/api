@@ -44,7 +44,9 @@ export const postAssetPool = async (req: Request, res: Response, next: NextFunct
 
                         await assetPool.save();
 
-                        AssetPool.countDocuments({}, (_err, count) => newrelic.recordMetric('/AssetPool/Count', count));
+                        AssetPool.countDocuments({}, (_err: any, count: number) =>
+                            newrelic.recordMetric('/AssetPool/Count', count),
+                        );
 
                         res.status(201).json({ address: assetPool.solution.options.address });
                     } catch (error) {

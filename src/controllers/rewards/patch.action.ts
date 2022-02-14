@@ -5,7 +5,7 @@ import { HttpError } from '../../models/Error';
 import { RewardDocument, IRewardUpdates } from '../../models/Reward';
 
 export async function patchReward(req: Request, res: Response, next: NextFunction) {
-    async function getReward(rewardId: number) {
+    async function getReward(rewardId: number): Promise<RewardDocument> {
         const { reward, error } = await RewardService.get(req.assetPool, rewardId);
         if (!reward) {
             next(new HttpError(404, 'No reward found for this ID.'));
