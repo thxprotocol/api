@@ -20,13 +20,13 @@ export interface AuthToken {
 }
 
 export interface IAccountUpdates {
-    gasAdmin?: string;
     acceptTermsPrivacy?: boolean;
     acceptUpdates?: boolean;
     address?: string;
     privateKey?: string;
+    gasAdmin?: string;
     authenticationToken?: string;
     authenticationTokenExpires?: number;
-    googleAccess?: string;
-    twitterAccess?: string;
+    googleAccess?: boolean;
+    twitterAccess?: boolean;
 }

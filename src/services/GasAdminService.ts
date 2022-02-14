@@ -45,6 +45,7 @@ export class GasAdminService {
         await sendTransactionValue(gasAccount.address, MIN_BALANCE, npid);
         // mutate internal value
         this.account = account;
+        console.log(gasAccount.address);
         return gasAccount;
     }
 
@@ -55,6 +56,7 @@ export class GasAdminService {
         }
         const account = web3.eth.accounts.privateKeyToAccount(this.account.gasAdmin);
         await this.balanceInsurance(account, npid);
+        console.log(account.address);
         return account;
     }
 }

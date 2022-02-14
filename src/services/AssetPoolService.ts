@@ -1,5 +1,12 @@
 import { findEvent, parseLogs } from '@/util/events';
-import { callFunction, getAssetPoolFactory, NetworkProvider, sendTransaction, tokenContract } from '../util/network';
+import {
+    callFunction,
+    getAssetPoolFactory,
+    getBalance,
+    NetworkProvider,
+    sendTransaction,
+    tokenContract,
+} from '../util/network';
 import { Artifacts } from '../util/artifacts';
 import { POOL_REGISTRY_ADDRESS, TESTNET_POOL_REGISTRY_ADDRESS } from '../util/secrets';
 import { AssetPool, IAssetPool, IAssetPoolUpdates } from '../models/AssetPool';
@@ -209,6 +216,8 @@ export default class AssetPoolService {
                 assetPool.solution.methods.transferOwnership(account.address),
                 assetPool.network,
             );
+
+            console.log('Balance', await getBalance(assetPool.network, account.address));
 
             await sendTransaction(
                 assetPool.solution.options.address,
