@@ -3,5 +3,5 @@ export interface IPaymentData {
     sender: string;
     receiver: string;
     amount: number;
-    order: string;
+    item: string;
 }

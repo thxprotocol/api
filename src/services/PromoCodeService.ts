@@ -57,16 +57,15 @@ async function transferTokens(
     const tokenAddress = await callFunction(assetPool.solution.methods.getToken(), assetPool.network);
     const token = tokenContract(npid, tokenAddress);
     const amount = toWei(String(price));
-    const allowance = await callFunction(token.methods.allowance(owner, spender), npid);
-
-    if (allowance < amount) {
-        throw new AmountExceedsAllowanceError();
-    }
 
     const balance = await callFunction(token.methods.balanceOf(owner), npid);
-
     if (balance < amount) {
         throw new InsufficientBalanceError();
+    }
+
+    const allowance = await callFunction(token.methods.allowance(owner, spender), npid);
+    if (allowance < amount) {
+        throw new AmountExceedsAllowanceError();
     }
 
     return await sendTransaction(token.options.address, token.methods.transferFrom(owner, spender, amount), npid);

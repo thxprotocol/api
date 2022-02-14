@@ -5,6 +5,6 @@ export type PaymentType = {
     amount: number;
     sender: string;
     receiver: string;
-    order: string;
+    item: string;
     state: PaymentState;
 };

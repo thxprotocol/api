@@ -9,7 +9,7 @@ const PaymentSchema = new mongoose.Schema(
         amount: Number,
         sender: String,
         receiver: String,
-        order: String,
+        item: String,
         state: Number,
     },
     { timestamps: false },

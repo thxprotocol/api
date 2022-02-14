@@ -12,7 +12,8 @@ import rewardsRouter from './rewards/_.routing';
 import withdrawalsRouter from './withdrawals/_.routing';
 import membershipsRouter from './memberships/_.routing';
 import tokenRouter from './token/_.routing';
-import promoCodesRouter from './promo_codes/promoCodes.routing';
+import promoCodesRouter from './promo_codes/promoCodes.router';
+import paymentsRouter from './payments/payments.router';
 import { checkJwt } from '../util/jwt';
 
 const router = express.Router();
@@ -24,6 +25,7 @@ router.use('/docs', docsRouter);
 router.use(checkJwt);
 router.use('/', authRouter);
 router.use('/promo_codes', promoCodesRouter);
+router.use('/payments', paymentsRouter);
 router.use('/metrics', metricsRouter);
 router.use('/account', accountRouter);
 router.use('/widgets', widgetsRouter);

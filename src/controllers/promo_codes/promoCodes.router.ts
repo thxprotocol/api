@@ -1,10 +1,9 @@
 import express from 'express';
 import assertScopes from 'express-jwt-authz';
-import { assertRequestInput, assertAssetPoolAccess, requireAssetPoolHeader } from '../../middlewares';
+import { assertRequestInput } from '../../middlewares';
 import CreatePromoCodeController, { createPromoCodeValidation } from './post.controller';
 import ReadPromoCodeController, { readPromoCodeValidation } from './get.controller';
 import ReadAllPromoCodeController, { readAllPromoCodeValidation } from './getAll.controller';
-import RedeemPromoCodeController, { redeemPromoCodeValidation } from './redeem/post.controller';
 
 const router = express.Router();
 
@@ -25,14 +24,6 @@ router.get(
     assertScopes(['dashboard', 'promo_codes:read']),
     assertRequestInput(readPromoCodeValidation),
     ReadPromoCodeController,
-);
-router.post(
-    '/:id/redeem',
-    assertScopes(['user', 'promo_codes:read']),
-    assertAssetPoolAccess,
-    assertRequestInput(redeemPromoCodeValidation),
-    requireAssetPoolHeader,
-    RedeemPromoCodeController,
 );
 
 export default router;
