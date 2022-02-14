@@ -25,7 +25,7 @@
         "test": "npx jest --runInBand",
         "test:coverage": "npx jest --coverage --runInBand",
         "test:debug": "npx jest --coverage --runInBand --detectOpenHandles",
-        "deploy": "npx ts-node scripts/deployFacets.ts; npx ts-node scripts/deployAssetPoolFactory.ts; npx ts-node scripts/deployAssetPoolRegistry.ts",
+        "deploy": "ts-node -r tsconfig-paths/register scripts/deploy/index.ts",
         "migrate": "migrate-mongo up -f src/migrate-mongo-config.js",
         "migrate:create": "sh -c 'migrate-mongo create -f src/migrate-mongo-config.js $0'",
         "migrate:status": "migrate-mongo status -f src/migrate-mongo-config.js",
@@ -66,6 +66,7 @@
         "nodemailer": "^6.6.1",
         "qrcode": "^1.5.0",
         "swagger-ui-express": "^4.3.0",
+        "tsconfig-paths": "^3.12.0",
         "web3": "^1.7.0",
         "winston": "^3.2.1"
     },
@@ -102,7 +103,7 @@
         "eslint-plugin-prettier": "^4.0.0",
         "jest": "^27.1.2",
         "nock": "^13.2.2",
-        "nodemon": "^1.19.2",
+        "nodemon": "^2.0.15",
         "npm-force-resolutions": "0.0.10",
         "prettier": "^2.5.1",
         "sass": "^1.32.8",
@@ -211,12 +212,18 @@
         "testEnvironment": "node",
         "setupFilesAfterEnv": [
             "<rootDir>/test/e2e/lib/setup.ts"
-        ]
+        ],
+        "moduleNameMapper": {
+            "^@/(.*)$": "<rootDir>/src/$1"
+        }
     },
     "nodemonConfig": {
         "ignore": [
             "logs/*",
             "scripts/*"
-        ]
+        ],
+        "execMap": {
+            "js": "TS_NODE_BASEURL=./dist node -r tsconfig-paths/register"
+        }
     }
 }

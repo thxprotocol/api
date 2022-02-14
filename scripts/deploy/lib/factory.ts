@@ -1,7 +1,7 @@
-import { deployContract, getProvider, getSelectors, NetworkProvider, sendTransaction } from '../../src/util/network';
-import { FacetCutAction } from '../../src/util/upgrades';
-import { Artifacts } from '../../src/util/artifacts';
-import { Facets } from '../../src/util/facets';
+import { deployContract, getProvider, getSelectors, NetworkProvider, sendTransaction } from '../../../src/util/network';
+import { FacetCutAction } from '../../../src/util/upgrades';
+import { Artifacts } from '../../../src/util/artifacts';
+import { Facets } from '../../../src/util/facets';
 
 export async function deployFactory(npid: NetworkProvider) {
     const { web3, admin } = getProvider(npid);

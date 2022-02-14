@@ -138,6 +138,11 @@ export default class WithdrawalService {
     static async withdrawPollFinalize(assetPool: IAssetPool, id: string) {
         try {
             const withdrawal = await Withdrawal.findById(id);
+
+            if (withdrawal.state === WithdrawalState.Deferred) {
+                throw new Error('Not able to withdraw funds for custodial wallets.');
+            }
+
             const tx = await sendTransaction(
                 assetPool.solution.options.address,
                 assetPool.solution.methods.withdrawPollFinalize(withdrawal.withdrawalId),
