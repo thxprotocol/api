@@ -35,7 +35,7 @@ class NotImplementedError extends BaseError {
 
 class BadGatewayError extends BaseError {
     status = 502;
-    message = 'Not Implemented';
+    message = 'Bad Gateway';
 }
 
 class PromoCodeNotFoundError extends NotFoundError {
@@ -58,6 +58,10 @@ class InsufficientBalanceError extends BadRequestError {
     message = 'Transfer amount exceeds balance';
 }
 
+class TokenPaymentFailedError extends InternalServerError {
+    message = 'Transfer did not succeed';
+}
+
 export {
     BaseError,
     UnauthorizedError,
@@ -68,4 +72,5 @@ export {
     AudienceForbiddenError,
     AmountExceedsAllowanceError,
     InsufficientBalanceError,
+    TokenPaymentFailedError,
 };

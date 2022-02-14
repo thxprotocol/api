@@ -1,11 +1,11 @@
 import request, { Response } from 'supertest';
-import { isAddress } from 'web3-utils';
+import { isAddress, toChecksumAddress } from 'web3-utils';
 import server from '../../../src/server';
 import db from '../../../src/util/database';
 import { getToken } from '../../../test/e2e/lib/jwt';
 import { mockClear, mockStart } from '../../../test/e2e/lib/mock';
 import { agenda } from '../../util/agenda';
-import { NetworkProvider, getProvider, sendTransaction } from '../../util/network';
+import { NetworkProvider, sendTransaction } from '../../util/network';
 import { IPromoCodeResponse } from '../../interfaces/IPromoCodeResponse';
 import { Account } from 'web3-core';
 import { Contract } from 'web3-eth-contract';
@@ -134,18 +134,28 @@ describe('Payments', () => {
                 .expect(400, done);
         });
 
-        it('Approve admin for token transfer', async () => {
-            const { admin } = getProvider(NetworkProvider.Main);
+        it('Approve Deposit', async () => {
             const tx = await testToken.methods
-                .approve(admin.address, toWei(String(price)))
+                .approve(toChecksumAddress(poolAddress), toWei(String(price)))
                 .send({ from: userWallet.address });
             const event = Object.values(tx.events).filter((e: any) => e.event === 'Approval')[0];
             expect(event).toBeDefined();
         });
 
-        it('POST /payments 200 OK', (done) => {
-            http.post('/v1/payments')
+        it('POST /payments 200 OK', async () => {
+            await http
+                .post('/v1/payments')
                 .set({ Authorization: userAccessToken, AssetPool: poolAddress })
+                .send({ item: promoCode.id })
+                .expect(({ body }: Response) => {
+                    console.log(body);
+                })
+                .expect(200);
+        });
+
+        it('GET /promo_codes/:id', (done) => {
+            http.get('/v1/promo_codes/' + promoCode.id)
+                .set({ Authorization: userAccessToken })
                 .expect(({ body }: Response) => {
                     expect(body.value).toEqual(value);
                 })

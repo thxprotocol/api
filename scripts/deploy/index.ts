@@ -17,7 +17,7 @@ async function deploy(network: NetworkProvider.Test | NetworkProvider.Main) {
     console.log('*** UPDATE YOUR .ENV ***');
 }
 
-const arg = process.argv[2];
+const arg: any = null;
 const jobs = [];
 if (arg) {
     const provider = arg.toLocaleLowerCase() === 'main' ? NetworkProvider.Main : NetworkProvider.Test;

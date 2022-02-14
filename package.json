@@ -34,7 +34,7 @@
     "dependencies": {
         "@godaddy/terminus": "^4.9.0",
         "@sendgrid/mail": "^7.4.2",
-        "@thxnetwork/artifacts": "^1.0.1",
+        "@thxnetwork/artifacts": "^1.0.2",
         "@types/agenda": "^4.1.0",
         "agenda": "^4.2.1",
         "async": "^3.1.0",

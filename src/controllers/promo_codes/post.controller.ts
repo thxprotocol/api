@@ -1,6 +1,6 @@
-import { Request, Response, NextFunction } from 'express';
+import { Request, Response } from 'express';
 import { body } from 'express-validator';
-import { createPromoCode } from '../../services/PromoCodeService';
+import PromoCodeService from '../../services/PromoCodeService';
 
 export const createPromoCodeValidation = [
     body('expiry').isNumeric(),
@@ -8,8 +8,8 @@ export const createPromoCodeValidation = [
     body('value').isString(),
 ];
 
-export default async function CreatePromoCodeController(req: Request, res: Response, next: NextFunction) {
-    const { _id, value, price, expiry } = await createPromoCode({
+export default async function CreatePromoCodeController(req: Request, res: Response) {
+    const { _id, value, price, expiry } = await PromoCodeService.create({
         sub: req.user.sub,
         price: req.body.price,
         value: req.body.value,

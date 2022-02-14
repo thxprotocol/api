@@ -1,12 +1,12 @@
-import { Request, Response, NextFunction } from 'express';
+import { Request, Response } from 'express';
 import { param } from 'express-validator';
-import { formatPromoCodeResponse, getPromoCodeById } from '../../services/PromoCodeService';
+import PromoCodeService from '../../services/PromoCodeService';
 
 export const readPromoCodeValidation = [param('id').isString().isLength({ min: 23, max: 25 })];
 
-export default async function ReadPromoCodeController(req: Request, res: Response, next: NextFunction) {
-    const promoCode = await getPromoCodeById(req.params.id);
-    const result = await formatPromoCodeResponse(req.user.sub, promoCode);
+export default async function ReadPromoCodeController(req: Request, res: Response) {
+    const promoCode = await PromoCodeService.findById(req.params.id);
+    const result = await PromoCodeService.formatResult(req.user.sub, promoCode);
 
     res.json(result);
 }
