@@ -7,8 +7,8 @@ import { encryptString } from '../util/encrypt';
 import { decryptString } from '../util/decrypt';
 import { SECURE_KEY } from '../util/secrets';
 
-export const DEFAULT_BALANCE = new BN(2);
-export const MIN_BALANCE = new BN(0.75);
+export const DEFAULT_BALANCE = new BN(200000000000);
+export const MIN_BALANCE = new BN(75000000);
 
 export class GasAdminService {
     account: IAccount;
@@ -45,7 +45,6 @@ export class GasAdminService {
         await sendTransactionValue(gasAccount.address, MIN_BALANCE, npid);
         // mutate internal value
         this.account = account;
-        console.log(gasAccount.address);
         return gasAccount;
     }
 
@@ -56,7 +55,6 @@ export class GasAdminService {
         }
         const account = web3.eth.accounts.privateKeyToAccount(this.account.gasAdmin);
         await this.balanceInsurance(account, npid);
-        console.log(account.address);
         return account;
     }
 }

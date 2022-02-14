@@ -216,7 +216,7 @@ export async function sendTransaction(
     const maxFeePerGasLimit = Number(toWei(MAX_FEE_PER_GAS, 'gwei'));
     const maxFeePerGas = Number(toWei(String(Math.ceil(feeData.maxFeePerGas)), 'gwei'));
     const maxPriorityFeePerGas = Number(toWei(String(Math.ceil(feeData.maxPriorityFeePerGas)), 'gwei'));
-    const nonce = await web3.eth.getTransactionCount(admin.address, 'pending');
+    const nonce = await web3.eth.getTransactionCount(account.address, 'pending');
 
     // This comparison is in gwei
     if (maxFeePerGas > maxFeePerGasLimit) {
