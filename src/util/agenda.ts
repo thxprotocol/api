@@ -1,5 +1,4 @@
 import { Agenda } from 'agenda';
-import { MONGODB_URI } from './secrets';
 import { logger } from './logger';
 import { WithdrawalDocument, WithdrawalType } from '../models/Withdrawal';
 
@@ -10,14 +9,10 @@ import { jobProposeWithdraw } from '../jobs/proposeWithdrawal';
 import AssetPoolService from '../services/AssetPoolService';
 import WithdrawalService from '../services/WithdrawalService';
 import { ERROR_MAX_FEE_PER_GAS } from './network';
+import db from './database';
 
 export const eventNameProcessWithdrawals = 'processWithdrawals';
-
 export const agenda = new Agenda({
-    db: {
-        address: MONGODB_URI,
-        collection: 'jobs',
-    },
     maxConcurrency: 1,
     lockLimit: 1,
     processEvery: '1 second',
@@ -70,7 +65,10 @@ agenda.define(eventNameProcessWithdrawals, async () => {
     }
 });
 
-(async () => {
+db.connection.once('open', async () => {
+    agenda.mongo(db.connection.getClient().db(), 'jobs', function (err) {
+        logger.error(err);
+    });
     await agenda.start();
     agenda.every('5 seconds', eventNameProcessWithdrawals);
-})();
+});
