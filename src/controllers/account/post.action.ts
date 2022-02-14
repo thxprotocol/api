@@ -52,7 +52,6 @@ export const postAccount = async (req: Request, res: Response, next: NextFunctio
 
         res.status(201).json({ id: account.id, address: account.address });
     } catch (error) {
-        if (error instanceof HttpError) next(error);
         return next(new HttpError(502, error.message, error));
     }
 };
