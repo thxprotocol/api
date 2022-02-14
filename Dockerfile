@@ -12,7 +12,7 @@ WORKDIR /usr/src/app
 COPY --from=node_modules ./usr/src/app/ ./
 COPY . .
 
-CMD [ "npx", "ts-node", "src/server.ts" ]
+CMD [ "npx", "ts-node", "-r", "tsconfig-paths/register", "src/server.ts" ]
 
 
 FROM node:16-alpine as build
@@ -22,9 +22,6 @@ COPY --from=node_modules ./usr/src/app/ ./
 COPY . .
 RUN npm run build
 COPY newrelic.js dist/newrelic.js
-
-CMD [ "dist/src/server.js" ]
-
 
 FROM node:16-alpine as production
 
@@ -36,5 +33,6 @@ RUN apk add --virtual .build g++ make py3-pip && \
     npm install --production --ci && \
     apk del .build
 COPY --from=build ./usr/src/app/dist ./
+COPY tsconfig.json ./
 
-CMD [ "src/server.js" ]
+CMD [ "-r", "tsconfig-paths/register", "src/server.js" ]
