@@ -71,7 +71,6 @@
         "@types/async": "^3.0.2",
         "@types/bcrypt-nodejs": "^0.0.30",
         "@types/bluebird": "^3.5.27",
-        "@types/chai": "^4.2.3",
         "@types/compression": "^1.0.1",
         "@types/concurrently": "^4.1.0",
         "@types/ejs": "^3.1.0",
@@ -85,7 +84,6 @@
         "@types/node": "^12.20.42",
         "@types/nodemailer": "^6.2.1",
         "@types/supertest": "^2.0.8",
-        "@types/winston": "^2.4.4",
         "@typescript-eslint/eslint-plugin": "^5.9.1",
         "@typescript-eslint/parser": "^5.9.1",
         "bootstrap": "^4.6.0",
@@ -142,7 +140,7 @@
             "plugin:prettier/recommended"
         ],
         "parserOptions": {
-            "ecmaVersion": 2020,
+            "ecmaVersion": 2021,
             "sourceType": "module"
         },
         "rules": {
@@ -210,10 +208,6 @@
         }
     },
     "nodemonConfig": {
-        "ignore": [
-            "logs/*",
-            "scripts/*"
-        ],
         "execMap": {
             "js": "TS_NODE_BASEURL=./dist node -r tsconfig-paths/register"
         }
