@@ -152,3 +152,11 @@ To rollback a migration use the down command
 ```
 npm run migrate:undo-last
 ```
+
+## 8. ganache-thx-artifacts image
+
+In order to save us from having to deploy the THX contracts repeatedly during development and testing we've created an image with the contracts deployed. You can use it by running `docker run public.ecr.aws/o5j5y3t5/ganache-thx-artifacts:latest`.
+
+Since CMD parameters are now also embedded in the image you need to create a new image when adding parameters. Adjust the SCRIPT_IMAGE_VERSION, CMD and OVERRIDE_CMD variables and run the `build-and-push-thx-ganache.sh` script.
+
+Similarly you need to build a new image when updating the ganache base image or thx-artifacts dependency.

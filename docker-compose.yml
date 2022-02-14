@@ -18,24 +18,15 @@ services:
        
     api_testnet:
         container_name: thx_api_testnet
-        image: trufflesuite/ganache:v7.0.2
+        image: public.ecr.aws/o5j5y3t5/ganache-thx-artifacts:v7.0.2-v1.0.1-v1.0.0
         ports:
             - '8547:8545'
-        command: [
-                "--account='0x873c254263b17925b686f971d7724267710895f1585bb0533db8e693a2af32ff,100000000000000000000'",
-                "--account='0x5a05e38394194379795422d2e8c1d33e90033d90defec4880174c39198f707e3,100000000000000000000'",
-                '-l 25000000',
-            ]
 
     api_mainnet:
         container_name: thx_api_mainnet
-        image: trufflesuite/ganache:v7.0.2
+        image: public.ecr.aws/o5j5y3t5/ganache-thx-artifacts:v7.0.2-v1.0.1-v1.0.0
         ports:
             - '8546:8545'
-        command: [
-                "--account='0x873c254263b17925b686f971d7724267710895f1585bb0533db8e693a2af32ff,100000000000000000000'",
-                "--account='0x5a05e38394194379795422d2e8c1d33e90033d90defec4880174c39198f707e3,100000000000000000000'",
-                '-l 25000000 ',
-            ]
+
 volumes:
     mongo-data:
