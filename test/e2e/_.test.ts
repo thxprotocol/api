@@ -1,9 +1,9 @@
 import { fromWei } from 'web3-utils';
 import db from '../../src/util/database';
 import server from '../../src/server';
-import { deployFacets } from '../../scripts/lib/facets';
-import { deployFactory } from '../../scripts/lib/factory';
-import { deployRegistry } from '../../scripts/lib/registry';
+import { deployFacets } from '../../scripts/deploy/lib/facets';
+import { deployFactory } from '../../scripts/deploy/lib/factory';
+import { deployRegistry } from '../../scripts/deploy/lib/registry';
 import { getProvider, NetworkProvider } from '../../src/util/network';
 import { ASSET_POOL_FACTORY_ADDRESS, POOL_REGISTRY_ADDRESS } from '../../src/util/secrets';
 import { agenda } from '../../src/util/agenda';
