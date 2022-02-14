@@ -27,8 +27,10 @@ export const postWithdrawal = async (req: Request, res: Response, next: NextFunc
 
         agenda.now(eventNameProcessWithdrawals, null);
 
-        Withdrawal.countDocuments({}, (_err, count) => newrelic.recordMetric('/Withdrawal/TotalCount', count));
-        Withdrawal.countDocuments({ state: WithdrawalState.Deferred }, (_err, count) =>
+        Withdrawal.countDocuments({}, (_err: any, count: number) =>
+            newrelic.recordMetric('/Withdrawal/TotalCount', count),
+        );
+        Withdrawal.countDocuments({ state: WithdrawalState.Deferred }, (_err: any, count: number) =>
             newrelic.recordMetric('/Withdrawal/DeferredCount', count),
         );
 

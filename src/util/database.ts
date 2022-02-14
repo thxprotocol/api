@@ -5,13 +5,6 @@ import { logger } from './logger';
 (mongoose as any).Promise = bluebird;
 
 const connect = async (url: string) => {
-    const mongooseOpts = {
-        useNewUrlParser: true,
-        useCreateIndex: true,
-        useFindAndModify: false,
-        useUnifiedTopology: true,
-    };
-
     mongoose.connection.on('error', (err) => {
         logger.error(`MongoDB connection error. Please make sure MongoDB is running. ${err}`);
     });
@@ -26,7 +19,7 @@ const connect = async (url: string) => {
     });
 
     if (mongoose.connection.readyState === 0) {
-        await mongoose.connect(url, mongooseOpts);
+        await mongoose.connect(url);
     }
 };
 
@@ -56,4 +49,5 @@ export default {
     truncate,
     disconnect,
     readyState,
+    connection: mongoose.connection,
 };
