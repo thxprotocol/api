@@ -15,8 +15,8 @@
         "allowJs": true,
         "paths": {
             "@/*": ["./src/*"],
-            "*": ["./src/*", "./node_modules/*", "src/types/*"]
+            "*": ["./src/*", "./node_modules/*", "./src/types/*"]
         }
     },
-    "include": ["./src/*", "./src/migrations/*"]
+    "include": ["./src/*", "./src/migrations/*", "./src/types/*"]
 }

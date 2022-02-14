@@ -34,7 +34,6 @@
         "@godaddy/terminus": "^4.9.0",
         "@sendgrid/mail": "^7.4.2",
         "@thxnetwork/artifacts": "^1.0.1",
-        "@types/agenda": "^4.1.0",
         "agenda": "^4.2.1",
         "async": "^3.1.0",
         "axios": "^0.21.3",
@@ -68,10 +67,10 @@
         "winston": "^3.2.1"
     },
     "devDependencies": {
+        "@types/agenda": "^4.1.0",
         "@types/async": "^3.0.2",
         "@types/bcrypt-nodejs": "^0.0.30",
         "@types/bluebird": "^3.5.27",
-        "@types/body-parser": "^1.17.1",
         "@types/chai": "^4.2.3",
         "@types/compression": "^1.0.1",
         "@types/concurrently": "^4.1.0",
@@ -85,8 +84,6 @@
         "@types/newrelic": "^7.0.3",
         "@types/node": "^12.20.42",
         "@types/nodemailer": "^6.2.1",
-        "@types/request": "^2.48.3",
-        "@types/request-promise": "^4.1.44",
         "@types/supertest": "^2.0.8",
         "@types/winston": "^2.4.4",
         "@typescript-eslint/eslint-plugin": "^5.9.1",
