@@ -1,7 +1,8 @@
+import { fromWei } from 'web3-utils';
 import { logger } from './logger';
 import { callFunction, NetworkProvider, solutionContract } from './network';
-import { Withdrawal, WithdrawalState } from '../models/Withdrawal';
-import { fromWei } from 'web3-utils';
+import { Withdrawal } from '@/models/Withdrawal';
+import { WithdrawalState } from '@/enums';
 
 class EventIndexer {
     async onWithdrawPollVoted(npid: NetworkProvider, address: string, args: any) {

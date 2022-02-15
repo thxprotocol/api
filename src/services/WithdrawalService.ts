@@ -1,11 +1,12 @@
-import { IAssetPool } from '../models/AssetPool';
-import { callFunction, NetworkProvider, sendTransaction, ERROR_MAX_FEE_PER_GAS } from '../util/network';
-import { Artifacts } from '../util/artifacts';
-import { parseLogs, findEvent } from '../util/events';
-import { Withdrawal, WithdrawalState, WithdrawalType } from '../models/Withdrawal';
 import { toWei, fromWei } from 'web3-utils';
-import { paginatedResults } from '../util/pagination';
-import { IAccount } from '../models/Account';
+import { callFunction, NetworkProvider, sendTransaction, ERROR_MAX_FEE_PER_GAS } from '../util/network';
+import { WithdrawalState, WithdrawalType } from '@/enums';
+import { IAssetPool } from '@/models/AssetPool';
+import { Withdrawal } from '@/models/Withdrawal';
+import { IAccount } from '@/models/Account';
+import { Artifacts } from '@/util/artifacts';
+import { parseLogs, findEvent } from '@/util/events';
+import { paginatedResults } from '@/util/pagination';
 
 const ERROR_NO_WITHDRAWAL = 'Could not find an withdrawal for this beneficiary';
 

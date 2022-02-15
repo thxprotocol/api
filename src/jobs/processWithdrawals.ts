@@ -1,4 +1,5 @@
-import { WithdrawalDocument, WithdrawalType } from '@/models/Withdrawal';
+import { WithdrawalDocument } from '@/models/Withdrawal';
+import { WithdrawalType } from '@/enums/WithdrawalType';
 import { IAssetPool } from '@/models/AssetPool';
 import { logger } from '@/util/logger';
 import { ERROR_MAX_FEE_PER_GAS } from '@/util/network';

@@ -7,14 +7,7 @@ import db from '../../util/database';
 import { getToken } from '../../../test/e2e/lib/jwt';
 import { mockClear, mockStart } from '../../../test/e2e/lib/mock';
 import { agenda, eventNameRequireDeposits } from '../../util/agenda';
-import {
-    callFunction,
-    getBalance,
-    NetworkProvider,
-    sendTransaction,
-    solutionContract,
-    tokenContract,
-} from '../../util/network';
+import { getBalance, NetworkProvider, sendTransaction, solutionContract } from '../../util/network';
 import { IPromoCodeResponse } from '../../interfaces/IPromoCodeResponse';
 import { createWallet, deployExampleToken } from '../../../test/e2e/lib/network';
 import { findEvent, parseLogs } from '../../util/events';

@@ -1,6 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
 import { HttpError } from '../../models/Error';
-import { WithdrawalState, WithdrawalType } from '../../models/Withdrawal';
 
 import { agenda, eventNameProcessWithdrawals } from '../../util/agenda';
 
@@ -8,6 +7,7 @@ import RewardService from '../../services/RewardService';
 import WithdrawalService from '../../services/WithdrawalService';
 import MemberService, { ERROR_IS_NOT_MEMBER } from '../../services/MemberService';
 import AccountProxy from '../../proxies/AccountProxy';
+import { WithdrawalState, WithdrawalType } from '@/enums';
 
 const ERROR_NO_REWARD = 'Could not find a reward for this id';
 

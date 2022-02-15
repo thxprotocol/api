@@ -1,13 +1,14 @@
 import newrelic from 'newrelic';
 import { Request, NextFunction, Response } from 'express';
 import { HttpError } from '../../models/Error';
-import { Withdrawal, WithdrawalState, WithdrawalType } from '../../models/Withdrawal';
+import { Withdrawal } from '../../models/Withdrawal';
 import { agenda, eventNameProcessWithdrawals } from '../../util/agenda';
 
 import MemberService, { ERROR_IS_NOT_MEMBER } from '../../services/MemberService';
 import WithdrawalService from '../../services/WithdrawalService';
 
 import AccountProxy from '../../proxies/AccountProxy';
+import { WithdrawalState, WithdrawalType } from '@/enums';
 
 export const postWithdrawal = async (req: Request, res: Response, next: NextFunction) => {
     try {
