@@ -1,8 +1,9 @@
-import { PromoCode, PromoCodeDocument } from '../models/PromoCode';
-import { IPromoCodeData } from '../interfaces/IPromoCodeData';
-import { paginatedResults } from '../util/pagination';
-import { Payment } from '../models/Payment';
-import { PromoCodeNotFoundError } from '../util/errors';
+import { PromoCode, PromoCodeDocument } from '@/models/PromoCode';
+import { IPromoCodeData } from '@/interfaces/IPromoCodeData';
+import { paginatedResults } from '@/util/pagination';
+import { Deposit } from '@/models/Deposit';
+import { PromoCodeNotFoundError } from '@/util/errors';
+import { DepositState } from '@/enums/DepositState';
 
 async function create(data: IPromoCodeData) {
     return await PromoCode.create(data);
@@ -26,11 +27,12 @@ async function formatResult(sub: string, promoCode: PromoCodeDocument) {
         protectedValue = { value: promoCode.value };
     }
 
-    const payment = await Payment.findOne({ sub, order: promoCode.id });
-
+    // Check if user made a deposit
+    const payment = await Deposit.findOne({ sub, item: promoCode.id, state: DepositState.Completed });
     if (payment) {
         protectedValue = { value: promoCode.value };
     }
+
     // Show if a Payment exists for the requesting user and this promo code
     // TokenRedeem.find({ promoCode: String(_id), sub: req.user.sub }) has a result
     return { ...{ id: String(promoCode._id), price: promoCode.price, expiry: promoCode.expiry }, ...protectedValue };

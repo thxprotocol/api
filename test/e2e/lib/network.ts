@@ -38,11 +38,11 @@ export const timeTravel = async (seconds: number) => {
     await (web3 as any).increaseTime(seconds);
     await (web3 as any).mine();
 };
-export async function deployExampleToken() {
+export async function deployExampleToken(to = admin.address) {
     return await deployContract(
         Artifacts.ExampleToken.abi,
         Artifacts.ExampleToken.bytecode,
-        [admin.address, mintAmount],
+        [to, mintAmount],
         NetworkProvider.Main,
     );
 }

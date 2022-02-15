@@ -1,16 +1,22 @@
 import request, { Response } from 'supertest';
-import { isAddress, toChecksumAddress } from 'web3-utils';
-import server from '../../../src/server';
-import db from '../../../src/util/database';
+import { Account } from 'web3-core';
+import { isAddress, toWei } from 'web3-utils';
+import { Contract } from 'web3-eth-contract';
+import server from '../../server';
+import db from '../../util/database';
 import { getToken } from '../../../test/e2e/lib/jwt';
 import { mockClear, mockStart } from '../../../test/e2e/lib/mock';
-import { agenda } from '../../util/agenda';
-import { NetworkProvider, sendTransaction } from '../../util/network';
+import { agenda, eventNameRequireDeposits } from '../../util/agenda';
+import {
+    callFunction,
+    getBalance,
+    NetworkProvider,
+    sendTransaction,
+    solutionContract,
+    tokenContract,
+} from '../../util/network';
 import { IPromoCodeResponse } from '../../interfaces/IPromoCodeResponse';
-import { Account } from 'web3-core';
-import { Contract } from 'web3-eth-contract';
 import { createWallet, deployExampleToken } from '../../../test/e2e/lib/network';
-import { toWei } from 'web3-utils';
 import { findEvent, parseLogs } from '../../util/events';
 import { Artifacts } from '../../util/artifacts';
 import { userWalletPrivateKey2 } from '../../../test/e2e/lib/constants';
@@ -18,7 +24,7 @@ import { AmountExceedsAllowanceError, InsufficientBalanceError } from '../../uti
 
 const http = request.agent(server);
 
-describe('Payments', () => {
+describe('Deposits', () => {
     let dashboardAccessToken: string,
         userAccessToken: string,
         poolAddress: string,
@@ -33,10 +39,10 @@ describe('Payments', () => {
     beforeAll(async () => {
         await db.truncate();
         mockStart();
+        userWallet = createWallet(userWalletPrivateKey2);
         testToken = await deployExampleToken();
         dashboardAccessToken = getToken('openid dashboard promo_codes:read promo_codes:write members:write');
-        userAccessToken = getToken('openid user promo_codes:read');
-        userWallet = createWallet(userWalletPrivateKey2);
+        userAccessToken = getToken('openid user promo_codes:read payments:write payments:read');
     });
 
     // This should move to a more abstract level and be effective for every test
@@ -91,7 +97,7 @@ describe('Payments', () => {
             .expect(201, done);
     });
 
-    describe('Create payment', () => {
+    describe('Create Deposit', () => {
         it('GET /promo_codes/:id', (done) => {
             http.get('/v1/promo_codes/' + promoCode.id)
                 .set({ Authorization: userAccessToken })
@@ -104,8 +110,8 @@ describe('Payments', () => {
                 .expect(200, done);
         });
 
-        it('POST /payments 400 Bad Request', (done) => {
-            http.post('/v1/payments')
+        it('POST /deposits 400 Bad Request', (done) => {
+            http.post('/v1/deposits')
                 .set({ Authorization: userAccessToken, AssetPool: poolAddress })
                 .send({ item: promoCode.id })
                 .expect(({ body }: Response) => {
@@ -121,11 +127,12 @@ describe('Payments', () => {
                 NetworkProvider.Main,
             );
             const event = findEvent('Transfer', parseLogs(Artifacts.ERC20.abi, tx.logs));
+
             expect(event).toBeDefined();
         });
 
-        it('POST /payments 400 Bad Request', (done) => {
-            http.post('/v1/payments')
+        it('POST /deposits 400 Bad Request', (done) => {
+            http.post('/v1/deposits')
                 .set({ Authorization: userAccessToken, AssetPool: poolAddress })
                 .send({ item: promoCode.id })
                 .expect(({ body }: Response) => {
@@ -136,21 +143,58 @@ describe('Payments', () => {
 
         it('Approve Deposit', async () => {
             const tx = await testToken.methods
-                .approve(toChecksumAddress(poolAddress), toWei(String(price)))
+                .approve(poolAddress, toWei(String(price)))
                 .send({ from: userWallet.address });
-            const event = Object.values(tx.events).filter((e: any) => e.event === 'Approval')[0];
-            expect(event).toBeDefined();
+            const event: any = Object.values(tx.events).filter((e: any) => e.event === 'Approval')[0];
+
+            expect(event.returnValues.owner).toEqual(userWallet.address);
+            expect(event.returnValues.spender).toEqual(poolAddress);
+            expect(event.returnValues.value).toEqual(toWei(String(price)));
         });
 
-        it('POST /payments 200 OK', async () => {
+        it('should disable job processor', async () => {
+            await agenda.disable({ name: eventNameRequireDeposits });
+        });
+
+        it('POST /deposits 200 OK', async () => {
             await http
-                .post('/v1/payments')
+                .post('/v1/deposits')
                 .set({ Authorization: userAccessToken, AssetPool: poolAddress })
                 .send({ item: promoCode.id })
                 .expect(({ body }: Response) => {
                     console.log(body);
                 })
                 .expect(200);
+        });
+
+        it('Create Deposit', async () => {
+            const solution = solutionContract(NetworkProvider.Main, poolAddress);
+            const amount = toWei(String(price));
+            const tokenBalance = await testToken.methods
+                .balanceOf(userWallet.address)
+                .call({ from: userWallet.address });
+            const balance = await getBalance(NetworkProvider.Main, userWallet.address);
+            console.dir(
+                { balance, solutionAddress: solution.options.address, poolAddress, amount, tokenBalance },
+                { colors: true },
+            );
+            const tx = await solution.methods.deposit(amount).send({ from: userWallet.address });
+            console.log(tx);
+            console.log(tx.events);
+            const event: any = Object.values(tx.events).filter((e: any) => e.event === 'Transfer')[0];
+            expect(event).toBeDefined();
+        });
+
+        it('should enable job processor', async () => {
+            await agenda.enable({ name: eventNameRequireDeposits });
+        });
+
+        it('should cast a success event', (done) => {
+            const callback = async () => {
+                agenda.off(`success:${eventNameRequireDeposits}`, callback);
+                done();
+            };
+            agenda.on(`success:${eventNameRequireDeposits}`, callback);
         });
 
         it('GET /promo_codes/:id', (done) => {

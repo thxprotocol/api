@@ -1,17 +1,17 @@
 import express from 'express';
 import assertScopes from 'express-jwt-authz';
 import { assertRequestInput, assertAssetPoolAccess, requireAssetPoolHeader } from '../../middlewares';
-import CreatePaymentController, { createPaymentValidation } from './post.controller';
+import CreateDepositController, { createDepositValidation } from './post.controller';
 
 const router = express.Router();
 
 router.post(
     '/',
-    assertScopes(['user', 'payments:read', 'payments:write']),
+    assertScopes(['user', 'deposits:read', 'deposits:write']),
     assertAssetPoolAccess,
-    assertRequestInput(createPaymentValidation),
+    assertRequestInput(createDepositValidation),
     requireAssetPoolHeader,
-    CreatePaymentController,
+    CreateDepositController,
 );
 
 export default router;

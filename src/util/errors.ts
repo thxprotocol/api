@@ -61,16 +61,22 @@ class InsufficientBalanceError extends BadRequestError {
 class TokenPaymentFailedError extends InternalServerError {
     message = 'Transfer did not succeed';
 }
+class GetPastTransferEventsError extends InternalServerError {
+    message = 'GetPastEvents for Transfer event failed in callback.';
+}
 
 export {
     BaseError,
     UnauthorizedError,
     ForbiddenError,
     NotFoundError,
+    NotImplementedError,
+    BadGatewayError,
     PromoCodeNotFoundError,
     SubjectUnauthorizedError,
     AudienceForbiddenError,
     AmountExceedsAllowanceError,
     InsufficientBalanceError,
     TokenPaymentFailedError,
+    GetPastTransferEventsError,
 };

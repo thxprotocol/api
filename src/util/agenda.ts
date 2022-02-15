@@ -1,69 +1,21 @@
 import { Agenda } from 'agenda';
 import { logger } from './logger';
-import { WithdrawalDocument, WithdrawalType } from '../models/Withdrawal';
-
-import { jobClaimReward } from '../jobs/claimReward';
-import { jobClaimRewardFor } from '../jobs/claimRewardFor';
-import { jobProposeWithdraw } from '../jobs/proposeWithdrawal';
-
-import AssetPoolService from '../services/AssetPoolService';
-import WithdrawalService from '../services/WithdrawalService';
-import { ERROR_MAX_FEE_PER_GAS } from './network';
 import db from './database';
 
+import { jobProcessWithdrawals } from '@/jobs/processWithdrawals';
+import { jobRequireDeposits } from '@/jobs/requireTransfer';
+
 export const eventNameProcessWithdrawals = 'processWithdrawals';
+export const eventNameRequireDeposits = 'requireDeposits';
+
 export const agenda = new Agenda({
     maxConcurrency: 1,
     lockLimit: 1,
     processEvery: '1 second',
 });
 
-async function updateFailReason(withdrawal: WithdrawalDocument, failReason: string) {
-    withdrawal.failReason = failReason;
-    await withdrawal.save();
-}
-
-agenda.define(eventNameProcessWithdrawals, async () => {
-    const withdrawals = await WithdrawalService.getAllScheduled();
-    for (const w of withdrawals) {
-        const { assetPool } = await AssetPoolService.getByAddress(w.poolAddress);
-
-        try {
-            switch (w.type) {
-                case WithdrawalType.ClaimReward:
-                    await jobClaimReward(assetPool, w.id, w.rewardId, w.beneficiary);
-                    break;
-                case WithdrawalType.ClaimRewardFor:
-                    await jobClaimRewardFor(assetPool, w.id, w.rewardId, w.beneficiary);
-                    break;
-                case WithdrawalType.ProposeWithdraw:
-                    await jobProposeWithdraw(assetPool, w.id, w.amount, w.beneficiary);
-                    break;
-            }
-            // If no error is thrown remove the failReason that potentially got stored in
-            // an earlier run.
-            if (w.failReason) {
-                await updateFailReason(w, '');
-            }
-        } catch (error) {
-            await updateFailReason(w, error.message);
-
-            const level = error.message === ERROR_MAX_FEE_PER_GAS ? 'info' : 'error';
-            logger.log(level, {
-                withdrawalFailed: {
-                    withdrawalId: String(w._id),
-                    withdrawalType: w.type,
-                    error: error.message,
-                },
-            });
-
-            // Stop processing the other queued withdrawals if fee is too high per gas.
-            if (error.message === ERROR_MAX_FEE_PER_GAS) {
-                throw error;
-            }
-        }
-    }
-});
+agenda.define(eventNameProcessWithdrawals, jobProcessWithdrawals);
+agenda.define(eventNameRequireDeposits, jobRequireDeposits);
 
 db.connection.once('open', async () => {
     agenda.mongo(db.connection.getClient().db(), 'jobs', function (err) {
@@ -71,4 +23,5 @@ db.connection.once('open', async () => {
     });
     await agenda.start();
     agenda.every('5 seconds', eventNameProcessWithdrawals);
+    agenda.every('10 seconds', eventNameRequireDeposits);
 });
