@@ -66,9 +66,8 @@ agenda.define(eventNameProcessWithdrawals, async () => {
 });
 
 db.connection.once('open', async () => {
-    agenda.mongo(db.connection.getClient().db(), 'jobs', function (err) {
-        logger.error(err);
-    });
+    agenda.mongo(db.connection.getClient().db(), 'jobs');
     await agenda.start();
     agenda.every('5 seconds', eventNameProcessWithdrawals);
+    logger.info('Started agenda processing');
 });
