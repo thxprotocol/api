@@ -17,12 +17,44 @@ jobs:
               run: |
                   docker-compose -f docker-compose.yml -f docker-compose.ci.yml run api npm run test
 
+    bumpVersion:
+        name: 'Bump Version on main'
+        runs-on: ubuntu-latest
+        if: github.ref == 'refs/heads/main'
+        needs: buildAndTest
+        outputs:
+            newTag: ${{ steps.version-bump.outputs.newTag }}
+
+        steps:
+            - name: 'Checkout source code'
+              uses: 'actions/checkout@v2'
+              with:
+                  ref: ${{ github.ref }}
+
+            - name: 'Automated Version Bump'
+              id: version-bump
+              uses: 'phips28/gh-action-bump-version@master'
+              with:
+                  tag-prefix: 'v'
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
     buildAndPushImage:
         name: Build and Push docker image
         runs-on: ubuntu-latest
         if: github.ref == 'refs/heads/main' || startsWith(github.ref,'refs/heads/hotfix/')
-        needs: buildAndTest
+        needs: bumpVersion
         steps:
+            - name: Checkout
+              uses: actions/checkout@v2
+              with:
+                  submodules: true
+
+            - name: Install Node.js 16.x
+              uses: actions/setup-node@v1
+              with:
+                  node-version: 16.x
+
             - name: Configure AWS credentials
               uses: aws-actions/configure-aws-credentials@v1
               with:
@@ -44,10 +76,17 @@ jobs:
                   tags: |
                       type=ref,event=branch
                       type=sha
+                      type=semver,pattern={{version}},value=${{needs.bumpVersion.outputs.newTag}}
+                      type=semver,pattern={{major}}.{{minor}},value=${{needs.bumpVersion.outputs.newTag}}
+                      type=semver,pattern={{raw}},value=${{needs.bumpVersion.outputs.newTag}}
+
+            - name: Set correct version
+              run: npm version ${{needs.bumpVersion.outputs.newTag}} --allow-same-version=true --git-tag-version=false
 
             - name: Build
               uses: docker/build-push-action@v2
               with:
+                  context: .
                   push: true
                   tags: ${{ steps.meta.outputs.tags }}
                   labels: ${{ steps.meta.outputs.labels }}

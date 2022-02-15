@@ -9,6 +9,7 @@ import AccountProxy from '@/proxies/AccountProxy';
 import RewardService from '@/services/RewardService';
 import MemberService from '@/services/MemberService';
 import WithdrawalService from '@/services/WithdrawalService';
+import { wrapBackgroundTransaction } from '@/util/newrelic';
 
 const ERROR_CAN_NOT_CLAIM = 'Claim conditions are currently not valid.';
 
@@ -50,14 +51,25 @@ export async function jobProcessWithdrawals() {
         try {
             switch (w.type) {
                 case WithdrawalType.ClaimReward:
-                    await claimReward(assetPool, w.id, w.rewardId, w.beneficiary);
+                    await wrapBackgroundTransaction(
+                        'jobClaimReward',
+                        'processWithdrawal',
+                        claimReward(assetPool, w.id, w.rewardId, w.beneficiary),
+                    );
                     break;
                 case WithdrawalType.ClaimRewardFor:
-                    await RewardService.claimRewardFor(assetPool, w.id, w.rewardId, w.beneficiary);
-
+                    await wrapBackgroundTransaction(
+                        'jobClaimRewardFor',
+                        'processWithdrawal',
+                        RewardService.claimRewardFor(assetPool, w.id, w.rewardId, w.beneficiary),
+                    );
                     break;
                 case WithdrawalType.ProposeWithdraw:
-                    await WithdrawalService.proposeWithdraw(assetPool, w.id, w.beneficiary, w.amount);
+                    await wrapBackgroundTransaction(
+                        'jobProposeWithdraw',
+                        'processWithdrawal',
+                        WithdrawalService.proposeWithdraw(assetPool, w.id, w.beneficiary, w.amount),
+                    );
                     break;
             }
             // If no error is thrown remove the failReason that potentially got stored in
