@@ -79,7 +79,7 @@ jobs:
                       type=semver,pattern={{raw}},value=${{needs.bumpVersion.outputs.newTag}}
 
             - name: Set correct version
-              run: npm version ${{needs.bumpVersion.outputs.newTag}}
+              run: npm version ${{needs.bumpVersion.outputs.newTag}} --allow-same-version=true --git-tag-version=false
 
             - name: Build
               uses: docker/build-push-action@v2
