@@ -14,10 +14,10 @@
         "skipLibCheck": true,
         "allowJs": true,
         "paths": {
-            "@/*": ["src/*"],
-            "*": ["src/*", "node_modules/*", "src/types/*"]
+            "@/*": ["./src/*"],
+            "*": ["./src/*", "./node_modules/*", "./src/types/*"]
         }
     },
-    "include": ["src/*", "src/migrations/*", "src/types/*"],
+    "include": ["./src/**/*.ts", "./src/migrations/*"],
     "ts-node": { "files": true }
 }
