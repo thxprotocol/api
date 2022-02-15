@@ -10,6 +10,7 @@ import AssetPoolService from '../services/AssetPoolService';
 import WithdrawalService from '../services/WithdrawalService';
 import { ERROR_MAX_FEE_PER_GAS } from './network';
 import db from './database';
+import { wrapBackgroundTransaction } from '@/util/newrelic';
 
 export const eventNameProcessWithdrawals = 'processWithdrawals';
 export const agenda = new Agenda({
@@ -31,13 +32,25 @@ agenda.define(eventNameProcessWithdrawals, async () => {
         try {
             switch (w.type) {
                 case WithdrawalType.ClaimReward:
-                    await jobClaimReward(assetPool, w.id, w.rewardId, w.beneficiary);
+                    await wrapBackgroundTransaction(
+                        'jobClaimReward',
+                        'processWithdrawal',
+                        jobClaimReward(assetPool, w.id, w.rewardId, w.beneficiary),
+                    );
                     break;
                 case WithdrawalType.ClaimRewardFor:
-                    await jobClaimRewardFor(assetPool, w.id, w.rewardId, w.beneficiary);
+                    await wrapBackgroundTransaction(
+                        'jobClaimRewardFor',
+                        'processWithdrawal',
+                        jobClaimRewardFor(assetPool, w.id, w.rewardId, w.beneficiary),
+                    );
                     break;
                 case WithdrawalType.ProposeWithdraw:
-                    await jobProposeWithdraw(assetPool, w.id, w.amount, w.beneficiary);
+                    await wrapBackgroundTransaction(
+                        'jobProposeWithdraw',
+                        'processWithdrawal',
+                        jobProposeWithdraw(assetPool, w.id, w.amount, w.beneficiary),
+                    );
                     break;
             }
             // If no error is thrown remove the failReason that potentially got stored in
