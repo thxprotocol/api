@@ -26,7 +26,6 @@ export async function jobRequireDeposits() {
                 toBlock,
             },
             (error: Error, event: any) => {
-                console.dir({ error, event }, { colors: true });
                 if (error) {
                     throw new GetPastTransferEventsError();
                 }

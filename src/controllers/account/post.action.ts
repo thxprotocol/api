@@ -1,8 +1,8 @@
 import { Request, Response, NextFunction } from 'express';
-import { HttpError } from '../../models/Error';
-import MemberService from '../../services/MemberService';
-import AccountProxy from '../../proxies/AccountProxy';
-import MembershipService from '../../services/MembershipService';
+import { HttpError } from '@/models/Error';
+import MemberService from '@/services/MemberService';
+import AccountProxy from '@/proxies/AccountProxy';
+import MembershipService from '@/services/MembershipService';
 
 const ERROR_DUPLICATE_EMAIL = 'An account with this e-mail address already exists.';
 const ERROR_CREATE_ACCOUNT = 'Could not signup for an account';

@@ -1,9 +1,9 @@
-import MemberService from '../../services/MemberService';
-import MembershipService from '../../services/MembershipService';
-import AccountProxy from '../../proxies/AccountProxy';
+import MemberService from '@/services/MemberService';
+import MembershipService from '@/services/MembershipService';
+import AccountProxy from '@/proxies/AccountProxy';
 import { Request, NextFunction, Response } from 'express';
-import { HttpError } from '../../models/Error';
-import { VERSION } from '../../util/secrets';
+import { HttpError } from '@/models/Error';
+import { VERSION } from '@/util/secrets';
 
 export async function postMember(req: Request, res: Response, next: NextFunction) {
     try {

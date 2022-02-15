@@ -1,6 +1,6 @@
 import express from 'express';
 import checkScopes from 'express-jwt-authz';
-import { validate } from '../../util/validation';
+import { validate } from '@/util/validation';
 import { validations } from './_.validation';
 import { getMembership } from './get.action';
 import { getMemberships } from './getAll.action';

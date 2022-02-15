@@ -1,9 +1,9 @@
 import { Response, Request, NextFunction } from 'express';
-import { HttpError } from '../../models/Error';
-import { getProvider, NetworkProvider } from '../../util/network';
-import AssetPoolService from '../../services/AssetPoolService';
-import WithdrawalService from '../../services/WithdrawalService';
-import MembershipService from '../../services/MembershipService';
+import { HttpError } from '@/models/Error';
+import { getProvider, NetworkProvider } from '@/util/network';
+import AssetPoolService from '@/services/AssetPoolService';
+import WithdrawalService from '@/services/WithdrawalService';
+import MembershipService from '@/services/MembershipService';
 
 export const getMetrics = async (req: Request, res: Response, next: NextFunction) => {
     try {

@@ -1,6 +1,6 @@
 import express from 'express';
 import assertScopes from 'express-jwt-authz';
-import { assertRequestInput } from '../../middlewares';
+import { assertRequestInput } from '@/middlewares';
 import CreatePromoCodeController, { createPromoCodeValidation } from './post.controller';
 import ReadPromoCodeController, { readPromoCodeValidation } from './get.controller';
 import ReadAllPromoCodeController, { readAllPromoCodeValidation } from './getAll.controller';

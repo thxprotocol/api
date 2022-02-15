@@ -1,5 +1,5 @@
 import { toWei } from 'web3-utils';
-import { IAssetPool } from '@/models/AssetPool';
+import { AssetPoolType } from '@/models/AssetPool';
 import { Deposit } from '@/models/Deposit';
 import { callFunction, getProvider, tokenContract } from '@/util/network';
 import { IAccount } from '@/models/Account';
@@ -8,7 +8,7 @@ import { DepositState } from '@/enums/DepositState';
 
 // Checks for allowance and balance to be sufficient and transfers
 // promoCode price amount from token owner to spender address (pool owner)
-async function create(assetPool: IAssetPool, owner: IAccount, price: number, item: string) {
+async function create(assetPool: AssetPoolType, owner: IAccount, price: number, item: string) {
     const tokenAddress = await callFunction(assetPool.solution.methods.getToken(), assetPool.network);
     const token = tokenContract(assetPool.network, tokenAddress);
     const amount = toWei(String(price));

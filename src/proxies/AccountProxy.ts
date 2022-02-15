@@ -1,4 +1,4 @@
-import { IAccount, IAccountUpdates } from '../models/Account';
+import { IAccount, IAccountUpdates } from '@/models/Account';
 import { authClient, getAuthAccessToken } from '@/util/auth';
 
 const ERROR_NO_ACCOUNT = 'Could not find an account for this address';

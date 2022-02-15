@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { param } from 'express-validator';
-import PromoCodeService from '../../services/PromoCodeService';
+import PromoCodeService from '@/services/PromoCodeService';
 
 export const readPromoCodeValidation = [param('id').isString().isLength({ min: 23, max: 25 })];
 

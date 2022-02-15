@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
-import { HttpError } from '../../models/Error';
-import AssetPoolService from '../../services/AssetPoolService';
+import { HttpError } from '@/models/Error';
+import AssetPoolService from '@/services/AssetPoolService';
 
 export const patchAssetPool = async (req: Request, res: Response, next: NextFunction) => {
     const { assetPool, error } = await AssetPoolService.getByAddress(req.params.address);

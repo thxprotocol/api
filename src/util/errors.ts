@@ -64,6 +64,9 @@ class TokenPaymentFailedError extends InternalServerError {
 class GetPastTransferEventsError extends InternalServerError {
     message = 'GetPastEvents for Transfer event failed in callback.';
 }
+class GetPastWithdrawnEventsError extends InternalServerError {
+    message = 'GetPastEvents for Withdrawn event failed in callback.';
+}
 
 export {
     BaseError,
@@ -79,4 +82,5 @@ export {
     InsufficientBalanceError,
     TokenPaymentFailedError,
     GetPastTransferEventsError,
+    GetPastWithdrawnEventsError,
 };

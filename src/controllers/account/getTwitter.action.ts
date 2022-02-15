@@ -1,6 +1,6 @@
-import TwitterDataProxy from '../../proxies/TwitterDataProxy';
+import TwitterDataProxy from '@/proxies/TwitterDataProxy';
 import { Request, Response, NextFunction } from 'express';
-import { HttpError } from '../../models/Error';
+import { HttpError } from '@/models/Error';
 
 export const getTwitter = async (req: Request, res: Response, next: NextFunction) => {
     async function getTwitterData() {

@@ -1,7 +1,7 @@
 import qrcode from 'qrcode';
-import { HttpError } from '../../models/Error';
+import { HttpError } from '@/models/Error';
 import { NextFunction, Request, Response } from 'express';
-import WithdrawalService from '../../services/WithdrawalService';
+import WithdrawalService from '@/services/WithdrawalService';
 
 /**
  * @swagger

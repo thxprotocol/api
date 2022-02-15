@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { body } from 'express-validator';
-import PromoCodeService from '../../services/PromoCodeService';
+import PromoCodeService from '@/services/PromoCodeService';
 
 export const createPromoCodeValidation = [
     body('expiry').isNumeric(),

@@ -1,19 +1,19 @@
 import BN from 'bn.js';
-import { IAssetPool } from '../models/AssetPool';
-import { IAccount } from '../models/Account';
-import { sendTransaction, callFunction } from '../util/network';
-import { Artifacts } from '../util/artifacts';
-import { parseLogs, findEvent } from '../util/events';
-import { ChannelAction, IRewardCondition, IRewardUpdates, Reward, RewardDocument, RewardState } from '../models/Reward';
+import { AssetPoolType } from '@/models/AssetPool';
+import { IAccount } from '@/models/Account';
+import { sendTransaction, callFunction } from '@/util/network';
+import { Artifacts } from '@/util/artifacts';
+import { parseLogs, findEvent } from '@/util/events';
+import { ChannelAction, IRewardCondition, IRewardUpdates, Reward, RewardDocument, RewardState } from '@/models/Reward';
 import { fromWei, toWei } from 'web3-utils';
 
 import WithdrawalService from './WithdrawalService';
 
-import YouTubeDataProxy from '../proxies/YoutubeDataProxy';
-import TwitterDataProxy from '../proxies/TwitterDataProxy';
+import YouTubeDataProxy from '@/proxies/YoutubeDataProxy';
+import TwitterDataProxy from '@/proxies/TwitterDataProxy';
 
 export default class RewardService {
-    static async get(assetPool: IAssetPool, rewardId: number) {
+    static async get(assetPool: AssetPoolType, rewardId: number) {
         try {
             const reward = await Reward.findOne({ poolAddress: assetPool.address, id: rewardId });
 
@@ -38,7 +38,7 @@ export default class RewardService {
         }
     }
 
-    static async getRewardPoll(assetPool: IAssetPool, pollId: number) {
+    static async getRewardPoll(assetPool: AssetPoolType, pollId: number) {
         try {
             const withdrawAmount = Number(
                 fromWei(await callFunction(assetPool.solution.methods.getWithdrawAmount(pollId), assetPool.network)),
@@ -79,7 +79,7 @@ export default class RewardService {
         }
     }
 
-    static async canClaim(assetPool: IAssetPool, reward: RewardDocument, account: IAccount) {
+    static async canClaim(assetPool: AssetPoolType, reward: RewardDocument, account: IAccount) {
         async function validateYouTubeLike(channelItem: string) {
             const { result, error } = await YouTubeDataProxy.validateLike(account, channelItem);
             if (error) throw new Error('Could not validate YouTube like');
@@ -148,7 +148,7 @@ export default class RewardService {
         }
     }
 
-    static async claimRewardFor(assetPool: IAssetPool, id: string, rewardId: number, beneficiary: string) {
+    static async claimRewardFor(assetPool: AssetPoolType, id: string, rewardId: number, beneficiary: string) {
         const tx = await sendTransaction(
             assetPool.solution.options.address,
             assetPool.solution.methods.claimRewardFor(rewardId, beneficiary),
@@ -178,7 +178,7 @@ export default class RewardService {
     }
 
     static async create(
-        assetPool: IAssetPool,
+        assetPool: AssetPoolType,
         withdrawAmount: BN,
         withdrawDuration: number,
         isMembershipRequired: boolean,
@@ -216,7 +216,11 @@ export default class RewardService {
         }
     }
 
-    static async update(assetPool: IAssetPool, rewardId: number, { withdrawAmount, withdrawDuration }: IRewardUpdates) {
+    static async update(
+        assetPool: AssetPoolType,
+        rewardId: number,
+        { withdrawAmount, withdrawDuration }: IRewardUpdates,
+    ) {
         try {
             const withdrawAmountInWei = toWei(withdrawAmount.toString());
             const tx = await sendTransaction(
@@ -234,7 +238,7 @@ export default class RewardService {
         }
     }
 
-    static async finalizePoll(assetPool: IAssetPool, reward: RewardDocument) {
+    static async finalizePoll(assetPool: AssetPoolType, reward: RewardDocument) {
         try {
             const { pollId } = await callFunction(assetPool.solution.methods.getReward(reward.id), assetPool.network);
             const tx = await sendTransaction(

@@ -1,10 +1,10 @@
 import ejs from 'ejs';
-import { sendMail } from '../util/mail';
-import { createRandomToken } from '../util/tokens';
+import { sendMail } from '@/util/mail';
+import { createRandomToken } from '@/util/tokens';
 import path from 'path';
-import { API_URL, WALLET_URL, SECURE_KEY } from '../util/secrets';
-import { encryptString } from '../util/encrypt';
-import AccountProxy from '../proxies/AccountProxy';
+import { API_URL, WALLET_URL, SECURE_KEY } from '@/util/secrets';
+import { encryptString } from '@/util/encrypt';
+import AccountProxy from '@/proxies/AccountProxy';
 
 const DURATION_DAY = Date.now() + 24 * 60 * 60 * 1000;
 

@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
-import { HttpError } from '../../models/Error';
-import { VERSION } from '../../util/secrets';
-import AccountProxy from '../../proxies/AccountProxy';
+import { HttpError } from '@/models/Error';
+import { VERSION } from '@/util/secrets';
+import AccountProxy from '@/proxies/AccountProxy';
 
 export const patchAccount = async (req: Request, res: Response, next: NextFunction) => {
     try {

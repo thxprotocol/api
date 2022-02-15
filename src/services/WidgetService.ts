@@ -1,4 +1,4 @@
-import { Widget } from '../models/Widget';
+import { Widget } from '@/models/Widget';
 
 export default class WidgetService {
     static async get(clientId: string) {

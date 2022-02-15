@@ -1,6 +1,6 @@
 import { WithdrawalDocument } from '@/models/Withdrawal';
 import { WithdrawalType } from '@/enums/WithdrawalType';
-import { IAssetPool } from '@/models/AssetPool';
+import { AssetPoolDocument } from '@/models/AssetPool';
 import { logger } from '@/util/logger';
 import { ERROR_MAX_FEE_PER_GAS } from '@/util/network';
 
@@ -14,7 +14,7 @@ import { wrapBackgroundTransaction } from '@/util/newrelic';
 
 const ERROR_CAN_NOT_CLAIM = 'Claim conditions are currently not valid.';
 
-async function claimReward(assetPool: IAssetPool, id: string, rewardId: number, beneficiary: string) {
+async function claimReward(assetPool: AssetPoolDocument, id: string, rewardId: number, beneficiary: string) {
     const { account } = await AccountProxy.getByAddress(beneficiary);
     const { reward } = await RewardService.get(assetPool, rewardId);
     const { canClaim } = await RewardService.canClaim(assetPool, reward, account);

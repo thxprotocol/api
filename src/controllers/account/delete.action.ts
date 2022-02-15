@@ -1,6 +1,6 @@
 import { Response, NextFunction, Request } from 'express';
-import { HttpError } from '../../models/Error';
-import AccountProxy from '../../proxies/AccountProxy';
+import { HttpError } from '@/models/Error';
+import AccountProxy from '@/proxies/AccountProxy';
 
 export const deleteAccount = async (req: Request, res: Response, next: NextFunction) => {
     try {

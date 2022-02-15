@@ -1,6 +1,6 @@
 import { Request, NextFunction, Response } from 'express';
-import { HttpError } from '../../models/Error';
-import MembershipService from '../../services/MembershipService';
+import { HttpError } from '@/models/Error';
+import MembershipService from '@/services/MembershipService';
 
 export const deleteMembership = async (req: Request, res: Response, next: NextFunction) => {
     try {

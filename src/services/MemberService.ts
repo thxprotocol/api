@@ -1,8 +1,8 @@
-import { callFunction, sendTransaction, tokenContract } from '../util/network';
-import { IAssetPool } from '../models/AssetPool';
-import { findEvent, parseLogs } from '../util/events';
-import { Artifacts } from '../util/artifacts';
-import { IMember, Member } from '../models/Member';
+import { callFunction, sendTransaction, tokenContract } from '@/util/network';
+import { AssetPoolType } from '@/models/AssetPool';
+import { findEvent, parseLogs } from '@/util/events';
+import { Artifacts } from '@/util/artifacts';
+import { IMember, Member } from '@/models/Member';
 import { fromWei } from 'web3-utils';
 
 export const ERROR_IS_MEMBER_FAILED = 'Could not check if this address is a member';
@@ -15,7 +15,7 @@ export const ERROR_IS_MEMBER_ALREADY = 'This address is already a member.';
 export const ERROR_IS_NOT_MEMBER = 'This address is not a member.';
 
 export default class MemberService {
-    static async getByAddress(assetPool: IAssetPool, address: string) {
+    static async getByAddress(assetPool: AssetPoolType, address: string) {
         try {
             const { isMember, error } = await this.isMember(assetPool, address);
 
@@ -69,7 +69,7 @@ export default class MemberService {
         }
     }
 
-    static async getByPoolAddress(assetPool: IAssetPool) {
+    static async getByPoolAddress(assetPool: AssetPoolType) {
         try {
             const members = await Member.find({ poolAddress: assetPool.address });
 
@@ -79,7 +79,7 @@ export default class MemberService {
         }
     }
 
-    static async addMember(assetPool: IAssetPool, address: string) {
+    static async addMember(assetPool: AssetPoolType, address: string) {
         try {
             const { isMember, error } = await this.isMember(assetPool, address);
 
@@ -127,7 +127,7 @@ export default class MemberService {
         }
     }
 
-    static async isMember(assetPool: IAssetPool, address: string) {
+    static async isMember(assetPool: AssetPoolType, address: string) {
         try {
             const isMember = await callFunction(assetPool.solution.methods.isMember(address), assetPool.network);
             return { isMember };
@@ -136,7 +136,7 @@ export default class MemberService {
         }
     }
 
-    static async isManager(assetPool: IAssetPool, address: string) {
+    static async isManager(assetPool: AssetPoolType, address: string) {
         try {
             const isManager = await await callFunction(
                 assetPool.solution.methods.isManager(address),
@@ -148,7 +148,7 @@ export default class MemberService {
         }
     }
 
-    static async removeMember(assetPool: IAssetPool, address: string) {
+    static async removeMember(assetPool: AssetPoolType, address: string) {
         try {
             const { isMember, error } = await this.isMember(assetPool, address);
 

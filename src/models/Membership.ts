@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import { NetworkProvider } from '../util/network';
+import { NetworkProvider } from '@/util/network';
 
 export type MembershipDocument = mongoose.Document & {
     sub: string;

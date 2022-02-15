@@ -1,4 +1,4 @@
-import { DepositState } from '../enums/DepositState';
+import { DepositState } from '@/enums/DepositState';
 
 export type DepositType = {
     sub: string;

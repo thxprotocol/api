@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import { DepositType } from '../types/Deposit';
+import { DepositType } from '@/types/Deposit';
 
 export type DepositDocument = mongoose.Document & DepositType;
 

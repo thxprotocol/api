@@ -1,19 +1,19 @@
+import server from '../../server';
 import request, { Response } from 'supertest';
 import { Account } from 'web3-core';
 import { isAddress, toWei } from 'web3-utils';
 import { Contract } from 'web3-eth-contract';
-import server from '../../server';
-import db from '../../util/database';
+import db from '@/util/database';
 import { getToken } from '../../../test/e2e/lib/jwt';
 import { mockClear, mockStart } from '../../../test/e2e/lib/mock';
-import { agenda, eventNameRequireDeposits } from '../../util/agenda';
-import { getBalance, NetworkProvider, sendTransaction, solutionContract } from '../../util/network';
-import { IPromoCodeResponse } from '../../interfaces/IPromoCodeResponse';
+import { agenda, eventNameRequireDeposits } from '@/util/agenda';
+import { NetworkProvider, sendTransaction, solutionContract } from '@/util/network';
+import { IPromoCodeResponse } from '@/interfaces/IPromoCodeResponse';
 import { createWallet, deployExampleToken } from '../../../test/e2e/lib/network';
-import { findEvent, parseLogs } from '../../util/events';
-import { Artifacts } from '../../util/artifacts';
+import { findEvent, parseLogs } from '@/util/events';
+import { Artifacts } from '@/util/artifacts';
 import { userWalletPrivateKey2 } from '../../../test/e2e/lib/constants';
-import { AmountExceedsAllowanceError, InsufficientBalanceError } from '../../util/errors';
+import { AmountExceedsAllowanceError, InsufficientBalanceError } from '@/util/errors';
 
 const http = request.agent(server);
 
@@ -154,28 +154,14 @@ describe('Deposits', () => {
                 .post('/v1/deposits')
                 .set({ Authorization: userAccessToken, AssetPool: poolAddress })
                 .send({ item: promoCode.id })
-                .expect(({ body }: Response) => {
-                    console.log(body);
-                })
                 .expect(200);
         });
 
         it('Create Deposit', async () => {
             const solution = solutionContract(NetworkProvider.Main, poolAddress);
             const amount = toWei(String(price));
-            const tokenBalance = await testToken.methods
-                .balanceOf(userWallet.address)
-                .call({ from: userWallet.address });
-            const balance = await getBalance(NetworkProvider.Main, userWallet.address);
-            console.dir(
-                { balance, solutionAddress: solution.options.address, poolAddress, amount, tokenBalance },
-                { colors: true },
-            );
-            const tx = await solution.methods.deposit(amount).send({ from: userWallet.address });
-            console.log(tx);
-            console.log(tx.events);
-            const event: any = Object.values(tx.events).filter((e: any) => e.event === 'Transfer')[0];
-            expect(event).toBeDefined();
+
+            await solution.methods.deposit(amount).send({ from: userWallet.address });
         });
 
         it('should enable job processor', async () => {

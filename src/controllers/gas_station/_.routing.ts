@@ -1,6 +1,6 @@
 import express from 'express';
-import { parseHeader } from '../../util/network';
-import { validate, validateAssetPoolHeader } from '../../util/validation';
+import { parseHeader } from '@/util/network';
+import { validate, validateAssetPoolHeader } from '@/util/validation';
 import { validations } from './_.validation';
 import { postCall } from './postCall.action';
 import checkScopes from 'express-jwt-authz';

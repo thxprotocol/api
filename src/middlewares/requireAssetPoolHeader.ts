@@ -1,11 +1,11 @@
 import { Response, Request, NextFunction } from 'express';
 import { isAddress } from 'web3-utils';
-import { IAssetPool } from '@/models/AssetPool';
+import { AssetPoolType } from '@/models/AssetPool';
 import AssetPoolService from '@/services/AssetPoolService';
 import { ForbiddenError, NotFoundError } from '@/util/errors';
 
 export async function requireAssetPoolHeader(
-    req: Request & { assetPool: IAssetPool },
+    req: Request & { assetPool: AssetPoolType },
     res: Response,
     next: NextFunction,
 ) {

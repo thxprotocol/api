@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
-import RewardService from '../../services/RewardService';
-import { HttpError } from '../../models/Error';
+import RewardService from '@/services/RewardService';
+import { HttpError } from '@/models/Error';
 
 export const getRewards = async (req: Request, res: Response, next: NextFunction) => {
     async function getReward(rewardId: number) {

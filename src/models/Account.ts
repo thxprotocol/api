@@ -1,4 +1,4 @@
-import { NetworkProvider } from '../util/network';
+import { NetworkProvider } from '@/util/network';
 export interface IAccount {
     id: string;
     address: string;

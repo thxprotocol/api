@@ -1,8 +1,8 @@
 import { body, validationResult } from 'express-validator';
 import { Response, Request, NextFunction } from 'express';
-import { HttpError } from '../models/Error';
-import { AssetPool } from '../models/AssetPool';
-import AssetPoolService from '../services/AssetPoolService';
+import { HttpError } from '@/models/Error';
+import { AssetPool } from '@/models/AssetPool';
+import AssetPoolService from '@/services/AssetPoolService';
 
 export const validate = (validations: any) => {
     return async (req: Request, res: Response, next: NextFunction) => {

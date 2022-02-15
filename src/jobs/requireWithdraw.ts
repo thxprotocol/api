@@ -3,7 +3,7 @@ import { WithdrawalState } from '@/enums/WithdrawalState';
 import { Withdrawal, WithdrawalDocument } from '@/models/Withdrawal';
 import AssetPoolService from '@/services/AssetPoolService';
 import { getProvider } from '@/util/network';
-import { GetPastTransferEventsError } from '@/util/errors';
+import { GetPastWithdrawnEventsError } from '@/util/errors';
 
 export async function jobRequireWithdraws() {
     const pendingDeposits = await Withdrawal.find({ state: WithdrawalState.Pending });
@@ -23,7 +23,7 @@ export async function jobRequireWithdraws() {
             (error: Error, event: any) => {
                 console.dir({ error, event }, { colors: true });
                 if (error) {
-                    throw new GetPastTransferEventsError();
+                    throw new GetPastWithdrawnEventsError();
                 }
 
                 if (event) {

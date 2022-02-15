@@ -1,14 +1,14 @@
 import { findEvent, parseLogs } from '@/util/events';
-import { callFunction, getAssetPoolFactory, NetworkProvider, sendTransaction, tokenContract } from '../util/network';
-import { Artifacts } from '../util/artifacts';
-import { POOL_REGISTRY_ADDRESS, TESTNET_POOL_REGISTRY_ADDRESS } from '../util/secrets';
-import { AssetPool, IAssetPool, IAssetPoolUpdates } from '../models/AssetPool';
-import { deployUnlimitedSupplyERC20Contract, deployLimitedSupplyERC20Contract, getProvider } from '../util/network';
+import { callFunction, getAssetPoolFactory, NetworkProvider, sendTransaction, tokenContract } from '@/util/network';
+import { Artifacts } from '@/util/artifacts';
+import { POOL_REGISTRY_ADDRESS, TESTNET_POOL_REGISTRY_ADDRESS } from '@/util/secrets';
+import { AssetPool, AssetPoolDocument, IAssetPoolUpdates } from '@/models/AssetPool';
+import { deployUnlimitedSupplyERC20Contract, deployLimitedSupplyERC20Contract, getProvider } from '@/util/network';
 import { toWei, fromWei } from 'web3-utils';
-import { downgradeFromBypassPolls, updateToBypassPolls } from '../util/upgrades';
-import { RewardDocument } from '../models/Reward';
-import { IAccount } from '../models/Account';
-import { Membership } from '../models/Membership';
+import { downgradeFromBypassPolls, updateToBypassPolls } from '@/util/upgrades';
+import { RewardDocument } from '@/models/Reward';
+import { IAccount } from '@/models/Account';
+import { Membership } from '@/models/Membership';
 import { ERROR_IS_NOT_MEMBER } from './MemberService';
 
 const ERROR_NO_ASSETPOOL = 'Could not find asset pool for this address';
@@ -38,7 +38,7 @@ export default class AssetPoolService {
         }
     }
 
-    static async canBypassRewardPoll(assetPool: IAssetPool) {
+    static async canBypassRewardPoll(assetPool: AssetPoolDocument) {
         try {
             const duration = Number(
                 await callFunction(assetPool.solution.methods.getRewardPollDuration(), assetPool.network),
@@ -52,7 +52,7 @@ export default class AssetPoolService {
         }
     }
 
-    static async canBypassWithdrawPoll(assetPool: IAssetPool, account: IAccount, reward: RewardDocument) {
+    static async canBypassWithdrawPoll(assetPool: AssetPoolDocument, account: IAccount, reward: RewardDocument) {
         try {
             const { withdrawDuration } = await callFunction(
                 assetPool.solution.methods.getReward(reward.id),
@@ -93,7 +93,7 @@ export default class AssetPoolService {
         }
     }
 
-    static async getPoolToken(assetPool: IAssetPool) {
+    static async getPoolToken(assetPool: AssetPoolDocument) {
         try {
             const tokenAddress = await callFunction(assetPool.solution.methods.getToken(), assetPool.network);
             const tokenInstance = tokenContract(assetPool.network, tokenAddress);
@@ -118,7 +118,7 @@ export default class AssetPoolService {
         }
     }
 
-    static async deployPoolToken(assetPool: IAssetPool, token: any) {
+    static async deployPoolToken(assetPool: AssetPoolDocument, token: any) {
         if (token.name && token.symbol && Number(token.totalSupply) > 0) {
             const tokenInstance = await deployLimitedSupplyERC20Contract(
                 assetPool.network,
@@ -140,7 +140,7 @@ export default class AssetPoolService {
         }
     }
 
-    static async addPoolToken(assetPool: IAssetPool, token: any) {
+    static async addPoolToken(assetPool: AssetPoolDocument, token: any) {
         try {
             if (token.address) {
                 const { web3 } = getProvider(assetPool.network);
@@ -195,7 +195,7 @@ export default class AssetPoolService {
         }
     }
 
-    static async init(assetPool: IAssetPool) {
+    static async init(assetPool: AssetPoolDocument) {
         try {
             const { admin } = getProvider(assetPool.network);
             const poolRegistryAddress =
@@ -249,7 +249,7 @@ export default class AssetPoolService {
     }
 
     static async update(
-        assetPool: IAssetPool,
+        assetPool: AssetPoolDocument,
         { proposeWithdrawPollDuration, rewardPollDuration, bypassPolls }: IAssetPoolUpdates,
     ) {
         async function updateRewardPollDuration() {

@@ -1,10 +1,10 @@
 import newrelic from 'newrelic';
 import { Request, Response, NextFunction } from 'express';
-import { HttpError } from '../../models/Error';
-import { AssetPool } from '../../models/AssetPool';
-import AssetPoolService from '../../services/AssetPoolService';
-import ClientService from '../../services/ClientService';
-import MembershipService from '../../services/MembershipService';
+import { HttpError } from '@/models/Error';
+import { AssetPool } from '@/models/AssetPool';
+import AssetPoolService from '@/services/AssetPoolService';
+import ClientService from '@/services/ClientService';
+import MembershipService from '@/services/MembershipService';
 
 export const postAssetPool = async (req: Request, res: Response, next: NextFunction) => {
     try {

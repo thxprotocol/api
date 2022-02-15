@@ -1,13 +1,13 @@
 import { Request, Response, NextFunction } from 'express';
-import { HttpError } from '../../models/Error';
-import { RewardDocument } from '../../models/Reward';
-import { IAccount } from '../../models/Account';
-import { agenda, eventNameProcessWithdrawals } from '../../util/agenda';
+import { HttpError } from '@/models/Error';
+import { RewardDocument } from '@/models/Reward';
+import { IAccount } from '@/models/Account';
+import { agenda, eventNameProcessWithdrawals } from '@/util/agenda';
 
-import AccountProxy from '../../proxies/AccountProxy';
-import RewardService from '../../services/RewardService';
-import MemberService from '../../services/MemberService';
-import WithdrawalService from '../../services/WithdrawalService';
+import AccountProxy from '@/proxies/AccountProxy';
+import RewardService from '@/services/RewardService';
+import MemberService from '@/services/MemberService';
+import WithdrawalService from '@/services/WithdrawalService';
 import { WithdrawalState, WithdrawalType } from '@/enums';
 
 const ERROR_REWARD_NOT_FOUND = 'The reward for this ID does not exist.';

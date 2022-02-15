@@ -1,8 +1,8 @@
 import { Request, Response, NextFunction } from 'express';
-import { HttpError } from '../../models/Error';
-import { WIDGETS_URL } from '../../util/secrets';
-import WidgetService from '../../services/WidgetService';
-import ClientService from '../../services/ClientService';
+import { HttpError } from '@/models/Error';
+import { WIDGETS_URL } from '@/util/secrets';
+import WidgetService from '@/services/WidgetService';
+import ClientService from '@/services/ClientService';
 
 export const postWidget = async (req: Request, res: Response, next: NextFunction) => {
     try {

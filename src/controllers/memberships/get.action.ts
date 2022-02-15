@@ -1,9 +1,9 @@
 import { Request, NextFunction, Response } from 'express';
-import { HttpError } from '../../models/Error';
+import { HttpError } from '@/models/Error';
 
-import MembershipService from '../../services/MembershipService';
-import WithdrawalService from '../../services/WithdrawalService';
-import AccountProxy from '../../proxies/AccountProxy';
+import MembershipService from '@/services/MembershipService';
+import WithdrawalService from '@/services/WithdrawalService';
+import AccountProxy from '@/proxies/AccountProxy';
 
 export const getMembership = async (req: Request, res: Response, next: NextFunction) => {
     try {

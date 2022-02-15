@@ -1,6 +1,6 @@
-import { IAssetPool } from '../models/AssetPool';
-import { NetworkProvider } from '../util/network';
-import { Membership } from '../models/Membership';
+import { AssetPoolType } from '@/models/AssetPool';
+import { NetworkProvider } from '@/util/network';
+import { Membership } from '@/models/Membership';
 import AssetPoolService from './AssetPoolService';
 
 const ERROR_MEMBERSHIP_GET_FAILED = 'Could not get the membership information from the database';
@@ -35,7 +35,7 @@ export default class MembershipService {
         }
     }
 
-    static async addMembership(sub: string, assetPool: IAssetPool) {
+    static async addMembership(sub: string, assetPool: AssetPoolType) {
         try {
             const membership = await Membership.findOne({
                 sub,
@@ -58,7 +58,7 @@ export default class MembershipService {
         }
     }
 
-    static async removeMembership(sub: string, assetPool: IAssetPool) {
+    static async removeMembership(sub: string, assetPool: AssetPoolType) {
         try {
             const membership = await Membership.findOne({
                 sub,

@@ -1,6 +1,6 @@
 import { Response, Request, NextFunction } from 'express';
-import AssetPoolService from '../services/AssetPoolService';
-import { SubjectUnauthorizedError, AudienceForbiddenError } from '../util/errors';
+import AssetPoolService from '@/services/AssetPoolService';
+import { SubjectUnauthorizedError, AudienceForbiddenError } from '@/util/errors';
 
 export async function assertAssetPoolAccess(
     req: Request & { user: { sub: string; aud: string } },

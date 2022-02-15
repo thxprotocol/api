@@ -1,11 +1,11 @@
 import { Request, Response, NextFunction } from 'express';
-import { callFunction, sendTransaction } from '../../util/network';
-import { HttpError } from '../../models/Error';
-import { parseLogs, findEvent } from '../../util/events';
-import { Artifacts } from '../../util/artifacts';
-import AccountProxy from '../../proxies/AccountProxy';
-import WithdrawalService from '../../services/WithdrawalService';
-import MemberService from '../../services/MemberService';
+import { callFunction, sendTransaction } from '@/util/network';
+import { HttpError } from '@/models/Error';
+import { parseLogs, findEvent } from '@/util/events';
+import { Artifacts } from '@/util/artifacts';
+import AccountProxy from '@/proxies/AccountProxy';
+import WithdrawalService from '@/services/WithdrawalService';
+import MemberService from '@/services/MemberService';
 import { WithdrawalState } from '@/enums';
 
 export const postCallUpgradeAddress = async (req: Request, res: Response, next: NextFunction) => {

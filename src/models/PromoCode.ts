@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import { PromoCodeType } from '../types/PromoCode';
+import { PromoCodeType } from '@/types/PromoCode';
 
 export type PromoCodeDocument = mongoose.Document & PromoCodeType;
 

@@ -1,10 +1,10 @@
 import request, { Response } from 'supertest';
-import server from '../../../src/server';
-import db from '../../../src/util/database';
+import server from '../../server';
+import db from '@/util/database';
 import { getToken } from '../../../test/e2e/lib/jwt';
 import { mockClear, mockStart } from '../../../test/e2e/lib/mock';
-import { agenda } from '../../util/agenda';
-import { IPromoCodeResponse } from '../../interfaces/IPromoCodeResponse';
+import { agenda } from '@/util/agenda';
+import { IPromoCodeResponse } from '@/interfaces/IPromoCodeResponse';
 
 const http = request.agent(server);
 

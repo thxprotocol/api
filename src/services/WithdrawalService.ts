@@ -1,7 +1,7 @@
 import { toWei, fromWei } from 'web3-utils';
-import { callFunction, NetworkProvider, sendTransaction, ERROR_MAX_FEE_PER_GAS } from '../util/network';
+import { callFunction, NetworkProvider, sendTransaction, ERROR_MAX_FEE_PER_GAS } from '@/util/network';
 import { WithdrawalState, WithdrawalType } from '@/enums';
-import { IAssetPool } from '@/models/AssetPool';
+import { AssetPoolType } from '@/models/AssetPool';
 import { Withdrawal } from '@/models/Withdrawal';
 import { IAccount } from '@/models/Account';
 import { Artifacts } from '@/util/artifacts';
@@ -17,7 +17,7 @@ interface IWithdrawalUpdates {
 }
 
 export default class WithdrawalService {
-    static async get(assetPool: IAssetPool, withdrawalId: number) {
+    static async get(assetPool: AssetPoolType, withdrawalId: number) {
         try {
             const withdrawal = await Withdrawal.findOne({
                 poolAddress: assetPool.address,
@@ -48,7 +48,7 @@ export default class WithdrawalService {
     }
 
     static async schedule(
-        assetPool: IAssetPool,
+        assetPool: AssetPoolType,
         type: WithdrawalType,
         beneficiary: string,
         amount: number,
@@ -83,7 +83,7 @@ export default class WithdrawalService {
     }
 
     // Invoked from job
-    static async proposeWithdraw(assetPool: IAssetPool, id: string, beneficiary: string, amount: number) {
+    static async proposeWithdraw(assetPool: AssetPoolType, id: string, beneficiary: string, amount: number) {
         const amountInWei = toWei(amount.toString());
         const tx = await sendTransaction(
             assetPool.address,
@@ -100,7 +100,7 @@ export default class WithdrawalService {
     }
 
     // Invoked from job
-    static async update(assetPool: IAssetPool, id: string, { withdrawalId, memberId }: IWithdrawalUpdates) {
+    static async update(assetPool: AssetPoolType, id: string, { withdrawalId, memberId }: IWithdrawalUpdates) {
         const { withdrawal } = await this.getById(id);
 
         if (memberId) {
@@ -136,7 +136,7 @@ export default class WithdrawalService {
         return await withdrawal.save();
     }
 
-    static async withdrawPollFinalize(assetPool: IAssetPool, id: string) {
+    static async withdrawPollFinalize(assetPool: AssetPoolType, id: string) {
         try {
             const withdrawal = await Withdrawal.findById(id);
 

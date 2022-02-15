@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { query } from 'express-validator';
-import PromoCodeService from '../../services/PromoCodeService';
+import PromoCodeService from '@/services/PromoCodeService';
 
 export const readAllPromoCodeValidation = [query('limit').optional().isNumeric(), query('page').optional().isNumeric()];
 
