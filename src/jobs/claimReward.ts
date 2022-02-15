@@ -1,7 +1,7 @@
 import { IAssetPool } from '../models/AssetPool';
 
-import MembershipService from '../services/MembershipService';
-import AssetPoolService from '../services/AssetPoolService';
+import MembershipService from '@/services/MembershipService';
+import AssetPoolService from '@/services/AssetPoolService';
 import AccountProxy from '../proxies/AccountProxy';
 import RewardService from '../services/RewardService';
 import MemberService from '../services/MemberService';
