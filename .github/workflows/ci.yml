@@ -17,11 +17,33 @@ jobs:
               run: |
                   docker-compose -f docker-compose.yml -f docker-compose.ci.yml run api npm run test
 
+    bumpVersion:
+        name: 'Bump Version on main'
+        runs-on: ubuntu-latest
+        if: github.ref == 'refs/heads/main'
+        needs: buildAndTest
+        outputs:
+            newTag: ${{ steps.version-bump.outputs.newTag }}
+
+        steps:
+            - name: 'Checkout source code'
+              uses: 'actions/checkout@v2'
+              with:
+                  ref: ${{ github.ref }}
+
+            - name: 'Automated Version Bump'
+              id: version-bump
+              uses: 'phips28/gh-action-bump-version@master'
+              with:
+                  tag-prefix: 'v'
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
     buildAndPushImage:
         name: Build and Push docker image
         runs-on: ubuntu-latest
         if: github.ref == 'refs/heads/main' || startsWith(github.ref,'refs/heads/hotfix/')
-        needs: buildAndTest
+        needs: bumpVersion
         steps:
             - name: Configure AWS credentials
               uses: aws-actions/configure-aws-credentials@v1
@@ -44,6 +66,9 @@ jobs:
                   tags: |
                       type=ref,event=branch
                       type=sha
+                      type=semver,pattern={{version}},value=${{needs.bump-version.outputs.newTag}}
+                      type=semver,pattern={{major}}.{{minor}},value=${{needs.bump-version.outputs.newTag}}
+                      type=semver,pattern={{raw}},value=${{needs.bump-version.outputs.newTag}}
 
             - name: Build
               uses: docker/build-push-action@v2
