@@ -44,7 +44,6 @@ jobs:
                   tags: |
                       type=ref,event=branch
                       type=sha
-                      type=semver,pattern={{version}},value=${{needs.bump-version.outputs.newTag}}
 
             - name: Build
               uses: docker/build-push-action@v2
