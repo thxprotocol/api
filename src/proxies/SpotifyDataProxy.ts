@@ -3,7 +3,7 @@ import { authClient, getAuthAccessToken } from '../util/auth';
 
 const NO_USER = 'Could not find spotify data for this account';
 
-export default class TwitterDataProxy {
+export default class SpotifyDataProxy {
     static async getSpotify(sub: string) {
         try {
             const r = await authClient({
