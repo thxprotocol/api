@@ -8,8 +8,8 @@ export default async function ReadPromoCodeController(req: Request, res: Respons
     const results = [];
     const page = await PromoCodeService.findBySub(
         req.user.sub,
-        Number(req.query.page), // Will default to 1 if undefined
-        Number(req.query.limit), // Will default to 10 if undefined
+        req.query.page ? Number(req.query.page) : null, // Will default to 1 if undefined
+        req.query.limit ? Number(req.query.limit) : null, // Will default to 10 if undefined
     );
 
     for (const promoCode of page.results) {

@@ -18,7 +18,7 @@ const widgetSchema = new mongoose.Schema(
             poolAddress: String,
         },
     },
-    { timestamps: false },
+    { timestamps: true },
 );
 
 export const Widget = mongoose.model<WidgetDocument>('Widget', widgetSchema, 'widget');

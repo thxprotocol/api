@@ -16,7 +16,7 @@ const ratSchema = new mongoose.Schema(
             clientId: String,
         },
     },
-    { timestamps: false },
+    { timestamps: true },
 );
 
 export const Rat = mongoose.model<RatDocument>('Rat', ratSchema, 'registration_access_token');

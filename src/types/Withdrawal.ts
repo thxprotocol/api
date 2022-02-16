@@ -1,7 +1,7 @@
 import { WithdrawalType } from '@/enums/WithdrawalType';
 import { IWithdrawPoll } from '@/interfaces/IWithdrawPoll';
 
-export type IWithdrawal = {
+export type TWithdrawal = {
     type: WithdrawalType;
     poolAddress: string;
     beneficiary: string;

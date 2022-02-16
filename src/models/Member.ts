@@ -12,7 +12,7 @@ const memberSchema = new mongoose.Schema(
         memberId: Number,
         address: String,
     },
-    { timestamps: false },
+    { timestamps: true },
 );
 
 export const Member = mongoose.model<IMember>('Member', memberSchema, 'member');

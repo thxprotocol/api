@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
-import { IWithdrawal } from '@/types/Withdrawal';
+import { TWithdrawal } from '@/types/Withdrawal';
 
-export type WithdrawalDocument = mongoose.Document & IWithdrawal;
+export type WithdrawalDocument = mongoose.Document & TWithdrawal;
 
 const withdrawalSchema = new mongoose.Schema(
     {
@@ -22,8 +22,6 @@ const withdrawalSchema = new mongoose.Schema(
             noCounter: Number,
             totalVoted: Number,
         },
-        createdAt: Date,
-        updatedAt: Date,
     },
     { timestamps: true },
 );

@@ -13,7 +13,7 @@ const membershipSchema = new mongoose.Schema(
         network: Number,
         poolAddress: String,
     },
-    { timestamps: false },
+    { timestamps: true },
 );
 
 export const Membership = mongoose.model<MembershipDocument>('Membership', membershipSchema, 'membership');

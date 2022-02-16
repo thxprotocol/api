@@ -1,10 +1,8 @@
 import request, { Response } from 'supertest';
 import server from '../../server';
-import db from '@/util/database';
-import { getToken } from '../../../test/e2e/lib/jwt';
-import { mockClear, mockStart } from '../../../test/e2e/lib/mock';
-import { agenda } from '@/util/agenda';
+import { getToken } from '@/util/jest/jwt';
 import { IPromoCodeResponse } from '@/interfaces/IPromoCodeResponse';
+import { afterAllCallback, beforeAllCallback } from '@/util/jest/config';
 
 const http = request.agent(server);
 
@@ -16,19 +14,12 @@ describe('PromoCodes', () => {
     const expiry = Date.now();
 
     beforeAll(async () => {
-        await db.truncate();
-        mockStart();
+        await beforeAllCallback();
+
         dashboardAccessToken = getToken('openid dashboard promo_codes:read promo_codes:write members:write');
     });
 
-    // This should move to a more abstract level and be effective for every test
-    afterAll(async () => {
-        await agenda.stop();
-        await agenda.close();
-        await db.disconnect();
-        server.close();
-        mockClear();
-    });
+    afterAll(afterAllCallback);
 
     describe('Management (Dashboard)', () => {
         it('POST /promo_codes', (done) => {

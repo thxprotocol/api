@@ -10,7 +10,7 @@ const PromoCodeSchema = new mongoose.Schema(
         value: String,
         expiry: Date,
     },
-    { timestamps: false },
+    { timestamps: true },
 );
 
 export const PromoCode = mongoose.model<PromoCodeDocument>('PromoCode', PromoCodeSchema, 'promocodes');

@@ -3,16 +3,15 @@ import request, { Response } from 'supertest';
 import { Account } from 'web3-core';
 import { isAddress, toWei } from 'web3-utils';
 import { Contract } from 'web3-eth-contract';
-import db from '@/util/database';
-import { getToken } from '../../../test/e2e/lib/jwt';
-import { mockClear, mockStart } from '../../../test/e2e/lib/mock';
+import { afterAllCallback, beforeAllCallback } from '@/util/jest/config';
+import { getToken } from '@/util/jest/jwt';
 import { agenda, eventNameRequireDeposits } from '@/util/agenda';
 import { NetworkProvider, sendTransaction, solutionContract } from '@/util/network';
 import { IPromoCodeResponse } from '@/interfaces/IPromoCodeResponse';
-import { createWallet, deployExampleToken } from '../../../test/e2e/lib/network';
+import { createWallet, deployExampleToken } from '@/util/jest/network';
 import { findEvent, parseLogs } from '@/util/events';
 import { Artifacts } from '@/util/artifacts';
-import { userWalletPrivateKey2 } from '../../../test/e2e/lib/constants';
+import { userWalletPrivateKey2 } from '@/util/jest/constants';
 import { AmountExceedsAllowanceError, InsufficientBalanceError } from '@/util/errors';
 
 const http = request.agent(server);
@@ -29,22 +28,16 @@ describe('Deposits', () => {
     const price = 10;
     const expiry = Date.now();
 
+    afterAll(afterAllCallback);
+
     beforeAll(async () => {
-        await db.truncate();
-        mockStart();
+        await beforeAllCallback();
+
         userWallet = createWallet(userWalletPrivateKey2);
+
         testToken = await deployExampleToken();
         dashboardAccessToken = getToken('openid dashboard promo_codes:read promo_codes:write members:write');
         userAccessToken = getToken('openid user promo_codes:read payments:write payments:read');
-    });
-
-    // This should move to a more abstract level and be effective for every test
-    afterAll(async () => {
-        await agenda.stop();
-        await agenda.close();
-        await db.disconnect();
-        server.close();
-        mockClear();
     });
 
     it('Create pool', (done) => {

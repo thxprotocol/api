@@ -13,7 +13,7 @@ const DepositSchema = new mongoose.Schema(
         state: Number,
         fromBlock: Number,
     },
-    { timestamps: false },
+    { timestamps: true },
 );
 
 export const Deposit = mongoose.model<DepositDocument>('Deposit', DepositSchema, 'deposits');

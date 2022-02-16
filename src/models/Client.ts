@@ -14,7 +14,7 @@ const clientSchema = new mongoose.Schema(
         clientId: String,
         registrationAccessToken: String,
     },
-    { timestamps: false },
+    { timestamps: true },
 );
 
 export const Client = mongoose.model<ClientDocument>('Client', clientSchema, 'client');
