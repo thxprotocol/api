@@ -15,8 +15,6 @@ jobs:
 
             - name: Run test
               run: |
-                  docker-compose -f docker-compose.yml -f docker-compose.ci.yml up -d api_mongo api_mainnet
-                  sleep 1
                   docker-compose -f docker-compose.yml -f docker-compose.ci.yml run api npm run deploy main
                   docker-compose -f docker-compose.yml -f docker-compose.ci.yml run api npm run test
 
