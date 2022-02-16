@@ -25,7 +25,7 @@
         "test": "npx jest --runInBand",
         "test:coverage": "npx jest --coverage --runInBand",
         "test:debug": "npx jest --coverage --runInBand --detectOpenHandles",
-        "deploy": "sleep 90 && ts-node -r tsconfig-paths/register scripts/deploy/index.ts",
+        "deploy": "ts-node -r tsconfig-paths/register scripts/deploy/index.ts",
         "migrate": "migrate-mongo up -f src/migrate-mongo-config.js",
         "migrate:create": "sh -c 'migrate-mongo create -f src/migrate-mongo-config.js $0'",
         "migrate:status": "migrate-mongo status -f src/migrate-mongo-config.js",
