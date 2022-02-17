@@ -52,7 +52,7 @@ export async function deployFactory(npid: NetworkProvider) {
     const diamond = await deployContract(
         Artifacts.Diamond.abi,
         Artifacts.Diamond.bytecode,
-        [factoryDiamond, [admin.address]],
+        [factoryDiamond, admin.address],
         npid,
     );
     const abi: any = Artifacts.IAssetPoolFactory.abi;

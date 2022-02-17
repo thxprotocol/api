@@ -4,10 +4,20 @@ import { mockStart } from './mock';
 import { agenda } from '../agenda';
 import { mockClear } from './mock';
 import { logger } from '../logger';
+import { getProvider, NetworkProvider } from '../network';
+import { POOL_REGISTRY_ADDRESS, TESTNET_POOL_REGISTRY_ADDRESS } from '../secrets';
+import { poll } from './polling';
 
 export async function beforeAllCallback() {
     await db.truncate();
     mockStart();
+
+    const { web3 } = getProvider(NetworkProvider.Main);
+    const checks = [web3.eth.getCode(TESTNET_POOL_REGISTRY_ADDRESS), web3.eth.getCode(POOL_REGISTRY_ADDRESS)];
+    const fn = () => Promise.all(checks);
+    const fnCondition = (result: string[]) => result.includes('0x');
+
+    await poll(fn, fnCondition, 500);
 }
 
 export async function afterAllCallback() {

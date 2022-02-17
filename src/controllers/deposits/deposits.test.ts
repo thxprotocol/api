@@ -52,6 +52,7 @@ describe('Deposits', () => {
                 },
             })
             .expect((res: request.Response) => {
+                console.log(res.body);
                 expect(isAddress(res.body.address)).toBe(true);
                 poolAddress = res.body.address;
             })
