@@ -38,6 +38,10 @@ export default class RewardService {
         }
     }
 
+    static async findByPoolAddress(assetPool: AssetPoolType) {
+        return await Reward.find({ poolAddress: assetPool.address });
+    }
+
     static async getRewardPoll(assetPool: AssetPoolType, pollId: number) {
         try {
             const withdrawAmount = Number(

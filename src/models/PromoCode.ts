@@ -1,14 +1,16 @@
 import mongoose from 'mongoose';
-import { PromoCodeType } from '@/types/PromoCode';
+import { TPromoCode } from '@/types/TPromoCode';
 
-export type PromoCodeDocument = mongoose.Document & PromoCodeType;
+export type PromoCodeDocument = mongoose.Document & TPromoCode;
 
 const PromoCodeSchema = new mongoose.Schema(
     {
         sub: String,
-        price: Number,
+        title: String,
+        description: String,
         value: String,
-        expiry: Date,
+        price: Number,
+        poolAddress: String,
     },
     { timestamps: true },
 );

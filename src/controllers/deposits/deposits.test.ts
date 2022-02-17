@@ -26,7 +26,9 @@ describe('Deposits', () => {
 
     const value = 'XX78WEJ1219WZ';
     const price = 10;
-    const expiry = Date.now();
+    const title = 'The promocode title shown in wallet';
+    const description = 'Longer form for a description of the usage';
+    // const expiry = Date.now();
 
     afterAll(afterAllCallback);
 
@@ -67,17 +69,20 @@ describe('Deposits', () => {
 
     it('Create promo code', (done) => {
         http.post('/v1/promo_codes')
-            .set({ Authorization: dashboardAccessToken })
+            .set({ Authorization: dashboardAccessToken, AssetPool: poolAddress })
             .send({
                 price,
                 value,
-                expiry,
+                title,
+                description,
             })
             .expect(({ body }: Response) => {
                 expect(body.id).toBeDefined();
                 expect(body.price).toEqual(price);
                 expect(body.value).toEqual(value);
-                expect(Date.parse(body.expiry)).toEqual(expiry);
+                expect(body.title).toEqual(title);
+                expect(body.description).toEqual(description);
+                // expect(Date.parse(body.expiry)).toEqual(expiry);
                 promoCode = body;
             })
             .expect(201, done);
@@ -86,12 +91,14 @@ describe('Deposits', () => {
     describe('Create Deposit', () => {
         it('GET /promo_codes/:id', (done) => {
             http.get('/v1/promo_codes/' + promoCode.id)
-                .set({ Authorization: userAccessToken })
+                .set({ Authorization: userAccessToken, AssetPool: poolAddress })
                 .expect(({ body }: Response) => {
                     expect(body.id).toEqual(promoCode.id);
-                    expect(body.value).toBeUndefined();
+                    expect(body.value).toEqual('');
                     expect(body.price).toEqual(price);
-                    expect(Date.parse(body.expiry)).toEqual(expiry);
+                    expect(body.title).toEqual(title);
+                    expect(body.description).toEqual(description);
+                    // expect(Date.parse(body.expiry)).toEqual(expiry);
                 })
                 .expect(200, done);
         });
@@ -171,7 +178,7 @@ describe('Deposits', () => {
 
         it('GET /promo_codes/:id', (done) => {
             http.get('/v1/promo_codes/' + promoCode.id)
-                .set({ Authorization: userAccessToken })
+                .set({ Authorization: userAccessToken, AssetPool: poolAddress })
                 .expect(({ body }: Response) => {
                     expect(body.value).toEqual(value);
                 })

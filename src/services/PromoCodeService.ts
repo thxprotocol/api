@@ -1,12 +1,22 @@
 import { PromoCode, PromoCodeDocument } from '@/models/PromoCode';
-import { IPromoCodeData } from '@/interfaces/IPromoCodeData';
 import { paginatedResults } from '@/util/pagination';
 import { Deposit } from '@/models/Deposit';
-import { PromoCodeNotFoundError } from '@/util/errors';
+import { ForbiddenError, PromoCodeNotFoundError } from '@/util/errors';
 import { DepositState } from '@/enums/DepositState';
+import { TPromoCode } from '@/types/TPromoCode';
 
-async function create(data: IPromoCodeData) {
+async function create(data: TPromoCode) {
     return await PromoCode.create(data);
+}
+
+async function deleteById(id: string, sub: string) {
+    const promoCode = await findById(id);
+
+    if (promoCode.sub !== sub) {
+        throw new ForbiddenError();
+    }
+
+    return await promoCode.remove();
 }
 
 async function findById(id: string) {
@@ -20,27 +30,26 @@ async function findById(id: string) {
 }
 
 async function formatResult(sub: string, promoCode: PromoCodeDocument) {
-    let protectedValue;
-
     // Check if user is owner
-    if (promoCode.sub === sub) {
-        protectedValue = { value: promoCode.value };
-    }
-
+    const isOwner = promoCode.sub === sub;
     // Check if user made a deposit
-    const payment = await Deposit.findOne({ sub, item: promoCode.id, state: DepositState.Completed });
-    if (payment) {
-        protectedValue = { value: promoCode.value };
-    }
+    const deposit = await Deposit.findOne({ sub, item: promoCode.id, state: DepositState.Completed });
 
-    // Show if a Payment exists for the requesting user and this promo code
-    // TokenRedeem.find({ promoCode: String(_id), sub: req.user.sub }) has a result
-    return { ...{ id: String(promoCode._id), price: promoCode.price, expiry: promoCode.expiry }, ...protectedValue };
+    const id = String(promoCode._id);
+    const value = isOwner || deposit ? promoCode.value : '';
+
+    return {
+        id,
+        title: promoCode.title,
+        description: promoCode.description,
+        price: promoCode.price,
+        value,
+    };
 }
 
 // page 1 and limit 10 are the default pagination start settings
-async function findBySub(sub: string, page = 1, limit = 10) {
-    return await paginatedResults(PromoCode, page, limit, { sub });
+function findBySub(sub: string, page = 1, limit = 10) {
+    return paginatedResults(PromoCode, page, limit, { sub });
 }
 
-export default { create, findById, findBySub, formatResult };
+export default { create, deleteById, findById, findBySub, formatResult };

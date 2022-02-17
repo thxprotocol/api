@@ -1,36 +1,42 @@
 import { Request, Response, NextFunction } from 'express';
 import RewardService from '@/services/RewardService';
-import { HttpError } from '@/models/Error';
+// import { HttpError } from '@/models/Error';
 
 export const getRewards = async (req: Request, res: Response, next: NextFunction) => {
-    async function getReward(rewardId: number) {
-        const { reward, error } = await RewardService.get(req.assetPool, rewardId);
-        if (error) {
-            throw new Error(error.message);
-        }
-        return reward;
-    }
+    const rewards = await RewardService.findByPoolAddress(req.assetPool);
+    res.json(rewards);
 
-    try {
-        const rewards = [];
-        let rewardId = 1;
-        while (rewardId >= 1) {
-            try {
-                const reward = await getReward(rewardId);
-                if (reward) {
-                    rewards.push(reward);
-                    rewardId++;
-                } else {
-                    break;
-                }
-            } catch (e) {
-                break;
-            }
-        }
-        res.json(rewards);
-    } catch (error) {
-        next(new HttpError(502, error.message, error));
-    }
+    // Lets deprecate this underperforming method of listing rewards from
+    // from contracts.
+
+    // async function getReward(rewardId: number) {
+    //     const { reward, error } = await RewardService.get(req.assetPool, rewardId);
+    //     if (error) {
+    //         throw new Error(error.message);
+    //     }
+    //     return reward;
+    // }
+
+    // try {
+    //     const rewards = [];
+    //     let rewardId = 1;
+    //     while (rewardId >= 1) {
+    //         try {
+    //             const reward = await getReward(rewardId);
+    //             if (reward) {
+    //                 rewards.push(reward);
+    //                 rewardId++;
+    //             } else {
+    //                 break;
+    //             }
+    //         } catch (e) {
+    //             break;
+    //         }
+    //     }
+    //     res.json(rewards);
+    // } catch (error) {
+    //     next(new HttpError(502, error.message, error));
+    // }
 };
 
 /**

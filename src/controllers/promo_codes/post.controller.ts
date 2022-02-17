@@ -3,23 +3,27 @@ import { body } from 'express-validator';
 import PromoCodeService from '@/services/PromoCodeService';
 
 export const createPromoCodeValidation = [
-    body('expiry').isNumeric(),
-    body('price').isNumeric(),
-    body('value').isString(),
+    body('title').isString().isLength({ min: 0, max: 50 }),
+    body('description').optional().isString().isLength({ min: 0, max: 255 }),
+    body('value').isString().isLength({ min: 0, max: 50 }),
+    body('price').isInt({ min: 0 }),
 ];
 
 export default async function CreatePromoCodeController(req: Request, res: Response) {
-    const { _id, value, price, expiry } = await PromoCodeService.create({
+    const { _id, title, description, value, price } = await PromoCodeService.create({
         sub: req.user.sub,
-        price: req.body.price,
+        title: req.body.title,
+        description: req.body.description,
         value: req.body.value,
-        expiry: req.body.expiry,
+        price: req.body.price,
+        poolAddress: req.assetPool.address,
     });
 
     res.status(201).json({
         id: String(_id),
-        price,
+        title,
+        description,
         value,
-        expiry,
+        price,
     });
 }

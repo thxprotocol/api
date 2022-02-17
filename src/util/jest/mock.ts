@@ -54,7 +54,6 @@ export function mockStart() {
     mockAuthPath('get', `/account/${sub2}`, 200, account2);
     mockAuthPath('patch', `/account/${sub2}`, 204, {});
     mockAuthPath('post', '/account', 200, account2);
-    // mockAuthPath('post', '/account', 200, account2);
     mockAuthPath('get', `/account/address/${userWalletAddress2}`, 200, account2);
     mockAuthPath('get', `/account/email/${userEmail2}`, 404, {});
 
