@@ -4,19 +4,20 @@ import { HttpError } from '../../models/Error';
 
 export const getSpotify = async (req: Request, res: Response, next: NextFunction) => {
     async function getSpotifyData() {
-        const { isAuthorized, users, error } = await SpotifyDataProxy.getSpotify(req.user.sub);
+        const { isAuthorized, error, ...rest } = await SpotifyDataProxy.getSpotify(req.user.sub);
         if (error) throw new Error(error.message);
-        return { isAuthorized, users };
+        return { isAuthorized, ...rest };
     }
 
     try {
-        const { isAuthorized, users } = await getSpotifyData();
+        const { isAuthorized, users, ...rest } = await getSpotifyData();
 
         if (!isAuthorized) return res.json({ isAuthorized });
 
         res.send({
-            isAuthorized,
             users,
+            isAuthorized,
+            ...rest,
         });
     } catch (error) {
         next(new HttpError(502, error.message, error));

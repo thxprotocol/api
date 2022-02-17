@@ -1,4 +1,3 @@
-import { IAccount } from '../models/Account';
 import { authClient, getAuthAccessToken } from '../util/auth';
 
 const NO_USER = 'Could not find spotify data for this account';
@@ -17,7 +16,7 @@ export default class SpotifyDataProxy {
             if (r.status !== 200) throw new Error(NO_USER);
             if (!r.data) throw new Error(NO_USER);
 
-            return { isAuthorized: r.data.isAuthorized, users: r.data.users };
+            return { ...r.data };
         } catch (error) {
             return { error };
         }
