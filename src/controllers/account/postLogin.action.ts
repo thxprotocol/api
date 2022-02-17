@@ -1,6 +1,6 @@
-import MailService from '../../services/MailService';
+import MailService from '@/services/MailService';
 import { Request, Response, NextFunction } from 'express';
-import { HttpError } from '../../models/Error';
+import { HttpError } from '@/models/Error';
 
 export const postLogin = async (req: Request, res: Response, next: NextFunction) => {
     try {

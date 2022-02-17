@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import { NetworkProvider } from '../util/network';
+import { NetworkProvider } from '@/util/network';
 
 export type MembershipDocument = mongoose.Document & {
     sub: string;
@@ -13,7 +13,7 @@ const membershipSchema = new mongoose.Schema(
         network: Number,
         poolAddress: String,
     },
-    { timestamps: false },
+    { timestamps: true },
 );
 
 export const Membership = mongoose.model<MembershipDocument>('Membership', membershipSchema, 'membership');

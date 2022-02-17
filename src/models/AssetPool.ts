@@ -1,8 +1,8 @@
 import mongoose from 'mongoose';
-import { solutionContract } from '../util/network';
+import { solutionContract } from '@/util/network';
 import { Contract } from 'web3-eth-contract';
 
-export type IAssetPool = mongoose.Document & {
+export type AssetPoolType = {
     address: string;
     solution: Contract;
     network: number;
@@ -14,6 +14,8 @@ export type IAssetPool = mongoose.Document & {
     rewardPollDuration: number;
     proposeWithdrawPollDuration: number;
 };
+
+export type AssetPoolDocument = mongoose.Document & AssetPoolType;
 
 export interface IAssetPoolUpdates {
     proposeWithdrawPollDuration?: number;
@@ -38,4 +40,4 @@ assetPoolSchema.virtual('solution').get(function () {
     return solutionContract(this.network, this.address);
 });
 
-export const AssetPool = mongoose.model<IAssetPool>('AssetPool', assetPoolSchema);
+export const AssetPool = mongoose.model<AssetPoolDocument>('AssetPool', assetPoolSchema);

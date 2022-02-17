@@ -1,7 +1,7 @@
 {
   "info": {
     "title": "THX API Specification",
-    "version": "1.0.0-beta.32"
+    "version": "1.0.6"
   },
   "basePath": "/v1",
   "securityDefinitions": {
@@ -754,6 +754,117 @@
           },
           "404": {
             "description": "Not Found. Details not found."
+          },
+          "500": {
+            "$ref": "#/components/responses/500"
+          },
+          "502": {
+            "$ref": "#/components/responses/502"
+          }
+        }
+      }
+    },
+    "/promo_codes/:id/": {
+      "get": {
+        "tags": [
+          "PromoCodes"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Ok"
+          },
+          "400": {
+            "$ref": "#/components/responses/400"
+          },
+          "401": {
+            "$ref": "#/components/responses/401"
+          },
+          "403": {
+            "description": "Forbidden. Your account does not have access to make this call."
+          },
+          "500": {
+            "$ref": "#/components/responses/500"
+          },
+          "502": {
+            "$ref": "#/components/responses/502"
+          }
+        }
+      }
+    },
+    "/promo_codes/": {
+      "get": {
+        "tags": [
+          "PromoCodes"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": null,
+        "responses": {
+          "200": {
+            "description": "Ok"
+          },
+          "400": {
+            "$ref": "#/components/responses/400"
+          },
+          "401": {
+            "$ref": "#/components/responses/401"
+          },
+          "403": {
+            "description": "Forbidden. Your account does not have access to make this call."
+          },
+          "500": {
+            "$ref": "#/components/responses/500"
+          },
+          "502": {
+            "$ref": "#/components/responses/502"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "PromoCodes"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "code",
+            "in": "body",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "expiry",
+            "in": "body",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Ok"
+          },
+          "400": {
+            "$ref": "#/components/responses/400"
+          },
+          "401": {
+            "$ref": "#/components/responses/401"
+          },
+          "403": {
+            "description": "Forbidden. Your account does not have access to make this call."
           },
           "500": {
             "$ref": "#/components/responses/500"

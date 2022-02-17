@@ -15,8 +15,8 @@ import BN from 'bn.js';
 import { toWei } from 'web3-utils';
 import { isAddress } from 'web3-utils';
 import { utils } from 'ethers/lib';
-import { HttpError } from '../models/Error';
-import { AssetPool } from '../models/AssetPool';
+import { HttpError } from '@/models/Error';
+import { AssetPool } from '@/models/AssetPool';
 import { Contract } from 'web3-eth-contract';
 import { Artifacts } from './artifacts';
 import { logger } from './logger';
@@ -148,8 +148,9 @@ export async function callFunction(fn: any, npid: NetworkProvider) {
 }
 
 // gasLimit is set for methods that have incorrect default gas estimates, resulting in tx running out of gas
-export async function sendTransaction(to: string, fn: any, npid: NetworkProvider, gasLimit: number | null = null) {
+export async function sendTransaction(to: string, fn: any, npid: NetworkProvider, gasLimit?: number) {
     const { web3, admin } = getProvider(npid);
+    const from = admin.address;
     const data = fn.encodeABI();
     const estimate = await fn.estimateGas({ from: admin.address });
     // MINIMUM_GAS_LIMIT is set for tx that have a lower estimate than allowed by the network
@@ -169,6 +170,7 @@ export async function sendTransaction(to: string, fn: any, npid: NetworkProvider
         {
             gas,
             to,
+            from,
             maxPriorityFeePerGas,
             data,
             nonce,

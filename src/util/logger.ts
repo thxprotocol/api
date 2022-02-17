@@ -2,7 +2,7 @@ import morgan from 'morgan';
 import json from 'morgan-json';
 import winston from 'winston';
 import { Request } from 'express';
-import { VERSION } from './secrets';
+import { NODE_ENV, VERSION } from './secrets';
 
 const formatWinston = winston.format.combine(
     winston.format.timestamp({
@@ -12,7 +12,7 @@ const formatWinston = winston.format.combine(
 );
 
 export const logger = winston.createLogger({
-    level: 'http',
+    level: NODE_ENV === 'test' ? 'warn' : 'http',
     format: formatWinston,
     transports: [new winston.transports.Console()],
 });

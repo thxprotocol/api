@@ -1,9 +1,9 @@
 import { Request, Response, NextFunction } from 'express';
-import { sendTransaction } from '../../util/network';
-import { HttpError } from '../../models/Error';
-import { hex2a, parseLogs, findEvent } from '../../util/events';
-import { Artifacts } from '../../util/artifacts';
-import { eventIndexer } from '../../util/indexer';
+import { sendTransaction } from '@/util/network';
+import { HttpError } from '@/models/Error';
+import { hex2a, parseLogs, findEvent } from '@/util/events';
+import { Artifacts } from '@/util/artifacts';
+import { eventIndexer } from '@/util/indexer';
 
 const indexer = eventIndexer as any;
 const eventNames = [

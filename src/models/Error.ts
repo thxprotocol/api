@@ -1,4 +1,4 @@
-import { logger } from '../util/logger';
+import { logger } from '@/util/logger';
 
 export class HttpError extends Error {
     timestamp: number;

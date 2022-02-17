@@ -1,18 +1,18 @@
 import { Response, Request, NextFunction } from 'express';
-import { HttpError } from '../../models/Error';
+import { HttpError } from '@/models/Error';
 import {
     ASSET_POOL_FACTORY_ADDRESS,
     POOL_REGISTRY_ADDRESS,
     TESTNET_ASSET_POOL_FACTORY_ADDRESS,
     TESTNET_POOL_REGISTRY_ADDRESS,
-} from '../../util/secrets';
+} from '@/util/secrets';
 import { name, version, license } from '../../../package.json';
-import { getProvider, NetworkProvider, getEstimatesFromOracle } from '../../util/network';
+import { getProvider, NetworkProvider, getEstimatesFromOracle } from '@/util/network';
 import { fromWei } from 'web3-utils';
-import { Facets } from '../../util/facets';
-import { agenda, eventNameProcessWithdrawals } from '../../util/agenda';
+import { Facets } from '@/util/facets';
+import { agenda, eventNameProcessWithdrawals } from '@/util/agenda';
 
-import WithdrawalService from '../../services/WithdrawalService';
+import WithdrawalService from '@/services/WithdrawalService';
 
 async function getNetworkDetails(npid: NetworkProvider, constants: { factory: string; registry: string }) {
     const { web3 } = getProvider(npid);

@@ -22,7 +22,8 @@
         "watch:sass": "sass --watch src/main.scss dist/src/public/main.css",
         "watch:node": "nodemon dist/src/server.js",
         "watch:debug": "concurrently -k -p \"[{name}]\" -n \"TypeScript,Node\" -c \"yellow.bold,cyan.bold,green.bold\" \"npm run watch:ts\" \"npm run watch:sass\" \"npm run serve:debug\"",
-        "test": "npx jest --coverage --runInBand",
+        "test": "npx jest --runInBand",
+        "test:coverage": "npx jest --coverage --runInBand",
         "test:debug": "npx jest --coverage --runInBand --detectOpenHandles",
         "deploy": "ts-node -r tsconfig-paths/register scripts/deploy/index.ts",
         "migrate": "migrate-mongo up -f src/migrate-mongo-config.js",
@@ -33,7 +34,7 @@
     "dependencies": {
         "@godaddy/terminus": "^4.9.0",
         "@sendgrid/mail": "^7.4.2",
-        "@thxnetwork/artifacts": "^1.0.1",
+        "@thxnetwork/artifacts": "^1.0.5",
         "agenda": "^4.2.1",
         "async": "^3.1.0",
         "axios": "^0.21.3",
@@ -44,6 +45,7 @@
         "ejs": "^3.1.6",
         "ethers": "^5.4.7",
         "express": "^4.17.1",
+        "express-async-errors": "^3.1.1",
         "express-jwt": "^6.1.0",
         "express-jwt-authz": "^2.4.1",
         "express-rate-limit": "^5.3.0",
@@ -189,12 +191,11 @@
             "^.+\\.(ts|tsx)$": "ts-jest"
         },
         "testMatch": [
-            "**/test/**/*.test.(ts|js)",
-            "**/controllers/**/*.test.(ts|js)"
+            "<rootDir>/src/controllers/**/*.test.(ts|js)"
         ],
         "testEnvironment": "node",
         "setupFilesAfterEnv": [
-            "<rootDir>/test/e2e/lib/setup.ts"
+            "<rootDir>/src/util/jest/setup.ts"
         ],
         "moduleNameMapper": {
             "^@/(.*)$": "<rootDir>/src/$1"

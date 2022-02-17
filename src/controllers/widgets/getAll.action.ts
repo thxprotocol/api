@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
-import { HttpError } from '../../models/Error';
-import WidgetService from '../../services/WidgetService';
+import { HttpError } from '@/models/Error';
+import WidgetService from '@/services/WidgetService';
 
 const ERROR_WIDGET_FETCH_DATEBASE = 'Could not fetch widgets from database';
 

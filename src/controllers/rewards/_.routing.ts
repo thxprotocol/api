@@ -1,7 +1,7 @@
 import express from 'express';
 import checkScopes from 'express-jwt-authz';
 
-import { validate, validateAssetPoolHeader } from '../../util/validation';
+import { validate, validateAssetPoolHeader } from '@/util/validation';
 import { validations } from './_.validation';
 import { getRewards } from './get.action';
 import { getReward } from './getReward.action';
@@ -9,11 +9,11 @@ import { postReward } from './post.action';
 import { patchReward } from './patch.action';
 import { postRewardClaim } from './postRewardClaim.action';
 import { postRewardClaimFor } from './postRewardClaimFor.action';
-import { parseHeader } from '../../util/network';
+import { parseHeader } from '@/util/network';
 import { postVote } from './postVote.action';
 import { deleteVote } from './deleteVote.action';
 import { postPollFinalize } from './postPollFinalize.action';
-import { rateLimitRewardGive } from '../../util/ratelimiter';
+import { rateLimitRewardGive } from '@/util/ratelimiter';
 
 const router = express.Router();
 

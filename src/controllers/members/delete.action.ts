@@ -1,8 +1,8 @@
 import { Request, NextFunction, Response } from 'express';
-import { HttpError } from '../../models/Error';
-import MemberService, { ERROR_IS_NOT_MEMBER } from '../../services/MemberService';
-import AccountProxy from '../../proxies/AccountProxy';
-import MembershipService from '../../services/MembershipService';
+import { HttpError } from '@/models/Error';
+import MemberService, { ERROR_IS_NOT_MEMBER } from '@/services/MemberService';
+import AccountProxy from '@/proxies/AccountProxy';
+import MembershipService from '@/services/MembershipService';
 
 export const deleteMember = async (req: Request, res: Response, next: NextFunction) => {
     try {

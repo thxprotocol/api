@@ -2,7 +2,7 @@ import newrelic from 'newrelic';
 import { HealthCheck } from '@godaddy/terminus';
 import { config, status } from 'migrate-mongo';
 import { connection } from 'mongoose';
-import migrateMongoConfig from '../migrate-mongo-config';
+import migrateMongoConfig from '@/migrate-mongo-config';
 
 const dbConnected: HealthCheck = async () => {
     // https://mongoosejs.com/docs/api.html#connection_Connection-readyState

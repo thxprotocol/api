@@ -1,5 +1,5 @@
-import { IAccount } from '../models/Account';
-import { authClient, getAuthAccessToken } from '../util/auth';
+import { IAccount } from '@/models/Account';
+import { authClient, getAuthAccessToken } from '@/util/auth';
 
 const ERROR_NO_TWITTER = 'Could not find twitter data for this account';
 

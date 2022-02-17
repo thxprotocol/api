@@ -1,6 +1,6 @@
 import { Request, NextFunction, Response } from 'express';
-import { HttpError } from '../../models/Error';
-import MemberService, { ERROR_IS_NOT_MEMBER } from '../../services/MemberService';
+import { HttpError } from '@/models/Error';
+import MemberService, { ERROR_IS_NOT_MEMBER } from '@/services/MemberService';
 
 export const getMember = async (req: Request, res: Response, next: NextFunction) => {
     try {

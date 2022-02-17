@@ -16,13 +16,22 @@ export const userPassword = 'mellonmellonmellon';
 export const userPassword2 = 'mellonmellonmellon';
 export const voterEmail = 'test.voter.bot@thx.network';
 export const newAddress = '0x253cA584af3E458392982EF246066A6750Fa0735';
+
 export const sub = '6074cbdd1459355fae4b6a14';
+export const sub2 = '6074cbdd1459355fae4b6a15';
 export const userWalletAddress = '0xE1ea36CC205923b3fC3b46bb747BE4Fd6bE23E6C';
+export const userWalletAddress2 = '0xaf9d56684466fcFcEA0a2B7fC137AB864d642946';
 export const userWalletPrivateKey = '0x668b4ef1e9a288a39974951746e366c632f21c653d3fff89ebe206bdb7194c58';
+export const userWalletPrivateKey2 = '0x97093724e1748ebfa6aa2d2ec4ec68df8678423ab9a12eb2d27ddc74e35e5db9';
 export const account: any = {
     id: sub,
     address: userWalletAddress,
 };
+export const account2: any = {
+    id: sub2,
+    address: userWalletAddress2,
+};
+
 export const rewardId = 1;
 export const requestUris = ['http://localhost:8080'];
 export const redirectUris = ['http://localhost:8080'];

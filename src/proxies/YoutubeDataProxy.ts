@@ -1,5 +1,5 @@
-import { IAccount } from '../models/Account';
-import { authClient, getAuthAccessToken } from '../util/auth';
+import { IAccount } from '@/models/Account';
+import { authClient, getAuthAccessToken } from '@/util/auth';
 const ERROR_NO_YOUTUBE = 'Could not find youtube data for this account';
 
 export default class YoutubeDataProxy {

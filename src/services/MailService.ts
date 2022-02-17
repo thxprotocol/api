@@ -1,12 +1,12 @@
 import ejs from 'ejs';
-import { sendMail } from '../util/mail';
-import { createRandomToken } from '../util/tokens';
+import { sendMail } from '@/util/mail';
+import { createRandomToken } from '@/util/tokens';
 import path from 'path';
-import { API_URL, WALLET_URL, SECURE_KEY } from '../util/secrets';
-import { encryptString } from '../util/encrypt';
-import AccountProxy from '../proxies/AccountProxy';
+import { API_URL, WALLET_URL, SECURE_KEY } from '@/util/secrets';
+import { encryptString } from '@/util/encrypt';
+import AccountProxy from '@/proxies/AccountProxy';
 
-const DURATION_TEN_MINUTES = Date.now() + 10 * 60 * 1000;
+const DURATION_DAY = Date.now() + 24 * 60 * 60 * 1000;
 
 export default class MailService {
     static async sendLoginLinkEmail(email: string, password: string) {
@@ -31,7 +31,7 @@ export default class MailService {
 
             await AccountProxy.update(account.id, {
                 authenticationToken,
-                authenticationTokenExpires: DURATION_TEN_MINUTES,
+                authenticationTokenExpires: DURATION_DAY,
             });
 
             return { result: true };

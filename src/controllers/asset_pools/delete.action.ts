@@ -1,9 +1,9 @@
 import { Request, Response, NextFunction } from 'express';
-import { HttpError } from '../../models/Error';
-import RewardService from '../../services/RewardService';
-import WithdrawalService from '../../services/WithdrawalService';
-import ClientService from '../../services/ClientService';
-import AssetPoolService from '../../services/AssetPoolService';
+import { HttpError } from '@/models/Error';
+import RewardService from '@/services/RewardService';
+import WithdrawalService from '@/services/WithdrawalService';
+import ClientService from '@/services/ClientService';
+import AssetPoolService from '@/services/AssetPoolService';
 
 const ERROR_REMOVE_REWARDS = 'Could not remove rewards.';
 const ERROR_REMOVE_WITHDRAWALS = 'Could not remove withdrawals.';

@@ -12,12 +12,6 @@ export function parseArgs(args: any) {
     return returnValues;
 }
 
-export const events = async (tx: any) => {
-    tx = await tx;
-    tx = await tx.wait();
-    return tx.events;
-};
-
 export function parseLog(abi: any, log: any) {
     const contractInterface = new ethers.utils.Interface(abi);
     try {

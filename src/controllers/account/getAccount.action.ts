@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
-import { HttpError } from '../../models/Error';
-import AccountProxy from '../../proxies/AccountProxy';
+import { HttpError } from '@/models/Error';
+import AccountProxy from '@/proxies/AccountProxy';
 
 export const getAccount = async (req: Request, res: Response, next: NextFunction) => {
     async function getAccount() {

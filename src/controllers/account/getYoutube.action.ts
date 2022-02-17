@@ -1,6 +1,6 @@
-import YoutubeDataProxy from '../../proxies/YoutubeDataProxy';
+import YoutubeDataProxy from '@/proxies/YoutubeDataProxy';
 import { Request, Response, NextFunction } from 'express';
-import { HttpError } from '../../models/Error';
+import { HttpError } from '@/models/Error';
 
 export const getYoutube = async (req: Request, res: Response, next: NextFunction) => {
     async function getYouTube() {

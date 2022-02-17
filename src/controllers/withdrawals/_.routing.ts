@@ -1,10 +1,10 @@
 import express from 'express';
 import checkScopes from 'express-jwt-authz';
-import { validate, validateAssetPoolHeader } from '../../util/validation';
+import { validate, validateAssetPoolHeader } from '@/util/validation';
 import { validations } from './_.validation';
 import { getWithdrawal } from './get.action';
 import { getWithdrawals } from './getWithdrawals.action';
-import { parseHeader } from '../../util/network';
+import { parseHeader } from '@/util/network';
 import { postVote } from './postVote.action';
 import { postPollFinalize } from './postPollFinalize.action';
 import { deleteVote } from './deleteVote.action';

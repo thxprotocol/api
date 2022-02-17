@@ -1,6 +1,6 @@
 import { Request, NextFunction, Response } from 'express';
-import ClientService from '../../../services/ClientService';
-import { HttpError } from '../../../models/Error';
+import ClientService from '@/services/ClientService';
+import { HttpError } from '@/models/Error';
 
 export async function validateClientAccess(req: Request, res: Response, next: NextFunction) {
     const { client } = await ClientService.get(req.params.clientId);

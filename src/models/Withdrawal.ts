@@ -1,47 +1,7 @@
 import mongoose from 'mongoose';
+import { TWithdrawal } from '@/types/Withdrawal';
 
-export enum WithdrawalType {
-    ClaimReward = 0,
-    ClaimRewardFor = 1,
-    ProposeWithdraw = 2,
-}
-
-export enum WithdrawalState {
-    Deferred = -1,
-    Pending = 0,
-    Withdrawn = 1,
-}
-
-interface WithdrawPoll {
-    startTime: number;
-    endTime: number;
-    yesCounter: number;
-    noCounter: number;
-    totalVoted: number;
-}
-
-export type WithdrawalDocument = mongoose.Document & {
-    type: WithdrawalType;
-    poolAddress: string;
-    beneficiary: string;
-    amount: number;
-    state: number;
-    createdAt: Date;
-    updatedAt: Date;
-    approved?: boolean;
-    failReason?: string;
-    rewardId?: number;
-    withdrawalId?: number;
-    poll?: WithdrawPoll | null;
-};
-
-const WithdrawPollSchema = {
-    startTime: Number,
-    endTime: Number,
-    yesCounter: Number,
-    noCounter: Number,
-    totalVoted: Number,
-};
+export type WithdrawalDocument = mongoose.Document & TWithdrawal;
 
 const withdrawalSchema = new mongoose.Schema(
     {
@@ -54,9 +14,14 @@ const withdrawalSchema = new mongoose.Schema(
         failReason: String,
         rewardId: Number,
         withdrawalId: Number,
-        poll: WithdrawPollSchema,
-        createdAt: Date,
-        updatedAt: Date,
+        fromBlock: Number,
+        poll: {
+            startTime: Number,
+            endTime: Number,
+            yesCounter: Number,
+            noCounter: Number,
+            totalVoted: Number,
+        },
     },
     { timestamps: true },
 );

@@ -12,7 +12,9 @@ import rewardsRouter from './rewards/_.routing';
 import withdrawalsRouter from './withdrawals/_.routing';
 import membershipsRouter from './memberships/_.routing';
 import tokenRouter from './token/_.routing';
-import { checkJwt } from '../util/jwt';
+import promoCodesRouter from './promo_codes/promoCodes.router';
+import depositsRouter from './deposits/deposits.router';
+import { checkJwt } from '@/util/jwt';
 
 const router = express.Router();
 
@@ -22,6 +24,8 @@ router.use('/token', tokenRouter);
 router.use('/docs', docsRouter);
 router.use(checkJwt);
 router.use('/', authRouter);
+router.use('/promo_codes', promoCodesRouter);
+router.use('/deposits', depositsRouter);
 router.use('/metrics', metricsRouter);
 router.use('/account', accountRouter);
 router.use('/widgets', widgetsRouter);

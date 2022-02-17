@@ -1,7 +1,7 @@
-import { HttpError } from '../../models/Error';
+import { HttpError } from '@/models/Error';
 import { Request, NextFunction, Response } from 'express';
 
-import WithdrawalService from '../../services/WithdrawalService';
+import WithdrawalService from '@/services/WithdrawalService';
 
 /**
  * @swagger
