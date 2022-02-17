@@ -89,6 +89,7 @@ export default class AccountProxy {
             authenticationTokenExpires,
             googleAccess,
             twitterAccess,
+            spotifyAccess,
         }: IAccountUpdates,
     ) {
         const r = await authClient({
@@ -103,6 +104,7 @@ export default class AccountProxy {
                 authenticationTokenExpires,
                 googleAccess,
                 twitterAccess,
+                spotifyAccess,
             },
             headers: {
                 Authorization: await getAuthAccessToken(),
