@@ -200,7 +200,7 @@ export default class AssetPoolService {
             const { admin } = getProvider(assetPool.network);
             const poolRegistryAddress =
                 assetPool.network === NetworkProvider.Test ? TESTNET_POOL_REGISTRY_ADDRESS : POOL_REGISTRY_ADDRESS;
-            console.log('bla', poolRegistryAddress);
+
             await sendTransaction(
                 assetPool.solution.options.address,
                 assetPool.solution.methods.setPoolRegistry(poolRegistryAddress),

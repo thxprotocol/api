@@ -4,7 +4,7 @@ import db from './database';
 
 import { jobProcessWithdrawals } from '@/jobs/processWithdrawals';
 import { jobRequireDeposits } from '@/jobs/requireDeposit';
-import { jobRequireWithdraws } from '@/jobs/requireWithdraw';
+import { jobRequireWithdraws } from '@/jobs/requireEvents';
 
 export const eventNameProcessWithdrawals = 'processWithdrawals';
 export const eventNameRequireDeposits = 'requireDeposits';

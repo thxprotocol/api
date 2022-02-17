@@ -12,7 +12,7 @@ const formatWinston = winston.format.combine(
 );
 
 export const logger = winston.createLogger({
-    level: NODE_ENV === 'test' ? 'http' : 'http',
+    level: NODE_ENV === 'test' ? 'warn' : 'http',
     format: formatWinston,
     transports: [new winston.transports.Console()],
 });

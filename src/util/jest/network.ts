@@ -36,7 +36,7 @@ export const timeTravel = async (seconds: number) => {
         ],
     });
     await (web3 as any).increaseTime(seconds);
-    await (web3 as any).mine();
+    // await (web3 as any).mine();
 };
 export async function deployExampleToken(to = admin.address) {
     return await deployContract(

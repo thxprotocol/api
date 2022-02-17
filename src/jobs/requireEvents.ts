@@ -21,13 +21,13 @@ export async function jobRequireWithdraws() {
                 toBlock,
             },
             (error: Error, event: any) => {
-                console.dir({ error, event }, { colors: true });
                 if (error) {
                     throw new GetPastWithdrawnEventsError();
                 }
 
                 if (event) {
                     w.state = WithdrawalState.Withdrawn;
+                    w.failReason = '';
                 }
 
                 w.fromBlock = toBlock;

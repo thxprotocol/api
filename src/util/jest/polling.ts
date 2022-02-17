@@ -1,4 +1,4 @@
-export async function poll(fn: () => Promise<string[]>, fnCondition: (result: string[]) => boolean, ms: number) {
+export async function poll(fn: () => Promise<string>, fnCondition: (result: string) => boolean, ms: number) {
     let result = await fn();
     while (fnCondition(result)) {
         await wait(ms);
