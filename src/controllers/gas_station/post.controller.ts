@@ -4,6 +4,7 @@ import { HttpError } from '@/models/Error';
 import { hex2a, parseLogs, findEvent } from '@/util/events';
 import { Artifacts } from '@/util/artifacts';
 import { eventIndexer } from '@/util/indexer';
+import { body } from 'express-validator';
 
 const indexer = eventIndexer as any;
 const eventNames = [
@@ -13,6 +14,8 @@ const eventNames = [
     'WithdrawPollVoted',
     'WithdrawPollRevokedVote',
 ];
+
+export const createCallValidation = [body('call').exists(), body('nonce').exists(), body('sig').exists()];
 
 export const postCall = async (req: Request, res: Response, next: NextFunction) => {
     try {

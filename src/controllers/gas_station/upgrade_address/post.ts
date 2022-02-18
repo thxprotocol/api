@@ -7,6 +7,14 @@ import AccountProxy from '@/proxies/AccountProxy';
 import WithdrawalService from '@/services/WithdrawalService';
 import MemberService from '@/services/MemberService';
 import { WithdrawalState } from '@/enums';
+import { body } from 'express-validator';
+
+export const createCallUpgradeAddressValidation = [
+    body('newAddress').isEthereumAddress(),
+    body('call').exists(),
+    body('nonce').exists(),
+    body('sig').exists(),
+];
 
 export const postCallUpgradeAddress = async (req: Request, res: Response, next: NextFunction) => {
     try {
