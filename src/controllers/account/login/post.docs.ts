@@ -1,21 +1,3 @@
-import MailService from '@/services/MailService';
-import { Request, Response, NextFunction } from 'express';
-import { HttpError } from '@/models/Error';
-
-export const postLogin = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-        const { error } = await MailService.sendLoginLinkEmail(req.body.email, req.body.password);
-
-        if (error) {
-            throw new Error(error);
-        } else {
-            return res.json({ message: `E-mail sent to ${req.body.email}` });
-        }
-    } catch (error) {
-        return next(new HttpError(500, error.toString(), error));
-    }
-};
-
 /**
  * @swagger
  * /authentication_token:
