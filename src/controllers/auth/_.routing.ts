@@ -1,8 +1,8 @@
 import express from 'express';
 import checkScopes from 'express-jwt-authz';
 import { validations } from './_.validation';
-import { postAccount } from '@/controllers/account/post.action';
-import { postLogin } from '@/controllers/account/postLogin.action';
+import { postAccount } from '@/controllers/account/post.controller';
+import { postLogin } from '@/controllers/account/login/post.controller';
 import { parseHeader } from '@/util/network';
 import { validate } from '@/util/validation';
 
