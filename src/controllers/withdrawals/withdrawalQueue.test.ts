@@ -1,5 +1,5 @@
 import request, { Response } from 'supertest';
-import server from '@/server';
+import app from '@/app';
 import {
     exceedingFeeData,
     feeData,
@@ -17,7 +17,7 @@ import { agenda, eventNameProcessWithdrawals } from '@/util/agenda';
 import { ERROR_MAX_FEE_PER_GAS, NetworkProvider } from '@/util/network';
 import { afterAllCallback, beforeAllCallback } from '@/util/jest/config';
 
-const user = request.agent(server);
+const user = request.agent(app);
 
 describe('Withdrawal Queue', () => {
     let adminAccessToken: string,

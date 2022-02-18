@@ -1,5 +1,5 @@
 import request from 'supertest';
-import server from '@/server';
+import app from '@/app';
 import { callFunction, NetworkProvider, sendTransaction } from '@/util/network';
 import { timeTravel, signMethod, deployExampleToken, createWallet } from '@/util/jest/network';
 import {
@@ -18,7 +18,7 @@ import { getToken } from '@/util/jest/jwt';
 import { agenda, eventNameProcessWithdrawals } from '@/util/agenda';
 import { afterAllCallback, beforeAllCallback } from '@/util/jest/config';
 
-const user = request.agent(server);
+const user = request.agent(app);
 
 describe('Happy Flow', () => {
     let adminAccessToken: string,

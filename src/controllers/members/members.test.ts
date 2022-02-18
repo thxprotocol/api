@@ -1,5 +1,5 @@
 import request from 'supertest';
-import server from '@/server';
+import app from '@/app';
 import { getProvider, NetworkProvider } from '@/util/network';
 import { createWallet, deployExampleToken, voter } from '@/util/jest/network';
 import { userWalletPrivateKey2 } from '@/util/jest/constants';
@@ -8,7 +8,7 @@ import { getToken } from '@/util/jest/jwt';
 import { Account } from 'web3-core';
 import { afterAllCallback, beforeAllCallback } from '@/util/jest/config';
 
-const user = request.agent(server);
+const user = request.agent(app);
 
 describe('Roles', () => {
     let poolAddress: any,

@@ -1,5 +1,5 @@
 import request from 'supertest';
-import server from '@/server';
+import app from '@/app';
 import { NetworkProvider } from '@/util/network';
 import { rewardWithdrawAmount, tokenName, tokenSymbol, userWalletPrivateKey2 } from '@/util/jest/constants';
 import { isAddress } from 'web3-utils';
@@ -9,7 +9,7 @@ import { getToken } from '@/util/jest/jwt';
 import { agenda, eventNameProcessWithdrawals } from '@/util/agenda';
 import { afterAllCallback, beforeAllCallback } from '@/util/jest/config';
 
-const user = request.agent(server);
+const user = request.agent(app);
 
 describe('Unlimited Supply Token', () => {
     let adminAccessToken: string,

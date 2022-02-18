@@ -1,5 +1,4 @@
 import db from '@/util/database';
-import server from '@/server';
 import { mockStart } from './mock';
 import { agenda } from '@/util/agenda';
 import { mockClear } from './mock';
@@ -26,8 +25,6 @@ export async function afterAllCallback() {
     logger.info('Closed agenda');
     await db.disconnect();
     logger.info('Truncated and disconnected mongo');
-    server.close();
-    logger.info('Closed server');
     mockClear();
     logger.info('Cleared mocks');
 }

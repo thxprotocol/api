@@ -1,5 +1,5 @@
 import request from 'supertest';
-import server from '@/server';
+import app from '@/app';
 import { deployExampleToken, timeTravel } from '@/util/jest/network';
 import { rewardPollDuration, rewardWithdrawAmount, rewardWithdrawDuration } from '@/util/jest/constants';
 import { Contract } from 'web3-eth-contract';
@@ -8,7 +8,7 @@ import { getToken } from '@/util/jest/jwt';
 import { NetworkProvider } from '@/util/network';
 import { afterAllCallback, beforeAllCallback } from '@/util/jest/config';
 
-const user = request.agent(server);
+const user = request.agent(app);
 
 describe('Bypass Polls', () => {
     let adminAccessToken: string,

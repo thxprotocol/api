@@ -1,5 +1,5 @@
 import request from 'supertest';
-import server from '@/server';
+import app from '@/app';
 import { NetworkProvider, sendTransaction } from '@/util/network';
 import { timeTravel, signMethod, createWallet, deployExampleToken } from '@/util/jest/network';
 import {
@@ -16,7 +16,7 @@ import { Account } from 'web3-core';
 import { getToken } from '@/util/jest/jwt';
 import { afterAllCallback, beforeAllCallback } from '@/util/jest/config';
 
-const user = request.agent(server);
+const user = request.agent(app);
 
 describe('Gas Station', () => {
     let poolAddress: string,
