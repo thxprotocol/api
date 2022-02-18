@@ -1,12 +1,12 @@
 import request from 'supertest';
-import server from '../../server';
-import { NetworkProvider } from '../../util/network';
+import server from '@/server';
+import { NetworkProvider } from '@/util/network';
 import { rewardWithdrawAmount, tokenName, tokenSymbol, userWalletPrivateKey2 } from '@/util/jest/constants';
 import { isAddress } from 'web3-utils';
 import { Account } from 'web3-core';
 import { getToken } from '@/util/jest/jwt';
 import { createWallet } from '@/util/jest/network';
-import { agenda, eventNameProcessWithdrawals } from '../../util/agenda';
+import { agenda, eventNameProcessWithdrawals } from '@/util/agenda';
 import { afterAllCallback, beforeAllCallback } from '@/util/jest/config';
 
 const user = request.agent(server);

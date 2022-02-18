@@ -1,11 +1,11 @@
 import request from 'supertest';
-import server from '../../server';
+import server from '@/server';
 import { deployExampleToken, timeTravel } from '@/util/jest/network';
 import { rewardPollDuration, rewardWithdrawAmount, rewardWithdrawDuration } from '@/util/jest/constants';
 import { Contract } from 'web3-eth-contract';
 import { isAddress } from 'web3-utils';
 import { getToken } from '@/util/jest/jwt';
-import { NetworkProvider } from '../../util/network';
+import { NetworkProvider } from '@/util/network';
 import { afterAllCallback, beforeAllCallback } from '@/util/jest/config';
 
 const user = request.agent(server);

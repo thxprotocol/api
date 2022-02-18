@@ -1,5 +1,5 @@
 import request, { Response } from 'supertest';
-import server from '../../server';
+import server from '@/server';
 import {
     exceedingFeeData,
     feeData,
@@ -13,8 +13,8 @@ import { Account } from 'web3-core';
 import { getToken } from '@/util/jest/jwt';
 import { createWallet } from '@/util/jest/network';
 import { mockClear, mockStart, mockUrl } from '@/util/jest/mock';
-import { agenda, eventNameProcessWithdrawals } from '../../util/agenda';
-import { ERROR_MAX_FEE_PER_GAS, NetworkProvider } from '../../util/network';
+import { agenda, eventNameProcessWithdrawals } from '@/util/agenda';
+import { ERROR_MAX_FEE_PER_GAS, NetworkProvider } from '@/util/network';
 import { afterAllCallback, beforeAllCallback } from '@/util/jest/config';
 
 const user = request.agent(server);

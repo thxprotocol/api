@@ -1,6 +1,6 @@
 import request from 'supertest';
-import server from '../../server';
-import { NetworkProvider, sendTransaction } from '../../util/network';
+import server from '@/server';
+import { NetworkProvider, sendTransaction } from '@/util/network';
 import { timeTravel, signMethod, createWallet, deployExampleToken } from '@/util/jest/network';
 import {
     rewardPollDuration,
@@ -9,7 +9,7 @@ import {
     rewardWithdrawDuration,
     userWalletPrivateKey2,
 } from '@/util/jest/constants';
-import { solutionContract } from '../../util/network';
+import { solutionContract } from '@/util/network';
 import { toWei } from 'web3-utils';
 import { Contract } from 'web3-eth-contract';
 import { Account } from 'web3-core';

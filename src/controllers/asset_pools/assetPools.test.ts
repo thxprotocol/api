@@ -1,6 +1,6 @@
 import request from 'supertest';
-import server from '../../server';
-import { callFunction, NetworkProvider, sendTransaction } from '../../util/network';
+import server from '@/server';
+import { callFunction, NetworkProvider, sendTransaction } from '@/util/network';
 import { timeTravel, signMethod, deployExampleToken, createWallet } from '@/util/jest/network';
 import {
     rewardWithdrawAmount,
@@ -12,10 +12,10 @@ import {
 import { fromWei, toWei } from 'web3-utils';
 import { isAddress } from 'web3-utils';
 import { Contract } from 'web3-eth-contract';
-import { solutionContract } from '../../util/network';
+import { solutionContract } from '@/util/network';
 import { Account } from 'web3-core';
 import { getToken } from '@/util/jest/jwt';
-import { agenda, eventNameProcessWithdrawals } from '../../util/agenda';
+import { agenda, eventNameProcessWithdrawals } from '@/util/agenda';
 import { afterAllCallback, beforeAllCallback } from '@/util/jest/config';
 
 const user = request.agent(server);

@@ -1,6 +1,6 @@
 import request from 'supertest';
-import server from '../../server';
-import { getProvider, NetworkProvider } from '../../util/network';
+import server from '@/server';
+import { getProvider, NetworkProvider } from '@/util/network';
 import { createWallet, deployExampleToken, voter } from '@/util/jest/network';
 import { userWalletPrivateKey2 } from '@/util/jest/constants';
 import { Contract } from 'web3-eth-contract';

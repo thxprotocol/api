@@ -1,6 +1,6 @@
 import request from 'supertest';
-import server from '../../server';
-import { NetworkProvider } from '../../util/network';
+import server from '@/server';
+import { NetworkProvider } from '@/util/network';
 import { deployExampleToken } from '@/util/jest/network';
 import {
     rewardWithdrawAmount,
