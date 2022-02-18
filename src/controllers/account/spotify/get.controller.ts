@@ -1,6 +1,6 @@
-import SpotifyDataProxy from '../../proxies/SpotifyDataProxy';
 import { Request, Response, NextFunction } from 'express';
-import { HttpError } from '../../models/Error';
+import SpotifyDataProxy from '../../../proxies/SpotifyDataProxy';
+import { HttpError } from '../../../models/Error';
 
 export const getSpotify = async (req: Request, res: Response, next: NextFunction) => {
     async function getSpotifyData() {
