@@ -5,17 +5,17 @@ export enum ChannelType {
     Google = 1,
     Twitter = 2,
 }
-
 export enum ChannelAction {
     YouTubeLike = 0,
     YouTubeSubscribe = 1,
     TwitterLike = 2,
     TwitterRetweet = 3,
     TwitterFollow = 4,
-    SpotfyFollow = 5,
-    SpotifyPlaying = 7,
-    SpotifySaved = 8,
-    SpotifyPlayed = 9,
+    SpotifyUserFollow = 5,
+    SpotifyPlaylistFollow = 7,
+    SpotifyTrackPlaying = 8,
+    SpotifyTrackSaved = 9,
+    SpotifyTrackRecent = 10,
 }
 
 export enum RewardState {
