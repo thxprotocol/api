@@ -68,6 +68,10 @@ class GetPastWithdrawnEventsError extends InternalServerError {
     message = 'GetPastEvents for Withdrawn event failed in callback.';
 }
 
+class DuplicateEmailError extends BadRequestError {
+    message = 'An account with this e-mail address already exists.';
+}
+
 export {
     BaseError,
     UnauthorizedError,
@@ -83,4 +87,5 @@ export {
     TokenPaymentFailedError,
     GetPastTransferEventsError,
     GetPastWithdrawnEventsError,
+    DuplicateEmailError,
 };

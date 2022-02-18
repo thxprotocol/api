@@ -2,6 +2,7 @@ import { IAccount, IAccountUpdates } from '@/models/Account';
 import { authClient, getAuthAccessToken } from '@/util/auth';
 
 const ERROR_NO_ACCOUNT = 'Could not find an account for this address';
+const ERROR_CREATE_ACCOUNT = 'Could not signup for an account';
 
 export default class AccountProxy {
     static async getById(sub: string) {
@@ -161,7 +162,7 @@ export default class AccountProxy {
             });
 
             if (!r.data) {
-                throw new Error('Could not update');
+                throw new Error(ERROR_CREATE_ACCOUNT);
             }
 
             return { account: r.data };

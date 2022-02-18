@@ -2,7 +2,7 @@ import express from 'express';
 import healthRouter from './health/_.routing';
 import metricsRouter from './metrics/_.routing';
 import docsRouter from './docs/_.routing';
-import accountRouter from './account/_.routing';
+import accountRouter from './account/account.router';
 import authRouter from './auth/_.routing';
 import widgetsRouter from './widgets/_.routing';
 import assetPoolsRouter from './asset_pools/_.routing';
