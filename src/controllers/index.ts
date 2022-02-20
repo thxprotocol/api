@@ -5,7 +5,7 @@ import docsRouter from './docs/_.routing';
 import accountRouter from './account/account.router';
 import authRouter from './auth/_.routing';
 import widgetsRouter from './widgets/_.routing';
-import assetPoolsRouter from './asset_pools/_.routing';
+import assetPoolsRouter from './asset_pools/assetPools.router';
 import gasStationRouter from './gas_station/_.routing';
 import membersRouter from './members/_.routing';
 import rewardsRouter from './rewards/_.routing';

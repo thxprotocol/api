@@ -1,48 +1,24 @@
-import { Request, Response, NextFunction } from 'express';
-import { HttpError } from '@/models/Error';
+import { Request, Response } from 'express';
+import { param } from 'express-validator';
+import { isAddress } from 'web3-utils';
 import RewardService from '@/services/RewardService';
 import WithdrawalService from '@/services/WithdrawalService';
 import ClientService from '@/services/ClientService';
 import AssetPoolService from '@/services/AssetPoolService';
 
-const ERROR_REMOVE_REWARDS = 'Could not remove rewards.';
-const ERROR_REMOVE_WITHDRAWALS = 'Could not remove withdrawals.';
-const ERROR_REMOVE_ASSETPOOL = 'Could not remove asset pool.';
+export const deleteAssetPoolValidation = [
+    param('address')
+        .exists()
+        .custom((value) => {
+            return isAddress(value);
+        }),
+];
 
-export async function deleteAssetPool(req: Request, res: Response, next: NextFunction) {
-    async function removeAssetPool(address: string) {
-        const { error } = await AssetPoolService.removeByAddress(address);
-        if (error) {
-            return next(new HttpError(502, ERROR_REMOVE_ASSETPOOL, new Error(error)));
-        }
-    }
+export async function deleteAssetPool(req: Request, res: Response) {
+    await RewardService.removeAllForAddress(req.assetPool.address);
+    await WithdrawalService.removeAllForAddress(req.assetPool.address);
+    await ClientService.remove(req.assetPool.clientId);
+    await AssetPoolService.removeByAddress(req.assetPool.address);
 
-    async function removeClient(clientId: string) {
-        await ClientService.remove(clientId);
-    }
-
-    async function removeWithdrawals(address: string) {
-        const { error } = await WithdrawalService.removeAllForAddress(address);
-        if (error) {
-            return next(new HttpError(502, ERROR_REMOVE_WITHDRAWALS, new Error(error)));
-        }
-    }
-
-    async function removeRewards(address: string) {
-        const { error } = await RewardService.removeAllForAddress(address);
-        if (error) {
-            return next(new HttpError(502, ERROR_REMOVE_REWARDS, new Error(error)));
-        }
-    }
-
-    try {
-        await removeRewards(req.assetPool.solution.options.address);
-        await removeWithdrawals(req.assetPool.solution.options.address);
-        await removeClient(req.assetPool.clientId);
-        await removeAssetPool(req.assetPool.solution.options.address);
-
-        res.status(204).end();
-    } catch (error) {
-        return next(new HttpError(502, error.message, error));
-    }
+    res.status(204).end();
 }

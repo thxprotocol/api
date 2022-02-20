@@ -9,9 +9,9 @@ export async function assertAssetPoolAccess(
 ) {
     // If there is a sub check the account for user membership
     if (req.user.sub) {
-        const { result, error } = await AssetPoolService.checkAssetPoolAccess(req.user.sub, req.header('AssetPool'));
+        const isMember = await AssetPoolService.isAssetPoolMember(req.user.sub, req.header('AssetPool'));
 
-        if (!result || error) {
+        if (!isMember) {
             throw new SubjectUnauthorizedError();
         }
 
