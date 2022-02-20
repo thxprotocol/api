@@ -72,6 +72,10 @@ class DuplicateEmailError extends BadRequestError {
     message = 'An account with this e-mail address already exists.';
 }
 
+class GetPastWithdrawPollCreatedEventsError extends InternalServerError {
+    message = 'GetPastEvents for WithdrawPollCreated event failed in callback.';
+}
+
 export {
     BaseError,
     UnauthorizedError,
@@ -88,4 +92,5 @@ export {
     GetPastTransferEventsError,
     GetPastWithdrawnEventsError,
     DuplicateEmailError,
+    GetPastWithdrawPollCreatedEventsError,
 };

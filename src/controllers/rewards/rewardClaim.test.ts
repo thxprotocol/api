@@ -1,12 +1,10 @@
 import request from 'supertest';
 import server from '../../server';
-import { getProvider, NetworkProvider } from '../../util/network';
-import { timeTravel, signMethod, createWallet } from '@/util/jest/network';
+import { NetworkProvider } from '../../util/network';
+import { createWallet } from '@/util/jest/network';
 import {
-    rewardPollDuration,
     rewardWithdrawAmount,
     rewardWithdrawDuration,
-    proposeWithdrawPollDuration,
     tokenName,
     tokenSymbol,
     userWalletPrivateKey2,
@@ -14,8 +12,8 @@ import {
 import { isAddress } from 'web3-utils';
 import { Account } from 'web3-core';
 import { getToken } from '@/util/jest/jwt';
-import { agenda, eventNameProcessWithdrawals } from '../../util/agenda';
 import { afterAllCallback, beforeAllCallback } from '@/util/jest/config';
+import { WithdrawalState } from '@/enums';
 
 const user = request.agent(server);
 
@@ -85,14 +83,28 @@ describe('Reward Claim', () => {
     });
 
     describe('POST /rewards/:id/claim', () => {
-        it('HTTP 200 after giving a reward', (done) => {
+        it('should return a 200 and withdrawal id', (done) => {
             user.post(`/v1/rewards/${rewardID}/claim`)
-                .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
+                .set({ AssetPool: poolAddress, Authorization: userAccessToken })
+                .expect((res: request.Response) => {
+                    expect(res.body.id).toBeDefined();
+                    expect(res.body.state).toEqual(WithdrawalState.Pending);
+
+                    withdrawalDocumentId = res.body.id;
+                })
+                .expect(200, done);
+        });
+
+        it('should wait for job processing', () => {
+            //
+        });
+
+        it('should return Pending state', (done) => {
+            user.get(`/v1/withdrawals/${withdrawalDocumentId}`)
+                .set({ AssetPool: poolAddress, Authorization: userAccessToken })
                 .expect((res: request.Response) => {
                     console.log(res.body);
-                    expect(res.body.id).toBeDefined();
-
-                    // withdrawalDocumentId = res.body.id;
+                    expect(res.body.state).toEqual(WithdrawalState.Pending);
                 })
                 .expect(200, done);
         });

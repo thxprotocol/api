@@ -2,10 +2,11 @@ import { toWei, fromWei } from 'web3-utils';
 import { WithdrawalState } from '@/enums/WithdrawalState';
 import { Withdrawal, WithdrawalDocument } from '@/models/Withdrawal';
 import AssetPoolService from '@/services/AssetPoolService';
-import { getProvider, solutionContract } from '@/util/network';
-import { GetPastWithdrawnEventsError } from '@/util/errors';
+import { callFunction, getProvider, solutionContract } from '@/util/network';
+import { GetPastWithdrawnEventsError, GetPastWithdrawPollCreatedEventsError } from '@/util/errors';
 import { AssetPool, AssetPoolDocument } from '@/models/AssetPool';
 import { EventLog } from 'web3-core';
+import WithdrawalService from '@/services/WithdrawalService';
 
 export async function jobRequireWithdraws() {
     const assetPools = await AssetPool.find();
@@ -19,6 +20,8 @@ export async function jobRequireWithdraws() {
             const { web3 } = getProvider(pool.network);
             const toBlock = await web3.eth.getBlockNumber();
             const solution = solutionContract(pool.network, pool.address);
+            // Set it on the pool as per IAssetPool
+            pool.solution = solution;
 
             // Called when a Withdrawn event is found
             const onWithdrawnEvent = async (error: Error, event: EventLog) => {
@@ -43,13 +46,25 @@ export async function jobRequireWithdraws() {
 
             // Called when a WithdrawPollCreated event is found
             const onWithdrawPollCreatedEvent = async (error: Error, event: EventLog) => {
-                // const withdrawalId = event.returnValues.id
-                // const beneficiary = event.returnValues.beneficiary
-                // Call getAmount(id)
-                // Check w.amount and w.beneficiary === beneficiary
-                console.log(event);
-                // Remove failreason
-                // Schedule a finalize withdrawal
+                if (error) {
+                    throw new GetPastWithdrawPollCreatedEventsError();
+                }
+
+                const withdrawal = await Withdrawal.findOne({
+                    state: WithdrawalState.Pending,
+                    poolAddress: pool.address,
+                    beneficiary: event.returnValues.beneficiary,
+                    withdrawalId: event.returnValues.id,
+                });
+                const amount = await callFunction(solution.methods.getAmount(event.returnValues.id), pool.network);
+
+                if (amount !== withdrawal.amount) {
+                    return;
+                }
+
+                if (pool.bypassPolls) {
+                    await WithdrawalService.withdrawPollFinalize(pool, event.returnValues.id);
+                }
             };
 
             solution.getPastEvents(
