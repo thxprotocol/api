@@ -1,5 +1,4 @@
 import { NextFunction, Request, Response } from 'express';
-import { HttpError } from '@/models/Error';
 import { THXHttpError } from '@/util/errors';
 import { NODE_ENV } from '@/util/secrets';
 
@@ -14,10 +13,10 @@ interface ErrorResponse {
 
 // Error handler needs to have 4 arguments.
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-export const errorOutput = (error: Error, req: Request, res: Response, next: NextFunction) => {
+export const errorOutput = (error: any, req: Request, res: Response, next: NextFunction) => {
     let status = 500;
     const response: ErrorResponse = { error: { message: 'Unable to fulfill request due to unknown error' } };
-    if (error instanceof THXHttpError) {
+    if (error instanceof THXHttpError || error.status) {
         status = error.status;
         response.error.message = error.message;
     } else if (NODE_ENV !== 'production') {
