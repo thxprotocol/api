@@ -27,7 +27,7 @@ jobs:
 
             - name: Run test
               run: |
-                  docker-compose -f docker-compose.yml -f docker-compose.ci.yml run api npm run test
+                  docker compose -f docker-compose.yml -f docker-compose.ci.yml run -T api npm run test
 
     bumpVersion:
         name: 'Bump Version on main'

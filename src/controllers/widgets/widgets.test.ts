@@ -1,6 +1,6 @@
 import request from 'supertest';
-import server from '../../server';
-import { NetworkProvider } from '../../util/network';
+import app from '@/app';
+import { NetworkProvider } from '@/util/network';
 import { deployExampleToken } from '@/util/jest/network';
 import {
     rewardWithdrawAmount,
@@ -14,7 +14,7 @@ import { Contract } from 'web3-eth-contract';
 import { getToken } from '@/util/jest/jwt';
 import { afterAllCallback, beforeAllCallback } from '@/util/jest/config';
 
-const user = request.agent(server);
+const user = request.agent(app);
 
 describe('Widgets', () => {
     let poolAddress: string, dashboardAccessToken: string, testToken: Contract, clientId: string;
