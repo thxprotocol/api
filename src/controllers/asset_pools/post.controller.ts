@@ -30,8 +30,7 @@ export const createAssetPoolValidation = [
 ];
 
 export const postAssetPool = async (req: Request, res: Response) => {
-    const { assetPool } = await AssetPoolService.deploy(req.user.sub, req.body.network);
-
+    const assetPool = await AssetPoolService.deploy(req.user.sub, req.body.network);
     await AssetPoolService.init(assetPool);
     await AssetPoolService.addPoolToken(assetPool, req.body.token);
     await MembershipService.addMembership(req.user.sub, assetPool);
@@ -51,5 +50,5 @@ export const postAssetPool = async (req: Request, res: Response) => {
 
     AssetPool.countDocuments({}, (_err: any, count: number) => newrelic.recordMetric('/AssetPool/Count', count));
 
-    res.status(201).json({ address: assetPool.solution.options.address });
+    res.status(201).json({ address: assetPool.address });
 };

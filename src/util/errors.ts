@@ -1,39 +1,42 @@
-class BaseError extends Error {
-    status: number;
+class THXError extends Error {
     message: string;
 }
 
-class BadRequestError extends BaseError {
+class THXHttpError extends THXError {
+    status: number;
+}
+
+class BadRequestError extends THXHttpError {
     status = 400;
     message = 'Bad Request';
 }
 
-class UnauthorizedError extends BaseError {
+class UnauthorizedError extends THXHttpError {
     status = 401;
     message = 'Unauthorized';
 }
 
-class ForbiddenError extends BaseError {
+class ForbiddenError extends THXHttpError {
     status = 403;
     message = 'Forbidden';
 }
 
-class NotFoundError extends BaseError {
+class NotFoundError extends THXHttpError {
     status = 404;
     message = 'Not Found';
 }
 
-class InternalServerError extends BaseError {
+class InternalServerError extends THXHttpError {
     status = 500;
     message = 'Internal Server Error';
 }
 
-class NotImplementedError extends BaseError {
+class NotImplementedError extends THXHttpError {
     status = 501;
     message = 'Not Implemented';
 }
 
-class BadGatewayError extends BaseError {
+class BadGatewayError extends THXHttpError {
     status = 502;
     message = 'Bad Gateway';
 }
@@ -77,7 +80,8 @@ class GetPastWithdrawPollCreatedEventsError extends InternalServerError {
 }
 
 export {
-    BaseError,
+    THXError,
+    THXHttpError,
     UnauthorizedError,
     ForbiddenError,
     NotFoundError,

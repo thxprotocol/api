@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { body } from 'express-validator';
 import AssetPoolService from '@/services/AssetPoolService';
+import { NotFoundError } from '@/util/errors';
 
 export const updateAssetPoolValidation = [
     body('bypassPolls').optional().isBoolean(),
@@ -9,7 +10,8 @@ export const updateAssetPoolValidation = [
 ];
 
 export const patchAssetPool = async (req: Request, res: Response) => {
-    const { assetPool } = await AssetPoolService.getByAddress(req.params.address);
+    const assetPool = await AssetPoolService.getByAddress(req.params.address);
+    if (!assetPool) throw new NotFoundError();
 
     await AssetPoolService.update(assetPool, {
         rewardPollDuration: req.body.rewardPollDuration,

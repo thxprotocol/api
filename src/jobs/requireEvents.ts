@@ -89,7 +89,7 @@ export async function jobRequireWithdraws() {
     const pendingDeposits = await Withdrawal.find({ state: WithdrawalState.Pending });
 
     pendingDeposits.forEach(async (w: WithdrawalDocument) => {
-        const { assetPool } = await AssetPoolService.getByAddress(w.poolAddress);
+        const assetPool = await AssetPoolService.getByAddress(w.poolAddress);
         const { web3 } = getProvider(assetPool.network);
         const toBlock = await web3.eth.getBlockNumber();
 

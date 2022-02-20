@@ -10,7 +10,7 @@ export async function jobRequireDeposits() {
 
     pendingDeposits.forEach(async (d: DepositDocument) => {
         // Assumed the receiver is an asset pool
-        const { assetPool } = await AssetPoolService.getByAddress(d.receiver);
+        const assetPool = await AssetPoolService.getByAddress(d.receiver);
         // TODO This call should be cached in the assetpool document
         const tokenAddress = await callFunction(assetPool.solution.methods.getToken(), assetPool.network);
         const token = tokenContract(assetPool.network, tokenAddress);

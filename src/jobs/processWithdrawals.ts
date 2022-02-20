@@ -41,7 +41,7 @@ async function updateFailReason(withdrawal: WithdrawalDocument, failReason: stri
 export async function jobProcessWithdrawals() {
     const withdrawals = await WithdrawalService.getAllScheduled();
     for (const w of withdrawals) {
-        const { assetPool } = await AssetPoolService.getByAddress(w.poolAddress);
+        const assetPool = await AssetPoolService.getByAddress(w.poolAddress);
 
         try {
             switch (w.type) {
