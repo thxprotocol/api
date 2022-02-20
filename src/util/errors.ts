@@ -1,9 +1,21 @@
 class THXError extends Error {
     message: string;
+
+    constructor(message?: string) {
+        super(message);
+        this.name = this.constructor.name;
+        Object.setPrototypeOf(this, new.target.prototype); // restore prototype chain
+    }
 }
 
 class THXHttpError extends THXError {
     status: number;
+    constructor(message?: string, status?: number) {
+        super(message);
+        if (status) {
+            this.status = status;
+        }
+    }
 }
 
 class BadRequestError extends THXHttpError {
@@ -13,7 +25,9 @@ class BadRequestError extends THXHttpError {
 
 class UnauthorizedError extends THXHttpError {
     status = 401;
-    message = 'Unauthorized';
+    constructor(message?: string) {
+        super(message || 'Unauthorized');
+    }
 }
 
 class ForbiddenError extends THXHttpError {
