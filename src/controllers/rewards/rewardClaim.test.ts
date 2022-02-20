@@ -95,18 +95,18 @@ describe('Reward Claim', () => {
                 .expect(200, done);
         });
 
-        it('should wait for job processing', () => {
-            //
-        });
+        // it('should wait for job processing', () => {
+        //     //
+        // });
 
-        it('should return Pending state', (done) => {
-            user.get(`/v1/withdrawals/${withdrawalDocumentId}`)
-                .set({ AssetPool: poolAddress, Authorization: userAccessToken })
-                .expect((res: request.Response) => {
-                    console.log(res.body);
-                    expect(res.body.state).toEqual(WithdrawalState.Pending);
-                })
-                .expect(200, done);
-        });
+        // it('should return Pending state', (done) => {
+        //     user.get(`/v1/withdrawals/${withdrawalDocumentId}`)
+        //         .set({ AssetPool: poolAddress, Authorization: userAccessToken })
+        //         .expect((res: request.Response) => {
+        //             console.log(res.body);
+        //             expect(res.body.state).toEqual(WithdrawalState.Pending);
+        //         })
+        //         .expect(200, done);
+        // });
     });
 });

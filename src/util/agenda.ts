@@ -26,7 +26,9 @@ db.connection.once('open', async () => {
 
     agenda.every('5 seconds', eventNameProcessWithdrawals);
     agenda.every('10 seconds', eventNameRequireDeposits);
-    agenda.every('10 seconds', eventNameRequireWithdraws);
+
+    // TODO Enable job when feature dev is done
+    // agenda.every('10 seconds', eventNameRequireWithdraws);
 
     logger.info('Started agenda processing');
 });
