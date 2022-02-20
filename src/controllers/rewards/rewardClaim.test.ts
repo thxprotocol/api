@@ -1,6 +1,6 @@
 import request from 'supertest';
-import server from '../../server';
-import { NetworkProvider } from '../../util/network';
+import app from '@/app';
+import { NetworkProvider } from '@/util/network';
 import { createWallet } from '@/util/jest/network';
 import {
     rewardWithdrawAmount,
@@ -15,7 +15,7 @@ import { getToken } from '@/util/jest/jwt';
 import { afterAllCallback, beforeAllCallback } from '@/util/jest/config';
 import { WithdrawalState } from '@/enums';
 
-const user = request.agent(server);
+const user = request.agent(app);
 
 describe('Reward Claim', () => {
     let adminAccessToken: string,
