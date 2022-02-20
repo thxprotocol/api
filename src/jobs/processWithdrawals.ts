@@ -32,11 +32,11 @@ async function claimReward(assetPool: AssetPoolDocument, id: string, rewardId: n
 
     await RewardService.claimRewardFor(assetPool, id, rewardId, beneficiary);
 
-    const { canBypassPoll } = await AssetPoolService.canBypassWithdrawPoll(assetPool, account, reward);
+    // const { canBypassPoll } = await AssetPoolService.canBypassWithdrawPoll(assetPool, account, reward);
 
-    if (canBypassPoll) {
-        await WithdrawalService.withdrawPollFinalize(assetPool, id);
-    }
+    // if (canBypassPoll) {
+    //     await WithdrawalService.withdrawPollFinalize(assetPool, id);
+    // }
 }
 
 async function updateFailReason(withdrawal: WithdrawalDocument, failReason: string) {

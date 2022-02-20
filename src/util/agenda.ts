@@ -23,7 +23,10 @@ agenda.define(eventNameRequireWithdraws, jobRequireWithdraws);
 db.connection.once('open', async () => {
     agenda.mongo(db.connection.getClient().db(), 'jobs');
     await agenda.start();
+
     agenda.every('5 seconds', eventNameProcessWithdrawals);
     agenda.every('10 seconds', eventNameRequireDeposits);
+    agenda.every('10 seconds', eventNameRequireWithdraws);
+
     logger.info('Started agenda processing');
 });
