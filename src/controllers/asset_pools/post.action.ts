@@ -23,12 +23,10 @@ export const postAssetPool = async (req: Request, res: Response, next: NextFunct
                 if (error) throw new Error(error);
 
                 try {
-                    const { result, error } = await MembershipService.addMembership(req.user.sub, assetPool);
-
-                    if (!result || error) throw new Error(error);
+                    await MembershipService.addMembership(req.user.sub, assetPool);
 
                     try {
-                        const { client, error } = await ClientService.create(req.user.sub, {
+                        const client = await ClientService.create(req.user.sub, {
                             application_type: 'web',
                             grant_types: ['client_credentials'],
                             request_uris: [],
@@ -37,8 +35,6 @@ export const postAssetPool = async (req: Request, res: Response, next: NextFunct
                             response_types: [],
                             scope: 'openid admin',
                         });
-
-                        if (error) throw new Error(error);
 
                         assetPool.clientId = client.clientId;
 

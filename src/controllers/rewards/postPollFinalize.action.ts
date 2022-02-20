@@ -1,35 +1,13 @@
 import RewardService from '@/services/RewardService';
 import { HttpError } from '@/models/Error';
 import { Request, NextFunction, Response } from 'express';
-import { RewardDocument } from '@/models/Reward';
 
 export const postPollFinalize = async (req: Request, res: Response, next: NextFunction) => {
-    async function getReward(rewardId: number) {
-        const { reward, error } = await RewardService.get(req.assetPool, rewardId);
-        if (error) {
-            throw new Error(error.message);
-        }
-        return reward;
-    }
+    const reward = await RewardService.get(req.assetPool, Number(req.params.id));
+    if (!reward) return next(new HttpError(404, 'No reward found for this ID.'));
 
-    async function finalizeRewardPoll(reward: RewardDocument) {
-        const { finalizedReward, error } = await RewardService.finalizePoll(req.assetPool, reward);
-        if (error) {
-            throw new Error(error.message);
-        }
-        return finalizedReward;
-    }
-
-    try {
-        const rewardId = Number(req.params.id);
-        const reward = await getReward(rewardId);
-        if (!reward) return next(new HttpError(404, 'No reward found for this ID.'));
-        const finalizedReward = await finalizeRewardPoll(reward);
-
-        res.json(finalizedReward);
-    } catch (e) {
-        next(new HttpError(502, 'Could not finalize the reward poll.', e));
-    }
+    const finalizedReward = await RewardService.finalizePoll(req.assetPool, reward);
+    res.json(finalizedReward);
 };
 
 /**

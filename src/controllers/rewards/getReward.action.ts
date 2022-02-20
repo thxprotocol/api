@@ -3,47 +3,22 @@ import { HttpError } from '@/models/Error';
 import RewardService from '@/services/RewardService';
 
 export const getReward = async (req: Request, res: Response, next: NextFunction) => {
-    async function getReward(rewardId: number) {
-        const { reward, error } = await RewardService.get(req.assetPool, rewardId);
+    const reward = await RewardService.get(req.assetPool, Number(req.params.id));
 
-        if (error) {
-            throw new Error(error.message);
-        }
-
-        return reward;
+    if (!reward) {
+        return next(new HttpError(404, 'Asset Pool reward not found.'));
     }
 
-    async function getRewardPoll(pollId: number) {
-        if (pollId > 0) {
-            const { poll, error } = await RewardService.getRewardPoll(req.assetPool, pollId);
-            if (error) {
-                throw new Error(error.message);
-            }
-            return poll;
-        }
-    }
+    const poll = reward.pollId > 0 ? { poll: await RewardService.getRewardPoll(req.assetPool, reward.pollId) } : {};
 
-    try {
-        const rewardId = Number(req.params.id);
-        const reward = await getReward(rewardId);
-
-        if (!reward) {
-            return next(new HttpError(404, 'Asset Pool reward not found.'));
-        }
-
-        const poll = await getRewardPoll(reward.pollId);
-
-        res.json({
-            id: reward.id,
-            withdrawAmount: reward.withdrawAmount,
-            withdrawDuration: reward.withdrawDuration,
-            withdrawCondition: reward.withdrawCondition,
-            state: reward.state,
-            poll,
-        });
-    } catch (err) {
-        next(new HttpError(502, 'Asset Pool get reward failed.', err));
-    }
+    res.json({
+        id: reward.id,
+        withdrawAmount: reward.withdrawAmount,
+        withdrawDuration: reward.withdrawDuration,
+        withdrawCondition: reward.withdrawCondition,
+        state: reward.state,
+        ...poll,
+    });
 };
 
 /**

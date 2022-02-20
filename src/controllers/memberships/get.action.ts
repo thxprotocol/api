@@ -1,20 +1,15 @@
-import { Request, NextFunction, Response } from 'express';
-import { HttpError } from '@/models/Error';
+import { Request, Response } from 'express';
 
 import MembershipService from '@/services/MembershipService';
 import WithdrawalService from '@/services/WithdrawalService';
 import AccountProxy from '@/proxies/AccountProxy';
 
-export const getMembership = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-        const { membership } = await MembershipService.getById(req.params.id);
-        const { account } = await AccountProxy.getById(req.user.sub);
-        const { pending } = await WithdrawalService.getPendingBalance(account, membership.poolAddress);
+export const getMembership = async (req: Request, res: Response) => {
+    const membership = await MembershipService.getById(req.params.id);
+    const account = await AccountProxy.getById(req.user.sub);
+    const pending = await WithdrawalService.getPendingBalance(account, membership.poolAddress);
 
-        res.json({ ...membership, pendingBalance: pending });
-    } catch (error) {
-        return next(new HttpError(502, error.toString(), error));
-    }
+    res.json({ ...membership, pendingBalance: pending });
 };
 
 /**

@@ -18,22 +18,19 @@ const ERROR_NO_MEMBER = 'Could not claim this reward since you are not a member 
 
 export async function postRewardClaim(req: Request, res: Response, next: NextFunction) {
     async function getReward(rewardId: number) {
-        const { reward, error } = await RewardService.get(req.assetPool, rewardId);
-        if (error) throw new Error(error.message);
+        const reward = await RewardService.get(req.assetPool, rewardId);
+
         return reward;
     }
 
     async function getAccount(sub: string) {
-        const { account, error } = await AccountProxy.getById(sub);
-        if (error) throw new Error(error.message);
+        const account = await AccountProxy.getById(sub);
         if (!account.address) throw new Error(ERROR_ACCOUNT_NO_ADDRESS);
         return account;
     }
 
     async function checkIsMember(address: string) {
-        const { isMember, error } = await MemberService.isMember(req.assetPool, address);
-        if (error) throw new Error(error.message);
-        return isMember;
+        return await MemberService.isMember(req.assetPool, address);
     }
 
     async function checkCanClaim(reward: RewardDocument, account: IAccount) {

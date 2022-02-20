@@ -21,9 +21,7 @@ export const getAssetPool = async (req: Request, res: Response, next: NextFuncti
     }
 
     async function getClient(clientId: string) {
-        const { client, error } = await ClientService.get(clientId);
-
-        if (error) throw new Error(error.message);
+        const client = await ClientService.get(clientId);
 
         return client;
     }

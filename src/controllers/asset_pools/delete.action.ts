@@ -7,7 +7,6 @@ import AssetPoolService from '@/services/AssetPoolService';
 
 const ERROR_REMOVE_REWARDS = 'Could not remove rewards.';
 const ERROR_REMOVE_WITHDRAWALS = 'Could not remove withdrawals.';
-const ERROR_REMOVE_CLIENT = 'Could not remove client.';
 const ERROR_REMOVE_ASSETPOOL = 'Could not remove asset pool.';
 
 export async function deleteAssetPool(req: Request, res: Response, next: NextFunction) {
@@ -19,10 +18,7 @@ export async function deleteAssetPool(req: Request, res: Response, next: NextFun
     }
 
     async function removeClient(clientId: string) {
-        const { error } = await ClientService.remove(clientId);
-        if (error) {
-            return next(new HttpError(502, ERROR_REMOVE_CLIENT, new Error(error)));
-        }
+        await ClientService.remove(clientId);
     }
 
     async function removeWithdrawals(address: string) {

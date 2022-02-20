@@ -39,17 +39,11 @@ export default class AssetPoolService {
     }
 
     static async canBypassRewardPoll(assetPool: AssetPoolDocument) {
-        try {
-            const duration = Number(
-                await callFunction(assetPool.solution.methods.getRewardPollDuration(), assetPool.network),
-            );
-            const canBypassPoll = assetPool.bypassPolls || (!assetPool.bypassPolls && duration === 0);
-            return {
-                canBypassPoll,
-            };
-        } catch (error) {
-            return { error };
-        }
+        const duration = Number(
+            await callFunction(assetPool.solution.methods.getRewardPollDuration(), assetPool.network),
+        );
+        const canBypassPoll = assetPool.bypassPolls || (!assetPool.bypassPolls && duration === 0);
+        return canBypassPoll;
     }
 
     static async canBypassWithdrawPoll(assetPool: AssetPoolDocument, account: IAccount, reward: RewardDocument) {
@@ -73,24 +67,20 @@ export default class AssetPoolService {
     }
 
     static async getByAddress(address: string) {
-        try {
-            const assetPool = await AssetPool.findOne({ address });
+        const assetPool = await AssetPool.findOne({ address });
 
-            if (!assetPool) {
-                throw new Error(ERROR_NO_ASSETPOOL);
-            }
-
-            assetPool.proposeWithdrawPollDuration = Number(
-                await callFunction(assetPool.solution.methods.getProposeWithdrawPollDuration(), assetPool.network),
-            );
-            assetPool.rewardPollDuration = Number(
-                await callFunction(assetPool.solution.methods.getRewardPollDuration(), assetPool.network),
-            );
-
-            return { assetPool };
-        } catch (error) {
-            return { error };
+        if (!assetPool) {
+            throw new Error(ERROR_NO_ASSETPOOL);
         }
+
+        assetPool.proposeWithdrawPollDuration = Number(
+            await callFunction(assetPool.solution.methods.getProposeWithdrawPollDuration(), assetPool.network),
+        );
+        assetPool.rewardPollDuration = Number(
+            await callFunction(assetPool.solution.methods.getRewardPollDuration(), assetPool.network),
+        );
+
+        return assetPool;
     }
 
     static async getPoolToken(assetPool: AssetPoolDocument) {
@@ -220,11 +210,7 @@ export default class AssetPoolService {
     }
 
     static async getAll(sub: string) {
-        try {
-            return { result: (await AssetPool.find({ sub })).map((pool) => pool.address) };
-        } catch (error) {
-            return { error };
-        }
+        return (await AssetPool.find({ sub })).map((pool) => pool.address);
     }
 
     static async removeByAddress(address: string) {

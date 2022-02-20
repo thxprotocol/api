@@ -14,15 +14,15 @@ const ERROR_NO_REWARD = 'Could not find a reward for this id';
 export const postRewardClaimFor = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const rewardId = Number(req.params.id);
-        const { reward } = await RewardService.get(req.assetPool, rewardId);
+        const reward = await RewardService.get(req.assetPool, rewardId);
 
         if (!reward) return next(new HttpError(400, ERROR_NO_REWARD));
 
-        const { isMember } = await MemberService.isMember(req.assetPool, req.body.member);
+        const isMember = await MemberService.isMember(req.assetPool, req.body.member);
 
         if (!isMember && reward.isMembershipRequired) return next(new HttpError(403, ERROR_IS_NOT_MEMBER));
 
-        const { account } = await AccountProxy.getByAddress(req.body.member);
+        const account = await AccountProxy.getByAddress(req.body.member);
         const withdrawal = await WithdrawalService.schedule(
             req.assetPool,
             WithdrawalType.ClaimRewardFor,

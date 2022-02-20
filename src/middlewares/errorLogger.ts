@@ -4,7 +4,7 @@ import { logger } from '@/util/logger';
 import { NextFunction, Request, Response } from 'express';
 
 export const errorLogger = (error: Error, req: Request, res: Response, next: NextFunction) => {
-    if (error instanceof HttpError) {
+    if (error instanceof HttpError && error.rootError) {
         logger.error(error.rootError);
     } else if (!(error instanceof THXHttpError)) {
         logger.error(error);

@@ -6,7 +6,6 @@ import { isAddress } from 'web3-utils';
 import { Account } from 'web3-core';
 import { createWallet } from '@/util/jest/network';
 import { getToken } from '@/util/jest/jwt';
-import { mockStart } from '@/util/jest/mock';
 import { agenda, eventNameProcessWithdrawals } from '../../util/agenda';
 import { afterAllCallback, beforeAllCallback } from '@/util/jest/config';
 

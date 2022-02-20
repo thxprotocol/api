@@ -1,25 +1,17 @@
-import { Request, NextFunction, Response } from 'express';
-import { HttpError } from '@/models/Error';
-import MemberService, { ERROR_IS_NOT_MEMBER } from '@/services/MemberService';
+import { Request, Response } from 'express';
+import MemberService from '@/services/MemberService';
+import { NotFoundError } from '@/util/errors';
 
-export const getMember = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-        const { isMember, error } = await MemberService.isMember(req.assetPool, req.params.address);
+export const getMember = async (req: Request, res: Response) => {
+    const isMember = await MemberService.isMember(req.assetPool, req.params.address);
 
-        if (error) throw new Error(error);
-
-        if (!isMember) {
-            return next(new HttpError(404, ERROR_IS_NOT_MEMBER));
-        } else {
-            const { member, error } = await MemberService.getByAddress(req.assetPool, req.params.address);
-
-            if (error) throw new Error(error);
-
-            res.json(member);
-        }
-    } catch (error) {
-        return next(new HttpError(500, error.toString(), error));
+    if (!isMember) {
+        throw new NotFoundError();
     }
+
+    const member = await MemberService.getByAddress(req.assetPool, req.params.address);
+
+    res.json(member);
 };
 
 /**

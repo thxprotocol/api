@@ -6,23 +6,19 @@ const ERROR_CREATE_ACCOUNT = 'Could not signup for an account';
 
 export default class AccountProxy {
     static async getById(sub: string) {
-        try {
-            const r = await authClient({
-                method: 'GET',
-                url: `/account/${sub}`,
-                headers: {
-                    Authorization: await getAuthAccessToken(),
-                },
-            });
+        const r = await authClient({
+            method: 'GET',
+            url: `/account/${sub}`,
+            headers: {
+                Authorization: await getAuthAccessToken(),
+            },
+        });
 
-            if (!r.data) {
-                throw new Error(ERROR_NO_ACCOUNT);
-            }
-
-            return { account: r.data };
-        } catch (error) {
-            return { error };
+        if (!r.data) {
+            throw new Error(ERROR_NO_ACCOUNT);
         }
+
+        return r.data;
     }
 
     static async getByEmail(email: string) {
@@ -45,24 +41,20 @@ export default class AccountProxy {
         }
     }
 
-    static async getByAddress(address: string): Promise<{ account?: IAccount; error?: Error }> {
-        try {
-            const r = await authClient({
-                method: 'GET',
-                url: `/account/address/${address}`,
-                headers: {
-                    Authorization: await getAuthAccessToken(),
-                },
-            });
+    static async getByAddress(address: string): Promise<IAccount> {
+        const r = await authClient({
+            method: 'GET',
+            url: `/account/address/${address}`,
+            headers: {
+                Authorization: await getAuthAccessToken(),
+            },
+        });
 
-            if (!r.data) {
-                throw new Error(ERROR_NO_ACCOUNT);
-            }
-
-            return { account: r.data };
-        } catch (error) {
-            return { error };
+        if (!r.data) {
+            throw new Error(ERROR_NO_ACCOUNT);
         }
+
+        return r.data;
     }
 
     static async isEmailDuplicate(email: string) {

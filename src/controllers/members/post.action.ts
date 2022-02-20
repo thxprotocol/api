@@ -1,34 +1,15 @@
 import MemberService from '@/services/MemberService';
 import MembershipService from '@/services/MembershipService';
 import AccountProxy from '@/proxies/AccountProxy';
-import { Request, NextFunction, Response } from 'express';
-import { HttpError } from '@/models/Error';
+import { Request, Response } from 'express';
 import { VERSION } from '@/util/secrets';
 
-export async function postMember(req: Request, res: Response, next: NextFunction) {
-    try {
-        const { account, error } = await AccountProxy.getByAddress(req.body.address);
+export async function postMember(req: Request, res: Response) {
+    const account = await AccountProxy.getByAddress(req.body.address);
 
-        if (error) {
-            throw error;
-        } else {
-            const { error } = await MemberService.addMember(req.assetPool, req.body.address);
-
-            if (error) {
-                throw new Error(error);
-            } else {
-                const { error } = await MembershipService.addMembership(account.id, req.assetPool);
-
-                if (error) {
-                    throw new Error(error);
-                } else {
-                    res.redirect(`/${VERSION}/members/${account.address}`);
-                }
-            }
-        }
-    } catch (error) {
-        return next(new HttpError(500, error.toString(), error));
-    }
+    await MemberService.addMember(req.assetPool, req.body.address);
+    await MembershipService.addMembership(account.id, req.assetPool);
+    res.redirect(`/${VERSION}/members/${account.address}`);
 }
 
 /**

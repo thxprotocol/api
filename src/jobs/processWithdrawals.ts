@@ -15,10 +15,10 @@ import { wrapBackgroundTransaction } from '@/util/newrelic';
 const ERROR_CAN_NOT_CLAIM = 'Claim conditions are currently not valid.';
 
 async function claimReward(assetPool: AssetPoolDocument, id: string, rewardId: number, beneficiary: string) {
-    const { account } = await AccountProxy.getByAddress(beneficiary);
-    const { reward } = await RewardService.get(assetPool, rewardId);
+    const account = await AccountProxy.getByAddress(beneficiary);
+    const reward = await RewardService.get(assetPool, rewardId);
     const { canClaim } = await RewardService.canClaim(assetPool, reward, account);
-    const { isMember } = await MemberService.isMember(assetPool, beneficiary);
+    const isMember = await MemberService.isMember(assetPool, beneficiary);
     const shouldAddMember = !reward.isMembershipRequired && !isMember;
 
     if (!canClaim) {

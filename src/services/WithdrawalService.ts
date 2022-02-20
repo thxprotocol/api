@@ -29,14 +29,8 @@ export default class WithdrawalService {
         }
     }
 
-    static async getById(id: string) {
-        try {
-            const withdrawal = await Withdrawal.findById(id);
-
-            return { withdrawal };
-        } catch (error) {
-            return { error };
-        }
+    static getById(id: string) {
+        return Withdrawal.findById(id);
     }
 
     static async getAllScheduled() {
@@ -68,18 +62,12 @@ export default class WithdrawalService {
     }
 
     static async getPendingBalance(account: IAccount, poolAddress: string) {
-        try {
-            const withdrawals = await Withdrawal.find({
-                poolAddress,
-                beneficiary: account.address,
-                state: 0,
-            });
-            const pending = withdrawals.map((item) => item.amount).reduce((prev, curr) => prev + curr, 0);
-
-            return { pending };
-        } catch (error) {
-            return { error };
-        }
+        const withdrawals = await Withdrawal.find({
+            poolAddress,
+            beneficiary: account.address,
+            state: 0,
+        });
+        return withdrawals.map((item) => item.amount).reduce((prev, curr) => prev + curr, 0);
     }
 
     // Invoked from job
@@ -101,7 +89,7 @@ export default class WithdrawalService {
 
     // Invoked from job
     static async update(assetPool: AssetPoolType, id: string, { withdrawalId, memberId }: IWithdrawalUpdates) {
-        const { withdrawal } = await this.getById(id);
+        const withdrawal = await this.getById(id);
 
         if (memberId) {
             withdrawal.beneficiary = await callFunction(
@@ -137,37 +125,31 @@ export default class WithdrawalService {
     }
 
     static async withdrawPollFinalize(assetPool: AssetPoolType, id: string) {
-        try {
-            const withdrawal = await Withdrawal.findById(id);
+        const withdrawal = await Withdrawal.findById(id);
 
-            if (withdrawal.state === WithdrawalState.Deferred) {
-                throw new Error('Not able to withdraw funds for custodial wallets.');
-            }
-
-            const tx = await sendTransaction(
-                assetPool.solution.options.address,
-                assetPool.solution.methods.withdrawPollFinalize(withdrawal.withdrawalId),
-                assetPool.network,
-            );
-
-            const events = parseLogs(Artifacts.IDefaultDiamond.abi, tx.logs);
-            const eventWithdrawPollFinalized = findEvent('WithdrawPollFinalized', events);
-            const eventWithdrawn = findEvent('Withdrawn', events);
-
-            if (eventWithdrawPollFinalized) {
-                withdrawal.poll = null;
-            }
-
-            if (eventWithdrawn) {
-                withdrawal.state = WithdrawalState.Withdrawn;
-            }
-
-            return {
-                finalizedWithdrawal: await withdrawal.save(),
-            };
-        } catch (error) {
-            return { error };
+        if (withdrawal.state === WithdrawalState.Deferred) {
+            throw new Error('Not able to withdraw funds for custodial wallets.');
         }
+
+        const tx = await sendTransaction(
+            assetPool.solution.options.address,
+            assetPool.solution.methods.withdrawPollFinalize(withdrawal.withdrawalId),
+            assetPool.network,
+        );
+
+        const events = parseLogs(Artifacts.IDefaultDiamond.abi, tx.logs);
+        const eventWithdrawPollFinalized = findEvent('WithdrawPollFinalized', events);
+        const eventWithdrawn = findEvent('Withdrawn', events);
+
+        if (eventWithdrawPollFinalized) {
+            withdrawal.poll = null;
+        }
+
+        if (eventWithdrawn) {
+            withdrawal.state = WithdrawalState.Withdrawn;
+        }
+
+        return await withdrawal.save();
     }
 
     static async getAll(
@@ -178,19 +160,13 @@ export default class WithdrawalService {
         rewardId?: number,
         state?: number,
     ) {
-        try {
-            const query = {
-                ...(poolAddress ? { poolAddress } : {}),
-                ...(beneficiary ? { beneficiary } : {}),
-                ...(rewardId || rewardId === 0 ? { rewardId } : {}),
-                ...(state === 0 || state === 1 ? { state } : {}),
-            };
-            const result = await paginatedResults(Withdrawal, page, limit, query);
-
-            return { result };
-        } catch (error) {
-            return { error };
-        }
+        const query = {
+            ...(poolAddress ? { poolAddress } : {}),
+            ...(beneficiary ? { beneficiary } : {}),
+            ...(rewardId || rewardId === 0 ? { rewardId } : {}),
+            ...(state === 0 || state === 1 ? { state } : {}),
+        };
+        return await paginatedResults(Withdrawal, page, limit, query);
     }
 
     static async removeAllForAddress(address: string) {
