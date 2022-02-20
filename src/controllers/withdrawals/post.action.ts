@@ -1,5 +1,5 @@
 import newrelic from 'newrelic';
-import { Request, NextFunction, Response } from 'express';
+import { Request, Response } from 'express';
 import { Withdrawal } from '@/models/Withdrawal';
 import { agenda, eventNameProcessWithdrawals } from '@/util/agenda';
 
@@ -9,7 +9,7 @@ import WithdrawalService from '@/services/WithdrawalService';
 import AccountProxy from '@/proxies/AccountProxy';
 import { WithdrawalState, WithdrawalType } from '@/enums';
 
-export const postWithdrawal = async (req: Request, res: Response, next: NextFunction) => {
+export const postWithdrawal = async (req: Request, res: Response) => {
     const isMember = await MemberService.isMember(req.assetPool, req.body.member);
     if (!isMember) throw new Error(ERROR_IS_NOT_MEMBER);
 

@@ -10,8 +10,8 @@
     "scripts": {
         "preinstall": "npx npm-force-resolutions",
         "serve:debug": "nodemon --inspect=7000 ./dist/src/server.js",
-        "lint": "tsc -p ./tsconfig.json && eslint \"./src/**/*.ts\" \"./test/**/*.ts\"",
-        "lint:fix": "tsc -p ./tsconfig.json && eslint \"./src/**/*.ts\" \"./test/**/*.ts\" --fix",
+        "lint": "tsc -p ./tsconfig.json && eslint \"./src/**/*.ts\"",
+        "lint:fix": "tsc -p ./tsconfig.json && eslint \"./src/**/*.ts\" --fix",
         "dev": "docker compose up -d && npm run watch:debug",
         "build": "npm run build:sass && npm run build:assets && npm run build:docs && tsc -p ./tsconfig.json",
         "build:assets": "mkdir -p dist/src/public && cp -R src/public/* dist/src/public/. && cp -R src/views dist/src/.",
