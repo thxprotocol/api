@@ -12,7 +12,7 @@ export async function jobRequireWithdraws() {
 
     assetPools.forEach(async (pool: AssetPoolDocument) => {
         // Get pending withdrawals for pool
-        const pendingWithdrawals = await Withdrawal.find({ state: WithdrawalState.Pending, poolAddress: p.address });
+        const pendingWithdrawals = await Withdrawal.find({ state: WithdrawalState.Pending, poolAddress: pool.address });
 
         // Skip getPastEvents if there are no pending withdrawals.
         if (pendingWithdrawals.length) {
