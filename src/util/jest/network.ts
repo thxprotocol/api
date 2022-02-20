@@ -1,16 +1,10 @@
 import { Account } from 'web3-core';
-import { Artifacts } from '../../../src/util/artifacts';
+import { Artifacts } from '@/util/artifacts';
 import { soliditySha3 } from 'web3-utils';
 import { VOTER_PK, DEPOSITOR_PK, mintAmount } from './constants';
-import {
-    callFunction,
-    deployContract,
-    getProvider,
-    NetworkProvider,
-    solutionContract,
-} from '../../../src/util/network';
+import { callFunction, deployContract, getProvider, NetworkProvider, solutionContract } from '@/util/network';
 import { ethers, Wallet } from 'ethers';
-import { RPC } from '../../../src/util/secrets';
+import { RPC } from '@/util/secrets';
 
 const { web3, admin } = getProvider(NetworkProvider.Main);
 
