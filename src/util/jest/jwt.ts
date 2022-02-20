@@ -1,5 +1,5 @@
 import jwt from 'jsonwebtoken';
-import { AUTH_URL } from '../../../src/util/secrets';
+import { AUTH_URL } from '@/util/secrets';
 import { clientId, sub, sub2 } from './constants';
 
 const privateKey = `-----BEGIN RSA PRIVATE KEY-----

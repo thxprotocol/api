@@ -1,4 +1,4 @@
-import server from '../../server';
+import app from '@/app';
 import request, { Response } from 'supertest';
 import { Account } from 'web3-core';
 import { isAddress, toWei } from 'web3-utils';
@@ -14,7 +14,7 @@ import { Artifacts } from '@/util/artifacts';
 import { userWalletPrivateKey2 } from '@/util/jest/constants';
 import { AmountExceedsAllowanceError, InsufficientBalanceError } from '@/util/errors';
 
-const http = request.agent(server);
+const http = request.agent(app);
 
 describe('Deposits', () => {
     let dashboardAccessToken: string,

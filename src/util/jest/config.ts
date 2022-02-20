@@ -1,11 +1,10 @@
-import db from '../database';
-import server from '../../server';
+import db from '@/util/database';
 import { mockStart } from './mock';
-import { agenda } from '../agenda';
+import { agenda } from '@/util/agenda';
 import { mockClear } from './mock';
-import { logger } from '../logger';
-import { getProvider, NetworkProvider } from '../network';
-import { POOL_REGISTRY_ADDRESS } from '../secrets';
+import { logger } from '@/util/logger';
+import { getProvider, NetworkProvider } from '@/util/network';
+import { POOL_REGISTRY_ADDRESS } from '@/util/secrets';
 import { poll } from './polling';
 
 export async function beforeAllCallback() {
@@ -26,8 +25,6 @@ export async function afterAllCallback() {
     logger.info('Closed agenda');
     await db.disconnect();
     logger.info('Truncated and disconnected mongo');
-    server.close();
-    logger.info('Closed server');
     mockClear();
     logger.info('Cleared mocks');
 }

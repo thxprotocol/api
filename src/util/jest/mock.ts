@@ -15,7 +15,7 @@ import {
     userWalletAddress,
 } from './constants';
 import { getToken, jwksResponse } from './jwt';
-import { ISSUER } from '../../../src/util/secrets';
+import { ISSUER } from '@/util/secrets';
 
 export function mockAuthPath(method: string, path: string, status: number, callback: any = {}) {
     const n = nock(ISSUER).persist() as any;

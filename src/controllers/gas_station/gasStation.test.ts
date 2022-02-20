@@ -1,6 +1,6 @@
 import request from 'supertest';
-import server from '../../server';
-import { NetworkProvider, sendTransaction } from '../../util/network';
+import app from '@/app';
+import { NetworkProvider, sendTransaction } from '@/util/network';
 import { timeTravel, signMethod, createWallet, deployExampleToken } from '@/util/jest/network';
 import {
     rewardPollDuration,
@@ -9,14 +9,14 @@ import {
     rewardWithdrawDuration,
     userWalletPrivateKey2,
 } from '@/util/jest/constants';
-import { solutionContract } from '../../util/network';
+import { solutionContract } from '@/util/network';
 import { toWei } from 'web3-utils';
 import { Contract } from 'web3-eth-contract';
 import { Account } from 'web3-core';
 import { getToken } from '@/util/jest/jwt';
 import { afterAllCallback, beforeAllCallback } from '@/util/jest/config';
 
-const user = request.agent(server);
+const user = request.agent(app);
 
 describe('Gas Station', () => {
     let poolAddress: string,
