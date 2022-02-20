@@ -2,12 +2,15 @@ import { Request, Response } from 'express';
 import { param } from 'express-validator';
 import AssetPoolService from '@/services/AssetPoolService';
 import ClientService from '@/services/ClientService';
+import { NotFoundError } from '@/util/errors';
 
 export const readAssetPoolValidation = [param('address').exists().isEthereumAddress()];
 
 export const getAssetPool = async (req: Request, res: Response) => {
-    const { assetPool } = await AssetPoolService.getByAddress(req.params.address);
-    const { token } = await AssetPoolService.getPoolToken(req.assetPool);
+    const assetPool = await AssetPoolService.getByAddress(req.params.address);
+    if (!assetPool) throw new NotFoundError();
+
+    const token = await AssetPoolService.getPoolToken(req.assetPool);
     const { client } = await ClientService.get(assetPool.clientId);
 
     res.json({

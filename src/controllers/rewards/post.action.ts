@@ -9,7 +9,6 @@ import AssetPoolService from '@/services/AssetPoolService';
 
 const ERROR_CREATE_REWARD_FAILED = 'Could not create your reward';
 const ERROR_FINALIZE_REWARD_POLL_FAILED = 'Could not finalize your reward poll';
-const ERROR_BYPASS_POLL_CHECK_FAILED = 'Could not check your governance setting';
 const ERROR_NO_REWARD = 'Could not find a created reward';
 
 export const postReward = async (req: Request, res: Response, next: NextFunction) => {
@@ -34,14 +33,6 @@ export const postReward = async (req: Request, res: Response, next: NextFunction
         return reward;
     }
 
-    async function canBypassRewardPoll() {
-        const { canBypassPoll, error } = await AssetPoolService.canBypassRewardPoll(req.assetPool);
-
-        if (error) throw new Error(ERROR_BYPASS_POLL_CHECK_FAILED);
-
-        return canBypassPoll;
-    }
-
     async function finalizeRewardPoll(reward: RewardDocument) {
         const { error } = await RewardService.finalizePoll(req.assetPool, reward);
         if (error) throw new Error(ERROR_FINALIZE_REWARD_POLL_FAILED);
@@ -62,7 +53,10 @@ export const postReward = async (req: Request, res: Response, next: NextFunction
         );
 
         if (!reward) return next(new HttpError(500, ERROR_NO_REWARD));
-        if (await canBypassRewardPoll()) await finalizeRewardPoll(reward);
+
+        const canBypassPoll = await AssetPoolService.canBypassRewardPoll(req.assetPool);
+
+        if (await canBypassPoll) await finalizeRewardPoll(reward);
 
         res.redirect(`/${VERSION}/rewards/${reward.id}`);
     } catch (error) {

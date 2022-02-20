@@ -26,14 +26,6 @@ export async function patchReward(req: Request, res: Response, next: NextFunctio
         return pollId;
     }
 
-    async function canBypassRewardPoll() {
-        const { canBypassPoll, error } = await AssetPoolService.canBypassRewardPoll(req.assetPool);
-        if (error) {
-            throw new Error(error.message);
-        }
-        return canBypassPoll;
-    }
-
     async function finalizeRewardPoll(reward: RewardDocument) {
         const { finalizedReward, error } = await RewardService.finalizePoll(req.assetPool, reward);
         if (error) {
@@ -64,7 +56,9 @@ export async function patchReward(req: Request, res: Response, next: NextFunctio
 
         await updateReward(reward.id, { withdrawAmount, withdrawDuration });
 
-        if (await canBypassRewardPoll()) {
+        const canBypassPoll = await AssetPoolService.canBypassRewardPoll(req.assetPool);
+
+        if (canBypassPoll) {
             reward = await finalizeRewardPoll(reward);
         }
 

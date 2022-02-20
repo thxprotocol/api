@@ -19,8 +19,8 @@ export default class MembershipService {
     static async getById(id: string) {
         try {
             const membership = await Membership.findById(id);
-            const { assetPool } = await AssetPoolService.getByAddress(membership.poolAddress);
-            const { token } = await AssetPoolService.getPoolToken(assetPool);
+            const assetPool = await AssetPoolService.getByAddress(membership.poolAddress);
+            const token = await AssetPoolService.getPoolToken(assetPool);
 
             return {
                 membership: {

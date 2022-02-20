@@ -24,9 +24,9 @@ export const validateAssetPoolHeader = async (req: Request, res: Response, next:
         if (req.user.scope.includes('widget')) {
             return next();
         }
-        const { result, error } = await AssetPoolService.checkAssetPoolAccess(req.user.sub, req.header('AssetPool'));
+        const isMember = await AssetPoolService.isAssetPoolMember(req.user.sub, req.header('AssetPool'));
 
-        if (!result || error) {
+        if (!isMember) {
             return next(new HttpError(401, 'Could not access this asset pool by sub.'));
         } else {
             return next();

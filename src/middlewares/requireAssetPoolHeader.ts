@@ -2,7 +2,7 @@ import { Response, Request, NextFunction } from 'express';
 import { isAddress } from 'web3-utils';
 import { AssetPoolType } from '@/models/AssetPool';
 import AssetPoolService from '@/services/AssetPoolService';
-import { ForbiddenError, NotFoundError } from '@/util/errors';
+import { ForbiddenError } from '@/util/errors';
 
 export async function requireAssetPoolHeader(
     req: Request & { assetPool: AssetPoolType },
@@ -10,15 +10,13 @@ export async function requireAssetPoolHeader(
     next: NextFunction,
 ) {
     const address = req.header('AssetPool');
-
     if (!address || !isAddress(address)) {
         throw new ForbiddenError('Valid AssetPool header is required for this request.');
     }
 
-    const { assetPool } = await AssetPoolService.getByAddress(address);
-
+    const assetPool = await AssetPoolService.getByAddress(address);
     if (!assetPool) {
-        throw new NotFoundError('Asset Pool is not found in database.');
+        throw new ForbiddenError('Asset Pool is not found in database.');
     }
 
     req.assetPool = assetPool;
