@@ -3,7 +3,6 @@ import { WithdrawalState } from '@/enums/WithdrawalState';
 import { Withdrawal } from '@/models/Withdrawal';
 import { AssetPool, AssetPoolDocument } from '@/models/AssetPool';
 import { getProvider, solutionContract } from '@/util/network';
-import { GetPastWithdrawnEventsError } from '@/util/errors';
 
 export async function jobRequireWithdraws() {
     const assetPools = await AssetPool.find();

@@ -42,6 +42,7 @@ async function updateFailReason(withdrawal: WithdrawalDocument, failReason: stri
 export async function jobProcessWithdrawals() {
     // TODO Invert this logic (iterate over pools instead of withdrawals and getAllScheduled for pool)
     const withdrawals = await WithdrawalService.getAllScheduled();
+
     for (const w of withdrawals) {
         const assetPool = await AssetPoolService.getByAddress(w.poolAddress);
 
