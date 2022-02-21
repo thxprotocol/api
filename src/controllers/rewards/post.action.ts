@@ -12,13 +12,14 @@ export const postReward = async (req: Request, res: Response) => {
     const withdrawCondition = req.body.withdrawCondition;
     const isMembershipRequired = req.body.isMembershipRequired;
     const isClaimOnce = req.body.isClaimOnce;
+
     const reward = await RewardService.create(
         req.assetPool,
         new BN(withdrawAmount),
         withdrawDuration,
-        withdrawCondition,
         isMembershipRequired,
         isClaimOnce,
+        withdrawCondition,
     );
 
     if (await AssetPoolService.canBypassRewardPoll(req.assetPool))
