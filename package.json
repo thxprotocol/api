@@ -11,7 +11,7 @@
         "preinstall": "npx npm-force-resolutions",
         "lint": "tsc -p ./tsconfig.json && eslint \"./src/**/*.ts\"",
         "lint:fix": "tsc -p ./tsconfig.json && eslint \"./src/**/*.ts\" --fix",
-        "dev": "docker compose up -d && npm run watch:debug",
+        "dev": "docker-compose up -d && npm run watch:debug",
         "build": "npm run build:sass && npm run build:assets && npm run build:docs && tsc -p ./tsconfig.json",
         "build:assets": "mkdir -p dist/src/public && cp -R src/public/* dist/src/public/. && cp -R src/views dist/src/.",
         "build:docs": "swagger-jsdoc -d ./src/swaggerDef.js -o ./src/swagger.json",

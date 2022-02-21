@@ -89,6 +89,7 @@ export default class AccountProxy {
             authenticationTokenExpires,
             googleAccess,
             twitterAccess,
+            spotifyAccess,
         }: IAccountUpdates,
     ) {
         const r = await authClient({
@@ -103,11 +104,16 @@ export default class AccountProxy {
                 authenticationTokenExpires,
                 googleAccess,
                 twitterAccess,
+                spotifyAccess,
             },
             headers: {
                 Authorization: await getAuthAccessToken(),
             },
         });
+
+        if (r.status === 422) {
+            throw new AccountApiError('A user for this e-mail already exists.');
+        }
 
         if (r.status !== 204) {
             throw new AccountApiError('Could not update');
