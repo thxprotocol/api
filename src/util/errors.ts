@@ -20,7 +20,9 @@ class THXHttpError extends THXError {
 
 class BadRequestError extends THXHttpError {
     status = 400;
-    message = 'Bad Request';
+    constructor(message?: string) {
+        super(message || 'Bad Request');
+    }
 }
 
 class UnauthorizedError extends THXHttpError {
