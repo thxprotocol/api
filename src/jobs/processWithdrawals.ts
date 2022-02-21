@@ -2,7 +2,7 @@ import { WithdrawalDocument } from '@/models/Withdrawal';
 import { WithdrawalType } from '@/enums/WithdrawalType';
 import { AssetPoolDocument } from '@/models/AssetPool';
 import { logger } from '@/util/logger';
-import { ERROR_MAX_FEE_PER_GAS } from '@/util/network';
+import { MaxFeePerGasExceededError } from '@/util/network';
 
 import MembershipService from '@/services/MembershipService';
 import AssetPoolService from '@/services/AssetPoolService';
@@ -83,7 +83,7 @@ export async function jobProcessWithdrawals() {
         } catch (error) {
             await updateFailReason(w, error.message);
 
-            const level = error.message === ERROR_MAX_FEE_PER_GAS ? 'info' : 'error';
+            const level = error instanceof MaxFeePerGasExceededError ? 'info' : 'error';
             logger.log(level, {
                 withdrawalFailed: {
                     withdrawalId: String(w._id),
@@ -93,7 +93,7 @@ export async function jobProcessWithdrawals() {
             });
 
             // Stop processing the other queued withdrawals if fee is too high per gas.
-            if (error.message === ERROR_MAX_FEE_PER_GAS) {
+            if (error instanceof MaxFeePerGasExceededError) {
                 throw error;
             }
         }

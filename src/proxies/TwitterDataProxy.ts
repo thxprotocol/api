@@ -1,7 +1,10 @@
 import { IAccount } from '@/models/Account';
 import { authClient, getAuthAccessToken } from '@/util/auth';
+import { THXError } from '@/util/errors';
 
-const ERROR_NO_TWITTER = 'Could not find twitter data for this account';
+class NoTwitterDataError extends THXError {
+    message = 'Could not find twitter data for this account';
+}
 
 export default class TwitterDataProxy {
     static async getTwitter(sub: string) {
@@ -13,8 +16,8 @@ export default class TwitterDataProxy {
             },
         });
 
-        if (r.status !== 200) throw new Error(ERROR_NO_TWITTER);
-        if (!r.data) throw new Error(ERROR_NO_TWITTER);
+        if (r.status !== 200) throw new NoTwitterDataError();
+        if (!r.data) throw new NoTwitterDataError();
 
         return { isAuthorized: r.data.isAuthorized, tweets: r.data.tweets, users: r.data.users };
     }
@@ -28,7 +31,7 @@ export default class TwitterDataProxy {
             },
         });
 
-        if (!r.data) throw new Error(ERROR_NO_TWITTER);
+        if (!r.data) throw new NoTwitterDataError();
 
         return r.data.result;
     }
@@ -42,7 +45,7 @@ export default class TwitterDataProxy {
             },
         });
 
-        if (!r.data) throw new Error(ERROR_NO_TWITTER);
+        if (!r.data) throw new NoTwitterDataError();
 
         return r.data.result;
     }
@@ -56,7 +59,7 @@ export default class TwitterDataProxy {
             },
         });
 
-        if (!r.data) throw new Error(ERROR_NO_TWITTER);
+        if (!r.data) throw new NoTwitterDataError();
 
         return r.data.result;
     }

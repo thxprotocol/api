@@ -1,6 +1,9 @@
 import { authClient } from '@/util/auth';
 import { Client } from '@/models/Client';
 import { INITIAL_ACCESS_TOKEN } from '@/util/secrets';
+import { THXError } from '@/util/errors';
+
+class ClientServiceError extends THXError {}
 
 export default class ClientService {
     static async get(clientId: string) {
@@ -11,7 +14,7 @@ export default class ClientService {
         });
 
         if (r.status !== 200) {
-            throw new Error(r.data);
+            throw new ClientServiceError(r.data);
         }
 
         client.clientSecret = r.data['client_secret'];
@@ -51,7 +54,7 @@ export default class ClientService {
         });
 
         if (r.status !== 204) {
-            throw new Error();
+            throw new ClientServiceError();
         }
     }
 }

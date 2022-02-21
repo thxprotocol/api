@@ -16,9 +16,14 @@ import { utils } from 'ethers/lib';
 import { Contract } from 'web3-eth-contract';
 import { Artifacts } from './artifacts';
 import { logger } from './logger';
+import { THXError } from './errors';
 
-const ERROR_NO_FEEDATA = 'Could not get fee data from oracle';
-export const ERROR_MAX_FEE_PER_GAS = 'MaxFeePerGas from oracle exceeds configured cap';
+export class MaxFeePerGasExceededError extends THXError {
+    message = 'MaxFeePerGas from oracle exceeds configured cap';
+}
+export class NoFeeDataError extends THXError {
+    message = 'Could not get fee data from oracle';
+}
 
 export enum NetworkProvider {
     Test = 0,
@@ -54,7 +59,7 @@ export async function getEstimatesFromOracle(npid: NetworkProvider, type = 'fast
     const r = await axios.get(url);
 
     if (r.status !== 200) {
-        throw new Error(ERROR_NO_FEEDATA);
+        throw new NoFeeDataError();
     }
 
     const estimatedBaseFee = r.data.estimatedBaseFee;
@@ -102,7 +107,7 @@ export async function deployContract(abi: any, bytecode: any, arg: any[], npid: 
 
     // This comparison is in gwei
     if (maxFeePerGas > maxFeePerGasLimit) {
-        throw new Error(ERROR_MAX_FEE_PER_GAS);
+        throw new MaxFeePerGasExceededError();
     }
 
     const sig = await web3.eth.accounts.signTransaction(
@@ -159,7 +164,7 @@ export async function sendTransaction(to: string, fn: any, npid: NetworkProvider
 
     // This comparison is in gwei
     if (maxFeePerGas > maxFeePerGasLimit) {
-        throw new Error(ERROR_MAX_FEE_PER_GAS);
+        throw new MaxFeePerGasExceededError();
     }
 
     const sig = await web3.eth.accounts.signTransaction(

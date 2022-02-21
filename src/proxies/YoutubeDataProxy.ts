@@ -1,6 +1,10 @@
 import { IAccount } from '@/models/Account';
 import { authClient, getAuthAccessToken } from '@/util/auth';
-const ERROR_NO_YOUTUBE = 'Could not find youtube data for this account';
+import { THXError } from '@/util/errors';
+
+class NoYoutubeDataError extends THXError {
+    message = 'Could not find youtube data for this account';
+}
 
 export default class YoutubeDataProxy {
     static async getYoutube(sub: string) {
@@ -12,7 +16,7 @@ export default class YoutubeDataProxy {
             },
         });
 
-        if (!r.data) throw new Error(ERROR_NO_YOUTUBE);
+        if (!r.data) throw new NoYoutubeDataError();
 
         return { isAuthorized: r.data.isAuthorized, channels: r.data.channels, videos: r.data.videos };
     }
@@ -26,7 +30,7 @@ export default class YoutubeDataProxy {
             },
         });
 
-        if (!r.data) throw new Error(ERROR_NO_YOUTUBE);
+        if (!r.data) throw new NoYoutubeDataError();
 
         return r.data.result;
     }
@@ -40,7 +44,7 @@ export default class YoutubeDataProxy {
             },
         });
 
-        if (!r.data) throw new Error(ERROR_NO_YOUTUBE);
+        if (!r.data) throw new NoYoutubeDataError();
 
         return r.data.result;
     }

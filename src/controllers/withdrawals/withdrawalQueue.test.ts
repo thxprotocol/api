@@ -14,7 +14,7 @@ import { getToken } from '@/util/jest/jwt';
 import { createWallet } from '@/util/jest/network';
 import { mockClear, mockStart, mockUrl } from '@/util/jest/mock';
 import { agenda, eventNameProcessWithdrawals } from '@/util/agenda';
-import { ERROR_MAX_FEE_PER_GAS, NetworkProvider } from '@/util/network';
+import { MaxFeePerGasExceededError, NetworkProvider } from '@/util/network';
 import { afterAllCallback, beforeAllCallback } from '@/util/jest/config';
 
 const user = request.agent(app);
@@ -140,7 +140,7 @@ describe('Withdrawal Queue', () => {
         it('should cast a fail event', (done) => {
             const callback = async (error: Error) => {
                 agenda.off(`fail:${eventNameProcessWithdrawals}`, callback);
-                expect(error.message).toBe(ERROR_MAX_FEE_PER_GAS);
+                expect(error).toBeInstanceOf(MaxFeePerGasExceededError);
                 done();
             };
             agenda.on(`fail:${eventNameProcessWithdrawals}`, callback);

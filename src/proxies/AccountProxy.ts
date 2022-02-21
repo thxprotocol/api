@@ -1,8 +1,14 @@
 import { IAccount, IAccountUpdates } from '@/models/Account';
 import { authClient, getAuthAccessToken } from '@/util/auth';
+import { THXError } from '@/util/errors';
 
-const ERROR_NO_ACCOUNT = 'Could not find an account for this address';
-const ERROR_CREATE_ACCOUNT = 'Could not signup for an account';
+class NoAccountError extends THXError {
+    message = 'Could not find an account for this address';
+}
+class CreateAccountError extends THXError {
+    message = 'Could not signup for an account';
+}
+class AccountApiError extends THXError {}
 
 export default class AccountProxy {
     static async getById(sub: string) {
@@ -15,7 +21,7 @@ export default class AccountProxy {
         });
 
         if (!r.data) {
-            throw new Error(ERROR_NO_ACCOUNT);
+            throw new NoAccountError();
         }
 
         return r.data;
@@ -31,7 +37,7 @@ export default class AccountProxy {
         });
 
         if (!r.data) {
-            throw new Error(ERROR_NO_ACCOUNT);
+            throw new NoAccountError();
         }
 
         return r.data;
@@ -47,7 +53,7 @@ export default class AccountProxy {
         });
 
         if (!r.data) {
-            throw new Error(ERROR_NO_ACCOUNT);
+            throw new NoAccountError();
         }
 
         return r.data;
@@ -104,7 +110,7 @@ export default class AccountProxy {
         });
 
         if (r.status !== 204) {
-            throw new Error('Could not update');
+            throw new AccountApiError('Could not update');
         }
     }
 
@@ -118,7 +124,7 @@ export default class AccountProxy {
         });
 
         if (!r.data) {
-            throw new Error('Could not delete');
+            throw new AccountApiError('Could not delete');
         }
     }
 
@@ -137,7 +143,7 @@ export default class AccountProxy {
         });
 
         if (!r.data) {
-            throw new Error(ERROR_CREATE_ACCOUNT);
+            throw new CreateAccountError();
         }
 
         return r.data;

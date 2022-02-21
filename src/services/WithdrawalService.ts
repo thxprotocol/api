@@ -1,5 +1,5 @@
 import { toWei, fromWei } from 'web3-utils';
-import { callFunction, NetworkProvider, sendTransaction, ERROR_MAX_FEE_PER_GAS } from '@/util/network';
+import { callFunction, NetworkProvider, sendTransaction, MaxFeePerGasExceededError } from '@/util/network';
 import { WithdrawalState, WithdrawalType } from '@/enums';
 import { AssetPoolType } from '@/models/AssetPool';
 import { Withdrawal } from '@/models/Withdrawal';
@@ -7,6 +7,11 @@ import { IAccount } from '@/models/Account';
 import { Artifacts } from '@/util/artifacts';
 import { parseLogs, findEvent } from '@/util/events';
 import { paginatedResults } from '@/util/pagination';
+import { THXError } from '@/util/errors';
+
+class CannotWithdrawForCustodialError extends THXError {
+    message = 'Not able to withdraw funds for custodial wallets.';
+}
 
 interface IWithdrawalUpdates {
     withdrawalId: number;
@@ -21,7 +26,11 @@ export default class WithdrawalService {
 
     static async getAllScheduled() {
         return await Withdrawal.find({
-            $or: [{ failReason: ERROR_MAX_FEE_PER_GAS }, { failReason: { $exists: false } }, { failReason: '' }],
+            $or: [
+                { failReason: new MaxFeePerGasExceededError().message },
+                { failReason: { $exists: false } },
+                { failReason: '' },
+            ],
             withdrawalId: { $exists: false },
             state: WithdrawalState.Pending,
         }).sort({ createdAt: -1 });
@@ -114,7 +123,7 @@ export default class WithdrawalService {
         const withdrawal = await Withdrawal.findById(id);
 
         if (withdrawal.state === WithdrawalState.Deferred) {
-            throw new Error('Not able to withdraw funds for custodial wallets.');
+            throw new CannotWithdrawForCustodialError();
         }
 
         const tx = await sendTransaction(

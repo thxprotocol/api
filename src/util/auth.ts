@@ -1,5 +1,10 @@
 import axios from 'axios';
+import { THXError } from './errors';
 import { AUTH_CLIENT_ID, AUTH_CLIENT_SECRET, AUTH_URL } from './secrets';
+
+class AuthAccesTokenRequestError extends THXError {
+    message = 'Auth access token request failed';
+}
 
 let authAccessToken = '';
 let authAccessTokenExpires = 0;
@@ -21,7 +26,7 @@ async function requestAuthAccessToken() {
         data,
     });
 
-    if (r.status !== 200) throw new Error('Auth access token request failed');
+    if (r.status !== 200) throw new AuthAccesTokenRequestError();
 
     return r.data;
 }
