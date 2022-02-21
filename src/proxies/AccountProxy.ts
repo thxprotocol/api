@@ -60,15 +60,22 @@ export default class AccountProxy {
     }
 
     static async isEmailDuplicate(email: string) {
-        await authClient({
-            method: 'GET',
-            url: `/account/email/${email}`, // TODO Should only return active accounts
-            headers: {
-                Authorization: await getAuthAccessToken(),
-            },
-        });
+        try {
+            await authClient({
+                method: 'GET',
+                url: `/account/email/${email}`, // TODO Should only return active accounts
+                headers: {
+                    Authorization: await getAuthAccessToken(),
+                },
+            });
 
-        return true;
+            return true;
+        } catch (error) {
+            if (error.response.status === 404) {
+                return false;
+            }
+            throw error;
+        }
     }
 
     static async update(
