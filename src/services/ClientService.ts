@@ -1,79 +1,60 @@
 import { authClient } from '@/util/auth';
 import { Client } from '@/models/Client';
 import { INITIAL_ACCESS_TOKEN } from '@/util/secrets';
+import { THXError } from '@/util/errors';
+
+class ClientServiceError extends THXError {}
 
 export default class ClientService {
     static async get(clientId: string) {
-        try {
-            const client = await Client.findOne({ clientId });
-            const r = await authClient({
-                method: 'GET',
-                url: `/reg/${clientId}?access_token=${client.registrationAccessToken}`,
-            });
+        const client = await Client.findOne({ clientId });
+        const r = await authClient({
+            method: 'GET',
+            url: `/reg/${clientId}?access_token=${client.registrationAccessToken}`,
+        });
 
-            if (r.status !== 200) {
-                throw new Error(r.data);
-            }
-
-            client.clientSecret = r.data['client_secret'];
-            client.requestUris = r.data['request_uris'];
-
-            return { client };
-        } catch (error) {
-            return { error };
+        if (r.status !== 200) {
+            throw new ClientServiceError(r.data);
         }
+
+        client.clientSecret = r.data['client_secret'];
+        client.requestUris = r.data['request_uris'];
+
+        return client;
     }
 
     static async create(sub: string, data: any) {
-        try {
-            const r = await authClient({
-                method: 'POST',
-                url: '/reg',
-                headers: {
-                    Authorization: `Bearer ${INITIAL_ACCESS_TOKEN}`,
-                },
-                data,
-            });
+        const r = await authClient({
+            method: 'POST',
+            url: '/reg',
+            headers: {
+                Authorization: `Bearer ${INITIAL_ACCESS_TOKEN}`,
+            },
+            data,
+        });
 
-            const client = new Client({
-                sub,
-                clientId: r.data.client_id,
-                registrationAccessToken: r.data.registration_access_token,
-            });
+        const client = new Client({
+            sub,
+            clientId: r.data.client_id,
+            registrationAccessToken: r.data.registration_access_token,
+        });
 
-            await client.save();
+        await client.save();
 
-            return { client };
-        } catch (error) {
-            return { error };
-        }
+        return client;
     }
 
     static async remove(clientId: string) {
-        try {
-            const client = await Client.findOne({ clientId });
-            const r = await authClient({
-                method: 'DELETE',
-                url: `/reg/${client.clientId}?access_token=${client.registrationAccessToken}`,
-            });
+        const client = await Client.findOne({ clientId });
+        await client.remove();
 
-            if (r.status !== 204) {
-                throw new Error();
-            }
+        const r = await authClient({
+            method: 'DELETE',
+            url: `/reg/${client.clientId}?access_token=${client.registrationAccessToken}`,
+        });
 
-            await client.remove();
-            return { result: true };
-        } catch (error) {
-            const client = await Client.findOne({ clientId });
-            await client.remove();
-            return { error };
-        }
-    }
-    static async countScope(scope: string) {
-        try {
-            return await Client.countDocuments({ 'payload.scope': scope });
-        } catch (error) {
-            return { error };
+        if (r.status !== 204) {
+            throw new ClientServiceError();
         }
     }
 }

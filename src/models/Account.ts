@@ -27,4 +27,5 @@ export interface IAccountUpdates {
     authenticationTokenExpires?: number;
     googleAccess?: string;
     twitterAccess?: string;
+    spotifyAccess?: string;
 }

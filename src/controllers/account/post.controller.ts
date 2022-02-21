@@ -19,13 +19,13 @@ export const createAccountValidation = [
 ];
 
 export const postAccount = async (req: Request, res: Response) => {
-    const { isDuplicate } = await AccountProxy.isEmailDuplicate(req.body.email);
+    const isDuplicate = await AccountProxy.isEmailDuplicate(req.body.email);
 
     if (isDuplicate) {
         throw new DuplicateEmailError();
     }
 
-    const { account } = await AccountProxy.signupFor(req.body.email, req.body.password, req.body.address);
+    const account = await AccountProxy.signupFor(req.body.email, req.body.password, req.body.address);
 
     if (req.assetPool) {
         await MemberService.addMember(req.assetPool, account.address);

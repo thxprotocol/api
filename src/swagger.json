@@ -1,7 +1,7 @@
 {
   "info": {
     "title": "THX API Specification",
-    "version": "1.0.8"
+    "version": "1.0.14"
   },
   "basePath": "/v1",
   "securityDefinitions": {

@@ -2,7 +2,7 @@ import { WithdrawalDocument } from '@/models/Withdrawal';
 import { WithdrawalType } from '@/enums/WithdrawalType';
 import { AssetPoolDocument } from '@/models/AssetPool';
 import { logger } from '@/util/logger';
-import { ERROR_MAX_FEE_PER_GAS } from '@/util/network';
+import { MaxFeePerGasExceededError } from '@/util/network';
 
 import MembershipService from '@/services/MembershipService';
 import AssetPoolService from '@/services/AssetPoolService';
@@ -11,18 +11,19 @@ import RewardService from '@/services/RewardService';
 import MemberService from '@/services/MemberService';
 import WithdrawalService from '@/services/WithdrawalService';
 import { wrapBackgroundTransaction } from '@/util/newrelic';
+import { THXError } from '@/util/errors';
 
 const ERROR_CAN_NOT_CLAIM = 'Claim conditions are currently not valid.';
 
 async function claimReward(assetPool: AssetPoolDocument, id: string, rewardId: number, beneficiary: string) {
-    const { account } = await AccountProxy.getByAddress(beneficiary);
-    const { reward } = await RewardService.get(assetPool, rewardId);
-    const { canClaim } = await RewardService.canClaim(assetPool, reward, account);
-    const { isMember } = await MemberService.isMember(assetPool, beneficiary);
+    const account = await AccountProxy.getByAddress(beneficiary);
+    const reward = await RewardService.get(assetPool, rewardId);
+    const canClaim = await RewardService.canClaim(assetPool, reward, account);
+    const isMember = await MemberService.isMember(assetPool, beneficiary);
     const shouldAddMember = !reward.isMembershipRequired && !isMember;
 
     if (!canClaim) {
-        throw new Error(ERROR_CAN_NOT_CLAIM);
+        throw new THXError(ERROR_CAN_NOT_CLAIM);
     }
 
     if (shouldAddMember) {
@@ -76,7 +77,7 @@ export async function jobProcessWithdrawals() {
         } catch (error) {
             await updateFailReason(w, error.message);
 
-            const level = error.message === ERROR_MAX_FEE_PER_GAS ? 'info' : 'error';
+            const level = error instanceof MaxFeePerGasExceededError ? 'info' : 'error';
             logger.log(level, {
                 withdrawalFailed: {
                     withdrawalId: String(w._id),
@@ -86,7 +87,7 @@ export async function jobProcessWithdrawals() {
             });
 
             // Stop processing the other queued withdrawals if fee is too high per gas.
-            if (error.message === ERROR_MAX_FEE_PER_GAS) {
+            if (error instanceof MaxFeePerGasExceededError) {
                 throw error;
             }
         }

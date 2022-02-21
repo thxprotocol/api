@@ -1,186 +1,117 @@
 import { callFunction, sendTransaction, tokenContract } from '@/util/network';
 import { AssetPoolType } from '@/models/AssetPool';
-import { findEvent, parseLogs } from '@/util/events';
+import { assertEvent, parseLogs } from '@/util/events';
 import { Artifacts } from '@/util/artifacts';
 import { IMember, Member } from '@/models/Member';
 import { fromWei } from 'web3-utils';
+import { THXError } from '@/util/errors';
 
-export const ERROR_IS_MEMBER_FAILED = 'Could not check if this address is a member';
-export const ERROR_IS_MANAGER_FAILED = 'Could not check if this address is a manager';
-export const ERROR_ADD_MEMBER_FAILED = 'Could not add a member role for this address.';
-export const ERROR_ADD_MANAGER_FAILED = 'Could not add a manager role for this address.';
-export const ERROR_EVENT_ROLE_GRANTED_FAILED = 'Could not find the RoleGranted event in the tx logs.';
-export const ERROR_EVENT_ROLE_REVOKED_FAILED = 'Could not find the RoleRevoked event in the tx logs.';
-export const ERROR_IS_MEMBER_ALREADY = 'This address is already a member.';
-export const ERROR_IS_NOT_MEMBER = 'This address is not a member.';
+class NotAMemberError extends THXError {
+    constructor(address: string, assetPool: string) {
+        super(`${address} is not a member of assetPool ${assetPool}`);
+    }
+}
+class AlreadyAMemberError extends THXError {
+    constructor(address: string, assetPool: string) {
+        super(`${address} is already a member of assetPool ${assetPool}`);
+    }
+}
 
 export default class MemberService {
     static async getByAddress(assetPool: AssetPoolType, address: string) {
-        try {
-            const { isMember, error } = await this.isMember(assetPool, address);
+        const isMember = await this.isMember(assetPool, address);
 
-            if (error) {
-                throw new Error(error);
-            } else {
-                const { isManager, error } = await this.isManager(assetPool, address);
+        const isManager = await this.isManager(assetPool, address);
 
-                if (error) {
-                    throw new Error(error);
-                } else {
-                    const memberId = await callFunction(
-                        assetPool.solution.methods.getMemberByAddress(address),
-                        assetPool.network,
-                    );
-                    const tokenAddress = await callFunction(assetPool.solution.methods.getToken(), assetPool.network);
-                    const tokenInstance = tokenContract(assetPool.network, tokenAddress);
-                    const name = await callFunction(tokenInstance.methods.name(), assetPool.network);
-                    const symbol = await callFunction(tokenInstance.methods.symbol(), assetPool.network);
-                    const balance = Number(
-                        fromWei(await callFunction(tokenInstance.methods.balanceOf(address), assetPool.network)),
-                    );
+        const memberId = await callFunction(assetPool.solution.methods.getMemberByAddress(address), assetPool.network);
+        const tokenAddress = await callFunction(assetPool.solution.methods.getToken(), assetPool.network);
+        const tokenInstance = tokenContract(assetPool.network, tokenAddress);
+        const name = await callFunction(tokenInstance.methods.name(), assetPool.network);
+        const symbol = await callFunction(tokenInstance.methods.symbol(), assetPool.network);
+        const balance = Number(
+            fromWei(await callFunction(tokenInstance.methods.balanceOf(address), assetPool.network)),
+        );
 
-                    return {
-                        member: {
-                            id: memberId,
-                            address,
-                            isMember,
-                            isManager,
-                            token: {
-                                name,
-                                symbol,
-                                balance,
-                            },
-                        },
-                    };
-                }
-            }
-        } catch (error) {
-            return { error };
-        }
+        return {
+            id: memberId,
+            address,
+            isMember,
+            isManager,
+            token: {
+                name,
+                symbol,
+                balance,
+            },
+        };
     }
-    static async findByAddress(address: string) {
-        try {
-            const member = await Member.findOne({ address });
-            return { member };
-        } catch (error) {
-            return {
-                error,
-            };
-        }
+
+    static findByAddress(address: string) {
+        return Member.findOne({ address });
     }
 
     static async getByPoolAddress(assetPool: AssetPoolType) {
-        try {
-            const members = await Member.find({ poolAddress: assetPool.address });
+        const members = await Member.find({ poolAddress: assetPool.address });
 
-            return { members: members.map((member: IMember) => member.address) };
-        } catch (error) {
-            return { error };
-        }
+        return members.map((member: IMember) => member.address);
     }
 
     static async addMember(assetPool: AssetPoolType, address: string) {
-        try {
-            const { isMember, error } = await this.isMember(assetPool, address);
+        const isMember = await this.isMember(assetPool, address);
 
-            if (error) {
-                throw new Error(ERROR_IS_MEMBER_FAILED);
-            }
-
-            if (isMember) {
-                throw new Error(ERROR_IS_MEMBER_ALREADY);
-            }
-
-            const tx = await sendTransaction(
-                assetPool.address,
-                assetPool.solution.methods.addMember(address),
-                assetPool.network,
-            );
-            const event = findEvent('RoleGranted', parseLogs(Artifacts.IDefaultDiamond.abi, tx.logs));
-
-            if (!event) {
-                throw new Error(ERROR_EVENT_ROLE_GRANTED_FAILED);
-            }
-
-            const memberId = await callFunction(
-                assetPool.solution.methods.getMemberByAddress(address),
-                assetPool.network,
-            );
-
-            const members = await Member.find({ poolAddress: assetPool.address, address });
-
-            if (!members.length) {
-                const member = new Member({
-                    poolAddress: assetPool.address,
-                    memberId: Number(memberId),
-                    address,
-                });
-
-                await member.save();
-            }
-
-            return { memberId };
-        } catch (error) {
-            return {
-                error,
-            };
+        if (isMember) {
+            throw new AlreadyAMemberError(address, assetPool.address);
         }
+
+        const tx = await sendTransaction(
+            assetPool.address,
+            assetPool.solution.methods.addMember(address),
+            assetPool.network,
+        );
+
+        assertEvent('RoleGranted', parseLogs(Artifacts.IDefaultDiamond.abi, tx.logs));
+
+        const memberId = await callFunction(assetPool.solution.methods.getMemberByAddress(address), assetPool.network);
+
+        const members = await Member.find({ poolAddress: assetPool.address, address });
+
+        if (!members.length) {
+            const member = new Member({
+                poolAddress: assetPool.address,
+                memberId: Number(memberId),
+                address,
+            });
+
+            await member.save();
+        }
+
+        return memberId;
     }
 
     static async isMember(assetPool: AssetPoolType, address: string) {
-        try {
-            const isMember = await callFunction(assetPool.solution.methods.isMember(address), assetPool.network);
-            return { isMember };
-        } catch (error) {
-            return { error };
-        }
+        return callFunction(assetPool.solution.methods.isMember(address), assetPool.network);
     }
 
-    static async isManager(assetPool: AssetPoolType, address: string) {
-        try {
-            const isManager = await await callFunction(
-                assetPool.solution.methods.isManager(address),
-                assetPool.network,
-            );
-            return { isManager };
-        } catch (error) {
-            return { error: ERROR_IS_MANAGER_FAILED };
-        }
+    static isManager(assetPool: AssetPoolType, address: string) {
+        return callFunction(assetPool.solution.methods.isManager(address), assetPool.network);
     }
 
     static async removeMember(assetPool: AssetPoolType, address: string) {
-        try {
-            const { isMember, error } = await this.isMember(assetPool, address);
+        const isMember = await this.isMember(assetPool, address);
 
-            if (error) {
-                throw new Error(ERROR_IS_MEMBER_FAILED);
-            } else {
-                if (!isMember) {
-                    throw new Error(ERROR_IS_NOT_MEMBER);
-                }
-
-                const tx = await sendTransaction(
-                    assetPool.address,
-                    assetPool.solution.methods.removeMember(address),
-                    assetPool.network,
-                );
-                const event = findEvent('RoleRevoked', parseLogs(Artifacts.IDefaultDiamond.abi, tx.logs));
-
-                if (!event) {
-                    throw new Error(ERROR_EVENT_ROLE_REVOKED_FAILED);
-                }
-
-                const member = await Member.findOne({ poolAddress: assetPool.address, address });
-
-                await member.remove();
-
-                return { result: true };
-            }
-        } catch (error) {
-            return {
-                error: ERROR_ADD_MEMBER_FAILED,
-            };
+        if (!isMember) {
+            throw new NotAMemberError(address, assetPool.address);
         }
+
+        const tx = await sendTransaction(
+            assetPool.address,
+            assetPool.solution.methods.removeMember(address),
+            assetPool.network,
+        );
+        assertEvent('RoleRevoked', parseLogs(Artifacts.IDefaultDiamond.abi, tx.logs));
+
+        const member = await Member.findOne({ poolAddress: assetPool.address, address });
+
+        await member.remove();
     }
 
     upgradeAddress() {

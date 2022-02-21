@@ -1,34 +1,22 @@
-import { Request, NextFunction, Response } from 'express';
-import { HttpError } from '@/models/Error';
-import MemberService, { ERROR_IS_NOT_MEMBER } from '@/services/MemberService';
+import { Request, Response } from 'express';
+import MemberService from '@/services/MemberService';
 import AccountProxy from '@/proxies/AccountProxy';
 import MembershipService from '@/services/MembershipService';
+import { NotFoundError } from '@/util/errors';
 
-export const deleteMember = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-        const { isMember, error } = await MemberService.isMember(req.assetPool, req.params.address);
+export const deleteMember = async (req: Request, res: Response) => {
+    const isMember = await MemberService.isMember(req.assetPool, req.params.address);
 
-        if (error) throw new Error(error);
-
-        if (!isMember) {
-            return next(new HttpError(404, ERROR_IS_NOT_MEMBER));
-        } else {
-            const { error } = await MemberService.removeMember(req.assetPool, req.params.address);
-
-            if (error) {
-                throw new Error(error);
-            } else {
-                const { account } = await AccountProxy.getByAddress(req.params.address);
-                const { error } = await MembershipService.removeMembership(account.id, req.assetPool);
-
-                if (error) throw new Error(error);
-
-                res.status(204).end();
-            }
-        }
-    } catch (error) {
-        return next(new HttpError(500, error.toString(), error));
+    if (!isMember) {
+        throw new NotFoundError();
     }
+
+    await MemberService.removeMember(req.assetPool, req.params.address);
+
+    const account = await AccountProxy.getByAddress(req.params.address);
+    await MembershipService.removeMembership(account.id, req.assetPool);
+
+    res.status(204).end();
 };
 
 /**

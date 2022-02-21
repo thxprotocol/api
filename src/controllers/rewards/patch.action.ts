@@ -1,71 +1,34 @@
 import RewardService from '@/services/RewardService';
 import AssetPoolService from '@/services/AssetPoolService';
-import { Request, Response, NextFunction } from 'express';
-import { HttpError } from '@/models/Error';
-import { RewardDocument, IRewardUpdates } from '@/models/Reward';
+import { Request, Response } from 'express';
 
-export async function patchReward(req: Request, res: Response, next: NextFunction) {
-    async function getReward(rewardId: number): Promise<RewardDocument> {
-        const { reward, error } = await RewardService.get(req.assetPool, rewardId);
-        if (!reward) {
-            next(new HttpError(404, 'No reward found for this ID.'));
-        }
-        if (error) {
-            throw new Error(error.message);
-        }
-        return reward;
+export async function patchReward(req: Request, res: Response) {
+    const reward = await RewardService.get(req.assetPool, Number(req.params.id));
+    let withdrawAmount = reward.withdrawAmount;
+    let withdrawDuration = reward.withdrawDuration;
+
+    const shouldUpdateWithdrawAmount = req.body.withdrawAmount && reward.withdrawAmount !== req.body.withdrawAmount;
+    const shouldUpdateWithdrawDuration =
+        req.body.withdrawDuration && reward.withdrawDuration !== req.body.withdrawDuration;
+
+    if (!shouldUpdateWithdrawAmount && !shouldUpdateWithdrawDuration) {
+        return res.json(reward);
     }
 
-    async function updateReward(rewardId: number, updates: IRewardUpdates) {
-        const { pollId, error } = await RewardService.update(req.assetPool, rewardId, updates);
-
-        if (error) {
-            throw new Error(error.message);
-        }
-
-        return pollId;
+    if (shouldUpdateWithdrawAmount) {
+        withdrawAmount = req.body.withdrawAmount;
     }
 
-    async function finalizeRewardPoll(reward: RewardDocument) {
-        const { finalizedReward, error } = await RewardService.finalizePoll(req.assetPool, reward);
-        if (error) {
-            throw new Error(error.message);
-        }
-        return finalizedReward;
+    if (shouldUpdateWithdrawDuration) {
+        withdrawDuration = Number(req.body.withdrawDuration);
+    }
+    await RewardService.update(req.assetPool, reward.id, { withdrawAmount, withdrawDuration });
+
+    if (await AssetPoolService.canBypassRewardPoll(req.assetPool)) {
+        await RewardService.finalizePoll(req.assetPool, reward);
     }
 
-    try {
-        let reward = await getReward(Number(req.params.id));
-        let withdrawAmount = reward.withdrawAmount;
-        let withdrawDuration = reward.withdrawDuration;
-        const shouldUpdateWithdrawAmount = req.body.withdrawAmount && reward.withdrawAmount !== req.body.withdrawAmount;
-        const shouldUpdateWithdrawDuration =
-            req.body.withdrawDuration && reward.withdrawDuration !== req.body.withdrawDuration;
-
-        if (!shouldUpdateWithdrawAmount && !shouldUpdateWithdrawDuration) {
-            return res.json(reward);
-        }
-
-        if (shouldUpdateWithdrawAmount) {
-            withdrawAmount = req.body.withdrawAmount;
-        }
-
-        if (shouldUpdateWithdrawDuration) {
-            withdrawDuration = Number(req.body.withdrawDuration);
-        }
-
-        await updateReward(reward.id, { withdrawAmount, withdrawDuration });
-
-        const canBypassPoll = await AssetPoolService.canBypassRewardPoll(req.assetPool);
-
-        if (canBypassPoll) {
-            reward = await finalizeRewardPoll(reward);
-        }
-
-        res.status(200).json(reward);
-    } catch (error) {
-        next(new HttpError(502, 'Could not get reward information from the pool.', error));
-    }
+    res.status(200).json(reward);
 }
 
 /**

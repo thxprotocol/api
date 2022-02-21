@@ -1,5 +1,4 @@
-import { HttpError } from '@/models/Error';
-import { Request, NextFunction, Response } from 'express';
+import { Request, Response } from 'express';
 
 import WithdrawalService from '@/services/WithdrawalService';
 
@@ -43,11 +42,7 @@ import WithdrawalService from '@/services/WithdrawalService';
  *       '502':
  *         $ref: '#/components/responses/502'
  */
-export const postPollFinalize = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-        const { finalizedWithdrawal } = await WithdrawalService.withdrawPollFinalize(req.assetPool, req.params.id);
-        res.json(finalizedWithdrawal);
-    } catch (error) {
-        next(new HttpError(500, error.message, error));
-    }
+export const postPollFinalize = async (req: Request, res: Response) => {
+    const finalizedWithdrawal = await WithdrawalService.withdrawPollFinalize(req.assetPool, req.params.id);
+    res.json(finalizedWithdrawal);
 };

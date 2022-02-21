@@ -15,7 +15,7 @@ interface ErrorResponse {
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 export const errorOutput = (error: any, req: Request, res: Response, next: NextFunction) => {
     let status = 500;
-    const response: ErrorResponse = { error: { message: 'Unable to fulfill request due to unknown error' } };
+    const response: ErrorResponse = { error: { message: 'Unable to fulfill request' } };
     if (error instanceof THXHttpError || error.status) {
         status = error.status;
         response.error.message = error.message;

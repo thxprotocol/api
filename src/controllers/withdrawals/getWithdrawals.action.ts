@@ -1,43 +1,36 @@
-import { Request, NextFunction, Response } from 'express';
-import { HttpError } from '@/models/Error';
+import { Request, Response } from 'express';
 
 import WithdrawalService from '@/services/WithdrawalService';
 
-export const getWithdrawals = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-        const withdrawals = [];
-        const { result, error } = await WithdrawalService.getAll(
-            req.assetPool.address,
-            Number(req.query.page),
-            Number(req.query.limit),
-            req.query.member && req.query.member.length > 0 ? String(req.query.member) : undefined,
-            !isNaN(Number(req.query.rewardId)) ? Number(req.query.rewardId) : undefined,
-            !isNaN(Number(req.query.state)) ? Number(req.query.state) : undefined,
-        );
+export const getWithdrawals = async (req: Request, res: Response) => {
+    const withdrawals = [];
+    const result = await WithdrawalService.getAll(
+        req.assetPool.address,
+        Number(req.query.page),
+        Number(req.query.limit),
+        req.query.member && req.query.member.length > 0 ? String(req.query.member) : undefined,
+        !isNaN(Number(req.query.rewardId)) ? Number(req.query.rewardId) : undefined,
+        !isNaN(Number(req.query.state)) ? Number(req.query.state) : undefined,
+    );
 
-        if (error) throw new Error(error);
-
-        for (const w of result.results) {
-            withdrawals.push({
-                id: w.id,
-                type: w.type,
-                withdrawalId: w.withdrawalId,
-                failReason: w.failReason,
-                rewardId: w.rewardId,
-                beneficiary: w.beneficiary,
-                amount: w.amount,
-                approved: w.approved,
-                state: w.state,
-                poll: w.poll,
-                createdAt: w.createdAt,
-                updatedAt: w.updatedAt,
-            });
-        }
-        result.results = withdrawals;
-        res.json(result);
-    } catch (err) {
-        next(new HttpError(502, 'Could not get all withdrawal information from the network.', err));
+    for (const w of result.results) {
+        withdrawals.push({
+            id: w.id,
+            type: w.type,
+            withdrawalId: w.withdrawalId,
+            failReason: w.failReason,
+            rewardId: w.rewardId,
+            beneficiary: w.beneficiary,
+            amount: w.amount,
+            approved: w.approved,
+            state: w.state,
+            poll: w.poll,
+            createdAt: w.createdAt,
+            updatedAt: w.updatedAt,
+        });
     }
+    result.results = withdrawals;
+    res.json(result);
 };
 
 /**

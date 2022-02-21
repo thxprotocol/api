@@ -11,7 +11,7 @@ export const getAssetPool = async (req: Request, res: Response) => {
     if (!assetPool) throw new NotFoundError();
 
     const token = await AssetPoolService.getPoolToken(req.assetPool);
-    const { client } = await ClientService.get(assetPool.clientId);
+    const client = await ClientService.get(assetPool.clientId);
 
     res.json({
         address: req.params.address,

@@ -20,7 +20,9 @@ class THXHttpError extends THXError {
 
 class BadRequestError extends THXHttpError {
     status = 400;
-    message = 'Bad Request';
+    constructor(message?: string) {
+        super(message || 'Bad Request');
+    }
 }
 
 class UnauthorizedError extends THXHttpError {
@@ -42,7 +44,9 @@ class NotFoundError extends THXHttpError {
 
 class InternalServerError extends THXHttpError {
     status = 500;
-    message = 'Internal Server Error';
+    constructor(message?: string) {
+        super(message || 'Internal Server Error');
+    }
 }
 
 class NotImplementedError extends THXHttpError {
@@ -96,11 +100,13 @@ class GetPastWithdrawPollCreatedEventsError extends InternalServerError {
 export {
     THXError,
     THXHttpError,
+    BadRequestError,
     UnauthorizedError,
     ForbiddenError,
     NotFoundError,
     NotImplementedError,
     BadGatewayError,
+    InternalServerError,
     PromoCodeNotFoundError,
     SubjectUnauthorizedError,
     AudienceForbiddenError,

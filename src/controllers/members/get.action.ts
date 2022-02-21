@@ -1,17 +1,10 @@
-import { Request, NextFunction, Response } from 'express';
-import { HttpError } from '@/models/Error';
+import { Request, Response } from 'express';
 import MemberService from '@/services/MemberService';
 
-export const getMembers = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-        const { members, error } = await MemberService.getByPoolAddress(req.assetPool);
+export const getMembers = async (req: Request, res: Response) => {
+    const members = await MemberService.getByPoolAddress(req.assetPool);
 
-        if (error) throw new Error(error);
-
-        res.json(members);
-    } catch (error) {
-        return next(new HttpError(502, error.toString(), error));
-    }
+    res.json(members);
 };
 
 /**

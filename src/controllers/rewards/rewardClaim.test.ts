@@ -1,5 +1,5 @@
 import request from 'supertest';
-import server from '../../server';
+import app from '@/app';
 import { NetworkProvider } from '../../util/network';
 import { createWallet, signMethod } from '@/util/jest/network';
 import { rewardWithdrawAmount, tokenName, tokenSymbol, userWalletPrivateKey2 } from '@/util/jest/constants';
@@ -10,7 +10,7 @@ import { afterAllCallback, beforeAllCallback } from '@/util/jest/config';
 import { WithdrawalState } from '@/enums';
 import { agenda, eventNameProcessWithdrawals, eventNameRequireWithdraws } from '@/util/agenda';
 
-const user = request.agent(server);
+const user = request.agent(app);
 
 describe('Reward Claim', () => {
     let adminAccessToken: string,

@@ -3,93 +3,59 @@ import { NetworkProvider } from '@/util/network';
 import { Membership } from '@/models/Membership';
 import AssetPoolService from './AssetPoolService';
 
-const ERROR_MEMBERSHIP_GET_FAILED = 'Could not get the membership information from the database';
-const ERROR_MEMBERSHIP_DELETE_FAILED = 'Could not delete the membership information from the database';
-
 export default class MembershipService {
     static async get(sub: string) {
-        try {
-            const memberships = await Membership.find({ sub });
-            return { memberships: memberships.map((m) => m._id.toString()) };
-        } catch (error) {
-            return { error: ERROR_MEMBERSHIP_GET_FAILED };
-        }
+        const memberships = await Membership.find({ sub });
+        return memberships.map((m) => m._id.toString());
     }
 
     static async getById(id: string) {
-        try {
-            const membership = await Membership.findById(id);
-            const assetPool = await AssetPoolService.getByAddress(membership.poolAddress);
-            const token = await AssetPoolService.getPoolToken(assetPool);
+        const membership = await Membership.findById(id);
+        const assetPool = await AssetPoolService.getByAddress(membership.poolAddress);
+        const token = await AssetPoolService.getPoolToken(assetPool);
 
-            return {
-                membership: {
-                    id: membership._id.toString(),
-                    token,
-                    poolAddress: membership.poolAddress,
-                    network: membership.network,
-                },
-            };
-        } catch (error) {
-            return { error: ERROR_MEMBERSHIP_GET_FAILED };
-        }
+        return {
+            id: membership._id.toString(),
+            token,
+            poolAddress: membership.poolAddress,
+            network: membership.network,
+        };
     }
 
     static async addMembership(sub: string, assetPool: AssetPoolType) {
-        try {
-            const membership = await Membership.findOne({
+        const membership = await Membership.findOne({
+            sub,
+            network: assetPool.network,
+            poolAddress: assetPool.address,
+        });
+
+        if (!membership) {
+            const membership = new Membership({
                 sub,
                 network: assetPool.network,
                 poolAddress: assetPool.address,
             });
-
-            if (!membership) {
-                const membership = new Membership({
-                    sub,
-                    network: assetPool.network,
-                    poolAddress: assetPool.address,
-                });
-                await membership.save();
-            }
-
-            return { result: true };
-        } catch (error) {
-            return { error };
+            await membership.save();
         }
     }
 
     static async removeMembership(sub: string, assetPool: AssetPoolType) {
-        try {
-            const membership = await Membership.findOne({
-                sub,
-                network: assetPool.network,
-                poolAddress: assetPool.address,
-            });
+        const membership = await Membership.findOne({
+            sub,
+            network: assetPool.network,
+            poolAddress: assetPool.address,
+        });
 
-            await membership.remove();
-
-            return { result: true };
-        } catch (error) {
-            return { error };
-        }
+        await membership.remove();
     }
 
-    static async remove(id: string) {
-        try {
-            const membership = await Membership.findById(id);
+    static async remove(id: string): Promise<void> {
+        const membership = await Membership.findById(id);
 
-            await membership.remove();
-            return { result: true };
-        } catch (error) {
-            return { error: ERROR_MEMBERSHIP_DELETE_FAILED };
-        }
+        await membership.remove();
     }
 
-    static async countByNetwork(network: NetworkProvider) {
-        try {
-            return await Membership.countDocuments({ network });
-        } catch (error) {
-            return { error };
-        }
+    static countByNetwork(network: NetworkProvider) {
+        return Membership.countDocuments({ network });
     }
 }

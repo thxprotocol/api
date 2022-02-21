@@ -42,15 +42,12 @@ export const postCallUpgradeAddress = async (req: Request, res: Response, next: 
 
             if (event) {
                 try {
-                    const { account } = await AccountProxy.getByAddress(event.args.previousAddress);
+                    const account = await AccountProxy.getByAddress(event.args.previousAddress);
 
                     await AccountProxy.update(account.id, { address: event.args.newAddress });
 
                     try {
-                        const { withdrawals, error } = await WithdrawalService.getByBeneficiary(
-                            event.args.previousAddress,
-                        );
-                        if (error) throw new Error(error);
+                        const withdrawals = await WithdrawalService.getByBeneficiary(event.args.previousAddress);
                         for (const withdrawal of withdrawals) {
                             withdrawal.beneficiary = event.args.newAddress;
                             withdrawal.state = WithdrawalState.Pending;
@@ -58,7 +55,7 @@ export const postCallUpgradeAddress = async (req: Request, res: Response, next: 
                             await withdrawal.save();
                         }
 
-                        const { member } = await MemberService.findByAddress(event.args.previousAddress);
+                        const member = await MemberService.findByAddress(event.args.previousAddress);
 
                         member.address = event.args.newAddress;
 

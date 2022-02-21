@@ -4,7 +4,7 @@ import { validate, validateAssetPoolHeader } from '@/util/validation';
 import { validations } from './_.validation';
 import { getWithdrawal } from './get.action';
 import { getWithdrawals } from './getWithdrawals.action';
-import { parseHeader } from '@/util/network';
+import { requireAssetPoolHeader } from '@/middlewares';
 import { postVote } from './postVote.action';
 import { postPollFinalize } from './postPollFinalize.action';
 import { deleteVote } from './deleteVote.action';
@@ -17,7 +17,7 @@ router.post(
     checkScopes(['admin']),
     validateAssetPoolHeader,
     validate(validations.postWithdrawal),
-    parseHeader,
+    requireAssetPoolHeader,
     postWithdrawal,
 );
 router.get(
@@ -25,7 +25,7 @@ router.get(
     checkScopes(['admin', 'user']),
     validateAssetPoolHeader,
     validate(validations.getWithdrawals),
-    parseHeader,
+    requireAssetPoolHeader,
     getWithdrawals,
 );
 router.get(
@@ -33,7 +33,7 @@ router.get(
     checkScopes(['admin', 'user']),
     validateAssetPoolHeader,
     validate(validations.getWithdrawal),
-    parseHeader,
+    requireAssetPoolHeader,
     getWithdrawal,
 );
 router.post(
@@ -41,7 +41,7 @@ router.post(
     checkScopes(['admin']),
     validateAssetPoolHeader,
     validate(validations.postVote),
-    parseHeader,
+    requireAssetPoolHeader,
     postVote,
 );
 router.delete(
@@ -49,7 +49,7 @@ router.delete(
     checkScopes(['admin']),
     validateAssetPoolHeader,
     validate(validations.deleteVote),
-    parseHeader,
+    requireAssetPoolHeader,
     deleteVote,
 );
 router.post(
@@ -57,7 +57,7 @@ router.post(
     checkScopes(['admin']),
     validateAssetPoolHeader,
     validate(validations.postPollFinalize),
-    parseHeader,
+    requireAssetPoolHeader,
     postPollFinalize,
 );
 

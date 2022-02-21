@@ -35,7 +35,7 @@ export const postAssetPool = async (req: Request, res: Response) => {
     await AssetPoolService.addPoolToken(assetPool, req.body.token);
     await MembershipService.addMembership(req.user.sub, assetPool);
 
-    const { client } = await ClientService.create(req.user.sub, {
+    const client = await ClientService.create(req.user.sub, {
         application_type: 'web',
         grant_types: ['client_credentials'],
         request_uris: [],

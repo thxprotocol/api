@@ -1,8 +1,7 @@
-import { Request, Response, NextFunction } from 'express';
+import { Request, Response } from 'express';
 import RewardService from '@/services/RewardService';
-// import { HttpError } from '@/models/Error';
 
-export const getRewards = async (req: Request, res: Response, next: NextFunction) => {
+export const getRewards = async (req: Request, res: Response) => {
     const rewards = await RewardService.findByPoolAddress(req.assetPool);
     res.json(rewards);
 

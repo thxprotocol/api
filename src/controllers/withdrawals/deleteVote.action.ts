@@ -1,6 +1,5 @@
 import qrcode from 'qrcode';
-import { HttpError } from '@/models/Error';
-import { NextFunction, Request, Response } from 'express';
+import { Request, Response } from 'express';
 
 /**
  * @swagger
@@ -41,18 +40,14 @@ import { NextFunction, Request, Response } from 'express';
  *       '502':
  *         $ref: '#/components/responses/502'
  */
-export const deleteVote = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-        const base64 = await qrcode.toDataURL(
-            JSON.stringify({
-                assetPoolAddress: req.header('AssetPool'),
-                contractAddress: req.params.address,
-                contract: 'BasePoll',
-                method: 'revokeVote',
-            }),
-        );
-        res.send({ base64 });
-    } catch (err) {
-        next(new HttpError(500, 'QR data encoding failed.', err));
-    }
+export const deleteVote = async (req: Request, res: Response) => {
+    const base64 = await qrcode.toDataURL(
+        JSON.stringify({
+            assetPoolAddress: req.header('AssetPool'),
+            contractAddress: req.params.address,
+            contract: 'BasePoll',
+            method: 'revokeVote',
+        }),
+    );
+    res.send({ base64 });
 };

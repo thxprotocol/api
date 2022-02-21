@@ -7,17 +7,17 @@ import { postMember } from './post.action';
 import { patchMember } from './patch.action';
 import { deleteMember } from './delete.action';
 import checkScopes from 'express-jwt-authz';
-import { parseHeader } from '@/util/network';
+import { requireAssetPoolHeader } from '@/middlewares';
 
 const router = express.Router();
 
-router.get('/', checkScopes(['admin']), validateAssetPoolHeader, parseHeader, getMembers);
+router.get('/', checkScopes(['admin']), validateAssetPoolHeader, requireAssetPoolHeader, getMembers);
 router.post(
     '/',
     checkScopes(['admin', 'members:write']),
     validateAssetPoolHeader,
     validate(validations.postMember),
-    parseHeader,
+    requireAssetPoolHeader,
     postMember,
 );
 router.patch(
@@ -25,7 +25,7 @@ router.patch(
     checkScopes(['admin']),
     validateAssetPoolHeader,
     validate(validations.patchMember),
-    parseHeader,
+    requireAssetPoolHeader,
     patchMember,
 );
 router.delete(
@@ -33,7 +33,7 @@ router.delete(
     checkScopes(['admin']),
     validateAssetPoolHeader,
     validate(validations.deleteMember),
-    parseHeader,
+    requireAssetPoolHeader,
     deleteMember,
 );
 router.get(
@@ -41,7 +41,7 @@ router.get(
     checkScopes(['admin', 'user']),
     validateAssetPoolHeader,
     validate(validations.getMember),
-    parseHeader,
+    requireAssetPoolHeader,
     getMember,
 );
 

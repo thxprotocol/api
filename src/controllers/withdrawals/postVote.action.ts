@@ -1,6 +1,5 @@
 import qrcode from 'qrcode';
-import { HttpError } from '@/models/Error';
-import { NextFunction, Request, Response } from 'express';
+import { Request, Response } from 'express';
 import WithdrawalService from '@/services/WithdrawalService';
 
 /**
@@ -46,21 +45,17 @@ import WithdrawalService from '@/services/WithdrawalService';
  *       '502':
  *         $ref: '#/components/responses/502'
  */
-export const postVote = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-        const { withdrawal } = await WithdrawalService.getById(req.params.id);
-        const base64 = await qrcode.toDataURL(
-            JSON.stringify({
-                assetPoolAddress: req.header('AssetPool'),
-                method: 'vote',
-                params: {
-                    id: withdrawal.withdrawalId,
-                    agree: req.body.agree,
-                },
-            }),
-        );
-        res.json({ base64 });
-    } catch (err) {
-        next(new HttpError(500, 'Could not encode the QR image properly.', err));
-    }
+export const postVote = async (req: Request, res: Response) => {
+    const withdrawal = await WithdrawalService.getById(req.params.id);
+    const base64 = await qrcode.toDataURL(
+        JSON.stringify({
+            assetPoolAddress: req.header('AssetPool'),
+            method: 'vote',
+            params: {
+                id: withdrawal.withdrawalId,
+                agree: req.body.agree,
+            },
+        }),
+    );
+    res.json({ base64 });
 };

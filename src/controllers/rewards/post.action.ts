@@ -1,67 +1,30 @@
-import { Request, Response, NextFunction } from 'express';
-import { HttpError } from '@/models/Error';
+import { Request, Response } from 'express';
 import { VERSION } from '@/util/secrets';
 import { toWei } from 'web3-utils';
-import { RewardDocument, IRewardCondition } from '@/models/Reward';
+import BN from 'bn.js';
 
 import RewardService from '@/services/RewardService';
 import AssetPoolService from '@/services/AssetPoolService';
 
-const ERROR_CREATE_REWARD_FAILED = 'Could not create your reward';
-const ERROR_FINALIZE_REWARD_POLL_FAILED = 'Could not finalize your reward poll';
-const ERROR_NO_REWARD = 'Could not find a created reward';
+export const postReward = async (req: Request, res: Response) => {
+    const withdrawAmount = toWei(String(req.body.withdrawAmount));
+    const withdrawDuration = req.body.withdrawDuration;
+    const withdrawCondition = req.body.withdrawCondition;
+    const isMembershipRequired = req.body.isMembershipRequired;
+    const isClaimOnce = req.body.isClaimOnce;
+    const reward = await RewardService.create(
+        req.assetPool,
+        new BN(withdrawAmount),
+        withdrawDuration,
+        withdrawCondition,
+        isMembershipRequired,
+        isClaimOnce,
+    );
 
-export const postReward = async (req: Request, res: Response, next: NextFunction) => {
-    async function createReward(
-        withdrawAmount: any,
-        withdrawDuration: number,
-        withdrawCondition: IRewardCondition,
-        isMembershipRequired: boolean,
-        isClaimOnce: boolean,
-    ) {
-        const { reward, error } = await RewardService.create(
-            req.assetPool,
-            withdrawAmount,
-            withdrawDuration,
-            isMembershipRequired,
-            isClaimOnce,
-            withdrawCondition,
-        );
+    if (await AssetPoolService.canBypassRewardPoll(req.assetPool))
+        await RewardService.finalizePoll(req.assetPool, reward);
 
-        if (error) throw new Error(ERROR_CREATE_REWARD_FAILED);
-
-        return reward;
-    }
-
-    async function finalizeRewardPoll(reward: RewardDocument) {
-        const { error } = await RewardService.finalizePoll(req.assetPool, reward);
-        if (error) throw new Error(ERROR_FINALIZE_REWARD_POLL_FAILED);
-    }
-
-    try {
-        const withdrawAmount = toWei(String(req.body.withdrawAmount));
-        const withdrawDuration = req.body.withdrawDuration;
-        const withdrawCondition = req.body.withdrawCondition;
-        const isMembershipRequired = req.body.isMembershipRequired;
-        const isClaimOnce = req.body.isClaimOnce;
-        const reward = await createReward(
-            withdrawAmount,
-            withdrawDuration,
-            withdrawCondition,
-            isMembershipRequired,
-            isClaimOnce,
-        );
-
-        if (!reward) return next(new HttpError(500, ERROR_NO_REWARD));
-
-        const canBypassPoll = await AssetPoolService.canBypassRewardPoll(req.assetPool);
-
-        if (await canBypassPoll) await finalizeRewardPoll(reward);
-
-        res.redirect(`/${VERSION}/rewards/${reward.id}`);
-    } catch (error) {
-        next(new HttpError(500, error.message, error));
-    }
+    res.redirect(`/${VERSION}/rewards/${reward.id}`);
 };
 
 /**
