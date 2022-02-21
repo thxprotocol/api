@@ -31,13 +31,6 @@ async function claimReward(assetPool: AssetPoolDocument, id: string, rewardId: n
     }
 
     await RewardService.claimRewardFor(assetPool, id, rewardId, beneficiary);
-
-    // TODO Disable this when event indexing is added. Adjust tests too.
-    const canBypassPoll = await AssetPoolService.canBypassWithdrawPoll(assetPool, account, reward);
-
-    if (canBypassPoll) {
-        await WithdrawalService.withdrawPollFinalize(assetPool, id);
-    }
 }
 
 async function updateFailReason(withdrawal: WithdrawalDocument, failReason: string) {
@@ -46,6 +39,7 @@ async function updateFailReason(withdrawal: WithdrawalDocument, failReason: stri
 }
 
 export async function jobProcessWithdrawals() {
+    // TODO Invert this logic (iterate over pools instead of withdrawals and getAllScheduled for pool)
     const withdrawals = await WithdrawalService.getAllScheduled();
     for (const w of withdrawals) {
         const assetPool = await AssetPoolService.getByAddress(w.poolAddress);
