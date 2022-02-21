@@ -3,8 +3,6 @@ import { Artifacts } from '@/util/artifacts';
 import { soliditySha3 } from 'web3-utils';
 import { VOTER_PK, DEPOSITOR_PK, mintAmount } from './constants';
 import { callFunction, deployContract, getProvider, NetworkProvider, solutionContract } from '@/util/network';
-import { ethers, Wallet } from 'ethers';
-import { RPC } from '@/util/secrets';
 
 const { web3, admin } = getProvider(NetworkProvider.Main);
 
@@ -30,8 +28,8 @@ export const timeTravel = async (seconds: number) => {
         ],
     });
     await (web3 as any).increaseTime(seconds);
-    // await (web3 as any).mine();
 };
+
 export async function deployExampleToken(to = admin.address) {
     return await deployContract(
         Artifacts.ExampleToken.abi,
@@ -39,19 +37,6 @@ export async function deployExampleToken(to = admin.address) {
         [to, mintAmount],
         NetworkProvider.Main,
     );
-}
-
-const provider = new ethers.providers.JsonRpcProvider(RPC);
-
-export async function helpSign(poolAddress: string, name: string, args: any, account: Wallet) {
-    const solution = new ethers.Contract(poolAddress, Artifacts.IDefaultDiamond.abi, provider);
-    let nonce = await solution.getLatestNonce(account.getAddress());
-    nonce = parseInt(nonce) + 1;
-    const call = solution.interface.encodeFunctionData(name, args);
-    const hash = web3.utils.soliditySha3(call, nonce);
-    const sig = await account.signMessage(ethers.utils.arrayify(hash));
-
-    return { call, nonce, sig };
 }
 
 export async function signMethod(poolAddress: string, name: string, params: any[], account: Account) {
