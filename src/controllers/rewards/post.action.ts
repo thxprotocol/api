@@ -1,5 +1,4 @@
-import { Request, Response, NextFunction } from 'express';
-import { HttpError } from '@/models/Error';
+import { Request, Response } from 'express';
 import { VERSION } from '@/util/secrets';
 import { toWei } from 'web3-utils';
 import BN from 'bn.js';
@@ -7,9 +6,7 @@ import BN from 'bn.js';
 import RewardService from '@/services/RewardService';
 import AssetPoolService from '@/services/AssetPoolService';
 
-const ERROR_NO_REWARD = 'Could not find a created reward';
-
-export const postReward = async (req: Request, res: Response, next: NextFunction) => {
+export const postReward = async (req: Request, res: Response) => {
     const withdrawAmount = toWei(String(req.body.withdrawAmount));
     const withdrawDuration = req.body.withdrawDuration;
     const withdrawCondition = req.body.withdrawCondition;
@@ -23,8 +20,6 @@ export const postReward = async (req: Request, res: Response, next: NextFunction
         isMembershipRequired,
         isClaimOnce,
     );
-
-    if (!reward) return next(new HttpError(500, ERROR_NO_REWARD));
 
     if (await AssetPoolService.canBypassRewardPoll(req.assetPool))
         await RewardService.finalizePoll(req.assetPool, reward);

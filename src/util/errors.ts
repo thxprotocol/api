@@ -44,7 +44,9 @@ class NotFoundError extends THXHttpError {
 
 class InternalServerError extends THXHttpError {
     status = 500;
-    message = 'Internal Server Error';
+    constructor(message?: string) {
+        super(message || 'Internal Server Error');
+    }
 }
 
 class NotImplementedError extends THXHttpError {
@@ -104,6 +106,7 @@ export {
     NotFoundError,
     NotImplementedError,
     BadGatewayError,
+    InternalServerError,
     PromoCodeNotFoundError,
     SubjectUnauthorizedError,
     AudienceForbiddenError,

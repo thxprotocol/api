@@ -8,8 +8,6 @@ import { Artifacts } from '@/util/artifacts';
 import { parseLogs, findEvent } from '@/util/events';
 import { paginatedResults } from '@/util/pagination';
 
-const ERROR_NO_WITHDRAWAL = 'Could not find an withdrawal for this beneficiary';
-
 interface IWithdrawalUpdates {
     withdrawalId: number;
     memberId: number;
@@ -17,18 +15,6 @@ interface IWithdrawalUpdates {
 }
 
 export default class WithdrawalService {
-    static async get(assetPool: AssetPoolType, withdrawalId: number) {
-        try {
-            const withdrawal = await Withdrawal.findOne({
-                poolAddress: assetPool.address,
-                withdrawalId,
-            });
-            return { withdrawal };
-        } catch (error) {
-            return { error };
-        }
-    }
-
     static getById(id: string) {
         return Withdrawal.findById(id);
     }
@@ -170,52 +156,29 @@ export default class WithdrawalService {
     }
 
     static async removeAllForAddress(address: string) {
-        try {
-            const withdrawals = await Withdrawal.find({ poolAddress: address });
+        const withdrawals = await Withdrawal.find({ poolAddress: address });
 
-            for (const w of withdrawals) {
-                await w.remove();
-            }
-            return { result: true };
-        } catch (error) {
-            return { error };
+        for (const w of withdrawals) {
+            await w.remove();
         }
     }
 
     static async hasClaimedOnce(poolAddress: string, beneficiary: string, rewardId: number) {
-        try {
-            const withdrawal = await Withdrawal.findOne({
-                beneficiary,
-                rewardId,
-                poolAddress,
-                state: WithdrawalState.Withdrawn,
-            });
+        const withdrawal = await Withdrawal.findOne({
+            beneficiary,
+            rewardId,
+            poolAddress,
+            state: WithdrawalState.Withdrawn,
+        });
 
-            return { withdrawal };
-        } catch (error) {
-            return { error };
-        }
+        return withdrawal;
     }
 
     static async getByBeneficiary(beneficiary: string) {
-        try {
-            const withdrawals = await Withdrawal.find({ beneficiary });
-
-            if (!withdrawals) {
-                throw new Error(ERROR_NO_WITHDRAWAL);
-            }
-
-            return { withdrawals };
-        } catch (error) {
-            return { error };
-        }
+        return Withdrawal.find({ beneficiary });
     }
 
-    static async countByNetwork(network: NetworkProvider) {
-        try {
-            return await Withdrawal.countDocuments({ network });
-        } catch (error) {
-            return { error };
-        }
+    static countByNetwork(network: NetworkProvider) {
+        return Withdrawal.countDocuments({ network });
     }
 }

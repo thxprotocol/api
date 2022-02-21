@@ -1,7 +1,4 @@
-import { Request, Response, NextFunction } from 'express';
-import { HttpError } from '@/models/Error';
-import { RewardDocument } from '@/models/Reward';
-import { IAccount } from '@/models/Account';
+import { Request, Response } from 'express';
 import { agenda, eventNameProcessWithdrawals } from '@/util/agenda';
 
 import AccountProxy from '@/proxies/AccountProxy';
@@ -9,6 +6,7 @@ import RewardService from '@/services/RewardService';
 import MemberService from '@/services/MemberService';
 import WithdrawalService from '@/services/WithdrawalService';
 import { WithdrawalState, WithdrawalType } from '@/enums';
+import { BadRequestError, ForbiddenError } from '@/util/errors';
 
 const ERROR_REWARD_NOT_FOUND = 'The reward for this ID does not exist.';
 const ERROR_ACCOUNT_NO_ADDRESS = 'The authenticated account has not wallet address. Sign in the Web Wallet once.';
@@ -16,66 +14,38 @@ const ERROR_INCORRECT_SCOPE = 'No subscription is found for this type of access 
 const ERROR_CAIM_NOT_ALLOWED = 'Could not claim this reward due to the claim conditions.';
 const ERROR_NO_MEMBER = 'Could not claim this reward since you are not a member of the pool.';
 
-export async function postRewardClaim(req: Request, res: Response, next: NextFunction) {
-    async function getReward(rewardId: number) {
-        const reward = await RewardService.get(req.assetPool, rewardId);
+export async function postRewardClaim(req: Request, res: Response) {
+    const rewardId = Number(req.params.id);
 
-        return reward;
-    }
+    const sub = req.user.sub;
+    if (!sub) throw new BadRequestError(ERROR_INCORRECT_SCOPE);
 
-    async function getAccount(sub: string) {
-        const account = await AccountProxy.getById(sub);
-        if (!account.address) throw new Error(ERROR_ACCOUNT_NO_ADDRESS);
-        return account;
-    }
+    const reward = await RewardService.get(req.assetPool, rewardId);
+    if (!reward) throw new BadRequestError(ERROR_REWARD_NOT_FOUND);
 
-    async function checkIsMember(address: string) {
-        return await MemberService.isMember(req.assetPool, address);
-    }
+    const account = await AccountProxy.getById(sub);
+    if (!account.address) throw new BadRequestError(ERROR_ACCOUNT_NO_ADDRESS);
 
-    async function checkCanClaim(reward: RewardDocument, account: IAccount) {
-        const { canClaim, error } = await RewardService.canClaim(req.assetPool, reward, account);
-        if (error) throw new Error(error.message);
-        return canClaim;
-    }
+    // Check if the claim conditions are currently valid, recheck in job
+    const canClaim = await RewardService.canClaim(req.assetPool, reward, account);
+    if (!canClaim) throw new ForbiddenError(ERROR_CAIM_NOT_ALLOWED);
 
-    try {
-        const rewardId = Number(req.params.id);
-        const sub = req.user.sub;
+    // Check for membership separate since we might need to add a membership in the job
+    const isMember = await MemberService.isMember(req.assetPool, account.address);
+    if (!isMember && reward.isMembershipRequired) throw new ForbiddenError(ERROR_NO_MEMBER);
 
-        if (!sub) return next(new HttpError(500, ERROR_INCORRECT_SCOPE));
+    const { _id, amount, beneficiary, state, createdAt } = await WithdrawalService.schedule(
+        req.assetPool,
+        WithdrawalType.ClaimReward,
+        account.address,
+        reward.withdrawAmount,
+        WithdrawalState.Pending,
+        reward.id,
+    );
 
-        const reward = await getReward(rewardId);
+    agenda.now(eventNameProcessWithdrawals, null);
 
-        if (!reward) return next(new HttpError(500, ERROR_REWARD_NOT_FOUND));
-
-        const account = await getAccount(sub);
-
-        // Check if the claim conditions are currently valid, recheck in job
-        const canClaim = await checkCanClaim(reward, account);
-
-        if (!canClaim) return next(new HttpError(403, ERROR_CAIM_NOT_ALLOWED));
-
-        // Check for membership separate since we might need to add a membership in the job
-        const isMember = await checkIsMember(account.address);
-
-        if (!isMember && reward.isMembershipRequired) return next(new HttpError(403, ERROR_NO_MEMBER));
-
-        const { _id, amount, beneficiary, state, createdAt } = await WithdrawalService.schedule(
-            req.assetPool,
-            WithdrawalType.ClaimReward,
-            account.address,
-            reward.withdrawAmount,
-            WithdrawalState.Pending,
-            reward.id,
-        );
-
-        agenda.now(eventNameProcessWithdrawals, null);
-
-        return res.json({ id: String(_id), amount, beneficiary, state, rewardId, createdAt });
-    } catch (error) {
-        return next(new HttpError(500, error.message, error));
-    }
+    return res.json({ id: String(_id), amount, beneficiary, state, rewardId, createdAt });
 }
 
 /**

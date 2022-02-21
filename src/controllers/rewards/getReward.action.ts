@@ -1,12 +1,12 @@
-import { Request, Response, NextFunction } from 'express';
-import { HttpError } from '@/models/Error';
+import { Request, Response } from 'express';
 import RewardService from '@/services/RewardService';
+import { NotFoundError } from '@/util/errors';
 
-export const getReward = async (req: Request, res: Response, next: NextFunction) => {
+export const getReward = async (req: Request, res: Response) => {
     const reward = await RewardService.get(req.assetPool, Number(req.params.id));
 
     if (!reward) {
-        return next(new HttpError(404, 'Asset Pool reward not found.'));
+        throw new NotFoundError();
     }
 
     const poll = reward.pollId > 0 ? { poll: await RewardService.getRewardPoll(req.assetPool, reward.pollId) } : {};

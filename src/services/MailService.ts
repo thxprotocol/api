@@ -22,9 +22,7 @@ export default class MailService {
             },
             { async: true },
         );
-        const { account, error } = await AccountProxy.getByEmail(email);
-
-        if (error) throw new Error(error);
+        const account = await AccountProxy.getByEmail(email);
 
         await sendMail(email, 'A sign in is requested for your Web Wallet', html);
 

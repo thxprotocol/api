@@ -22,23 +22,19 @@ export default class AccountProxy {
     }
 
     static async getByEmail(email: string) {
-        try {
-            const r = await authClient({
-                method: 'GET',
-                url: `/account/email/${email}`,
-                headers: {
-                    Authorization: await getAuthAccessToken(),
-                },
-            });
+        const r = await authClient({
+            method: 'GET',
+            url: `/account/email/${email}`,
+            headers: {
+                Authorization: await getAuthAccessToken(),
+            },
+        });
 
-            if (!r.data) {
-                throw new Error(ERROR_NO_ACCOUNT);
-            }
-
-            return { account: r.data };
-        } catch (error) {
-            return { error };
+        if (!r.data) {
+            throw new Error(ERROR_NO_ACCOUNT);
         }
+
+        return r.data;
     }
 
     static async getByAddress(address: string): Promise<IAccount> {
@@ -67,12 +63,12 @@ export default class AccountProxy {
                 },
             });
 
-            return { isDuplicate: true };
+            return true;
         } catch (error) {
-            if (error.status !== 404) {
-                return { error };
+            if (error.response.status === 404) {
+                return false;
             }
-            return { isDuplicate: false };
+            throw error;
         }
     }
 
@@ -89,77 +85,61 @@ export default class AccountProxy {
             twitterAccess,
         }: IAccountUpdates,
     ) {
-        try {
-            const r = await authClient({
-                method: 'PATCH',
-                url: `/account/${sub}`,
-                data: {
-                    address,
-                    privateKey,
-                    acceptTermsPrivacy,
-                    acceptUpdates,
-                    authenticationToken,
-                    authenticationTokenExpires,
-                    googleAccess,
-                    twitterAccess,
-                },
-                headers: {
-                    Authorization: await getAuthAccessToken(),
-                },
-            });
+        const r = await authClient({
+            method: 'PATCH',
+            url: `/account/${sub}`,
+            data: {
+                address,
+                privateKey,
+                acceptTermsPrivacy,
+                acceptUpdates,
+                authenticationToken,
+                authenticationTokenExpires,
+                googleAccess,
+                twitterAccess,
+            },
+            headers: {
+                Authorization: await getAuthAccessToken(),
+            },
+        });
 
-            if (r.status !== 204) {
-                throw new Error('Could not update');
-            }
-
-            return { result: true };
-        } catch (error) {
-            return { error };
+        if (r.status !== 204) {
+            throw new Error('Could not update');
         }
     }
 
     static async remove(sub: string) {
-        try {
-            const r = await authClient({
-                method: 'DELETE',
-                url: `/account/${sub}`,
-                headers: {
-                    Authorization: await getAuthAccessToken(),
-                },
-            });
+        const r = await authClient({
+            method: 'DELETE',
+            url: `/account/${sub}`,
+            headers: {
+                Authorization: await getAuthAccessToken(),
+            },
+        });
 
-            if (!r.data) {
-                throw new Error('Could not delete');
-            }
-
-            return { result: true };
-        } catch (error) {
-            return { error };
+        if (!r.data) {
+            throw new Error('Could not delete');
         }
     }
 
     static async signupFor(email: string, password: string, address?: string) {
-        try {
-            const r = await authClient({
-                method: 'POST',
-                url: '/account',
-                data: {
-                    email,
-                    password,
-                    address,
-                },
-                headers: {
-                    Authorization: await getAuthAccessToken(),
-                },
-            });
+        const r = await authClient({
+            method: 'POST',
+            url: '/account',
+            data: {
+                email,
+                password,
+                address,
+            },
+            headers: {
+                Authorization: await getAuthAccessToken(),
+            },
+        });
 
-            if (!r.data) {
-                throw new Error(ERROR_CREATE_ACCOUNT);
-            }
-
-            return { account: r.data };
-        } catch (error) {
-            return { error };
+        if (!r.data) {
+            throw new Error(ERROR_CREATE_ACCOUNT);
         }
+
+        return r.data;
     }
 }

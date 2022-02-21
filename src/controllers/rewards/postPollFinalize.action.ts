@@ -1,10 +1,10 @@
 import RewardService from '@/services/RewardService';
-import { HttpError } from '@/models/Error';
-import { Request, NextFunction, Response } from 'express';
+import { Request, Response } from 'express';
+import { NotFoundError } from '@/util/errors';
 
-export const postPollFinalize = async (req: Request, res: Response, next: NextFunction) => {
+export const postPollFinalize = async (req: Request, res: Response) => {
     const reward = await RewardService.get(req.assetPool, Number(req.params.id));
-    if (!reward) return next(new HttpError(404, 'No reward found for this ID.'));
+    if (!reward) throw new NotFoundError();
 
     const finalizedReward = await RewardService.finalizePoll(req.assetPool, reward);
     res.json(finalizedReward);

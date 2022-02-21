@@ -1,7 +1,7 @@
-import { Request, NextFunction, Response } from 'express';
-import { HttpError } from '@/models/Error';
+import { Request, Response } from 'express';
 
 import WithdrawalService from '@/services/WithdrawalService';
+import { NotFoundError } from '@/util/errors';
 
 /**
  * @swagger
@@ -72,11 +72,10 @@ import WithdrawalService from '@/services/WithdrawalService';
  *       '502':
  *         $ref: '#/components/responses/502'
  */
-export const getWithdrawal = async (req: Request, res: Response, next: NextFunction) => {
+export const getWithdrawal = async (req: Request, res: Response) => {
     const withdrawal = await WithdrawalService.getById(req.params.id);
-
     if (!withdrawal) {
-        return next(new HttpError(404, 'Could not find a withdrawal for this ID.'));
+        throw new NotFoundError();
     }
 
     const id = withdrawal._id.toString();

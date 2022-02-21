@@ -69,73 +69,35 @@ export default class RewardService {
         };
     }
 
-    static async canClaim(assetPool: AssetPoolType, reward: RewardDocument, account: IAccount) {
-        async function validateYouTubeLike(channelItem: string) {
-            const { result, error } = await YouTubeDataProxy.validateLike(account, channelItem);
-            if (error) throw new Error('Could not validate YouTube like');
-            return result;
-        }
-        async function validateYouTubeSubscribe(channelItem: string) {
-            const { result, error } = await YouTubeDataProxy.validateSubscribe(account, channelItem);
-            if (error) throw new Error('Could not validate YouTube subscribe');
-            return result;
-        }
-        async function validateTwitterLike(channelItem: string) {
-            const { result, error } = await TwitterDataProxy.validateLike(account, channelItem);
-            if (error) throw new Error('Could not validate Twitter like');
-            return result;
-        }
-        async function validateTwitterRetweet(channelItem: string) {
-            const { result, error } = await TwitterDataProxy.validateRetweet(account, channelItem);
-            if (error) throw new Error('Could not validate Twitter retweet');
-            return result;
-        }
-        async function validateTwitterFollow(channelItem: string) {
-            const { result, error } = await TwitterDataProxy.validateFollow(account, channelItem);
-            if (error) throw new Error('Could not validate Twitter follow');
-            return result;
-        }
-        async function validate(channelAction: ChannelAction, channelItem: string) {
+    static async canClaim(assetPool: AssetPoolType, reward: RewardDocument, account: IAccount): Promise<boolean> {
+        function validate(channelAction: ChannelAction, channelItem: string): Promise<boolean> {
             switch (channelAction) {
                 case ChannelAction.YouTubeLike:
-                    return await validateYouTubeLike(channelItem);
+                    return YouTubeDataProxy.validateLike(account, channelItem);
                 case ChannelAction.YouTubeSubscribe:
-                    return await validateYouTubeSubscribe(channelItem);
+                    return YouTubeDataProxy.validateSubscribe(account, channelItem);
                 case ChannelAction.TwitterLike:
-                    return await validateTwitterLike(channelItem);
+                    return TwitterDataProxy.validateLike(account, channelItem);
                 case ChannelAction.TwitterRetweet:
-                    return await validateTwitterRetweet(channelItem);
+                    return TwitterDataProxy.validateRetweet(account, channelItem);
                 case ChannelAction.TwitterFollow:
-                    return await validateTwitterFollow(channelItem);
+                    return TwitterDataProxy.validateFollow(account, channelItem);
                 default:
-                    return false;
+                    return Promise.resolve(false);
             }
         }
 
-        try {
-            const { withdrawal } = await WithdrawalService.hasClaimedOnce(
-                assetPool.address,
-                account.address,
-                reward.id,
-            );
+        const withdrawal = await WithdrawalService.hasClaimedOnce(assetPool.address, account.address, reward.id);
 
-            if (reward.isClaimOnce && withdrawal) {
-                return { canClaim: false };
-            }
-
-            if (!reward.withdrawCondition || !reward.withdrawCondition.channelType) {
-                return { canClaim: true };
-            }
-
-            const canClaim = await validate(
-                reward.withdrawCondition.channelAction,
-                reward.withdrawCondition.channelItem,
-            );
-
-            return { canClaim };
-        } catch (error) {
-            return { error };
+        if (reward.isClaimOnce && withdrawal) {
+            return false;
         }
+
+        if (!reward.withdrawCondition || !reward.withdrawCondition.channelType) {
+            return true;
+        }
+
+        return await validate(reward.withdrawCondition.channelAction, reward.withdrawCondition.channelItem);
     }
 
     static async claimRewardFor(assetPool: AssetPoolType, id: string, rewardId: number, beneficiary: string) {
@@ -156,14 +118,9 @@ export default class RewardService {
     }
 
     static async removeAllForAddress(address: string) {
-        try {
-            const rewards = await Reward.find({ poolAddress: address });
-            for (const r of rewards) {
-                await r.remove();
-            }
-            return { result: true };
-        } catch (error) {
-            return { error };
+        const rewards = await Reward.find({ poolAddress: address });
+        for (const r of rewards) {
+            await r.remove();
         }
     }
 
@@ -202,21 +159,17 @@ export default class RewardService {
         rewardId: number,
         { withdrawAmount, withdrawDuration }: IRewardUpdates,
     ) {
-        try {
-            const withdrawAmountInWei = toWei(withdrawAmount.toString());
-            const tx = await sendTransaction(
-                assetPool.solution.options.address,
-                assetPool.solution.methods.updateReward(rewardId, withdrawAmountInWei, withdrawDuration),
-                assetPool.network,
-            );
-            const events = parseLogs(Artifacts.IDefaultDiamond.abi, tx.logs);
-            const event = findEvent('RewardPollCreated', events);
-            const pollId = Number(event.args.id);
+        const withdrawAmountInWei = toWei(withdrawAmount.toString());
+        const tx = await sendTransaction(
+            assetPool.solution.options.address,
+            assetPool.solution.methods.updateReward(rewardId, withdrawAmountInWei, withdrawDuration),
+            assetPool.network,
+        );
+        const events = parseLogs(Artifacts.IDefaultDiamond.abi, tx.logs);
+        const event = findEvent('RewardPollCreated', events);
+        const pollId = Number(event.args.id);
 
-            return { pollId };
-        } catch (error) {
-            return { error };
-        }
+        return pollId;
     }
 
     static async finalizePoll(assetPool: AssetPoolType, reward: RewardDocument) {
@@ -255,14 +208,5 @@ export default class RewardService {
         }
 
         return reward;
-    }
-
-    static async countByPoolAddress(poolAddress: string) {
-        try {
-            const count = Reward.countDocuments({ poolAddress });
-            return count;
-        } catch (error) {
-            return { error };
-        }
     }
 }

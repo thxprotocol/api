@@ -1,8 +1,8 @@
 import { body, validationResult } from 'express-validator';
 import { Response, Request, NextFunction } from 'express';
-import { HttpError } from '@/models/Error';
 import { AssetPool } from '@/models/AssetPool';
 import AssetPoolService from '@/services/AssetPoolService';
+import { BadRequestError, UnauthorizedError } from './errors';
 
 export const validate = (validations: any) => {
     return async (req: Request, res: Response, next: NextFunction) => {
@@ -27,7 +27,7 @@ export const validateAssetPoolHeader = async (req: Request, res: Response, next:
         const isMember = await AssetPoolService.isAssetPoolMember(req.user.sub, req.header('AssetPool'));
 
         if (!isMember) {
-            return next(new HttpError(401, 'Could not access this asset pool by sub.'));
+            return next(new UnauthorizedError('Could not access this asset pool by sub.'));
         } else {
             return next();
         }
@@ -37,7 +37,7 @@ export const validateAssetPoolHeader = async (req: Request, res: Response, next:
         const assetPools = await AssetPool.find({ clientId: req.user.aud, address: req.header('AssetPool') });
 
         if (!assetPools) {
-            return next(new HttpError(401, 'Could not access this asset pool by audience.'));
+            return next(new UnauthorizedError('Could not access this asset pool by audience.'));
         } else {
             return next();
         }
@@ -48,7 +48,7 @@ export const confirmPassword = body('confirmPassword')
     .exists()
     .custom((confirmPassword, { req }) => {
         if (confirmPassword !== req.body.password) {
-            throw new HttpError(400, 'Passwords are not identical');
+            throw new BadRequestError('Passwords are not identical');
         }
         return true;
     });
