@@ -92,6 +92,7 @@ class DuplicateEmailError extends BadRequestError {
 export {
     THXError,
     THXHttpError,
+    BadRequestError,
     UnauthorizedError,
     ForbiddenError,
     NotFoundError,

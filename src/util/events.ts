@@ -1,6 +1,13 @@
 import { ethers } from 'ethers';
 import { Artifacts } from './artifacts';
+import { THXError } from './errors';
 import { logger } from './logger';
+
+class ExpectedEventNotFound extends THXError {
+    constructor(event: string) {
+        super(`Event ${event} expected in eventlog but not found. Check API health status at /v1/health.`);
+    }
+}
 
 export function parseArgs(args: any) {
     const returnValues: any = {};
@@ -37,6 +44,16 @@ export function hex2a(hex: any) {
 
 export function findEvent(eventName: string, events: CustomEventLog[]): CustomEventLog {
     return events.find((ev: any) => ev && ev.name === eventName);
+}
+
+export function assertEvent(eventName: string, events: CustomEventLog[]): CustomEventLog {
+    const event = findEvent(eventName, events);
+
+    if (!event) {
+        throw new ExpectedEventNotFound(eventName);
+    }
+
+    return event;
 }
 
 interface CustomEventLog {

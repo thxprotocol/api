@@ -5,7 +5,7 @@ import { agenda, eventNameProcessWithdrawals } from '@/util/agenda';
 
 import RewardService from '@/services/RewardService';
 import WithdrawalService from '@/services/WithdrawalService';
-import MemberService, { ERROR_IS_NOT_MEMBER } from '@/services/MemberService';
+import MemberService from '@/services/MemberService';
 import AccountProxy from '@/proxies/AccountProxy';
 import { WithdrawalState, WithdrawalType } from '@/enums';
 
@@ -20,7 +20,7 @@ export const postRewardClaimFor = async (req: Request, res: Response, next: Next
 
         const isMember = await MemberService.isMember(req.assetPool, req.body.member);
 
-        if (!isMember && reward.isMembershipRequired) return next(new HttpError(403, ERROR_IS_NOT_MEMBER));
+        if (!isMember && reward.isMembershipRequired) return next(new HttpError(403, ''));
 
         const account = await AccountProxy.getByAddress(req.body.member);
         const withdrawal = await WithdrawalService.schedule(

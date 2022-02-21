@@ -1,4 +1,4 @@
-import { findEvent, parseLogs } from '@/util/events';
+import { assertEvent, parseLogs } from '@/util/events';
 import { callFunction, getAssetPoolFactory, NetworkProvider, sendTransaction, tokenContract } from '@/util/network';
 import { Artifacts } from '@/util/artifacts';
 import { POOL_REGISTRY_ADDRESS, TESTNET_POOL_REGISTRY_ADDRESS } from '@/util/secrets';
@@ -134,13 +134,8 @@ export default class AssetPoolService {
             assetPoolFactory.methods.deployAssetPool(),
             network,
         );
-        const event = findEvent('AssetPoolDeployed', parseLogs(Artifacts.IAssetPoolFactory.abi, tx.logs));
+        const event = assertEvent('AssetPoolDeployed', parseLogs(Artifacts.IAssetPoolFactory.abi, tx.logs));
 
-        if (!event) {
-            throw new Error(
-                'Could not find a confirmation event in factory transaction. Check API health status at /v1/health.',
-            );
-        }
         const assetPool = new AssetPool({
             sub,
             address: event.args.assetPool,

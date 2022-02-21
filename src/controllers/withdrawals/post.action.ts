@@ -2,8 +2,9 @@ import newrelic from 'newrelic';
 import { Request, Response } from 'express';
 import { Withdrawal } from '@/models/Withdrawal';
 import { agenda, eventNameProcessWithdrawals } from '@/util/agenda';
+import { BadRequestError } from '@/util/errors';
 
-import MemberService, { ERROR_IS_NOT_MEMBER } from '@/services/MemberService';
+import MemberService from '@/services/MemberService';
 import WithdrawalService from '@/services/WithdrawalService';
 
 import AccountProxy from '@/proxies/AccountProxy';
@@ -11,7 +12,7 @@ import { WithdrawalState, WithdrawalType } from '@/enums';
 
 export const postWithdrawal = async (req: Request, res: Response) => {
     const isMember = await MemberService.isMember(req.assetPool, req.body.member);
-    if (!isMember) throw new Error(ERROR_IS_NOT_MEMBER);
+    if (!isMember) throw new BadRequestError('Address is not a member of asset pool.');
 
     const account = await AccountProxy.getByAddress(req.body.member);
     const withdrawal = await WithdrawalService.schedule(
