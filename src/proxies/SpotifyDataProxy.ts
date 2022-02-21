@@ -1,4 +1,4 @@
-import { authClient, getAuthAccessToken } from '../util/auth';
+import { authClient, getAuthAccessToken } from '@/util/auth';
 
 const NO_USER = 'Could not find spotify data for this account';
 
