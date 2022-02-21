@@ -9,23 +9,19 @@
     "license": "AGPL-3.0",
     "scripts": {
         "preinstall": "npx npm-force-resolutions",
-        "serve:debug": "nodemon --inspect=7000 ./dist/src/server.js",
         "lint": "tsc -p ./tsconfig.json && eslint \"./src/**/*.ts\"",
         "lint:fix": "tsc -p ./tsconfig.json && eslint \"./src/**/*.ts\" --fix",
-        "dev": "docker compose up -d && npm run watch:debug",
+        "dev": "docker compose up -d && npm run watch",
         "build": "npm run build:sass && npm run build:assets && npm run build:docs && tsc -p ./tsconfig.json",
         "build:assets": "mkdir -p dist/src/public && cp -R src/public/* dist/src/public/. && cp -R src/views dist/src/.",
         "build:docs": "swagger-jsdoc -d ./src/swaggerDef.js -o ./src/swagger.json",
         "build:sass": "sass src/main.scss src/public/main.css",
-        "watch": "concurrently -k -p \"[{name}]\" -n \"Sass,TypeScript,Node\" -c \"yellow.bold,cyan.bold,green.bold\" \"npm run watch:ts\" \"npm run watch:sass\" \"npm run watch:node\"",
-        "watch:ts": "tsc -w",
-        "watch:sass": "sass --watch src/main.scss dist/src/public/main.css",
-        "watch:node": "nodemon dist/src/server.js",
-        "watch:debug": "concurrently -k -p \"[{name}]\" -n \"TypeScript,Node\" -c \"yellow.bold,cyan.bold,green.bold\" \"npm run watch:ts\" \"npm run watch:sass\" \"npm run serve:debug\"",
+        "watch": "concurrently -k -p \"[{name}]\" -n \"Sass,Node\" -c \"yellow.bold,cyan.bold\" \"npm run watch:sass\" \"npm run watch:node\"",
+        "watch:sass": "sass --watch src/main.scss src/public/main.css",
+        "watch:node": "nodemon src/server.ts",
         "test": "npx jest --runInBand",
         "test:coverage": "npx jest --coverage --runInBand",
         "test:debug": "npx jest --coverage --runInBand --detectOpenHandles",
-        "deploy": "ts-node -r tsconfig-paths/register scripts/deploy/index.ts",
         "migrate": "migrate-mongo up -f src/migrate-mongo-config.js",
         "migrate:create": "sh -c 'migrate-mongo create -f src/migrate-mongo-config.js $0'",
         "migrate:status": "migrate-mongo status -f src/migrate-mongo-config.js",
@@ -203,7 +199,8 @@
     },
     "nodemonConfig": {
         "execMap": {
-            "js": "TS_NODE_BASEURL=./dist node -r tsconfig-paths/register"
+            "js": "TS_NODE_BASEURL=./dist node -r tsconfig-paths/register",
+            "ts": "NODE_OPTIONS=--inspect=7000 ts-node -r tsconfig-paths/register"
         }
     }
 }
