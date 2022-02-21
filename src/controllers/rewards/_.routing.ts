@@ -9,7 +9,7 @@ import { postReward } from './post.action';
 import { patchReward } from './patch.action';
 import { postRewardClaim } from './postRewardClaim.action';
 import { postRewardClaimFor } from './postRewardClaimFor.action';
-import { parseHeader } from '@/util/network';
+import { requireAssetPoolHeader } from '@/middlewares';
 import { postVote } from './postVote.action';
 import { deleteVote } from './deleteVote.action';
 import { postPollFinalize } from './postPollFinalize.action';
@@ -22,7 +22,7 @@ router.get(
     checkScopes(['admin', 'user', 'dashboard']),
     validateAssetPoolHeader,
     validate(validations.getRewards),
-    parseHeader,
+    requireAssetPoolHeader,
     getRewards,
 );
 router.get(
@@ -30,7 +30,7 @@ router.get(
     checkScopes(['admin', 'user', 'widget', 'dashboard']),
     validateAssetPoolHeader,
     validate(validations.getReward),
-    parseHeader,
+    requireAssetPoolHeader,
     getReward,
 );
 router.post(
@@ -38,7 +38,7 @@ router.post(
     checkScopes(['admin', 'dashboard']),
     validateAssetPoolHeader,
     validate(validations.postReward),
-    parseHeader,
+    requireAssetPoolHeader,
     postReward,
 );
 router.patch(
@@ -46,7 +46,7 @@ router.patch(
     checkScopes(['admin', 'dashboard']),
     validateAssetPoolHeader,
     validate(validations.patchReward),
-    parseHeader,
+    requireAssetPoolHeader,
     patchReward,
 );
 router.post(
@@ -54,7 +54,7 @@ router.post(
     checkScopes(['widget', 'user']),
     // rateLimitRewardClaim,
     validate(validations.postRewardClaim),
-    parseHeader,
+    requireAssetPoolHeader,
     postRewardClaim,
 );
 router.post(
@@ -62,7 +62,7 @@ router.post(
     checkScopes(['admin']),
     rateLimitRewardGive,
     validate(validations.postRewardClaimFor),
-    parseHeader,
+    requireAssetPoolHeader,
     postRewardClaimFor,
 );
 
@@ -71,7 +71,7 @@ router.post(
     checkScopes(['admin']),
     validateAssetPoolHeader,
     validate(validations.postVote),
-    parseHeader,
+    requireAssetPoolHeader,
     postVote,
 );
 router.delete(
@@ -79,7 +79,7 @@ router.delete(
     checkScopes(['admin']),
     validateAssetPoolHeader,
     validate(validations.deleteVote),
-    parseHeader,
+    requireAssetPoolHeader,
     deleteVote,
 );
 router.post(
@@ -87,7 +87,7 @@ router.post(
     checkScopes(['admin']),
     validateAssetPoolHeader,
     validate(validations.postPollFinalize),
-    parseHeader,
+    requireAssetPoolHeader,
     postPollFinalize,
 );
 

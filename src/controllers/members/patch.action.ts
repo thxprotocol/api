@@ -1,7 +1,7 @@
-import { Request, NextFunction, Response } from 'express';
+import { Request, Response } from 'express';
 import { callFunction, sendTransaction } from '@/util/network';
-import { HttpError } from '@/models/Error';
 import { VERSION } from '@/util/secrets';
+import { NotFoundError } from '@/util/errors';
 
 /**
  * @swagger
@@ -39,26 +39,21 @@ import { VERSION } from '@/util/secrets';
  *       '502':
  *         $ref: '#/components/responses/502'
  */
-export const patchMember = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-        const isMember = await callFunction(
-            req.assetPool.solution.methods.isMember(req.params.address),
-            req.assetPool.network,
-        );
+export const patchMember = async (req: Request, res: Response) => {
+    const isMember = await callFunction(
+        req.assetPool.solution.methods.isMember(req.params.address),
+        req.assetPool.network,
+    );
 
-        if (!isMember) {
-            next(new HttpError(404, 'Address is not a member.'));
-            return;
-        }
-
-        await sendTransaction(
-            req.assetPool.address,
-            req.assetPool.solution.methods[req.body.isManager ? 'addManager' : 'removeManager'](req.params.address),
-            req.assetPool.network,
-        );
-
-        res.redirect(`/${VERSION}/members/${req.params.address}`);
-    } catch (err) {
-        next(new HttpError(502, 'Asset Pool add/remove Manager failed.', err));
+    if (!isMember) {
+        throw new NotFoundError();
     }
+
+    await sendTransaction(
+        req.assetPool.address,
+        req.assetPool.solution.methods[req.body.isManager ? 'addManager' : 'removeManager'](req.params.address),
+        req.assetPool.network,
+    );
+
+    res.redirect(`/${VERSION}/members/${req.params.address}`);
 };

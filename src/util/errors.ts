@@ -1,39 +1,60 @@
-class BaseError extends Error {
-    status: number;
+class THXError extends Error {
     message: string;
+
+    constructor(message?: string) {
+        super(message);
+        this.name = this.constructor.name;
+        Object.setPrototypeOf(this, new.target.prototype); // restore prototype chain
+    }
 }
 
-class BadRequestError extends BaseError {
+class THXHttpError extends THXError {
+    status: number;
+    constructor(message?: string, status?: number) {
+        super(message);
+        if (status) {
+            this.status = status;
+        }
+    }
+}
+
+class BadRequestError extends THXHttpError {
     status = 400;
-    message = 'Bad Request';
+    constructor(message?: string) {
+        super(message || 'Bad Request');
+    }
 }
 
-class UnauthorizedError extends BaseError {
+class UnauthorizedError extends THXHttpError {
     status = 401;
-    message = 'Unauthorized';
+    constructor(message?: string) {
+        super(message || 'Unauthorized');
+    }
 }
 
-class ForbiddenError extends BaseError {
+class ForbiddenError extends THXHttpError {
     status = 403;
     message = 'Forbidden';
 }
 
-class NotFoundError extends BaseError {
+class NotFoundError extends THXHttpError {
     status = 404;
     message = 'Not Found';
 }
 
-class InternalServerError extends BaseError {
+class InternalServerError extends THXHttpError {
     status = 500;
-    message = 'Internal Server Error';
+    constructor(message?: string) {
+        super(message || 'Internal Server Error');
+    }
 }
 
-class NotImplementedError extends BaseError {
+class NotImplementedError extends THXHttpError {
     status = 501;
     message = 'Not Implemented';
 }
 
-class BadGatewayError extends BaseError {
+class BadGatewayError extends THXHttpError {
     status = 502;
     message = 'Bad Gateway';
 }
@@ -72,13 +93,20 @@ class DuplicateEmailError extends BadRequestError {
     message = 'An account with this e-mail address already exists.';
 }
 
+class GetPastWithdrawPollCreatedEventsError extends InternalServerError {
+    message = 'GetPastEvents for WithdrawPollCreated event failed in callback.';
+}
+
 export {
-    BaseError,
+    THXError,
+    THXHttpError,
+    BadRequestError,
     UnauthorizedError,
     ForbiddenError,
     NotFoundError,
     NotImplementedError,
     BadGatewayError,
+    InternalServerError,
     PromoCodeNotFoundError,
     SubjectUnauthorizedError,
     AudienceForbiddenError,
@@ -88,4 +116,5 @@ export {
     GetPastTransferEventsError,
     GetPastWithdrawnEventsError,
     DuplicateEmailError,
+    GetPastWithdrawPollCreatedEventsError,
 };

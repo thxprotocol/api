@@ -3,12 +3,12 @@ import express from 'express';
 import compression from 'compression';
 import lusca from 'lusca';
 import path from 'path';
-import router from './controllers';
-import db from './util/database';
-import { requestLogger } from './util/logger';
-import { corsHandler } from './util/cors';
-import { errorHandler, notFoundHandler } from './util/error';
-import { PORT, VERSION, MONGODB_URI } from './util/secrets';
+import router from '@/controllers';
+import db from '@/util/database';
+import { requestLogger } from '@/util/logger';
+import { corsHandler } from '@/util/cors';
+import { errorOutput, notFoundHandler, errorLogger, errorNormalizer } from '@/middlewares';
+import { PORT, VERSION, MONGODB_URI } from '@/util/secrets';
 
 const app = express();
 
@@ -26,6 +26,8 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(`/${VERSION}`, router);
 app.use(notFoundHandler);
-app.use(errorHandler);
+app.use(errorLogger);
+app.use(errorNormalizer);
+app.use(errorOutput);
 
 export default app;

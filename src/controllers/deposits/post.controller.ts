@@ -10,7 +10,7 @@ export const createDepositValidation = [body('item').isString().isLength({ min: 
 
 export default async function CreateDepositController(req: Request, res: Response) {
     const promoCode = await PromoCodeService.findById(req.body.item);
-    const { account } = await AccountProxy.getById(req.user.sub);
+    const account = await AccountProxy.getById(req.user.sub);
     const { _id, sender, receiver, amount, state } = await DepositService.create(
         req.assetPool,
         account,

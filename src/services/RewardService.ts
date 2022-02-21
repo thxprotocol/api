@@ -14,28 +14,22 @@ import TwitterDataProxy from '@/proxies/TwitterDataProxy';
 
 export default class RewardService {
     static async get(assetPool: AssetPoolType, rewardId: number) {
-        try {
-            const reward = await Reward.findOne({ poolAddress: assetPool.address, id: rewardId });
+        const reward = await Reward.findOne({ poolAddress: assetPool.address, id: rewardId });
 
-            if (!reward) return { reward };
+        if (!reward) return reward;
 
-            const { id, withdrawAmount, withdrawDuration, pollId, state } = await callFunction(
-                assetPool.solution.methods.getReward(rewardId),
-                assetPool.network,
-            );
+        const { id, withdrawAmount, withdrawDuration, pollId, state } = await callFunction(
+            assetPool.solution.methods.getReward(rewardId),
+            assetPool.network,
+        );
 
-            reward.id = Number(id);
-            reward.withdrawAmount = Number(fromWei(withdrawAmount));
-            reward.withdrawDuration = Number(withdrawDuration);
-            reward.state = state;
-            reward.pollId = Number(pollId);
+        reward.id = Number(id);
+        reward.withdrawAmount = Number(fromWei(withdrawAmount));
+        reward.withdrawDuration = Number(withdrawDuration);
+        reward.state = state;
+        reward.pollId = Number(pollId);
 
-            return {
-                reward,
-            };
-        } catch (error) {
-            return { error };
-        }
+        return reward;
     }
 
     static async findByPoolAddress(assetPool: AssetPoolType) {
@@ -43,113 +37,67 @@ export default class RewardService {
     }
 
     static async getRewardPoll(assetPool: AssetPoolType, pollId: number) {
-        try {
-            const withdrawAmount = Number(
-                fromWei(await callFunction(assetPool.solution.methods.getWithdrawAmount(pollId), assetPool.network)),
-            );
-            const withdrawDuration = Number(
-                await callFunction(assetPool.solution.methods.getWithdrawDuration(pollId), assetPool.network),
-            );
-            const startTime = Number(
-                await callFunction(assetPool.solution.methods.getStartTime(pollId), assetPool.network),
-            );
-            const endTime = Number(
-                await callFunction(assetPool.solution.methods.getEndTime(pollId), assetPool.network),
-            );
-            const yesCounter = Number(
-                await callFunction(assetPool.solution.methods.getYesCounter(pollId), assetPool.network),
-            );
-            const noCounter = Number(
-                await callFunction(assetPool.solution.methods.getNoCounter(pollId), assetPool.network),
-            );
-            const totalVoted = Number(
-                await callFunction(assetPool.solution.methods.getTotalVoted(pollId), assetPool.network),
-            );
+        const withdrawAmount = Number(
+            fromWei(await callFunction(assetPool.solution.methods.getWithdrawAmount(pollId), assetPool.network)),
+        );
+        const withdrawDuration = Number(
+            await callFunction(assetPool.solution.methods.getWithdrawDuration(pollId), assetPool.network),
+        );
+        const startTime = Number(
+            await callFunction(assetPool.solution.methods.getStartTime(pollId), assetPool.network),
+        );
+        const endTime = Number(await callFunction(assetPool.solution.methods.getEndTime(pollId), assetPool.network));
+        const yesCounter = Number(
+            await callFunction(assetPool.solution.methods.getYesCounter(pollId), assetPool.network),
+        );
+        const noCounter = Number(
+            await callFunction(assetPool.solution.methods.getNoCounter(pollId), assetPool.network),
+        );
+        const totalVoted = Number(
+            await callFunction(assetPool.solution.methods.getTotalVoted(pollId), assetPool.network),
+        );
 
-            return {
-                poll: {
-                    id: pollId,
-                    withdrawAmount,
-                    withdrawDuration,
-                    startTime,
-                    endTime,
-                    yesCounter,
-                    noCounter,
-                    totalVoted,
-                },
-            };
-        } catch (error) {
-            return { error };
-        }
+        return {
+            id: pollId,
+            withdrawAmount,
+            withdrawDuration,
+            startTime,
+            endTime,
+            yesCounter,
+            noCounter,
+            totalVoted,
+        };
     }
 
-    static async canClaim(assetPool: AssetPoolType, reward: RewardDocument, account: IAccount) {
-        async function validateYouTubeLike(channelItem: string) {
-            const { result, error } = await YouTubeDataProxy.validateLike(account, channelItem);
-            if (error) throw new Error('Could not validate YouTube like');
-            return result;
-        }
-        async function validateYouTubeSubscribe(channelItem: string) {
-            const { result, error } = await YouTubeDataProxy.validateSubscribe(account, channelItem);
-            if (error) throw new Error('Could not validate YouTube subscribe');
-            return result;
-        }
-        async function validateTwitterLike(channelItem: string) {
-            const { result, error } = await TwitterDataProxy.validateLike(account, channelItem);
-            if (error) throw new Error('Could not validate Twitter like');
-            return result;
-        }
-        async function validateTwitterRetweet(channelItem: string) {
-            const { result, error } = await TwitterDataProxy.validateRetweet(account, channelItem);
-            if (error) throw new Error('Could not validate Twitter retweet');
-            return result;
-        }
-        async function validateTwitterFollow(channelItem: string) {
-            const { result, error } = await TwitterDataProxy.validateFollow(account, channelItem);
-            if (error) throw new Error('Could not validate Twitter follow');
-            return result;
-        }
-        async function validate(channelAction: ChannelAction, channelItem: string) {
+    static async canClaim(assetPool: AssetPoolType, reward: RewardDocument, account: IAccount): Promise<boolean> {
+        function validate(channelAction: ChannelAction, channelItem: string): Promise<boolean> {
             switch (channelAction) {
                 case ChannelAction.YouTubeLike:
-                    return await validateYouTubeLike(channelItem);
+                    return YouTubeDataProxy.validateLike(account, channelItem);
                 case ChannelAction.YouTubeSubscribe:
-                    return await validateYouTubeSubscribe(channelItem);
+                    return YouTubeDataProxy.validateSubscribe(account, channelItem);
                 case ChannelAction.TwitterLike:
-                    return await validateTwitterLike(channelItem);
+                    return TwitterDataProxy.validateLike(account, channelItem);
                 case ChannelAction.TwitterRetweet:
-                    return await validateTwitterRetweet(channelItem);
+                    return TwitterDataProxy.validateRetweet(account, channelItem);
                 case ChannelAction.TwitterFollow:
-                    return await validateTwitterFollow(channelItem);
+                    return TwitterDataProxy.validateFollow(account, channelItem);
                 default:
-                    return false;
+                    return Promise.resolve(false);
             }
         }
 
-        try {
-            const { withdrawal } = await WithdrawalService.hasClaimedOnce(
-                assetPool.address,
-                account.address,
-                reward.id,
-            );
+        const withdrawal = await WithdrawalService.hasClaimedOnce(assetPool.address, account.address, reward.id);
 
-            if (reward.isClaimOnce && withdrawal) {
-                return { canClaim: false };
-            }
-
-            if (!reward.withdrawCondition || !reward.withdrawCondition.channelType) {
-                return { canClaim: true };
-            }
-
-            const canClaim = await validate(
-                reward.withdrawCondition.channelAction,
-                reward.withdrawCondition.channelItem,
-            );
-
-            return { canClaim };
-        } catch (error) {
-            return { error };
+        if (reward.isClaimOnce && withdrawal) {
+            return false;
         }
+
+        if (!reward.withdrawCondition || !reward.withdrawCondition.channelType) {
+            return true;
+        }
+
+        return await validate(reward.withdrawCondition.channelAction, reward.withdrawCondition.channelItem);
     }
 
     static async claimRewardFor(assetPool: AssetPoolType, id: string, rewardId: number, beneficiary: string) {
@@ -170,14 +118,9 @@ export default class RewardService {
     }
 
     static async removeAllForAddress(address: string) {
-        try {
-            const rewards = await Reward.find({ poolAddress: address });
-            for (const r of rewards) {
-                await r.remove();
-            }
-            return { result: true };
-        } catch (error) {
-            return { error };
+        const rewards = await Reward.find({ poolAddress: address });
+        for (const r of rewards) {
+            await r.remove();
         }
     }
 
@@ -189,35 +132,26 @@ export default class RewardService {
         isClaimOnce: boolean,
         withdrawCondition?: IRewardCondition,
     ) {
-        try {
-            const tx = await sendTransaction(
-                assetPool.solution.options.address,
-                assetPool.solution.methods.addReward(withdrawAmount, withdrawDuration),
-                assetPool.network,
-            );
-            const events = parseLogs(Artifacts.IDefaultDiamond.abi, tx.logs);
-            const event = findEvent('RewardPollCreated', events);
-            const id = Number(event.args.rewardID);
-            const reward = new Reward({
-                id,
-                poolAddress: assetPool.solution.options.address,
-                withdrawAmount: await callFunction(assetPool.solution.methods.getWithdrawAmount(id), assetPool.network),
-                withdrawDuration: await callFunction(
-                    assetPool.solution.methods.getWithdrawDuration(id),
-                    assetPool.network,
-                ),
-                withdrawCondition,
-                state: RewardState.Disabled,
-                isMembershipRequired,
-                isClaimOnce,
-            });
+        const tx = await sendTransaction(
+            assetPool.solution.options.address,
+            assetPool.solution.methods.addReward(withdrawAmount, withdrawDuration),
+            assetPool.network,
+        );
+        const events = parseLogs(Artifacts.IDefaultDiamond.abi, tx.logs);
+        const event = findEvent('RewardPollCreated', events);
+        const id = Number(event.args.rewardID);
+        const reward = new Reward({
+            id,
+            poolAddress: assetPool.solution.options.address,
+            withdrawAmount: await callFunction(assetPool.solution.methods.getWithdrawAmount(id), assetPool.network),
+            withdrawDuration: await callFunction(assetPool.solution.methods.getWithdrawDuration(id), assetPool.network),
+            withdrawCondition,
+            state: RewardState.Disabled,
+            isMembershipRequired,
+            isClaimOnce,
+        });
 
-            return { reward: await reward.save() };
-        } catch (error) {
-            return {
-                error,
-            };
-        }
+        return await reward.save();
     }
 
     static async update(
@@ -225,71 +159,54 @@ export default class RewardService {
         rewardId: number,
         { withdrawAmount, withdrawDuration }: IRewardUpdates,
     ) {
-        try {
-            const withdrawAmountInWei = toWei(withdrawAmount.toString());
-            const tx = await sendTransaction(
-                assetPool.solution.options.address,
-                assetPool.solution.methods.updateReward(rewardId, withdrawAmountInWei, withdrawDuration),
-                assetPool.network,
-            );
-            const events = parseLogs(Artifacts.IDefaultDiamond.abi, tx.logs);
-            const event = findEvent('RewardPollCreated', events);
-            const pollId = Number(event.args.id);
+        const withdrawAmountInWei = toWei(withdrawAmount.toString());
+        const tx = await sendTransaction(
+            assetPool.solution.options.address,
+            assetPool.solution.methods.updateReward(rewardId, withdrawAmountInWei, withdrawDuration),
+            assetPool.network,
+        );
+        const events = parseLogs(Artifacts.IDefaultDiamond.abi, tx.logs);
+        const event = findEvent('RewardPollCreated', events);
+        const pollId = Number(event.args.id);
 
-            return { pollId };
-        } catch (error) {
-            return { error };
-        }
+        return pollId;
     }
 
     static async finalizePoll(assetPool: AssetPoolType, reward: RewardDocument) {
-        try {
-            const { pollId } = await callFunction(assetPool.solution.methods.getReward(reward.id), assetPool.network);
-            const tx = await sendTransaction(
-                assetPool.solution.options.address,
-                assetPool.solution.methods.rewardPollFinalize(pollId),
+        const { pollId } = await callFunction(assetPool.solution.methods.getReward(reward.id), assetPool.network);
+        const tx = await sendTransaction(
+            assetPool.solution.options.address,
+            assetPool.solution.methods.rewardPollFinalize(pollId),
+            assetPool.network,
+        );
+        const events = parseLogs(Artifacts.IDefaultDiamond.abi, tx.logs);
+        const eventRewardPollEnabled = findEvent('RewardPollEnabled', events);
+        const eventRewardPollUpdated = findEvent('RewardPollUpdated', events);
+
+        if (eventRewardPollEnabled) {
+            reward.withdrawAmount = await callFunction(
+                assetPool.solution.methods.getWithdrawAmount(reward.id),
                 assetPool.network,
             );
-            const events = parseLogs(Artifacts.IDefaultDiamond.abi, tx.logs);
-            const eventRewardPollEnabled = findEvent('RewardPollEnabled', events);
-            const eventRewardPollUpdated = findEvent('RewardPollUpdated', events);
+            reward.withdrawDuration = await callFunction(
+                assetPool.solution.methods.getWithdrawDuration(reward.id),
+                assetPool.network,
+            );
+            reward.state = RewardState.Enabled;
 
-            if (eventRewardPollEnabled) {
-                reward.withdrawAmount = await callFunction(
-                    assetPool.solution.methods.getWithdrawAmount(reward.id),
-                    assetPool.network,
-                );
-                reward.withdrawDuration = await callFunction(
-                    assetPool.solution.methods.getWithdrawDuration(reward.id),
-                    assetPool.network,
-                );
-                reward.state = RewardState.Enabled;
-
-                await reward.save();
-            }
-
-            if (eventRewardPollUpdated) {
-                const withdrawAmount = Number(fromWei(eventRewardPollUpdated.args.amount.toString()));
-                const withdrawDuration = Number(eventRewardPollUpdated.args.duration);
-
-                reward.withdrawAmount = withdrawAmount;
-                reward.withdrawDuration = withdrawDuration;
-
-                await reward.save();
-            }
-
-            return { finalizedReward: reward };
-        } catch (error) {
-            return { error };
+            await reward.save();
         }
-    }
 
-    static async countByPoolAddress(poolAddress: string) {
-        try {
-            const count = Reward.countDocuments({ poolAddress });
-            return count;
-        } catch (error) {
-            return { error };
+        if (eventRewardPollUpdated) {
+            const withdrawAmount = Number(fromWei(eventRewardPollUpdated.args.amount.toString()));
+            const withdrawDuration = Number(eventRewardPollUpdated.args.duration);
+
+            reward.withdrawAmount = withdrawAmount;
+            reward.withdrawDuration = withdrawDuration;
+
+            await reward.save();
         }
+
+        return reward;
     }
 }

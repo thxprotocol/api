@@ -1,7 +1,7 @@
-import { Request, NextFunction, Response } from 'express';
-import { HttpError } from '@/models/Error';
+import { Request, Response } from 'express';
 
 import WithdrawalService from '@/services/WithdrawalService';
+import { NotFoundError } from '@/util/errors';
 
 /**
  * @swagger
@@ -72,33 +72,28 @@ import WithdrawalService from '@/services/WithdrawalService';
  *       '502':
  *         $ref: '#/components/responses/502'
  */
-export const getWithdrawal = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-        const { withdrawal } = await WithdrawalService.getById(req.params.id);
-
-        if (!withdrawal) {
-            return next(new HttpError(404, 'Could not find a withdrawal for this ID.'));
-        }
-
-        const id = withdrawal._id.toString();
-
-        res.json({
-            id,
-            withdrawalId: withdrawal.withdrawalId,
-            failReason: withdrawal.failReason,
-            beneficiary: withdrawal.beneficiary,
-            amount: withdrawal.amount,
-            approved: withdrawal.approved,
-            state: withdrawal.state,
-            poll: {
-                startTime: withdrawal.poll.startTime,
-                endTime: withdrawal.poll.endTime,
-                yesCounter: withdrawal.poll.yesCounter,
-                noCounter: withdrawal.poll.noCounter,
-                totalVoted: withdrawal.poll.totalVoted,
-            },
-        });
-    } catch (err) {
-        next(new HttpError(502, 'Could not get all withdrawal information from the network.', err));
+export const getWithdrawal = async (req: Request, res: Response) => {
+    const withdrawal = await WithdrawalService.getById(req.params.id);
+    if (!withdrawal) {
+        throw new NotFoundError();
     }
+
+    const id = withdrawal._id.toString();
+
+    res.json({
+        id,
+        withdrawalId: withdrawal.withdrawalId,
+        failReason: withdrawal.failReason,
+        beneficiary: withdrawal.beneficiary,
+        amount: withdrawal.amount,
+        approved: withdrawal.approved,
+        state: withdrawal.state,
+        poll: {
+            startTime: withdrawal.poll.startTime,
+            endTime: withdrawal.poll.endTime,
+            yesCounter: withdrawal.poll.yesCounter,
+            noCounter: withdrawal.poll.noCounter,
+            totalVoted: withdrawal.poll.totalVoted,
+        },
+    });
 };

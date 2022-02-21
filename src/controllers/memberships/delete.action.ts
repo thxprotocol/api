@@ -1,17 +1,10 @@
-import { Request, NextFunction, Response } from 'express';
-import { HttpError } from '@/models/Error';
+import { Request, Response } from 'express';
 import MembershipService from '@/services/MembershipService';
 
-export const deleteMembership = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-        const { error } = await MembershipService.remove(req.params.id);
+export const deleteMembership = async (req: Request, res: Response) => {
+    await MembershipService.remove(req.params.id);
 
-        if (error) throw new Error(error);
-
-        res.status(204).end();
-    } catch (error) {
-        return next(new HttpError(500, error.toString(), error));
-    }
+    res.status(204).end();
 };
 
 /**
