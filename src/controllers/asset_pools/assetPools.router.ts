@@ -10,7 +10,7 @@ import { deleteAssetPool, deleteAssetPoolValidation } from './delete.action';
 const router = express.Router();
 
 router.post('/', assertScopes(['dashboard']), assertRequestInput(createAssetPoolValidation), postAssetPool);
-router.get('/', assertScopes(['dashboard']), requireAssetPoolHeader, getAssetPools);
+router.get('/', assertScopes(['dashboard']), getAssetPools);
 router.get(
     '/:address',
     assertScopes(['admin', 'dashboard']),
