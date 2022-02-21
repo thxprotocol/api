@@ -17,8 +17,8 @@ router.patch('/', assertScopes(['user', 'dashboard']), patchAccount);
 router.delete('/', assertScopes(['user', 'dashboard']), deleteAccount);
 router.post(
     '/',
-    assertRequestInput(createAccountValidation),
     assertScopes(['admin']),
+    assertRequestInput(createAccountValidation),
     requireAssetPoolHeader,
     postAccount,
 );

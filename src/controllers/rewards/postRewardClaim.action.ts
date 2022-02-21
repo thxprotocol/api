@@ -61,7 +61,7 @@ export async function postRewardClaim(req: Request, res: Response, next: NextFun
 
         if (!isMember && reward.isMembershipRequired) return next(new HttpError(403, ERROR_NO_MEMBER));
 
-        const withdrawal = await WithdrawalService.schedule(
+        const { _id, amount, beneficiary, state, createdAt } = await WithdrawalService.schedule(
             req.assetPool,
             WithdrawalType.ClaimReward,
             account.address,
@@ -72,7 +72,7 @@ export async function postRewardClaim(req: Request, res: Response, next: NextFun
 
         agenda.now(eventNameProcessWithdrawals, null);
 
-        return res.json(withdrawal);
+        return res.json({ id: String(_id), amount, beneficiary, state, rewardId, createdAt });
     } catch (error) {
         return next(new HttpError(500, error.message, error));
     }

@@ -32,6 +32,7 @@ async function claimReward(assetPool: AssetPoolDocument, id: string, rewardId: n
 
     await RewardService.claimRewardFor(assetPool, id, rewardId, beneficiary);
 
+    // TODO Disable this when event indexing is added. Adjust tests too.
     const canBypassPoll = await AssetPoolService.canBypassWithdrawPoll(assetPool, account, reward);
 
     if (canBypassPoll) {
