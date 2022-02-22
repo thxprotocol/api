@@ -79,6 +79,7 @@
         "@types/supertest": "^2.0.8",
         "@typescript-eslint/eslint-plugin": "^5.9.1",
         "@typescript-eslint/parser": "^5.9.1",
+        "abi-decoder": "^2.4.0",
         "bootstrap": "^4.6.0",
         "concurrently": "^7.0.0",
         "eslint": "^8.6.0",

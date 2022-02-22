@@ -2,6 +2,7 @@ import { ethers } from 'ethers';
 import { Artifacts } from './artifacts';
 import { THXError } from './errors';
 import { logger } from './logger';
+import abiDecoder from 'abi-decoder';
 
 class ExpectedEventNotFound extends THXError {
     constructor(event: string) {
