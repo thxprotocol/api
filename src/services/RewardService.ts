@@ -1,16 +1,16 @@
 import BN from 'bn.js';
-import { AssetPoolType } from '@/models/AssetPool';
-import { IAccount } from '@/models/Account';
-import { sendTransaction, callFunction } from '@/util/network';
-import { Artifacts } from '@/util/artifacts';
-import { parseLogs, findEvent } from '@/util/events';
-import { ChannelAction, IRewardCondition, IRewardUpdates, Reward, RewardDocument, RewardState } from '@/models/Reward';
 import { fromWei, toWei } from 'web3-utils';
 
-import WithdrawalService from './WithdrawalService';
-
-import YouTubeDataProxy from '@/proxies/YoutubeDataProxy';
+import { IAccount } from '@/models/Account';
+import { AssetPoolType } from '@/models/AssetPool';
+import { ChannelAction, IRewardCondition, IRewardUpdates, Reward, RewardDocument, RewardState } from '@/models/Reward';
 import TwitterDataProxy from '@/proxies/TwitterDataProxy';
+import YouTubeDataProxy from '@/proxies/YoutubeDataProxy';
+import { Artifacts } from '@/util/artifacts';
+import { findEvent, parseLogs } from '@/util/events';
+
+import { TransactionService } from './TransactionService';
+import WithdrawalService from './WithdrawalService';
 
 export default class RewardService {
     static async get(assetPool: AssetPoolType, rewardId: number) {
@@ -18,7 +18,7 @@ export default class RewardService {
 
         if (!reward) return reward;
 
-        const { id, withdrawAmount, withdrawDuration, pollId, state } = await callFunction(
+        const { id, withdrawAmount, withdrawDuration, pollId, state } = await TransactionService.call(
             assetPool.solution.methods.getReward(rewardId),
             assetPool.network,
         );
@@ -38,23 +38,27 @@ export default class RewardService {
 
     static async getRewardPoll(assetPool: AssetPoolType, pollId: number) {
         const withdrawAmount = Number(
-            fromWei(await callFunction(assetPool.solution.methods.getWithdrawAmount(pollId), assetPool.network)),
+            fromWei(
+                await TransactionService.call(assetPool.solution.methods.getWithdrawAmount(pollId), assetPool.network),
+            ),
         );
         const withdrawDuration = Number(
-            await callFunction(assetPool.solution.methods.getWithdrawDuration(pollId), assetPool.network),
+            await TransactionService.call(assetPool.solution.methods.getWithdrawDuration(pollId), assetPool.network),
         );
         const startTime = Number(
-            await callFunction(assetPool.solution.methods.getStartTime(pollId), assetPool.network),
+            await TransactionService.call(assetPool.solution.methods.getStartTime(pollId), assetPool.network),
         );
-        const endTime = Number(await callFunction(assetPool.solution.methods.getEndTime(pollId), assetPool.network));
+        const endTime = Number(
+            await TransactionService.call(assetPool.solution.methods.getEndTime(pollId), assetPool.network),
+        );
         const yesCounter = Number(
-            await callFunction(assetPool.solution.methods.getYesCounter(pollId), assetPool.network),
+            await TransactionService.call(assetPool.solution.methods.getYesCounter(pollId), assetPool.network),
         );
         const noCounter = Number(
-            await callFunction(assetPool.solution.methods.getNoCounter(pollId), assetPool.network),
+            await TransactionService.call(assetPool.solution.methods.getNoCounter(pollId), assetPool.network),
         );
         const totalVoted = Number(
-            await callFunction(assetPool.solution.methods.getTotalVoted(pollId), assetPool.network),
+            await TransactionService.call(assetPool.solution.methods.getTotalVoted(pollId), assetPool.network),
         );
 
         return {
@@ -101,7 +105,7 @@ export default class RewardService {
     }
 
     static async claimRewardFor(assetPool: AssetPoolType, id: string, rewardId: number, beneficiary: string) {
-        const tx = await sendTransaction(
+        const tx = await TransactionService.send(
             assetPool.solution.options.address,
             assetPool.solution.methods.claimRewardFor(rewardId, beneficiary),
             assetPool.network,
@@ -132,7 +136,7 @@ export default class RewardService {
         isClaimOnce: boolean,
         withdrawCondition?: IRewardCondition,
     ) {
-        const tx = await sendTransaction(
+        const tx = await TransactionService.send(
             assetPool.solution.options.address,
             assetPool.solution.methods.addReward(withdrawAmount, withdrawDuration),
             assetPool.network,
@@ -143,8 +147,14 @@ export default class RewardService {
         const reward = new Reward({
             id,
             poolAddress: assetPool.solution.options.address,
-            withdrawAmount: await callFunction(assetPool.solution.methods.getWithdrawAmount(id), assetPool.network),
-            withdrawDuration: await callFunction(assetPool.solution.methods.getWithdrawDuration(id), assetPool.network),
+            withdrawAmount: await TransactionService.call(
+                assetPool.solution.methods.getWithdrawAmount(id),
+                assetPool.network,
+            ),
+            withdrawDuration: await TransactionService.call(
+                assetPool.solution.methods.getWithdrawDuration(id),
+                assetPool.network,
+            ),
             withdrawCondition,
             state: RewardState.Disabled,
             isMembershipRequired,
@@ -160,7 +170,7 @@ export default class RewardService {
         { withdrawAmount, withdrawDuration }: IRewardUpdates,
     ) {
         const withdrawAmountInWei = toWei(withdrawAmount.toString());
-        const tx = await sendTransaction(
+        const tx = await TransactionService.send(
             assetPool.solution.options.address,
             assetPool.solution.methods.updateReward(rewardId, withdrawAmountInWei, withdrawDuration),
             assetPool.network,
@@ -173,8 +183,11 @@ export default class RewardService {
     }
 
     static async finalizePoll(assetPool: AssetPoolType, reward: RewardDocument) {
-        const { pollId } = await callFunction(assetPool.solution.methods.getReward(reward.id), assetPool.network);
-        const tx = await sendTransaction(
+        const { pollId } = await TransactionService.call(
+            assetPool.solution.methods.getReward(reward.id),
+            assetPool.network,
+        );
+        const tx = await TransactionService.send(
             assetPool.solution.options.address,
             assetPool.solution.methods.rewardPollFinalize(pollId),
             assetPool.network,
@@ -184,11 +197,11 @@ export default class RewardService {
         const eventRewardPollUpdated = findEvent('RewardPollUpdated', events);
 
         if (eventRewardPollEnabled) {
-            reward.withdrawAmount = await callFunction(
+            reward.withdrawAmount = await TransactionService.call(
                 assetPool.solution.methods.getWithdrawAmount(reward.id),
                 assetPool.network,
             );
-            reward.withdrawDuration = await callFunction(
+            reward.withdrawDuration = await TransactionService.call(
                 assetPool.solution.methods.getWithdrawDuration(reward.id),
                 assetPool.network,
             );

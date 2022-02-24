@@ -2,11 +2,12 @@ import { toWei, fromWei } from 'web3-utils';
 import { WithdrawalState } from '@/enums/WithdrawalState';
 import { Withdrawal, WithdrawalDocument } from '@/models/Withdrawal';
 import AssetPoolService from '@/services/AssetPoolService';
-import { callFunction, getProvider, solutionContract } from '@/util/network';
+import { getProvider, solutionContract } from '@/util/network';
 import { GetPastWithdrawnEventsError, GetPastWithdrawPollCreatedEventsError } from '@/util/errors';
 import { AssetPool, AssetPoolDocument } from '@/models/AssetPool';
 import { EventLog } from 'web3-core';
 import WithdrawalService from '@/services/WithdrawalService';
+import { TransactionService } from '@/services/TransactionService';
 
 export async function jobRequireWithdraws() {
     const assetPools = await AssetPool.find();
@@ -56,7 +57,10 @@ export async function jobRequireWithdraws() {
                     beneficiary: event.returnValues.beneficiary,
                     withdrawalId: event.returnValues.id,
                 });
-                const amount = await callFunction(solution.methods.getAmount(event.returnValues.id), pool.network);
+                const amount = await TransactionService.call(
+                    solution.methods.getAmount(event.returnValues.id),
+                    pool.network,
+                );
 
                 if (amount !== withdrawal.amount) {
                     return;

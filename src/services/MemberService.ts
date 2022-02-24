@@ -1,10 +1,11 @@
-import { callFunction, sendTransaction, tokenContract } from '@/util/network';
+import { tokenContract } from '@/util/network';
 import { AssetPoolType } from '@/models/AssetPool';
 import { assertEvent, parseLogs } from '@/util/events';
 import { Artifacts } from '@/util/artifacts';
 import { IMember, Member } from '@/models/Member';
 import { fromWei } from 'web3-utils';
 import { THXError } from '@/util/errors';
+import { TransactionService } from './TransactionService';
 
 class NotAMemberError extends THXError {
     constructor(address: string, assetPool: string) {
@@ -23,13 +24,16 @@ export default class MemberService {
 
         const isManager = await this.isManager(assetPool, address);
 
-        const memberId = await callFunction(assetPool.solution.methods.getMemberByAddress(address), assetPool.network);
-        const tokenAddress = await callFunction(assetPool.solution.methods.getToken(), assetPool.network);
+        const memberId = await TransactionService.call(
+            assetPool.solution.methods.getMemberByAddress(address),
+            assetPool.network,
+        );
+        const tokenAddress = await TransactionService.call(assetPool.solution.methods.getToken(), assetPool.network);
         const tokenInstance = tokenContract(assetPool.network, tokenAddress);
-        const name = await callFunction(tokenInstance.methods.name(), assetPool.network);
-        const symbol = await callFunction(tokenInstance.methods.symbol(), assetPool.network);
+        const name = await TransactionService.call(tokenInstance.methods.name(), assetPool.network);
+        const symbol = await TransactionService.call(tokenInstance.methods.symbol(), assetPool.network);
         const balance = Number(
-            fromWei(await callFunction(tokenInstance.methods.balanceOf(address), assetPool.network)),
+            fromWei(await TransactionService.call(tokenInstance.methods.balanceOf(address), assetPool.network)),
         );
 
         return {
@@ -62,7 +66,7 @@ export default class MemberService {
             throw new AlreadyAMemberError(address, assetPool.address);
         }
 
-        const tx = await sendTransaction(
+        const tx = await TransactionService.send(
             assetPool.address,
             assetPool.solution.methods.addMember(address),
             assetPool.network,
@@ -70,7 +74,10 @@ export default class MemberService {
 
         assertEvent('RoleGranted', parseLogs(Artifacts.IDefaultDiamond.abi, tx.logs));
 
-        const memberId = await callFunction(assetPool.solution.methods.getMemberByAddress(address), assetPool.network);
+        const memberId = await TransactionService.call(
+            assetPool.solution.methods.getMemberByAddress(address),
+            assetPool.network,
+        );
 
         const members = await Member.find({ poolAddress: assetPool.address, address });
 
@@ -88,11 +95,11 @@ export default class MemberService {
     }
 
     static async isMember(assetPool: AssetPoolType, address: string) {
-        return callFunction(assetPool.solution.methods.isMember(address), assetPool.network);
+        return TransactionService.call(assetPool.solution.methods.isMember(address), assetPool.network);
     }
 
     static isManager(assetPool: AssetPoolType, address: string) {
-        return callFunction(assetPool.solution.methods.isManager(address), assetPool.network);
+        return TransactionService.call(assetPool.solution.methods.isManager(address), assetPool.network);
     }
 
     static async removeMember(assetPool: AssetPoolType, address: string) {
@@ -102,7 +109,7 @@ export default class MemberService {
             throw new NotAMemberError(address, assetPool.address);
         }
 
-        const tx = await sendTransaction(
+        const tx = await TransactionService.send(
             assetPool.address,
             assetPool.solution.methods.removeMember(address),
             assetPool.network,

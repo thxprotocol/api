@@ -1,6 +1,6 @@
 import request from 'supertest';
 import app from '@/app';
-import { NetworkProvider, sendTransaction } from '@/util/network';
+import { NetworkProvider } from '@/util/network';
 import { timeTravel, signMethod, createWallet, deployExampleToken } from '@/util/jest/network';
 import {
     rewardPollDuration,
@@ -15,6 +15,7 @@ import { Contract } from 'web3-eth-contract';
 import { Account } from 'web3-core';
 import { getToken } from '@/util/jest/jwt';
 import { afterAllCallback, beforeAllCallback } from '@/util/jest/config';
+import { TransactionService } from '@/services/TransactionService';
 
 const user = request.agent(app);
 
@@ -60,12 +61,16 @@ describe('Gas Station', () => {
             const solution = solutionContract(NetworkProvider.Main, poolAddress);
             const amount = toWei(rewardWithdrawAmount.toString());
 
-            await sendTransaction(
+            await TransactionService.send(
                 testToken.options.address,
                 testToken.methods.approve(poolAddress, toWei(rewardWithdrawAmount.toString())),
                 NetworkProvider.Main,
             );
-            await sendTransaction(solution.options.address, solution.methods.deposit(amount), NetworkProvider.Main);
+            await TransactionService.send(
+                solution.options.address,
+                solution.methods.deposit(amount),
+                NetworkProvider.Main,
+            );
         });
     });
 
