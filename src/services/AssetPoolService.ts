@@ -6,7 +6,7 @@ import { AssetPool, AssetPoolDocument, IAssetPoolUpdates } from '@/models/AssetP
 import { deployUnlimitedSupplyERC20Contract, deployLimitedSupplyERC20Contract, getProvider } from '@/util/network';
 import { toWei, fromWei } from 'web3-utils';
 import { downgradeFromBypassPolls, updateToBypassPolls } from '@/util/upgrades';
-import { RewardDocument } from '@/models/Reward';
+import { TReward } from '@/models/Reward';
 import { IAccount } from '@/models/Account';
 import { Membership } from '@/models/Membership';
 import { THXError } from '@/util/errors';
@@ -40,7 +40,7 @@ export default class AssetPoolService {
         return !assetPool.bypassPolls && duration === 0;
     }
 
-    static async canBypassWithdrawPoll(assetPool: AssetPoolDocument, account: IAccount, reward: RewardDocument) {
+    static async canBypassWithdrawPoll(assetPool: AssetPoolDocument, account: IAccount, reward: TReward) {
         // Early return to not call function when not needed.
         const isNotCustodial = !account.privateKey;
         if (assetPool.bypassPolls && isNotCustodial) return true;

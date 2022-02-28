@@ -1,13 +1,29 @@
 import RewardService from '@/services/RewardService';
 import { Request, Response } from 'express';
 import { NotFoundError } from '@/util/errors';
+import { TReward } from '@/models/Reward';
 
 export const postPollFinalize = async (req: Request, res: Response) => {
     const reward = await RewardService.get(req.assetPool, Number(req.params.id));
     if (!reward) throw new NotFoundError();
 
-    const finalizedReward = await RewardService.finalizePoll(req.assetPool, reward);
-    res.json(finalizedReward);
+    const r = await RewardService.finalizePoll(req.assetPool, reward);
+    const poll = r.pollId > 0 ? { poll: await RewardService.getRewardPoll(req.assetPool, r.pollId) } : {};
+
+    const result: TReward = {
+        id: Number(r.id),
+        poolAddress: req.assetPool.address,
+        withdrawAmount: r.withdrawAmount,
+        withdrawDuration: Number(r.withdrawDuration),
+        withdrawCondition: r.withdrawCondition,
+        isClaimOnce: r.isClaimOnce,
+        isMembershipRequired: r.isMembershipRequired,
+        state: r.state,
+        pollId: Number(r.pollId),
+        ...poll,
+    };
+
+    res.json(result);
 };
 
 /**

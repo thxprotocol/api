@@ -34,12 +34,16 @@ class UnauthorizedError extends THXHttpError {
 
 class ForbiddenError extends THXHttpError {
     status = 403;
-    message = 'Forbidden';
+    constructor(message?: string) {
+        super(message || 'Forbidden');
+    }
 }
 
 class NotFoundError extends THXHttpError {
     status = 404;
-    message = 'Not Found';
+    constructor(message?: string) {
+        super(message || 'Not Found');
+    }
 }
 
 class InternalServerError extends THXHttpError {
@@ -51,12 +55,16 @@ class InternalServerError extends THXHttpError {
 
 class NotImplementedError extends THXHttpError {
     status = 501;
-    message = 'Not Implemented';
+    constructor(message?: string) {
+        super(message || 'Not Implemented');
+    }
 }
 
 class BadGatewayError extends THXHttpError {
     status = 502;
-    message = 'Bad Gateway';
+    constructor(message?: string) {
+        super(message || 'Bad Gateway');
+    }
 }
 
 class PromoCodeNotFoundError extends NotFoundError {
