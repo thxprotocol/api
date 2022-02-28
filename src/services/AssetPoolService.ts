@@ -6,7 +6,7 @@ import { AssetPool, AssetPoolDocument, IAssetPoolUpdates } from '@/models/AssetP
 import { deployUnlimitedSupplyERC20Contract, deployLimitedSupplyERC20Contract, getProvider } from '@/util/network';
 import { toWei, fromWei } from 'web3-utils';
 import { downgradeFromBypassPolls, updateToBypassPolls } from '@/util/upgrades';
-import { RewardDocument } from '@/models/Reward';
+import { TReward } from '@/models/Reward';
 import { IAccount } from '@/models/Account';
 import { Membership } from '@/models/Membership';
 import { THXError } from '@/util/errors';
@@ -16,12 +16,6 @@ class NoDataAtAddressError extends THXError {
         super(`No data found at ERC20 address ${address}`);
     }
 }
-
-const ERROR_DOWNGRADE_BYPASS_POLLS = 'Could not update set bypassPolls (false) for this asset pool.';
-const ERROR_UPGRADE_BYPASS_POLLS = 'Could not update set bypassPolls (true) for this asset pool.';
-const ERROR_UPDATE_PROPOSE_WITHDRAW_POLL_DURATION =
-    'Could not update the proposeWithdrawPollDuration for this asset pool.';
-const ERROR_UPDATE_REWARD_POLL_DURATION = 'Could not update the rewardPollDuration for this asset pool.';
 
 export default class AssetPoolService {
     static getByClientIdAndAddress(clientId: string, address: string) {
@@ -45,7 +39,7 @@ export default class AssetPoolService {
         return !assetPool.bypassPolls && duration === 0;
     }
 
-    static async canBypassWithdrawPoll(assetPool: AssetPoolDocument, account: IAccount, reward: RewardDocument) {
+    static async canBypassWithdrawPoll(assetPool: AssetPoolDocument, account: IAccount, reward: TReward) {
         // Early return to not call function when not needed.
         const isNotCustodial = !account.privateKey;
         if (assetPool.bypassPolls && isNotCustodial) return true;

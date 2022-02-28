@@ -4,7 +4,16 @@ import { IAccount } from '@/models/Account';
 import { sendTransaction, callFunction } from '@/util/network';
 import { Artifacts } from '@/util/artifacts';
 import { parseLogs, findEvent } from '@/util/events';
-import { ChannelAction, IRewardCondition, IRewardUpdates, Reward, RewardDocument, RewardState } from '@/models/Reward';
+import {
+    ChannelAction,
+    IRewardCondition,
+    IRewardUpdates,
+    Reward,
+    RewardDocument,
+    RewardState,
+    TReward,
+    TRewardPoll,
+} from '@/models/Reward';
 import { fromWei, toWei } from 'web3-utils';
 
 import WithdrawalService from './WithdrawalService';
@@ -13,7 +22,7 @@ import YouTubeDataProxy from '@/proxies/YoutubeDataProxy';
 import TwitterDataProxy from '@/proxies/TwitterDataProxy';
 
 export default class RewardService {
-    static async get(assetPool: AssetPoolType, rewardId: number) {
+    static async get(assetPool: AssetPoolType, rewardId: number): Promise<RewardDocument> {
         const reward = await Reward.findOne({ poolAddress: assetPool.address, id: rewardId });
 
         if (!reward) return reward;
@@ -23,53 +32,49 @@ export default class RewardService {
             assetPool.network,
         );
 
-        reward.id = Number(id);
+        reward.id = id;
         reward.withdrawAmount = Number(fromWei(withdrawAmount));
-        reward.withdrawDuration = Number(withdrawDuration);
+        reward.withdrawDuration = withdrawDuration;
+        reward.pollId = pollId;
         reward.state = state;
-        reward.pollId = Number(pollId);
 
         return reward;
     }
 
-    static async findByPoolAddress(assetPool: AssetPoolType) {
-        return await Reward.find({ poolAddress: assetPool.address });
+    static async findByPoolAddress(assetPool: AssetPoolType): Promise<RewardDocument[]> {
+        const rewards = [];
+        for (const r of await Reward.find({ poolAddress: assetPool.address })) {
+            rewards.push(await this.get(assetPool, r.id));
+        }
+        return rewards;
     }
 
-    static async getRewardPoll(assetPool: AssetPoolType, pollId: number) {
-        const withdrawAmount = Number(
-            fromWei(await callFunction(assetPool.solution.methods.getWithdrawAmount(pollId), assetPool.network)),
-        );
-        const withdrawDuration = Number(
-            await callFunction(assetPool.solution.methods.getWithdrawDuration(pollId), assetPool.network),
-        );
-        const startTime = Number(
-            await callFunction(assetPool.solution.methods.getStartTime(pollId), assetPool.network),
-        );
-        const endTime = Number(await callFunction(assetPool.solution.methods.getEndTime(pollId), assetPool.network));
-        const yesCounter = Number(
-            await callFunction(assetPool.solution.methods.getYesCounter(pollId), assetPool.network),
-        );
-        const noCounter = Number(
-            await callFunction(assetPool.solution.methods.getNoCounter(pollId), assetPool.network),
-        );
-        const totalVoted = Number(
-            await callFunction(assetPool.solution.methods.getTotalVoted(pollId), assetPool.network),
-        );
+    static async getRewardPoll(assetPool: AssetPoolType, pollId: number): Promise<TRewardPoll> {
+        if (pollId < 1) return;
+
+        const res = await Promise.all([
+            callFunction(assetPool.solution.methods.getWithdrawAmount(pollId), assetPool.network),
+            callFunction(assetPool.solution.methods.getWithdrawDuration(pollId), assetPool.network),
+            callFunction(assetPool.solution.methods.getStartTime(pollId), assetPool.network),
+            callFunction(assetPool.solution.methods.getEndTime(pollId), assetPool.network),
+            callFunction(assetPool.solution.methods.getYesCounter(pollId), assetPool.network),
+            callFunction(assetPool.solution.methods.getNoCounter(pollId), assetPool.network),
+            callFunction(assetPool.solution.methods.getTotalVoted(pollId), assetPool.network),
+        ]);
 
         return {
             id: pollId,
-            withdrawAmount,
-            withdrawDuration,
-            startTime,
-            endTime,
-            yesCounter,
-            noCounter,
-            totalVoted,
+            withdrawAmount: Number(fromWei(res[0])),
+            withdrawDuration: Number(res[1]),
+            startTime: Number(res[2]),
+            endTime: Number(res[3]),
+            yesCounter: Number(res[4]),
+            noCounter: Number(res[5]),
+            totalVoted: Number(res[6]),
         };
     }
 
-    static async canClaim(assetPool: AssetPoolType, reward: RewardDocument, account: IAccount): Promise<boolean> {
+    static async canClaim(assetPool: AssetPoolType, reward: TReward, account: IAccount): Promise<boolean> {
         function validate(channelAction: ChannelAction, channelItem: string): Promise<boolean> {
             switch (channelAction) {
                 case ChannelAction.YouTubeLike:
@@ -87,12 +92,18 @@ export default class RewardService {
             }
         }
 
-        const withdrawal = await WithdrawalService.hasClaimedOnce(assetPool.address, account.address, reward.id);
+        // Can not claim if the reward is disabled
+        if (reward.state === RewardState.Disabled) {
+            return false;
+        }
 
+        const withdrawal = await WithdrawalService.hasClaimedOnce(assetPool.address, account.address, reward.id);
+        // Can only claim this reward once and a withdrawal already exists
         if (reward.isClaimOnce && withdrawal) {
             return false;
         }
 
+        // Can claim if no condition and channel are set
         if (!reward.withdrawCondition || !reward.withdrawCondition.channelType) {
             return true;
         }
@@ -109,7 +120,6 @@ export default class RewardService {
         const events = parseLogs(Artifacts.IDefaultDiamond.abi, tx.logs);
         const event = findEvent('WithdrawPollCreated', events);
 
-        // TODO Should wait for the receipt here
         return await WithdrawalService.update(assetPool, id, {
             withdrawalId: event.args.id,
             memberId: event.args.member,
@@ -143,7 +153,9 @@ export default class RewardService {
         const reward = new Reward({
             id,
             poolAddress: assetPool.solution.options.address,
-            withdrawAmount: await callFunction(assetPool.solution.methods.getWithdrawAmount(id), assetPool.network),
+            withdrawAmount: Number(
+                fromWei(await callFunction(assetPool.solution.methods.getWithdrawAmount(id), assetPool.network)),
+            ),
             withdrawDuration: await callFunction(assetPool.solution.methods.getWithdrawDuration(id), assetPool.network),
             withdrawCondition,
             state: RewardState.Disabled,
@@ -156,20 +168,21 @@ export default class RewardService {
 
     static async update(
         assetPool: AssetPoolType,
-        rewardId: number,
+        reward: RewardDocument,
         { withdrawAmount, withdrawDuration }: IRewardUpdates,
     ) {
         const withdrawAmountInWei = toWei(withdrawAmount.toString());
         const tx = await sendTransaction(
             assetPool.solution.options.address,
-            assetPool.solution.methods.updateReward(rewardId, withdrawAmountInWei, withdrawDuration),
+            assetPool.solution.methods.updateReward(reward.id, withdrawAmountInWei, withdrawDuration),
             assetPool.network,
         );
         const events = parseLogs(Artifacts.IDefaultDiamond.abi, tx.logs);
         const event = findEvent('RewardPollCreated', events);
-        const pollId = Number(event.args.id);
 
-        return pollId;
+        reward.pollId = Number(event.args.id);
+
+        return reward.save();
     }
 
     static async finalizePoll(assetPool: AssetPoolType, reward: RewardDocument) {
@@ -183,30 +196,30 @@ export default class RewardService {
         const eventRewardPollEnabled = findEvent('RewardPollEnabled', events);
         const eventRewardPollUpdated = findEvent('RewardPollUpdated', events);
 
-        if (eventRewardPollEnabled) {
-            reward.withdrawAmount = await callFunction(
-                assetPool.solution.methods.getWithdrawAmount(reward.id),
-                assetPool.network,
-            );
-            reward.withdrawDuration = await callFunction(
-                assetPool.solution.methods.getWithdrawDuration(reward.id),
-                assetPool.network,
-            );
-            reward.state = RewardState.Enabled;
-
-            await reward.save();
+        if (!eventRewardPollEnabled && !eventRewardPollUpdated) {
+            return reward;
         }
 
-        if (eventRewardPollUpdated) {
-            const withdrawAmount = Number(fromWei(eventRewardPollUpdated.args.amount.toString()));
-            const withdrawDuration = Number(eventRewardPollUpdated.args.duration);
+        const updatedReward = await this.get(assetPool, reward.id);
+        return await updatedReward.save();
+    }
 
-            reward.withdrawAmount = withdrawAmount;
-            reward.withdrawDuration = withdrawDuration;
+    static async enable(assetPool: AssetPoolType, reward: RewardDocument) {
+        await sendTransaction(
+            assetPool.solution.options.address,
+            assetPool.solution.methods.enableReward(reward.id),
+            assetPool.network,
+        );
+        return await this.get(assetPool, reward.id);
+    }
 
-            await reward.save();
-        }
-
-        return reward;
+    static async disable(assetPool: AssetPoolType, reward: RewardDocument) {
+        const tx = await sendTransaction(
+            assetPool.solution.options.address,
+            assetPool.solution.methods.disableReward(reward.id),
+            assetPool.network,
+        );
+        console.log(tx);
+        return await this.get(assetPool, reward.id);
     }
 }

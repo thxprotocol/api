@@ -4,11 +4,11 @@ import db from './database';
 
 import { jobProcessWithdrawals } from '@/jobs/processWithdrawals';
 import { jobRequireDeposits } from '@/jobs/requireDeposit';
-import { jobRequireWithdraws } from '@/jobs/requireEvents';
+// import { jobRequireWithdraws } from '@/jobs/requireEvents';
 
 export const eventNameProcessWithdrawals = 'processWithdrawals';
 export const eventNameRequireDeposits = 'requireDeposits';
-export const eventNameRequireWithdraws = 'requireWithdraws';
+// export const eventNameRequireWithdraws = 'requireWithdraws';
 
 export const agenda = new Agenda({
     maxConcurrency: 1,
@@ -18,7 +18,7 @@ export const agenda = new Agenda({
 
 agenda.define(eventNameProcessWithdrawals, jobProcessWithdrawals);
 agenda.define(eventNameRequireDeposits, jobRequireDeposits);
-agenda.define(eventNameRequireWithdraws, jobRequireWithdraws);
+// agenda.define(eventNameRequireWithdraws, jobRequireWithdraws);
 
 db.connection.once('open', async () => {
     agenda.mongo(db.connection.getClient().db(), 'jobs');
