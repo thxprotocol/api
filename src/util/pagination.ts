@@ -1,36 +1,49 @@
-export class PaginationResult {
+interface PaginationResult {
     results: any[];
-    next: { page: number };
-    previous: { page: number };
+    next?: { page: number };
+    previous?: { page: number };
     limit: number;
     total: number;
 }
 
-export const paginatedResults = async (model: any, page: number, limit: number, query: any) => {
-    const results = new PaginationResult();
+export const paginatedResults = async (
+    model: any,
+    page: number,
+    limit: number,
+    query: any,
+): Promise<PaginationResult> => {
     const startIndex = (page - 1) * limit;
     const endIndex = page * limit;
-    const totalDocuments = await model.find(query).countDocuments().exec();
+    const total = await model.find(query).countDocuments().exec();
+    let next, previous;
 
-    results.limit = limit;
-    results.total = totalDocuments;
-
-    if (endIndex < totalDocuments) {
-        results.next = {
-            page: page + 1,
+    if (endIndex < total) {
+        next = {
+            next: {
+                page: page + 1,
+            },
         };
     }
     if (startIndex > 0) {
-        results.previous = {
-            page: page - 1,
+        previous = {
+            previous: {
+                page: page - 1,
+            },
         };
     }
-    results.results = await model
+
+    const results = await model
         .find(query)
         .limit(limit)
         .sort([['createdAt', -1]])
         .skip(startIndex)
         .exec();
 
-    return results;
+    return {
+        results,
+        limit,
+        total,
+        ...next,
+        ...previous,
+    };
 };
