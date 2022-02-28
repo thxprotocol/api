@@ -214,7 +214,7 @@ export default class RewardService {
     }
 
     static async disable(assetPool: AssetPoolType, reward: RewardDocument) {
-        const tx = await sendTransaction(
+        await sendTransaction(
             assetPool.solution.options.address,
             assetPool.solution.methods.disableReward(reward.id),
             assetPool.network,
