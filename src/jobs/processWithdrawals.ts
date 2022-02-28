@@ -52,21 +52,21 @@ export async function jobProcessWithdrawals() {
                     await wrapBackgroundTransaction(
                         'jobClaimReward',
                         'processWithdrawal',
-                        claimReward(assetPool, w.id, w.rewardId, w.beneficiary),
+                        claimReward(assetPool, String(w._id), w.rewardId, w.beneficiary),
                     );
                     break;
                 case WithdrawalType.ClaimRewardFor:
                     await wrapBackgroundTransaction(
                         'jobClaimRewardFor',
                         'processWithdrawal',
-                        RewardService.claimRewardFor(assetPool, w.id, w.rewardId, w.beneficiary),
+                        RewardService.claimRewardFor(assetPool, String(w._id), w.rewardId, w.beneficiary),
                     );
                     break;
                 case WithdrawalType.ProposeWithdraw:
                     await wrapBackgroundTransaction(
                         'jobProposeWithdraw',
                         'processWithdrawal',
-                        WithdrawalService.proposeWithdraw(assetPool, w.id, w.beneficiary, w.amount),
+                        WithdrawalService.proposeWithdraw(assetPool, String(w._id), w.beneficiary, w.amount),
                     );
                     break;
             }

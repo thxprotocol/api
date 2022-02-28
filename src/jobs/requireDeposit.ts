@@ -3,7 +3,8 @@ import { EventLog } from 'web3-core';
 import { DepositState } from '@/enums/DepositState';
 import { Deposit, DepositDocument } from '@/models/Deposit';
 import AssetPoolService from '@/services/AssetPoolService';
-import { callFunction, getProvider, tokenContract } from '@/util/network';
+import { getProvider, tokenContract } from '@/util/network';
+import { TransactionService } from '@/services/TransactionService';
 
 export async function jobRequireDeposits() {
     const pendingDeposits = await Deposit.find({ state: DepositState.Pending });
@@ -12,7 +13,7 @@ export async function jobRequireDeposits() {
         // Assumed the receiver is an asset pool
         const assetPool = await AssetPoolService.getByAddress(d.receiver);
         // TODO This call should be cached in the assetpool document
-        const tokenAddress = await callFunction(assetPool.solution.methods.getToken(), assetPool.network);
+        const tokenAddress = await TransactionService.call(assetPool.solution.methods.getToken(), assetPool.network);
         const token = tokenContract(assetPool.network, tokenAddress);
         const { web3 } = getProvider(assetPool.network);
         // Use toBlock limit current query and provide start index for next

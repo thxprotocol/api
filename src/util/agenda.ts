@@ -25,7 +25,7 @@ db.connection.once('open', async () => {
     await agenda.start();
 
     agenda.every('5 seconds', eventNameProcessWithdrawals);
-    agenda.every('10 seconds', eventNameRequireDeposits);
+    agenda.every('5 seconds', eventNameRequireDeposits);
     agenda.every('5 seconds', eventNameRequireWithdraws);
 
     logger.info('Started agenda processing');

@@ -1,5 +1,6 @@
 import request from 'supertest';
 import app from '@/app';
+import { Account } from 'web3-core';
 import { NetworkProvider } from '../../util/network';
 import { createWallet, signMethod } from '@/util/jest/network';
 import { rewardWithdrawAmount, tokenName, tokenSymbol, userWalletPrivateKey2 } from '@/util/jest/constants';
@@ -17,11 +18,14 @@ describe('Reward Claim', () => {
         userAccessToken: string,
         dashboardAccessToken: string,
         poolAddress: string,
-        rewardID: string;
+        rewardID: string,
+        withdrawalDocumentId: string,
+        withdrawalId: string,
+        userWallet: Account;
 
     beforeAll(async () => {
         await beforeAllCallback();
-        createWallet(userWalletPrivateKey2);
+        userWallet = createWallet(userWalletPrivateKey2);
 
         adminAccessToken = getToken('openid admin');
         dashboardAccessToken = getToken('openid dashboard');
@@ -91,6 +95,8 @@ describe('Reward Claim', () => {
                 .expect((res: request.Response) => {
                     expect(res.body.id).toBeDefined();
                     expect(res.body.state).toEqual(WithdrawalState.Pending);
+
+                    withdrawalDocumentId = res.body.id;
                 })
                 .expect(200, done);
         });
