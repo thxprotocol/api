@@ -169,6 +169,9 @@ describe('Deposits', () => {
             await agenda.enable({ name: eventNameRequireDeposits });
         });
 
+        // This might cast a success before the Transfer event is actually mined
+        // and cause a test run to fail since the body.value of the GET promo_codes
+        // response will still be hidden.
         it('should cast a success event', (done) => {
             const callback = async () => {
                 agenda.off(`success:${eventNameRequireDeposits}`, callback);

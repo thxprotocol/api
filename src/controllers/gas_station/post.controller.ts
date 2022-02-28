@@ -4,6 +4,7 @@ import { TransactionService } from '@/services/TransactionService';
 import { Artifacts } from '@/util/artifacts';
 import { eventIndexer } from '@/util/indexer';
 import { body } from 'express-validator';
+import { InternalServerError } from '@/util/errors';
 
 const indexer = eventIndexer as any;
 const eventNames = [
@@ -26,29 +27,31 @@ export const postCall = async (req: Request, res: Response) => {
     const events = parseLogs(Artifacts.IDefaultDiamond.abi, tx.logs);
     const event = findEvent('Result', events);
 
-    if (event) {
-        if (!event.args.success) {
-            const error = hex2a(event.args.data.substr(10));
+    if (!event) {
+        throw new InternalServerError();
+    }
 
-            return res.status(500).json({
-                error,
-            });
-        }
+    if (!event.args.success) {
+        const error = hex2a(event.args.data.substr(10));
 
-        for (const eventName of eventNames) {
-            const event = findEvent(eventName, events);
+        return res.status(500).json({
+            error,
+        });
+    }
 
-            if (event) {
-                const callback = indexer[`on${eventName}`];
+    for (const eventName of eventNames) {
+        const event = findEvent(eventName, events);
 
-                if (callback) {
-                    await callback(req.assetPool.network, req.assetPool.solution.options.address, event.args);
-                }
+        if (event) {
+            const callback = indexer[`on${eventName}`];
+
+            if (callback) {
+                await callback(req.assetPool.network, req.assetPool.solution.options.address, event.args);
             }
         }
-
-        res.status(200).end();
     }
+
+    res.status(200).end();
 };
 
 /**

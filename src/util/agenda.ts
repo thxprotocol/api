@@ -4,7 +4,7 @@ import db from './database';
 
 import { jobProcessWithdrawals } from '@/jobs/processWithdrawals';
 import { jobRequireDeposits } from '@/jobs/requireDeposit';
-import { jobRequireWithdraws } from '@/jobs/requireEvents';
+import { jobRequireWithdraws } from '@/jobs/requireWithdraw';
 
 export const eventNameProcessWithdrawals = 'processWithdrawals';
 export const eventNameRequireDeposits = 'requireDeposits';
@@ -25,10 +25,8 @@ db.connection.once('open', async () => {
     await agenda.start();
 
     agenda.every('5 seconds', eventNameProcessWithdrawals);
-    agenda.every('10 seconds', eventNameRequireDeposits);
-
-    // TODO Enable job when feature dev is done
-    // agenda.every('10 seconds', eventNameRequireWithdraws);
+    agenda.every('5 seconds', eventNameRequireDeposits);
+    agenda.every('5 seconds', eventNameRequireWithdraws);
 
     logger.info('Started agenda processing');
 });

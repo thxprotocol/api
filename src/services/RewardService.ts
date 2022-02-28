@@ -113,7 +113,6 @@ export default class RewardService {
         const events = parseLogs(Artifacts.IDefaultDiamond.abi, tx.logs);
         const event = findEvent('WithdrawPollCreated', events);
 
-        // TODO Should wait for the receipt here
         return await WithdrawalService.update(assetPool, id, {
             withdrawalId: event.args.id,
             memberId: event.args.member,
