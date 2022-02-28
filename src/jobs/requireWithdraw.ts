@@ -3,7 +3,7 @@ import { Withdrawal } from '@/models/Withdrawal';
 import { AssetPool, AssetPoolDocument } from '@/models/AssetPool';
 import { getProvider, solutionContract } from '@/util/network';
 
-const BLOCK_PERIOD_LIMIT = 3500;
+const BLOCK_PERIOD_LIMIT = 3499; // Limit is 3500
 
 export async function jobRequireWithdraws() {
     const assetPools = await AssetPool.find();
