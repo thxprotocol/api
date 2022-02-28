@@ -15,17 +15,15 @@ export async function jobRequireWithdraws() {
         // Skip getPastEvents if there are no pending withdrawals.
         if (pendingWithdrawals.length) {
             const { web3 } = getProvider(pool.network);
-            const latestBlock = await web3.eth.getBlockNumber();
             const solution = solutionContract(pool.network, pool.address);
             // Set it on the pool as per IAssetPool
             pool.solution = solution;
 
+            const latestBlock = await web3.eth.getBlockNumber();
+            let toBlock = pool.blockNumber;
+
             // Scan batches of 3500 blocks and repeat until latestBlock is reached
-            for (
-                let toBlock = pool.blockNumber;
-                toBlock < latestBlock;
-                toBlock + BLOCK_PERIOD_LIMIT > latestBlock ? latestBlock : toBlock + BLOCK_PERIOD_LIMIT
-            ) {
+            while (toBlock < latestBlock) {
                 const events = await solution.getPastEvents('Withdrawn', {
                     fromBlock: pool.blockNumber,
                     toBlock,
@@ -46,6 +44,9 @@ export async function jobRequireWithdraws() {
 
                 pool.blockNumber = toBlock;
                 await pool.save();
+
+                // Use latestBlock if period exceeds latestBlock or use current toBlock + period if it doesnt
+                toBlock = toBlock + BLOCK_PERIOD_LIMIT > latestBlock ? latestBlock : toBlock + BLOCK_PERIOD_LIMIT;
             }
         }
     });
