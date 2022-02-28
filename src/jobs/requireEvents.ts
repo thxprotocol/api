@@ -1,4 +1,4 @@
-import { toWei, fromWei } from 'web3-utils';
+import { toWei } from 'web3-utils';
 import { WithdrawalState } from '@/enums/WithdrawalState';
 import { Withdrawal, WithdrawalDocument } from '@/models/Withdrawal';
 import AssetPoolService from '@/services/AssetPoolService';

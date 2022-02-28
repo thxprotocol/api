@@ -79,11 +79,6 @@ export async function getEstimatesFromOracle(npid: NetworkProvider, type = 'fast
     };
 }
 
-export const getBalance = (npid: NetworkProvider, address: string) => {
-    const { web3 } = getProvider(npid);
-    return web3.eth.getBalance(address);
-};
-
 export async function deployContract(abi: any, bytecode: any, arg: any[], npid: NetworkProvider): Promise<Contract> {
     const { web3, admin } = getProvider(npid);
     const contract = new web3.eth.Contract(abi);
