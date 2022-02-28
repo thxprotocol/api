@@ -1,7 +1,8 @@
 import { fromWei } from 'web3-utils';
-import { callFunction, NetworkProvider, solutionContract } from './network';
+import { NetworkProvider, solutionContract } from './network';
 import { Withdrawal } from '@/models/Withdrawal';
 import { WithdrawalState } from '@/enums';
+import { TransactionService } from '@/services/TransactionService';
 
 class EventIndexer {
     async onWithdrawPollVoted(npid: NetworkProvider, address: string, args: any) {
@@ -10,7 +11,10 @@ class EventIndexer {
         const withdrawal = await Withdrawal.findOne({ withdrawalId, poolAddress: address });
 
         withdrawal.poll[args.vote ? 'yesCounter' : 'noCounter'] += 1;
-        withdrawal.approved = await callFunction(solution.methods.withdrawPollApprovalState(withdrawalId), npid);
+        withdrawal.approved = await TransactionService.call(
+            solution.methods.withdrawPollApprovalState(withdrawalId),
+            npid,
+        );
         withdrawal.poll.totalVoted += 1;
 
         await withdrawal.save();
@@ -20,10 +24,13 @@ class EventIndexer {
         const withdrawalId = Number(args.id);
         const withdrawal = await Withdrawal.findOne({ withdrawalId, poolAddress: address });
         const solution = solutionContract(npid, address);
-        const vote = await callFunction(solution.methods.votesByAddress(args.member), npid);
+        const vote = await TransactionService.call(solution.methods.votesByAddress(args.member), npid);
 
         withdrawal.poll[vote ? 'yesCounter' : 'noCounter'] -= 1;
-        withdrawal.approved = await callFunction(solution.methods.withdrawPollApprovalState(withdrawalId), npid);
+        withdrawal.approved = await TransactionService.call(
+            solution.methods.withdrawPollApprovalState(withdrawalId),
+            npid,
+        );
         withdrawal.poll.totalVoted -= 1;
 
         await withdrawal.save();
@@ -39,11 +46,11 @@ class EventIndexer {
         }
 
         const solution = solutionContract(npid, address);
-        const amount = Number(fromWei(await callFunction(solution.methods.getAmount(withdrawalId), npid)));
-        const beneficiary = await callFunction(solution.methods.getAddressByMember(memberId), npid);
-        const approved = await callFunction(solution.methods.withdrawPollApprovalState(withdrawalId), npid);
-        const startTime = Number(await callFunction(solution.methods.getStartTime(withdrawalId), npid));
-        const endTime = Number(await callFunction(solution.methods.getEndTime(withdrawalId), npid));
+        const amount = Number(fromWei(await TransactionService.call(solution.methods.getAmount(withdrawalId), npid)));
+        const beneficiary = await TransactionService.call(solution.methods.getAddressByMember(memberId), npid);
+        const approved = await TransactionService.call(solution.methods.withdrawPollApprovalState(withdrawalId), npid);
+        const startTime = Number(await TransactionService.call(solution.methods.getStartTime(withdrawalId), npid));
+        const endTime = Number(await TransactionService.call(solution.methods.getEndTime(withdrawalId), npid));
 
         const withdrawal = new Withdrawal({
             withdrawalId,

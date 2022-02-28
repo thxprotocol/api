@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
-import { sendTransaction } from '@/util/network';
 import { hex2a, parseLogs, findEvent } from '@/util/events';
+import { TransactionService } from '@/services/TransactionService';
 import { Artifacts } from '@/util/artifacts';
 import { eventIndexer } from '@/util/indexer';
 import { body } from 'express-validator';
@@ -17,7 +17,7 @@ const eventNames = [
 export const createCallValidation = [body('call').exists(), body('nonce').exists(), body('sig').exists()];
 
 export const postCall = async (req: Request, res: Response) => {
-    const tx = await sendTransaction(
+    const tx = await TransactionService.send(
         req.assetPool.solution.options.address,
         req.assetPool.solution.methods.call(req.body.call, req.body.nonce, req.body.sig),
         req.assetPool.network,
