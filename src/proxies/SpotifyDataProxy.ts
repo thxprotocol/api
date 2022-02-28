@@ -34,7 +34,6 @@ export default class SpotifyDataProxy {
         });
 
         if (!r.data) throw new NoSpotifyDataError();
-
         return r.data.result[channelItem];
     }
 
@@ -47,9 +46,10 @@ export default class SpotifyDataProxy {
             },
         });
 
+        const spotifyUser = await this.getSpotify(account.id);
         if (!r.data) throw new NoSpotifyDataError();
 
-        return r.data.result[channelItem];
+        return r.data.result[spotifyUser.users[0].id];
     }
     static async validateTrackPlaying(account: IAccount, channelItem: string) {
         const r = await authClient({
