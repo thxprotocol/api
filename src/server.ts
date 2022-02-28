@@ -40,6 +40,5 @@ logger.info({
     port: app.get('port'),
     env: app.get('env'),
 });
-server.listen(app.get('port'));
 
-export default server;
+server.listen(app.get('port'));

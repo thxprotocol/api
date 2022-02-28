@@ -17,12 +17,6 @@ class NoDataAtAddressError extends THXError {
     }
 }
 
-const ERROR_DOWNGRADE_BYPASS_POLLS = 'Could not update set bypassPolls (false) for this asset pool.';
-const ERROR_UPGRADE_BYPASS_POLLS = 'Could not update set bypassPolls (true) for this asset pool.';
-const ERROR_UPDATE_PROPOSE_WITHDRAW_POLL_DURATION =
-    'Could not update the proposeWithdrawPollDuration for this asset pool.';
-const ERROR_UPDATE_REWARD_POLL_DURATION = 'Could not update the rewardPollDuration for this asset pool.';
-
 export default class AssetPoolService {
     static getByClientIdAndAddress(clientId: string, address: string) {
         return AssetPool.find({ clientId, address });
