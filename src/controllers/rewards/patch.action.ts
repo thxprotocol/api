@@ -14,17 +14,20 @@ export async function patchReward(req: Request, res: Response) {
     const shouldUpdateState = typeof req.body.state !== undefined && reward.state !== req.body.state;
 
     if (shouldUpdateWithdrawAmount || shouldUpdateWithdrawDuration) {
-        if (shouldUpdateWithdrawAmount) withdrawDuration = Number(req.body.withdrawDuration);
-        if (shouldUpdateWithdrawDuration) withdrawAmount = req.body.withdrawAmount;
+        if (shouldUpdateWithdrawAmount) withdrawAmount = req.body.withdrawAmount;
+        if (shouldUpdateWithdrawDuration) withdrawDuration = Number(req.body.withdrawDuration);
 
-        const updatedReward = await RewardService.update(req.assetPool, reward.id, {
+        const updatedReward = await RewardService.update(req.assetPool, reward, {
             withdrawAmount,
             withdrawDuration,
         });
 
         if (updatedReward.pollId > 0 && (await AssetPoolService.canBypassRewardPoll(req.assetPool))) {
             const finalizedReward: TReward = await RewardService.finalizePoll(req.assetPool, updatedReward);
+
             return res.json(finalizedReward);
+        } else {
+            return res.json(updatedReward);
         }
     }
 

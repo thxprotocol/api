@@ -219,7 +219,6 @@ export default class RewardService {
             assetPool.solution.methods.disableReward(reward.id),
             assetPool.network,
         );
-        console.log(tx);
         return await this.get(assetPool, reward.id);
     }
 }
