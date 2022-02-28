@@ -1,8 +1,9 @@
-import { EventLog } from 'web3-core';
 import { WithdrawalState } from '@/enums/WithdrawalState';
 import { Withdrawal } from '@/models/Withdrawal';
 import { AssetPool, AssetPoolDocument } from '@/models/AssetPool';
 import { getProvider, solutionContract } from '@/util/network';
+
+const BLOCK_PERIOD_LIMIT = 3500;
 
 export async function jobRequireWithdraws() {
     const assetPools = await AssetPool.find();
@@ -14,31 +15,38 @@ export async function jobRequireWithdraws() {
         // Skip getPastEvents if there are no pending withdrawals.
         if (pendingWithdrawals.length) {
             const { web3 } = getProvider(pool.network);
-            const toBlock = await web3.eth.getBlockNumber();
+            const latestBlock = await web3.eth.getBlockNumber();
             const solution = solutionContract(pool.network, pool.address);
             // Set it on the pool as per IAssetPool
             pool.solution = solution;
 
-            const events = await solution.getPastEvents('Withdrawn', {
-                fromBlock: pool.blockNumber,
-                toBlock,
-            });
-
-            events.forEach(async (event: EventLog) => {
-                const withdrawal = await Withdrawal.findOne({
-                    state: WithdrawalState.Pending,
-                    poolAddress: pool.address,
-                    withdrawalId: event.returnValues.id,
+            // Scan batches of 3500 blocks and repeat until latestBlock is reached
+            for (
+                let toBlock = pool.blockNumber;
+                toBlock < latestBlock;
+                toBlock + BLOCK_PERIOD_LIMIT > latestBlock ? latestBlock : toBlock + BLOCK_PERIOD_LIMIT
+            ) {
+                const events = await solution.getPastEvents('Withdrawn', {
+                    fromBlock: pool.blockNumber,
+                    toBlock,
                 });
 
-                withdrawal.state = WithdrawalState.Withdrawn;
-                withdrawal.failReason = '';
+                for (const event of events) {
+                    const withdrawal = await Withdrawal.findOne({
+                        state: WithdrawalState.Pending,
+                        poolAddress: pool.address,
+                        withdrawalId: event.returnValues.id,
+                    });
 
-                await withdrawal.save();
-            });
+                    withdrawal.state = WithdrawalState.Withdrawn;
+                    withdrawal.failReason = '';
 
-            pool.blockNumber = toBlock;
-            await pool.save();
+                    await withdrawal.save();
+                }
+
+                pool.blockNumber = toBlock;
+                await pool.save();
+            }
         }
     });
 }
