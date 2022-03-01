@@ -1,5 +1,5 @@
 import { pick } from '@/util';
-import { NetworkProvider } from '@/util/network';
+import { NetworkProvider } from '@/types/enums';
 import { NETWORK_ENVIRONMENT } from '@/config/secrets';
 import * as environmentsConfig from './environments';
 

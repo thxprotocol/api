@@ -1,5 +1,6 @@
 import { assertEvent, parseLogs } from '@/util/events';
-import { getAssetPoolFactory, NetworkProvider, tokenContract } from '@/util/network';
+import { getAssetPoolFactory, tokenContract } from '@/util/network';
+import { NetworkProvider } from '@/types/enums';
 import { Artifacts } from '@/util/artifacts';
 import { AssetPool, AssetPoolDocument, IAssetPoolUpdates } from '@/models/AssetPool';
 import { deployUnlimitedSupplyERC20Contract, deployLimitedSupplyERC20Contract, getProvider } from '@/util/network';

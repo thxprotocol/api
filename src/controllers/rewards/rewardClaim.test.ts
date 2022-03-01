@@ -1,7 +1,7 @@
 import request from 'supertest';
 import app from '@/app';
 import { Account } from 'web3-core';
-import { NetworkProvider } from '../../util/network';
+import { NetworkProvider } from '../../types/enums';
 import { createWallet, signMethod } from '@/util/jest/network';
 import { rewardWithdrawAmount, tokenName, tokenSymbol, userWalletPrivateKey2 } from '@/util/jest/constants';
 import { isAddress } from 'web3-utils';

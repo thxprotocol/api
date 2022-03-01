@@ -1,5 +1,5 @@
 import { AssetPoolType } from '@/models/AssetPool';
-import { NetworkProvider } from '@/util/network';
+import { NetworkProvider } from '@/types/enums';
 import { Membership } from '@/models/Membership';
 import AssetPoolService from './AssetPoolService';
 

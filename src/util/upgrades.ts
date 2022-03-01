@@ -1,4 +1,5 @@
-import { getSelectors, NetworkProvider, getProvider, ADDRESS_ZERO } from './network';
+import { getSelectors, getProvider, ADDRESS_ZERO } from './network';
+import { NetworkProvider } from '../types/enums';
 import { Contract } from 'web3-eth-contract';
 import { Artifacts } from './artifacts';
 import { AssetPoolType } from '@/models/AssetPool';

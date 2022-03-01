@@ -10,17 +10,13 @@ import { Artifacts } from './artifacts';
 import { logger } from './logger';
 import { THXError } from './errors';
 import { getCurrentAssetPoolFactoryAddress } from '@/config/network';
+import { NetworkProvider } from '../types/enums';
 
 export class MaxFeePerGasExceededError extends THXError {
     message = 'MaxFeePerGas from oracle exceeds configured cap';
 }
 export class NoFeeDataError extends THXError {
     message = 'Could not get fee data from oracle';
-}
-
-export enum NetworkProvider {
-    Test = 0,
-    Main = 1,
 }
 
 export const ADDRESS_ZERO = '0x0000000000000000000000000000000000000000';

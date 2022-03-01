@@ -3,7 +3,8 @@ import { mockStart } from './mock';
 import { agenda } from '@/util/agenda';
 import { mockClear } from './mock';
 import { logger } from '@/util/logger';
-import { getProvider, NetworkProvider } from '@/util/network';
+import { getProvider } from '@/util/network';
+import { NetworkProvider } from '@/types/enums';
 import { poll } from './polling';
 import { getCurrentAssetPoolRegistryAddress } from '@/config/network';
 

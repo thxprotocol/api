@@ -1,7 +1,8 @@
 import { Response, Request, NextFunction } from 'express';
 import { HttpError } from '@/models/Error';
 import { name, version, license } from '../../../package.json';
-import { getProvider, NetworkProvider, getEstimatesFromOracle } from '@/util/network';
+import { getProvider, getEstimatesFromOracle } from '@/util/network';
+import { NetworkProvider } from '@/types/enums';
 import { fromWei } from 'web3-utils';
 import { agenda, eventNameProcessWithdrawals } from '@/util/agenda';
 
