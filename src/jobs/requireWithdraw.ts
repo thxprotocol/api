@@ -30,16 +30,17 @@ export async function jobRequireWithdraws() {
                 });
 
                 for (const event of events) {
-                    const withdrawal = await Withdrawal.findOne({
-                        state: WithdrawalState.Pending,
-                        poolAddress: pool.address,
-                        withdrawalId: event.returnValues.id,
-                    });
-
-                    withdrawal.state = WithdrawalState.Withdrawn;
-                    withdrawal.failReason = '';
-
-                    await withdrawal.save();
+                    await Withdrawal.updateOne(
+                        {
+                            state: WithdrawalState.Pending,
+                            poolAddress: pool.address,
+                            withdrawalId: event.returnValues.id,
+                        },
+                        {
+                            state: WithdrawalState.Withdrawn,
+                            failReason: '',
+                        },
+                    );
                 }
 
                 pool.blockNumber = toBlock;
