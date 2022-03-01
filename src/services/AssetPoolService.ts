@@ -178,8 +178,12 @@ export default class AssetPoolService {
         );
     }
 
-    static async getAll(sub: string) {
+    static async getAllBySub(sub: string) {
         return (await AssetPool.find({ sub })).map((pool) => pool.address);
+    }
+
+    static getAll() {
+        return AssetPool.find({});
     }
 
     static async removeByAddress(address: string) {

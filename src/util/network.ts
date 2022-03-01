@@ -5,7 +5,6 @@ import {
     ASSET_POOL_FACTORY_ADDRESS,
     TESTNET_RPC,
     RPC,
-    MINIMUM_GAS_LIMIT,
     MAX_FEE_PER_GAS,
 } from './secrets';
 import Web3 from 'web3';

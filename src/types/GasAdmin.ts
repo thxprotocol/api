@@ -1,4 +1,4 @@
-import { GastAdminType } from '@/enums/GasAdminType';
+import { GastAdminType } from '@/types/enums/GasAdminType';
 
 export type TGasAdmin = {
     type: GastAdminType;

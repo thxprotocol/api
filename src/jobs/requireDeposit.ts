@@ -1,6 +1,6 @@
 import { toWei } from 'web3-utils';
 import { EventLog } from 'web3-core';
-import { DepositState } from '@/enums/DepositState';
+import { DepositState } from '@/types/enums/DepositState';
 import { Deposit, DepositDocument } from '@/models/Deposit';
 import AssetPoolService from '@/services/AssetPoolService';
 import { getProvider, tokenContract } from '@/util/network';

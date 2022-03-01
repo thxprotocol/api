@@ -1,6 +1,6 @@
 import { toWei, fromWei } from 'web3-utils';
 import { NetworkProvider, MaxFeePerGasExceededError } from '@/util/network';
-import { WithdrawalState, WithdrawalType } from '@/enums';
+import { WithdrawalState, WithdrawalType } from '@/types/enums';
 import { AssetPoolType } from '@/models/AssetPool';
 import { Withdrawal } from '@/models/Withdrawal';
 import { IAccount } from '@/models/Account';

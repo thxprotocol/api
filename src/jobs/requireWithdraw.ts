@@ -1,4 +1,4 @@
-import { WithdrawalState } from '@/enums/WithdrawalState';
+import { WithdrawalState } from '@/types/enums';
 import { Withdrawal } from '@/models/Withdrawal';
 import { AssetPool, AssetPoolDocument } from '@/models/AssetPool';
 import { getProvider, solutionContract } from '@/util/network';

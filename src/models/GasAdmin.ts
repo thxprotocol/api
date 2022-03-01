@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import { GastAdminType } from '@/enums/GasAdminType';
+import { GastAdminType } from '@/types/enums/GasAdminType';
 import { TGasAdmin } from '@/types/GasAdmin';
 
 export type GasAdminDocument = mongoose.Document & TGasAdmin;
