@@ -11,7 +11,6 @@ import { IAccount } from '@/models/Account';
 import { Membership } from '@/models/Membership';
 import { THXError } from '@/util/errors';
 import { TransactionService } from './TransactionService';
-import { getPoolFacetAdressesPermutations } from '@/util/networkconfig';
 
 class NoDataAtAddressError extends THXError {
     constructor(address: string) {
