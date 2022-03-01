@@ -3,7 +3,7 @@ FROM node:16-alpine as develop
 WORKDIR /usr/src/app
 RUN apk add g++ make py3-pip
 COPY package*.json ./
-RUN npm install --ci
+RUN npm ci
 COPY . .
 
 CMD [ "npx", "ts-node", "-r", "tsconfig-paths/register", "src/server.ts" ]
@@ -24,7 +24,7 @@ WORKDIR /usr/src/app
 COPY package* ./
 RUN npm config set update-notifier false
 RUN apk add --virtual .build g++ make py3-pip && \
-    npm install --production --ci && \
+    npm ci --production && \
     apk del .build
 COPY --from=build ./usr/src/app/dist ./
 COPY tsconfig.json ./
