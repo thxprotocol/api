@@ -5,7 +5,7 @@ import {
     POOL_REGISTRY_ADDRESS,
     TESTNET_ASSET_POOL_FACTORY_ADDRESS,
     TESTNET_POOL_REGISTRY_ADDRESS,
-} from '@/util/secrets';
+} from '@/config/secrets';
 import { name, version, license } from '../../../package.json';
 import { getProvider, NetworkProvider, getEstimatesFromOracle } from '@/util/network';
 import { fromWei } from 'web3-utils';
