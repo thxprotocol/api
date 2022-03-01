@@ -29,7 +29,6 @@ export async function postRewardClaim(req: Request, res: Response) {
     // Check if the claim conditions are currently valid, recheck in job
     const canClaim = await RewardService.canClaim(req.assetPool, reward, account);
     if (!canClaim) throw new ForbiddenError(ERROR_CAIM_NOT_ALLOWED);
-
     // Check for membership separate since we might need to add a membership in the job
     const isMember = await MemberService.isMember(req.assetPool, account.address);
     if (!isMember && reward.isMembershipRequired) throw new ForbiddenError(ERROR_NO_MEMBER);

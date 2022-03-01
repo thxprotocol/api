@@ -19,6 +19,7 @@ import TwitterDataProxy from '@/proxies/TwitterDataProxy';
 import YouTubeDataProxy from '@/proxies/YoutubeDataProxy';
 import { TransactionService } from './TransactionService';
 import WithdrawalService from './WithdrawalService';
+import SpotifyDataProxy from '@/proxies/SpotifyDataProxy';
 
 export default class RewardService {
     static async get(assetPool: AssetPoolType, rewardId: number): Promise<RewardDocument> {
@@ -86,6 +87,17 @@ export default class RewardService {
                     return TwitterDataProxy.validateRetweet(account, channelItem);
                 case ChannelAction.TwitterFollow:
                     return TwitterDataProxy.validateFollow(account, channelItem);
+                case ChannelAction.SpotifyUserFollow:
+                    return SpotifyDataProxy.validateUserFollow(account, channelItem);
+                case ChannelAction.SpotifyPlaylistFollow:
+                    return SpotifyDataProxy.validatePlaylistFollow(account, channelItem);
+                case ChannelAction.SpotifyTrackPlaying:
+                    return SpotifyDataProxy.validateTrackPlaying(account, channelItem);
+                case ChannelAction.SpotifyTrackRecent:
+                    return SpotifyDataProxy.validateRecentTrack(account, channelItem);
+                case ChannelAction.SpotifyTrackSaved:
+                    return SpotifyDataProxy.validateSavedTracks(account, channelItem);
+
                 default:
                     return Promise.resolve(false);
             }

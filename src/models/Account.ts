@@ -7,6 +7,7 @@ export interface IAccount {
     twitterAccess: boolean;
     youtube?: any;
     twitter?: any;
+    spotify?: any;
 }
 export interface ERC20Token {
     network: NetworkProvider;

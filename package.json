@@ -1,6 +1,6 @@
 {
     "name": "@thxnetwork/api",
-    "version": "1.2.5",
+    "version": "1.3.1",
     "repository": {
         "type": "git",
         "url": "https://github.com/thxprotocol/api"
@@ -11,14 +11,9 @@
         "preinstall": "npx npm-force-resolutions",
         "lint": "tsc -p ./tsconfig.json && eslint \"./src/**/*.ts\"",
         "lint:fix": "tsc -p ./tsconfig.json && eslint \"./src/**/*.ts\" --fix",
-        "dev": "docker-compose up -d && npm run watch:debug",
-        "build": "npm run build:sass && npm run build:assets && npm run build:docs && tsc -p ./tsconfig.json",
-        "build:assets": "mkdir -p dist/src/public && cp -R src/public/* dist/src/public/. && cp -R src/views dist/src/.",
+        "dev": "docker-compose up -d && npm run watch:node",
+        "build": "npm run build:docs && tsc -p ./tsconfig.json",
         "build:docs": "swagger-jsdoc -d ./src/swaggerDef.js -o ./src/swagger.json",
-        "build:sass": "sass src/main.scss src/public/main.css",
-        "watch": "concurrently -k -p \"[{name}]\" -n \"Sass,Node\" -c \"yellow.bold,cyan.bold\" \"npm run watch:sass\" \"npm run watch:node\"",
-        "watch:debug": "concurrently -k -p \"[{name}]\" -n \"Sass,Node\" -c \"yellow.bold,cyan.bold\" \"npm run watch:sass\" \"npm run watch:node-debug\"",
-        "watch:sass": "sass --watch src/main.scss src/public/main.css",
         "watch:node": "ts-node-dev -r tsconfig-paths/register src/server.ts",
         "watch:node-debug": "ts-node-dev -r tsconfig-paths/register --inspect=7000 src/server.ts",
         "test": "npx jest --runInBand",
