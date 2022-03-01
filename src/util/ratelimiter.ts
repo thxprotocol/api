@@ -4,7 +4,7 @@ import {
     RATE_LIMIT_REWARD_CLAIM,
     RATE_LIMIT_REWARD_CLAIM_WINDOW,
     RATE_LIMIT_REWARD_GIVE_WINDOW,
-} from './secrets';
+} from '@/config/secrets';
 
 export const rateLimitRewardGive = rateLimit({
     windowMs: RATE_LIMIT_REWARD_GIVE_WINDOW * 1000, // in seconds * 1000ms

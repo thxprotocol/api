@@ -8,7 +8,7 @@ import db from '@/util/database';
 import { requestLogger } from '@/util/logger';
 import { corsHandler } from '@/util/cors';
 import { errorOutput, notFoundHandler, errorLogger, errorNormalizer } from '@/middlewares';
-import { PORT, VERSION, MONGODB_URI } from '@/util/secrets';
+import { PORT, VERSION, MONGODB_URI } from '@/config/secrets';
 
 const app = express();
 

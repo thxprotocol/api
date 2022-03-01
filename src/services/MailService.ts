@@ -2,7 +2,7 @@ import ejs from 'ejs';
 import { sendMail } from '@/util/mail';
 import { createRandomToken } from '@/util/tokens';
 import path from 'path';
-import { API_URL, WALLET_URL, SECURE_KEY } from '@/util/secrets';
+import { API_URL, WALLET_URL, SECURE_KEY } from '@/config/secrets';
 import { encryptString } from '@/util/encrypt';
 import AccountProxy from '@/proxies/AccountProxy';
 

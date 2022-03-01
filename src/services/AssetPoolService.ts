@@ -1,7 +1,7 @@
 import { assertEvent, parseLogs } from '@/util/events';
 import { getAssetPoolFactory, NetworkProvider, tokenContract } from '@/util/network';
 import { Artifacts } from '@/util/artifacts';
-import { POOL_REGISTRY_ADDRESS, TESTNET_POOL_REGISTRY_ADDRESS } from '@/util/secrets';
+import { POOL_REGISTRY_ADDRESS, TESTNET_POOL_REGISTRY_ADDRESS } from '@/config/secrets';
 import { AssetPool, AssetPoolDocument, IAssetPoolUpdates } from '@/models/AssetPool';
 import { deployUnlimitedSupplyERC20Contract, deployLimitedSupplyERC20Contract, getProvider } from '@/util/network';
 import { toWei, fromWei } from 'web3-utils';

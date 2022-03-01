@@ -1,5 +1,5 @@
 import sgMail from '@sendgrid/mail';
-import { SENDGRID_API_KEY } from './secrets';
+import { SENDGRID_API_KEY } from '@/config/secrets';
 
 if (SENDGRID_API_KEY) {
     sgMail.setApiKey(SENDGRID_API_KEY);

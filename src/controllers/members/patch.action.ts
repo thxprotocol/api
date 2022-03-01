@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { VERSION } from '@/util/secrets';
+import { VERSION } from '@/config/secrets';
 import { NotFoundError } from '@/util/errors';
 import { TransactionService } from '@/services/TransactionService';
 

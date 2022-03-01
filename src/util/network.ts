@@ -6,7 +6,7 @@ import {
     TESTNET_RPC,
     RPC,
     MAX_FEE_PER_GAS,
-} from './secrets';
+} from '@/config/secrets';
 import Web3 from 'web3';
 import axios from 'axios';
 import BN from 'bn.js';

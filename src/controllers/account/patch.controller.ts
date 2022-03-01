@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { VERSION } from '@/util/secrets';
+import { VERSION } from '@/config/secrets';
 import AccountProxy from '@/proxies/AccountProxy';
 
 export const patchAccount = async (req: Request, res: Response) => {

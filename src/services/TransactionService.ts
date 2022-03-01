@@ -2,7 +2,7 @@ import { toWei } from 'web3-utils';
 
 import { Transaction, TransactionState } from '@/models/Transaction';
 import { getEstimatesFromOracle, getProvider, MaxFeePerGasExceededError, NetworkProvider } from '@/util/network';
-import { MAX_FEE_PER_GAS, MINIMUM_GAS_LIMIT, PRIVATE_KEY } from '@/util/secrets';
+import { MAX_FEE_PER_GAS, MINIMUM_GAS_LIMIT, PRIVATE_KEY } from '@/config/secrets';
 import { logger } from '@/util/logger';
 
 export class TransactionService {
