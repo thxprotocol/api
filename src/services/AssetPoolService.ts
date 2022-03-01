@@ -11,6 +11,8 @@ import { IAccount } from '@/models/Account';
 import { Membership } from '@/models/Membership';
 import { THXError } from '@/util/errors';
 import { TransactionService } from './TransactionService';
+import { getPoolFacetAdressesPermutations } from '@/config/network';
+import { pick } from '@/util';
 
 class NoDataAtAddressError extends THXError {
     constructor(address: string) {
@@ -246,5 +248,14 @@ export default class AssetPoolService {
 
     static async countByNetwork(network: NetworkProvider) {
         return await AssetPool.countDocuments({ network });
+    }
+
+    static async contractVersion(assetPool: AssetPoolDocument) {
+        const permutations = Object.values(getPoolFacetAdressesPermutations(assetPool.network));
+        const facetAddresses = (await assetPool.solution.methods.facets().call()).map((facet: any) => facet[0]);
+        const match = permutations.find(
+            (permutation) => Object.values(permutation.facets).sort().join('') === facetAddresses.sort().join(''),
+        );
+        return match ? pick(match, ['version', 'bypassPolls', 'npid']) : { version: 'unknown' };
     }
 }
