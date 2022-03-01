@@ -11,9 +11,7 @@ const required = [
     'PUBLIC_URL',
     'DASHBOARD_URL',
     'RPC',
-    'ASSET_POOL_FACTORY_ADDRESS',
     'TESTNET_RPC',
-    'TESTNET_ASSET_POOL_FACTORY_ADDRESS',
     'MONGODB_URI',
     'PRIVATE_KEY',
     'PORT',
@@ -59,9 +57,7 @@ export const PUBLIC_URL = process.env.PUBLIC_URL;
 export const DASHBOARD_URL = process.env.DASHBOARD_URL;
 export const WIDGETS_URL = process.env.WIDGETS_URL;
 export const RPC = process.env.RPC;
-export const ASSET_POOL_FACTORY_ADDRESS = process.env.ASSET_POOL_FACTORY_ADDRESS;
 export const TESTNET_RPC = process.env.TESTNET_RPC;
-export const TESTNET_ASSET_POOL_FACTORY_ADDRESS = process.env.TESTNET_ASSET_POOL_FACTORY_ADDRESS;
 export const MONGODB_URI = process.env.MONGODB_URI;
 export const PRIVATE_KEY = process.env.PRIVATE_KEY;
 export const COLLECTOR = process.env.COLLECTOR;

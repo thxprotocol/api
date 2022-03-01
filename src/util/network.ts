@@ -1,12 +1,5 @@
 import newrelic from 'newrelic';
-import {
-    PRIVATE_KEY,
-    TESTNET_ASSET_POOL_FACTORY_ADDRESS,
-    ASSET_POOL_FACTORY_ADDRESS,
-    TESTNET_RPC,
-    RPC,
-    MAX_FEE_PER_GAS,
-} from '@/config/secrets';
+import { PRIVATE_KEY, TESTNET_RPC, RPC, MAX_FEE_PER_GAS } from '@/config/secrets';
 import Web3 from 'web3';
 import axios from 'axios';
 import BN from 'bn.js';
@@ -16,6 +9,7 @@ import { Contract } from 'web3-eth-contract';
 import { Artifacts } from './artifacts';
 import { logger } from './logger';
 import { THXError } from './errors';
+import { getCurrentAssetPoolFactoryAddress } from '@/config/network';
 
 export class MaxFeePerGasExceededError extends THXError {
     message = 'MaxFeePerGas from oracle exceeds configured cap';
@@ -200,9 +194,10 @@ export function getSelectors(contract: Contract) {
 
 export const getAssetPoolFactory = (npid: NetworkProvider): Contract => {
     const { web3 } = getProvider(npid);
-    const contract = new web3.eth.Contract(Artifacts.IAssetPoolFactory.abi as any);
-    if (npid === NetworkProvider.Test) contract.options.address = TESTNET_ASSET_POOL_FACTORY_ADDRESS;
-    if (npid === NetworkProvider.Main) contract.options.address = ASSET_POOL_FACTORY_ADDRESS;
+    const contract = new web3.eth.Contract(
+        Artifacts.IAssetPoolFactory.abi as any,
+        getCurrentAssetPoolFactoryAddress(npid),
+    );
     return contract;
 };
 
