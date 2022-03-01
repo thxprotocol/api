@@ -11,7 +11,7 @@ import { BadRequestError, ForbiddenError } from '@/util/errors';
 const ERROR_REWARD_NOT_FOUND = 'The reward for this ID does not exist.';
 const ERROR_ACCOUNT_NO_ADDRESS = 'The authenticated account has not wallet address. Sign in the Web Wallet once.';
 const ERROR_INCORRECT_SCOPE = 'No subscription is found for this type of access token.';
-const ERROR_CAIM_NOT_ALLOWED = 'Could not claim this reward due to the claim conditions.';
+const ERROR_CAIM_NOT_ALLOWED = 'You are not allowed to claim this reward.';
 const ERROR_NO_MEMBER = 'Could not claim this reward since you are not a member of the pool.';
 
 export async function postRewardClaim(req: Request, res: Response) {

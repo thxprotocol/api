@@ -1,5 +1,5 @@
 import { toWei, fromWei } from 'web3-utils';
-import { callFunction, NetworkProvider, sendTransaction, MaxFeePerGasExceededError } from '@/util/network';
+import { NetworkProvider, MaxFeePerGasExceededError } from '@/util/network';
 import { WithdrawalState, WithdrawalType } from '@/enums';
 import { AssetPoolType } from '@/models/AssetPool';
 import { Withdrawal } from '@/models/Withdrawal';
@@ -8,6 +8,7 @@ import { Artifacts } from '@/util/artifacts';
 import { parseLogs, findEvent } from '@/util/events';
 import { paginatedResults } from '@/util/pagination';
 import { THXError } from '@/util/errors';
+import { TransactionService } from './TransactionService';
 
 class CannotWithdrawForCustodialError extends THXError {
     message = 'Not able to withdraw funds for custodial wallets.';
@@ -68,7 +69,7 @@ export default class WithdrawalService {
     // Invoked from job
     static async proposeWithdraw(assetPool: AssetPoolType, id: string, beneficiary: string, amount: number) {
         const amountInWei = toWei(amount.toString());
-        const tx = await sendTransaction(
+        const tx = await TransactionService.send(
             assetPool.address,
             assetPool.solution.methods.proposeWithdraw(amountInWei, beneficiary),
             assetPool.network,
@@ -87,7 +88,7 @@ export default class WithdrawalService {
         const withdrawal = await this.getById(id);
 
         if (memberId) {
-            withdrawal.beneficiary = await callFunction(
+            withdrawal.beneficiary = await TransactionService.call(
                 assetPool.solution.methods.getAddressByMember(memberId),
                 assetPool.network,
             );
@@ -96,18 +97,29 @@ export default class WithdrawalService {
         if (withdrawalId) {
             withdrawal.withdrawalId = withdrawalId; // TODO make migration for this
             withdrawal.amount = Number(
-                fromWei(await callFunction(assetPool.solution.methods.getAmount(withdrawalId), assetPool.network)),
+                fromWei(
+                    await TransactionService.call(
+                        assetPool.solution.methods.getAmount(withdrawalId),
+                        assetPool.network,
+                    ),
+                ),
             );
-            withdrawal.approved = await callFunction(
+            withdrawal.approved = await TransactionService.call(
                 assetPool.solution.methods.withdrawPollApprovalState(withdrawalId),
                 assetPool.network,
             );
             const poll = {
                 startTime: Number(
-                    await callFunction(assetPool.solution.methods.getStartTime(withdrawalId), assetPool.network),
+                    await TransactionService.call(
+                        assetPool.solution.methods.getStartTime(withdrawalId),
+                        assetPool.network,
+                    ),
                 ),
                 endTime: Number(
-                    await callFunction(assetPool.solution.methods.getEndTime(withdrawalId), assetPool.network),
+                    await TransactionService.call(
+                        assetPool.solution.methods.getEndTime(withdrawalId),
+                        assetPool.network,
+                    ),
                 ),
                 yesCounter: 0,
                 noCounter: 0,
@@ -126,7 +138,7 @@ export default class WithdrawalService {
             throw new CannotWithdrawForCustodialError();
         }
 
-        const tx = await sendTransaction(
+        const tx = await TransactionService.send(
             assetPool.solution.options.address,
             assetPool.solution.methods.withdrawPollFinalize(withdrawal.withdrawalId),
             assetPool.network,

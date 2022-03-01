@@ -84,7 +84,7 @@ router.delete(
 );
 router.post(
     '/:id/poll/finalize',
-    checkScopes(['admin']),
+    checkScopes(['admin', 'dashboard']),
     validateAssetPoolHeader,
     validate(validations.postPollFinalize),
     requireAssetPoolHeader,

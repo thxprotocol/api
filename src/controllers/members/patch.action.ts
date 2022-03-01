@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
-import { callFunction, sendTransaction } from '@/util/network';
 import { VERSION } from '@/util/secrets';
 import { NotFoundError } from '@/util/errors';
+import { TransactionService } from '@/services/TransactionService';
 
 /**
  * @swagger
@@ -40,7 +40,7 @@ import { NotFoundError } from '@/util/errors';
  *         $ref: '#/components/responses/502'
  */
 export const patchMember = async (req: Request, res: Response) => {
-    const isMember = await callFunction(
+    const isMember = await TransactionService.call(
         req.assetPool.solution.methods.isMember(req.params.address),
         req.assetPool.network,
     );
@@ -49,7 +49,7 @@ export const patchMember = async (req: Request, res: Response) => {
         throw new NotFoundError();
     }
 
-    await sendTransaction(
+    await TransactionService.send(
         req.assetPool.address,
         req.assetPool.solution.methods[req.body.isManager ? 'addManager' : 'removeManager'](req.params.address),
         req.assetPool.network,

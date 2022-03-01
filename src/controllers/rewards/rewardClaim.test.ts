@@ -1,19 +1,14 @@
 import request from 'supertest';
 import app from '@/app';
-import { NetworkProvider } from '@/util/network';
-import { createWallet } from '@/util/jest/network';
-import {
-    rewardWithdrawAmount,
-    rewardWithdrawDuration,
-    tokenName,
-    tokenSymbol,
-    userWalletPrivateKey2,
-} from '@/util/jest/constants';
-import { isAddress } from 'web3-utils';
 import { Account } from 'web3-core';
+import { NetworkProvider } from '../../util/network';
+import { createWallet, signMethod } from '@/util/jest/network';
+import { rewardWithdrawAmount, tokenName, tokenSymbol, userWalletPrivateKey2 } from '@/util/jest/constants';
+import { isAddress } from 'web3-utils';
 import { getToken } from '@/util/jest/jwt';
 import { afterAllCallback, beforeAllCallback } from '@/util/jest/config';
 import { WithdrawalState } from '@/enums';
+import { agenda, eventNameProcessWithdrawals, eventNameRequireWithdraws } from '@/util/agenda';
 
 const user = request.agent(app);
 
@@ -24,8 +19,8 @@ describe('Reward Claim', () => {
         dashboardAccessToken: string,
         poolAddress: string,
         rewardID: string,
-        withdrawalId: number,
-        withdrawalDocumentId: number,
+        withdrawalDocumentId: string,
+        withdrawalId: string,
         userWallet: Account;
 
     beforeAll(async () => {
@@ -62,7 +57,7 @@ describe('Reward Claim', () => {
             .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
             .send({
                 withdrawAmount: rewardWithdrawAmount,
-                withdrawDuration: rewardWithdrawDuration,
+                withdrawDuration: 0,
                 isClaimOnce: false,
                 isMembershipRequired: false,
             })
@@ -82,7 +77,18 @@ describe('Reward Claim', () => {
             .expect(200, done);
     });
 
+    it('Add member', (done) => {
+        user.post('/v1/members/')
+            .send({ address: userWallet.address })
+            .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
+            .expect(302, done);
+    });
+
     describe('POST /rewards/:id/claim', () => {
+        it('should disable job processor', async () => {
+            await agenda.disable({ name: eventNameRequireWithdraws });
+        });
+
         it('should return a 200 and withdrawal id', (done) => {
             user.post(`/v1/rewards/${rewardID}/claim`)
                 .set({ AssetPool: poolAddress, Authorization: userAccessToken })
@@ -95,18 +101,64 @@ describe('Reward Claim', () => {
                 .expect(200, done);
         });
 
-        // it('should wait for job processing', () => {
-        //     //
-        // });
+        it('should cast a success event for ProcessWithdrawals event', (done) => {
+            const callback = async () => {
+                agenda.off(`success:${eventNameProcessWithdrawals}`, callback);
+                done();
+            };
+            agenda.on(`success:${eventNameProcessWithdrawals}`, callback);
+        });
 
-        // it('should return Pending state', (done) => {
-        //     user.get(`/v1/withdrawals/${withdrawalDocumentId}`)
-        //         .set({ AssetPool: poolAddress, Authorization: userAccessToken })
-        //         .expect((res: request.Response) => {
-        //             console.log(res.body);
-        //             expect(res.body.state).toEqual(WithdrawalState.Pending);
-        //         })
-        //         .expect(200, done);
-        // });
+        it('should return Pending state', (done) => {
+            user.get(`/v1/withdrawals/${withdrawalDocumentId}`)
+                .set({ AssetPool: poolAddress, Authorization: userAccessToken })
+                .expect((res: request.Response) => {
+                    expect(res.body.state).toEqual(WithdrawalState.Pending);
+                    expect(res.body.withdrawalId).toBeDefined();
+
+                    withdrawalId = res.body.withdrawalId;
+                })
+                .expect(200, done);
+        });
+
+        it('should finalize the withdraw poll', async () => {
+            const { call, nonce, sig } = await signMethod(
+                poolAddress,
+                'withdrawPollFinalize',
+                [withdrawalId],
+                userWallet,
+            );
+
+            await user
+                .post('/v1/gas_station/call')
+                .set({ AssetPool: poolAddress, Authorization: userAccessToken })
+                .send({
+                    call,
+                    nonce,
+                    sig,
+                })
+                .expect(200);
+        });
+
+        it('should enable job processor', async () => {
+            await agenda.enable({ name: eventNameRequireWithdraws });
+        });
+
+        it('should cast a success event for Withdrawn event', (done) => {
+            const callback = async () => {
+                agenda.off(`success:${eventNameRequireWithdraws}`, callback);
+                done();
+            };
+            agenda.on(`success:${eventNameRequireWithdraws}`, callback);
+        });
+
+        it('should return Withdrawn state', (done) => {
+            user.get(`/v1/withdrawals/${withdrawalDocumentId}`)
+                .set({ AssetPool: poolAddress, Authorization: userAccessToken })
+                .expect((res: request.Response) => {
+                    expect(res.body.state).toEqual(WithdrawalState.Withdrawn);
+                })
+                .expect(200, done);
+        });
     });
 });

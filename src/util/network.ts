@@ -79,11 +79,6 @@ export async function getEstimatesFromOracle(npid: NetworkProvider, type = 'fast
     };
 }
 
-export const getBalance = (npid: NetworkProvider, address: string) => {
-    const { web3 } = getProvider(npid);
-    return web3.eth.getBalance(address);
-};
-
 export async function deployContract(abi: any, bytecode: any, arg: any[], npid: NetworkProvider): Promise<Contract> {
     const { web3, admin } = getProvider(npid);
     const contract = new web3.eth.Contract(abi);
@@ -140,61 +135,61 @@ export async function deployContract(abi: any, bytecode: any, arg: any[], npid: 
 
 // TODO This is redundant since defaultAccount is set and from not needed
 // Should be re-introduced when a gas admin per pool is available.
-export async function callFunction(fn: any, npid: NetworkProvider) {
-    const { admin } = getProvider(npid);
+// export async function callFunction(fn: any, npid: NetworkProvider) {
+//     const { admin } = getProvider(npid);
 
-    return await fn.call({
-        from: admin.address,
-    });
-}
+//     return await fn.call({
+//         from: admin.address,
+//     });
+// }
 
-// gasLimit is set for methods that have incorrect default gas estimates, resulting in tx running out of gas
-export async function sendTransaction(to: string, fn: any, npid: NetworkProvider, gasLimit?: number) {
-    const { web3, admin } = getProvider(npid);
-    const from = admin.address;
-    const data = fn.encodeABI();
-    const estimate = await fn.estimateGas({ from: admin.address });
-    // MINIMUM_GAS_LIMIT is set for tx that have a lower estimate than allowed by the network
-    const gas = gasLimit ? gasLimit : estimate < MINIMUM_GAS_LIMIT ? MINIMUM_GAS_LIMIT : estimate;
-    const nonce = await web3.eth.getTransactionCount(admin.address, 'pending');
-    const feeData = await getEstimatesFromOracle(npid);
-    const maxFeePerGasLimit = Number(toWei(MAX_FEE_PER_GAS, 'gwei'));
-    const maxFeePerGas = Number(toWei(String(Math.ceil(feeData.maxFeePerGas)), 'gwei'));
-    const maxPriorityFeePerGas = Number(toWei(String(Math.ceil(feeData.maxPriorityFeePerGas)), 'gwei'));
+// // gasLimit is set for methods that have incorrect default gas estimates, resulting in tx running out of gas
+// export async function sendTransaction(to: string, fn: any, npid: NetworkProvider, gasLimit?: number) {
+//     const { web3, admin } = getProvider(npid);
+//     const from = admin.address;
+//     const data = fn.encodeABI();
+//     const estimate = await fn.estimateGas({ from: admin.address });
+//     // MINIMUM_GAS_LIMIT is set for tx that have a lower estimate than allowed by the network
+//     const gas = gasLimit ? gasLimit : estimate < MINIMUM_GAS_LIMIT ? MINIMUM_GAS_LIMIT : estimate;
+//     const nonce = await web3.eth.getTransactionCount(admin.address, 'pending');
+//     const feeData = await getEstimatesFromOracle(npid);
+//     const maxFeePerGasLimit = Number(toWei(MAX_FEE_PER_GAS, 'gwei'));
+//     const maxFeePerGas = Number(toWei(String(Math.ceil(feeData.maxFeePerGas)), 'gwei'));
+//     const maxPriorityFeePerGas = Number(toWei(String(Math.ceil(feeData.maxPriorityFeePerGas)), 'gwei'));
 
-    // This comparison is in gwei
-    if (maxFeePerGas > maxFeePerGasLimit) {
-        throw new MaxFeePerGasExceededError();
-    }
+//     // This comparison is in gwei
+//     if (maxFeePerGas > maxFeePerGasLimit) {
+//         throw new MaxFeePerGasExceededError();
+//     }
 
-    const sig = await web3.eth.accounts.signTransaction(
-        {
-            gas,
-            to,
-            from,
-            maxPriorityFeePerGas,
-            data,
-            nonce,
-        },
-        PRIVATE_KEY,
-    );
-    const receipt = await web3.eth.sendSignedTransaction(sig.rawTransaction);
+//     const sig = await web3.eth.accounts.signTransaction(
+//         {
+//             gas,
+//             to,
+//             from,
+//             maxPriorityFeePerGas,
+//             data,
+//             nonce,
+//         },
+//         PRIVATE_KEY,
+//     );
+//     const receipt = await web3.eth.sendSignedTransaction(sig.rawTransaction);
 
-    logger.info({
-        fn: fn.name,
-        to,
-        feeData,
-        receipt: {
-            transactionHash: receipt.transactionHash,
-            gasUsed: receipt.gasUsed,
-            effectiveGasPrice: receipt.effectiveGasPrice,
-            gasCosts: receipt.gasUsed * receipt.effectiveGasPrice,
-        },
-        network: npid,
-    });
+//     logger.info({
+//         fn: fn.name,
+//         to,
+//         feeData,
+//         receipt: {
+//             transactionHash: receipt.transactionHash,
+//             gasUsed: receipt.gasUsed,
+//             effectiveGasPrice: receipt.effectiveGasPrice,
+//             gasCosts: receipt.gasUsed * receipt.effectiveGasPrice,
+//         },
+//         network: npid,
+//     });
 
-    return receipt;
-}
+//     return receipt;
+// }
 
 export function getSelectors(contract: Contract) {
     const signatures = [];

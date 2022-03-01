@@ -1,8 +1,9 @@
-import { getSelectors, NetworkProvider, sendTransaction, getProvider, ADDRESS_ZERO } from './network';
+import { getSelectors, NetworkProvider, getProvider, ADDRESS_ZERO } from './network';
 import { Contract } from 'web3-eth-contract';
 import { Artifacts } from './artifacts';
 import { Facets } from './facets';
 import { AssetPoolType } from '@/models/AssetPool';
+import { TransactionService } from '@/services/TransactionService';
 
 export const FacetCutAction = {
     Add: 0,
@@ -25,7 +26,7 @@ export async function updateAssetPool(artifacts: any, solution: Contract, npid: 
             functionSelectors,
         });
     }
-    return await sendTransaction(
+    return await TransactionService.send(
         solution.options.address,
         solution.methods.diamondCut(diamondCuts, ADDRESS_ZERO, '0x'),
         npid,

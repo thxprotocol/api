@@ -1,26 +1,30 @@
 import { toWei } from 'web3-utils';
 import { AssetPoolType } from '@/models/AssetPool';
 import { Deposit } from '@/models/Deposit';
-import { callFunction, getProvider, tokenContract } from '@/util/network';
+import { getProvider, tokenContract } from '@/util/network';
 import { IAccount } from '@/models/Account';
 import { AmountExceedsAllowanceError, InsufficientBalanceError } from '@/util/errors';
 import { DepositState } from '@/enums/DepositState';
+import { TransactionService } from './TransactionService';
 
 // Checks for allowance and balance to be sufficient and transfers
 // promoCode price amount from token owner to spender address (pool owner)
 async function create(assetPool: AssetPoolType, owner: IAccount, price: number, item: string) {
-    const tokenAddress = await callFunction(assetPool.solution.methods.getToken(), assetPool.network);
+    const tokenAddress = await TransactionService.call(assetPool.solution.methods.getToken(), assetPool.network);
     const token = tokenContract(assetPool.network, tokenAddress);
     const amount = toWei(String(price));
 
     //Check clientside to make request response faster?
-    const balance = await callFunction(token.methods.balanceOf(owner.address), assetPool.network);
+    const balance = await TransactionService.call(token.methods.balanceOf(owner.address), assetPool.network);
     if (balance < amount) {
         throw new InsufficientBalanceError();
     }
 
     //Check clientside to make request response faster?
-    const allowance = await callFunction(token.methods.allowance(owner.address, assetPool.address), assetPool.network);
+    const allowance = await TransactionService.call(
+        token.methods.allowance(owner.address, assetPool.address),
+        assetPool.network,
+    );
     if (allowance < amount) {
         throw new AmountExceedsAllowanceError();
     }

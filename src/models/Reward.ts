@@ -34,7 +34,7 @@ export interface IRewardCondition {
     channelItem: string;
 }
 
-export type RewardDocument = mongoose.Document & {
+export type TReward = {
     id: number;
     poolAddress: string;
     state: number;
@@ -44,9 +44,12 @@ export type RewardDocument = mongoose.Document & {
     withdrawDuration: number;
     withdrawCondition: IRewardCondition;
     pollId: number;
+    poll?: TRewardPoll;
 };
 
-export type RewardPollDocument = {
+export type RewardDocument = mongoose.Document & TReward;
+
+export type TRewardPoll = {
     id: number;
     withdrawAmount: number;
     withdrawDuration: number;

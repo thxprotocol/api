@@ -1,6 +1,6 @@
 import request from 'supertest';
 import app from '@/app';
-import { callFunction, NetworkProvider, sendTransaction } from '@/util/network';
+import { NetworkProvider } from '@/util/network';
 import { timeTravel, signMethod, deployExampleToken, createWallet } from '@/util/jest/network';
 import {
     rewardWithdrawAmount,
@@ -17,6 +17,7 @@ import { Account } from 'web3-core';
 import { getToken } from '@/util/jest/jwt';
 import { agenda, eventNameProcessWithdrawals } from '@/util/agenda';
 import { afterAllCallback, beforeAllCallback } from '@/util/jest/config';
+import { TransactionService } from '@/services/TransactionService';
 
 const user = request.agent(app);
 
@@ -68,14 +69,21 @@ describe('Happy Flow', () => {
             const assetPool = solutionContract(NetworkProvider.Main, poolAddress);
             const amount = toWei(rewardWithdrawAmount.toString());
 
-            await sendTransaction(
+            await TransactionService.send(
                 testToken.options.address,
                 testToken.methods.approve(poolAddress, toWei(rewardWithdrawAmount.toString())),
                 NetworkProvider.Main,
             );
-            await sendTransaction(assetPool.options.address, assetPool.methods.deposit(amount), NetworkProvider.Main);
+            await TransactionService.send(
+                assetPool.options.address,
+                assetPool.methods.deposit(amount),
+                NetworkProvider.Main,
+            );
 
-            balanceOfAdmin = await callFunction(testToken.methods.balanceOf(adminAddress), NetworkProvider.Main);
+            balanceOfAdmin = await TransactionService.call(
+                testToken.methods.balanceOf(adminAddress),
+                NetworkProvider.Main,
+            );
         });
 
         it('HTTP 200 and expose pool information', async () => {

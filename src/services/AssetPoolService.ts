@@ -1,27 +1,22 @@
 import { assertEvent, parseLogs } from '@/util/events';
-import { callFunction, getAssetPoolFactory, NetworkProvider, sendTransaction, tokenContract } from '@/util/network';
+import { getAssetPoolFactory, NetworkProvider, tokenContract } from '@/util/network';
 import { Artifacts } from '@/util/artifacts';
 import { POOL_REGISTRY_ADDRESS, TESTNET_POOL_REGISTRY_ADDRESS } from '@/util/secrets';
 import { AssetPool, AssetPoolDocument, IAssetPoolUpdates } from '@/models/AssetPool';
 import { deployUnlimitedSupplyERC20Contract, deployLimitedSupplyERC20Contract, getProvider } from '@/util/network';
 import { toWei, fromWei } from 'web3-utils';
 import { downgradeFromBypassPolls, updateToBypassPolls } from '@/util/upgrades';
-import { RewardDocument } from '@/models/Reward';
+import { TReward } from '@/models/Reward';
 import { IAccount } from '@/models/Account';
 import { Membership } from '@/models/Membership';
 import { THXError } from '@/util/errors';
+import { TransactionService } from './TransactionService';
 
 class NoDataAtAddressError extends THXError {
     constructor(address: string) {
         super(`No data found at ERC20 address ${address}`);
     }
 }
-
-const ERROR_DOWNGRADE_BYPASS_POLLS = 'Could not update set bypassPolls (false) for this asset pool.';
-const ERROR_UPGRADE_BYPASS_POLLS = 'Could not update set bypassPolls (true) for this asset pool.';
-const ERROR_UPDATE_PROPOSE_WITHDRAW_POLL_DURATION =
-    'Could not update the proposeWithdrawPollDuration for this asset pool.';
-const ERROR_UPDATE_REWARD_POLL_DURATION = 'Could not update the rewardPollDuration for this asset pool.';
 
 export default class AssetPoolService {
     static getByClientIdAndAddress(clientId: string, address: string) {
@@ -40,17 +35,17 @@ export default class AssetPoolService {
         if (assetPool.bypassPolls) return true;
 
         const duration = Number(
-            await callFunction(assetPool.solution.methods.getRewardPollDuration(), assetPool.network),
+            await TransactionService.call(assetPool.solution.methods.getRewardPollDuration(), assetPool.network),
         );
         return !assetPool.bypassPolls && duration === 0;
     }
 
-    static async canBypassWithdrawPoll(assetPool: AssetPoolDocument, account: IAccount, reward: RewardDocument) {
+    static async canBypassWithdrawPoll(assetPool: AssetPoolDocument, account: IAccount, reward: TReward) {
         // Early return to not call function when not needed.
         const isNotCustodial = !account.privateKey;
         if (assetPool.bypassPolls && isNotCustodial) return true;
 
-        const { withdrawDuration } = await callFunction(
+        const { withdrawDuration } = await TransactionService.call(
             assetPool.solution.methods.getReward(reward.id),
             assetPool.network,
         );
@@ -66,27 +61,37 @@ export default class AssetPoolService {
         }
 
         assetPool.proposeWithdrawPollDuration = Number(
-            await callFunction(assetPool.solution.methods.getProposeWithdrawPollDuration(), assetPool.network),
+            await TransactionService.call(
+                assetPool.solution.methods.getProposeWithdrawPollDuration(),
+                assetPool.network,
+            ),
         );
         assetPool.rewardPollDuration = Number(
-            await callFunction(assetPool.solution.methods.getRewardPollDuration(), assetPool.network),
+            await TransactionService.call(assetPool.solution.methods.getRewardPollDuration(), assetPool.network),
         );
 
         return assetPool;
     }
 
     static async getPoolToken(assetPool: AssetPoolDocument) {
-        const tokenAddress = await callFunction(assetPool.solution.methods.getToken(), assetPool.network);
+        const tokenAddress = await TransactionService.call(assetPool.solution.methods.getToken(), assetPool.network);
         const tokenInstance = tokenContract(assetPool.network, tokenAddress);
 
         return {
             address: tokenInstance.options.address,
             //can we do these calls in parallel?
-            name: await callFunction(tokenInstance.methods.name(), assetPool.network),
-            symbol: await callFunction(tokenInstance.methods.symbol(), assetPool.network),
-            totalSupply: Number(fromWei(await callFunction(tokenInstance.methods.totalSupply(), assetPool.network))),
+            name: await TransactionService.call(tokenInstance.methods.name(), assetPool.network),
+            symbol: await TransactionService.call(tokenInstance.methods.symbol(), assetPool.network),
+            totalSupply: Number(
+                fromWei(await TransactionService.call(tokenInstance.methods.totalSupply(), assetPool.network)),
+            ),
             balance: Number(
-                fromWei(await callFunction(tokenInstance.methods.balanceOf(assetPool.address), assetPool.network)),
+                fromWei(
+                    await TransactionService.call(
+                        tokenInstance.methods.balanceOf(assetPool.address),
+                        assetPool.network,
+                    ),
+                ),
             ),
         };
     }
@@ -125,7 +130,7 @@ export default class AssetPoolService {
 
         const tokenAddress = token.address || (await this.deployPoolToken(assetPool, token));
 
-        await sendTransaction(
+        await TransactionService.send(
             assetPool.solution.options.address,
             assetPool.solution.methods.addToken(tokenAddress),
             assetPool.network,
@@ -136,7 +141,7 @@ export default class AssetPoolService {
 
     static async deploy(sub: string, network: NetworkProvider) {
         const assetPoolFactory = getAssetPoolFactory(network);
-        const tx = await sendTransaction(
+        const tx = await TransactionService.send(
             assetPoolFactory.options.address,
             assetPoolFactory.methods.deployAssetPool(),
             network,
@@ -160,13 +165,13 @@ export default class AssetPoolService {
         const poolRegistryAddress =
             assetPool.network === NetworkProvider.Test ? TESTNET_POOL_REGISTRY_ADDRESS : POOL_REGISTRY_ADDRESS;
 
-        await sendTransaction(
+        await TransactionService.send(
             assetPool.solution.options.address,
             assetPool.solution.methods.setPoolRegistry(poolRegistryAddress),
             assetPool.network,
         );
 
-        await sendTransaction(
+        await TransactionService.send(
             assetPool.solution.options.address,
             assetPool.solution.methods.initializeGasStation(admin.address),
             assetPool.network,
@@ -193,7 +198,7 @@ export default class AssetPoolService {
         { proposeWithdrawPollDuration, rewardPollDuration, bypassPolls }: IAssetPoolUpdates,
     ) {
         async function updateRewardPollDuration() {
-            await sendTransaction(
+            await TransactionService.send(
                 assetPool.solution.options.address,
                 assetPool.solution.methods.setRewardPollDuration(rewardPollDuration),
                 assetPool.network,
@@ -204,7 +209,7 @@ export default class AssetPoolService {
         }
 
         async function updateProposeWithdrawPollDuration() {
-            await sendTransaction(
+            await TransactionService.send(
                 assetPool.solution.options.address,
                 assetPool.solution.methods.setProposeWithdrawPollDuration(proposeWithdrawPollDuration),
                 assetPool.network,
