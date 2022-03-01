@@ -3,7 +3,7 @@ import app from '@/app';
 import { isAddress } from 'web3-utils';
 import { Contract } from 'web3-eth-contract';
 import { getToken } from '@/util/jest/jwt';
-import { IPromoCodeResponse } from '@/interfaces/IPromoCodeResponse';
+import { IPromoCodeResponse } from '@/types/interfaces/IPromoCodeResponse';
 import { afterAllCallback, beforeAllCallback } from '@/util/jest/config';
 import { NetworkProvider } from '@/util/network';
 import { deployExampleToken } from '@/util/jest/network';

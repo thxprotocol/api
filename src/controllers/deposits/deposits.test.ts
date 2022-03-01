@@ -7,7 +7,7 @@ import { afterAllCallback, beforeAllCallback } from '@/util/jest/config';
 import { getToken } from '@/util/jest/jwt';
 import { agenda, eventNameRequireDeposits } from '@/util/agenda';
 import { NetworkProvider, solutionContract } from '@/util/network';
-import { IPromoCodeResponse } from '@/interfaces/IPromoCodeResponse';
+import { IPromoCodeResponse } from '@/types/interfaces/IPromoCodeResponse';
 import { createWallet, deployExampleToken } from '@/util/jest/network';
 import { findEvent, parseLogs } from '@/util/events';
 import { Artifacts } from '@/util/artifacts';

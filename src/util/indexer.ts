@@ -1,7 +1,7 @@
 import { fromWei } from 'web3-utils';
 import { NetworkProvider, solutionContract } from './network';
 import { Withdrawal } from '@/models/Withdrawal';
-import { WithdrawalState } from '@/enums';
+import { WithdrawalState } from '@/types/enums';
 import { TransactionService } from '@/services/TransactionService';
 
 class EventIndexer {

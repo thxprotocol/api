@@ -11,6 +11,7 @@ import { IAccount } from '@/models/Account';
 import { Membership } from '@/models/Membership';
 import { THXError } from '@/util/errors';
 import { TransactionService } from './TransactionService';
+import { getPoolFacetAdressesPermutations } from '@/util/networkconfig';
 
 class NoDataAtAddressError extends THXError {
     constructor(address: string) {
@@ -178,8 +179,12 @@ export default class AssetPoolService {
         );
     }
 
-    static async getAll(sub: string) {
+    static async getAllBySub(sub: string) {
         return (await AssetPool.find({ sub })).map((pool) => pool.address);
+    }
+
+    static getAll() {
+        return AssetPool.find({});
     }
 
     static async removeByAddress(address: string) {

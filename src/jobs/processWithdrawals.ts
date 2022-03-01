@@ -1,5 +1,5 @@
 import { WithdrawalDocument } from '@/models/Withdrawal';
-import { WithdrawalType } from '@/enums/WithdrawalType';
+import { WithdrawalType } from '@/types/enums';
 import { AssetPoolDocument } from '@/models/AssetPool';
 import { logger } from '@/util/logger';
 import { MaxFeePerGasExceededError } from '@/util/network';

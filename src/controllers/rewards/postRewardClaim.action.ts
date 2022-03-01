@@ -5,7 +5,7 @@ import AccountProxy from '@/proxies/AccountProxy';
 import RewardService from '@/services/RewardService';
 import MemberService from '@/services/MemberService';
 import WithdrawalService from '@/services/WithdrawalService';
-import { WithdrawalState, WithdrawalType } from '@/enums';
+import { WithdrawalState, WithdrawalType } from '@/types/enums';
 import { BadRequestError, ForbiddenError } from '@/util/errors';
 
 const ERROR_REWARD_NOT_FOUND = 'The reward for this ID does not exist.';

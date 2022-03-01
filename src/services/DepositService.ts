@@ -4,7 +4,7 @@ import { Deposit } from '@/models/Deposit';
 import { getProvider, tokenContract } from '@/util/network';
 import { IAccount } from '@/models/Account';
 import { AmountExceedsAllowanceError, InsufficientBalanceError } from '@/util/errors';
-import { DepositState } from '@/enums/DepositState';
+import { DepositState } from '@/types/enums/DepositState';
 import { TransactionService } from './TransactionService';
 
 // Checks for allowance and balance to be sufficient and transfers

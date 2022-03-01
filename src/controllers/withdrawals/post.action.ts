@@ -8,7 +8,7 @@ import MemberService from '@/services/MemberService';
 import WithdrawalService from '@/services/WithdrawalService';
 
 import AccountProxy from '@/proxies/AccountProxy';
-import { WithdrawalState, WithdrawalType } from '@/enums';
+import { WithdrawalState, WithdrawalType } from '@/types/enums';
 
 export const postWithdrawal = async (req: Request, res: Response) => {
     const isMember = await MemberService.isMember(req.assetPool, req.body.member);

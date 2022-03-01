@@ -2,7 +2,7 @@ import { PromoCode, PromoCodeDocument } from '@/models/PromoCode';
 import { paginatedResults } from '@/util/pagination';
 import { Deposit } from '@/models/Deposit';
 import { ForbiddenError, PromoCodeNotFoundError } from '@/util/errors';
-import { DepositState } from '@/enums/DepositState';
+import { DepositState } from '@/types/enums/DepositState';
 import { TPromoCode } from '@/types/TPromoCode';
 
 async function create(data: TPromoCode) {

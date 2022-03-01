@@ -4,7 +4,7 @@ import { Artifacts } from '@/util/artifacts';
 import AccountProxy from '@/proxies/AccountProxy';
 import WithdrawalService from '@/services/WithdrawalService';
 import MemberService from '@/services/MemberService';
-import { WithdrawalState } from '@/enums';
+import { WithdrawalState } from '@/types/enums';
 import { body } from 'express-validator';
 import { InternalServerError } from '@/util/errors';
 import { TransactionService } from '@/services/TransactionService';
