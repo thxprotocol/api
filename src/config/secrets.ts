@@ -36,6 +36,11 @@ required.forEach((value: string) => {
     }
 });
 
+if (!['local', 'prod', 'dev'].includes(process.env.NETWORK_ENVIRONMENT)) {
+    console.log('NETWORK_ENVIRONMENT environment variable needs to be set to local | dev | prod.');
+    process.exit(1);
+}
+
 // This allows you to use a single .env file with both regular and test configuration. This allows for an
 // easy to use setup locally without having hardcoded credentials during test runs.
 if (process.env.NODE_ENV === 'test') {
@@ -79,5 +84,5 @@ export const GOOGLE_REDIRECT_URI = process.env.GOOGLE_REDIRECT_URI;
 export const INITIAL_ACCESS_TOKEN = process.env.INITIAL_ACCESS_TOKEN;
 export const CIRCULATING_SUPPLY = process.env.CIRCULATING_SUPPLY;
 export const MAX_FEE_PER_GAS = String(process.env.MAX_FEE_PER_GAS);
-export const NETWORK_ENVIRONMENT = process.env.NETWORK_ENVIRONMENT;
+export const NETWORK_ENVIRONMENT = process.env.NETWORK_ENVIRONMENT as 'local' | 'dev' | 'prod';
 export const MINIMUM_GAS_LIMIT = 54680;
