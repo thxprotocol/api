@@ -39,6 +39,13 @@ export const getAssetPoolRegistryAddressByVersion = (npid: NetworkProvider, vers
     return ContractAddressConfig[npid].find((conf: { version: string }) => conf.version === version).assetPoolRegistry;
 };
 
+export const getCurrentFacetAdresses = (npid: NetworkProvider) => {
+    return geFacetAdressesByVersion(npid, currentVersion);
+};
+export const geFacetAdressesByVersion = (npid: NetworkProvider, version: string) => {
+    return ContractAddressConfig[npid].find((conf: { version: string }) => conf.version === version).facets;
+};
+
 export const getCurrentPoolFacetAdresses = (npid: NetworkProvider, bypassPolls: boolean) => {
     return getPoolFacetAdressesByVersion(npid, currentVersion, bypassPolls);
 };

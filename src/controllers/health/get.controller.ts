@@ -3,11 +3,14 @@ import { HttpError } from '@/models/Error';
 import { name, version, license } from '../../../package.json';
 import { getProvider, NetworkProvider, getEstimatesFromOracle } from '@/util/network';
 import { fromWei } from 'web3-utils';
-import { Facets } from '@/util/facets';
 import { agenda, eventNameProcessWithdrawals } from '@/util/agenda';
 
 import WithdrawalService from '@/services/WithdrawalService';
-import { getCurrentAssetPoolFactoryAddress, getCurrentAssetPoolRegistryAddress } from '@/config/network';
+import {
+    getCurrentAssetPoolFactoryAddress,
+    getCurrentAssetPoolRegistryAddress,
+    getCurrentFacetAdresses,
+} from '@/config/network';
 
 async function getNetworkDetails(npid: NetworkProvider, constants: { factory: string; registry: string }) {
     const { web3 } = getProvider(npid);
@@ -21,7 +24,7 @@ async function getNetworkDetails(npid: NetworkProvider, constants: { factory: st
         balance: fromWei(balance, 'ether'),
         factory: constants.factory,
         registry: constants.registry,
-        facets: Facets[NetworkProvider[npid]],
+        facets: getCurrentFacetAdresses(npid),
     };
 }
 
