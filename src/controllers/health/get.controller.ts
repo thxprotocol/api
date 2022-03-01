@@ -1,11 +1,6 @@
 import { Response, Request, NextFunction } from 'express';
 import { HttpError } from '@/models/Error';
-import {
-    ASSET_POOL_FACTORY_ADDRESS,
-    POOL_REGISTRY_ADDRESS,
-    TESTNET_ASSET_POOL_FACTORY_ADDRESS,
-    TESTNET_POOL_REGISTRY_ADDRESS,
-} from '@/config/secrets';
+import { ASSET_POOL_FACTORY_ADDRESS, TESTNET_ASSET_POOL_FACTORY_ADDRESS } from '@/config/secrets';
 import { name, version, license } from '../../../package.json';
 import { getProvider, NetworkProvider, getEstimatesFromOracle } from '@/util/network';
 import { fromWei } from 'web3-utils';
@@ -13,6 +8,7 @@ import { Facets } from '@/util/facets';
 import { agenda, eventNameProcessWithdrawals } from '@/util/agenda';
 
 import WithdrawalService from '@/services/WithdrawalService';
+import { getCurrentAssetPoolRegistryAddress } from '@/config/network';
 
 async function getNetworkDetails(npid: NetworkProvider, constants: { factory: string; registry: string }) {
     const { web3 } = getProvider(npid);
@@ -44,11 +40,11 @@ export const getHealth = async (req: Request, res: Response, next: NextFunction)
             },
             testnet: await getNetworkDetails(NetworkProvider.Test, {
                 factory: TESTNET_ASSET_POOL_FACTORY_ADDRESS,
-                registry: TESTNET_POOL_REGISTRY_ADDRESS,
+                registry: getCurrentAssetPoolRegistryAddress(NetworkProvider.Test),
             }),
             mainnet: await getNetworkDetails(NetworkProvider.Main, {
                 factory: ASSET_POOL_FACTORY_ADDRESS,
-                registry: POOL_REGISTRY_ADDRESS,
+                registry: getCurrentAssetPoolRegistryAddress(NetworkProvider.Main),
             }),
         };
 

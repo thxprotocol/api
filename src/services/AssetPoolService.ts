@@ -1,7 +1,6 @@
 import { assertEvent, parseLogs } from '@/util/events';
 import { getAssetPoolFactory, NetworkProvider, tokenContract } from '@/util/network';
 import { Artifacts } from '@/util/artifacts';
-import { POOL_REGISTRY_ADDRESS, TESTNET_POOL_REGISTRY_ADDRESS } from '@/config/secrets';
 import { AssetPool, AssetPoolDocument, IAssetPoolUpdates } from '@/models/AssetPool';
 import { deployUnlimitedSupplyERC20Contract, deployLimitedSupplyERC20Contract, getProvider } from '@/util/network';
 import { toWei, fromWei } from 'web3-utils';
@@ -11,7 +10,7 @@ import { IAccount } from '@/models/Account';
 import { Membership } from '@/models/Membership';
 import { THXError } from '@/util/errors';
 import { TransactionService } from './TransactionService';
-import { getPoolFacetAdressesPermutations } from '@/config/network';
+import { getCurrentAssetPoolRegistryAddress, getPoolFacetAdressesPermutations } from '@/config/network';
 import { pick } from '@/util';
 
 class NoDataAtAddressError extends THXError {
@@ -164,8 +163,7 @@ export default class AssetPoolService {
 
     static async init(assetPool: AssetPoolDocument) {
         const { admin } = getProvider(assetPool.network);
-        const poolRegistryAddress =
-            assetPool.network === NetworkProvider.Test ? TESTNET_POOL_REGISTRY_ADDRESS : POOL_REGISTRY_ADDRESS;
+        const poolRegistryAddress = getCurrentAssetPoolRegistryAddress(assetPool.network);
 
         await TransactionService.send(
             assetPool.solution.options.address,

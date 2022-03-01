@@ -4,15 +4,15 @@ import { agenda } from '@/util/agenda';
 import { mockClear } from './mock';
 import { logger } from '@/util/logger';
 import { getProvider, NetworkProvider } from '@/util/network';
-import { POOL_REGISTRY_ADDRESS } from '@/config/secrets';
 import { poll } from './polling';
+import { getCurrentAssetPoolRegistryAddress } from '@/config/network';
 
 export async function beforeAllCallback() {
     await db.truncate();
     mockStart();
 
     const { web3 } = getProvider(NetworkProvider.Main);
-    const fn = () => web3.eth.getCode(POOL_REGISTRY_ADDRESS);
+    const fn = () => web3.eth.getCode(getCurrentAssetPoolRegistryAddress(NetworkProvider.Main));
     const fnCondition = (result: string) => result === '0x';
 
     await poll(fn, fnCondition, 500);
