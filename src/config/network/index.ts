@@ -9,9 +9,7 @@ export const ContractAddressConfig = environmentsConfig[NETWORK_ENVIRONMENT];
 
 const facets = ContractAddressConfig[NetworkProvider.Main][0].facets;
 const facetConfig: {
-    shared: (keyof typeof facets)[];
-    bypass: (keyof typeof facets)[];
-    active: (keyof typeof facets)[];
+    [key: string]: (keyof typeof facets)[];
 } = {
     shared: [
         'AccessControl',
@@ -26,14 +24,19 @@ const facetConfig: {
     bypass: ['RewardBy', 'RewardByPoll', 'RewardByPollProxy', 'WithdrawBy', 'WithdrawByPoll', 'WithdrawByPollProxy'],
     active: ['Withdraw', 'WithdrawPoll', 'WithdrawPollProxy', 'Reward', 'RewardPoll', 'RewardPollProxy'],
 };
+
 export const getCurrentAssetPoolFactoryAddress = (npid: NetworkProvider) => {
-    return ContractAddressConfig[npid].find((conf: { version: string }) => conf.version === currentVersion)
-        .assetPoolFactory;
+    return getAssetPoolFactoryAddressByVersion(npid, currentVersion);
+};
+export const getAssetPoolFactoryAddressByVersion = (npid: NetworkProvider, version: string) => {
+    return ContractAddressConfig[npid].find((conf: { version: string }) => conf.version === version).assetPoolFactory;
 };
 
 export const getCurrentAssetPoolRegistryAddress = (npid: NetworkProvider) => {
-    return ContractAddressConfig[npid].find((conf: { version: string }) => conf.version === currentVersion)
-        .assetPoolRegistry;
+    return getAssetPoolRegistryAddressByVersion(npid, currentVersion);
+};
+export const getAssetPoolRegistryAddressByVersion = (npid: NetworkProvider, version: string) => {
+    return ContractAddressConfig[npid].find((conf: { version: string }) => conf.version === version).assetPoolRegistry;
 };
 
 export const getCurrentPoolFacetAdresses = (npid: NetworkProvider, bypassPolls: boolean) => {
