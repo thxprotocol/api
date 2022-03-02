@@ -1,5 +1,4 @@
-import { Response, Request, NextFunction } from 'express';
-import { HttpError } from '@/models/Error';
+import { Response, Request } from 'express';
 import { name, version, license } from '../../../package.json';
 import { getProvider, getEstimatesFromOracle } from '@/util/network';
 import { NetworkProvider } from '@/types/enums';
@@ -29,30 +28,26 @@ async function getNetworkDetails(npid: NetworkProvider, constants: { factory: st
     };
 }
 
-export const getHealth = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-        const job = (await agenda.jobs({ name: eventNameProcessWithdrawals, type: 'single' }))[0];
-        const jsonData = {
-            name,
-            version,
-            license,
-            queue: {
-                scheduledWithdrawals: (await WithdrawalService.getAllScheduled()).length,
-                lastRunAt: job.attrs.lastRunAt,
-                lastFailedAt: job.attrs.failedAt,
-            },
-            testnet: await getNetworkDetails(NetworkProvider.Test, {
-                factory: getCurrentAssetPoolFactoryAddress(NetworkProvider.Test),
-                registry: getCurrentAssetPoolRegistryAddress(NetworkProvider.Test),
-            }),
-            mainnet: await getNetworkDetails(NetworkProvider.Main, {
-                factory: getCurrentAssetPoolFactoryAddress(NetworkProvider.Main),
-                registry: getCurrentAssetPoolRegistryAddress(NetworkProvider.Main),
-            }),
-        };
+export const getHealth = async (req: Request, res: Response) => {
+    const job = (await agenda.jobs({ name: eventNameProcessWithdrawals, type: 'single' }))[0];
+    const jsonData = {
+        name,
+        version,
+        license,
+        queue: {
+            scheduledWithdrawals: (await WithdrawalService.getAllScheduled()).length,
+            lastRunAt: job.attrs.lastRunAt,
+            lastFailedAt: job.attrs.failedAt,
+        },
+        testnet: await getNetworkDetails(NetworkProvider.Test, {
+            factory: getCurrentAssetPoolFactoryAddress(NetworkProvider.Test),
+            registry: getCurrentAssetPoolRegistryAddress(NetworkProvider.Test),
+        }),
+        mainnet: await getNetworkDetails(NetworkProvider.Main, {
+            factory: getCurrentAssetPoolFactoryAddress(NetworkProvider.Main),
+            registry: getCurrentAssetPoolRegistryAddress(NetworkProvider.Main),
+        }),
+    };
 
-        res.header('Content-Type', 'application/json').send(JSON.stringify(jsonData, null, 4));
-    } catch (error) {
-        next(new HttpError(502, 'Could not verify health of the API.', error));
-    }
+    res.header('Content-Type', 'application/json').send(JSON.stringify(jsonData, null, 4));
 };

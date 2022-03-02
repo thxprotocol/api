@@ -16,7 +16,6 @@ const required = [
     'PORT',
     'AUTH_CLIENT_ID',
     'AUTH_CLIENT_SECRET',
-    'SENDGRID_API_KEY',
     'RATE_LIMIT_REWARD_GIVE',
     'RATE_LIMIT_REWARD_GIVE_WINDOW',
     'INITIAL_ACCESS_TOKEN',
@@ -62,7 +61,6 @@ export const COLLECTOR = process.env.COLLECTOR;
 export const PORT = process.env.PORT;
 export const AUTH_CLIENT_ID = process.env.AUTH_CLIENT_ID;
 export const AUTH_CLIENT_SECRET = process.env.AUTH_CLIENT_SECRET;
-export const SENDGRID_API_KEY = process.env.SENDGRID_API_KEY;
 export const RATE_LIMIT_REWARD_GIVE = Number(process.env.RATE_LIMIT_REWARD_GIVE);
 export const RATE_LIMIT_REWARD_CLAIM = Number(process.env.RATE_LIMIT_REWARD_CLAIM);
 export const RATE_LIMIT_REWARD_GIVE_WINDOW = Number(process.env.RATE_LIMIT_REWARD_GIVE_WINDOW);
