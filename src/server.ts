@@ -23,17 +23,17 @@ const options = {
 
 createTerminus(server, options);
 
-// process.on('uncaughtException', function (err: Error) {
-//     if (err) {
-//         logger.error({
-//             message: 'Uncaught Exception was thrown, shutting down',
-//             errorName: err.name,
-//             errorMessage: err.message,
-//             stack: err.stack,
-//         });
-//         process.exit(1);
-//     }
-// });
+process.on('uncaughtException', function (err: Error) {
+    if (err) {
+        logger.error({
+            message: 'Uncaught Exception was thrown, shutting down',
+            errorName: err.name,
+            errorMessage: err.message,
+            stack: err.stack,
+        });
+        process.exit(1);
+    }
+});
 
 logger.info({
     message: `Server is starting on port: ${app.get('port')}, env: ${app.get('env')}`,
