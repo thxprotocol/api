@@ -1,4 +1,4 @@
-import { authClient } from '@/util/auth';
+import { authClient, getAuthAccessToken } from '@/util/auth';
 import { Request, Response } from 'express';
 import { body } from 'express-validator';
 
@@ -10,6 +10,14 @@ export const createLoginValidation = [
 ];
 
 export const postLogin = async (req: Request, res: Response) => {
-    const r = await authClient.post('/account/login', { email: req.body.email, password: req.body.password });
+    const r = await authClient.post(
+        '/account/login',
+        { email: req.body.email, password: req.body.password },
+        {
+            headers: {
+                Authorization: await getAuthAccessToken(),
+            },
+        },
+    );
     res.status(r.status).json(r.data);
 };
