@@ -1,5 +1,4 @@
-import { Response, Request, NextFunction } from 'express';
-import { HttpError } from '@/models/Error';
+import { Response, Request } from 'express';
 import {
     ASSET_POOL_FACTORY_ADDRESS,
     POOL_REGISTRY_ADDRESS,
@@ -30,30 +29,26 @@ async function getNetworkDetails(npid: NetworkProvider, constants: { factory: st
     };
 }
 
-export const getHealth = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-        const job = (await agenda.jobs({ name: eventNameProcessWithdrawals, type: 'single' }))[0];
-        const jsonData = {
-            name,
-            version,
-            license,
-            queue: {
-                scheduledWithdrawals: (await WithdrawalService.getAllScheduled()).length,
-                lastRunAt: job.attrs.lastRunAt,
-                lastFailedAt: job.attrs.failedAt,
-            },
-            testnet: await getNetworkDetails(NetworkProvider.Test, {
-                factory: TESTNET_ASSET_POOL_FACTORY_ADDRESS,
-                registry: TESTNET_POOL_REGISTRY_ADDRESS,
-            }),
-            mainnet: await getNetworkDetails(NetworkProvider.Main, {
-                factory: ASSET_POOL_FACTORY_ADDRESS,
-                registry: POOL_REGISTRY_ADDRESS,
-            }),
-        };
+export const getHealth = async (req: Request, res: Response) => {
+    const job = (await agenda.jobs({ name: eventNameProcessWithdrawals, type: 'single' }))[0];
+    const jsonData = {
+        name,
+        version,
+        license,
+        queue: {
+            scheduledWithdrawals: (await WithdrawalService.getAllScheduled()).length,
+            lastRunAt: job.attrs.lastRunAt,
+            lastFailedAt: job.attrs.failedAt,
+        },
+        testnet: await getNetworkDetails(NetworkProvider.Test, {
+            factory: TESTNET_ASSET_POOL_FACTORY_ADDRESS,
+            registry: TESTNET_POOL_REGISTRY_ADDRESS,
+        }),
+        mainnet: await getNetworkDetails(NetworkProvider.Main, {
+            factory: ASSET_POOL_FACTORY_ADDRESS,
+            registry: POOL_REGISTRY_ADDRESS,
+        }),
+    };
 
-        res.header('Content-Type', 'application/json').send(JSON.stringify(jsonData, null, 4));
-    } catch (error) {
-        next(new HttpError(502, 'Could not verify health of the API.', error));
-    }
+    res.header('Content-Type', 'application/json').send(JSON.stringify(jsonData, null, 4));
 };
