@@ -35,17 +35,16 @@ export default class AssetPoolService {
     }
 
     static async canBypassRewardPoll(assetPool: AssetPoolDocument) {
-        // Early return to not call function when not needed.
         if (assetPool.bypassPolls) return true;
 
         const duration = Number(
             await TransactionService.call(assetPool.solution.methods.getRewardPollDuration(), assetPool.network),
         );
+
         return !assetPool.bypassPolls && duration === 0;
     }
 
     static async canBypassWithdrawPoll(assetPool: AssetPoolDocument, account: IAccount, reward: TReward) {
-        // Early return to not call function when not needed.
         const isNotCustodial = !account.privateKey;
         if (assetPool.bypassPolls && isNotCustodial) return true;
 
@@ -54,15 +53,14 @@ export default class AssetPoolService {
             assetPool.network,
         );
         const duration = Number(withdrawDuration);
+
         return !assetPool.bypassPolls && duration === 0 && isNotCustodial;
     }
 
     static async getByAddress(address: string) {
         const assetPool = await AssetPool.findOne({ address });
 
-        if (!assetPool) {
-            return null;
-        }
+        if (!assetPool) return null;
 
         assetPool.proposeWithdrawPollDuration = Number(
             await TransactionService.call(

@@ -10,6 +10,7 @@ import { parseLogs, findEvent } from '@/util/events';
 import { paginatedResults } from '@/util/pagination';
 import { THXError } from '@/util/errors';
 import { TransactionService } from './TransactionService';
+import AccountProxy from '@/proxies/AccountProxy';
 
 class CannotWithdrawForCustodialError extends THXError {
     message = 'Not able to withdraw funds for custodial wallets.';
@@ -26,7 +27,7 @@ export default class WithdrawalService {
         return Withdrawal.findById(id);
     }
 
-    static async getAllScheduled() {
+    static async countScheduled() {
         return await Withdrawal.find({
             $or: [
                 { failReason: new MaxFeePerGasExceededError().message },
@@ -38,20 +39,33 @@ export default class WithdrawalService {
         }).sort({ createdAt: -1 });
     }
 
+    static async getAllScheduled(poolAddress: string) {
+        return await Withdrawal.find({
+            $or: [
+                { failReason: new MaxFeePerGasExceededError().message },
+                { failReason: { $exists: false } },
+                { failReason: '' },
+            ],
+            withdrawalId: { $exists: false },
+            state: WithdrawalState.Pending,
+            poolAddress,
+        }).sort({ createdAt: -1 });
+    }
+
     static async schedule(
         assetPool: AssetPoolType,
         type: WithdrawalType,
-        beneficiary: string,
+        sub: string,
         amount: number,
         state = WithdrawalState.Pending,
         rewardId?: number,
     ) {
         const withdrawal = new Withdrawal({
             type,
+            sub,
             amount,
             rewardId,
-            beneficiary,
-            poolAddress: assetPool.solution.options.address,
+            poolAddress: assetPool.address,
             state,
         });
 
@@ -68,11 +82,12 @@ export default class WithdrawalService {
     }
 
     // Invoked from job
-    static async proposeWithdraw(assetPool: AssetPoolType, id: string, beneficiary: string, amount: number) {
+    static async proposeWithdraw(assetPool: AssetPoolType, id: string, sub: string, amount: number) {
+        const account = await AccountProxy.getById(sub);
         const amountInWei = toWei(amount.toString());
         const tx = await TransactionService.send(
             assetPool.address,
-            assetPool.solution.methods.proposeWithdraw(amountInWei, beneficiary),
+            assetPool.solution.methods.proposeWithdraw(amountInWei, account.address),
             assetPool.network,
         );
         const events = parseLogs(Artifacts.IDefaultDiamond.abi, tx.logs);
