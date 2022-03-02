@@ -3,9 +3,12 @@ import { Request, Response } from 'express';
 import MembershipService from '@/services/MembershipService';
 import WithdrawalService from '@/services/WithdrawalService';
 import AccountProxy from '@/proxies/AccountProxy';
+import { NotFoundError } from '@/util/errors';
 
 export const getMembership = async (req: Request, res: Response) => {
     const membership = await MembershipService.getById(req.params.id);
+    if (!membership) throw new NotFoundError();
+
     const account = await AccountProxy.getById(req.user.sub);
     const pending = await WithdrawalService.getPendingBalance(account, membership.poolAddress);
 
