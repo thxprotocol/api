@@ -6,14 +6,14 @@ import { MAX_FEE_PER_GAS, MINIMUM_GAS_LIMIT, PRIVATE_KEY } from '@/util/secrets'
 import { logger } from '@/util/logger';
 
 export class TransactionService {
-    static async send(to: string, fn: any, npid: NetworkProvider, gasLimit?: number) {
+    static async send(to: string, fn: any, npid: NetworkProvider, gasLimit?: number, fromPK?: string) {
         const { web3, admin } = getProvider(npid);
-        const from = admin.address;
+        const from = fromPK ? web3.eth.accounts.privateKeyToAccount(fromPK).address : admin.address;
         const data = fn.encodeABI();
-        const estimate = await fn.estimateGas({ from: admin.address });
+        const estimate = await fn.estimateGas({ from });
         // MINIMUM_GAS_LIMIT is set for tx that have a lower estimate than allowed by the network
         const gas = gasLimit ? gasLimit : estimate < MINIMUM_GAS_LIMIT ? MINIMUM_GAS_LIMIT : estimate;
-        const nonce = await web3.eth.getTransactionCount(admin.address, 'pending');
+        const nonce = await web3.eth.getTransactionCount(from, 'pending');
         const feeData = await getEstimatesFromOracle(npid);
         const maxFeePerGasLimit = Number(toWei(MAX_FEE_PER_GAS, 'gwei'));
         const maxFeePerGas = Number(toWei(String(Math.ceil(feeData.maxFeePerGas)), 'gwei'));
@@ -33,7 +33,7 @@ export class TransactionService {
                 data,
                 nonce,
             },
-            PRIVATE_KEY,
+            fromPK || PRIVATE_KEY,
         );
         const receipt = await web3.eth.sendSignedTransaction(sig.rawTransaction);
 
