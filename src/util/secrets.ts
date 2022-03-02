@@ -72,5 +72,7 @@ export const RATE_LIMIT_REWARD_CLAIM_WINDOW = Number(process.env.RATE_LIMIT_REWA
 export const INITIAL_ACCESS_TOKEN = process.env.INITIAL_ACCESS_TOKEN;
 export const CIRCULATING_SUPPLY = process.env.CIRCULATING_SUPPLY;
 export const MAX_FEE_PER_GAS = String(process.env.MAX_FEE_PER_GAS);
+export const INFURA_PROJECT_ID = process.env.INFURA_PROJECT_ID;
 
 export const MINIMUM_GAS_LIMIT = 54680;
+export const INFURA_GAS_TANK = '0x015c7c7a7d65bbdb117c573007219107bd7486f9';
