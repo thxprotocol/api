@@ -9,10 +9,10 @@
     "license": "AGPL-3.0",
     "scripts": {
         "preinstall": "npx npm-force-resolutions",
-        "lint": "tsc -p ./tsconfig.json && eslint \"./src/**/*.ts\"",
-        "lint:fix": "tsc -p ./tsconfig.json && eslint \"./src/**/*.ts\" --fix",
+        "lint": "tsc && eslint \"./src/**/*.ts\"",
+        "lint:fix": "tsc && eslint \"./src/**/*.ts\" --fix",
         "dev": "docker-compose up -d && npm run watch:node",
-        "build": "npm run build:docs && tsc -p ./tsconfig.json",
+        "build": "npm run build:docs && tsc",
         "build:docs": "swagger-jsdoc -d ./src/swaggerDef.js -o ./src/swagger.json",
         "watch:node": "ts-node-dev -r tsconfig-paths/register src/server.ts",
         "watch:node-debug": "ts-node-dev -r tsconfig-paths/register --inspect=7000 src/server.ts",
@@ -105,14 +105,6 @@
     "eslintConfig": {
         "parser": "@typescript-eslint/parser",
         "root": true,
-        "env": {
-            "node": true,
-            "mocha": true,
-            "shelljs": true,
-            "jest": true,
-            "es6": true,
-            "amd": true
-        },
         "extends": [
             "eslint:recommended",
             "plugin:@typescript-eslint/recommended",
@@ -140,24 +132,7 @@
             "@typescript-eslint/interface-name-prefix": "off"
         },
         "ignorePatterns": [
-            "test/**/*.{j,t}s?(x)",
-            "dist/*",
-            "src/types/",
-            "contracts/**/*.{j,t}s?(x)",
-            "./**/*.d.ts",
-            "./node_modules",
-            "./node_modules/agenda/**/*.d.ts"
-        ],
-        "overrides": [
-            {
-                "files": [
-                    "**/__tests__/*.{j,t}s?(x)",
-                    "**/tests/unit/**/*.spec.{j,t}s?(x)"
-                ],
-                "env": {
-                    "mocha": true
-                }
-            }
+            "./**/*.d.ts"
         ]
     },
     "jest": {
