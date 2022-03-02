@@ -7,7 +7,7 @@ import { rewardWithdrawAmount, tokenName, tokenSymbol, userWalletPrivateKey2 } f
 import { isAddress } from 'web3-utils';
 import { getToken } from '@/util/jest/jwt';
 import { afterAllCallback, beforeAllCallback } from '@/util/jest/config';
-import { WithdrawalState } from '@/enums';
+import { WithdrawalState } from '@/types/enums';
 import { agenda, eventNameProcessWithdrawals, eventNameRequireWithdraws } from '@/util/agenda';
 
 const user = request.agent(app);

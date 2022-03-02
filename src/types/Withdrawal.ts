@@ -1,5 +1,5 @@
-import { WithdrawalType } from '@/enums/WithdrawalType';
-import { IWithdrawPoll } from '@/interfaces/IWithdrawPoll';
+import { WithdrawalType } from '@/types/enums';
+import { IWithdrawPoll } from '@/types/interfaces/IWithdrawPoll';
 
 export type TWithdrawal = {
     type: WithdrawalType;
