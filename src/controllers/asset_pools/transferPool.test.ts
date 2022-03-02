@@ -12,7 +12,7 @@ import { PRIVATE_KEY } from '@/util/secrets';
 
 const user = request.agent(app);
 
-describe('Unlimited Supply Token', () => {
+describe('Transfer Pool Ownership', () => {
     let adminAccessToken: string, dashboardAccessToken: string, poolAddress: string, userWallet: Account;
 
     beforeAll(async () => {
@@ -60,7 +60,7 @@ describe('Unlimited Supply Token', () => {
         });
     });
 
-    describe('Transfer pool', () => {
+    describe('Ownership transfer', () => {
         it('Transfers correctly', async () => {
             const assetPool = await AssetPoolService.getByAddress(poolAddress);
             await AssetPoolService.transferOwnership(assetPool, PRIVATE_KEY, DEPOSITOR_PK);
