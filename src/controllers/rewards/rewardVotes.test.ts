@@ -1,6 +1,7 @@
 import request from 'supertest';
 import app from '@/app';
-import { getProvider, NetworkProvider } from '@/util/network';
+import { getProvider } from '@/util/network';
+import { NetworkProvider } from '@/types/enums';
 import { timeTravel, signMethod, createWallet } from '@/util/jest/network';
 import {
     rewardPollDuration,

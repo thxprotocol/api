@@ -1,4 +1,4 @@
-import { NetworkProvider } from '@/util/network';
+import { NetworkProvider } from '@/types/enums';
 export interface IAccount {
     id: string;
     address: string;

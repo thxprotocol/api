@@ -1,5 +1,6 @@
 import { fromWei } from 'web3-utils';
-import { NetworkProvider, solutionContract } from './network';
+import { solutionContract } from './network';
+import { NetworkProvider } from '../types/enums';
 import { Withdrawal } from '@/models/Withdrawal';
 import { WithdrawalState } from '@/types/enums';
 import { TransactionService } from '@/services/TransactionService';

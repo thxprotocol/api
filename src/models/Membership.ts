@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import { NetworkProvider } from '@/util/network';
+import { NetworkProvider } from '@/types/enums';
 
 export type MembershipDocument = mongoose.Document & {
     sub: string;

@@ -1,5 +1,6 @@
 import { Response, Request } from 'express';
-import { getProvider, NetworkProvider } from '@/util/network';
+import { getProvider } from '@/util/network';
+import { NetworkProvider } from '@/types/enums';
 import AssetPoolService from '@/services/AssetPoolService';
 import WithdrawalService from '@/services/WithdrawalService';
 import MembershipService from '@/services/MembershipService';

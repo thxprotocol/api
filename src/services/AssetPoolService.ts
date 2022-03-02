@@ -1,7 +1,7 @@
 import { assertEvent, parseLogs } from '@/util/events';
-import { getAssetPoolFactory, NetworkProvider, tokenContract } from '@/util/network';
+import { getAssetPoolFactory, tokenContract } from '@/util/network';
+import { NetworkProvider } from '@/types/enums';
 import { Artifacts } from '@/util/artifacts';
-import { POOL_REGISTRY_ADDRESS, TESTNET_POOL_REGISTRY_ADDRESS } from '@/util/secrets';
 import { AssetPool, AssetPoolDocument, IAssetPoolUpdates } from '@/models/AssetPool';
 import { deployUnlimitedSupplyERC20Contract, deployLimitedSupplyERC20Contract, getProvider } from '@/util/network';
 import { toWei, fromWei, toChecksumAddress } from 'web3-utils';
@@ -11,6 +11,8 @@ import { IAccount } from '@/models/Account';
 import { Membership } from '@/models/Membership';
 import { THXError } from '@/util/errors';
 import { TransactionService } from './TransactionService';
+import { getCurrentAssetPoolRegistryAddress, getPoolFacetAdressesPermutations } from '@/config/network';
+import { pick } from '@/util';
 import { logger } from '@/util/logger';
 
 export const ADMIN_ROLE = '0x0000000000000000000000000000000000000000000000000000000000000000';
@@ -164,8 +166,7 @@ export default class AssetPoolService {
 
     static async init(assetPool: AssetPoolDocument) {
         const { admin } = getProvider(assetPool.network);
-        const poolRegistryAddress =
-            assetPool.network === NetworkProvider.Test ? TESTNET_POOL_REGISTRY_ADDRESS : POOL_REGISTRY_ADDRESS;
+        const poolRegistryAddress = getCurrentAssetPoolRegistryAddress(assetPool.network);
 
         await TransactionService.send(
             assetPool.solution.options.address,
@@ -248,6 +249,15 @@ export default class AssetPoolService {
 
     static async countByNetwork(network: NetworkProvider) {
         return await AssetPool.countDocuments({ network });
+    }
+
+    static async contractVersion(assetPool: AssetPoolDocument) {
+        const permutations = Object.values(getPoolFacetAdressesPermutations(assetPool.network));
+        const facetAddresses = (await assetPool.solution.methods.facets().call()).map((facet: any) => facet[0]);
+        const match = permutations.find(
+            (permutation) => Object.values(permutation.facets).sort().join('') === facetAddresses.sort().join(''),
+        );
+        return match ? pick(match, ['version', 'bypassPolls', 'npid']) : { version: 'unknown' };
     }
 
     static async transferOwnership(assetPool: AssetPoolDocument, currentPrivateKey: string, newPrivateKey: string) {

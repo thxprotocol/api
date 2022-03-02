@@ -2,7 +2,7 @@ import MemberService from '@/services/MemberService';
 import MembershipService from '@/services/MembershipService';
 import AccountProxy from '@/proxies/AccountProxy';
 import { Request, Response } from 'express';
-import { VERSION } from '@/util/secrets';
+import { VERSION } from '@/config/secrets';
 
 export async function postMember(req: Request, res: Response) {
     const account = await AccountProxy.getByAddress(req.body.address);

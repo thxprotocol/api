@@ -1,6 +1,6 @@
 import { authClient } from '@/util/auth';
 import { Client } from '@/models/Client';
-import { INITIAL_ACCESS_TOKEN } from '@/util/secrets';
+import { INITIAL_ACCESS_TOKEN } from '@/config/secrets';
 import { THXError } from '@/util/errors';
 
 class ClientServiceError extends THXError {}

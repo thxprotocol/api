@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { WIDGETS_URL } from '@/util/secrets';
+import { WIDGETS_URL } from '@/config/secrets';
 import WidgetService from '@/services/WidgetService';
 import ClientService from '@/services/ClientService';
 

@@ -1,6 +1,6 @@
 import request from 'supertest';
 import app from '@/app';
-import { getProvider, NetworkProvider } from '@/util/network';
+import { getProvider } from '@/util/network';
 import { tokenName, tokenSymbol, userWalletPrivateKey2, DEPOSITOR_PK } from '@/util/jest/constants';
 import { isAddress, toChecksumAddress } from 'web3-utils';
 import { Account } from 'web3-core';
@@ -8,7 +8,8 @@ import { createWallet } from '@/util/jest/network';
 import { getToken } from '@/util/jest/jwt';
 import { afterAllCallback, beforeAllCallback } from '@/util/jest/config';
 import AssetPoolService, { ADMIN_ROLE } from '@/services/AssetPoolService';
-import { PRIVATE_KEY } from '@/util/secrets';
+import { PRIVATE_KEY } from '@/config/secrets';
+import { NetworkProvider } from '@/types/enums';
 
 const user = request.agent(app);
 

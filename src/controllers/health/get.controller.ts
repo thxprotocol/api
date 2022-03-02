@@ -1,17 +1,16 @@
 import { Response, Request } from 'express';
-import {
-    ASSET_POOL_FACTORY_ADDRESS,
-    POOL_REGISTRY_ADDRESS,
-    TESTNET_ASSET_POOL_FACTORY_ADDRESS,
-    TESTNET_POOL_REGISTRY_ADDRESS,
-} from '@/util/secrets';
 import { name, version, license } from '../../../package.json';
-import { getProvider, NetworkProvider, getEstimatesFromOracle } from '@/util/network';
+import { getProvider, getEstimatesFromOracle } from '@/util/network';
+import { NetworkProvider } from '@/types/enums';
 import { fromWei } from 'web3-utils';
-import { Facets } from '@/util/facets';
 import { agenda, eventNameProcessWithdrawals } from '@/util/agenda';
 
 import WithdrawalService from '@/services/WithdrawalService';
+import {
+    getCurrentAssetPoolFactoryAddress,
+    getCurrentAssetPoolRegistryAddress,
+    getCurrentFacetAdresses,
+} from '@/config/network';
 
 async function getNetworkDetails(npid: NetworkProvider, constants: { factory: string; registry: string }) {
     const { web3 } = getProvider(npid);
@@ -25,7 +24,7 @@ async function getNetworkDetails(npid: NetworkProvider, constants: { factory: st
         balance: fromWei(balance, 'ether'),
         factory: constants.factory,
         registry: constants.registry,
-        facets: Facets[NetworkProvider[npid]],
+        facets: getCurrentFacetAdresses(npid),
     };
 }
 
@@ -41,12 +40,12 @@ export const getHealth = async (req: Request, res: Response) => {
             lastFailedAt: job.attrs.failedAt,
         },
         testnet: await getNetworkDetails(NetworkProvider.Test, {
-            factory: TESTNET_ASSET_POOL_FACTORY_ADDRESS,
-            registry: TESTNET_POOL_REGISTRY_ADDRESS,
+            factory: getCurrentAssetPoolFactoryAddress(NetworkProvider.Test),
+            registry: getCurrentAssetPoolRegistryAddress(NetworkProvider.Test),
         }),
         mainnet: await getNetworkDetails(NetworkProvider.Main, {
-            factory: ASSET_POOL_FACTORY_ADDRESS,
-            registry: POOL_REGISTRY_ADDRESS,
+            factory: getCurrentAssetPoolFactoryAddress(NetworkProvider.Main),
+            registry: getCurrentAssetPoolRegistryAddress(NetworkProvider.Main),
         }),
     };
 

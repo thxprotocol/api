@@ -3,7 +3,7 @@ import app from '@/app';
 import { deployExampleToken } from '@/util/jest/network';
 import { account2, userEmail2, userPassword2 } from '@/util/jest/constants';
 import { Contract } from 'web3-eth-contract';
-import { NetworkProvider } from '@/util/network';
+import { NetworkProvider } from '@/types/enums';
 import { getToken } from '@/util/jest/jwt';
 import { afterAllCallback, beforeAllCallback } from '@/util/jest/config';
 

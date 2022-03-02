@@ -10,11 +10,7 @@ const required = [
     'WALLET_URL',
     'DASHBOARD_URL',
     'RPC',
-    'ASSET_POOL_FACTORY_ADDRESS',
-    'POOL_REGISTRY_ADDRESS',
     'TESTNET_RPC',
-    'TESTNET_ASSET_POOL_FACTORY_ADDRESS',
-    'TESTNET_POOL_REGISTRY_ADDRESS',
     'MONGODB_URI',
     'PRIVATE_KEY',
     'PORT',
@@ -24,6 +20,7 @@ const required = [
     'RATE_LIMIT_REWARD_GIVE_WINDOW',
     'INITIAL_ACCESS_TOKEN',
     'MAX_FEE_PER_GAS',
+    'NETWORK_ENVIRONMENT',
 ];
 
 required.forEach((value: string) => {
@@ -32,6 +29,11 @@ required.forEach((value: string) => {
         process.exit(1);
     }
 });
+
+if (!['local', 'prod', 'dev'].includes(process.env.NETWORK_ENVIRONMENT)) {
+    console.log('NETWORK_ENVIRONMENT environment variable needs to be set to local | dev | prod.');
+    process.exit(1);
+}
 
 // This allows you to use a single .env file with both regular and test configuration. This allows for an
 // easy to use setup locally without having hardcoded credentials during test runs.
@@ -52,11 +54,7 @@ export const WALLET_URL = process.env.WALLET_URL;
 export const DASHBOARD_URL = process.env.DASHBOARD_URL;
 export const WIDGETS_URL = process.env.WIDGETS_URL;
 export const RPC = process.env.RPC;
-export const POOL_REGISTRY_ADDRESS = process.env.POOL_REGISTRY_ADDRESS;
-export const ASSET_POOL_FACTORY_ADDRESS = process.env.ASSET_POOL_FACTORY_ADDRESS;
 export const TESTNET_RPC = process.env.TESTNET_RPC;
-export const TESTNET_POOL_REGISTRY_ADDRESS = process.env.TESTNET_POOL_REGISTRY_ADDRESS;
-export const TESTNET_ASSET_POOL_FACTORY_ADDRESS = process.env.TESTNET_ASSET_POOL_FACTORY_ADDRESS;
 export const MONGODB_URI = process.env.MONGODB_URI;
 export const PRIVATE_KEY = process.env.PRIVATE_KEY;
 export const COLLECTOR = process.env.COLLECTOR;
@@ -70,5 +68,5 @@ export const RATE_LIMIT_REWARD_CLAIM_WINDOW = Number(process.env.RATE_LIMIT_REWA
 export const INITIAL_ACCESS_TOKEN = process.env.INITIAL_ACCESS_TOKEN;
 export const CIRCULATING_SUPPLY = process.env.CIRCULATING_SUPPLY;
 export const MAX_FEE_PER_GAS = String(process.env.MAX_FEE_PER_GAS);
-
+export const NETWORK_ENVIRONMENT = process.env.NETWORK_ENVIRONMENT as 'local' | 'dev' | 'prod';
 export const MINIMUM_GAS_LIMIT = 54680;

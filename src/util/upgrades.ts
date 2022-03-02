@@ -1,9 +1,10 @@
-import { getSelectors, NetworkProvider, getProvider, ADDRESS_ZERO } from './network';
+import { getSelectors, getProvider, ADDRESS_ZERO } from './network';
+import { NetworkProvider } from '../types/enums';
 import { Contract } from 'web3-eth-contract';
 import { Artifacts } from './artifacts';
-import { Facets } from './facets';
 import { AssetPoolType } from '@/models/AssetPool';
 import { TransactionService } from '@/services/TransactionService';
+import { getCurrentFacetAdresses } from '@/config/network';
 
 export const FacetCutAction = {
     Add: 0,
@@ -16,7 +17,8 @@ export async function updateAssetPool(artifacts: any, solution: Contract, npid: 
 
     const diamondCuts = [];
     for (const artifact of artifacts) {
-        const facetAddress = Facets[NetworkProvider[npid]][artifact.contractName];
+        const addresses = getCurrentFacetAdresses(npid);
+        const facetAddress = addresses[artifact.contractName as keyof typeof addresses];
         const facet = new web3.eth.Contract(artifact.abi);
         const functionSelectors = getSelectors(facet);
 
