@@ -140,18 +140,6 @@ describe('Reward Claim', () => {
                 .expect(200);
         });
 
-        it('should enable job processor', async () => {
-            await agenda.enable({ name: eventNameRequireWithdraws });
-        });
-
-        it('should cast a success event for Withdrawn event', (done) => {
-            const callback = async () => {
-                agenda.off(`success:${eventNameRequireWithdraws}`, callback);
-                done();
-            };
-            agenda.on(`success:${eventNameRequireWithdraws}`, callback);
-        });
-
         it('should return Withdrawn state', (done) => {
             user.get(`/v1/withdrawals/${withdrawalDocumentId}`)
                 .set({ AssetPool: poolAddress, Authorization: userAccessToken })

@@ -2,7 +2,7 @@ import { toWei, fromWei } from 'web3-utils';
 import { NetworkProvider, MaxFeePerGasExceededError } from '@/util/network';
 import { WithdrawalState, WithdrawalType } from '@/types/enums';
 import { AssetPoolType } from '@/models/AssetPool';
-import { Withdrawal } from '@/models/Withdrawal';
+import { Withdrawal, WithdrawalDocument } from '@/models/Withdrawal';
 import { IAccount } from '@/models/Account';
 import { Artifacts } from '@/util/artifacts';
 import { parseLogs, findEvent } from '@/util/events';
@@ -131,9 +131,7 @@ export default class WithdrawalService {
         return await withdrawal.save();
     }
 
-    static async withdrawPollFinalize(assetPool: AssetPoolType, id: string) {
-        const withdrawal = await Withdrawal.findById(id);
-
+    static async withdrawPollFinalize(assetPool: AssetPoolType, withdrawal: WithdrawalDocument) {
         if (withdrawal.state === WithdrawalState.Deferred) {
             throw new CannotWithdrawForCustodialError();
         }
