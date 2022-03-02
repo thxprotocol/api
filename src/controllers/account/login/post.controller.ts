@@ -1,6 +1,6 @@
+import { authClient } from '@/util/auth';
 import { Request, Response } from 'express';
 import { body } from 'express-validator';
-import MailService from '@/services/MailService';
 
 export const createLoginValidation = [
     body('email').exists(),
@@ -10,7 +10,6 @@ export const createLoginValidation = [
 ];
 
 export const postLogin = async (req: Request, res: Response) => {
-    await MailService.sendLoginLinkEmail(req.body.email, req.body.password);
-
-    res.json({ message: `E-mail sent to ${req.body.email}` });
+    const r = await authClient.post('/account/login', { email: req.body.email, password: req.body.password });
+    res.status(r.status).json(r.data);
 };
