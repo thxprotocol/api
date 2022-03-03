@@ -3,7 +3,7 @@ import { fromWei, toWei } from 'web3-utils';
 
 import { IAccount } from '@/models/Account';
 import { Artifacts } from '@/util/artifacts';
-import { parseLogs, findEvent } from '@/util/events';
+import { parseLogs, findEvent, assertEvent } from '@/util/events';
 import {
     ChannelAction,
     IRewardCondition,
@@ -20,6 +20,7 @@ import YouTubeDataProxy from '@/proxies/YoutubeDataProxy';
 import { TransactionService } from './TransactionService';
 import WithdrawalService from './WithdrawalService';
 import SpotifyDataProxy from '@/proxies/SpotifyDataProxy';
+import AccountProxy from '@/proxies/AccountProxy';
 
 export default class RewardService {
     static async get(assetPool: AssetPoolType, rewardId: number): Promise<RewardDocument> {
@@ -81,12 +82,14 @@ export default class RewardService {
                     return YouTubeDataProxy.validateLike(account, channelItem);
                 case ChannelAction.YouTubeSubscribe:
                     return YouTubeDataProxy.validateSubscribe(account, channelItem);
+
                 case ChannelAction.TwitterLike:
                     return TwitterDataProxy.validateLike(account, channelItem);
                 case ChannelAction.TwitterRetweet:
                     return TwitterDataProxy.validateRetweet(account, channelItem);
                 case ChannelAction.TwitterFollow:
                     return TwitterDataProxy.validateFollow(account, channelItem);
+
                 case ChannelAction.SpotifyUserFollow:
                     return SpotifyDataProxy.validateUserFollow(account, channelItem);
                 case ChannelAction.SpotifyPlaylistFollow:
@@ -122,19 +125,17 @@ export default class RewardService {
         return await validate(reward.withdrawCondition.channelAction, reward.withdrawCondition.channelItem);
     }
 
-    static async claimRewardFor(assetPool: AssetPoolType, id: string, rewardId: number, beneficiary: string) {
+    static async claimRewardFor(assetPool: AssetPoolType, id: string, rewardId: number, account: IAccount) {
         const tx = await TransactionService.send(
             assetPool.solution.options.address,
-            assetPool.solution.methods.claimRewardFor(rewardId, beneficiary),
+            assetPool.solution.methods.claimRewardFor(rewardId, account.address),
             assetPool.network,
         );
-        const events = parseLogs(Artifacts.IDefaultDiamond.abi, tx.logs);
-        const event = findEvent('WithdrawPollCreated', events);
+        const event = assertEvent('WithdrawPollCreated', parseLogs(Artifacts.IDefaultDiamond.abi, tx.logs));
 
         return await WithdrawalService.update(assetPool, id, {
             withdrawalId: event.args.id,
             memberId: event.args.member,
-            rewardId,
         });
     }
 

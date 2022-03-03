@@ -7,6 +7,7 @@ const withdrawalSchema = new mongoose.Schema(
     {
         type: Number,
         poolAddress: String,
+        sub: String,
         beneficiary: String,
         amount: Number,
         state: Number,

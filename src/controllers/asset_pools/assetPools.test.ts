@@ -8,6 +8,8 @@ import {
     mintAmount,
     adminAddress,
     userWalletPrivateKey2,
+    sub2,
+    account2,
 } from '@/util/jest/constants';
 import { fromWei, toWei } from 'web3-utils';
 import { isAddress } from 'web3-utils';
@@ -95,7 +97,7 @@ describe('Happy Flow', () => {
                     expect(res.body.address).toEqual(poolAddress);
                     expect(res.body.token.address).toEqual(testToken.options.address);
                     expect(res.body.token.name).toEqual(await testToken.methods.name().call());
-                    // expect(res.body.token.symbol).toEqual(await testToken.methods.symbol().call());
+                    expect(res.body.token.symbol).toEqual(await testToken.methods.symbol().call());
                     expect(res.body.token.balance).toBe(rewardWithdrawAmount);
                 })
                 .expect(200);
@@ -234,7 +236,7 @@ describe('Happy Flow', () => {
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
                 .expect(async ({ body }: request.Response) => {
                     expect(body.id).toBeDefined();
-                    expect(body.beneficiary).toEqual(userWallet.address);
+                    expect(body.sub).toEqual(sub2);
                     expect(body.amount).toEqual(rewardWithdrawAmount);
                     expect(body.state).toEqual(0);
                     expect(body.createdAt).toBeDefined();
@@ -262,7 +264,7 @@ describe('Happy Flow', () => {
                 .expect(async ({ body }: request.Response) => {
                     expect(body.id).toBeDefined();
                     expect(body.amount).toEqual(rewardWithdrawAmount);
-                    expect(body.beneficiary).toEqual(userWallet.address);
+                    expect(body.sub).toEqual(sub2);
                     expect(body.approved).toEqual(true);
                     expect(body.withdrawalId).toEqual(3);
 
