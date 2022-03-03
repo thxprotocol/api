@@ -2,6 +2,7 @@ import { NetworkProvider } from '@/types/enums';
 import { ethers, Signer } from 'ethers';
 import { parseUnits } from 'ethers/lib/utils';
 import { INFURA_GAS_TANK, INFURA_PROJECT_ID, PRIVATE_KEY } from '@/config/secrets';
+import { Artifacts } from '@/util/artifacts';
 
 const testnet = new ethers.providers.InfuraProvider('maticmum', INFURA_PROJECT_ID);
 const mainnet = new ethers.providers.InfuraProvider('matic', INFURA_PROJECT_ID);
@@ -43,14 +44,18 @@ async function signRequest(tx: any, signer: Signer) {
     return await signer.signMessage(ethers.utils.arrayify(relayTransactionHash));
 }
 
-async function send(npid: NetworkProvider) {
+async function send(to: string, fn: string, args: any[], npid: NetworkProvider) {
     const { provider, admin } = getProvider(npid);
-    const iface = new ethers.utils.Interface(['function echo(string message)']);
-    const data = iface.encodeFunctionData('echo', ['Hello world!']);
+    const solution = new ethers.Contract(to, Artifacts.IDefaultDiamond.abi, provider);
+    const data = solution.interface.encodeFunctionData(fn, args);
+    const gas = await provider.estimateGas({
+        to,
+        data,
+    });
     const tx = {
-        to: '0x6663184b3521bF1896Ba6e1E776AB94c317204B6',
-        data: data,
-        gas: '100000',
+        to,
+        data,
+        gas,
         schedule: 'fast',
     };
     const signature = await signRequest(tx, admin);
