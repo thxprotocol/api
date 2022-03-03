@@ -7,7 +7,7 @@ import { Artifacts, ArtifactsKey } from '@/config/contracts/artifacts';
 
 export const currentVersion = '1.0.5';
 
-const ContractAddressConfig = environmentsConfig[NETWORK_ENVIRONMENT];
+const contractAddressConfig = environmentsConfig[NETWORK_ENVIRONMENT];
 
 const poolFacets: ArtifactsKey[] = [
     'AccessControl',
@@ -27,16 +27,16 @@ const poolFacets: ArtifactsKey[] = [
 ];
 
 export const assetPoolFactoryAddress = (npid: NetworkProvider, version?: string) => {
-    return ContractAddressConfig[npid].find((conf: { version: string }) => conf.version === (version || currentVersion))
+    return contractAddressConfig[npid].find((conf: { version: string }) => conf.version === (version || currentVersion))
         .assetPoolFactory;
 };
 export const assetPoolRegistryAddress = (npid: NetworkProvider, version?: string) => {
-    return ContractAddressConfig[npid].find((conf: { version: string }) => conf.version === (version || currentVersion))
+    return contractAddressConfig[npid].find((conf: { version: string }) => conf.version === (version || currentVersion))
         .assetPoolRegistry;
 };
 
 export const facetAdresses = (npid: NetworkProvider, version?: string) => {
-    return ContractAddressConfig[npid].find((conf: { version: string }) => conf.version === (version || currentVersion))
+    return contractAddressConfig[npid].find((conf: { version: string }) => conf.version === (version || currentVersion))
         .facets;
 };
 
@@ -57,7 +57,7 @@ export const poolFacetContracts = (npid: NetworkProvider, version?: string) => {
 
 export const poolFacetAdressesPermutations = (npid: NetworkProvider) => {
     const result = [];
-    const versions = ContractAddressConfig[npid].map((config: any) => config.version);
+    const versions = contractAddressConfig[npid].map((config: any) => config.version);
     for (const version of versions) {
         result.push({ version, facets: poolFacetAdresses(npid, version), npid });
     }
