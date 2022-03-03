@@ -4,7 +4,7 @@ import { TContractEnvironmentConfig } from '@/types/TContractEnvironmentConfig';
 export const prod: TContractEnvironmentConfig = {
     [NetworkProvider.Test]: [
         {
-            version: '1.0.6',
+            version: '1.0.5',
             assetPoolFactory: '0xDC30889cbFd0574FC3Dd5661Bb627Be67b7DE563',
             assetPoolRegistry: '0xD2129FB1bbc0653eF91B4dFE66d6A4A1D70058d1',
             facets: {
@@ -29,7 +29,7 @@ export const prod: TContractEnvironmentConfig = {
     ],
     [NetworkProvider.Main]: [
         {
-            version: '1.0.6',
+            version: '1.0.5',
             assetPoolFactory: '0x453d68Ae3E8434fB2818F62C0cABc3267A205bc8',
             assetPoolRegistry: '0x693ba495f5ceC632FE4b0adB54E179052bC6f8D4',
             facets: {
