@@ -14,7 +14,8 @@ import { getToken } from '@/util/jest/jwt';
 import { createWallet } from '@/util/jest/network';
 import { mockClear, mockStart, mockUrl } from '@/util/jest/mock';
 import { agenda, eventNameProcessWithdrawals } from '@/util/agenda';
-import { MaxFeePerGasExceededError, NetworkProvider } from '@/util/network';
+import { MaxFeePerGasExceededError } from '@/util/network';
+import { NetworkProvider } from '@/types/enums';
 import { afterAllCallback, beforeAllCallback } from '@/util/jest/config';
 
 const user = request.agent(app);

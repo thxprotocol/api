@@ -1,7 +1,7 @@
 import request from 'supertest';
 import app from '@/app';
 import { Account } from 'web3-core';
-import { NetworkProvider } from '../../util/network';
+import { NetworkProvider } from '../../types/enums';
 import { createWallet, signMethod } from '@/util/jest/network';
 import { rewardWithdrawAmount, tokenName, tokenSymbol, userWalletPrivateKey2 } from '@/util/jest/constants';
 import { isAddress } from 'web3-utils';
@@ -138,18 +138,6 @@ describe('Reward Claim', () => {
                     sig,
                 })
                 .expect(200);
-        });
-
-        it('should enable job processor', async () => {
-            await agenda.enable({ name: eventNameRequireWithdraws });
-        });
-
-        it('should cast a success event for Withdrawn event', (done) => {
-            const callback = async () => {
-                agenda.off(`success:${eventNameRequireWithdraws}`, callback);
-                done();
-            };
-            agenda.on(`success:${eventNameRequireWithdraws}`, callback);
         });
 
         it('should return Withdrawn state', (done) => {

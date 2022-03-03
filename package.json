@@ -1,6 +1,6 @@
 {
     "name": "@thxnetwork/api",
-    "version": "1.3.3",
+    "version": "1.3.9",
     "repository": {
         "type": "git",
         "url": "https://github.com/thxprotocol/api"
@@ -9,10 +9,10 @@
     "license": "AGPL-3.0",
     "scripts": {
         "preinstall": "npx npm-force-resolutions",
-        "lint": "tsc -p ./tsconfig.json && eslint \"./src/**/*.ts\"",
-        "lint:fix": "tsc -p ./tsconfig.json && eslint \"./src/**/*.ts\" --fix",
+        "lint": "tsc && eslint \"./src/**/*.ts\"",
+        "lint:fix": "tsc && eslint \"./src/**/*.ts\" --fix",
         "dev": "docker-compose up -d && npm run watch:node",
-        "build": "npm run build:docs && tsc -p ./tsconfig.json",
+        "build": "npm run build:docs && tsc",
         "build:docs": "swagger-jsdoc -d ./src/swaggerDef.js -o ./src/swagger.json",
         "watch:node": "ts-node-dev -r tsconfig-paths/register src/server.ts",
         "watch:node-debug": "ts-node-dev -r tsconfig-paths/register --inspect=7000 src/server.ts",
@@ -26,16 +26,13 @@
     },
     "dependencies": {
         "@godaddy/terminus": "^4.9.0",
-        "@sendgrid/mail": "^7.4.2",
         "@thxnetwork/artifacts": "^1.0.5",
         "agenda": "^4.2.1",
-        "async": "^3.1.0",
         "axios": "^0.21.3",
         "bluebird": "^3.5.5",
         "compression": "^1.7.4",
         "cors": "^2.8.5",
         "dotenv": "^16.0.0",
-        "ejs": "^3.1.6",
         "ethers": "^5.4.7",
         "express": "^4.17.1",
         "express-async-errors": "^3.1.1",
@@ -43,7 +40,6 @@
         "express-jwt-authz": "^2.4.1",
         "express-rate-limit": "^5.3.0",
         "express-validator": "^6.12.1",
-        "googleapis": "^92.0.0",
         "jsonwebtoken": "^8.5.1",
         "jwks-rsa": "^1.12.0",
         "lusca": "^1.6.1",
@@ -59,11 +55,8 @@
         "winston": "^3.2.1"
     },
     "devDependencies": {
-        "@types/async": "^3.0.2",
         "@types/bluebird": "^3.5.27",
         "@types/compression": "^1.0.1",
-        "@types/concurrently": "^4.1.0",
-        "@types/ejs": "^3.1.0",
         "@types/eslint": "^6.1.1",
         "@types/express": "^4.17.1",
         "@types/express-rate-limit": "^5.1.3",
@@ -75,16 +68,13 @@
         "@typescript-eslint/eslint-plugin": "^5.9.1",
         "@typescript-eslint/parser": "^5.9.1",
         "bootstrap": "^4.6.0",
-        "concurrently": "^7.0.0",
         "eslint": "^8.6.0",
         "eslint-config-prettier": "^8.3.0",
         "eslint-plugin-prettier": "^4.0.0",
         "jest": "^27.1.2",
         "nock": "^13.2.2",
-        "nodemon": "^2.0.15",
         "npm-force-resolutions": "0.0.10",
         "prettier": "^2.5.1",
-        "sass": "^1.32.8",
         "shelljs": "^0.8.5",
         "supertest": "^6.2.1",
         "swagger-jsdoc": "^4.2.0",
@@ -115,14 +105,6 @@
     "eslintConfig": {
         "parser": "@typescript-eslint/parser",
         "root": true,
-        "env": {
-            "node": true,
-            "mocha": true,
-            "shelljs": true,
-            "jest": true,
-            "es6": true,
-            "amd": true
-        },
         "extends": [
             "eslint:recommended",
             "plugin:@typescript-eslint/recommended",
@@ -150,24 +132,7 @@
             "@typescript-eslint/interface-name-prefix": "off"
         },
         "ignorePatterns": [
-            "test/**/*.{j,t}s?(x)",
-            "dist/*",
-            "src/types/",
-            "contracts/**/*.{j,t}s?(x)",
-            "./**/*.d.ts",
-            "./node_modules",
-            "./node_modules/agenda/**/*.d.ts"
-        ],
-        "overrides": [
-            {
-                "files": [
-                    "**/__tests__/*.{j,t}s?(x)",
-                    "**/tests/unit/**/*.spec.{j,t}s?(x)"
-                ],
-                "env": {
-                    "mocha": true
-                }
-            }
+            "./**/*.d.ts"
         ]
     },
     "jest": {
@@ -193,11 +158,6 @@
         ],
         "moduleNameMapper": {
             "^@/(.*)$": "<rootDir>/src/$1"
-        }
-    },
-    "nodemonConfig": {
-        "execMap": {
-            "js": "TS_NODE_BASEURL=./dist node -r tsconfig-paths/register"
         }
     }
 }

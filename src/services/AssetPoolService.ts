@@ -1,17 +1,21 @@
 import { assertEvent, parseLogs } from '@/util/events';
-import { getAssetPoolFactory, NetworkProvider, tokenContract } from '@/util/network';
+import { getAssetPoolFactory, tokenContract } from '@/util/network';
+import { NetworkProvider } from '@/types/enums';
 import { Artifacts } from '@/util/artifacts';
-import { POOL_REGISTRY_ADDRESS, TESTNET_POOL_REGISTRY_ADDRESS } from '@/util/secrets';
 import { AssetPool, AssetPoolDocument, IAssetPoolUpdates } from '@/models/AssetPool';
 import { deployUnlimitedSupplyERC20Contract, deployLimitedSupplyERC20Contract, getProvider } from '@/util/network';
-import { toWei, fromWei } from 'web3-utils';
+import { toWei, fromWei, toChecksumAddress } from 'web3-utils';
 import { downgradeFromBypassPolls, updateToBypassPolls } from '@/util/upgrades';
 import { TReward } from '@/models/Reward';
 import { IAccount } from '@/models/Account';
 import { Membership } from '@/models/Membership';
 import { THXError } from '@/util/errors';
 import { TransactionService } from './TransactionService';
+import { getCurrentAssetPoolRegistryAddress, getPoolFacetAdressesPermutations } from '@/config/network';
+import { pick } from '@/util';
+import { logger } from '@/util/logger';
 
+export const ADMIN_ROLE = '0x0000000000000000000000000000000000000000000000000000000000000000';
 class NoDataAtAddressError extends THXError {
     constructor(address: string) {
         super(`No data found at ERC20 address ${address}`);
@@ -31,17 +35,16 @@ export default class AssetPoolService {
     }
 
     static async canBypassRewardPoll(assetPool: AssetPoolDocument) {
-        // Early return to not call function when not needed.
         if (assetPool.bypassPolls) return true;
 
         const duration = Number(
             await TransactionService.call(assetPool.solution.methods.getRewardPollDuration(), assetPool.network),
         );
+
         return !assetPool.bypassPolls && duration === 0;
     }
 
     static async canBypassWithdrawPoll(assetPool: AssetPoolDocument, account: IAccount, reward: TReward) {
-        // Early return to not call function when not needed.
         const isNotCustodial = !account.privateKey;
         if (assetPool.bypassPolls && isNotCustodial) return true;
 
@@ -50,15 +53,14 @@ export default class AssetPoolService {
             assetPool.network,
         );
         const duration = Number(withdrawDuration);
+
         return !assetPool.bypassPolls && duration === 0 && isNotCustodial;
     }
 
     static async getByAddress(address: string) {
         const assetPool = await AssetPool.findOne({ address });
 
-        if (!assetPool) {
-            return null;
-        }
+        if (!assetPool) return null;
 
         assetPool.proposeWithdrawPollDuration = Number(
             await TransactionService.call(
@@ -162,8 +164,7 @@ export default class AssetPoolService {
 
     static async init(assetPool: AssetPoolDocument) {
         const { admin } = getProvider(assetPool.network);
-        const poolRegistryAddress =
-            assetPool.network === NetworkProvider.Test ? TESTNET_POOL_REGISTRY_ADDRESS : POOL_REGISTRY_ADDRESS;
+        const poolRegistryAddress = getCurrentAssetPoolRegistryAddress(assetPool.network);
 
         await TransactionService.send(
             assetPool.solution.options.address,
@@ -246,5 +247,73 @@ export default class AssetPoolService {
 
     static async countByNetwork(network: NetworkProvider) {
         return await AssetPool.countDocuments({ network });
+    }
+
+    static async contractVersion(assetPool: AssetPoolDocument) {
+        const permutations = Object.values(getPoolFacetAdressesPermutations(assetPool.network));
+        const facetAddresses = (await assetPool.solution.methods.facets().call()).map((facet: any) => facet[0]);
+        const match = permutations.find(
+            (permutation) => Object.values(permutation.facets).sort().join('') === facetAddresses.sort().join(''),
+        );
+        return match ? pick(match, ['version', 'bypassPolls', 'npid']) : { version: 'unknown' };
+    }
+
+    static async transferOwnership(assetPool: AssetPoolDocument, currentPrivateKey: string, newPrivateKey: string) {
+        const { web3 } = getProvider(assetPool.network);
+        const currentOwner = web3.eth.accounts.privateKeyToAccount(currentPrivateKey);
+        const currentOwnerAddress = toChecksumAddress(currentOwner.address);
+        const newOwner = web3.eth.accounts.privateKeyToAccount(newPrivateKey);
+        const newOwnerAddress = toChecksumAddress(newOwner.address);
+
+        const { methods, options } = assetPool.solution;
+
+        const sendFromCurrentOwner = (fn: any) => {
+            return TransactionService.send(options.address, fn, assetPool.network, null, currentPrivateKey);
+        };
+        const sendFromNewOwner = (fn: any) => {
+            return TransactionService.send(options.address, fn, assetPool.network, null, newPrivateKey);
+        };
+
+        // Transfer gas station to new account
+        if (toChecksumAddress(await methods.getGasStationAdmin().call()) !== newOwnerAddress) {
+            // Init gas station
+            const tx = await sendFromCurrentOwner(methods.initializeGasStation(newOwnerAddress));
+            logger.debug('Gas station transferred to new owner:', assetPool.address, tx.transactionHash);
+        }
+
+        // Add membership, manager and admin role to new owner.
+        if (!(await methods.isMember(newOwnerAddress).call())) {
+            logger.debug('Adding new owner to members');
+            await sendFromCurrentOwner(methods.addMember(newOwnerAddress));
+        }
+        if (!(await methods.isManager(newOwnerAddress).call())) {
+            logger.debug('Adding new owner to managers');
+            await sendFromCurrentOwner(methods.addManager(newOwnerAddress));
+        }
+        if (!(await methods.hasRole(ADMIN_ROLE, newOwner.address).call())) {
+            logger.debug('Granting new owner admin role');
+            await sendFromCurrentOwner(methods.grantRole(ADMIN_ROLE, newOwner.address));
+        }
+
+        // Transfer ownership.
+        if (toChecksumAddress(await methods.owner().call()) !== newOwnerAddress) {
+            // Transfer ownership
+            const tx = await sendFromCurrentOwner(methods.transferOwnership(newOwner.address));
+            logger.debug('TransferOwnership:', assetPool.address, tx.transactionHash);
+        }
+
+        // Remove admin role, manager and membership from former owner.
+        if (await methods.hasRole(ADMIN_ROLE, currentOwnerAddress).call()) {
+            logger.debug('Remove former owners admin role');
+            await sendFromNewOwner(methods.revokeRole(ADMIN_ROLE, currentOwner.address));
+        }
+        if (await methods.isManager(currentOwnerAddress).call()) {
+            logger.debug('Removing former owner from managers');
+            await sendFromNewOwner(methods.removeManager(currentOwnerAddress));
+        }
+        if (await methods.isMember(currentOwnerAddress).call()) {
+            logger.debug('Remove former owner from members');
+            await sendFromNewOwner(methods.removeMember(currentOwnerAddress));
+        }
     }
 }

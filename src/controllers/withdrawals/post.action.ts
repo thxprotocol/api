@@ -2,23 +2,26 @@ import newrelic from 'newrelic';
 import { Request, Response } from 'express';
 import { Withdrawal } from '@/models/Withdrawal';
 import { agenda, eventNameProcessWithdrawals } from '@/util/agenda';
-import { BadRequestError } from '@/util/errors';
+import { BadRequestError, NotFoundError } from '@/util/errors';
 
 import MemberService from '@/services/MemberService';
 import WithdrawalService from '@/services/WithdrawalService';
 
 import AccountProxy from '@/proxies/AccountProxy';
 import { WithdrawalState, WithdrawalType } from '@/types/enums';
+import { TWithdrawal } from '@/types/Withdrawal';
 
 export const postWithdrawal = async (req: Request, res: Response) => {
+    const account = await AccountProxy.getByAddress(req.body.member);
+    if (!account) throw new NotFoundError('Account not found');
+
     const isMember = await MemberService.isMember(req.assetPool, req.body.member);
     if (!isMember) throw new BadRequestError('Address is not a member of asset pool.');
 
-    const account = await AccountProxy.getByAddress(req.body.member);
     const withdrawal = await WithdrawalService.schedule(
         req.assetPool,
         WithdrawalType.ProposeWithdraw,
-        req.body.member,
+        account.id,
         req.body.amount,
         // Accounts with stored (encrypted) privateKeys are custodial and should not be processed before
         // they have logged into their wallet to update their account with a new wallet address.
@@ -32,8 +35,10 @@ export const postWithdrawal = async (req: Request, res: Response) => {
         newrelic.recordMetric('/Withdrawal/DeferredCount', count),
     );
 
-    res.status(201).json({
+    const result: TWithdrawal = {
         id: withdrawal.id,
+        sub: account.id,
+        poolAddress: req.assetPool.address,
         type: withdrawal.type,
         withdrawalId: withdrawal.withdrawalId,
         rewardId: withdrawal.rewardId,
@@ -44,7 +49,9 @@ export const postWithdrawal = async (req: Request, res: Response) => {
         poll: withdrawal.poll,
         createdAt: withdrawal.createdAt,
         updatedAt: withdrawal.updatedAt,
-    });
+    };
+
+    res.status(201).json(result);
 };
 
 /**

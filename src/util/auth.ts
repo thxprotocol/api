@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { THXError } from './errors';
-import { AUTH_CLIENT_ID, AUTH_CLIENT_SECRET, AUTH_URL } from './secrets';
+import { AUTH_CLIENT_ID, AUTH_CLIENT_SECRET, AUTH_URL } from '@/config/secrets';
 
 class AuthAccesTokenRequestError extends THXError {
     message = 'Auth access token request failed';

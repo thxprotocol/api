@@ -5,7 +5,7 @@ import { rewardPollDuration, rewardWithdrawAmount, rewardWithdrawDuration } from
 import { Contract } from 'web3-eth-contract';
 import { isAddress } from 'web3-utils';
 import { getToken } from '@/util/jest/jwt';
-import { NetworkProvider } from '@/util/network';
+import { NetworkProvider } from '@/types/enums';
 import { afterAllCallback, beforeAllCallback } from '@/util/jest/config';
 
 const user = request.agent(app);

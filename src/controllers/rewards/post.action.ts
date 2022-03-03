@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { VERSION } from '@/util/secrets';
+import { VERSION } from '@/config/secrets';
 import { toWei } from 'web3-utils';
 import BN from 'bn.js';
 

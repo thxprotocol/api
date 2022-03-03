@@ -1,48 +1,28 @@
 import { Request, Response } from 'express';
-
 import WithdrawalService from '@/services/WithdrawalService';
+import { NotFoundError } from '@/util/errors';
+import { TWithdrawal } from '@/types/Withdrawal';
 
-/**
- * @swagger
- * /withdrawals/:id/withdraw:
- *   post:
- *     tags:
- *       - Withdrawals
- *     description: If the poll for this withdrawal is approved the reward will be withdrawn.
- *     produces:
- *       - application/json
- *     parameters:
- *       - name: AssetPool
- *         in: header
- *         required: true
- *         type: string
- *       - name: id
- *         in: path
- *         required: true
- *         type: number
- *     responses:
- *       '200':
- *         description: OK
- *         content: application/json
- *         schema:
- *               type: object
- *               optional: true
- *               properties:
- *                 base64:
- *                   type: string
- *                   description: Base64 string representing function call if governance is disabled.
- *       '400':
- *         $ref: '#/components/responses/400'
- *       '401':
- *         $ref: '#/components/responses/401'
- *       '403':
- *         description: Forbidden. Your account does not have access to this pool.
- *       '500':
- *         $ref: '#/components/responses/500'
- *       '502':
- *         $ref: '#/components/responses/502'
- */
 export const postPollFinalize = async (req: Request, res: Response) => {
-    const finalizedWithdrawal = await WithdrawalService.withdrawPollFinalize(req.assetPool, req.params.id);
-    res.json(finalizedWithdrawal);
+    const withdrawal = await WithdrawalService.getById(req.params.id);
+    if (!withdrawal) throw new NotFoundError('Withdrawal not found');
+    const w = await WithdrawalService.withdrawPollFinalize(req.assetPool, withdrawal);
+    const result: TWithdrawal = {
+        id: String(w._id),
+        sub: w.sub,
+        poolAddress: req.assetPool.address,
+        type: w.type,
+        withdrawalId: w.withdrawalId,
+        failReason: w.failReason,
+        rewardId: w.rewardId,
+        beneficiary: w.beneficiary,
+        amount: w.amount,
+        approved: w.approved,
+        state: w.state,
+        poll: w.poll,
+        createdAt: w.createdAt,
+        updatedAt: w.updatedAt,
+    };
+
+    res.json(result);
 };

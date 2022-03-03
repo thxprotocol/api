@@ -1,14 +1,16 @@
 import { toWei, fromWei } from 'web3-utils';
-import { NetworkProvider, MaxFeePerGasExceededError } from '@/util/network';
+import { MaxFeePerGasExceededError } from '@/util/network';
+import { NetworkProvider } from '@/types/enums';
 import { WithdrawalState, WithdrawalType } from '@/types/enums';
 import { AssetPoolType } from '@/models/AssetPool';
-import { Withdrawal } from '@/models/Withdrawal';
+import { Withdrawal, WithdrawalDocument } from '@/models/Withdrawal';
 import { IAccount } from '@/models/Account';
 import { Artifacts } from '@/util/artifacts';
 import { parseLogs, findEvent } from '@/util/events';
 import { paginatedResults } from '@/util/pagination';
 import { THXError } from '@/util/errors';
 import { TransactionService } from './TransactionService';
+import AccountProxy from '@/proxies/AccountProxy';
 
 class CannotWithdrawForCustodialError extends THXError {
     message = 'Not able to withdraw funds for custodial wallets.';
@@ -25,7 +27,7 @@ export default class WithdrawalService {
         return Withdrawal.findById(id);
     }
 
-    static async getAllScheduled() {
+    static async countScheduled() {
         return await Withdrawal.find({
             $or: [
                 { failReason: new MaxFeePerGasExceededError().message },
@@ -37,20 +39,33 @@ export default class WithdrawalService {
         }).sort({ createdAt: -1 });
     }
 
+    static async getAllScheduled(poolAddress: string) {
+        return await Withdrawal.find({
+            $or: [
+                { failReason: new MaxFeePerGasExceededError().message },
+                { failReason: { $exists: false } },
+                { failReason: '' },
+            ],
+            withdrawalId: { $exists: false },
+            state: WithdrawalState.Pending,
+            poolAddress,
+        }).sort({ createdAt: -1 });
+    }
+
     static async schedule(
         assetPool: AssetPoolType,
         type: WithdrawalType,
-        beneficiary: string,
+        sub: string,
         amount: number,
         state = WithdrawalState.Pending,
         rewardId?: number,
     ) {
         const withdrawal = new Withdrawal({
             type,
+            sub,
             amount,
             rewardId,
-            beneficiary,
-            poolAddress: assetPool.solution.options.address,
+            poolAddress: assetPool.address,
             state,
         });
 
@@ -67,11 +82,12 @@ export default class WithdrawalService {
     }
 
     // Invoked from job
-    static async proposeWithdraw(assetPool: AssetPoolType, id: string, beneficiary: string, amount: number) {
-        const amountInWei = toWei(amount.toString());
+    static async proposeWithdraw(assetPool: AssetPoolType, id: string, sub: string, amount: number) {
+        const account = await AccountProxy.getById(sub);
+        const amountInWei = toWei(String(amount));
         const tx = await TransactionService.send(
             assetPool.address,
-            assetPool.solution.methods.proposeWithdraw(amountInWei, beneficiary),
+            assetPool.solution.methods.proposeWithdraw(amountInWei, account.address),
             assetPool.network,
         );
         const events = parseLogs(Artifacts.IDefaultDiamond.abi, tx.logs);
@@ -131,9 +147,7 @@ export default class WithdrawalService {
         return await withdrawal.save();
     }
 
-    static async withdrawPollFinalize(assetPool: AssetPoolType, id: string) {
-        const withdrawal = await Withdrawal.findById(id);
-
+    static async withdrawPollFinalize(assetPool: AssetPoolType, withdrawal: WithdrawalDocument) {
         if (withdrawal.state === WithdrawalState.Deferred) {
             throw new CannotWithdrawForCustodialError();
         }
@@ -192,10 +206,10 @@ export default class WithdrawalService {
             state: WithdrawalState.Withdrawn,
         });
 
-        return withdrawal;
+        return !!withdrawal;
     }
 
-    static async getByBeneficiary(beneficiary: string) {
+    static getByBeneficiary(beneficiary: string) {
         return Withdrawal.find({ beneficiary });
     }
 
