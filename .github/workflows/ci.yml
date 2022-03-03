@@ -10,8 +10,6 @@ jobs:
         steps:
             - name: Checkout repository
               uses: actions/checkout@v2
-              with:
-                  submodules: true
 
             - name: Configure AWS credentials
               uses: aws-actions/configure-aws-credentials@v1
@@ -59,8 +57,6 @@ jobs:
         steps:
             - name: Checkout
               uses: actions/checkout@v2
-              with:
-                  submodules: true
 
             - name: Install Node.js 16.x
               uses: actions/setup-node@v1
