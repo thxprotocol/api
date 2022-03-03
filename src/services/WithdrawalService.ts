@@ -206,10 +206,10 @@ export default class WithdrawalService {
             state: WithdrawalState.Withdrawn,
         });
 
-        return withdrawal;
+        return !!withdrawal;
     }
 
-    static async getByBeneficiary(beneficiary: string) {
+    static getByBeneficiary(beneficiary: string) {
         return Withdrawal.find({ beneficiary });
     }
 

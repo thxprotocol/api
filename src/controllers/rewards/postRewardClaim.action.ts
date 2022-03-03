@@ -18,13 +18,12 @@ const ERROR_NO_MEMBER = 'Could not claim this reward since you are not a member 
 export async function postRewardClaim(req: Request, res: Response) {
     const rewardId = Number(req.params.id);
 
-    const sub = req.user.sub;
-    if (!sub) throw new BadRequestError(ERROR_INCORRECT_SCOPE);
+    if (!req.user.sub) throw new BadRequestError(ERROR_INCORRECT_SCOPE);
 
     const reward = await RewardService.get(req.assetPool, rewardId);
     if (!reward) throw new BadRequestError(ERROR_REWARD_NOT_FOUND);
 
-    const account = await AccountProxy.getById(sub);
+    const account = await AccountProxy.getById(req.user.sub);
     if (!account.address) throw new BadRequestError(ERROR_ACCOUNT_NO_ADDRESS);
 
     // Check if the claim conditions are currently valid, recheck in job

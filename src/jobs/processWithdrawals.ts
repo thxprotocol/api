@@ -28,12 +28,12 @@ async function claimReward(assetPool: AssetPoolDocument, id: string, rewardId: n
         await MemberService.addMember(assetPool, account.address);
     }
 
-    const hasMembership = await MembershipService.hasMembership(assetPool, account.sub);
+    const hasMembership = await MembershipService.hasMembership(assetPool, account.id);
     if (!hasMembership && !reward.isMembershipRequired) {
         await MembershipService.addMembership(account.id, assetPool);
     }
 
-    await RewardService.claimRewardFor(assetPool, id, rewardId, account.address);
+    await RewardService.claimRewardFor(assetPool, id, rewardId, account);
 }
 
 async function updateFailReason(withdrawal: WithdrawalDocument, failReason: string) {
@@ -46,27 +46,31 @@ export async function jobProcessWithdrawals() {
         for (const w of await WithdrawalService.getAllScheduled(assetPool.address)) {
             try {
                 switch (w.type) {
-                    case WithdrawalType.ClaimReward:
+                    case WithdrawalType.ClaimReward: {
                         await wrapBackgroundTransaction(
                             'jobClaimReward',
                             'processWithdrawal',
                             claimReward(assetPool, String(w._id), w.rewardId, w.sub),
                         );
                         break;
-                    case WithdrawalType.ClaimRewardFor:
+                    }
+                    case WithdrawalType.ClaimRewardFor: {
+                        const account = await AccountProxy.getById(w.sub);
                         await wrapBackgroundTransaction(
                             'jobClaimRewardFor',
                             'processWithdrawal',
-                            RewardService.claimRewardFor(assetPool, String(w._id), w.rewardId, w.sub),
+                            RewardService.claimRewardFor(assetPool, String(w._id), w.rewardId, account),
                         );
                         break;
-                    case WithdrawalType.ProposeWithdraw:
+                    }
+                    case WithdrawalType.ProposeWithdraw: {
                         await wrapBackgroundTransaction(
                             'jobProposeWithdraw',
                             'processWithdrawal',
                             WithdrawalService.proposeWithdraw(assetPool, String(w._id), w.sub, w.amount),
                         );
                         break;
+                    }
                 }
                 // If no error is thrown remove the failReason that potentially got stored in
                 // an earlier run.

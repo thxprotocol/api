@@ -125,8 +125,7 @@ export default class RewardService {
         return await validate(reward.withdrawCondition.channelAction, reward.withdrawCondition.channelItem);
     }
 
-    static async claimRewardFor(assetPool: AssetPoolType, id: string, rewardId: number, sub: string) {
-        const account = await AccountProxy.getById(sub);
+    static async claimRewardFor(assetPool: AssetPoolType, id: string, rewardId: number, account: IAccount) {
         const tx = await TransactionService.send(
             assetPool.solution.options.address,
             assetPool.solution.methods.claimRewardFor(rewardId, account.address),
