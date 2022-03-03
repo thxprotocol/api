@@ -169,7 +169,7 @@ export default class AssetPoolService {
         const match = permutations.find(
             (permutation) => Object.values(permutation.facets).sort().join('') === facetAddresses.sort().join(''),
         );
-        return match ? pick(match, ['version', 'npid']) : { version: 'unknown' };
+        return match ? match.version : 'unknown';
     }
 
     static async transferOwnership(assetPool: AssetPoolDocument, currentPrivateKey: string, newPrivateKey: string) {

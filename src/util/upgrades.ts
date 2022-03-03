@@ -1,38 +1,73 @@
-import { getSelectors, getProvider, ADDRESS_ZERO } from './network';
-import { NetworkProvider } from '../types/enums';
-import { Contract } from 'web3-eth-contract';
+import { getSelectors, ADDRESS_ZERO } from './network';
 import { TransactionService } from '@/services/TransactionService';
-import { facetAdresses, poolFacetAdresses } from '@/config/contracts';
-import { pick } from '.';
+import { poolFacetAdresses, poolFacetContracts } from '@/config/contracts';
+import { pick, uniq } from '.';
 import { Artifacts } from './artifacts';
-import { AssetPoolType } from '@/models/AssetPool';
+import { AssetPoolDocument, AssetPoolType } from '@/models/AssetPool';
 
-export const FacetCutAction = {
-    Add: 0,
-    Replace: 1,
-    Remove: 2,
-};
+export enum FacetCutAction {
+    Add = 0,
+    Replace = 1,
+    Remove = 2,
+}
 
-export async function updateAssetPool(artifacts: any, solution: Contract, npid: NetworkProvider) {
-    const { web3 } = getProvider(npid);
-
-    const diamondCuts = [];
-    for (const artifact of artifacts) {
-        const addresses = facetAdresses(npid);
-        const facetAddress = addresses[artifact.contractName as keyof typeof addresses];
-        const facet = new web3.eth.Contract(artifact.abi);
-        const functionSelectors = getSelectors(facet);
-
-        diamondCuts.push({
+function getDiamonCutsFromSelectorsMap(map: Map<string, string>, action: FacetCutAction) {
+    const result = [];
+    for (const facetAddress of uniq([...map.values()])) {
+        result.push({
             facetAddress,
-            action: FacetCutAction.Replace,
-            functionSelectors,
+            action: action,
+            functionSelectors: [...map].filter(([, address]) => facetAddress === address).map(([selector]) => selector),
         });
     }
-    return await TransactionService.send(
-        solution.options.address,
-        solution.methods.diamondCut(diamondCuts, ADDRESS_ZERO, '0x'),
-        npid,
+    return result;
+}
+
+export async function updateAssetPool(pool: AssetPoolDocument, version?: string) {
+    const facets = await pool.solution.methods.facets().call();
+
+    const currentSelectorMapping = new Map();
+    facets.forEach((facet: any) =>
+        facet.functionSelectors.forEach((selector: string) => {
+            currentSelectorMapping.set(selector, facet.facetAddress);
+        }),
+    );
+
+    const newContracts = poolFacetContracts(pool.network, version);
+    const additions = new Map();
+    for (const contract of newContracts) {
+        getSelectors(contract).forEach((selector: string) => {
+            additions.set(selector, contract.options.address);
+        });
+    }
+
+    const replaces = new Map();
+    const deletions = new Map();
+
+    for (const currentSelector of currentSelectorMapping) {
+        if (additions.has(currentSelector[0])) {
+            // If the selector address has changed in the new version.
+            if (additions.get(currentSelector[0]) !== currentSelector[1]) {
+                replaces.set(currentSelector[0], additions.get(currentSelector[0]));
+            }
+            // The selector already exists so it's not an addition.
+            additions.delete(currentSelector[0]);
+        } else {
+            // The selector doesn't exist in the new contracts anymore, remove it.
+            deletions.set(currentSelector[0], currentSelector[1]);
+        }
+    }
+
+    const diamondCuts = [];
+
+    diamondCuts.push(...getDiamonCutsFromSelectorsMap(replaces, FacetCutAction.Replace));
+    diamondCuts.push(...getDiamonCutsFromSelectorsMap(deletions, FacetCutAction.Remove));
+    diamondCuts.push(...getDiamonCutsFromSelectorsMap(additions, FacetCutAction.Add));
+
+    await TransactionService.send(
+        pool.solution.options.address,
+        pool.solution.methods.diamondCut(diamondCuts, ADDRESS_ZERO, '0x'),
+        pool.network,
     );
 }
 
