@@ -1,6 +1,7 @@
 import { NetworkProvider } from '@/types/enums';
+import { TContractEnvironmentConfig } from '@/types/TContractEnvironmentConfig';
 
-export const local = {
+export const local: TContractEnvironmentConfig = {
     [NetworkProvider.Test]: [
         {
             version: '1.0.6',
@@ -61,12 +62,6 @@ export const local = {
                 BasePollProxy: '0x36260689483bc55753E3258725f31E8aee31A7B0',
                 GasStationFacet: '0x8c4Ca9343734227366653495cC068aB03B4f5bee',
                 UpdateDiamond: '0x0Bb5Cb54566cEEf9dF1F60d8D7d2Fd01eA88279e',
-                Withdraw: '0xa4cBDae70871E8664b8de077765DDA2f4cc90d02',
-                WithdrawPoll: '0x58C0e64cBB7E5C7D0201A3a5c2D899cC70B0dc4c',
-                WithdrawPollProxy: '0xe42CA31C24ee6bA76DBd87D86ab66D45b65ee5A2',
-                Reward: '0x80B20189Ef43515364bBB627Fefec7c3Fed346bd',
-                RewardPoll: '0xe249764c8462535C67BCEE936202C169F6547C37',
-                RewardPollProxy: '0x726C9c8278eC209CfBE6BBb1d02e65dF6FcB7cdA',
                 WithdrawBy: '0x55D16f716fbF51413bA4f492777022009802D4b7',
                 WithdrawByPoll: '0x50861908E2Bb609524D63F5b4E57d3CACaDf09C2',
                 WithdrawByPollProxy: '0x214A744B491b85c3827329D96B0F72991204A8AE',

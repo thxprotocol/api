@@ -6,7 +6,7 @@ import { fromWei } from 'web3-utils';
 import { agenda, eventNameProcessWithdrawals } from '@/util/agenda';
 
 import WithdrawalService from '@/services/WithdrawalService';
-import { assetPoolFactoryAddress, assetPoolRegistryAddress, facetAdresses } from '@/config/network';
+import { assetPoolFactoryAddress, assetPoolRegistryAddress, facetAdresses } from '@/config/contracts';
 
 async function getNetworkDetails(npid: NetworkProvider, constants: { factory: string; registry: string }) {
     const { web3 } = getProvider(npid);

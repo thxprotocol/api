@@ -2,7 +2,7 @@ import { getSelectors, getProvider, ADDRESS_ZERO } from './network';
 import { NetworkProvider } from '../types/enums';
 import { Contract } from 'web3-eth-contract';
 import { TransactionService } from '@/services/TransactionService';
-import { facetAdresses, poolFacetAdresses } from '@/config/network';
+import { facetAdresses, poolFacetAdresses } from '@/config/contracts';
 import { pick } from '.';
 import { Artifacts } from './artifacts';
 import { AssetPoolType } from '@/models/AssetPool';

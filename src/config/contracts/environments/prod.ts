@@ -1,6 +1,7 @@
 import { NetworkProvider } from '@/types/enums';
+import { TContractEnvironmentConfig } from '@/types/TContractEnvironmentConfig';
 
-export const prod = {
+export const prod: TContractEnvironmentConfig = {
     [NetworkProvider.Test]: [
         {
             version: '1.0.6',

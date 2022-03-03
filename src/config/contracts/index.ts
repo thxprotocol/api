@@ -2,13 +2,14 @@ import { pick } from '@/util';
 import { NetworkProvider } from '@/types/enums';
 import { NETWORK_ENVIRONMENT } from '@/config/secrets';
 import * as environmentsConfig from './environments';
+import { getProvider } from '@/util/network';
+import { Artifacts, ArtifactsKey } from '@/util/artifacts';
 
-export const currentVersion = '1.0.6';
+export const currentVersion = '1.0.5';
 
-export const ContractAddressConfig = environmentsConfig[NETWORK_ENVIRONMENT];
+const ContractAddressConfig = environmentsConfig[NETWORK_ENVIRONMENT];
 
-const facets = ContractAddressConfig[NetworkProvider.Main][0].facets;
-const poolFacets: (keyof typeof facets)[] = [
+const poolFacets: ArtifactsKey[] = [
     'AccessControl',
     'MemberAccess',
     'Token',
@@ -26,25 +27,32 @@ const poolFacets: (keyof typeof facets)[] = [
 ];
 
 export const assetPoolFactoryAddress = (npid: NetworkProvider, version?: string) => {
-    return ContractAddressConfig[npid].find((conf: { version: string }) => conf.version === version || currentVersion)
+    return ContractAddressConfig[npid].find((conf: { version: string }) => conf.version === (version || currentVersion))
         .assetPoolFactory;
 };
 export const assetPoolRegistryAddress = (npid: NetworkProvider, version?: string) => {
-    return ContractAddressConfig[npid].find((conf: { version: string }) => conf.version === version || currentVersion)
+    return ContractAddressConfig[npid].find((conf: { version: string }) => conf.version === (version || currentVersion))
         .assetPoolRegistry;
 };
 
 export const facetAdresses = (npid: NetworkProvider, version?: string) => {
-    return ContractAddressConfig[npid].find((conf: { version: string }) => conf.version === version || currentVersion)
+    return ContractAddressConfig[npid].find((conf: { version: string }) => conf.version === (version || currentVersion))
         .facets;
 };
 
-export const poolFacetAdresses = (npid: NetworkProvider, version: string) => {
-    const facets = ContractAddressConfig[npid].find(
-        (conf: { version: string }) => conf.version === version || currentVersion,
-    ).facets;
+export const poolFacetAdresses = (npid: NetworkProvider, version?: string): { [key in ArtifactsKey]?: string } => {
+    const facets = facetAdresses(npid, version);
 
     return pick(facets, poolFacets);
+};
+
+export const poolFacetContracts = (npid: NetworkProvider, version?: string) => {
+    const addresses = poolFacetAdresses(npid, version);
+    const { web3 } = getProvider(npid);
+
+    return Object.entries(addresses).map(([name, address]: [ArtifactsKey, string]) => {
+        return new web3.eth.Contract((Artifacts[name] as any).abi, address);
+    });
 };
 
 export const poolFacetAdressesPermutations = (npid: NetworkProvider) => {

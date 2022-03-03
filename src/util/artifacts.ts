@@ -59,3 +59,5 @@ export const Artifacts = {
 
     ExampleToken: ExampleTokenArtifact,
 };
+
+export type ArtifactsKey = keyof typeof Artifacts;

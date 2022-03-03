@@ -9,7 +9,7 @@ import { toWei, fromWei, toChecksumAddress } from 'web3-utils';
 import { Membership } from '@/models/Membership';
 import { THXError } from '@/util/errors';
 import { TransactionService } from './TransactionService';
-import { assetPoolRegistryAddress, poolFacetAdressesPermutations } from '@/config/network';
+import { assetPoolRegistryAddress, poolFacetAdressesPermutations } from '@/config/contracts';
 import { pick } from '@/util';
 import { logger } from '@/util/logger';
 
