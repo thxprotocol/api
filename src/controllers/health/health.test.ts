@@ -48,7 +48,7 @@ describe('Happy Flow', () => {
             const pool = await AssetPoolService.getByAddress(poolAddress);
             console.log('pool version before', pool.address, await AssetPoolService.contractVersion(pool));
 
-            updateAssetPool(pool, '1.0.6');
+            // updateAssetPool(pool, 'duplicate-deploy-latest');
 
             console.log('pool version after', pool.address, await AssetPoolService.contractVersion(pool));
         });
