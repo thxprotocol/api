@@ -4,7 +4,6 @@ import { assertAssetPoolAccess, assertRequestInput, requireAssetPoolHeader } fro
 import { getAssetPools } from './getAll.action';
 import { getAssetPool, readAssetPoolValidation } from './get.action';
 import { createAssetPoolValidation, postAssetPool } from './post.controller';
-import { patchAssetPool, updateAssetPoolValidation } from './patch.action';
 import { deleteAssetPool, deleteAssetPoolValidation } from './delete.action';
 
 const router = express.Router();
@@ -18,14 +17,6 @@ router.get(
     assertRequestInput(readAssetPoolValidation),
     requireAssetPoolHeader,
     getAssetPool,
-);
-router.patch(
-    '/:address',
-    assertScopes(['dashboard']),
-    assertAssetPoolAccess,
-    assertRequestInput(updateAssetPoolValidation),
-    requireAssetPoolHeader,
-    patchAssetPool,
 );
 router.delete(
     '/:address',

@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 
 import WithdrawalService from '@/services/WithdrawalService';
 import { NotFoundError } from '@/util/errors';
+import { TWithdrawal } from '@/types/Withdrawal';
 
 /**
  * @swagger
@@ -74,20 +75,20 @@ import { NotFoundError } from '@/util/errors';
  */
 export const getWithdrawal = async (req: Request, res: Response) => {
     const withdrawal = await WithdrawalService.getById(req.params.id);
-    if (!withdrawal) {
-        throw new NotFoundError();
-    }
+    if (!withdrawal) throw new NotFoundError();
 
-    const id = withdrawal._id.toString();
-
-    res.json({
-        id,
-        withdrawalId: withdrawal.withdrawalId,
-        failReason: withdrawal.failReason,
+    const result: TWithdrawal = {
+        id: String(withdrawal._id),
+        type: withdrawal.type,
+        sub: withdrawal.sub,
         beneficiary: withdrawal.beneficiary,
+        poolAddress: req.assetPool.address,
+        withdrawalId: withdrawal.withdrawalId,
+        state: withdrawal.state,
+        failReason: withdrawal.failReason,
         amount: withdrawal.amount,
         approved: withdrawal.approved,
-        state: withdrawal.state,
+        createdAt: withdrawal.createdAt,
         poll: {
             startTime: withdrawal.poll.startTime,
             endTime: withdrawal.poll.endTime,
@@ -95,5 +96,7 @@ export const getWithdrawal = async (req: Request, res: Response) => {
             noCounter: withdrawal.poll.noCounter,
             totalVoted: withdrawal.poll.totalVoted,
         },
-    });
+    };
+
+    res.json(result);
 };

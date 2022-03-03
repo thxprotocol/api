@@ -1,12 +1,6 @@
 import AccessControl from '@thxnetwork/artifacts/artifacts/contracts/01-AccessControl/AccessControl.sol/AccessControl.json';
 import MemberID from '@thxnetwork/artifacts/artifacts/contracts/03-MemberAccess/MemberAccess.sol/MemberAccess.json';
 import Token from '@thxnetwork/artifacts/artifacts/contracts/04-Token/Token.sol/Token.json';
-import WithdrawArtifact from '@thxnetwork/artifacts/artifacts/contracts/05-Withdraw/Withdraw.sol/Withdraw.json';
-import WithdrawPollArtifact from '@thxnetwork/artifacts/artifacts/contracts/05-Withdraw/WithdrawPoll.sol/WithdrawPoll.json';
-import WithdrawPollProxyArtifact from '@thxnetwork/artifacts/artifacts/contracts/05-Withdraw/WithdrawPollProxy.sol/WithdrawPollProxy.json';
-import RewardArtifact from '@thxnetwork/artifacts/artifacts/contracts/06-Reward/Reward.sol/Reward.json';
-import RewardPollArtifact from '@thxnetwork/artifacts/artifacts/contracts/06-Reward/RewardPoll.sol/RewardPoll.json';
-import RewardPollProxyArtifact from '@thxnetwork/artifacts/artifacts/contracts/06-Reward/RewardPollProxy.sol/RewardPollProxy.json';
 import GasStation from '@thxnetwork/artifacts/artifacts/contracts/07-GasStation/GasStation.sol/GasStationFacet.json';
 import BasePoll from '@thxnetwork/artifacts/artifacts/contracts/08-BasePoll/BasePollProxy.sol/BasePollProxy.json';
 import WithdrawByArtifact from '@thxnetwork/artifacts/artifacts/contracts/09-WithdrawBypass/WithdrawBy.sol/WithdrawBy.json';
@@ -40,12 +34,6 @@ export const Artifacts = {
     GasStationFacet: GasStation,
     BasePollProxy: BasePoll,
     UpdateDiamond: UpdateDiamond,
-    Withdraw: WithdrawArtifact,
-    WithdrawPoll: WithdrawPollArtifact,
-    WithdrawPollProxy: WithdrawPollProxyArtifact,
-    Reward: RewardArtifact,
-    RewardPoll: RewardPollArtifact,
-    RewardPollProxy: RewardPollProxyArtifact,
     WithdrawBy: WithdrawByArtifact,
     WithdrawByPoll: WithdrawByPollArtifact,
     WithdrawByPollProxy: WithdrawByPollProxyArtifact,

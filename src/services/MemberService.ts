@@ -79,7 +79,7 @@ export default class MemberService {
             assetPool.network,
         );
 
-        const members = await Member.find({ poolAddress: assetPool.address, address });
+        const members = await Member.find({ poolAddress: assetPool.address, address, memberId });
 
         if (!members.length) {
             const member = new Member({
@@ -94,7 +94,7 @@ export default class MemberService {
         return memberId;
     }
 
-    static async isMember(assetPool: AssetPoolType, address: string) {
+    static isMember(assetPool: AssetPoolType, address: string) {
         return TransactionService.call(assetPool.solution.methods.isMember(address), assetPool.network);
     }
 

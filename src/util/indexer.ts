@@ -6,37 +6,6 @@ import { WithdrawalState } from '@/types/enums';
 import { TransactionService } from '@/services/TransactionService';
 
 class EventIndexer {
-    async onWithdrawPollVoted(npid: NetworkProvider, address: string, args: any) {
-        const withdrawalId = Number(args.id);
-        const solution = solutionContract(npid, address);
-        const withdrawal = await Withdrawal.findOne({ withdrawalId, poolAddress: address });
-
-        withdrawal.poll[args.vote ? 'yesCounter' : 'noCounter'] += 1;
-        withdrawal.approved = await TransactionService.call(
-            solution.methods.withdrawPollApprovalState(withdrawalId),
-            npid,
-        );
-        withdrawal.poll.totalVoted += 1;
-
-        await withdrawal.save();
-    }
-
-    async onWithdrawPollRevokedVote(npid: NetworkProvider, address: string, args: any) {
-        const withdrawalId = Number(args.id);
-        const withdrawal = await Withdrawal.findOne({ withdrawalId, poolAddress: address });
-        const solution = solutionContract(npid, address);
-        const vote = await TransactionService.call(solution.methods.votesByAddress(args.member), npid);
-
-        withdrawal.poll[vote ? 'yesCounter' : 'noCounter'] -= 1;
-        withdrawal.approved = await TransactionService.call(
-            solution.methods.withdrawPollApprovalState(withdrawalId),
-            npid,
-        );
-        withdrawal.poll.totalVoted -= 1;
-
-        await withdrawal.save();
-    }
-
     async onWithdrawPollCreated(npid: NetworkProvider, address: string, args: any) {
         const withdrawalId = Number(args.id);
         const memberId = args.member;

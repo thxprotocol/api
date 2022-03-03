@@ -2,8 +2,6 @@ import { toWei } from 'web3-utils';
 
 export const tokenName = 'Volunteers United';
 export const tokenSymbol = 'VUT';
-export const rewardPollDuration = 60;
-export const proposeWithdrawPollDuration = 60;
 export const rewardWithdrawAmount = 1000;
 export const rewardWithdrawDuration = 60;
 export const VOTER_PK = '0x97093724e1748ebfa6aa2d2ec4ec68df8678423ab9a12eb2d27ddc74e35e5db9';

@@ -1,5 +1,4 @@
 import RewardService from '@/services/RewardService';
-import AssetPoolService from '@/services/AssetPoolService';
 import { Request, Response } from 'express';
 import { RewardState, TReward } from '@/models/Reward';
 
@@ -22,7 +21,7 @@ export async function patchReward(req: Request, res: Response) {
             withdrawDuration,
         });
 
-        if (updatedReward.pollId > 0 && (await AssetPoolService.canBypassRewardPoll(req.assetPool))) {
+        if (updatedReward.pollId > 0) {
             const finalizedReward: TReward = await RewardService.finalizePoll(req.assetPool, updatedReward);
 
             return res.json(finalizedReward);

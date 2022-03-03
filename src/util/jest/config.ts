@@ -6,14 +6,14 @@ import { logger } from '@/util/logger';
 import { getProvider } from '@/util/network';
 import { NetworkProvider } from '@/types/enums';
 import { poll } from './polling';
-import { getCurrentAssetPoolRegistryAddress } from '@/config/network';
+import { assetPoolRegistryAddress } from '@/config/network';
 
 export async function beforeAllCallback() {
     await db.truncate();
     mockStart();
 
     const { web3 } = getProvider(NetworkProvider.Main);
-    const fn = () => web3.eth.getCode(getCurrentAssetPoolRegistryAddress(NetworkProvider.Main));
+    const fn = () => web3.eth.getCode(assetPoolRegistryAddress(NetworkProvider.Main));
     const fnCondition = (result: string) => result === '0x';
 
     await poll(fn, fnCondition, 500);

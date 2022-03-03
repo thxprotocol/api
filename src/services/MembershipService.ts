@@ -6,12 +6,26 @@ import AssetPoolService from './AssetPoolService';
 export default class MembershipService {
     static async get(sub: string) {
         const memberships = await Membership.find({ sub });
-        return memberships.map((m) => m._id.toString());
+        return memberships.map((m) => String(m._id));
+    }
+
+    static async hasMembership(assetPool: AssetPoolType, sub: string) {
+        const membership = await Membership.findOne({
+            sub,
+            network: assetPool.network,
+            poolAddress: assetPool.address,
+        });
+
+        return !!membership;
     }
 
     static async getById(id: string) {
         const membership = await Membership.findById(id);
+        if (!membership) return null;
+
         const assetPool = await AssetPoolService.getByAddress(membership.poolAddress);
+        if (!assetPool) return null;
+
         const token = await AssetPoolService.getPoolToken(assetPool);
 
         return {

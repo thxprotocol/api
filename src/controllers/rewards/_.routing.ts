@@ -10,8 +10,6 @@ import { patchReward } from './patch.action';
 import { postRewardClaim } from './postRewardClaim.action';
 import { postRewardClaimFor } from './postRewardClaimFor.action';
 import { requireAssetPoolHeader } from '@/middlewares';
-import { postVote } from './postVote.action';
-import { deleteVote } from './deleteVote.action';
 import { postPollFinalize } from './postPollFinalize.action';
 import { rateLimitRewardGive } from '@/util/ratelimiter';
 
@@ -66,22 +64,6 @@ router.post(
     postRewardClaimFor,
 );
 
-router.post(
-    '/:id/poll/vote',
-    checkScopes(['admin']),
-    validateAssetPoolHeader,
-    validate(validations.postVote),
-    requireAssetPoolHeader,
-    postVote,
-);
-router.delete(
-    '/:id/poll/vote',
-    checkScopes(['admin']),
-    validateAssetPoolHeader,
-    validate(validations.deleteVote),
-    requireAssetPoolHeader,
-    deleteVote,
-);
 router.post(
     '/:id/poll/finalize',
     checkScopes(['admin', 'dashboard']),

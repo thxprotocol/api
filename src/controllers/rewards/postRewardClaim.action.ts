@@ -7,6 +7,7 @@ import MemberService from '@/services/MemberService';
 import WithdrawalService from '@/services/WithdrawalService';
 import { WithdrawalState, WithdrawalType } from '@/types/enums';
 import { BadRequestError, ForbiddenError } from '@/util/errors';
+import { TWithdrawal } from '@/types/Withdrawal';
 
 const ERROR_REWARD_NOT_FOUND = 'The reward for this ID does not exist.';
 const ERROR_ACCOUNT_NO_ADDRESS = 'The authenticated account has not wallet address. Sign in the Web Wallet once.';
@@ -17,26 +18,26 @@ const ERROR_NO_MEMBER = 'Could not claim this reward since you are not a member 
 export async function postRewardClaim(req: Request, res: Response) {
     const rewardId = Number(req.params.id);
 
-    const sub = req.user.sub;
-    if (!sub) throw new BadRequestError(ERROR_INCORRECT_SCOPE);
+    if (!req.user.sub) throw new BadRequestError(ERROR_INCORRECT_SCOPE);
 
     const reward = await RewardService.get(req.assetPool, rewardId);
     if (!reward) throw new BadRequestError(ERROR_REWARD_NOT_FOUND);
 
-    const account = await AccountProxy.getById(sub);
+    const account = await AccountProxy.getById(req.user.sub);
     if (!account.address) throw new BadRequestError(ERROR_ACCOUNT_NO_ADDRESS);
 
     // Check if the claim conditions are currently valid, recheck in job
     const canClaim = await RewardService.canClaim(req.assetPool, reward, account);
     if (!canClaim) throw new ForbiddenError(ERROR_CAIM_NOT_ALLOWED);
+
     // Check for membership separate since we might need to add a membership in the job
     const isMember = await MemberService.isMember(req.assetPool, account.address);
     if (!isMember && reward.isMembershipRequired) throw new ForbiddenError(ERROR_NO_MEMBER);
 
-    const { _id, amount, beneficiary, state, createdAt } = await WithdrawalService.schedule(
+    const w = await WithdrawalService.schedule(
         req.assetPool,
         WithdrawalType.ClaimReward,
-        account.address,
+        req.user.sub,
         reward.withdrawAmount,
         WithdrawalState.Pending,
         reward.id,
@@ -44,7 +45,19 @@ export async function postRewardClaim(req: Request, res: Response) {
 
     agenda.now(eventNameProcessWithdrawals, null);
 
-    return res.json({ id: String(_id), amount, beneficiary, state, rewardId, createdAt });
+    const result: TWithdrawal = {
+        id: String(w._id),
+        sub: w.sub,
+        poolAddress: req.assetPool.address,
+        type: w.type,
+        amount: w.amount,
+        beneficiary: w.beneficiary,
+        state: w.state,
+        rewardId: w.rewardId,
+        createdAt: w.createdAt,
+    };
+
+    return res.json(result);
 }
 
 /**
