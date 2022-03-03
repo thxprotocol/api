@@ -54,7 +54,7 @@ export async function updateAssetPool(pool: AssetPoolDocument, version?: string)
             additions.delete(currentSelector[0]);
         } else {
             // The selector doesn't exist in the new contracts anymore, remove it.
-            deletions.set(currentSelector[0], currentSelector[1]);
+            deletions.set(currentSelector[0], ADDRESS_ZERO);
         }
     }
 
