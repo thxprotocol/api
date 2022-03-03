@@ -125,10 +125,11 @@ export default class RewardService {
         return await validate(reward.withdrawCondition.channelAction, reward.withdrawCondition.channelItem);
     }
 
-    static async claimRewardFor(assetPool: AssetPoolType, id: string, rewardId: number, beneficiary: string) {
+    static async claimRewardFor(assetPool: AssetPoolType, id: string, rewardId: number, sub: string) {
+        const account = await AccountProxy.getById(sub);
         const tx = await TransactionService.send(
             assetPool.solution.options.address,
-            assetPool.solution.methods.claimRewardFor(rewardId, beneficiary),
+            assetPool.solution.methods.claimRewardFor(rewardId, account.address),
             assetPool.network,
         );
         const event = assertEvent('WithdrawPollCreated', parseLogs(Artifacts.IDefaultDiamond.abi, tx.logs));

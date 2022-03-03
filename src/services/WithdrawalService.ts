@@ -84,7 +84,7 @@ export default class WithdrawalService {
     // Invoked from job
     static async proposeWithdraw(assetPool: AssetPoolType, id: string, sub: string, amount: number) {
         const account = await AccountProxy.getById(sub);
-        const amountInWei = toWei(amount.toString());
+        const amountInWei = toWei(String(amount));
         const tx = await TransactionService.send(
             assetPool.address,
             assetPool.solution.methods.proposeWithdraw(amountInWei, account.address),

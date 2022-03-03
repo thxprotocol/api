@@ -7,6 +7,7 @@ import MemberService from '@/services/MemberService';
 import AccountProxy from '@/proxies/AccountProxy';
 import { WithdrawalState, WithdrawalType } from '@/types/enums';
 import { BadRequestError, ForbiddenError, NotFoundError } from '@/util/errors';
+import { TWithdrawal } from '@/types/Withdrawal';
 
 const ERROR_NO_REWARD = 'Could not find a reward for this id';
 
@@ -34,8 +35,10 @@ export const postRewardClaimFor = async (req: Request, res: Response) => {
 
     agenda.now(eventNameProcessWithdrawals, null);
 
-    return res.json({
+    const result: TWithdrawal = {
         id: String(withdrawal._id),
+        sub: account.id,
+        poolAddress: req.assetPool.address,
         type: withdrawal.type,
         withdrawalId: withdrawal.withdrawalId,
         beneficiary: withdrawal.beneficiary,
@@ -45,7 +48,9 @@ export const postRewardClaimFor = async (req: Request, res: Response) => {
         poll: withdrawal.poll,
         createdAt: withdrawal.createdAt,
         updatedAt: withdrawal.updatedAt,
-    });
+    };
+
+    return res.json(result);
 };
 
 /**
