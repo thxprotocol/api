@@ -47,9 +47,9 @@ export const geFacetAdressesByVersion = (npid: NetworkProvider, version: string)
 };
 
 export const getCurrentPoolFacetAdresses = (npid: NetworkProvider, bypassPolls: boolean) => {
-    return getPoolFacetAdressesByVersion(npid, currentVersion, bypassPolls);
+    return getPoolFacetAdressesByVersion(npid, bypassPolls, currentVersion);
 };
-export const getPoolFacetAdressesByVersion = (npid: NetworkProvider, version: string, bypassPolls: boolean) => {
+export const getPoolFacetAdressesByVersion = (npid: NetworkProvider, bypassPolls: boolean, version: string) => {
     const facets = ContractAddressConfig[npid].find((conf: { version: string }) => conf.version === version).facets;
 
     const governancefacets = bypassPolls ? facetConfig.bypass : facetConfig.active;
@@ -61,8 +61,8 @@ export const getPoolFacetAdressesPermutations = (npid: NetworkProvider) => {
     const result = [];
     const versions = ContractAddressConfig[npid].map((config: any) => config.version);
     for (const version of versions) {
-        result.push({ version, bypassPolls: true, facets: getPoolFacetAdressesByVersion(npid, version, true), npid });
-        result.push({ version, bypassPolls: false, facets: getPoolFacetAdressesByVersion(npid, version, false), npid });
+        result.push({ version, bypassPolls: true, facets: getPoolFacetAdressesByVersion(npid, true, version), npid });
+        result.push({ version, bypassPolls: false, facets: getPoolFacetAdressesByVersion(npid, false, version), npid });
     }
 
     return result;

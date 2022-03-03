@@ -4,7 +4,8 @@ import { Contract } from 'web3-eth-contract';
 import { Artifacts } from './artifacts';
 import { AssetPoolType } from '@/models/AssetPool';
 import { TransactionService } from '@/services/TransactionService';
-import { getCurrentFacetAdresses } from '@/config/network';
+import { getCurrentFacetAdresses, getPoolFacetAdressesByVersion } from '@/config/network';
+import { pick } from '.';
 
 export const FacetCutAction = {
     Add: 0,
@@ -63,4 +64,10 @@ export const updateToBypassPolls = async (assetPool: AssetPoolType) => {
         assetPool.solution,
         assetPool.network,
     );
+};
+
+export const updateToVersion = async (assetPool: AssetPoolType, version: string) => {
+    const addresses = getPoolFacetAdressesByVersion(assetPool.network, assetPool.bypassPolls, version);
+    const artifacts = Object.values(pick(Artifacts, Object.keys(addresses) as (keyof typeof Artifacts)[]));
+    console.log(artifacts);
 };
