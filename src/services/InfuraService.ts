@@ -1,10 +1,10 @@
-import { NetworkProvider } from '@/util/network';
+import { NetworkProvider } from '@/types/enums';
 import { ethers, Signer } from 'ethers';
-import { INFURA_GAS_TANK, INFURA_PROJECT_ID, PRIVATE_KEY } from '@/util/secrets';
 import { parseUnits } from 'ethers/lib/utils';
+import { INFURA_GAS_TANK, INFURA_PROJECT_ID, PRIVATE_KEY } from '@/config/secrets';
 
-const testnet = new ethers.providers.InfuraProvider('mumbai-mainnet', INFURA_PROJECT_ID);
-const mainnet = new ethers.providers.InfuraProvider('polygon-mainnet', INFURA_PROJECT_ID);
+const testnet = new ethers.providers.InfuraProvider('maticmum', INFURA_PROJECT_ID);
+const mainnet = new ethers.providers.InfuraProvider('matic', INFURA_PROJECT_ID);
 const testnetAdmin = new ethers.Wallet(PRIVATE_KEY, testnet);
 const mainnetAdmin = new ethers.Wallet(PRIVATE_KEY, mainnet);
 
@@ -28,7 +28,9 @@ async function deposit(signer: Signer) {
 
 async function getAdminBalance(npid: NetworkProvider) {
     const { provider, admin } = getProvider(npid);
-    return await provider.send('relay_getBalance', [admin.address]);
+    const gasTank = await provider.send('relay_getBalance', [admin.address]);
+
+    return gasTank.balance;
 }
 
 async function signRequest(tx: any, signer: Signer) {

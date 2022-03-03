@@ -11,17 +11,19 @@ import {
     getCurrentAssetPoolRegistryAddress,
     getCurrentFacetAdresses,
 } from '@/config/network';
+import InfuraService from '@/services/InfuraService';
 
 async function getNetworkDetails(npid: NetworkProvider, constants: { factory: string; registry: string }) {
-    const { web3 } = getProvider(npid);
-    const admin = web3.eth.defaultAccount;
-    const balance = await web3.eth.getBalance(admin);
+    const { admin, web3 } = getProvider(npid);
+    const balance = await web3.eth.getBalance(admin.address);
+    const gasTank = await InfuraService.getAdminBalance(npid);
     const feeData = await getEstimatesFromOracle(npid);
 
     return {
-        admin,
+        admin: admin.address,
         feeData,
         balance: fromWei(balance, 'ether'),
+        gasTank: fromWei(gasTank, 'ether'),
         factory: constants.factory,
         registry: constants.registry,
         facets: getCurrentFacetAdresses(npid),
