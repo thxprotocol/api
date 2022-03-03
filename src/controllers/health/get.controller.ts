@@ -35,9 +35,9 @@ export const getHealth = async (req: Request, res: Response) => {
         version,
         license,
         queue: {
-            scheduledWithdrawals: (await WithdrawalService.getAllScheduled()).length,
-            lastRunAt: job.attrs.lastRunAt,
-            lastFailedAt: job.attrs.failedAt,
+            scheduledWithdrawals: (await WithdrawalService.countScheduled()).length,
+            lastRunAt: job?.attrs.lastRunAt,
+            lastFailedAt: job?.attrs.failedAt,
         },
         testnet: await getNetworkDetails(NetworkProvider.Test, {
             factory: getCurrentAssetPoolFactoryAddress(NetworkProvider.Test),

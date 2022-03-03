@@ -6,25 +6,26 @@ import WithdrawalService from '@/services/WithdrawalService';
 import MemberService from '@/services/MemberService';
 import AccountProxy from '@/proxies/AccountProxy';
 import { WithdrawalState, WithdrawalType } from '@/types/enums';
-import { BadRequestError, ForbiddenError } from '@/util/errors';
+import { BadRequestError, ForbiddenError, NotFoundError } from '@/util/errors';
+import { TWithdrawal } from '@/types/Withdrawal';
 
 const ERROR_NO_REWARD = 'Could not find a reward for this id';
 
 export const postRewardClaimFor = async (req: Request, res: Response) => {
     const rewardId = Number(req.params.id);
     const reward = await RewardService.get(req.assetPool, rewardId);
-
     if (!reward) throw new BadRequestError(ERROR_NO_REWARD);
 
     const isMember = await MemberService.isMember(req.assetPool, req.body.member);
-
     if (!isMember && reward.isMembershipRequired) throw new ForbiddenError();
 
     const account = await AccountProxy.getByAddress(req.body.member);
+    if (!account) throw new NotFoundError();
+
     const withdrawal = await WithdrawalService.schedule(
         req.assetPool,
         WithdrawalType.ClaimRewardFor,
-        req.body.member,
+        account.id,
         reward.withdrawAmount,
         // Accounts with stored (encrypted) privateKeys are custodial and should not be processed before
         // they have logged into their wallet to update their account with a new wallet address.
@@ -34,8 +35,10 @@ export const postRewardClaimFor = async (req: Request, res: Response) => {
 
     agenda.now(eventNameProcessWithdrawals, null);
 
-    return res.json({
+    const result: TWithdrawal = {
         id: String(withdrawal._id),
+        sub: account.id,
+        poolAddress: req.assetPool.address,
         type: withdrawal.type,
         withdrawalId: withdrawal.withdrawalId,
         beneficiary: withdrawal.beneficiary,
@@ -45,7 +48,9 @@ export const postRewardClaimFor = async (req: Request, res: Response) => {
         poll: withdrawal.poll,
         createdAt: withdrawal.createdAt,
         updatedAt: withdrawal.updatedAt,
-    });
+    };
+
+    return res.json(result);
 };
 
 /**

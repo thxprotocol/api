@@ -9,6 +9,16 @@ export default class MembershipService {
         return memberships.map((m) => String(m._id));
     }
 
+    static async hasMembership(assetPool: AssetPoolType, sub: string) {
+        const membership = await Membership.findOne({
+            sub,
+            network: assetPool.network,
+            poolAddress: assetPool.address,
+        });
+
+        return !!membership;
+    }
+
     static async getById(id: string) {
         const membership = await Membership.findById(id);
         if (!membership) return null;
