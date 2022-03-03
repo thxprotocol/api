@@ -9,6 +9,7 @@ export const postPollFinalize = async (req: Request, res: Response) => {
     const w = await WithdrawalService.withdrawPollFinalize(req.assetPool, withdrawal);
     const result: TWithdrawal = {
         id: String(w._id),
+        sub: w.sub,
         poolAddress: req.assetPool.address,
         type: w.type,
         withdrawalId: w.withdrawalId,
