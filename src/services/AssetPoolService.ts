@@ -2,7 +2,7 @@ import { assertEvent, parseLogs } from '@/util/events';
 import { getAssetPoolFactory, tokenContract } from '@/util/network';
 import { NetworkProvider } from '@/types/enums';
 import { Artifacts } from '@/util/artifacts';
-import { AssetPool, AssetPoolDocument, IAssetPoolUpdates } from '@/models/AssetPool';
+import { AssetPool, AssetPoolDocument } from '@/models/AssetPool';
 import { deployUnlimitedSupplyERC20Contract, deployLimitedSupplyERC20Contract, getProvider } from '@/util/network';
 import { toWei, fromWei, toChecksumAddress } from 'web3-utils';
 
@@ -32,24 +32,8 @@ export default class AssetPoolService {
         });
     }
 
-    static async getByAddress(address: string) {
-        const assetPool = await AssetPool.findOne({ address });
-
-        if (!assetPool) {
-            return null;
-        }
-
-        assetPool.proposeWithdrawPollDuration = Number(
-            await TransactionService.call(
-                assetPool.solution.methods.getProposeWithdrawPollDuration(),
-                assetPool.network,
-            ),
-        );
-        assetPool.rewardPollDuration = Number(
-            await TransactionService.call(assetPool.solution.methods.getRewardPollDuration(), assetPool.network),
-        );
-
-        return assetPool;
+    static getByAddress(address: string) {
+        return AssetPool.findOne({ address });
     }
 
     static async getPoolToken(assetPool: AssetPoolDocument) {
@@ -173,41 +157,6 @@ export default class AssetPoolService {
         return AssetPool.findOne({
             address: address,
         });
-    }
-
-    static async update(
-        assetPool: AssetPoolDocument,
-        { proposeWithdrawPollDuration, rewardPollDuration }: IAssetPoolUpdates,
-    ) {
-        async function updateRewardPollDuration() {
-            await TransactionService.send(
-                assetPool.solution.options.address,
-                assetPool.solution.methods.setRewardPollDuration(rewardPollDuration),
-                assetPool.network,
-            );
-            assetPool.rewardPollDuration = rewardPollDuration;
-            await assetPool.save();
-            return assetPool;
-        }
-
-        async function updateProposeWithdrawPollDuration() {
-            await TransactionService.send(
-                assetPool.solution.options.address,
-                assetPool.solution.methods.setProposeWithdrawPollDuration(proposeWithdrawPollDuration),
-                assetPool.network,
-            );
-            assetPool.proposeWithdrawPollDuration = proposeWithdrawPollDuration;
-            await assetPool.save();
-            return assetPool;
-        }
-
-        if (rewardPollDuration && assetPool.rewardPollDuration !== rewardPollDuration) {
-            await updateRewardPollDuration();
-        }
-
-        if (proposeWithdrawPollDuration && assetPool.proposeWithdrawPollDuration !== proposeWithdrawPollDuration) {
-            await updateProposeWithdrawPollDuration();
-        }
     }
 
     static async countByNetwork(network: NetworkProvider) {
