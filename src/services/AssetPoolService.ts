@@ -164,7 +164,7 @@ export default class AssetPoolService {
 
     static async contractVersion(assetPool: AssetPoolDocument) {
         const permutations = Object.values(poolFacetAdressesPermutations(assetPool.network));
-        const facetAddresses = (await assetPool.solution.methods.facets().call()).map((facet: any) => facet[0]);
+        const facetAddresses = [...(await assetPool.solution.methods.facetAddresses().call())];
         const match = permutations.find(
             (permutation) => Object.values(permutation.facets).sort().join('') === facetAddresses.sort().join(''),
         );
