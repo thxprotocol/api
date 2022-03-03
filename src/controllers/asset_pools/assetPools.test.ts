@@ -9,7 +9,6 @@ import {
     adminAddress,
     userWalletPrivateKey2,
     sub2,
-    account2,
 } from '@/util/jest/constants';
 import { fromWei, toWei } from 'web3-utils';
 import { isAddress } from 'web3-utils';

@@ -6,7 +6,7 @@ import BN from 'bn.js';
 import { toWei } from 'web3-utils';
 import { utils } from 'ethers/lib';
 import { Contract } from 'web3-eth-contract';
-import { Artifacts } from './artifacts';
+import { Artifacts } from '../config/contracts/artifacts';
 import { logger } from './logger';
 import { THXError } from './errors';
 import { assetPoolFactoryAddress } from '@/config/contracts';

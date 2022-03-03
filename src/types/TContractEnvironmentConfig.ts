@@ -1,5 +1,5 @@
 import { NetworkProvider } from '@/types/enums';
-import { ArtifactsKey } from '@/util/artifacts';
+import { ArtifactsKey } from '@/config/contracts/artifacts';
 
 export type TContractEnvironmentConfig = {
     [key in NetworkProvider]: {

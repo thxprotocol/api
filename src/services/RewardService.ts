@@ -2,7 +2,7 @@ import BN from 'bn.js';
 import { fromWei, toWei } from 'web3-utils';
 
 import { IAccount } from '@/models/Account';
-import { Artifacts } from '@/util/artifacts';
+import { Artifacts } from '@/config/contracts/artifacts';
 import { parseLogs, findEvent, assertEvent } from '@/util/events';
 import {
     ChannelAction,
@@ -20,7 +20,6 @@ import YouTubeDataProxy from '@/proxies/YoutubeDataProxy';
 import { TransactionService } from './TransactionService';
 import WithdrawalService from './WithdrawalService';
 import SpotifyDataProxy from '@/proxies/SpotifyDataProxy';
-import AccountProxy from '@/proxies/AccountProxy';
 
 export default class RewardService {
     static async get(assetPool: AssetPoolType, rewardId: number): Promise<RewardDocument> {

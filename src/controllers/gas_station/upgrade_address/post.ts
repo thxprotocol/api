@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { parseLogs, assertEvent } from '@/util/events';
-import { Artifacts } from '@/util/artifacts';
+import { Artifacts } from '@/config/contracts/artifacts';
 import AccountProxy from '@/proxies/AccountProxy';
 import WithdrawalService from '@/services/WithdrawalService';
 import MemberService from '@/services/MemberService';

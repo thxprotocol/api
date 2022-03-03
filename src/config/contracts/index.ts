@@ -3,7 +3,7 @@ import { NetworkProvider } from '@/types/enums';
 import { NETWORK_ENVIRONMENT } from '@/config/secrets';
 import * as environmentsConfig from './environments';
 import { getProvider } from '@/util/network';
-import { Artifacts, ArtifactsKey } from '@/util/artifacts';
+import { Artifacts, ArtifactsKey } from '@/config/contracts/artifacts';
 
 export const currentVersion = '1.0.5';
 

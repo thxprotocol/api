@@ -1,5 +1,5 @@
 import { Account } from 'web3-core';
-import { Artifacts } from '@/util/artifacts';
+import { Artifacts } from '@/config/contracts/artifacts';
 import { soliditySha3 } from 'web3-utils';
 import { VOTER_PK, DEPOSITOR_PK, mintAmount } from './constants';
 import { getProvider, solutionContract } from '@/util/network';

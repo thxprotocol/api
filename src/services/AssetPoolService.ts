@@ -1,7 +1,7 @@
 import { assertEvent, parseLogs } from '@/util/events';
 import { getAssetPoolFactory, tokenContract } from '@/util/network';
 import { NetworkProvider } from '@/types/enums';
-import { Artifacts } from '@/util/artifacts';
+import { Artifacts } from '@/config/contracts/artifacts';
 import { AssetPool, AssetPoolDocument } from '@/models/AssetPool';
 import { deployUnlimitedSupplyERC20Contract, deployLimitedSupplyERC20Contract, getProvider } from '@/util/network';
 import { toWei, fromWei, toChecksumAddress } from 'web3-utils';
@@ -10,7 +10,6 @@ import { Membership } from '@/models/Membership';
 import { THXError } from '@/util/errors';
 import { TransactionService } from './TransactionService';
 import { assetPoolRegistryAddress, poolFacetAdressesPermutations } from '@/config/contracts';
-import { pick } from '@/util';
 import { logger } from '@/util/logger';
 
 export const ADMIN_ROLE = '0x0000000000000000000000000000000000000000000000000000000000000000';
