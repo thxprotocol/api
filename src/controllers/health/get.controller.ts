@@ -6,11 +6,7 @@ import { fromWei } from 'web3-utils';
 import { agenda, eventNameProcessWithdrawals } from '@/util/agenda';
 
 import WithdrawalService from '@/services/WithdrawalService';
-import {
-    getCurrentAssetPoolFactoryAddress,
-    getCurrentAssetPoolRegistryAddress,
-    getCurrentFacetAdresses,
-} from '@/config/network';
+import { assetPoolFactoryAddress, assetPoolRegistryAddress, facetAdresses } from '@/config/network';
 
 async function getNetworkDetails(npid: NetworkProvider, constants: { factory: string; registry: string }) {
     const { web3 } = getProvider(npid);
@@ -24,7 +20,7 @@ async function getNetworkDetails(npid: NetworkProvider, constants: { factory: st
         balance: fromWei(balance, 'ether'),
         factory: constants.factory,
         registry: constants.registry,
-        facets: getCurrentFacetAdresses(npid),
+        facets: facetAdresses(npid),
     };
 }
 
@@ -40,12 +36,12 @@ export const getHealth = async (req: Request, res: Response) => {
             lastFailedAt: job.attrs.failedAt,
         },
         testnet: await getNetworkDetails(NetworkProvider.Test, {
-            factory: getCurrentAssetPoolFactoryAddress(NetworkProvider.Test),
-            registry: getCurrentAssetPoolRegistryAddress(NetworkProvider.Test),
+            factory: assetPoolFactoryAddress(NetworkProvider.Test),
+            registry: assetPoolRegistryAddress(NetworkProvider.Test),
         }),
         mainnet: await getNetworkDetails(NetworkProvider.Main, {
-            factory: getCurrentAssetPoolFactoryAddress(NetworkProvider.Main),
-            registry: getCurrentAssetPoolRegistryAddress(NetworkProvider.Main),
+            factory: assetPoolFactoryAddress(NetworkProvider.Main),
+            registry: assetPoolRegistryAddress(NetworkProvider.Main),
         }),
     };
 

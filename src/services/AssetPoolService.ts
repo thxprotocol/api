@@ -5,13 +5,11 @@ import { Artifacts } from '@/util/artifacts';
 import { AssetPool, AssetPoolDocument, IAssetPoolUpdates } from '@/models/AssetPool';
 import { deployUnlimitedSupplyERC20Contract, deployLimitedSupplyERC20Contract, getProvider } from '@/util/network';
 import { toWei, fromWei, toChecksumAddress } from 'web3-utils';
-import { downgradeFromBypassPolls, updateToBypassPolls } from '@/util/upgrades';
-import { TReward } from '@/models/Reward';
-import { IAccount } from '@/models/Account';
+
 import { Membership } from '@/models/Membership';
 import { THXError } from '@/util/errors';
 import { TransactionService } from './TransactionService';
-import { getCurrentAssetPoolRegistryAddress, getPoolFacetAdressesPermutations } from '@/config/network';
+import { assetPoolRegistryAddress, poolFacetAdressesPermutations } from '@/config/network';
 import { pick } from '@/util';
 import { logger } from '@/util/logger';
 
@@ -32,29 +30,6 @@ export default class AssetPoolService {
             sub,
             poolAddress,
         });
-    }
-
-    static async canBypassRewardPoll(assetPool: AssetPoolDocument) {
-        // Early return to not call function when not needed.
-        if (assetPool.bypassPolls) return true;
-
-        const duration = Number(
-            await TransactionService.call(assetPool.solution.methods.getRewardPollDuration(), assetPool.network),
-        );
-        return !assetPool.bypassPolls && duration === 0;
-    }
-
-    static async canBypassWithdrawPoll(assetPool: AssetPoolDocument, account: IAccount, reward: TReward) {
-        // Early return to not call function when not needed.
-        const isNotCustodial = !account.privateKey;
-        if (assetPool.bypassPolls && isNotCustodial) return true;
-
-        const { withdrawDuration } = await TransactionService.call(
-            assetPool.solution.methods.getReward(reward.id),
-            assetPool.network,
-        );
-        const duration = Number(withdrawDuration);
-        return !assetPool.bypassPolls && duration === 0 && isNotCustodial;
     }
 
     static async getByAddress(address: string) {
@@ -166,7 +141,7 @@ export default class AssetPoolService {
 
     static async init(assetPool: AssetPoolDocument) {
         const { admin } = getProvider(assetPool.network);
-        const poolRegistryAddress = getCurrentAssetPoolRegistryAddress(assetPool.network);
+        const poolRegistryAddress = assetPoolRegistryAddress(assetPool.network);
 
         await TransactionService.send(
             assetPool.solution.options.address,
@@ -202,7 +177,7 @@ export default class AssetPoolService {
 
     static async update(
         assetPool: AssetPoolDocument,
-        { proposeWithdrawPollDuration, rewardPollDuration, bypassPolls }: IAssetPoolUpdates,
+        { proposeWithdrawPollDuration, rewardPollDuration }: IAssetPoolUpdates,
     ) {
         async function updateRewardPollDuration() {
             await TransactionService.send(
@@ -233,18 +208,6 @@ export default class AssetPoolService {
         if (proposeWithdrawPollDuration && assetPool.proposeWithdrawPollDuration !== proposeWithdrawPollDuration) {
             await updateProposeWithdrawPollDuration();
         }
-
-        if (bypassPolls === true && assetPool.bypassPolls === false) {
-            await updateToBypassPolls(assetPool);
-            assetPool.bypassPolls = bypassPolls;
-            await assetPool.save();
-        }
-
-        if (bypassPolls === false && assetPool.bypassPolls === true) {
-            await downgradeFromBypassPolls(assetPool);
-            assetPool.bypassPolls = bypassPolls;
-            await assetPool.save();
-        }
     }
 
     static async countByNetwork(network: NetworkProvider) {
@@ -252,12 +215,12 @@ export default class AssetPoolService {
     }
 
     static async contractVersion(assetPool: AssetPoolDocument) {
-        const permutations = Object.values(getPoolFacetAdressesPermutations(assetPool.network));
+        const permutations = Object.values(poolFacetAdressesPermutations(assetPool.network));
         const facetAddresses = (await assetPool.solution.methods.facets().call()).map((facet: any) => facet[0]);
         const match = permutations.find(
             (permutation) => Object.values(permutation.facets).sort().join('') === facetAddresses.sort().join(''),
         );
-        return match ? pick(match, ['version', 'bypassPolls', 'npid']) : { version: 'unknown' };
+        return match ? pick(match, ['version', 'npid']) : { version: 'unknown' };
     }
 
     static async transferOwnership(assetPool: AssetPoolDocument, currentPrivateKey: string, newPrivateKey: string) {

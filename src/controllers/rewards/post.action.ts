@@ -4,7 +4,6 @@ import { toWei } from 'web3-utils';
 import BN from 'bn.js';
 
 import RewardService from '@/services/RewardService';
-import AssetPoolService from '@/services/AssetPoolService';
 
 export const postReward = async (req: Request, res: Response) => {
     const withdrawAmount = toWei(String(req.body.withdrawAmount));
@@ -22,9 +21,7 @@ export const postReward = async (req: Request, res: Response) => {
         withdrawCondition,
     );
 
-    if (await AssetPoolService.canBypassRewardPoll(req.assetPool)) {
-        await RewardService.finalizePoll(req.assetPool, reward);
-    }
+    await RewardService.finalizePoll(req.assetPool, reward);
 
     res.redirect(`/${VERSION}/rewards/${reward.id}`);
 };

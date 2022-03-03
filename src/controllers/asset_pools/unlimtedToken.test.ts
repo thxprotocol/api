@@ -64,23 +64,11 @@ describe('Unlimited Supply Token', () => {
         });
     });
 
-    describe('PATCH /asset_pools/:address', () => {
-        it('HTTP 200 ', (done) => {
-            user.patch('/v1/asset_pools/' + poolAddress)
-                .set({ AssetPool: poolAddress, Authorization: dashboardAccessToken })
-                .send({
-                    bypassPolls: true,
-                })
-                .expect(200, done);
-        });
-    });
-
     describe('GET /asset_pools/:address', () => {
         it('HTTP 200 ', (done) => {
             user.get('/v1/asset_pools/' + poolAddress)
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
                 .expect((res: request.Response) => {
-                    expect(res.body.bypassPolls).toBe(true);
                     expect(res.body.token.name).toBe(tokenName);
                     expect(res.body.token.symbol).toBe(tokenSymbol);
                     expect(res.body.token.balance).toBe(0);
@@ -176,7 +164,6 @@ describe('Unlimited Supply Token', () => {
             user.get('/v1/asset_pools/' + poolAddress)
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
                 .expect((res: request.Response) => {
-                    expect(res.body.bypassPolls).toBe(true);
                     expect(res.body.token.name).toBe(tokenName);
                     expect(res.body.token.symbol).toBe(tokenSymbol);
                     expect(res.body.token.balance).toBe(0);

@@ -22,7 +22,6 @@ export const getAssetPool = async (req: Request, res: Response) => {
             clientSecret: client.clientSecret,
             address: assetPool.address,
             network: assetPool.network,
-            bypassPolls: assetPool.bypassPolls,
             proposeWithdrawPollDuration: assetPool.proposeWithdrawPollDuration,
             rewardPollDuration: assetPool.rewardPollDuration,
         },
