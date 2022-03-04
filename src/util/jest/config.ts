@@ -6,7 +6,7 @@ import { logger } from '@/util/logger';
 import { getProvider } from '@/util/network';
 import { NetworkProvider } from '@/types/enums';
 import { poll } from './polling';
-import { assetPoolRegistryAddress } from '@/config/network';
+import { assetPoolRegistryAddress } from '@/config/contracts';
 
 export async function beforeAllCallback() {
     await db.truncate();

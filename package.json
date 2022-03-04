@@ -150,7 +150,7 @@
             "^.+\\.(ts|tsx)$": "ts-jest"
         },
         "testMatch": [
-            "<rootDir>/src/controllers/**/*.test.(ts|js)"
+            "<rootDir>/src/**/*.test.(ts|js)"
         ],
         "testEnvironment": "node",
         "setupFilesAfterEnv": [

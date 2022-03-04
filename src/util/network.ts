@@ -6,10 +6,10 @@ import BN from 'bn.js';
 import { toWei } from 'web3-utils';
 import { utils } from 'ethers/lib';
 import { Contract } from 'web3-eth-contract';
-import { Artifacts } from './artifacts';
+import { Artifacts } from '../config/contracts/artifacts';
 import { logger } from './logger';
 import { THXError } from './errors';
-import { assetPoolFactoryAddress } from '@/config/network';
+import { assetPoolFactoryAddress } from '@/config/contracts';
 import { NetworkProvider } from '../types/enums';
 
 export class MaxFeePerGasExceededError extends THXError {
@@ -190,8 +190,7 @@ export function getSelectors(contract: Contract) {
 
 export const getAssetPoolFactory = (npid: NetworkProvider): Contract => {
     const { web3 } = getProvider(npid);
-    const contract = new web3.eth.Contract(Artifacts.IAssetPoolFactory.abi as any, assetPoolFactoryAddress(npid));
-    return contract;
+    return new web3.eth.Contract(Artifacts.IAssetPoolFactory.abi as any, assetPoolFactoryAddress(npid));
 };
 
 export async function deployUnlimitedSupplyERC20Contract(

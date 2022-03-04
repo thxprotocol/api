@@ -1,9 +1,10 @@
 import { NetworkProvider } from '@/types/enums';
+import { TContractEnvironmentConfig } from '@/types/TContractEnvironmentConfig';
 
-export const dev = {
+export const dev: TContractEnvironmentConfig = {
     [NetworkProvider.Test]: [
         {
-            version: '1.0.6',
+            version: '1.0.5',
             assetPoolFactory: '0x1916f35a1eF5a0Fe97b04cF3c9Fc299f9B33A284',
             assetPoolRegistry: '0xB582400ab52f0BAb1F4f3eD43359f16a88990b97',
             facets: {
@@ -28,7 +29,7 @@ export const dev = {
     ],
     [NetworkProvider.Main]: [
         {
-            version: '1.0.6',
+            version: '1.0.5',
             assetPoolFactory: '0x95299F78Caad4EcC896eDc1027706151472558dD',
             assetPoolRegistry: '0x30D9B5A7b2E5f15Bed581b87441863873a370A80',
             facets: {

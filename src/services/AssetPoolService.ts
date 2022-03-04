@@ -1,7 +1,7 @@
 import { assertEvent, parseLogs } from '@/util/events';
 import { getAssetPoolFactory, tokenContract } from '@/util/network';
 import { NetworkProvider } from '@/types/enums';
-import { Artifacts } from '@/util/artifacts';
+import { Artifacts } from '@/config/contracts/artifacts';
 import { AssetPool, AssetPoolDocument } from '@/models/AssetPool';
 import { deployUnlimitedSupplyERC20Contract, deployLimitedSupplyERC20Contract, getProvider } from '@/util/network';
 import { toWei, fromWei, toChecksumAddress } from 'web3-utils';
@@ -9,8 +9,7 @@ import { toWei, fromWei, toChecksumAddress } from 'web3-utils';
 import { Membership } from '@/models/Membership';
 import { THXError } from '@/util/errors';
 import { TransactionService } from './TransactionService';
-import { assetPoolRegistryAddress, poolFacetAdressesPermutations } from '@/config/network';
-import { pick } from '@/util';
+import { assetPoolRegistryAddress, poolFacetAdressesPermutations } from '@/config/contracts';
 import { logger } from '@/util/logger';
 
 export const ADMIN_ROLE = '0x0000000000000000000000000000000000000000000000000000000000000000';
@@ -165,11 +164,11 @@ export default class AssetPoolService {
 
     static async contractVersion(assetPool: AssetPoolDocument) {
         const permutations = Object.values(poolFacetAdressesPermutations(assetPool.network));
-        const facetAddresses = (await assetPool.solution.methods.facets().call()).map((facet: any) => facet[0]);
+        const facetAddresses = [...(await assetPool.solution.methods.facetAddresses().call())];
         const match = permutations.find(
             (permutation) => Object.values(permutation.facets).sort().join('') === facetAddresses.sort().join(''),
         );
-        return match ? pick(match, ['version', 'npid']) : { version: 'unknown' };
+        return match ? match.version : 'unknown';
     }
 
     static async transferOwnership(assetPool: AssetPoolDocument, currentPrivateKey: string, newPrivateKey: string) {
