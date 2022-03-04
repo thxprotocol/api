@@ -11,17 +11,9 @@ export type AssetPoolType = {
     blockNumber: number;
     transactionHash: string;
     bypassPolls: boolean;
-    rewardPollDuration: number;
-    proposeWithdrawPollDuration: number;
 };
 
 export type AssetPoolDocument = mongoose.Document & AssetPoolType;
-
-export interface IAssetPoolUpdates {
-    proposeWithdrawPollDuration?: number;
-    rewardPollDuration?: number;
-    bypassPolls?: boolean;
-}
 
 const assetPoolSchema = new mongoose.Schema(
     {

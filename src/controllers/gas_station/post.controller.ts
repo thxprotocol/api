@@ -7,13 +7,7 @@ import { body } from 'express-validator';
 import { InternalServerError } from '@/util/errors';
 
 const indexer = eventIndexer as any;
-const eventNames = [
-    'WithdrawPollCreated',
-    'WithdrawPollFinalized',
-    'Withdrawn',
-    'WithdrawPollVoted',
-    'WithdrawPollRevokedVote',
-];
+const eventNames = ['WithdrawPollCreated', 'WithdrawPollFinalized', 'Withdrawn'];
 
 export const createCallValidation = [body('call').exists(), body('nonce').exists(), body('sig').exists()];
 
