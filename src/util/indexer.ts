@@ -3,7 +3,7 @@ import { solutionContract } from './network';
 import { NetworkProvider } from '../types/enums';
 import { Withdrawal } from '@/models/Withdrawal';
 import { WithdrawalState } from '@/types/enums';
-import { TransactionService } from '@/services/TransactionService';
+import TransactionService from '@/services/TransactionService';
 
 class EventIndexer {
     async onWithdrawPollCreated(npid: NetworkProvider, address: string, args: any) {

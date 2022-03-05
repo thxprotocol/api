@@ -7,7 +7,7 @@ import MemberService from '@/services/MemberService';
 import { WithdrawalState } from '@/types/enums';
 import { body } from 'express-validator';
 import { InternalServerError } from '@/util/errors';
-import { TransactionService } from '@/services/TransactionService';
+import TransactionService from '@/services/TransactionService';
 
 export const createCallUpgradeAddressValidation = [
     body('newAddress').isEthereumAddress(),

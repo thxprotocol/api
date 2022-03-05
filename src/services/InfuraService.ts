@@ -1,10 +1,10 @@
-import { NetworkProvider } from '@/types/enums';
+import { NetworkProvider, TransactionType } from '@/types/enums';
 import { Contract, ethers, Signer } from 'ethers';
 import { parseUnits } from 'ethers/lib/utils';
 import { INFURA_GAS_TANK, INFURA_PROJECT_ID, PRIVATE_KEY } from '@/config/secrets';
-import { Artifacts } from '@/util/artifacts';
+import { Artifacts } from '@/config/contracts/artifacts';
 import { soliditySha3 } from 'web3-utils';
-import { logger } from '@/util/logger';
+import { Transaction } from '@/models/Transaction';
 
 const testnet = new ethers.providers.InfuraProvider('maticmum', INFURA_PROJECT_ID);
 const mainnet = new ethers.providers.InfuraProvider('matic', INFURA_PROJECT_ID);
@@ -69,19 +69,21 @@ async function getCallData(solution: Contract, fn: string, args: any[], account:
     return { call, nonce, sig };
 }
 
-let sentAtBlock = 0;
-
 async function send(to: string, fn: string, args: any[], npid: NetworkProvider) {
     const { provider, admin } = getProvider(npid);
     const solution = new ethers.Contract(to, Artifacts.IDefaultDiamond.abi, admin);
+    // Get the relayed call data, nonce and signature for this contract call
     const { call, nonce, sig } = await getCallData(solution, fn, args, admin);
+    // Encode a relay call witht he relayed call data
     const data = solution.interface.encodeFunctionData('call', [call, nonce, sig]);
+    // Estimate gas for the relayed ITX call
     const gas = String(
         await admin.estimateGas({
             to,
             data,
         }),
     );
+    // Sign the tx with the ITX gas tank admin
     const tx = {
         to,
         data,
@@ -89,11 +91,17 @@ async function send(to: string, fn: string, args: any[], npid: NetworkProvider) 
         schedule: 'fast',
     };
     const signature = await signRequest(tx, admin);
+    // Send transaction data and receive relayTransactionHash to poll
+    const { relayTransactionHash } = await provider.send('relay_sendTransaction', [tx, signature]);
 
-    // Relay the transaction through ITX
-    sentAtBlock = await provider.getBlockNumber(); // Stats
+    await Transaction.create({
+        type: TransactionType.ITX,
+        to,
+        gas,
+        relayTransactionHash,
+    });
 
-    return await provider.send('relay_sendTransaction', [tx, signature]);
+    return relayTransactionHash;
 }
 
 const wait = (milliseconds: number) => {
@@ -117,9 +125,7 @@ async function waitTransaction(relayTransactionHash: string, npid: NetworkProvid
                 // Check if block tx is mined and confirmed at least twice
                 if (receipt && receipt.confirmations && receipt.confirmations > 1) {
                     console.log(`Ethereum transaction hash: ${receipt.transactionHash}`);
-                    console.log(`Sent at block ${sentAtBlock}`);
                     console.log(`Mined in block ${receipt.blockNumber}`);
-                    console.log(`Total blocks ${receipt.blockNumber - sentAtBlock}`);
                     return receipt;
                 }
             }

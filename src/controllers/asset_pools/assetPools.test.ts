@@ -18,7 +18,7 @@ import { Account } from 'web3-core';
 import { getToken } from '@/util/jest/jwt';
 import { agenda, eventNameProcessWithdrawals } from '@/util/agenda';
 import { afterAllCallback, beforeAllCallback } from '@/util/jest/config';
-import { TransactionService } from '@/services/TransactionService';
+import TransactionService from '@/services/TransactionService';
 
 const user = request.agent(app);
 

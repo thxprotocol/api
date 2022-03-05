@@ -1,21 +1,17 @@
+import { TransactionState, TransactionType } from '@/types/enums';
 import mongoose from 'mongoose';
 
-export enum TransactionState {
-    Pending = 0,
-    Mined = 1,
-    Failed = 2,
-}
-
 export type TransactionDocument = mongoose.Document & {
-    id: string;
+    type: TransactionType;
+    state: TransactionState;
     from: string;
     to: string;
-    transactionHash: string;
     gas: string;
-    baseFee: string;
-    maxFeeForGas: string;
-    maxPriorityFeeForGas: string;
-    state: TransactionState;
+    transactionHash: string;
+    relayTransactionHash: string;
+    baseFee?: string;
+    maxFeeForGas?: string;
+    maxPriorityFeeForGas?: string;
 };
 
 const transactionSchema = new mongoose.Schema(
@@ -24,6 +20,7 @@ const transactionSchema = new mongoose.Schema(
         from: String,
         to: String,
         transactionHash: String,
+        relayTransactionHash: String,
         gas: String,
         baseFee: String,
         maxFeeForGas: String,

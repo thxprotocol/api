@@ -4,7 +4,7 @@ import { soliditySha3 } from 'web3-utils';
 import { VOTER_PK, DEPOSITOR_PK, mintAmount } from './constants';
 import { getProvider, solutionContract } from '@/util/network';
 import { NetworkProvider } from '@/types/enums';
-import { TransactionService } from '@/services/TransactionService';
+import TransactionService from '@/services/TransactionService';
 
 const { web3, admin } = getProvider(NetworkProvider.Main);
 

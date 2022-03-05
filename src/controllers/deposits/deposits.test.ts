@@ -14,7 +14,7 @@ import { findEvent, parseLogs } from '@/util/events';
 import { Artifacts } from '@/config/contracts/artifacts';
 import { userWalletPrivateKey2 } from '@/util/jest/constants';
 import { AmountExceedsAllowanceError, InsufficientBalanceError } from '@/util/errors';
-import { TransactionService } from '@/services/TransactionService';
+import TransactionService from '@/services/TransactionService';
 
 const http = request.agent(app);
 

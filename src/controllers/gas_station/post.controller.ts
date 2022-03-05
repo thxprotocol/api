@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { hex2a, parseLogs, findEvent } from '@/util/events';
-import { TransactionService } from '@/services/TransactionService';
+import TransactionService from '@/services/TransactionService';
+
 import { Artifacts } from '@/config/contracts/artifacts';
 import { eventIndexer } from '@/util/indexer';
 import { body } from 'express-validator';

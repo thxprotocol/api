@@ -5,7 +5,7 @@ import { Artifacts } from '@/config/contracts/artifacts';
 import { IMember, Member } from '@/models/Member';
 import { fromWei } from 'web3-utils';
 import { THXError } from '@/util/errors';
-import { TransactionService } from './TransactionService';
+import TransactionService from './TransactionService';
 
 class NotAMemberError extends THXError {
     constructor(address: string, assetPool: string) {

@@ -9,7 +9,7 @@ import { Artifacts } from '@/config/contracts/artifacts';
 import { parseLogs, findEvent } from '@/util/events';
 import { paginatedResults } from '@/util/pagination';
 import { THXError } from '@/util/errors';
-import { TransactionService } from './TransactionService';
+import TransactionService from './TransactionService';
 import AccountProxy from '@/proxies/AccountProxy';
 
 class CannotWithdrawForCustodialError extends THXError {

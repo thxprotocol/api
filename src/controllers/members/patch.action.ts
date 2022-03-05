@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import { VERSION } from '@/config/secrets';
 import { NotFoundError } from '@/util/errors';
-import { TransactionService } from '@/services/TransactionService';
+import TransactionService from '@/services/TransactionService';
 
 /**
  * @swagger

@@ -17,7 +17,7 @@ import {
 import { AssetPoolType } from '@/models/AssetPool';
 import TwitterDataProxy from '@/proxies/TwitterDataProxy';
 import YouTubeDataProxy from '@/proxies/YoutubeDataProxy';
-import { TransactionService } from './TransactionService';
+import TransactionService from './TransactionService';
 import WithdrawalService from './WithdrawalService';
 import SpotifyDataProxy from '@/proxies/SpotifyDataProxy';
 
