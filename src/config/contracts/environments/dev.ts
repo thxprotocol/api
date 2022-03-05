@@ -1,9 +1,10 @@
 import { NetworkProvider } from '@/types/enums';
+import { TContractEnvironmentConfig } from '@/types/TContractEnvironmentConfig';
 
-export const dev = {
+export const dev: TContractEnvironmentConfig = {
     [NetworkProvider.Test]: [
         {
-            version: '1.0.6',
+            version: '1.0.5',
             assetPoolFactory: '0x1916f35a1eF5a0Fe97b04cF3c9Fc299f9B33A284',
             assetPoolRegistry: '0xB582400ab52f0BAb1F4f3eD43359f16a88990b97',
             facets: {
@@ -13,12 +14,6 @@ export const dev = {
                 BasePollProxy: '0x98EDdb35BE13D2AB4c40B571776972CDd0091585',
                 GasStationFacet: '0xcD7e4587d5887E0Ca51091B13669EEBF5d23C9F0',
                 UpdateDiamond: '0xeEA696e46887886B34c82430880d0936cB1ec746',
-                Withdraw: '0xaa2024D50afe2888b30A5CC5d46E550c6c85AB04',
-                WithdrawPoll: '0x211B46dfE50BAaA51a5edf8F0A288cA036D872c6',
-                WithdrawPollProxy: '0x88A3879872Efc38A3A3fB98540ac434dCE378b02',
-                Reward: '0xC6EB1De26392ae3617bBB36563170553e3aEF562',
-                RewardPoll: '0x96F7a7515dEe6D90372de31029463dFB2eefc89d',
-                RewardPollProxy: '0x1754397364B92778b35826c7178337e568fB23E4',
                 WithdrawBy: '0x9E17803bf6BA41e9Eb30b1B36c71E888AA4ccd93',
                 WithdrawByPoll: '0xF86ef1D2D253C9cDc6269024234D4b6d28e8595E',
                 WithdrawByPollProxy: '0x982AF3ff7187CD8fcC9B95F0653F5A5A3265F883',
@@ -34,7 +29,7 @@ export const dev = {
     ],
     [NetworkProvider.Main]: [
         {
-            version: '1.0.6',
+            version: '1.0.5',
             assetPoolFactory: '0x95299F78Caad4EcC896eDc1027706151472558dD',
             assetPoolRegistry: '0x30D9B5A7b2E5f15Bed581b87441863873a370A80',
             facets: {
@@ -44,12 +39,6 @@ export const dev = {
                 BasePollProxy: '0x42243f9d9f9504231F989dA8985c7ee4F820aC20',
                 GasStationFacet: '0xAb0B0CCa6fc7727776A9124EaA1328915E12165f',
                 UpdateDiamond: '0xb9FCfeB9eD0E63e58924C1D93a08aC8fB4B81386',
-                Withdraw: '0x7e91ea3c7e356Bfec510E227103774dA3b526cA7',
-                WithdrawPoll: '0xD7F0b4FccC31edd2De15E82704F14FB1e10a3c6a',
-                WithdrawPollProxy: '0xf40563105fbdf9FaceeE8da8d9c7deb0Ac36b909',
-                Reward: '0x48692f0Ce1d19D69F9bB0B00Eb85C7Cb381d37E7',
-                RewardPoll: '0x0A59Fb3d40Db1588c406953B54A8E591741C6E69',
-                RewardPollProxy: '0xC99Be420AAa75C18E0a9B643ada1085feDF1a566',
                 WithdrawBy: '0xE176f229Efedc0ec223ee474BBF57937a86cf958',
                 WithdrawByPoll: '0xFEecAC2c17c039133fB2ff1Aa4328D0Af10504A1',
                 WithdrawByPollProxy: '0xfc8cC9C7A8bEb2d4e237946fde93ba6FD4ec01c3',

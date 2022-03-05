@@ -1,7 +1,7 @@
 import { tokenContract } from '@/util/network';
 import { AssetPoolType } from '@/models/AssetPool';
 import { assertEvent, parseLogs } from '@/util/events';
-import { Artifacts } from '@/util/artifacts';
+import { Artifacts } from '@/config/contracts/artifacts';
 import { IMember, Member } from '@/models/Member';
 import { fromWei } from 'web3-utils';
 import { THXError } from '@/util/errors';

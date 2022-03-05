@@ -11,7 +11,7 @@ import { NetworkProvider } from '@/types/enums';
 import { IPromoCodeResponse } from '@/types/interfaces/IPromoCodeResponse';
 import { createWallet, deployExampleToken } from '@/util/jest/network';
 import { findEvent, parseLogs } from '@/util/events';
-import { Artifacts } from '@/util/artifacts';
+import { Artifacts } from '@/config/contracts/artifacts';
 import { userWalletPrivateKey2 } from '@/util/jest/constants';
 import { AmountExceedsAllowanceError, InsufficientBalanceError } from '@/util/errors';
 import { TransactionService } from '@/services/TransactionService';

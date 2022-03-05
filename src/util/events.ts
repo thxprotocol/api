@@ -1,5 +1,5 @@
 import { ethers } from 'ethers';
-import { Artifacts } from './artifacts';
+import { Artifacts } from '../config/contracts/artifacts';
 import { THXError } from './errors';
 import { logger } from './logger';
 

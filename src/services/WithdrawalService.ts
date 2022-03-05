@@ -5,7 +5,7 @@ import { WithdrawalState, WithdrawalType } from '@/types/enums';
 import { AssetPoolType } from '@/models/AssetPool';
 import { Withdrawal, WithdrawalDocument } from '@/models/Withdrawal';
 import { IAccount } from '@/models/Account';
-import { Artifacts } from '@/util/artifacts';
+import { Artifacts } from '@/config/contracts/artifacts';
 import { parseLogs, findEvent } from '@/util/events';
 import { paginatedResults } from '@/util/pagination';
 import { THXError } from '@/util/errors';
