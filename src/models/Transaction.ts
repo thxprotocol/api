@@ -6,6 +6,7 @@ export type TransactionDocument = mongoose.Document & {
     state: TransactionState;
     from: string;
     to: string;
+    nonce: number;
     gas: string;
     transactionHash: string;
     relayTransactionHash: string;
@@ -19,6 +20,7 @@ const transactionSchema = new mongoose.Schema(
         id: String,
         from: String,
         to: String,
+        nonce: Number,
         transactionHash: String,
         relayTransactionHash: String,
         gas: String,

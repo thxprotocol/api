@@ -41,6 +41,7 @@ async function send(to: string, fn: any, npid: NetworkProvider, gasLimit?: numbe
         from,
         to,
         gas,
+        nonce,
         type: TransactionType.Default,
         state: TransactionState.Pending,
         baseFee: Number(feeData.baseFee).toFixed(12),
@@ -107,6 +108,7 @@ async function deploy(abi: any, bytecode: any, arg: any[], npid: NetworkProvider
 
     const tx = await Transaction.create({
         gas,
+        nonce,
         baseFee: Number(feeData.baseFee).toFixed(12),
         maxFeeForGas: Number(feeData.maxFeePerGas).toFixed(12),
         maxPriorityFeeForGas: Number(feeData.maxPriorityFeePerGas).toFixed(12),

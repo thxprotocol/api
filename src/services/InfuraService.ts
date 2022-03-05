@@ -61,7 +61,7 @@ async function signRequest(tx: any, signer: Signer) {
 }
 
 async function getCallData(solution: Contract, fn: string, args: any[], account: Signer) {
-    const nonce = Number(await solution.getLatestNonce(account.getAddress())) + 1;
+    const nonce = Number(await solution.getLatestNonce(await account.getAddress())) + 1;
     const call = solution.interface.encodeFunctionData(fn, args);
     const hash = soliditySha3(call, nonce);
     const sig = await account.signMessage(ethers.utils.arrayify(hash));
@@ -74,6 +74,9 @@ async function send(to: string, fn: string, args: any[], npid: NetworkProvider) 
     const solution = new ethers.Contract(to, Artifacts.IDefaultDiamond.abi, admin);
     // Get the relayed call data, nonce and signature for this contract call
     const { call, nonce, sig } = await getCallData(solution, fn, args, admin);
+    // TODO improve local nonce by fetching from Transaction collection for highest nonce +1
+    const nonce1 = (await admin.getTransactionCount('pending')) + 1;
+    console.log(nonce, nonce1);
     // Encode a relay call witht he relayed call data
     const data = solution.interface.encodeFunctionData('call', [call, nonce, sig]);
     // Estimate gas for the relayed ITX call
@@ -98,6 +101,7 @@ async function send(to: string, fn: string, args: any[], npid: NetworkProvider) 
         type: TransactionType.ITX,
         to,
         gas,
+        nonce,
         relayTransactionHash,
     });
 
