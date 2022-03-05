@@ -1,7 +1,7 @@
 import { NetworkProvider } from '@/types/enums';
 import InfuraService from '@/services/InfuraService';
 import { parseLogs } from '@/util/events';
-import { Artifacts } from '@/util/artifacts';
+import { Artifacts } from '@/config/contracts/artifacts';
 
 const POOL_ADDRESS = '0x6D03aC77FbD87CFCd02E78Ed3e0c916d8C638d26';
 const WALLET_ADDRESS = '0x861EFc0989DF42d793e3147214FfFcA4D124cAE8';
