@@ -54,7 +54,7 @@ router.delete(
 );
 router.post(
     '/:id/withdraw',
-    checkScopes(['admin']),
+    checkScopes(['admin', 'user']),
     validateAssetPoolHeader,
     validate(validations.postPollFinalize),
     requireAssetPoolHeader,

@@ -1,24 +1,20 @@
 import request from 'supertest';
 import app from '@/app';
 import { NetworkProvider } from '@/types/enums';
-import { timeTravel, signMethod, deployExampleToken, createWallet } from '@/util/jest/network';
+import { Account } from 'web3-core';
+import { timeTravel, signMethod, createWallet } from '@/util/jest/network';
 import {
     rewardWithdrawAmount,
     rewardWithdrawDuration,
-    mintAmount,
-    adminAddress,
     userWalletPrivateKey2,
     sub2,
+    tokenSymbol,
+    tokenName,
 } from '@/util/jest/constants';
-import { fromWei, toWei } from 'web3-utils';
 import { isAddress } from 'web3-utils';
 import { Contract } from 'web3-eth-contract';
-import { solutionContract } from '@/util/network';
-import { Account } from 'web3-core';
 import { getToken } from '@/util/jest/jwt';
-import { agenda, eventNameProcessWithdrawals } from '@/util/agenda';
 import { afterAllCallback, beforeAllCallback } from '@/util/jest/config';
-import TransactionService from '@/services/TransactionService';
 
 const user = request.agent(app);
 
@@ -35,7 +31,6 @@ describe('Happy Flow', () => {
     beforeAll(async () => {
         await beforeAllCallback();
 
-        testToken = await deployExampleToken();
         userWallet = createWallet(userWalletPrivateKey2);
 
         adminAccessToken = getToken('openid admin');
@@ -52,7 +47,9 @@ describe('Happy Flow', () => {
                 .send({
                     network: NetworkProvider.Main,
                     token: {
-                        address: testToken.options.address,
+                        name: tokenName,
+                        symbol: tokenSymbol,
+                        totalSupply: 0,
                     },
                 })
                 .expect((res: request.Response) => {
@@ -64,48 +61,23 @@ describe('Happy Flow', () => {
     });
 
     describe('GET /asset_pools/:address', () => {
-        let balanceOfAdmin = '';
-
-        it('Deposit assets in pool', async () => {
-            const assetPool = solutionContract(NetworkProvider.Main, poolAddress);
-            const amount = toWei(rewardWithdrawAmount.toString());
-
-            await TransactionService.send(
-                testToken.options.address,
-                testToken.methods.approve(poolAddress, toWei(rewardWithdrawAmount.toString())),
-                NetworkProvider.Main,
-            );
-            await TransactionService.send(
-                assetPool.options.address,
-                assetPool.methods.deposit(amount),
-                NetworkProvider.Main,
-            );
-
-            balanceOfAdmin = await TransactionService.call(
-                testToken.methods.balanceOf(adminAddress),
-                NetworkProvider.Main,
-            );
-        });
-
         it('HTTP 200 and expose pool information', async () => {
             await user
                 .get('/v1/asset_pools/' + poolAddress)
                 .set({ AssetPool: poolAddress, Authorization: dashboardAccessToken })
                 .expect(async (res: request.Response) => {
-                    expect(Number(fromWei(balanceOfAdmin))).toBe(Number(fromWei(mintAmount)) - rewardWithdrawAmount);
                     expect(res.body.address).toEqual(poolAddress);
-                    expect(res.body.token.address).toEqual(testToken.options.address);
-                    expect(res.body.token.name).toEqual(await testToken.methods.name().call());
-                    expect(res.body.token.symbol).toEqual(await testToken.methods.symbol().call());
-                    expect(res.body.token.balance).toBe(rewardWithdrawAmount);
+                    expect(isAddress(res.body.token.address)).toEqual(true);
+                    expect(res.body.token.name).toEqual(tokenName);
+                    expect(res.body.token.symbol).toEqual(tokenSymbol);
+                    expect(res.body.token.totalSupply).toBe(0);
+                    expect(res.body.token.balance).toBe(0);
                 })
                 .expect(200);
         });
     });
 
     describe('POST /rewards/', () => {
-        let redirectURL = '';
-
         it('HTTP 302 when reward is added', (done) => {
             user.post('/v1/rewards/')
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
@@ -114,19 +86,9 @@ describe('Happy Flow', () => {
                     withdrawDuration: rewardWithdrawDuration,
                 })
                 .expect(async (res: request.Response) => {
-                    redirectURL = res.headers.location;
-                })
-                .expect(302, done);
-        });
-
-        it('HTTP 200 after redirect', (done) => {
-            user.get(redirectURL)
-                .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
-                .expect(async (res: request.Response) => {
                     expect(res.body.id).toEqual(1);
-                    expect(res.body.poll).toBeUndefined();
                 })
-                .expect(200, done);
+                .expect(201, done);
         });
     });
 
@@ -190,7 +152,6 @@ describe('Happy Flow', () => {
             user.get('/v1/rewards/1')
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
                 .expect(async (res: request.Response) => {
-                    expect(res.body.poll).toBeUndefined();
                     expect(res.body.state).toEqual(1);
                     expect(res.body.withdrawAmount).toEqual(rewardWithdrawAmount);
                 })
@@ -200,15 +161,10 @@ describe('Happy Flow', () => {
 
     describe('POST /rewards/:id/claim', () => {
         it('HTTP 302 when tx is handled', async () => {
-            const { call, nonce, sig } = await signMethod(poolAddress, 'claimReward', [1], userWallet);
             await user
-                .post('/v1/gas_station/call')
-                .send({
-                    call,
-                    nonce,
-                    sig,
-                })
+                .post('/v1/rewards/1/claim')
                 .set({ AssetPool: poolAddress, Authorization: userAccessToken })
+                .send()
                 .expect(200);
         });
 
@@ -218,7 +174,6 @@ describe('Happy Flow', () => {
                 .expect(async (res: request.Response) => {
                     const index = res.body.results.length - 1;
                     const withdrawal = res.body.results[index];
-                    expect(withdrawal.approved).toEqual(true);
                     expect(withdrawal.state).toEqual(0);
                     expect(withdrawal.amount).toEqual(rewardWithdrawAmount);
                 })
@@ -239,34 +194,9 @@ describe('Happy Flow', () => {
                     expect(body.amount).toEqual(rewardWithdrawAmount);
                     expect(body.state).toEqual(0);
                     expect(body.createdAt).toBeDefined();
-                    expect(body.updatedAt).toBeDefined();
-                    expect(body.withdrawalId).toBeUndefined();
+                    expect(body.withdrawalId).toEqual(2);
 
                     withdrawDocumentId = body.id;
-                })
-                .expect(200, done);
-        });
-
-        it('should wait for queue to succeed', (done) => {
-            const callback = () => {
-                agenda.off(`success:${eventNameProcessWithdrawals}`, callback);
-                done();
-            };
-            agenda.on(`success:${eventNameProcessWithdrawals}`, callback);
-        });
-    });
-
-    describe('GET /withdrawals/:id', () => {
-        it('HTTP 200 and return state Approved', (done) => {
-            user.get(`/v1/withdrawals/${withdrawDocumentId}`)
-                .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
-                .expect(async ({ body }: request.Response) => {
-                    expect(body.id).toBeDefined();
-                    expect(body.amount).toEqual(rewardWithdrawAmount);
-                    expect(body.sub).toEqual(sub2);
-                    expect(body.approved).toEqual(true);
-                    expect(body.withdrawalId).toEqual(3);
-
                     withdrawPollID = body.withdrawalId;
                 })
                 .expect(200, done);
@@ -287,7 +217,7 @@ describe('Happy Flow', () => {
             );
 
             await user
-                .post('/v1/gas_station/call')
+                .post('/v1/relay/call')
                 .send({
                     call,
                     nonce,
@@ -295,6 +225,19 @@ describe('Happy Flow', () => {
                 })
                 .set({ AssetPool: poolAddress, Authorization: userAccessToken })
                 .expect(200);
+        });
+
+        it('HTTP 200 and return state Withdrawn', (done) => {
+            user.get(`/v1/withdrawals/${withdrawDocumentId}`)
+                .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
+                .expect(async ({ body }: request.Response) => {
+                    expect(body.id).toBeDefined();
+                    expect(body.amount).toEqual(rewardWithdrawAmount);
+                    expect(body.sub).toEqual(sub2);
+                    expect(body.withdrawalId).toEqual(2);
+                    expect(body.state).toEqual(1);
+                })
+                .expect(200, done);
         });
 
         it('HTTP 200 and have the minted amount balance again', (done) => {
@@ -307,7 +250,7 @@ describe('Happy Flow', () => {
         });
     });
 
-    describe('GET /asset_pools/:address (after withdaw)', () => {
+    describe('GET /asset_pools/:address (after withdraw)', () => {
         it('HTTP 200 and have 0 balance', (done) => {
             user.get(`/v1/asset_pools/${poolAddress}`)
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
@@ -348,8 +291,8 @@ describe('Happy Flow', () => {
                 .expect(200, done);
         });
 
-        it('HTTP 200 and returns 0 items for state = 0 and rewardId = 1 since rewardId is unknown for claimed rewards.', (done) => {
-            user.get('/v1/withdrawals?state=0&rewardId=1&page=1&limit=2')
+        it('HTTP 200 and returns 0 items for state = 0 and rewardId = 1 since rewardId 2 does not exist.', (done) => {
+            user.get('/v1/withdrawals?state=0&rewardId=2&page=1&limit=2')
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
                 .expect(async (res: request.Response) => {
                     expect(res.body.results.length).toBe(0);
@@ -394,7 +337,4 @@ describe('Happy Flow', () => {
                 .expect(200, done);
         });
     });
-
-    // Describe flow for rejected withdraw poll
-    // Describe flow for rejected reward poll
 });

@@ -44,10 +44,7 @@ export const patchMember = async (req: Request, res: Response) => {
         req.assetPool.solution.methods.isMember(req.params.address),
         req.assetPool.network,
     );
-
-    if (!isMember) {
-        throw new NotFoundError();
-    }
+    if (!isMember) throw new NotFoundError();
 
     await TransactionService.send(
         req.assetPool.address,

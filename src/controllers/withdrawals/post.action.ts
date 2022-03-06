@@ -1,7 +1,6 @@
 import newrelic from 'newrelic';
 import { Request, Response } from 'express';
-import { Withdrawal } from '@/models/Withdrawal';
-import { agenda, eventNameProcessWithdrawals } from '@/util/agenda';
+import { Withdrawal, WithdrawalDocument } from '@/models/Withdrawal';
 import { BadRequestError, NotFoundError } from '@/util/errors';
 
 import MemberService from '@/services/MemberService';
@@ -18,7 +17,7 @@ export const postWithdrawal = async (req: Request, res: Response) => {
     const isMember = await MemberService.isMember(req.assetPool, req.body.member);
     if (!isMember) throw new BadRequestError('Address is not a member of asset pool.');
 
-    const withdrawal = await WithdrawalService.schedule(
+    let withdrawal: WithdrawalDocument = await WithdrawalService.schedule(
         req.assetPool,
         WithdrawalType.ProposeWithdraw,
         account.id,
@@ -28,7 +27,7 @@ export const postWithdrawal = async (req: Request, res: Response) => {
         account.privateKey ? WithdrawalState.Deferred : WithdrawalState.Pending,
     );
 
-    agenda.now(eventNameProcessWithdrawals, null);
+    withdrawal = await WithdrawalService.proposeWithdraw(req.assetPool, withdrawal, account);
 
     Withdrawal.countDocuments({}, (_err: any, count: number) => newrelic.recordMetric('/Withdrawal/TotalCount', count));
     Withdrawal.countDocuments({ state: WithdrawalState.Deferred }, (_err: any, count: number) =>
@@ -44,11 +43,9 @@ export const postWithdrawal = async (req: Request, res: Response) => {
         rewardId: withdrawal.rewardId,
         beneficiary: withdrawal.beneficiary,
         amount: withdrawal.amount,
-        approved: withdrawal.approved,
         state: withdrawal.state,
-        poll: withdrawal.poll,
+        transactions: withdrawal.transactions,
         createdAt: withdrawal.createdAt,
-        updatedAt: withdrawal.updatedAt,
     };
 
     res.status(201).json(result);

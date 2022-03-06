@@ -1,10 +1,14 @@
-import { NetworkProvider, TransactionType } from '@/types/enums';
+import { NetworkProvider, TransactionState, TransactionType } from '@/types/enums';
 import { Contract, ethers, Signer } from 'ethers';
 import { parseUnits } from 'ethers/lib/utils';
 import { INFURA_GAS_TANK, INFURA_PROJECT_ID, PRIVATE_KEY } from '@/config/secrets';
 import { Artifacts } from '@/config/contracts/artifacts';
 import { soliditySha3 } from 'web3-utils';
-import { Transaction } from '@/models/Transaction';
+import { Transaction, TransactionDocument } from '@/models/Transaction';
+import { getTransaction } from 'newrelic';
+import { Network } from '@ethersproject/networks';
+import { AssetPoolType } from '@/models/AssetPool';
+import { assertEvent, hex2a, parseLogs, parseResultLog } from '@/util/events';
 
 const testnet = new ethers.providers.InfuraProvider('maticmum', INFURA_PROJECT_ID);
 const mainnet = new ethers.providers.InfuraProvider('matic', INFURA_PROJECT_ID);
@@ -74,9 +78,6 @@ async function send(to: string, fn: string, args: any[], npid: NetworkProvider) 
     const solution = new ethers.Contract(to, Artifacts.IDefaultDiamond.abi, admin);
     // Get the relayed call data, nonce and signature for this contract call
     const { call, nonce, sig } = await getCallData(solution, fn, args, admin);
-    // TODO improve local nonce by fetching from Transaction collection for highest nonce +1
-    const nonce1 = (await admin.getTransactionCount('pending')) + 1;
-    console.log(nonce, nonce1);
     // Encode a relay call witht he relayed call data
     const data = solution.interface.encodeFunctionData('call', [call, nonce, sig]);
     // Estimate gas for the relayed ITX call
@@ -86,7 +87,7 @@ async function send(to: string, fn: string, args: any[], npid: NetworkProvider) 
             data,
         }),
     );
-    // Sign the tx with the ITX gas tank admin
+    // Sign the req with the ITX gas tank admin
     const tx = {
         to,
         data,
@@ -97,45 +98,32 @@ async function send(to: string, fn: string, args: any[], npid: NetworkProvider) 
     // Send transaction data and receive relayTransactionHash to poll
     const { relayTransactionHash } = await provider.send('relay_sendTransaction', [tx, signature]);
 
-    await Transaction.create({
-        type: TransactionType.ITX,
+    return await Transaction.create({
         to,
         gas,
         nonce,
         relayTransactionHash,
     });
-
-    return relayTransactionHash;
 }
 
-const wait = (milliseconds: number) => {
-    return new Promise((resolve) => setTimeout(resolve, milliseconds));
-};
+async function getTransactionStatus(assetPool: AssetPoolType, tx: TransactionDocument) {
+    const { provider } = getProvider(assetPool.network);
+    const { broadcasts } = await provider.send('relay_getTransactionStatus', [tx.relayTransactionHash]);
 
-async function waitTransaction(relayTransactionHash: string, npid: NetworkProvider) {
-    const { provider } = getProvider(npid);
-    // eslint-disable-next-line no-constant-condition
-    while (true) {
-        // { receivedTime: string, broadcasts?: [{broadcastTime: string, ethTxHash: string, gasPrice: string}]}
-        const { broadcasts } = await provider.send('relay_getTransactionStatus', [relayTransactionHash]);
+    if (!broadcasts) return;
 
-        // Check each of these hashes to see if their receipt exists and has confirmations
-        if (broadcasts) {
-            for (const broadcast of broadcasts) {
-                const { broadcastTime, ethTxHash, gasPrice } = broadcast;
-                const receipt = await provider.getTransactionReceipt(ethTxHash);
-                console.log({ broadcastTime, ethTxHash, gasPrice });
+    // Check each of these hashes to see if their receipt exists and has confirmations
+    for (const broadcast of broadcasts) {
+        const { broadcastTime, ethTxHash, gasPrice } = broadcast;
+        const receipt = await provider.getTransactionReceipt(ethTxHash);
+        console.log({ broadcastTime, ethTxHash, gasPrice });
 
-                // Check if block tx is mined and confirmed at least twice
-                if (receipt && receipt.confirmations && receipt.confirmations > 1) {
-                    console.log(`Ethereum transaction hash: ${receipt.transactionHash}`);
-                    console.log(`Mined in block ${receipt.blockNumber}`);
-                    return receipt;
-                }
-            }
+        // Check if block tx is mined and confirmed at least twice
+        if (receipt && receipt.confirmations && receipt.confirmations > 1) {
+            await tx.updateOne({ transactionHash: receipt.transactionHash, state: TransactionState.Mined });
+            return receipt;
         }
-        await wait(1000);
     }
 }
 
-export default { getAdminBalance, send, deposit, waitTransaction };
+export default { getAdminBalance, send, deposit, getTransactionStatus };

@@ -55,7 +55,7 @@ describe('Widgets', () => {
                     withdrawAmount: rewardWithdrawAmount,
                     withdrawDuration: rewardWithdrawDuration,
                 })
-                .expect(302);
+                .expect(201);
         });
     });
 

@@ -66,13 +66,13 @@ export default class MemberService {
             throw new AlreadyAMemberError(address, assetPool.address);
         }
 
-        const tx = await TransactionService.send(
+        const { receipt } = await TransactionService.send(
             assetPool.address,
             assetPool.solution.methods.addMember(address),
             assetPool.network,
         );
 
-        assertEvent('RoleGranted', parseLogs(Artifacts.IDefaultDiamond.abi, tx.logs));
+        assertEvent('RoleGranted', parseLogs(Artifacts.IDefaultDiamond.abi, receipt.logs));
 
         const memberId = await TransactionService.call(
             assetPool.solution.methods.getMemberByAddress(address),
@@ -109,12 +109,12 @@ export default class MemberService {
             throw new NotAMemberError(address, assetPool.address);
         }
 
-        const tx = await TransactionService.send(
+        const { receipt } = await TransactionService.send(
             assetPool.address,
             assetPool.solution.methods.removeMember(address),
             assetPool.network,
         );
-        assertEvent('RoleRevoked', parseLogs(Artifacts.IDefaultDiamond.abi, tx.logs));
+        assertEvent('RoleRevoked', parseLogs(Artifacts.IDefaultDiamond.abi, receipt.logs));
 
         const member = await Member.findOne({ poolAddress: assetPool.address, address });
 

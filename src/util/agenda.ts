@@ -2,12 +2,11 @@ import { Agenda } from 'agenda';
 import { logger } from './logger';
 import db from './database';
 
-import { jobProcessWithdrawals } from '@/jobs/processWithdrawals';
 import { jobRequireDeposits } from '@/jobs/requireDeposit';
+import { jobRequireTransactions } from '@/jobs/requireTransactions';
 
-export const eventNameProcessWithdrawals = 'processWithdrawals';
 export const eventNameRequireDeposits = 'requireDeposits';
-export const eventNameRequireWithdraws = 'requireWithdraws';
+export const eventNameRequireTransactions = 'requireTransactions';
 
 export const agenda = new Agenda({
     maxConcurrency: 1,
@@ -15,15 +14,15 @@ export const agenda = new Agenda({
     processEvery: '1 second',
 });
 
-agenda.define(eventNameProcessWithdrawals, jobProcessWithdrawals);
 agenda.define(eventNameRequireDeposits, jobRequireDeposits);
+agenda.define(eventNameRequireTransactions, jobRequireTransactions);
 
 db.connection.once('open', async () => {
     agenda.mongo(db.connection.getClient().db(), 'jobs');
     await agenda.start();
 
-    agenda.every('5 seconds', eventNameProcessWithdrawals);
     agenda.every('5 seconds', eventNameRequireDeposits);
+    agenda.every('5 seconds', eventNameRequireTransactions);
 
     logger.info('Started agenda processing');
 });

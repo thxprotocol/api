@@ -24,8 +24,9 @@ export enum RewardState {
 }
 
 export interface IRewardUpdates {
-    withdrawAmount: number;
-    withdrawDuration: number;
+    withdrawAmount?: number;
+    withdrawDuration?: number;
+    state?: RewardState;
 }
 
 export interface IRewardCondition {
@@ -43,8 +44,6 @@ export type TReward = {
     withdrawAmount: number;
     withdrawDuration: number;
     withdrawCondition: IRewardCondition;
-    pollId: number;
-    poll?: TRewardPoll;
 };
 
 export type RewardDocument = mongoose.Document & TReward;

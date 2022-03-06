@@ -10,7 +10,6 @@ import { patchReward } from './patch.action';
 import { postRewardClaim } from './postRewardClaim.action';
 import { postRewardClaimFor } from './postRewardClaimFor.action';
 import { requireAssetPoolHeader } from '@/middlewares';
-import { postPollFinalize } from './postPollFinalize.action';
 import { rateLimitRewardGive } from '@/util/ratelimiter';
 
 const router = express.Router();
@@ -62,15 +61,6 @@ router.post(
     validate(validations.postRewardClaimFor),
     requireAssetPoolHeader,
     postRewardClaimFor,
-);
-
-router.post(
-    '/:id/poll/finalize',
-    checkScopes(['admin', 'dashboard']),
-    validateAssetPoolHeader,
-    validate(validations.postPollFinalize),
-    requireAssetPoolHeader,
-    postPollFinalize,
 );
 
 export default router;

@@ -1,12 +1,11 @@
 import request from 'supertest';
 import app from '@/app';
 import { NetworkProvider } from '@/types/enums';
-import { rewardWithdrawAmount, tokenName, tokenSymbol, userWalletPrivateKey2 } from '@/util/jest/constants';
+import { rewardWithdrawAmount, sub2, tokenName, tokenSymbol, userWalletPrivateKey2 } from '@/util/jest/constants';
 import { isAddress } from 'web3-utils';
 import { Account } from 'web3-core';
 import { getToken } from '@/util/jest/jwt';
 import { createWallet } from '@/util/jest/network';
-import { agenda, eventNameProcessWithdrawals } from '@/util/agenda';
 import { afterAllCallback, beforeAllCallback } from '@/util/jest/config';
 
 const user = request.agent(app);
@@ -74,31 +73,17 @@ describe('Propose Withdrawal', () => {
                     amount: rewardWithdrawAmount,
                 })
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
-                .expect((res: request.Response) => {
-                    expect(res.body.withdrawalId).toBeUndefined();
+                .expect(({ body }: request.Response) => {
+                    expect(body.id).toBeDefined();
+                    expect(body.sub).toEqual(sub2);
+                    expect(body.amount).toEqual(rewardWithdrawAmount);
+                    expect(body.state).toEqual(0);
+                    expect(body.createdAt).toBeDefined();
+                    expect(body.withdrawalId).toEqual(1);
 
-                    withdrawalDocumentId = res.body.id;
+                    withdrawalDocumentId = body.id;
                 })
                 .expect(201, done);
-        });
-    });
-
-    describe('GET /withdrawals/:id', () => {
-        it('should wait for queue to succeed', (done) => {
-            const callback = () => {
-                agenda.off(`success:${eventNameProcessWithdrawals}`, callback);
-                done();
-            };
-            agenda.on(`success:${eventNameProcessWithdrawals}`, callback);
-        });
-
-        it('HTTP 200 when job is completed', (done) => {
-            user.get(`/v1/withdrawals/${withdrawalDocumentId}`)
-                .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
-                .expect((res: request.Response) => {
-                    expect(res.body.withdrawalId).toBeDefined();
-                })
-                .expect(200, done);
         });
     });
 

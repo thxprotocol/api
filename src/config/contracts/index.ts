@@ -14,7 +14,7 @@ const poolFacets: ArtifactsKey[] = [
     'MemberAccess',
     'Token',
     'BasePollProxy',
-    'GasStationFacet',
+    'RelayHub',
     'DiamondCutFacet',
     'DiamondLoupeFacet',
     'OwnershipFacet',

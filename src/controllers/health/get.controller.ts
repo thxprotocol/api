@@ -3,9 +3,7 @@ import { name, version, license } from '../../../package.json';
 import { getProvider, getEstimatesFromOracle } from '@/util/network';
 import { NetworkProvider } from '@/types/enums';
 import { fromWei } from 'web3-utils';
-import { agenda, eventNameProcessWithdrawals } from '@/util/agenda';
 
-import WithdrawalService from '@/services/WithdrawalService';
 import InfuraService from '@/services/InfuraService';
 import { assetPoolFactoryAddress, assetPoolRegistryAddress, facetAdresses } from '@/config/contracts';
 
@@ -27,16 +25,10 @@ async function getNetworkDetails(npid: NetworkProvider, constants: { factory: st
 }
 
 export const getHealth = async (req: Request, res: Response) => {
-    const job = (await agenda.jobs({ name: eventNameProcessWithdrawals, type: 'single' }))[0];
     const jsonData = {
         name,
         version,
         license,
-        queue: {
-            scheduledWithdrawals: (await WithdrawalService.countScheduled()).length,
-            lastRunAt: job?.attrs.lastRunAt,
-            lastFailedAt: job?.attrs.failedAt,
-        },
         testnet: await getNetworkDetails(NetworkProvider.Test, {
             factory: assetPoolFactoryAddress(NetworkProvider.Test),
             registry: assetPoolRegistryAddress(NetworkProvider.Test),

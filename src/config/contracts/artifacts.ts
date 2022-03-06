@@ -1,7 +1,7 @@
 import AccessControl from '@thxnetwork/artifacts/artifacts/contracts/01-AccessControl/AccessControl.sol/AccessControl.json';
 import MemberAccess from '@thxnetwork/artifacts/artifacts/contracts/03-MemberAccess/MemberAccess.sol/MemberAccess.json';
 import Token from '@thxnetwork/artifacts/artifacts/contracts/04-Token/Token.sol/Token.json';
-import GasStationFacet from '@thxnetwork/artifacts/artifacts/contracts/07-GasStation/GasStation.sol/GasStationFacet.json';
+import RelayHub from '@thxnetwork/artifacts/artifacts/contracts/07-RelayHub/RelayHub.sol/RelayHubFacet.json';
 import BasePollProxy from '@thxnetwork/artifacts/artifacts/contracts/08-BasePoll/BasePollProxy.sol/BasePollProxy.json';
 import WithdrawBy from '@thxnetwork/artifacts/artifacts/contracts/09-WithdrawBypass/WithdrawBy.sol/WithdrawBy.json';
 import WithdrawByPoll from '@thxnetwork/artifacts/artifacts/contracts/09-WithdrawBypass/WithdrawByPoll.sol/WithdrawByPoll.json';
@@ -31,7 +31,7 @@ export const Artifacts = {
     AccessControl,
     MemberAccess,
     Token,
-    GasStationFacet,
+    RelayHub,
     BasePollProxy,
     UpdateDiamond,
     WithdrawBy,

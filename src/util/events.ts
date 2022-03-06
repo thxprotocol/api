@@ -74,7 +74,7 @@ export function parseLogs(abi: any, logs: any = []): CustomEventLog[] {
     });
 }
 
-export async function parseResultLog(logs: any) {
+export function parseResultLog(logs: any) {
     const gasStationInterface = new ethers.utils.Interface(Artifacts.IDefaultDiamond.abi);
     const event = gasStationInterface.parseLog(logs[logs.length - 1]);
 

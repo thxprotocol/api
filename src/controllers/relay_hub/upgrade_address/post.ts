@@ -30,14 +30,13 @@ export const postCallUpgradeAddress = async (req: Request, res: Response) => {
         );
     }
 
-    const tx = await TransactionService.send(
+    const { receipt } = await TransactionService.send(
         req.assetPool.solution.options.address,
         req.assetPool.solution.methods.call(req.body.call, req.body.nonce, req.body.sig),
         req.assetPool.network,
     );
-    const events = parseLogs(Artifacts.IDefaultDiamond.abi, tx.logs);
+    const events = parseLogs(Artifacts.IDefaultDiamond.abi, receipt.logs);
     const event = assertEvent('MemberAddressChanged', events);
-
     const account = await AccountProxy.getByAddress(event.args.previousAddress);
 
     await AccountProxy.update(account.id, { address: event.args.newAddress });
