@@ -28,8 +28,8 @@ export const prod: TContractEnvironmentConfig = {
         },
         {
             version: '1.0.7',
-            assetPoolFactory: '',
-            assetPoolRegistry: '',
+            assetPoolFactory: '0x1127175cCA310Dee6d5a5e1538A5c8801b4F701A',
+            assetPoolRegistry: '0xf1Ebfb62634BB38e8f362c4dB9F88f5F1Fc9A0c6',
             facets: {
                 AccessControl: '0x7f61982fE107cc34D0E28767a9a56e3d356B6507',
                 MemberAccess: '0x95697eD5a0D53F8Bb8cE48A93840f3Cd1Bd32B1C',
@@ -75,9 +75,9 @@ export const prod: TContractEnvironmentConfig = {
             },
         },
         {
-            version: '1.0.5',
-            assetPoolFactory: '',
-            assetPoolRegistry: '',
+            version: '1.0.7',
+            assetPoolFactory: '0xc0FdB09482C79ef113f2eC2940Ce7c9804eC6Dbd',
+            assetPoolRegistry: '0xC182719407d6D9e948D2053a8c34Dd4D94FB7482',
             facets: {
                 AccessControl: '0x8A2Dd7Bf4Bc354554DC7474d2228b38F9642262b',
                 MemberAccess: '0x30adfA805176F9f5a308772cbac596712E585707',
