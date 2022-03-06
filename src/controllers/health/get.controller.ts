@@ -25,7 +25,10 @@ async function getNetworkDetails(npid: NetworkProvider, constants: { factory: st
                     transactionHash: { $exists: false },
                 })
             ).length,
-            gasTank: fromWei(gasTank, 'ether'),
+            gasTank: {
+                address: InfuraService.getGasTank(npid),
+                balance: fromWei(gasTank, 'ether'),
+            },
         },
         factory: constants.factory,
         registry: constants.registry,

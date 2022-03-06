@@ -71,4 +71,5 @@ export const MAX_FEE_PER_GAS = String(process.env.MAX_FEE_PER_GAS);
 export const INFURA_PROJECT_ID = process.env.INFURA_PROJECT_ID;
 export const NETWORK_ENVIRONMENT = process.env.NETWORK_ENVIRONMENT as 'local' | 'dev' | 'prod';
 export const MINIMUM_GAS_LIMIT = 54680;
-export const INFURA_GAS_TANK = '0x92A663df3553ED10BCb300B9bA0D8a2f3bea5a85';
+export const TESTNET_INFURA_GAS_TANK = process.env.TESTNET_INFURA_GAS_TANK;
+export const INFURA_GAS_TANK = process.env.INFURA_GAS_TANK;

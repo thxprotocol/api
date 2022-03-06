@@ -1,11 +1,12 @@
 import { NetworkProvider, TransactionState } from '@/types/enums';
-import { Contract, ethers, Signer } from 'ethers';
+import { BigNumber, Contract, ethers, Signer } from 'ethers';
 import { parseUnits } from 'ethers/lib/utils';
-import { INFURA_GAS_TANK, INFURA_PROJECT_ID, PRIVATE_KEY } from '@/config/secrets';
+import { INFURA_GAS_TANK, INFURA_PROJECT_ID, PRIVATE_KEY, TESTNET_INFURA_GAS_TANK } from '@/config/secrets';
 import { Artifacts } from '@/config/contracts/artifacts';
 import { soliditySha3 } from 'web3-utils';
 import { Transaction, TransactionDocument } from '@/models/Transaction';
 import { AssetPoolType } from '@/models/AssetPool';
+import { fromWei } from 'web3-utils';
 
 const testnet = new ethers.providers.InfuraProvider('maticmum', INFURA_PROJECT_ID);
 const mainnet = new ethers.providers.InfuraProvider('matic', INFURA_PROJECT_ID);
@@ -22,10 +23,19 @@ function getProvider(npid: NetworkProvider) {
     }
 }
 
-async function deposit(npid: NetworkProvider) {
+function getGasTank(npid: NetworkProvider) {
+    switch (npid) {
+        default:
+        case NetworkProvider.Test:
+            return TESTNET_INFURA_GAS_TANK;
+        case NetworkProvider.Main:
+            return INFURA_GAS_TANK;
+    }
+}
+
+async function deposit(value: BigNumber, npid: NetworkProvider) {
     const { admin } = getProvider(npid);
-    const to = INFURA_GAS_TANK;
-    const value = parseUnits('0.1', 'ether');
+    const to = getGasTank(npid);
     const nonce = await admin.getTransactionCount('pending');
     const gasLimit = await admin.estimateGas({
         to,
@@ -92,6 +102,13 @@ async function send(to: string, fn: string, args: any[], npid: NetworkProvider) 
         schedule: 'fast',
     };
     const signature = await signRequest(tx, admin);
+
+    // Check gas tank balance and top up if required
+    // const balance = Number(fromWei(await getAdminBalance(npid)));
+    // if (balance < 1) {
+    //     await deposit(parseUnits('5', 'ether'), npid);
+    // }
+
     // Send transaction data and receive relayTransactionHash to poll
     const { relayTransactionHash } = await provider.send('relay_sendTransaction', [tx, signature]);
 
@@ -123,4 +140,4 @@ async function getTransactionStatus(assetPool: AssetPoolType, tx: TransactionDoc
     }
 }
 
-export default { getAdminBalance, send, deposit, getTransactionStatus };
+export default { getGasTank, getAdminBalance, send, getTransactionStatus };
