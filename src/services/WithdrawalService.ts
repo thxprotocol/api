@@ -56,7 +56,7 @@ export default class WithdrawalService {
     static async getPendingBalance(account: IAccount, poolAddress: string) {
         const withdrawals = await Withdrawal.find({
             poolAddress,
-            beneficiary: account.address,
+            sub: account.id,
             state: WithdrawalState.Pending,
         });
         return withdrawals.map((item) => item.amount).reduce((prev, curr) => prev + curr, 0);
@@ -118,8 +118,10 @@ export default class WithdrawalService {
             const events = parseLogs(Artifacts.IDefaultDiamond.abi, receipt.logs);
 
             assertEvent('WithdrawPollFinalized', events);
+            assertEvent('Withdrawn', events);
 
             withdrawal.transactions.push(String(tx._id));
+            withdrawal.state = WithdrawalState.Withdrawn;
 
             return await withdrawal.save();
         } catch (error) {

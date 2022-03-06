@@ -21,8 +21,6 @@ export async function jobRequireTransactions() {
         const events = parseLogs(Artifacts.IDefaultDiamond.abi, receipt.logs);
         const result = findEvent('Result', events);
 
-        console.log(events);
-
         if (!result.args.success) {
             const error = hex2a(result.args.data.substr(10));
 

@@ -88,7 +88,7 @@ async function send(to: string, fn: string, args: any[], npid: NetworkProvider) 
     const tx = {
         to,
         data,
-        gas,
+        gas: '250000',
         schedule: 'fast',
     };
     const signature = await signRequest(tx, admin);

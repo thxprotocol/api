@@ -34,6 +34,7 @@ export const postCallUpgradeAddress = async (req: Request, res: Response) => {
         req.assetPool.solution.options.address,
         req.assetPool.solution.methods.call(req.body.call, req.body.nonce, req.body.sig),
         req.assetPool.network,
+        250000,
     );
     const events = parseLogs(Artifacts.IDefaultDiamond.abi, receipt.logs);
     const event = assertEvent('MemberAddressChanged', events);

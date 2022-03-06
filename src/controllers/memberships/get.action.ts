@@ -10,6 +10,8 @@ export const getMembership = async (req: Request, res: Response) => {
     if (!membership) throw new NotFoundError();
 
     const account = await AccountProxy.getById(req.user.sub);
+    if (!account) throw new NotFoundError('No Account');
+
     const pending = await WithdrawalService.getPendingBalance(account, membership.poolAddress);
 
     res.json({ ...membership, pendingBalance: pending });

@@ -1,11 +1,12 @@
-import { Response, Request } from 'express';
 import { name, version, license } from '../../../package.json';
+import { Response, Request } from 'express';
+import { fromWei } from 'web3-utils';
 import { getProvider, getEstimatesFromOracle } from '@/util/network';
 import { NetworkProvider } from '@/types/enums';
-import { fromWei } from 'web3-utils';
 
 import InfuraService from '@/services/InfuraService';
 import { assetPoolFactoryAddress, assetPoolRegistryAddress, facetAdresses } from '@/config/contracts';
+import { Transaction } from '@/models/Transaction';
 
 async function getNetworkDetails(npid: NetworkProvider, constants: { factory: string; registry: string }) {
     const { admin, web3 } = getProvider(npid);
@@ -17,7 +18,15 @@ async function getNetworkDetails(npid: NetworkProvider, constants: { factory: st
         admin: admin.address,
         feeData,
         balance: fromWei(balance, 'ether'),
-        gasTank: fromWei(gasTank, 'ether'),
+        relay: {
+            queue: (
+                await Transaction.find({
+                    relayTransactionHash: { $exists: true },
+                    transactionHash: { $exists: false },
+                })
+            ).length,
+            gasTank: fromWei(gasTank, 'ether'),
+        },
         factory: constants.factory,
         registry: constants.registry,
         facets: facetAdresses(npid),
