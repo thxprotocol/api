@@ -5,7 +5,7 @@ import { AssetPoolType } from '@/models/AssetPool';
 import { Withdrawal, WithdrawalDocument } from '@/models/Withdrawal';
 import { IAccount } from '@/models/Account';
 import { Artifacts } from '@/config/contracts/artifacts';
-import { parseLogs, findEvent, assertEvent } from '@/util/events';
+import { parseLogs, assertEvent } from '@/util/events';
 import { paginatedResults } from '@/util/pagination';
 import TransactionService from './TransactionService';
 import { NETWORK_ENVIRONMENT } from '@/config/secrets';

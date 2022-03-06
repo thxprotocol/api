@@ -97,7 +97,7 @@ export default class RewardService {
         // Calculates an incrementing id as was done in Solidity before.
         // TODO Add migration to remove id and start using default collection _id.
         const id = (await this.findByPoolAddress(assetPool)).length + 1;
-        return Reward.create({
+        return await Reward.create({
             id,
             poolAddress: assetPool.address,
             withdrawAmount: String(withdrawAmount),
