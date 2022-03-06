@@ -5,7 +5,7 @@ import * as environmentsConfig from './environments';
 import { getProvider } from '@/util/network';
 import { Artifacts, ArtifactsKey } from '@/config/contracts/artifacts';
 
-export const currentVersion = '1.0.5';
+export const currentVersion = '1.0.7';
 
 const contractAddressConfig = environmentsConfig[NETWORK_ENVIRONMENT];
 
