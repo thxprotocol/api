@@ -12,8 +12,6 @@ export async function jobRequireTransactions() {
         transactionHash: { $exists: false },
     });
 
-    console.log(`Require ${transactions.length} tx...`);
-
     transactions.forEach(async (tx: TransactionDocument) => {
         // Assumes that tx.to always is an AssetPool address
         const assetPool = await AssetPoolService.getByAddress(tx.to);

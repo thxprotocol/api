@@ -1,14 +1,11 @@
-import { NetworkProvider, TransactionState, TransactionType } from '@/types/enums';
+import { NetworkProvider, TransactionState } from '@/types/enums';
 import { Contract, ethers, Signer } from 'ethers';
 import { parseUnits } from 'ethers/lib/utils';
 import { INFURA_GAS_TANK, INFURA_PROJECT_ID, PRIVATE_KEY } from '@/config/secrets';
 import { Artifacts } from '@/config/contracts/artifacts';
 import { soliditySha3 } from 'web3-utils';
 import { Transaction, TransactionDocument } from '@/models/Transaction';
-import { getTransaction } from 'newrelic';
-import { Network } from '@ethersproject/networks';
 import { AssetPoolType } from '@/models/AssetPool';
-import { assertEvent, hex2a, parseLogs, parseResultLog } from '@/util/events';
 
 const testnet = new ethers.providers.InfuraProvider('maticmum', INFURA_PROJECT_ID);
 const mainnet = new ethers.providers.InfuraProvider('matic', INFURA_PROJECT_ID);
