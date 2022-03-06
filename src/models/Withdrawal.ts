@@ -5,24 +5,16 @@ export type WithdrawalDocument = mongoose.Document & TWithdrawal;
 
 const withdrawalSchema = new mongoose.Schema(
     {
+        state: Number,
         type: Number,
         poolAddress: String,
         sub: String,
         beneficiary: String,
         amount: Number,
-        state: Number,
-        approved: Boolean,
-        failReason: String,
         rewardId: Number,
         withdrawalId: Number,
-        fromBlock: Number,
-        poll: {
-            startTime: Number,
-            endTime: Number,
-            yesCounter: Number,
-            noCounter: Number,
-            totalVoted: Number,
-        },
+        transactions: [String],
+        failReason: String,
     },
     { timestamps: true },
 );

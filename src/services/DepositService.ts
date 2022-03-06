@@ -5,7 +5,7 @@ import { getProvider, tokenContract } from '@/util/network';
 import { IAccount } from '@/models/Account';
 import { AmountExceedsAllowanceError, InsufficientBalanceError } from '@/util/errors';
 import { DepositState } from '@/types/enums/DepositState';
-import { TransactionService } from './TransactionService';
+import TransactionService from './TransactionService';
 
 // Checks for allowance and balance to be sufficient and transfers
 // promoCode price amount from token owner to spender address (pool owner)

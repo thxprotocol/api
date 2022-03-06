@@ -1,13 +1,13 @@
 import { Request, Response } from 'express';
-import { agenda, eventNameProcessWithdrawals } from '@/util/agenda';
-
+import { BadRequestError, ForbiddenError } from '@/util/errors';
+import { WithdrawalState, WithdrawalType } from '@/types/enums';
+import { TWithdrawal } from '@/types/Withdrawal';
 import AccountProxy from '@/proxies/AccountProxy';
 import RewardService from '@/services/RewardService';
 import MemberService from '@/services/MemberService';
 import WithdrawalService from '@/services/WithdrawalService';
-import { WithdrawalState, WithdrawalType } from '@/types/enums';
-import { BadRequestError, ForbiddenError } from '@/util/errors';
-import { TWithdrawal } from '@/types/Withdrawal';
+import MembershipService from '@/services/MembershipService';
+import { WithdrawalDocument } from '@/models/Withdrawal';
 
 const ERROR_REWARD_NOT_FOUND = 'The reward for this ID does not exist.';
 const ERROR_ACCOUNT_NO_ADDRESS = 'The authenticated account has not wallet address. Sign in the Web Wallet once.';
@@ -17,7 +17,6 @@ const ERROR_NO_MEMBER = 'Could not claim this reward since you are not a member 
 
 export async function postRewardClaim(req: Request, res: Response) {
     const rewardId = Number(req.params.id);
-
     if (!req.user.sub) throw new BadRequestError(ERROR_INCORRECT_SCOPE);
 
     const reward = await RewardService.get(req.assetPool, rewardId);
@@ -26,15 +25,23 @@ export async function postRewardClaim(req: Request, res: Response) {
     const account = await AccountProxy.getById(req.user.sub);
     if (!account.address) throw new BadRequestError(ERROR_ACCOUNT_NO_ADDRESS);
 
-    // Check if the claim conditions are currently valid, recheck in job
     const canClaim = await RewardService.canClaim(req.assetPool, reward, account);
     if (!canClaim) throw new ForbiddenError(ERROR_CAIM_NOT_ALLOWED);
 
-    // Check for membership separate since we might need to add a membership in the job
     const isMember = await MemberService.isMember(req.assetPool, account.address);
     if (!isMember && reward.isMembershipRequired) throw new ForbiddenError(ERROR_NO_MEMBER);
 
-    const w = await WithdrawalService.schedule(
+    // TODO Handle this in a batch tx with ITX support
+    if (!isMember && !reward.isMembershipRequired) {
+        await MemberService.addMember(req.assetPool, account);
+    }
+
+    const hasMembership = await MembershipService.hasMembership(req.assetPool, account.id);
+    if (!hasMembership && !reward.isMembershipRequired) {
+        await MembershipService.addMembership(account.id, req.assetPool);
+    }
+
+    let w: WithdrawalDocument = await WithdrawalService.schedule(
         req.assetPool,
         WithdrawalType.ClaimReward,
         req.user.sub,
@@ -43,7 +50,7 @@ export async function postRewardClaim(req: Request, res: Response) {
         reward.id,
     );
 
-    agenda.now(eventNameProcessWithdrawals, null);
+    w = await WithdrawalService.proposeWithdraw(req.assetPool, w, account);
 
     const result: TWithdrawal = {
         id: String(w._id),
@@ -54,6 +61,7 @@ export async function postRewardClaim(req: Request, res: Response) {
         beneficiary: w.beneficiary,
         state: w.state,
         rewardId: w.rewardId,
+        transactions: w.transactions,
         createdAt: w.createdAt,
     };
 

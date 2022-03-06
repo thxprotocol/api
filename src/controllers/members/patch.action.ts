@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import { VERSION } from '@/config/secrets';
 import { NotFoundError } from '@/util/errors';
-import { TransactionService } from '@/services/TransactionService';
+import TransactionService from '@/services/TransactionService';
 
 /**
  * @swagger
@@ -44,10 +44,7 @@ export const patchMember = async (req: Request, res: Response) => {
         req.assetPool.solution.methods.isMember(req.params.address),
         req.assetPool.network,
     );
-
-    if (!isMember) {
-        throw new NotFoundError();
-    }
+    if (!isMember) throw new NotFoundError();
 
     await TransactionService.send(
         req.assetPool.address,

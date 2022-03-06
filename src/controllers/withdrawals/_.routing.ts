@@ -9,6 +9,7 @@ import { postVote } from './postVote.action';
 import { postPollFinalize } from './postPollFinalize.action';
 import { deleteVote } from './deleteVote.action';
 import { postWithdrawal } from './post.action';
+import { DeleteWithdrawalController } from './delete.controller';
 
 const router = express.Router();
 
@@ -54,11 +55,19 @@ router.delete(
 );
 router.post(
     '/:id/withdraw',
-    checkScopes(['admin']),
+    checkScopes(['admin', 'user']),
     validateAssetPoolHeader,
     validate(validations.postPollFinalize),
     requireAssetPoolHeader,
     postPollFinalize,
 );
 
+router.delete(
+    '/:id',
+    checkScopes(['user']),
+    validateAssetPoolHeader,
+    validate(validations.deleteWithdrawal),
+    requireAssetPoolHeader,
+    DeleteWithdrawalController,
+);
 export default router;

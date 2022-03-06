@@ -16,6 +16,7 @@ export const validations = {
         query('state').optional().isNumeric(),
     ],
     getWithdrawal: [param('id').exists().isString()],
+    deleteWithdrawal: [param('id').exists().isString()],
     postWithdrawal: [
         body('member')
             .exists()

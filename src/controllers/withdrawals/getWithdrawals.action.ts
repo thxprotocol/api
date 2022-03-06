@@ -15,16 +15,16 @@ export const getWithdrawals = async (req: Request, res: Response) => {
 
     for (const w of result.results) {
         withdrawals.push({
-            id: w.id,
+            id: String(w._id),
             type: w.type,
             withdrawalId: w.withdrawalId,
             failReason: w.failReason,
             rewardId: w.rewardId,
             beneficiary: w.beneficiary,
             amount: w.amount,
-            approved: w.approved,
             state: w.state,
             poll: w.poll,
+            transactions: w.transactions,
             createdAt: w.createdAt,
             updatedAt: w.updatedAt,
         });

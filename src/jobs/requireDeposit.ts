@@ -4,7 +4,7 @@ import { DepositState } from '@/types/enums/DepositState';
 import { Deposit, DepositDocument } from '@/models/Deposit';
 import AssetPoolService from '@/services/AssetPoolService';
 import { getProvider, tokenContract } from '@/util/network';
-import { TransactionService } from '@/services/TransactionService';
+import TransactionService from '@/services/TransactionService';
 
 export async function jobRequireDeposits() {
     const pendingDeposits = await Deposit.find({ state: DepositState.Pending });

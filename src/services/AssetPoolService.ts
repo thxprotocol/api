@@ -8,7 +8,7 @@ import { toWei, fromWei, toChecksumAddress } from 'web3-utils';
 
 import { Membership } from '@/models/Membership';
 import { THXError } from '@/util/errors';
-import { TransactionService } from './TransactionService';
+import TransactionService from './TransactionService';
 import { assetPoolRegistryAddress, poolFacetAdressesPermutations } from '@/config/contracts';
 import { logger } from '@/util/logger';
 
@@ -103,12 +103,12 @@ export default class AssetPoolService {
 
     static async deploy(sub: string, network: NetworkProvider) {
         const assetPoolFactory = getAssetPoolFactory(network);
-        const tx = await TransactionService.send(
+        const { receipt } = await TransactionService.send(
             assetPoolFactory.options.address,
             assetPoolFactory.methods.deployAssetPool(),
             network,
         );
-        const event = assertEvent('AssetPoolDeployed', parseLogs(Artifacts.IAssetPoolFactory.abi, tx.logs));
+        const event = assertEvent('AssetPoolDeployed', parseLogs(Artifacts.IAssetPoolFactory.abi, receipt.logs));
 
         const assetPool = new AssetPool({
             sub,
@@ -123,18 +123,11 @@ export default class AssetPoolService {
     }
 
     static async init(assetPool: AssetPoolDocument) {
-        const { admin } = getProvider(assetPool.network);
         const poolRegistryAddress = assetPoolRegistryAddress(assetPool.network);
 
         await TransactionService.send(
             assetPool.solution.options.address,
             assetPool.solution.methods.setPoolRegistry(poolRegistryAddress),
-            assetPool.network,
-        );
-
-        await TransactionService.send(
-            assetPool.solution.options.address,
-            assetPool.solution.methods.initializeGasStation(admin.address),
             assetPool.network,
         );
     }
@@ -187,13 +180,6 @@ export default class AssetPoolService {
             return TransactionService.send(options.address, fn, assetPool.network, null, newPrivateKey);
         };
 
-        // Transfer gas station to new account
-        if (toChecksumAddress(await methods.getGasStationAdmin().call()) !== newOwnerAddress) {
-            // Init gas station
-            const tx = await sendFromCurrentOwner(methods.initializeGasStation(newOwnerAddress));
-            logger.debug('Gas station transferred to new owner:', assetPool.address, tx.transactionHash);
-        }
-
         // Add membership, manager and admin role to new owner.
         if (!(await methods.isMember(newOwnerAddress).call())) {
             logger.debug('Adding new owner to members');
@@ -211,8 +197,8 @@ export default class AssetPoolService {
         // Transfer ownership.
         if (toChecksumAddress(await methods.owner().call()) !== newOwnerAddress) {
             // Transfer ownership
-            const tx = await sendFromCurrentOwner(methods.transferOwnership(newOwner.address));
-            logger.debug('TransferOwnership:', assetPool.address, tx.transactionHash);
+            const { receipt } = await sendFromCurrentOwner(methods.transferOwnership(newOwner.address));
+            logger.debug('TransferOwnership:', assetPool.address, receipt.transactionHash);
         }
 
         // Remove admin role, manager and membership from former owner.

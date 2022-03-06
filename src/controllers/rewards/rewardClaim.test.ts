@@ -8,13 +8,11 @@ import { isAddress } from 'web3-utils';
 import { getToken } from '@/util/jest/jwt';
 import { afterAllCallback, beforeAllCallback } from '@/util/jest/config';
 import { WithdrawalState } from '@/types/enums';
-import { agenda, eventNameProcessWithdrawals, eventNameRequireWithdraws } from '@/util/agenda';
 
 const user = request.agent(app);
 
 describe('Reward Claim', () => {
     let adminAccessToken: string,
-        redirectURL: string,
         userAccessToken: string,
         dashboardAccessToken: string,
         poolAddress: string,
@@ -62,19 +60,11 @@ describe('Reward Claim', () => {
                 isMembershipRequired: false,
             })
             .expect((res: request.Response) => {
-                redirectURL = res.headers.location;
-            })
-            .expect(302, done);
-    });
-
-    it('Get reward ID', (done) => {
-        user.get(redirectURL)
-            .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
-            .expect((res: request.Response) => {
                 expect(res.body.id).toEqual(1);
+
                 rewardID = res.body.id;
             })
-            .expect(200, done);
+            .expect(201, done);
     });
 
     it('Add member', (done) => {
@@ -85,10 +75,6 @@ describe('Reward Claim', () => {
     });
 
     describe('POST /rewards/:id/claim', () => {
-        it('should disable job processor', async () => {
-            await agenda.disable({ name: eventNameRequireWithdraws });
-        });
-
         it('should return a 200 and withdrawal id', (done) => {
             user.post(`/v1/rewards/${rewardID}/claim`)
                 .set({ AssetPool: poolAddress, Authorization: userAccessToken })
@@ -99,14 +85,6 @@ describe('Reward Claim', () => {
                     withdrawalDocumentId = res.body.id;
                 })
                 .expect(200, done);
-        });
-
-        it('should cast a success event for ProcessWithdrawals event', (done) => {
-            const callback = async () => {
-                agenda.off(`success:${eventNameProcessWithdrawals}`, callback);
-                done();
-            };
-            agenda.on(`success:${eventNameProcessWithdrawals}`, callback);
         });
 
         it('should return Pending state', (done) => {
@@ -130,7 +108,7 @@ describe('Reward Claim', () => {
             );
 
             await user
-                .post('/v1/gas_station/call')
+                .post('/v1/relay/call')
                 .set({ AssetPool: poolAddress, Authorization: userAccessToken })
                 .send({
                     call,

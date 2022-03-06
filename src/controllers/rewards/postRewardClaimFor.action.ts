@@ -1,13 +1,12 @@
 import { Request, Response } from 'express';
-import { agenda, eventNameProcessWithdrawals } from '@/util/agenda';
-
-import RewardService from '@/services/RewardService';
-import WithdrawalService from '@/services/WithdrawalService';
-import MemberService from '@/services/MemberService';
-import AccountProxy from '@/proxies/AccountProxy';
 import { WithdrawalState, WithdrawalType } from '@/types/enums';
 import { BadRequestError, ForbiddenError, NotFoundError } from '@/util/errors';
 import { TWithdrawal } from '@/types/Withdrawal';
+import AccountProxy from '@/proxies/AccountProxy';
+import RewardService from '@/services/RewardService';
+import WithdrawalService from '@/services/WithdrawalService';
+import MemberService from '@/services/MemberService';
+import { WithdrawalDocument } from '@/models/Withdrawal';
 
 const ERROR_NO_REWARD = 'Could not find a reward for this id';
 
@@ -22,7 +21,7 @@ export const postRewardClaimFor = async (req: Request, res: Response) => {
     const account = await AccountProxy.getByAddress(req.body.member);
     if (!account) throw new NotFoundError();
 
-    const withdrawal = await WithdrawalService.schedule(
+    let w: WithdrawalDocument = await WithdrawalService.schedule(
         req.assetPool,
         WithdrawalType.ClaimRewardFor,
         account.id,
@@ -33,21 +32,19 @@ export const postRewardClaimFor = async (req: Request, res: Response) => {
         rewardId,
     );
 
-    agenda.now(eventNameProcessWithdrawals, null);
+    w = await WithdrawalService.proposeWithdraw(req.assetPool, w, account);
 
     const result: TWithdrawal = {
-        id: String(withdrawal._id),
+        id: String(w._id),
         sub: account.id,
         poolAddress: req.assetPool.address,
-        type: withdrawal.type,
-        withdrawalId: withdrawal.withdrawalId,
-        beneficiary: withdrawal.beneficiary,
-        amount: withdrawal.amount,
-        approved: withdrawal.approved,
-        state: withdrawal.state,
-        poll: withdrawal.poll,
-        createdAt: withdrawal.createdAt,
-        updatedAt: withdrawal.updatedAt,
+        type: w.type,
+        withdrawalId: w.withdrawalId,
+        beneficiary: w.beneficiary,
+        amount: w.amount,
+        state: w.state,
+        transactions: w.transactions,
+        createdAt: w.createdAt,
     };
 
     return res.json(result);

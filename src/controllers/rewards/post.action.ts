@@ -1,27 +1,26 @@
 import { Request, Response } from 'express';
-import { VERSION } from '@/config/secrets';
-import { toWei } from 'web3-utils';
-import BN from 'bn.js';
-
+import { TReward } from '@/models/Reward';
 import RewardService from '@/services/RewardService';
 
 export const postReward = async (req: Request, res: Response) => {
-    const withdrawAmount = toWei(String(req.body.withdrawAmount));
-    const withdrawDuration = req.body.withdrawDuration;
-    const withdrawCondition = req.body.withdrawCondition;
-    const isMembershipRequired = req.body.isMembershipRequired;
-    const isClaimOnce = req.body.isClaimOnce;
-
     const reward = await RewardService.create(
         req.assetPool,
-        new BN(withdrawAmount),
-        withdrawDuration,
-        isMembershipRequired,
-        isClaimOnce,
-        withdrawCondition,
+        req.body.withdrawAmount,
+        req.body.withdrawDuration,
+        req.body.isMembershipRequired,
+        req.body.isClaimOnce,
+        req.body.withdrawCondition,
     );
+    const result: TReward = {
+        id: reward.id,
+        poolAddress: reward.poolAddress,
+        state: reward.state,
+        isMembershipRequired: reward.isMembershipRequired,
+        isClaimOnce: reward.isClaimOnce,
+        withdrawAmount: reward.withdrawAmount,
+        withdrawDuration: reward.withdrawDuration,
+        withdrawCondition: reward.withdrawCondition,
+    };
 
-    await RewardService.finalizePoll(req.assetPool, reward);
-
-    res.redirect(`/${VERSION}/rewards/${reward.id}`);
+    res.status(201).json(result);
 };

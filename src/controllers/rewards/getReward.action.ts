@@ -5,12 +5,8 @@ import { TReward } from '@/models/Reward';
 
 export const getReward = async (req: Request, res: Response) => {
     const reward = await RewardService.get(req.assetPool, Number(req.params.id));
+    if (!reward) throw new NotFoundError();
 
-    if (!reward) {
-        throw new NotFoundError();
-    }
-
-    const poll = reward.pollId > 0 ? { poll: await RewardService.getRewardPoll(req.assetPool, reward.pollId) } : {};
     const result: TReward = {
         id: reward.id,
         withdrawAmount: reward.withdrawAmount,
@@ -20,8 +16,6 @@ export const getReward = async (req: Request, res: Response) => {
         isMembershipRequired: reward.isMembershipRequired,
         poolAddress: req.assetPool.address,
         state: reward.state,
-        pollId: reward.pollId,
-        ...poll,
     };
 
     res.json(result);

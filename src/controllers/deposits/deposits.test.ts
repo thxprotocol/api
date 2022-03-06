@@ -7,14 +7,14 @@ import { afterAllCallback, beforeAllCallback } from '@/util/jest/config';
 import { getToken } from '@/util/jest/jwt';
 import { agenda, eventNameRequireDeposits } from '@/util/agenda';
 import { solutionContract } from '@/util/network';
-import { NetworkProvider } from '@/types/enums';
+import { NetworkProvider, TransactionState } from '@/types/enums';
 import { IPromoCodeResponse } from '@/types/interfaces/IPromoCodeResponse';
 import { createWallet, deployExampleToken } from '@/util/jest/network';
 import { findEvent, parseLogs } from '@/util/events';
 import { Artifacts } from '@/config/contracts/artifacts';
 import { userWalletPrivateKey2 } from '@/util/jest/constants';
 import { AmountExceedsAllowanceError, InsufficientBalanceError } from '@/util/errors';
-import { TransactionService } from '@/services/TransactionService';
+import TransactionService from '@/services/TransactionService';
 
 const http = request.agent(app);
 
@@ -116,13 +116,14 @@ describe('Deposits', () => {
         });
 
         it('Increase user balance', async () => {
-            const tx = await TransactionService.send(
+            const { tx, receipt } = await TransactionService.send(
                 testToken.options.address,
                 testToken.methods.transfer(userWallet.address, toWei(String(price))),
                 NetworkProvider.Main,
             );
-            const event = findEvent('Transfer', parseLogs(Artifacts.ERC20.abi, tx.logs));
+            const event = findEvent('Transfer', parseLogs(Artifacts.ERC20.abi, receipt.logs));
 
+            expect(tx.state).toBe(TransactionState.Mined);
             expect(event).toBeDefined();
         });
 

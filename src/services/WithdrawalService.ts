@@ -1,58 +1,40 @@
-import { toWei, fromWei } from 'web3-utils';
-import { MaxFeePerGasExceededError } from '@/util/network';
+import { toWei } from 'web3-utils';
 import { NetworkProvider } from '@/types/enums';
 import { WithdrawalState, WithdrawalType } from '@/types/enums';
 import { AssetPoolType } from '@/models/AssetPool';
 import { Withdrawal, WithdrawalDocument } from '@/models/Withdrawal';
 import { IAccount } from '@/models/Account';
 import { Artifacts } from '@/config/contracts/artifacts';
-import { parseLogs, findEvent } from '@/util/events';
+import { parseLogs, assertEvent } from '@/util/events';
 import { paginatedResults } from '@/util/pagination';
-import { THXError } from '@/util/errors';
-import { TransactionService } from './TransactionService';
+import TransactionService from './TransactionService';
+import { NETWORK_ENVIRONMENT } from '@/config/secrets';
+import InfuraService from './InfuraService';
 import AccountProxy from '@/proxies/AccountProxy';
-
-class CannotWithdrawForCustodialError extends THXError {
-    message = 'Not able to withdraw funds for custodial wallets.';
-}
-
-interface IWithdrawalUpdates {
-    withdrawalId: number;
-    memberId: number;
-    rewardId?: number;
-}
 
 export default class WithdrawalService {
     static getById(id: string) {
         return Withdrawal.findById(id);
     }
 
-    static async countScheduled() {
-        return await Withdrawal.find({
-            $or: [
-                { failReason: new MaxFeePerGasExceededError().message },
-                { failReason: { $exists: false } },
-                { failReason: '' },
-            ],
-            withdrawalId: { $exists: false },
+    static countScheduled() {
+        return Withdrawal.find({
+            $or: [{ failReason: { $exists: false } }, { failReason: '' }],
+            transactionHash: { $exists: false },
             state: WithdrawalState.Pending,
-        }).sort({ createdAt: -1 });
+        });
     }
 
-    static async getAllScheduled(poolAddress: string) {
-        return await Withdrawal.find({
-            $or: [
-                { failReason: new MaxFeePerGasExceededError().message },
-                { failReason: { $exists: false } },
-                { failReason: '' },
-            ],
-            withdrawalId: { $exists: false },
+    static getAllScheduled(poolAddress: string) {
+        return Withdrawal.find({
+            $or: [{ failReason: { $exists: false } }, { failReason: '' }],
+            transactionHash: { $exists: false },
             state: WithdrawalState.Pending,
             poolAddress,
-        }).sort({ createdAt: -1 });
+        });
     }
 
-    static async schedule(
+    static schedule(
         assetPool: AssetPoolType,
         type: WithdrawalType,
         sub: string,
@@ -60,117 +42,93 @@ export default class WithdrawalService {
         state = WithdrawalState.Pending,
         rewardId?: number,
     ) {
-        const withdrawal = new Withdrawal({
+        return Withdrawal.create({
             type,
             sub,
             amount,
-            rewardId,
             poolAddress: assetPool.address,
             state,
+            rewardId,
+            transactions: [],
         });
-
-        return await withdrawal.save();
     }
 
     static async getPendingBalance(account: IAccount, poolAddress: string) {
         const withdrawals = await Withdrawal.find({
             poolAddress,
-            beneficiary: account.address,
-            state: 0,
+            sub: account.id,
+            state: WithdrawalState.Pending,
         });
         return withdrawals.map((item) => item.amount).reduce((prev, curr) => prev + curr, 0);
     }
 
-    // Invoked from job
-    static async proposeWithdraw(assetPool: AssetPoolType, id: string, sub: string, amount: number) {
-        const account = await AccountProxy.getById(sub);
-        const amountInWei = toWei(String(amount));
-        const tx = await TransactionService.send(
-            assetPool.address,
-            assetPool.solution.methods.proposeWithdraw(amountInWei, account.address),
-            assetPool.network,
-        );
-        const events = parseLogs(Artifacts.IDefaultDiamond.abi, tx.logs);
-        const event = findEvent('WithdrawPollCreated', events);
+    static async proposeWithdraw(assetPool: AssetPoolType, withdrawal: WithdrawalDocument, account: IAccount) {
+        const amountInWei = toWei(String(withdrawal.amount));
 
-        return await this.update(assetPool, id, {
-            withdrawalId: event.args.id,
-            memberId: event.args.member,
-        });
-    }
-
-    // Invoked from job
-    static async update(assetPool: AssetPoolType, id: string, { withdrawalId, memberId }: IWithdrawalUpdates) {
-        const withdrawal = await this.getById(id);
-
-        if (memberId) {
-            withdrawal.beneficiary = await TransactionService.call(
-                assetPool.solution.methods.getAddressByMember(memberId),
+        if (NETWORK_ENVIRONMENT === 'dev' || NETWORK_ENVIRONMENT === 'prod') {
+            const tx = await InfuraService.send(
+                assetPool.address,
+                'proposeWithdraw',
+                [amountInWei, account.address],
                 assetPool.network,
             );
-        }
+            withdrawal.transactions.push(String(tx._id));
+            return await withdrawal.save();
+        } else {
+            try {
+                const { tx, receipt } = await TransactionService.send(
+                    assetPool.address,
+                    assetPool.solution.methods.proposeWithdraw(amountInWei, account.address),
+                    assetPool.network,
+                );
+                const events = parseLogs(Artifacts.IDefaultDiamond.abi, receipt.logs);
+                const event = assertEvent('WithdrawPollCreated', events);
 
-        if (withdrawalId) {
-            withdrawal.withdrawalId = withdrawalId; // TODO make migration for this
-            withdrawal.amount = Number(
-                fromWei(
-                    await TransactionService.call(
-                        assetPool.solution.methods.getAmount(withdrawalId),
-                        assetPool.network,
-                    ),
-                ),
-            );
-            withdrawal.approved = await TransactionService.call(
-                assetPool.solution.methods.withdrawPollApprovalState(withdrawalId),
-                assetPool.network,
-            );
-            const poll = {
-                startTime: Number(
-                    await TransactionService.call(
-                        assetPool.solution.methods.getStartTime(withdrawalId),
-                        assetPool.network,
-                    ),
-                ),
-                endTime: Number(
-                    await TransactionService.call(
-                        assetPool.solution.methods.getEndTime(withdrawalId),
-                        assetPool.network,
-                    ),
-                ),
-                yesCounter: 0,
-                noCounter: 0,
-                totalVoted: 0,
-            };
-            withdrawal.poll = poll;
-        }
+                withdrawal.withdrawalId = event.args.id;
+                withdrawal.transactions.push(String(tx._id));
 
-        return await withdrawal.save();
+                return await withdrawal.save();
+            } catch (error) {
+                withdrawal.updateOne({ failReason: error.message });
+                throw error;
+            }
+        }
     }
 
-    static async withdrawPollFinalize(assetPool: AssetPoolType, withdrawal: WithdrawalDocument) {
-        if (withdrawal.state === WithdrawalState.Deferred) {
-            throw new CannotWithdrawForCustodialError();
-        }
+    static async withdraw(assetPool: AssetPoolType, withdrawal: WithdrawalDocument) {
+        // if (NETWORK_ENVIRONMENT === 'dev' || NETWORK_ENVIRONMENT === 'prod') {
+        //     const tx = await InfuraService.send(
+        //         assetPool.address,
+        //         'withdrawPollFinalize',
+        //         [withdrawal.withdrawalId],
+        //         assetPool.network,
+        //     );
 
-        const tx = await TransactionService.send(
-            assetPool.solution.options.address,
-            assetPool.solution.methods.withdrawPollFinalize(withdrawal.withdrawalId),
-            assetPool.network,
-        );
+        //     withdrawal.transactions.push(String(tx._id));
 
-        const events = parseLogs(Artifacts.IDefaultDiamond.abi, tx.logs);
-        const eventWithdrawPollFinalized = findEvent('WithdrawPollFinalized', events);
-        const eventWithdrawn = findEvent('Withdrawn', events);
+        //     return await withdrawal.save();
+        // } else {
+        try {
+            const { tx, receipt } = await TransactionService.send(
+                assetPool.address,
+                assetPool.solution.methods.withdrawPollFinalize(withdrawal.withdrawalId),
+                assetPool.network,
+            );
 
-        if (eventWithdrawPollFinalized) {
-            withdrawal.poll = null;
-        }
+            const events = parseLogs(Artifacts.IDefaultDiamond.abi, receipt.logs);
 
-        if (eventWithdrawn) {
+            assertEvent('WithdrawPollFinalized', events);
+            assertEvent('Withdrawn', events);
+
+            withdrawal.transactions.push(String(tx._id));
             withdrawal.state = WithdrawalState.Withdrawn;
-        }
 
-        return await withdrawal.save();
+            return await withdrawal.save();
+        } catch (error) {
+            withdrawal.failReason = error.message;
+            throw error;
+        }
+        // }
     }
 
     static async getAll(
@@ -181,9 +139,13 @@ export default class WithdrawalService {
         rewardId?: number,
         state?: number,
     ) {
+        let account;
+        if (beneficiary) {
+            account = await AccountProxy.getByAddress(beneficiary);
+        }
         const query = {
             ...(poolAddress ? { poolAddress } : {}),
-            ...(beneficiary ? { beneficiary } : {}),
+            ...(account ? { sub: account.id } : {}),
             ...(rewardId || rewardId === 0 ? { rewardId } : {}),
             ...(state === 0 || state === 1 ? { state } : {}),
         };

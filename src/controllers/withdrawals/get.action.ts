@@ -87,15 +87,8 @@ export const getWithdrawal = async (req: Request, res: Response) => {
         state: withdrawal.state,
         failReason: withdrawal.failReason,
         amount: withdrawal.amount,
-        approved: withdrawal.approved,
+        transactions: withdrawal.transactions,
         createdAt: withdrawal.createdAt,
-        poll: {
-            startTime: withdrawal.poll.startTime,
-            endTime: withdrawal.poll.endTime,
-            yesCounter: withdrawal.poll.yesCounter,
-            noCounter: withdrawal.poll.noCounter,
-            totalVoted: withdrawal.poll.totalVoted,
-        },
     };
 
     res.json(result);

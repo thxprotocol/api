@@ -4,7 +4,7 @@ import { TContractEnvironmentConfig } from '@/types/TContractEnvironmentConfig';
 export const local: TContractEnvironmentConfig = {
     [NetworkProvider.Test]: [
         {
-            version: '1.0.5',
+            version: '1.0.7',
             assetPoolFactory: '0xb3B2b0fc5ce12aE58EEb13E19547Eb2Dd61A79D5',
             assetPoolRegistry: '0xb2Bea6009625407C3c3cF7158185125Ed2C7f101',
             facets: {
@@ -12,7 +12,7 @@ export const local: TContractEnvironmentConfig = {
                 MemberAccess: '0xEAB9a65eB0F098f822033192802B53EE159De5F0',
                 Token: '0x055cBfeD6df4AFE2452b18fd3D2592D1795592b4',
                 BasePollProxy: '0xb63564A81D5d4004F4f22E9aB074cE25540B0C26',
-                GasStationFacet: '0x50aF0922d65D04D87d810048Dc640E2474eBfbd9',
+                RelayHub: '0x50aF0922d65D04D87d810048Dc640E2474eBfbd9',
                 UpdateDiamond: '0x15FC0878406CcF4d2963235A5B1EF68C67F17Ee5',
                 WithdrawBy: '0x8613B8E442219e4349fa5602C69431131a7ED114',
                 WithdrawByPoll: '0x8B219D3d1FC64e03F6cF3491E7C7A732bF253EC8',
@@ -29,7 +29,7 @@ export const local: TContractEnvironmentConfig = {
     ],
     [NetworkProvider.Main]: [
         {
-            version: '1.0.5',
+            version: '1.0.7',
             assetPoolFactory: '0xb3B2b0fc5ce12aE58EEb13E19547Eb2Dd61A79D5',
             assetPoolRegistry: '0xb2Bea6009625407C3c3cF7158185125Ed2C7f101',
             facets: {
@@ -37,7 +37,7 @@ export const local: TContractEnvironmentConfig = {
                 MemberAccess: '0xEAB9a65eB0F098f822033192802B53EE159De5F0',
                 Token: '0x055cBfeD6df4AFE2452b18fd3D2592D1795592b4',
                 BasePollProxy: '0xb63564A81D5d4004F4f22E9aB074cE25540B0C26',
-                GasStationFacet: '0x50aF0922d65D04D87d810048Dc640E2474eBfbd9',
+                RelayHub: '0x50aF0922d65D04D87d810048Dc640E2474eBfbd9',
                 UpdateDiamond: '0x15FC0878406CcF4d2963235A5B1EF68C67F17Ee5',
                 WithdrawBy: '0x8613B8E442219e4349fa5602C69431131a7ED114',
                 WithdrawByPoll: '0x8B219D3d1FC64e03F6cF3491E7C7A732bF253EC8',
