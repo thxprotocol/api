@@ -32,6 +32,7 @@ export const Artifacts = {
     MemberAccess,
     Token,
     RelayHub,
+    GasStationFacet: false,
     BasePollProxy,
     UpdateDiamond,
     WithdrawBy,
