@@ -30,15 +30,17 @@ module.exports = {
         const withdrawalsColl = db.collection('withdrawals');
 
         for (const beneficiary of await withdrawalsColl.distinct('beneficiary')) {
-            const r = await axios({
-                method: 'GET',
-                url: `${process.env.AUTH_URL}/account/address/${beneficiary}`,
-                headers: {
-                    Authorization: `Bearer ${authAccessToken}`,
-                },
-            });
-            if (r.status === 200) {
+            try {
+                const r = await axios({
+                    method: 'GET',
+                    url: `${process.env.AUTH_URL}/account/address/${beneficiary}`,
+                    headers: {
+                        Authorization: `Bearer ${authAccessToken}`,
+                    },
+                });
                 await withdrawalsColl.updateMany({ beneficiary }, { $set: { sub: r.data.id } });
+            } catch (error) {
+                console.log(error);
             }
         }
     },
