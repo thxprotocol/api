@@ -70,6 +70,9 @@ export async function updateAssetPool(pool: AssetPoolDocument, version?: string)
         pool.solution.methods.diamondCut(diamondCuts, ADDRESS_ZERO, '0x'),
         pool.network,
     );
+
+    pool.version = version;
+    await pool.save();
 }
 
 export const updateToVersion = async (assetPool: AssetPoolType, version: string) => {
