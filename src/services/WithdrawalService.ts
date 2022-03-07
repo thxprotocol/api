@@ -165,7 +165,6 @@ export default class WithdrawalService {
             sub,
             rewardId,
             poolAddress,
-            state: WithdrawalState.Withdrawn,
         });
 
         return !!withdrawal;
