@@ -1,10 +1,9 @@
 import { getSelectors, ADDRESS_ZERO } from './network';
 import TransactionService from '@/services/TransactionService';
 
-import { poolFacetAdresses, poolFacetContracts } from '@/config/contracts';
-import { pick, uniq } from '.';
-import { Artifacts } from '../config/contracts/artifacts';
-import { AssetPoolDocument, AssetPoolType } from '@/models/AssetPool';
+import { poolFacetContracts } from '@/config/contracts';
+import { uniq } from '.';
+import { AssetPoolDocument } from '@/models/AssetPool';
 
 export enum FacetCutAction {
     Add = 0,

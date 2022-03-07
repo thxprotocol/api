@@ -25,8 +25,7 @@ describe('Happy Flow', () => {
         poolAddress: string,
         withdrawDocumentId: string,
         withdrawPollID: string,
-        userWallet: Account,
-        testToken: Contract;
+        userWallet: Account;
 
     beforeAll(async () => {
         await beforeAllCallback();
