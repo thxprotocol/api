@@ -56,7 +56,7 @@ describe('Reward Claim', () => {
             .send({
                 withdrawAmount: rewardWithdrawAmount,
                 withdrawDuration: 0,
-                isClaimOnce: false,
+                isClaimOnce: true,
                 isMembershipRequired: false,
             })
             .expect((res: request.Response) => {
@@ -125,6 +125,12 @@ describe('Reward Claim', () => {
                     expect(res.body.state).toEqual(WithdrawalState.Withdrawn);
                 })
                 .expect(200, done);
+        });
+
+        it('should return a 403 for this second claim', (done) => {
+            user.post(`/v1/rewards/${rewardID}/claim`)
+                .set({ AssetPool: poolAddress, Authorization: userAccessToken })
+                .expect(403, done);
         });
     });
 });
