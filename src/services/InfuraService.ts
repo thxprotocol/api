@@ -140,4 +140,11 @@ async function getTransactionStatus(assetPool: AssetPoolType, tx: TransactionDoc
     }
 }
 
-export default { getGasTank, getAdminBalance, send, getTransactionStatus };
+async function pending() {
+    return Transaction.find({
+        relayTransactionHash: { $exists: true },
+        transactionHash: { $exists: false },
+    });
+}
+
+export default { getGasTank, getAdminBalance, send, getTransactionStatus, pending };

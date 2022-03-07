@@ -5,8 +5,7 @@ import { getProvider, getEstimatesFromOracle } from '@/util/network';
 import { NetworkProvider } from '@/types/enums';
 
 import InfuraService from '@/services/InfuraService';
-import { assetPoolFactoryAddress, assetPoolRegistryAddress, facetAdresses } from '@/config/contracts';
-import { Transaction } from '@/models/Transaction';
+import { assetPoolFactoryAddress, assetPoolRegistryAddress, currentVersion, facetAdresses } from '@/config/contracts';
 
 async function getNetworkDetails(npid: NetworkProvider, constants: { factory: string; registry: string }) {
     const { admin, web3 } = getProvider(npid);
@@ -19,12 +18,7 @@ async function getNetworkDetails(npid: NetworkProvider, constants: { factory: st
         feeData,
         balance: fromWei(balance, 'ether'),
         relay: {
-            queue: (
-                await Transaction.find({
-                    relayTransactionHash: { $exists: true },
-                    transactionHash: { $exists: false },
-                })
-            ).length,
+            queue: (await InfuraService.pending()).length,
             gasTank: {
                 address: InfuraService.getGasTank(npid),
                 balance: fromWei(gasTank, 'ether'),
@@ -41,6 +35,7 @@ export const getHealth = async (req: Request, res: Response) => {
         name,
         version,
         license,
+        artifacts: currentVersion,
         testnet: await getNetworkDetails(NetworkProvider.Test, {
             factory: assetPoolFactoryAddress(NetworkProvider.Test),
             registry: assetPoolRegistryAddress(NetworkProvider.Test),
