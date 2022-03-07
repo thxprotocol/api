@@ -9,7 +9,7 @@ import { toWei, fromWei, toChecksumAddress } from 'web3-utils';
 import { Membership } from '@/models/Membership';
 import { THXError } from '@/util/errors';
 import TransactionService from './TransactionService';
-import { assetPoolRegistryAddress, poolFacetAdressesPermutations } from '@/config/contracts';
+import { assetPoolRegistryAddress, currentVersion, poolFacetAdressesPermutations } from '@/config/contracts';
 import { logger } from '@/util/logger';
 
 export const ADMIN_ROLE = '0x0000000000000000000000000000000000000000000000000000000000000000';
@@ -117,6 +117,7 @@ export default class AssetPoolService {
             transactionHash: event.transactionHash,
             bypassPolls: true,
             network: network,
+            version: currentVersion,
         });
 
         return assetPool;

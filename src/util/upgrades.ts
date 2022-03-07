@@ -70,10 +70,7 @@ export async function updateAssetPool(pool: AssetPoolDocument, version?: string)
         pool.solution.methods.diamondCut(diamondCuts, ADDRESS_ZERO, '0x'),
         pool.network,
     );
-}
 
-export const updateToVersion = async (assetPool: AssetPoolType, version: string) => {
-    const addresses = poolFacetAdresses(assetPool.network, version);
-    const artifacts = Object.values(pick(Artifacts, Object.keys(addresses) as (keyof typeof Artifacts)[]));
-    console.log(artifacts);
-};
+    pool.version = version;
+    await pool.save();
+}
