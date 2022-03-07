@@ -160,9 +160,9 @@ export default class WithdrawalService {
         }
     }
 
-    static async hasClaimedOnce(poolAddress: string, beneficiary: string, rewardId: number) {
+    static async hasClaimedOnce(poolAddress: string, sub: string, rewardId: number) {
         const withdrawal = await Withdrawal.findOne({
-            beneficiary,
+            sub,
             rewardId,
             poolAddress,
             state: WithdrawalState.Withdrawn,

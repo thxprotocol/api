@@ -6,7 +6,6 @@ import { Artifacts } from '@/config/contracts/artifacts';
 import { soliditySha3 } from 'web3-utils';
 import { Transaction, TransactionDocument } from '@/models/Transaction';
 import { AssetPoolType } from '@/models/AssetPool';
-import { fromWei } from 'web3-utils';
 
 const testnet = new ethers.providers.InfuraProvider('maticmum', INFURA_PROJECT_ID);
 const mainnet = new ethers.providers.InfuraProvider('matic', INFURA_PROJECT_ID);
@@ -49,7 +48,7 @@ async function deposit(value: BigNumber, npid: NetworkProvider) {
         value,
         from: await admin.getAddress(),
         maxFeePerGas: parseUnits('50', 'gwei'),
-        maxPriorityFeePerGas: parseUnits('30', 'gwei'),
+        maxPriorityFeePerGas: parseUnits('35', 'gwei'),
     });
     return await tx.wait();
 }
@@ -147,4 +146,4 @@ async function pending() {
     });
 }
 
-export default { getGasTank, getAdminBalance, send, getTransactionStatus, pending };
+export default { getGasTank, deposit, getAdminBalance, send, getTransactionStatus, pending };
