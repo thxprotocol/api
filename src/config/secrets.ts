@@ -4,7 +4,6 @@ dotenv.config();
 
 const required = [
     'ISSUER',
-    'SECURE_KEY',
     'AUTH_URL',
     'API_URL',
     'WALLET_URL',
@@ -47,7 +46,6 @@ if (process.env.NODE_ENV === 'test') {
 export const VERSION = 'v1';
 export const NODE_ENV = process.env.NODE_ENV || 'development';
 export const ISSUER = process.env.ISSUER;
-export const SECURE_KEY = process.env.SECURE_KEY;
 export const AUTH_URL = process.env.AUTH_URL;
 export const API_URL = process.env.API_URL;
 export const WALLET_URL = process.env.WALLET_URL;
