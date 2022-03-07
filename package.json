@@ -25,7 +25,7 @@
     },
     "dependencies": {
         "@godaddy/terminus": "^4.9.0",
-        "@thxnetwork/artifacts": "^1.0.7",
+        "@thxnetwork/artifacts": "1.0.7",
         "agenda": "^4.2.1",
         "axios": "^0.21.3",
         "bluebird": "^3.5.5",
