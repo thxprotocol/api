@@ -74,9 +74,3 @@ export async function updateAssetPool(pool: AssetPoolDocument, version?: string)
     pool.version = version;
     await pool.save();
 }
-
-export const updateToVersion = async (assetPool: AssetPoolType, version: string) => {
-    const addresses = poolFacetAdresses(assetPool.network, version);
-    const artifacts = Object.values(pick(Artifacts, Object.keys(addresses) as (keyof typeof Artifacts)[]));
-    console.log(artifacts);
-};
