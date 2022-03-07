@@ -65,7 +65,7 @@ export default class RewardService {
             return false;
         }
 
-        const withdrawal = await WithdrawalService.hasClaimedOnce(assetPool.address, account.address, reward.id);
+        const withdrawal = await WithdrawalService.hasClaimedOnce(assetPool.address, account.id, reward.id);
         // Can only claim this reward once and a withdrawal already exists
         if (reward.isClaimOnce && withdrawal) {
             return false;
