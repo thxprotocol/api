@@ -1,4 +1,3 @@
-import { NetworkProvider } from '@/types/enums';
 import { TTransaction } from '@/types/TTransaction';
 import mongoose from 'mongoose';
 
@@ -17,7 +16,7 @@ const transactionSchema = new mongoose.Schema(
         maxFeePerGas: String,
         maxPriorityFeePerGas: String,
         state: Number,
-        network: NetworkProvider,
+        network: Number,
     },
     { timestamps: true },
 );
