@@ -6,7 +6,6 @@ import { Artifacts } from '@/config/contracts/artifacts';
 import { Withdrawal } from '@/models/Withdrawal';
 import { logger } from '@/util/logger';
 import MemberService from '@/services/MemberService';
-import { Member } from '@/models/Member';
 import { WithdrawalState } from '@/types/enums';
 
 export async function jobRequireTransactions() {

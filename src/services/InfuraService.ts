@@ -97,7 +97,8 @@ async function send(to: string, fn: string, args: any[], npid: NetworkProvider) 
     const tx = {
         to,
         data,
-        gas: '250000',
+        // Hardcode value since relayed calls are not estimated correctly
+        gas: '500000',
         schedule: 'fast',
     };
     const signature = await signRequest(tx, admin);
