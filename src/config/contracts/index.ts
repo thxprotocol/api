@@ -27,6 +27,13 @@ const poolFacets: ArtifactsKey[] = [
     'WithdrawByPollProxy',
 ];
 
+const factoryFacets: ArtifactsKey[] = [
+    'DiamondCutFacet',
+    'DiamondLoupeFacet',
+    'OwnershipFacet',
+    'AssetPoolFactoryFacet',
+];
+
 export const assetPoolFactoryAddress = (npid: NetworkProvider, version?: string) => {
     return contractAddressConfig[npid].find((conf: { version: string }) => conf.version === (version || currentVersion))
         .assetPoolFactory;
@@ -47,8 +54,23 @@ export const poolFacetAdresses = (npid: NetworkProvider, version?: string): { [k
     return pick(facets, poolFacets);
 };
 
+export const factoryFacetAdresses = (npid: NetworkProvider, version?: string): { [key in ArtifactsKey]?: string } => {
+    const facets = facetAdresses(npid, version);
+
+    return pick(facets, factoryFacets);
+};
+
 export const poolFacetContracts = (npid: NetworkProvider, version?: string) => {
     const addresses = poolFacetAdresses(npid, version);
+    const { web3 } = getProvider(npid);
+
+    return Object.entries(addresses).map(([name, address]: [ArtifactsKey, string]) => {
+        return new web3.eth.Contract((Artifacts[name] as any).abi, address);
+    });
+};
+
+export const factoryFacetContracts = (npid: NetworkProvider, version?: string) => {
+    const addresses = factoryFacetAdresses(npid, version);
     const { web3 } = getProvider(npid);
 
     return Object.entries(addresses).map(([name, address]: [ArtifactsKey, string]) => {

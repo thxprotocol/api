@@ -78,7 +78,7 @@ export function getSelectors(contract: Contract) {
 
 export const getAssetPoolFactory = (npid: NetworkProvider): Contract => {
     const { web3 } = getProvider(npid);
-    return new web3.eth.Contract(Artifacts.IAssetPoolFactory.abi as any, assetPoolFactoryAddress(npid));
+    return new web3.eth.Contract(Artifacts.IDefaultFactory.abi as any, assetPoolFactoryAddress(npid));
 };
 
 export async function deployUnlimitedSupplyERC20Contract(
