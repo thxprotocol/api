@@ -6,10 +6,7 @@ import { NotFoundError } from '@/util/errors';
 
 export const deleteMember = async (req: Request, res: Response) => {
     const isMember = await MemberService.isMember(req.assetPool, req.params.address);
-
-    if (!isMember) {
-        throw new NotFoundError();
-    }
+    if (!isMember) throw new NotFoundError();
 
     await MemberService.removeMember(req.assetPool, req.params.address);
 

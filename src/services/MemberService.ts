@@ -1,22 +1,11 @@
 import { tokenContract } from '@/util/network';
-import { AssetPoolType } from '@/models/AssetPool';
+import { AssetPoolDocument, AssetPoolType } from '@/models/AssetPool';
 import { assertEvent, parseLogs } from '@/util/events';
 import { Artifacts } from '@/config/contracts/artifacts';
 import { IMember, Member } from '@/models/Member';
 import { fromWei } from 'web3-utils';
-import { THXError } from '@/util/errors';
+import { NotAMemberError, THXError } from '@/util/errors';
 import TransactionService from './TransactionService';
-
-class NotAMemberError extends THXError {
-    constructor(address: string, assetPool: string) {
-        super(`${address} is not a member of assetPool ${assetPool}`);
-    }
-}
-class AlreadyAMemberError extends THXError {
-    constructor(address: string, assetPool: string) {
-        super(`${address} is already a member of assetPool ${assetPool}`);
-    }
-}
 
 export default class MemberService {
     static async getByAddress(assetPool: AssetPoolType, address: string) {
@@ -59,35 +48,37 @@ export default class MemberService {
         return members.map((member: IMember) => member.address);
     }
 
+    static getMemberByAddress(assetPool: AssetPoolType, address: string): Promise<number> {
+        return TransactionService.call(assetPool.solution.methods.getMemberByAddress(address), assetPool.network);
+    }
+
     static async addMember(assetPool: AssetPoolType, address: string) {
-        const isMember = await this.isMember(assetPool, address);
-
-        // if (isMember) {
-        //     throw new AlreadyAMemberError(address, assetPool.address);
-        // }
-
-        if (!isMember) {
-            const { receipt } = await TransactionService.send(
-                assetPool.address,
-                assetPool.solution.methods.addMember(address),
-                assetPool.network,
-            );
-
-            assertEvent('RoleGranted', parseLogs(Artifacts.IDefaultDiamond.abi, receipt.logs));
-        }
-
-        const memberId = await TransactionService.call(
-            assetPool.solution.methods.getMemberByAddress(address),
+        const { receipt } = await TransactionService.send(
+            assetPool.address,
+            assetPool.solution.methods.addMember(address),
             assetPool.network,
         );
 
-        await Member.create({
+        assertEvent('RoleGranted', parseLogs(Artifacts.IDefaultDiamond.abi, receipt.logs));
+
+        const memberId = await this.getMemberByAddress(assetPool, address);
+
+        return await Member.create({
             poolAddress: assetPool.address,
             memberId: Number(memberId),
             address,
         });
+    }
 
-        return memberId;
+    static async addExistingMember(assetPool: AssetPoolType, address: string) {
+        const memberId = await MemberService.getMemberByAddress(assetPool, address);
+        // Not using MemberService.addMember here since member is already added in the
+        // solidity storage
+        return await Member.create({
+            poolAddress: assetPool.address,
+            memberId: Number(memberId),
+            address,
+        });
     }
 
     static isMember(assetPool: AssetPoolType, address: string) {
@@ -99,12 +90,6 @@ export default class MemberService {
     }
 
     static async removeMember(assetPool: AssetPoolType, address: string) {
-        const isMember = await this.isMember(assetPool, address);
-
-        if (!isMember) {
-            throw new NotAMemberError(address, assetPool.address);
-        }
-
         const { receipt } = await TransactionService.send(
             assetPool.address,
             assetPool.solution.methods.removeMember(address),
@@ -112,9 +97,7 @@ export default class MemberService {
         );
         assertEvent('RoleRevoked', parseLogs(Artifacts.IDefaultDiamond.abi, receipt.logs));
 
-        const member = await Member.findOne({ poolAddress: assetPool.address, address });
-
-        await member.remove();
+        return await Member.deleteOne({ poolAddress: assetPool.address, address });
     }
 
     upgradeAddress() {

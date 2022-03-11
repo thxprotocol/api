@@ -5,6 +5,8 @@ import { Transaction, TransactionDocument } from '@/models/Transaction';
 import { Artifacts } from '@/config/contracts/artifacts';
 import { Withdrawal } from '@/models/Withdrawal';
 import { logger } from '@/util/logger';
+import MemberService from '@/services/MemberService';
+import { Member } from '@/models/Member';
 
 export async function jobRequireTransactions() {
     const transactions = await Transaction.find({
@@ -26,8 +28,6 @@ export async function jobRequireTransactions() {
 
             logger.error(error);
 
-            // TODO Store the events in this receipt to query later
-            // TODO No longer update withdrawals but respond with data based on events in the database
             await Withdrawal.updateOne(
                 { transactions: String(tx._id) },
                 {
@@ -40,8 +40,6 @@ export async function jobRequireTransactions() {
 
         const event = findEvent('WithdrawPollCreated', events);
         if (event) {
-            // TODO Store the events in this receipt to query later
-            // TODO No longer update withdrawals but respond with data based on events in the database
             await Withdrawal.updateOne(
                 { transactions: String(tx._id) },
                 {
@@ -50,6 +48,11 @@ export async function jobRequireTransactions() {
                     failReason: '',
                 },
             );
+        }
+
+        const roleGranted = findEvent('RoleGranted', events);
+        if (roleGranted) {
+            await MemberService.addExistingMember(assetPool, roleGranted.args.account);
         }
     });
 }

@@ -67,13 +67,6 @@ describe('Reward Claim', () => {
             .expect(201, done);
     });
 
-    // it('Add member', (done) => {
-    //     user.post('/v1/members/')
-    //         .send({ address: userWallet.address })
-    //         .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
-    //         .expect(302, done);
-    // });
-
     describe('POST /rewards/:id/claim', () => {
         it('should return a 200 and withdrawal id', (done) => {
             user.post(`/v1/rewards/${rewardID}/claim`)

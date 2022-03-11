@@ -12,6 +12,7 @@ import { NETWORK_ENVIRONMENT } from '@/config/secrets';
 import InfuraService from './InfuraService';
 import AccountProxy from '@/proxies/AccountProxy';
 import MemberService from './MemberService';
+import { Member } from '@/models/Member';
 
 export default class WithdrawalService {
     static getById(id: string) {
@@ -87,7 +88,7 @@ export default class WithdrawalService {
                 const roleGranted = findEvent('RoleGranted', events);
 
                 if (roleGranted) {
-                    await MemberService.addMember(assetPool, account.address);
+                    await MemberService.addExistingMember(assetPool, roleGranted.args.account);
                 }
 
                 withdrawal.withdrawalId = event.args.id;

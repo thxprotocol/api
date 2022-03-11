@@ -8,6 +8,17 @@ class THXError extends Error {
     }
 }
 
+class NotAMemberError extends THXError {
+    constructor(address: string, assetPool: string) {
+        super(`${address} is not a member of assetPool ${assetPool}`);
+    }
+}
+class AlreadyAMemberError extends THXError {
+    constructor(address: string, assetPool: string) {
+        super(`${address} is already a member of assetPool ${assetPool}`);
+    }
+}
+
 class THXHttpError extends THXError {
     status: number;
     constructor(message?: string, status?: number) {
@@ -125,4 +136,6 @@ export {
     GetPastWithdrawnEventsError,
     DuplicateEmailError,
     GetPastWithdrawPollCreatedEventsError,
+    NotAMemberError,
+    AlreadyAMemberError,
 };
