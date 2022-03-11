@@ -1,9 +1,10 @@
-import { getSelectors, ADDRESS_ZERO } from './network';
+import { getSelectors, ADDRESS_ZERO, getAssetPoolFactory } from './network';
 import TransactionService from '@/services/TransactionService';
-
-import { poolFacetContracts } from '@/config/contracts';
+import { Contract } from 'web3-eth-contract';
+import { factoryFacetContracts, poolFacetContracts } from '@/config/contracts';
 import { uniq } from '.';
 import { AssetPoolDocument } from '@/models/AssetPool';
+import { NetworkProvider } from '@/types/enums';
 
 export enum FacetCutAction {
     Add = 0,
@@ -11,7 +12,7 @@ export enum FacetCutAction {
     Remove = 2,
 }
 
-function getDiamonCutsFromSelectorsMap(map: Map<string, string>, action: FacetCutAction) {
+function getDiamondCutsFromSelectorsMap(map: Map<string, string>, action: FacetCutAction) {
     const result = [];
     for (const facetAddress of uniq([...map.values()])) {
         result.push({
@@ -23,9 +24,7 @@ function getDiamonCutsFromSelectorsMap(map: Map<string, string>, action: FacetCu
     return result;
 }
 
-export async function updateAssetPool(pool: AssetPoolDocument, version?: string) {
-    const facets = await pool.solution.methods.facets().call();
-
+function getDiamondCutForContractFacets(newContracts: Contract[], facets: any[]) {
     const currentSelectorMapping = new Map();
     facets.forEach((facet: any) =>
         facet.functionSelectors.forEach((selector: string) => {
@@ -33,7 +32,6 @@ export async function updateAssetPool(pool: AssetPoolDocument, version?: string)
         }),
     );
 
-    const newContracts = poolFacetContracts(pool.network, version);
     const additions = new Map();
     for (const contract of newContracts) {
         getSelectors(contract).forEach((selector: string) => {
@@ -60,9 +58,17 @@ export async function updateAssetPool(pool: AssetPoolDocument, version?: string)
 
     const diamondCuts = [];
 
-    diamondCuts.push(...getDiamonCutsFromSelectorsMap(replaces, FacetCutAction.Replace));
-    diamondCuts.push(...getDiamonCutsFromSelectorsMap(deletions, FacetCutAction.Remove));
-    diamondCuts.push(...getDiamonCutsFromSelectorsMap(additions, FacetCutAction.Add));
+    diamondCuts.push(...getDiamondCutsFromSelectorsMap(replaces, FacetCutAction.Replace));
+    diamondCuts.push(...getDiamondCutsFromSelectorsMap(deletions, FacetCutAction.Remove));
+    diamondCuts.push(...getDiamondCutsFromSelectorsMap(additions, FacetCutAction.Add));
+
+    return diamondCuts;
+}
+
+export async function updateAssetPool(pool: AssetPoolDocument, version?: string) {
+    const facets = await pool.solution.methods.facets().call();
+    const newContracts = poolFacetContracts(pool.network, version);
+    const diamondCuts = getDiamondCutForContractFacets(newContracts, facets);
 
     await TransactionService.send(
         pool.solution.options.address,
@@ -72,4 +78,17 @@ export async function updateAssetPool(pool: AssetPoolDocument, version?: string)
 
     pool.version = version;
     await pool.save();
+}
+
+export async function updateAssetPoolFactory(npid: NetworkProvider, version?: string) {
+    const factory = getAssetPoolFactory(npid);
+    const facets = await factory.methods.facets().call();
+    const newContracts = factoryFacetContracts(npid, version);
+    const diamondCuts = getDiamondCutForContractFacets(newContracts, facets);
+
+    await TransactionService.send(
+        factory.options.address,
+        factory.methods.diamondCut(diamondCuts, ADDRESS_ZERO, '0x'),
+        npid,
+    );
 }

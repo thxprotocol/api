@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import { BadRequestError, ForbiddenError } from '@/util/errors';
 import { WithdrawalState, WithdrawalType } from '@/types/enums';
-import { TWithdrawal } from '@/types/Withdrawal';
+import { TWithdrawal } from '@/types/TWithdrawal';
 import AccountProxy from '@/proxies/AccountProxy';
 import RewardService from '@/services/RewardService';
 import MemberService from '@/services/MemberService';
@@ -30,10 +30,6 @@ export async function postRewardClaim(req: Request, res: Response) {
 
     const isMember = await MemberService.isMember(req.assetPool, account.address);
     if (!isMember && reward.isMembershipRequired) throw new ForbiddenError(ERROR_NO_MEMBER);
-    if (!isMember && !reward.isMembershipRequired) {
-        // TODO Handle this in a batch tx with ITX support
-        await MemberService.addMember(req.assetPool, account.address);
-    }
 
     const hasMembership = await MembershipService.hasMembership(req.assetPool, account.id);
     if (!hasMembership && !reward.isMembershipRequired) {

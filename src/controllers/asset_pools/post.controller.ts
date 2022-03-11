@@ -31,7 +31,6 @@ export const createAssetPoolValidation = [
 
 export const postAssetPool = async (req: Request, res: Response) => {
     const assetPool = await AssetPoolService.deploy(req.user.sub, req.body.network);
-    await AssetPoolService.init(assetPool);
     await AssetPoolService.addPoolToken(assetPool, req.body.token);
     await MembershipService.addMembership(req.user.sub, assetPool);
 

@@ -2,8 +2,9 @@ import dotenv from 'dotenv';
 import db from '@/util/database';
 import { currentVersion } from '@/config/contracts/index';
 import { MONGODB_URI } from '@/config/secrets';
-import { updateAssetPool } from './upgrades';
+import { updateAssetPool, updateAssetPoolFactory } from './upgrades';
 import { AssetPool } from '@/models/AssetPool';
+import { NetworkProvider } from '@/types/enums';
 
 dotenv.config();
 db.connect(MONGODB_URI);
@@ -19,6 +20,16 @@ async function main() {
             console.error(pool.address, error);
         }
     }
+
+    try {
+        console.log('Upgrade Factory (Mumbai):', currentVersion);
+        await updateAssetPoolFactory(NetworkProvider.Test, currentVersion);
+        console.log('Upgrade Factory (Mainnet):', currentVersion);
+        await updateAssetPoolFactory(NetworkProvider.Main, currentVersion);
+    } catch (error) {
+        console.error(error);
+    }
+
     const endTime = Date.now();
     console.log('Done!', startTime, endTime, endTime - startTime);
 }

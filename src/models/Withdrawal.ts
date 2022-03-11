@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import { TWithdrawal } from '@/types/Withdrawal';
+import { TWithdrawal } from '@/types/TWithdrawal';
 
 export type WithdrawalDocument = mongoose.Document & TWithdrawal;
 

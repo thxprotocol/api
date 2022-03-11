@@ -25,6 +25,7 @@ import ExampleToken from '@thxnetwork/artifacts/artifacts/contracts/util/Example
 
 // Interfaces
 import IAssetPoolFactory from '@thxnetwork/artifacts/artifacts/contracts/AssetPoolFactory/IAssetPoolFactory.sol/IAssetPoolFactory.json';
+import IDefaultFactory from '@thxnetwork/artifacts/artifacts/contracts/AssetPoolFactory/IDefaultFactory.sol/IDefaultFactory.json';
 import IDefaultDiamond from '@thxnetwork/artifacts/artifacts/contracts/IDefaultDiamond.sol/IDefaultDiamond.json';
 
 export const Artifacts = {
@@ -52,6 +53,7 @@ export const Artifacts = {
     Diamond,
 
     IAssetPoolFactory,
+    IDefaultFactory,
     IDefaultDiamond,
 
     ERC20,

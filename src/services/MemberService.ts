@@ -4,26 +4,12 @@ import { assertEvent, parseLogs } from '@/util/events';
 import { Artifacts } from '@/config/contracts/artifacts';
 import { IMember, Member } from '@/models/Member';
 import { fromWei } from 'web3-utils';
-import { THXError } from '@/util/errors';
 import TransactionService from './TransactionService';
-
-class NotAMemberError extends THXError {
-    constructor(address: string, assetPool: string) {
-        super(`${address} is not a member of assetPool ${assetPool}`);
-    }
-}
-class AlreadyAMemberError extends THXError {
-    constructor(address: string, assetPool: string) {
-        super(`${address} is already a member of assetPool ${assetPool}`);
-    }
-}
 
 export default class MemberService {
     static async getByAddress(assetPool: AssetPoolType, address: string) {
         const isMember = await this.isMember(assetPool, address);
-
         const isManager = await this.isManager(assetPool, address);
-
         const memberId = await TransactionService.call(
             assetPool.solution.methods.getMemberByAddress(address),
             assetPool.network,
@@ -53,19 +39,21 @@ export default class MemberService {
         return Member.findOne({ address });
     }
 
+    static async countByPoolAddress(assetPool: AssetPoolType) {
+        return (await Member.find({ poolAddress: assetPool.address })).length;
+    }
+
     static async getByPoolAddress(assetPool: AssetPoolType) {
         const members = await Member.find({ poolAddress: assetPool.address });
 
         return members.map((member: IMember) => member.address);
     }
 
+    static getMemberByAddress(assetPool: AssetPoolType, address: string): Promise<number> {
+        return TransactionService.call(assetPool.solution.methods.getMemberByAddress(address), assetPool.network);
+    }
+
     static async addMember(assetPool: AssetPoolType, address: string) {
-        const isMember = await this.isMember(assetPool, address);
-
-        if (isMember) {
-            throw new AlreadyAMemberError(address, assetPool.address);
-        }
-
         const { receipt } = await TransactionService.send(
             assetPool.address,
             assetPool.solution.methods.addMember(address),
@@ -74,24 +62,24 @@ export default class MemberService {
 
         assertEvent('RoleGranted', parseLogs(Artifacts.IDefaultDiamond.abi, receipt.logs));
 
-        const memberId = await TransactionService.call(
-            assetPool.solution.methods.getMemberByAddress(address),
-            assetPool.network,
-        );
+        const memberId = await this.getMemberByAddress(assetPool, address);
 
-        const members = await Member.find({ poolAddress: assetPool.address, address, memberId });
+        return await Member.create({
+            poolAddress: assetPool.address,
+            memberId: Number(memberId),
+            address,
+        });
+    }
 
-        if (!members.length) {
-            const member = new Member({
-                poolAddress: assetPool.address,
-                memberId: Number(memberId),
-                address,
-            });
-
-            await member.save();
-        }
-
-        return memberId;
+    static async addExistingMember(assetPool: AssetPoolType, address: string) {
+        const memberId = await MemberService.getMemberByAddress(assetPool, address);
+        // Not using MemberService.addMember here since member is already added in the
+        // solidity storage
+        return await Member.create({
+            poolAddress: assetPool.address,
+            memberId: Number(memberId),
+            address,
+        });
     }
 
     static isMember(assetPool: AssetPoolType, address: string) {
@@ -103,12 +91,6 @@ export default class MemberService {
     }
 
     static async removeMember(assetPool: AssetPoolType, address: string) {
-        const isMember = await this.isMember(assetPool, address);
-
-        if (!isMember) {
-            throw new NotAMemberError(address, assetPool.address);
-        }
-
         const { receipt } = await TransactionService.send(
             assetPool.address,
             assetPool.solution.methods.removeMember(address),
@@ -116,9 +98,7 @@ export default class MemberService {
         );
         assertEvent('RoleRevoked', parseLogs(Artifacts.IDefaultDiamond.abi, receipt.logs));
 
-        const member = await Member.findOne({ poolAddress: assetPool.address, address });
-
-        await member.remove();
+        return await Member.deleteOne({ poolAddress: assetPool.address, address });
     }
 
     upgradeAddress() {

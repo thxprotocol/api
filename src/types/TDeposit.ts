@@ -1,6 +1,6 @@
 import { DepositState } from '@/types/enums/DepositState';
 
-export type DepositType = {
+export type TDeposit = {
     sub: string;
     amount: number;
     sender: string;
