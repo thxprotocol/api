@@ -30,10 +30,6 @@ export async function postRewardClaim(req: Request, res: Response) {
 
     const isMember = await MemberService.isMember(req.assetPool, account.address);
     if (!isMember && reward.isMembershipRequired) throw new ForbiddenError(ERROR_NO_MEMBER);
-    if (!isMember && !reward.isMembershipRequired) {
-        // TODO Handle this in a batch tx with ITX support
-        await MemberService.addMember(req.assetPool, account.address);
-    }
 
     const hasMembership = await MembershipService.hasMembership(req.assetPool, account.id);
     if (!hasMembership && !reward.isMembershipRequired) {

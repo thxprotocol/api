@@ -5,12 +5,13 @@ import { AssetPoolType } from '@/models/AssetPool';
 import { Withdrawal, WithdrawalDocument } from '@/models/Withdrawal';
 import { IAccount } from '@/models/Account';
 import { Artifacts } from '@/config/contracts/artifacts';
-import { parseLogs, assertEvent } from '@/util/events';
+import { parseLogs, assertEvent, findEvent } from '@/util/events';
 import { paginatedResults } from '@/util/pagination';
 import TransactionService from './TransactionService';
 import { NETWORK_ENVIRONMENT } from '@/config/secrets';
 import InfuraService from './InfuraService';
 import AccountProxy from '@/proxies/AccountProxy';
+import MemberService from './MemberService';
 
 export default class WithdrawalService {
     static getById(id: string) {
@@ -83,6 +84,11 @@ export default class WithdrawalService {
                 );
                 const events = parseLogs(Artifacts.IDefaultDiamond.abi, receipt.logs);
                 const event = assertEvent('WithdrawPollCreated', events);
+                const roleGranted = findEvent('RoleGranted', events);
+
+                if (roleGranted) {
+                    await MemberService.addMember(assetPool, account.address);
+                }
 
                 withdrawal.withdrawalId = event.args.id;
                 withdrawal.transactions.push(String(tx._id));

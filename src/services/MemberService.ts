@@ -62,34 +62,30 @@ export default class MemberService {
     static async addMember(assetPool: AssetPoolType, address: string) {
         const isMember = await this.isMember(assetPool, address);
 
-        if (isMember) {
-            throw new AlreadyAMemberError(address, assetPool.address);
+        // if (isMember) {
+        //     throw new AlreadyAMemberError(address, assetPool.address);
+        // }
+
+        if (!isMember) {
+            const { receipt } = await TransactionService.send(
+                assetPool.address,
+                assetPool.solution.methods.addMember(address),
+                assetPool.network,
+            );
+
+            assertEvent('RoleGranted', parseLogs(Artifacts.IDefaultDiamond.abi, receipt.logs));
         }
-
-        const { receipt } = await TransactionService.send(
-            assetPool.address,
-            assetPool.solution.methods.addMember(address),
-            assetPool.network,
-        );
-
-        assertEvent('RoleGranted', parseLogs(Artifacts.IDefaultDiamond.abi, receipt.logs));
 
         const memberId = await TransactionService.call(
             assetPool.solution.methods.getMemberByAddress(address),
             assetPool.network,
         );
 
-        const members = await Member.find({ poolAddress: assetPool.address, address, memberId });
-
-        if (!members.length) {
-            const member = new Member({
-                poolAddress: assetPool.address,
-                memberId: Number(memberId),
-                address,
-            });
-
-            await member.save();
-        }
+        await Member.create({
+            poolAddress: assetPool.address,
+            memberId: Number(memberId),
+            address,
+        });
 
         return memberId;
     }
