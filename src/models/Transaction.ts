@@ -1,19 +1,8 @@
-import { TransactionState, TransactionType } from '@/types/enums';
+import { NetworkProvider } from '@/types/enums';
+import { TTransaction } from '@/types/TTransaction';
 import mongoose from 'mongoose';
 
-export type TransactionDocument = mongoose.Document & {
-    type: TransactionType;
-    state: TransactionState;
-    from: string;
-    to: string;
-    nonce: number;
-    gas: string;
-    transactionHash: string;
-    relayTransactionHash: string;
-    baseFee?: string;
-    maxFeeForGas?: string;
-    maxPriorityFeeForGas?: string;
-};
+export type TransactionDocument = mongoose.Document & TTransaction;
 
 const transactionSchema = new mongoose.Schema(
     {
@@ -28,6 +17,7 @@ const transactionSchema = new mongoose.Schema(
         maxFeePerGas: String,
         maxPriorityFeePerGas: String,
         state: Number,
+        network: NetworkProvider,
     },
     { timestamps: true },
 );

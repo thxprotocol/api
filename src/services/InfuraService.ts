@@ -139,10 +139,11 @@ async function getTransactionStatus(assetPool: AssetPoolType, tx: TransactionDoc
     }
 }
 
-async function pending() {
+async function pending(npid: NetworkProvider) {
     return Transaction.find({
         relayTransactionHash: { $exists: true },
         transactionHash: { $exists: false },
+        network: npid,
     });
 }
 

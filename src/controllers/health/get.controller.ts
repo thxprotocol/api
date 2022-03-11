@@ -14,16 +14,16 @@ async function getNetworkDetails(npid: NetworkProvider, constants: { factory: st
     const feeData = await getEstimatesFromOracle(npid);
 
     return {
-        admin: admin.address,
-        feeData,
-        balance: fromWei(balance, 'ether'),
-        relay: {
-            queue: (await InfuraService.pending()).length,
-            gasTank: {
-                address: InfuraService.getGasTank(npid),
-                balance: fromWei(gasTank, 'ether'),
-            },
+        admin: {
+            address: admin.address,
+            balance: fromWei(balance, 'ether'),
         },
+        gasTank: {
+            queue: (await InfuraService.pending(npid)).length,
+            address: InfuraService.getGasTank(npid),
+            balance: fromWei(gasTank, 'ether'),
+        },
+        feeData,
         factory: constants.factory,
         registry: constants.registry,
         facets: facetAdresses(npid),
