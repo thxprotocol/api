@@ -5,11 +5,12 @@ import axios from 'axios';
 import BN from 'bn.js';
 import { Contract } from 'web3-eth-contract';
 import { Artifacts } from '../config/contracts/artifacts';
-import { assetPoolFactoryAddress } from '@/config/contracts';
+import { assetPoolFactoryAddress, currentVersion, poolFacetContracts } from '@/config/contracts';
 import { NetworkProvider } from '../types/enums';
 import TransactionService from '@/services/TransactionService';
 import { THXError } from './errors';
 import { keccak256, toUtf8Bytes } from 'ethers/lib/utils';
+import { FacetCutAction } from './upgrades';
 
 export class MaxFeePerGasExceededError extends THXError {
     message = 'MaxFeePerGas from oracle exceeds configured cap';

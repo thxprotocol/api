@@ -2,10 +2,11 @@ import { pick } from '@/util';
 import { NetworkProvider } from '@/types/enums';
 import { NETWORK_ENVIRONMENT } from '@/config/secrets';
 import * as environmentsConfig from './environments';
-import { getProvider } from '@/util/network';
+import { getProvider, getSelectors } from '@/util/network';
 import { Artifacts, ArtifactsKey } from '@/config/contracts/artifacts';
+import { FacetCutAction } from '@/util/upgrades';
 
-export const currentVersion = '1.0.7';
+export const currentVersion = '1.0.8';
 
 const contractAddressConfig = environmentsConfig[NETWORK_ENVIRONMENT];
 
@@ -53,6 +54,18 @@ export const poolFacetContracts = (npid: NetworkProvider, version?: string) => {
     return Object.entries(addresses).map(([name, address]: [ArtifactsKey, string]) => {
         return new web3.eth.Contract((Artifacts[name] as any).abi, address);
     });
+};
+
+export const diamondCut = (npid: NetworkProvider) => {
+    const diamondCut = [];
+    for (const f of poolFacetContracts(npid, currentVersion)) {
+        diamondCut.push({
+            action: FacetCutAction.Add,
+            facetAddress: f.options.address,
+            functionSelectors: getSelectors(f),
+        });
+    }
+    return diamondCut;
 };
 
 export const poolFacetAdressesPermutations = (npid: NetworkProvider) => {
