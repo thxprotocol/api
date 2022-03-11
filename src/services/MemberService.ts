@@ -1,18 +1,15 @@
 import { tokenContract } from '@/util/network';
-import { AssetPoolDocument, AssetPoolType } from '@/models/AssetPool';
+import { AssetPoolType } from '@/models/AssetPool';
 import { assertEvent, parseLogs } from '@/util/events';
 import { Artifacts } from '@/config/contracts/artifacts';
 import { IMember, Member } from '@/models/Member';
 import { fromWei } from 'web3-utils';
-import { NotAMemberError, THXError } from '@/util/errors';
 import TransactionService from './TransactionService';
 
 export default class MemberService {
     static async getByAddress(assetPool: AssetPoolType, address: string) {
         const isMember = await this.isMember(assetPool, address);
-
         const isManager = await this.isManager(assetPool, address);
-
         const memberId = await TransactionService.call(
             assetPool.solution.methods.getMemberByAddress(address),
             assetPool.network,
@@ -40,6 +37,10 @@ export default class MemberService {
 
     static findByAddress(address: string) {
         return Member.findOne({ address });
+    }
+
+    static async countByPoolAddress(assetPool: AssetPoolType) {
+        return (await Member.find({ poolAddress: assetPool.address })).length;
     }
 
     static async getByPoolAddress(assetPool: AssetPoolType) {

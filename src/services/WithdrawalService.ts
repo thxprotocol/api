@@ -103,39 +103,43 @@ export default class WithdrawalService {
     }
 
     static async withdraw(assetPool: AssetPoolType, withdrawal: WithdrawalDocument) {
-        // if (NETWORK_ENVIRONMENT === 'dev' || NETWORK_ENVIRONMENT === 'prod') {
-        //     const tx = await InfuraService.send(
-        //         assetPool.address,
-        //         'withdrawPollFinalize',
-        //         [withdrawal.withdrawalId],
-        //         assetPool.network,
-        //     );
-
-        //     withdrawal.transactions.push(String(tx._id));
-
-        //     return await withdrawal.save();
-        // } else {
-        try {
-            const { tx, receipt } = await TransactionService.send(
+        if (NETWORK_ENVIRONMENT === 'dev' || NETWORK_ENVIRONMENT === 'prod') {
+            const tx = await InfuraService.send(
                 assetPool.address,
-                assetPool.solution.methods.withdrawPollFinalize(withdrawal.withdrawalId),
+                'withdrawPollFinalize',
+                [withdrawal.withdrawalId],
                 assetPool.network,
             );
 
-            const events = parseLogs(Artifacts.IDefaultDiamond.abi, receipt.logs);
-
-            assertEvent('WithdrawPollFinalized', events);
-            assertEvent('Withdrawn', events);
-
             withdrawal.transactions.push(String(tx._id));
-            withdrawal.state = WithdrawalState.Withdrawn;
 
             return await withdrawal.save();
-        } catch (error) {
-            withdrawal.failReason = error.message;
-            throw error;
+        } else {
+            try {
+                const { tx, receipt } = await TransactionService.send(
+                    assetPool.address,
+                    assetPool.solution.methods.withdrawPollFinalize(withdrawal.withdrawalId),
+                    assetPool.network,
+                );
+
+                const events = parseLogs(Artifacts.IDefaultDiamond.abi, receipt.logs);
+
+                assertEvent('WithdrawPollFinalized', events);
+                assertEvent('Withdrawn', events);
+
+                withdrawal.transactions.push(String(tx._id));
+                withdrawal.state = WithdrawalState.Withdrawn;
+
+                return await withdrawal.save();
+            } catch (error) {
+                withdrawal.failReason = error.message;
+                throw error;
+            }
         }
-        // }
+    }
+
+    static async countByPoolAddress(assetPool: AssetPoolType) {
+        return (await Withdrawal.find({ poolAddress: assetPool.address })).length;
     }
 
     static async getAll(
