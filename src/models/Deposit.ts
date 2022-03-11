@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
-import { DepositType } from '@/types/Deposit';
+import { TDeposit } from '@/types/TDeposit';
 
-export type DepositDocument = mongoose.Document & DepositType;
+export type DepositDocument = mongoose.Document & TDeposit;
 
 const DepositSchema = new mongoose.Schema(
     {

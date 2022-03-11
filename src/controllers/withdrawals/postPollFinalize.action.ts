@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import WithdrawalService from '@/services/WithdrawalService';
 import { NotFoundError } from '@/util/errors';
-import { TWithdrawal } from '@/types/Withdrawal';
+import { TWithdrawal } from '@/types/TWithdrawal';
 
 export const postPollFinalize = async (req: Request, res: Response) => {
     const withdrawal = await WithdrawalService.getById(req.params.id);

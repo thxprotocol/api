@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import { BadRequestError, ForbiddenError } from '@/util/errors';
 import { WithdrawalState, WithdrawalType } from '@/types/enums';
-import { TWithdrawal } from '@/types/Withdrawal';
+import { TWithdrawal } from '@/types/TWithdrawal';
 import AccountProxy from '@/proxies/AccountProxy';
 import RewardService from '@/services/RewardService';
 import MemberService from '@/services/MemberService';

@@ -8,7 +8,7 @@ import WithdrawalService from '@/services/WithdrawalService';
 
 import AccountProxy from '@/proxies/AccountProxy';
 import { WithdrawalState, WithdrawalType } from '@/types/enums';
-import { TWithdrawal } from '@/types/Withdrawal';
+import { TWithdrawal } from '@/types/TWithdrawal';
 
 export const postWithdrawal = async (req: Request, res: Response) => {
     const account = await AccountProxy.getByAddress(req.body.member);

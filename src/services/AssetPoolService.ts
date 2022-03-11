@@ -129,16 +129,6 @@ export default class AssetPoolService {
         return assetPool;
     }
 
-    static async init(assetPool: AssetPoolDocument) {
-        const poolRegistryAddress = assetPoolRegistryAddress(assetPool.network);
-
-        await TransactionService.send(
-            assetPool.solution.options.address,
-            assetPool.solution.methods.setPoolRegistry(poolRegistryAddress),
-            assetPool.network,
-        );
-    }
-
     static async getAllBySub(sub: string) {
         return (await AssetPool.find({ sub })).map((pool) => pool.address);
     }
