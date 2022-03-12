@@ -2,10 +2,14 @@ import 'newrelic';
 import http from 'http';
 import app from './app';
 import db from './util/database';
+import axios from 'axios';
+import axiosBetterStacktrace from 'axios-better-stacktrace';
 import { createTerminus } from '@godaddy/terminus';
 import { healthCheck } from './util/healthcheck';
 import { logger } from './util/logger';
 import { agenda } from './util/agenda';
+
+axiosBetterStacktrace(axios);
 
 const server = http.createServer(app);
 
