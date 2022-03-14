@@ -18,6 +18,6 @@
             "*": ["./src/types/definitions/*"]
         }
     },
-    "include": ["./src/**/*.ts", "./src/migrations/*", "./src/**/*.docs.ts"],
+    "include": ["./src/**/*.ts", "./src/migrations/*", "./scripts/**/*.ts"],
     "ts-node": { "files": true }
 }

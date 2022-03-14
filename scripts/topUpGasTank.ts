@@ -1,9 +1,6 @@
-import dotenv from 'dotenv';
 import InfuraService from '@/services/InfuraService';
 import { parseUnits } from 'ethers/lib/utils';
 import { NetworkProvider } from '@/types/enums';
-
-dotenv.config();
 
 async function main() {
     console.log('Start!');

@@ -1,12 +1,10 @@
-import dotenv from 'dotenv';
 import db from '@/util/database';
 import { currentVersion } from '@/config/contracts/index';
 import { MONGODB_URI } from '@/config/secrets';
-import { updateAssetPool, updateAssetPoolFactory } from './upgrades';
+import { updateAssetPool, updateAssetPoolFactory } from '@/util/upgrades';
 import { AssetPool } from '@/models/AssetPool';
 import { NetworkProvider } from '@/types/enums';
 
-dotenv.config();
 db.connect(MONGODB_URI);
 
 async function main() {
