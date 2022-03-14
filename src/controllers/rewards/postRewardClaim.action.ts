@@ -16,9 +16,9 @@ const ERROR_CAIM_NOT_ALLOWED = 'You are not allowed to claim this reward.';
 const ERROR_NO_MEMBER = 'Could not claim this reward since you are not a member of the pool.';
 
 export async function postRewardClaim(req: Request, res: Response) {
-    const rewardId = Number(req.params.id);
     if (!req.user.sub) throw new BadRequestError(ERROR_INCORRECT_SCOPE);
 
+    const rewardId = Number(req.params.id);
     const reward = await RewardService.get(req.assetPool, rewardId);
     if (!reward) throw new BadRequestError(ERROR_REWARD_NOT_FOUND);
 
