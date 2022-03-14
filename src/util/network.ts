@@ -5,12 +5,12 @@ import axios from 'axios';
 import BN from 'bn.js';
 import { Contract } from 'web3-eth-contract';
 import { Artifacts } from '../config/contracts/artifacts';
-import { assetPoolFactoryAddress, currentVersion, poolFacetContracts } from '@/config/contracts';
+import { assetPoolFactoryAddress } from '@/config/contracts';
 import { NetworkProvider } from '../types/enums';
 import TransactionService from '@/services/TransactionService';
 import { THXError } from './errors';
 import { keccak256, toUtf8Bytes } from 'ethers/lib/utils';
-import { FacetCutAction } from './upgrades';
+import { AbiItem } from 'web3-utils';
 
 export class MaxFeePerGasExceededError extends THXError {
     message = 'MaxFeePerGas from oracle exceeds configured cap';
@@ -111,11 +111,14 @@ export async function deployLimitedSupplyERC20Contract(
 }
 
 export const solutionContract = (npid: NetworkProvider, address: string): Contract => {
-    const { web3 } = getProvider(npid);
-    return new web3.eth.Contract(Artifacts.IDefaultDiamond.abi as any, address);
+    return getContract(npid, Artifacts.IDefaultDiamond.abi as any, address);
 };
 
 export const tokenContract = (npid: NetworkProvider, address: string): Contract => {
+    return getContract(npid, Artifacts.ERC20.abi as any, address);
+};
+
+export const getContract = (npid: NetworkProvider, abi: AbiItem | AbiItem[], address: string): Contract => {
     const { web3 } = getProvider(npid);
-    return new web3.eth.Contract(Artifacts.ERC20.abi as any, address);
+    return new web3.eth.Contract(abi, address);
 };
