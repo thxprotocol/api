@@ -8,6 +8,7 @@ import MemberService from '@/services/MemberService';
 import WithdrawalService from '@/services/WithdrawalService';
 import MembershipService from '@/services/MembershipService';
 import { WithdrawalDocument } from '@/models/Withdrawal';
+import { agenda, eventNameRequireTransactions } from '@/util/agenda';
 
 const ERROR_REWARD_NOT_FOUND = 'The reward for this ID does not exist.';
 const ERROR_ACCOUNT_NO_ADDRESS = 'The authenticated account has not wallet address. Sign in the Web Wallet once.';
@@ -46,6 +47,8 @@ export async function postRewardClaim(req: Request, res: Response) {
     );
 
     w = await WithdrawalService.proposeWithdraw(req.assetPool, w, account);
+
+    agenda.now(eventNameRequireTransactions, {});
 
     const result: TWithdrawal = {
         id: String(w._id),
