@@ -1,10 +1,10 @@
 import { tokenContract } from '@/util/network';
 import { AssetPoolType } from '@/models/AssetPool';
 import { assertEvent, parseLogs } from '@/util/events';
-import { Artifacts } from '@/config/contracts/artifacts';
 import { IMember, Member } from '@/models/Member';
 import { fromWei } from 'web3-utils';
 import TransactionService from './TransactionService';
+import { diamondAbi } from '@/config/contracts';
 
 export default class MemberService {
     static async getByAddress(assetPool: AssetPoolType, address: string) {
@@ -60,7 +60,7 @@ export default class MemberService {
             assetPool.network,
         );
 
-        assertEvent('RoleGranted', parseLogs(Artifacts.IDefaultDiamond.abi, receipt.logs));
+        assertEvent('RoleGranted', parseLogs(assetPool.solution.options.jsonInterface, receipt.logs));
 
         const memberId = await this.getMemberByAddress(assetPool, address);
 
@@ -96,7 +96,7 @@ export default class MemberService {
             assetPool.solution.methods.removeMember(address),
             assetPool.network,
         );
-        assertEvent('RoleRevoked', parseLogs(Artifacts.IDefaultDiamond.abi, receipt.logs));
+        assertEvent('RoleRevoked', parseLogs(diamondAbi(assetPool.network, 'defaultPool'), receipt.logs));
 
         return await Member.deleteOne({ poolAddress: assetPool.address, address });
     }

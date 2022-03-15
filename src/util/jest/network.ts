@@ -1,12 +1,12 @@
 import { Account } from 'web3-core';
-import { Artifacts } from '@/config/contracts/artifacts';
 import { soliditySha3 } from 'web3-utils';
-import { VOTER_PK, DEPOSITOR_PK, mintAmount } from './constants';
+import { VOTER_PK, DEPOSITOR_PK } from './constants';
 import { getProvider, solutionContract } from '@/util/network';
 import { NetworkProvider } from '@/types/enums';
 import TransactionService from '@/services/TransactionService';
+import { diamondAbi } from '@/config/contracts';
 
-const { web3, admin } = getProvider(NetworkProvider.Main);
+const { web3 } = getProvider(NetworkProvider.Main);
 
 export const voter = web3.eth.accounts.privateKeyToAccount(VOTER_PK);
 export const depositor = web3.eth.accounts.privateKeyToAccount(DEPOSITOR_PK);
@@ -32,18 +32,9 @@ export const timeTravel = async (seconds: number) => {
     await (web3 as any).increaseTime(seconds);
 };
 
-export async function deployExampleToken(to = admin.address) {
-    return await TransactionService.deploy(
-        Artifacts.ExampleToken.abi,
-        Artifacts.ExampleToken.bytecode,
-        [to, mintAmount],
-        NetworkProvider.Main,
-    );
-}
-
 export async function signMethod(poolAddress: string, name: string, params: any[], account: Account) {
     const solution = solutionContract(NetworkProvider.Main, poolAddress);
-    const abi: any = Artifacts.IDefaultDiamond.abi.find((fn) => fn.name === name);
+    const abi: any = diamondAbi(NetworkProvider.Main, 'defaultPool').find((fn) => fn.name === name);
     const nonce =
         Number(await TransactionService.call(solution.methods.getLatestNonce(account.address), NetworkProvider.Main)) +
         1;

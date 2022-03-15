@@ -1,10 +1,11 @@
-import { getSelectors, ADDRESS_ZERO, getAssetPoolFactory } from './network';
+import { getSelectors, ADDRESS_ZERO } from './network';
 import TransactionService from '@/services/TransactionService';
 import { Contract } from 'web3-eth-contract';
-import { factoryFacetContracts, poolFacetContracts } from '@/config/contracts';
+// import { factoryFacetContracts, poolFacetContracts } from '@/config/contracts';
 import { uniq } from '.';
 import { AssetPoolDocument } from '@/models/AssetPool';
 import { NetworkProvider } from '@/types/enums';
+import { diamondContracts, getContract } from '@/config/contracts';
 
 export enum FacetCutAction {
     Add = 0,
@@ -67,7 +68,7 @@ function getDiamondCutForContractFacets(newContracts: Contract[], facets: any[])
 
 export async function updateAssetPool(pool: AssetPoolDocument, version?: string) {
     const facets = await pool.solution.methods.facets().call();
-    const newContracts = poolFacetContracts(pool.network, version);
+    const newContracts = diamondContracts(pool.network, 'defaultPool', version);
     const diamondCuts = getDiamondCutForContractFacets(newContracts, facets);
 
     await TransactionService.send(
@@ -81,9 +82,9 @@ export async function updateAssetPool(pool: AssetPoolDocument, version?: string)
 }
 
 export async function updateAssetPoolFactory(npid: NetworkProvider, version?: string) {
-    const factory = getAssetPoolFactory(npid);
+    const factory = getContract(npid, 'IAssetPoolFactory');
     const facets = await factory.methods.facets().call();
-    const newContracts = factoryFacetContracts(npid, version);
+    const newContracts = diamondContracts(npid, 'defaultPoolFactory', version);
     const diamondCuts = getDiamondCutForContractFacets(newContracts, facets);
 
     await TransactionService.send(

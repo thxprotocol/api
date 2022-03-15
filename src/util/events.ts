@@ -1,5 +1,4 @@
 import { ethers } from 'ethers';
-import { Artifacts } from '../config/contracts/artifacts';
 import { THXError } from './errors';
 import { logger } from './logger';
 
@@ -72,33 +71,4 @@ export function parseLogs(abi: any, logs: any = []): CustomEventLog[] {
             return;
         }
     });
-}
-
-export function parseResultLog(logs: any) {
-    const gasStationInterface = new ethers.utils.Interface(Artifacts.IDefaultDiamond.abi);
-    const event = gasStationInterface.parseLog(logs[logs.length - 1]);
-
-    if (event.args.success) {
-        const res = [];
-        for (const log of logs) {
-            let event;
-            try {
-                const contractInterface = new ethers.utils.Interface(Artifacts.IDefaultDiamond.abi);
-                event = contractInterface.parseLog(log);
-            } catch (err) {
-                continue;
-            }
-            res.push(event);
-        }
-        return {
-            logs: res,
-        };
-    } else {
-        // remove initial string that indicates this is an error
-        // then parse it to hex --> ascii
-        const error = hex2a(event.args.data.substr(10));
-        return {
-            error: error,
-        };
-    }
 }

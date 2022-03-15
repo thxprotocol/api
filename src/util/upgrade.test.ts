@@ -1,7 +1,6 @@
 import request from 'supertest';
 import app from '@/app';
 import { NetworkProvider } from '@/types/enums';
-import { deployExampleToken } from '@/util/jest/network';
 
 import { isAddress } from 'web3-utils';
 import { Contract } from 'web3-eth-contract';
@@ -9,7 +8,7 @@ import { getToken } from '@/util/jest/jwt';
 import { afterAllCallback, beforeAllCallback } from '@/util/jest/config';
 import AssetPoolService from '@/services/AssetPoolService';
 import { updateAssetPool } from '@/util/upgrades';
-import { currentVersion } from '@/config/contracts';
+import { currentVersion, getContract } from '@/config/contracts';
 
 const user = request.agent(app);
 
@@ -19,7 +18,7 @@ describe('Happy Flow', () => {
     beforeAll(async () => {
         await beforeAllCallback();
 
-        testToken = await deployExampleToken();
+        testToken = getContract(NetworkProvider.Main, 'TokenLimitedSupply');
 
         await user
             .post('/v1/asset_pools')

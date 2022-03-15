@@ -5,7 +5,7 @@ import { getProvider, getEstimatesFromOracle } from '@/util/network';
 import { NetworkProvider } from '@/types/enums';
 
 import InfuraService from '@/services/InfuraService';
-import { assetPoolFactoryAddress, assetPoolRegistryAddress, currentVersion, facetAdresses } from '@/config/contracts';
+import { assetPoolFactoryAddress, assetPoolRegistryAddress, currentVersion } from '@/config/contracts';
 
 async function getNetworkDetails(npid: NetworkProvider, constants: { factory: string; registry: string }) {
     const { admin, web3 } = getProvider(npid);
@@ -26,7 +26,7 @@ async function getNetworkDetails(npid: NetworkProvider, constants: { factory: st
         feeData,
         factory: constants.factory,
         registry: constants.registry,
-        facets: facetAdresses(npid),
+        // facets: facetAdresses(npid),
     };
 }
 

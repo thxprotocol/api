@@ -1,6 +1,5 @@
 import { Request, Response } from 'express';
 import { parseLogs, assertEvent } from '@/util/events';
-import { Artifacts } from '@/config/contracts/artifacts';
 import AccountProxy from '@/proxies/AccountProxy';
 import WithdrawalService from '@/services/WithdrawalService';
 import MemberService from '@/services/MemberService';
@@ -17,26 +16,24 @@ export const createCallUpgradeAddressValidation = [
 ];
 
 export const postCallUpgradeAddress = async (req: Request, res: Response) => {
-    const isMember = await TransactionService.call(
-        req.assetPool.solution.methods.isMember(req.body.newAddress),
-        req.assetPool.network,
-    );
+    const { solution, network } = req.assetPool;
+    const isMember = await TransactionService.call(solution.methods.isMember(req.body.newAddress), network);
 
     if (!isMember) {
         await TransactionService.send(
-            req.assetPool.solution.options.address,
-            req.assetPool.solution.methods.addMember(req.body.newAddress),
-            req.assetPool.network,
+            solution.options.address,
+            solution.methods.addMember(req.body.newAddress),
+            network,
         );
     }
 
     const { receipt } = await TransactionService.send(
-        req.assetPool.solution.options.address,
-        req.assetPool.solution.methods.call(req.body.call, req.body.nonce, req.body.sig),
-        req.assetPool.network,
+        solution.options.address,
+        solution.methods.call(req.body.call, req.body.nonce, req.body.sig),
+        network,
         250000,
     );
-    const events = parseLogs(Artifacts.IDefaultDiamond.abi, receipt.logs);
+    const events = parseLogs(solution.options.jsonInterface, receipt.logs);
     const event = assertEvent('MemberAddressChanged', events);
     const account = await AccountProxy.getByAddress(event.args.previousAddress);
 

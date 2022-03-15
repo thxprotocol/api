@@ -1,7 +1,6 @@
 import { assertEvent, parseLogs } from '@/util/events';
-import { getAssetPoolFactory, tokenContract } from '@/util/network';
+import { tokenContract } from '@/util/network';
 import { NetworkProvider } from '@/types/enums';
-import { Artifacts } from '@/config/contracts/artifacts';
 import { AssetPool, AssetPoolDocument } from '@/models/AssetPool';
 import { deployUnlimitedSupplyERC20Contract, deployLimitedSupplyERC20Contract, getProvider } from '@/util/network';
 import { toWei, fromWei, toChecksumAddress } from 'web3-utils';
@@ -13,6 +12,7 @@ import {
     assetPoolRegistryAddress,
     currentVersion,
     diamondCut,
+    getContract,
     poolFacetAdressesPermutations,
 } from '@/config/contracts';
 import { logger } from '@/util/logger';
@@ -94,7 +94,6 @@ export default class AssetPoolService {
                 throw new NoDataAtAddressError(token.address);
             }
         }
-
         const tokenAddress = token.address || (await this.deployPoolToken(assetPool, token));
 
         await TransactionService.send(
@@ -107,14 +106,15 @@ export default class AssetPoolService {
     }
 
     static async deploy(sub: string, network: NetworkProvider) {
-        const assetPoolFactory = getAssetPoolFactory(network);
+        const assetPoolFactory = getContract(network, 'IAssetPoolFactory');
         const registryAddress = assetPoolRegistryAddress(network);
         const { receipt } = await TransactionService.send(
             assetPoolFactory.options.address,
             assetPoolFactory.methods.deployAssetPool(diamondCut(network), registryAddress),
             network,
         );
-        const event = assertEvent('AssetPoolDeployed', parseLogs(Artifacts.IAssetPoolFactory.abi, receipt.logs));
+
+        const event = assertEvent('AssetPoolDeployed', parseLogs(assetPoolFactory.options.jsonInterface, receipt.logs));
 
         const assetPool = new AssetPool({
             sub,
@@ -156,7 +156,7 @@ export default class AssetPoolService {
         const permutations = Object.values(poolFacetAdressesPermutations(assetPool.network));
         const facetAddresses = [...(await assetPool.solution.methods.facetAddresses().call())];
         const match = permutations.find(
-            (permutation) => Object.values(permutation.facets).sort().join('') === facetAddresses.sort().join(''),
+            (permutation) => permutation.facetAddresses.sort().join('') === facetAddresses.sort().join(''),
         );
         return match ? match.version : 'unknown';
     }

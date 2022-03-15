@@ -4,7 +4,6 @@ import { WithdrawalState, WithdrawalType } from '@/types/enums';
 import { AssetPoolType } from '@/models/AssetPool';
 import { Withdrawal, WithdrawalDocument } from '@/models/Withdrawal';
 import { IAccount } from '@/models/Account';
-import { Artifacts } from '@/config/contracts/artifacts';
 import { parseLogs, assertEvent, findEvent } from '@/util/events';
 import { paginatedResults } from '@/util/pagination';
 import TransactionService from './TransactionService';
@@ -12,7 +11,7 @@ import { NETWORK_ENVIRONMENT } from '@/config/secrets';
 import InfuraService from './InfuraService';
 import AccountProxy from '@/proxies/AccountProxy';
 import MemberService from './MemberService';
-import { Member } from '@/models/Member';
+import { diamondAbi } from '@/config/contracts';
 
 export default class WithdrawalService {
     static getById(id: string) {
@@ -83,7 +82,7 @@ export default class WithdrawalService {
                     assetPool.solution.methods.proposeWithdraw(amountInWei, account.address),
                     assetPool.network,
                 );
-                const events = parseLogs(Artifacts.IDefaultDiamond.abi, receipt.logs);
+                const events = parseLogs(diamondAbi(assetPool.network, 'defaultPool'), receipt.logs);
                 const event = assertEvent('WithdrawPollCreated', events);
                 const roleGranted = findEvent('RoleGranted', events);
 
@@ -122,7 +121,7 @@ export default class WithdrawalService {
                     assetPool.network,
                 );
 
-                const events = parseLogs(Artifacts.IDefaultDiamond.abi, receipt.logs);
+                const events = parseLogs(assetPool.solution.options.jsonInterface, receipt.logs);
 
                 assertEvent('WithdrawPollFinalized', events);
                 assertEvent('Withdrawn', events);
