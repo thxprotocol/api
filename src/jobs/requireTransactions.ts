@@ -6,7 +6,8 @@ import { Artifacts } from '@/config/contracts/artifacts';
 import { Withdrawal } from '@/models/Withdrawal';
 import { logger } from '@/util/logger';
 import MemberService from '@/services/MemberService';
-import { WithdrawalState } from '@/types/enums';
+import { DepositState, WithdrawalState } from '@/types/enums';
+import { Deposit } from '@/models/Deposit';
 
 export async function jobRequireTransactions() {
     const transactions = await Transaction.find({
@@ -22,7 +23,6 @@ export async function jobRequireTransactions() {
 
         const events = parseLogs(Artifacts.IDefaultDiamond.abi, receipt.logs);
         const result = findEvent('Result', events);
-        const withdrawal = await Withdrawal.findOne({ transactions: String(tx._id) });
 
         if (!result.args.success) {
             const error = hex2a(result.args.data.substr(10));
@@ -39,8 +39,25 @@ export async function jobRequireTransactions() {
             return;
         }
 
+        const eventDepositted = findEvent('Depositted', events);
+        const eventRoleGranted = findEvent('RoleGranted', events);
         const eventWithdrawPollCreated = findEvent('WithdrawPollCreated', events);
+        const eventWithdrawPollFinalized = findEvent('WithdrawPollFinalized', events);
+        const eventWithdrawn = findEvent('Withdrawn', events);
+
+        if (eventDepositted) {
+            const deposit = await Deposit.findOne({ transactions: String(tx._id) });
+            deposit.transactions.push(String(tx._id));
+            deposit.state = DepositState.Completed;
+            await deposit.save();
+        }
+
+        if (eventRoleGranted) {
+            await MemberService.addExistingMember(assetPool, eventRoleGranted.args.account);
+        }
+
         if (eventWithdrawPollCreated) {
+            const withdrawal = await Withdrawal.findOne({ transactions: String(tx._id) });
             await withdrawal.updateOne({
                 withdrawalId: Number(eventWithdrawPollCreated.args.id),
                 poolAddress: assetPool.address,
@@ -48,14 +65,8 @@ export async function jobRequireTransactions() {
             });
         }
 
-        const eventRoleGranted = findEvent('RoleGranted', events);
-        if (eventRoleGranted) {
-            await MemberService.addExistingMember(assetPool, eventRoleGranted.args.account);
-        }
-
-        const eventWithdrawPollFinalized = findEvent('WithdrawPollFinalized', events);
-        const eventWithdrawn = findEvent('Withdrawn', events);
         if (eventWithdrawPollFinalized && eventWithdrawn) {
+            const withdrawal = await Withdrawal.findOne({ transactions: String(tx._id) });
             await withdrawal.updateOne({ state: WithdrawalState.Withdrawn });
         }
     });

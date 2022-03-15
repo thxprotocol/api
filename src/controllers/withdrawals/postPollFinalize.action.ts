@@ -2,11 +2,15 @@ import { Request, Response } from 'express';
 import WithdrawalService from '@/services/WithdrawalService';
 import { NotFoundError } from '@/util/errors';
 import { TWithdrawal } from '@/types/TWithdrawal';
+import { agenda, eventNameRequireTransactions } from '@/util/agenda';
 
 export const postPollFinalize = async (req: Request, res: Response) => {
     const withdrawal = await WithdrawalService.getById(req.params.id);
     if (!withdrawal) throw new NotFoundError('Withdrawal not found');
     const w = await WithdrawalService.withdraw(req.assetPool, withdrawal);
+
+    agenda.now(eventNameRequireTransactions, {});
+
     const result: TWithdrawal = {
         id: String(w._id),
         sub: w.sub,

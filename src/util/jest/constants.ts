@@ -14,7 +14,7 @@ export const userPassword = 'mellonmellonmellon';
 export const userPassword2 = 'mellonmellonmellon';
 export const voterEmail = 'test.voter.bot@thx.network';
 export const newAddress = '0x253cA584af3E458392982EF246066A6750Fa0735';
-
+export const MaxUint256 = '115792089237316195423570985008687907853269984665640564039457584007913129639935';
 export const sub = '6074cbdd1459355fae4b6a14';
 export const sub2 = '6074cbdd1459355fae4b6a15';
 export const userWalletAddress = '0xE1ea36CC205923b3fC3b46bb747BE4Fd6bE23E6C';
