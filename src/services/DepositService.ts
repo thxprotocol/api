@@ -59,10 +59,11 @@ async function create(assetPool: AssetPoolType, deposit: DepositDocument, call: 
 }
 
 async function getAllowance(assetPool: AssetPoolType, token: Contract, account: IAccount) {
-    return await TransactionService.call(
+    const balance = await TransactionService.call(
         token.methods.allowance(account.address, assetPool.address),
         assetPool.network,
     );
+    return Number(balance);
 }
 
 export default { create, getAllowance, schedule };

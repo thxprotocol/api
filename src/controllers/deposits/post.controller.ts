@@ -23,7 +23,7 @@ export default async function CreateDepositController(req: Request, res: Respons
     if (!promoCode) throw new Error();
 
     const account = await AccountProxy.getById(req.user.sub);
-    const amount = toWei(String(promoCode.price));
+    const amount = Number(toWei(String(promoCode.price)));
 
     const tokenAddress = await TransactionService.call(
         req.assetPool.solution.methods.getToken(),
