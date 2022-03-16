@@ -60,7 +60,7 @@ export const diamondAbi = (npid: NetworkProvider, variant: keyof typeof facetVar
         }
     }
 
-    return uniq(result);
+    return result;
 };
 
 export const diamondCut = (npid: NetworkProvider) => {
