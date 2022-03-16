@@ -6,6 +6,7 @@ import { Artifacts } from '@/config/contracts/artifacts';
 import { soliditySha3 } from 'web3-utils';
 import { Transaction, TransactionDocument } from '@/models/Transaction';
 import { AssetPoolType } from '@/models/AssetPool';
+import AssetPoolService from './AssetPoolService';
 
 const testnet = new ethers.providers.InfuraProvider('maticmum', INFURA_PROJECT_ID);
 const mainnet = new ethers.providers.InfuraProvider('matic', INFURA_PROJECT_ID);
@@ -70,8 +71,8 @@ async function signRequest(tx: any, signer: Signer) {
     return await signer.signMessage(ethers.utils.arrayify(relayTransactionHash));
 }
 
-async function getCallData(solution: Contract, fn: string, args: any[], account: Signer) {
-    const nonce = Number(await solution.getLatestNonce(await account.getAddress())) + 1;
+async function getCallData(solution: Contract, fn: string, args: any[], account: Signer, latestAdminNonce: number) {
+    const nonce = latestAdminNonce + 1;
     const call = solution.interface.encodeFunctionData(fn, args);
     const hash = soliditySha3(call, nonce);
     const sig = await account.signMessage(ethers.utils.arrayify(hash));
@@ -81,9 +82,10 @@ async function getCallData(solution: Contract, fn: string, args: any[], account:
 
 async function send(to: string, fn: string, args: any[], npid: NetworkProvider) {
     const { provider, admin } = getProvider(npid);
+    const assetPool = await AssetPoolService.findByAddress(to);
     const solution = new ethers.Contract(to, Artifacts.IDefaultDiamond.abi, admin);
     // Get the relayed call data, nonce and signature for this contract call
-    const { call, nonce, sig } = await getCallData(solution, fn, args, admin);
+    const { call, nonce, sig } = await getCallData(solution, fn, args, admin, assetPool.latestAdminNonce);
     // Encode a relay call witht he relayed call data
     const data = solution.interface.encodeFunctionData('call', [call, nonce, sig]);
     // Estimate gas for the relayed ITX call
@@ -111,6 +113,12 @@ async function send(to: string, fn: string, args: any[], npid: NetworkProvider) 
 
     // Send transaction data and receive relayTransactionHash to poll
     const { relayTransactionHash } = await provider.send('relay_sendTransaction', [tx, signature]);
+
+    // Updates the nonce when a relayed tx has been received, so the next relayed tx will use the
+    // incremented nonce. In rare situations ITX might not deliver transactions in order and the nonce will
+    // not be equal to the expected nonce in the contract. This might cause a tx to revert, but will still
+    // increment the nonce internally.
+    await assetPool.updateOne({ latestAdminNonce: nonce });
 
     return await Transaction.create({
         to,
