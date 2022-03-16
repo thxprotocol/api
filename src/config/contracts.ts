@@ -4,6 +4,7 @@ import { FacetCutAction } from '@/util/upgrades';
 import { AbiItem } from 'web3-utils';
 import { uniq } from '@/util';
 import { availableVersions, contractConfig, TNetworkName } from '@thxnetwork/artifacts';
+import { MAINNET_NETWORK_NAME, TESTNET_NETWORK_NAME } from './secrets';
 
 const facetVariants = {
     defaultPool: [
@@ -24,7 +25,7 @@ export const getContractConfig = (
     contractName: string,
     version?: string,
 ): { address: string; abi: AbiItem[] } => {
-    return contractConfig('hardhat', contractName, version);
+    return contractConfig(npToName(npid), contractName, version);
 };
 
 export const getContract = (npid: NetworkProvider, contractName: string, version?: string) => {
@@ -92,8 +93,8 @@ export const poolFacetAdressesPermutations = (npid: NetworkProvider) => {
 const npToName = (npid: NetworkProvider): TNetworkName => {
     switch (npid) {
         case NetworkProvider.Main:
-            return 'hardhat';
+            return MAINNET_NETWORK_NAME as TNetworkName;
         case NetworkProvider.Test:
-            return 'hardhat';
+            return TESTNET_NETWORK_NAME as TNetworkName;
     }
 };
