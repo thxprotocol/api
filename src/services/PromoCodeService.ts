@@ -48,7 +48,7 @@ async function formatResult(sub: string, promoCode: PromoCodeDocument) {
 }
 
 // page 1 and limit 10 are the default pagination start settings
-function findByQuery(query: { sub: string; poolAddress: string }, page = 1, limit = 10) {
+function findByQuery(query: { poolAddress: string }, page = 1, limit = 10) {
     return paginatedResults(PromoCode, page, limit, query);
 }
 
