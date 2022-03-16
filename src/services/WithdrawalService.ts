@@ -7,7 +7,7 @@ import { IAccount } from '@/models/Account';
 import { parseLogs, assertEvent, findEvent } from '@/util/events';
 import { paginatedResults } from '@/util/pagination';
 import TransactionService from './TransactionService';
-import { NETWORK_ENVIRONMENT } from '@/config/secrets';
+import { MAINNET_NETWORK_NAME } from '@/config/secrets';
 import InfuraService from './InfuraService';
 import AccountProxy from '@/proxies/AccountProxy';
 import MemberService from './MemberService';
@@ -66,7 +66,7 @@ export default class WithdrawalService {
     static async proposeWithdraw(assetPool: AssetPoolType, withdrawal: WithdrawalDocument, account: IAccount) {
         const amountInWei = toWei(String(withdrawal.amount));
 
-        if (NETWORK_ENVIRONMENT === 'dev' || NETWORK_ENVIRONMENT === 'prod') {
+        if (MAINNET_NETWORK_NAME !== 'hardhat') {
             const tx = await InfuraService.send(
                 assetPool.address,
                 'proposeWithdraw',
@@ -102,7 +102,7 @@ export default class WithdrawalService {
     }
 
     static async withdraw(assetPool: AssetPoolType, withdrawal: WithdrawalDocument) {
-        if (NETWORK_ENVIRONMENT === 'dev' || NETWORK_ENVIRONMENT === 'prod') {
+        if (MAINNET_NETWORK_NAME !== 'hardhat') {
             const tx = await InfuraService.send(
                 assetPool.address,
                 'withdrawPollFinalize',
