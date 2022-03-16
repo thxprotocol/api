@@ -8,7 +8,7 @@ import InfuraService from '@/services/InfuraService';
 import { getContractConfig } from '@/config/contracts';
 import { currentVersion } from '@thxnetwork/artifacts';
 
-async function getNetworkDetails(npid: NetworkProvider, constants: { factory: string; registry: string }) {
+async function getNetworkDetails(npid: NetworkProvider) {
     const { admin, web3 } = getProvider(npid);
     const balance = await web3.eth.getBalance(admin.address);
     const gasTank = await InfuraService.getAdminBalance(npid);
@@ -25,25 +25,25 @@ async function getNetworkDetails(npid: NetworkProvider, constants: { factory: st
             balance: fromWei(gasTank, 'ether'),
         },
         feeData,
-        factory: constants.factory,
-        registry: constants.registry,
     };
 }
 
-export const getHealth = async (req: Request, res: Response) => {
+export const getHealth = async (_req: Request, res: Response) => {
     const jsonData = {
         name,
         version,
         license,
         artifacts: currentVersion,
-        testnet: await getNetworkDetails(NetworkProvider.Test, {
+        testnet: {
+            ...(await getNetworkDetails(NetworkProvider.Test)),
             factory: getContractConfig(NetworkProvider.Test, 'AssetPoolFactory', version).address,
             registry: getContractConfig(NetworkProvider.Test, 'PoolRegistry', version).address,
-        }),
-        mainnet: await getNetworkDetails(NetworkProvider.Main, {
+        },
+        mainnet: {
+            ...(await getNetworkDetails(NetworkProvider.Main)),
             factory: getContractConfig(NetworkProvider.Main, 'AssetPoolFactory', version).address,
             registry: getContractConfig(NetworkProvider.Main, 'PoolRegistry', version).address,
-        }),
+        },
     };
 
     res.header('Content-Type', 'application/json').send(JSON.stringify(jsonData, null, 4));
