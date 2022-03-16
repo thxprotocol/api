@@ -9,7 +9,7 @@ import TransactionService from '@/services/TransactionService';
 import { THXError } from './errors';
 import { keccak256, toUtf8Bytes } from 'ethers/lib/utils';
 import { AbiItem } from 'web3-utils';
-import { diamondAbi, getContract, getContractConfig } from '@/config/contracts';
+import { getContract, getContractConfig } from '@/config/contracts';
 import { assertEvent, parseLogs } from './events';
 
 export class MaxFeePerGasExceededError extends THXError {
