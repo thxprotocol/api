@@ -3,29 +3,56 @@ import { Response, Request } from 'express';
 import { fromWei } from 'web3-utils';
 import { getProvider, getEstimatesFromOracle } from '@/util/network';
 import { NetworkProvider } from '@/types/enums';
-
 import InfuraService from '@/services/InfuraService';
 import { getContractConfig } from '@/config/contracts';
+import { logger } from '@/util/logger';
+import newrelic from 'newrelic';
 import { currentVersion } from '@thxnetwork/artifacts';
 
-async function getNetworkDetails(npid: NetworkProvider) {
-    const { admin, web3 } = getProvider(npid);
-    const balance = await web3.eth.getBalance(admin.address);
-    const gasTank = await InfuraService.getAdminBalance(npid);
-    const feeData = await getEstimatesFromOracle(npid);
+function handleError(error: Error) {
+    newrelic.noticeError(error);
+    logger.error(error);
+    return { error: 'invalid response' };
+}
 
-    return {
-        admin: {
-            address: admin.address,
-            balance: fromWei(balance, 'ether'),
-        },
-        gasTank: {
-            queue: (await InfuraService.pending(npid)).length,
-            address: InfuraService.getGasTank(npid),
-            balance: fromWei(gasTank, 'ether'),
-        },
-        feeData,
-    };
+async function getFeeData(npid: NetworkProvider) {
+    try {
+        return await getEstimatesFromOracle(npid);
+    } catch (error) {
+        return handleError(error);
+    }
+}
+
+async function getGasTankInfo(npid: NetworkProvider) {
+    try {
+        return fromWei(await InfuraService.getAdminBalance(npid), 'ether');
+    } catch (error) {
+        return handleError(error);
+    }
+}
+
+async function getNetworkDetails(npid: NetworkProvider) {
+    try {
+        const provider = getProvider(npid);
+        const { admin, web3 } = provider;
+        const balance = await web3.eth.getBalance(admin.address);
+
+        return {
+            admin: {
+                address: admin.address,
+                balance: fromWei(balance, 'ether'),
+            },
+            gasTank: {
+                queue: (await InfuraService.pending(npid)).length,
+                address: InfuraService.getGasTank(npid),
+                balance: await getGasTankInfo(npid),
+            },
+            feeData: await getFeeData(npid),
+            // facets: facetAdresses(npid),
+        };
+    } catch (error) {
+        return handleError(error);
+    }
 }
 
 export const getHealth = async (_req: Request, res: Response) => {

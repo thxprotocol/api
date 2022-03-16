@@ -5,13 +5,11 @@ import { isAddress, toWei } from 'web3-utils';
 import { Contract } from 'web3-eth-contract';
 import { afterAllCallback, beforeAllCallback } from '@/util/jest/config';
 import { getToken } from '@/util/jest/jwt';
-import { agenda, eventNameRequireDeposits } from '@/util/agenda';
-import { solutionContract } from '@/util/network';
 import { NetworkProvider, TransactionState } from '@/types/enums';
 import { IPromoCodeResponse } from '@/types/interfaces/IPromoCodeResponse';
-import { createWallet } from '@/util/jest/network';
+import { createWallet, signMethod } from '@/util/jest/network';
 import { findEvent, parseLogs } from '@/util/events';
-import { userWalletPrivateKey2 } from '@/util/jest/constants';
+import { MaxUint256, userWalletPrivateKey2 } from '@/util/jest/constants';
 import { AmountExceedsAllowanceError, InsufficientBalanceError } from '@/util/errors';
 import TransactionService from '@/services/TransactionService';
 import { getContract } from '@/config/contracts';
@@ -105,14 +103,21 @@ describe('Deposits', () => {
                 .expect(200, done);
         });
 
-        it('POST /deposits 400 Bad Request', (done) => {
-            http.post('/v1/deposits')
+        it('POST /deposits 400 Bad Request', async () => {
+            const { call, nonce, sig } = await signMethod(
+                poolAddress,
+                'deposit',
+                [toWei(String(promoCode.price))],
+                userWallet,
+            );
+            await http
+                .post('/v1/deposits')
                 .set({ Authorization: userAccessToken, AssetPool: poolAddress })
-                .send({ item: promoCode.id })
+                .send({ call, nonce, sig, item: promoCode.id })
                 .expect(({ body }: Response) => {
                     expect(body.error.message).toEqual(new InsufficientBalanceError().message);
                 })
-                .expect(400, done);
+                .expect(400);
         });
 
         it('Increase user balance', async () => {
@@ -127,59 +132,43 @@ describe('Deposits', () => {
             expect(event).toBeDefined();
         });
 
-        it('POST /deposits 400 Bad Request', (done) => {
-            http.post('/v1/deposits')
-                .set({ Authorization: userAccessToken, AssetPool: poolAddress })
-                .send({ item: promoCode.id })
-                .expect(({ body }: Response) => {
-                    expect(body.error.message).toEqual(new AmountExceedsAllowanceError().message);
-                })
-                .expect(400, done);
-        });
-
-        it('Approve Deposit', async () => {
-            const tx = await testToken.methods
-                .approve(poolAddress, toWei(String(price)))
-                .send({ from: userWallet.address });
-            const event: any = Object.values(tx.events).filter((e: any) => e.event === 'Approval')[0];
-
-            expect(event.returnValues.owner).toEqual(userWallet.address);
-            expect(event.returnValues.spender).toEqual(poolAddress);
-            expect(event.returnValues.value).toEqual(toWei(String(price)));
-        });
-
-        it('should disable job processor', async () => {
-            await agenda.disable({ name: eventNameRequireDeposits });
-        });
-
-        it('POST /deposits 200 OK', async () => {
+        it('POST /deposits 400 Bad Request', async () => {
+            const { call, nonce, sig } = await signMethod(
+                poolAddress,
+                'deposit',
+                [toWei(String(promoCode.price))],
+                userWallet,
+            );
             await http
                 .post('/v1/deposits')
                 .set({ Authorization: userAccessToken, AssetPool: poolAddress })
-                .send({ item: promoCode.id })
+                .send({ call, nonce, sig, item: promoCode.id })
+                .expect(({ body }: Response) => {
+                    expect(body.error.message).toEqual(new AmountExceedsAllowanceError().message);
+                })
+                .expect(400);
+        });
+
+        it('Approve for infinite amount', async () => {
+            const tx = await testToken.methods.approve(poolAddress, MaxUint256).send({ from: userWallet.address });
+            const event: any = Object.values(tx.events).filter((e: any) => e.event === 'Approval')[0];
+            expect(event.returnValues.owner).toEqual(userWallet.address);
+            expect(event.returnValues.spender).toEqual(poolAddress);
+            expect(event.returnValues.value).toEqual(String(MaxUint256));
+        });
+
+        it('POST /deposits 200 OK', async () => {
+            const { call, nonce, sig } = await signMethod(
+                poolAddress,
+                'deposit',
+                [toWei(String(promoCode.price))],
+                userWallet,
+            );
+            await http
+                .post('/v1/deposits')
+                .set({ Authorization: userAccessToken, AssetPool: poolAddress })
+                .send({ call, nonce, sig, item: promoCode.id })
                 .expect(200);
-        });
-
-        it('Create Deposit', async () => {
-            const solution = solutionContract(NetworkProvider.Main, poolAddress);
-            const amount = toWei(String(price));
-
-            await solution.methods.deposit(amount).send({ from: userWallet.address });
-        });
-
-        it('should enable job processor', async () => {
-            await agenda.enable({ name: eventNameRequireDeposits });
-        });
-
-        // This might cast a success before the Transfer event is actually mined
-        // and cause a test run to fail since the body.value of the GET promo_codes
-        // response will still be hidden.
-        it('should cast a success event', (done) => {
-            const callback = async () => {
-                agenda.off(`success:${eventNameRequireDeposits}`, callback);
-                done();
-            };
-            agenda.on(`success:${eventNameRequireDeposits}`, callback);
         });
 
         it('GET /promo_codes/:id', (done) => {

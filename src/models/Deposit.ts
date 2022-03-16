@@ -7,11 +7,12 @@ const DepositSchema = new mongoose.Schema(
     {
         sub: String,
         amount: Number,
+        transactions: [String],
+        failReason: String,
         sender: String,
         receiver: String,
         item: String,
         state: Number,
-        fromBlock: Number,
     },
     { timestamps: true },
 );

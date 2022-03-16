@@ -7,6 +7,7 @@ import RewardService from '@/services/RewardService';
 import WithdrawalService from '@/services/WithdrawalService';
 import MemberService from '@/services/MemberService';
 import { WithdrawalDocument } from '@/models/Withdrawal';
+import { agenda, eventNameRequireTransactions } from '@/util/agenda';
 
 const ERROR_NO_REWARD = 'Could not find a reward for this id';
 
@@ -33,6 +34,8 @@ export const postRewardClaimFor = async (req: Request, res: Response) => {
     );
 
     w = await WithdrawalService.proposeWithdraw(req.assetPool, w, account);
+
+    agenda.now(eventNameRequireTransactions, {});
 
     const result: TWithdrawal = {
         id: String(w._id),
