@@ -82,7 +82,7 @@ export async function deployUnlimitedSupplyERC20Contract(
     symbol: string,
     to: string,
 ) {
-    const tokenFactory = getContract(npid, 'ITokenFactory');
+    const tokenFactory = getContract(npid, 'TokenFactory');
     const { receipt } = await TransactionService.send(
         tokenFactory.options.address,
         tokenFactory.methods.deployUnlimitedSupplyToken(name, symbol, to),
@@ -101,7 +101,7 @@ export async function deployLimitedSupplyERC20Contract(
     to: string,
     totalSupply: BN,
 ) {
-    const tokenFactory = getContract(npid, 'ITokenFactory');
+    const tokenFactory = getContract(npid, 'TokenFactory');
     const { receipt } = await TransactionService.send(
         tokenFactory.options.address,
         tokenFactory.methods.deployLimitedSupplyToken(name, symbol, to, totalSupply),

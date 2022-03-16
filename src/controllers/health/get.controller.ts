@@ -5,7 +5,7 @@ import { getProvider, getEstimatesFromOracle } from '@/util/network';
 import { NetworkProvider } from '@/types/enums';
 
 import InfuraService from '@/services/InfuraService';
-import { assetPoolFactoryAddress, assetPoolRegistryAddress, currentVersion } from '@/config/contracts';
+import { getContractConfig } from '@/config/contracts';
 
 async function getNetworkDetails(npid: NetworkProvider, constants: { factory: string; registry: string }) {
     const { admin, web3 } = getProvider(npid);
@@ -35,14 +35,14 @@ export const getHealth = async (req: Request, res: Response) => {
         name,
         version,
         license,
-        artifacts: currentVersion,
+        // artifacts: currentVersion,
         testnet: await getNetworkDetails(NetworkProvider.Test, {
-            factory: assetPoolFactoryAddress(NetworkProvider.Test),
-            registry: assetPoolRegistryAddress(NetworkProvider.Test),
+            factory: getContractConfig(NetworkProvider.Test, 'AssetPoolFactory', version).address,
+            registry: getContractConfig(NetworkProvider.Test, 'PoolRegistry', version).address,
         }),
         mainnet: await getNetworkDetails(NetworkProvider.Main, {
-            factory: assetPoolFactoryAddress(NetworkProvider.Main),
-            registry: assetPoolRegistryAddress(NetworkProvider.Main),
+            factory: getContractConfig(NetworkProvider.Main, 'AssetPoolFactory', version).address,
+            registry: getContractConfig(NetworkProvider.Main, 'PoolRegistry', version).address,
         }),
     };
 

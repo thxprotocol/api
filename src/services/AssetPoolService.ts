@@ -8,13 +8,7 @@ import { toWei, fromWei, toChecksumAddress } from 'web3-utils';
 import { Membership } from '@/models/Membership';
 import { THXError } from '@/util/errors';
 import TransactionService from './TransactionService';
-import {
-    assetPoolRegistryAddress,
-    currentVersion,
-    diamondCut,
-    getContract,
-    poolFacetAdressesPermutations,
-} from '@/config/contracts';
+import { diamondCut, getContract, poolFacetAdressesPermutations } from '@/config/contracts';
 import { logger } from '@/util/logger';
 
 export const ADMIN_ROLE = '0x0000000000000000000000000000000000000000000000000000000000000000';
@@ -106,8 +100,8 @@ export default class AssetPoolService {
     }
 
     static async deploy(sub: string, network: NetworkProvider) {
-        const assetPoolFactory = getContract(network, 'IAssetPoolFactory');
-        const registryAddress = assetPoolRegistryAddress(network);
+        const assetPoolFactory = getContract(network, 'AssetPoolFactory');
+        const registryAddress = getContract(network, 'PoolRegistry').options.address;
         const { receipt } = await TransactionService.send(
             assetPoolFactory.options.address,
             assetPoolFactory.methods.deployAssetPool(diamondCut(network), registryAddress),
@@ -123,7 +117,7 @@ export default class AssetPoolService {
             transactionHash: event.transactionHash,
             bypassPolls: true,
             network: network,
-            version: currentVersion,
+            // version: currentVersion,
         });
 
         return assetPool;

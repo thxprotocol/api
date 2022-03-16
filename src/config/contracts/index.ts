@@ -1,14 +1,11 @@
 import { NetworkProvider } from '@/types/enums';
 import { getProvider, getSelectors } from '@/util/network';
-import artifacts from '@/config/contracts/artifacts';
 import { FacetCutAction } from '@/util/upgrades';
 import { AbiItem } from 'web3-utils';
 import { uniq } from '@/util';
+import { availableVersions, contractConfig, TNetworkName } from '@thxnetwork/artifacts';
 
-export const currentVersion = '1.0.8';
-
-const facetConfigurations = {
-    diamond: ['DiamondCutFacet', 'DiamondLoupeFacet', 'OwnershipFacet'],
+const facetVariants = {
     defaultPool: [
         'AccessControl',
         'MemberAccess',
@@ -27,8 +24,7 @@ export const getContractConfig = (
     contractName: string,
     version?: string,
 ): { address: string; abi: AbiItem[] } => {
-    const contractConfig = artifacts.contracts[contractName as keyof typeof artifacts.contracts] as any;
-    return contractConfig;
+    return contractConfig('hardhat', contractName, version);
 };
 
 export const getContract = (npid: NetworkProvider, contractName: string, version?: string) => {
@@ -37,27 +33,15 @@ export const getContract = (npid: NetworkProvider, contractName: string, version
     return new web3.eth.Contract(contractConfig.abi, contractConfig.address);
 };
 
-export const assetPoolFactoryAddress = (npid: NetworkProvider, version?: string) => {
-    return getContractConfig(npid, 'IAssetPoolFactory', version).address;
+const diamonContractNames = (variant: keyof typeof facetVariants) => {
+    return [...facetVariants[variant], 'DiamondCutFacet', 'DiamondLoupeFacet', 'OwnershipFacet'];
 };
 
-export const assetPoolRegistryAddress = (npid: NetworkProvider, version?: string) => {
-    return getContractConfig(npid, 'PoolRegistry', version).address;
-};
-
-const diamonContractNames = (configuration: keyof typeof facetConfigurations) => {
-    return [...facetConfigurations[configuration], ...facetConfigurations.diamond];
-};
-
-export const diamondContracts = (
-    npid: NetworkProvider,
-    configuration: keyof typeof facetConfigurations,
-    version?: string,
-) => {
+export const diamondContracts = (npid: NetworkProvider, variant: keyof typeof facetVariants, version?: string) => {
     const result = [];
     const { web3 } = getProvider(npid);
 
-    for (const contractName of diamonContractNames(configuration)) {
+    for (const contractName of diamonContractNames(variant)) {
         const contractConfig = getContractConfig(npid, contractName, version);
         result.push(new web3.eth.Contract(contractConfig.abi, contractConfig.address));
     }
@@ -65,14 +49,10 @@ export const diamondContracts = (
     return result;
 };
 
-export const diamondAbi = (
-    npid: NetworkProvider,
-    configuration: keyof typeof facetConfigurations,
-    version?: string,
-): AbiItem[] => {
+export const diamondAbi = (npid: NetworkProvider, variant: keyof typeof facetVariants, version?: string): AbiItem[] => {
     const result: AbiItem[] = [];
 
-    for (const contractName of diamonContractNames(configuration)) {
+    for (const contractName of diamonContractNames(variant)) {
         const abi = getContractConfig(npid, contractName, version).abi;
         for (const abiItem of abi) {
             if (!result.find((item) => item.type == abiItem.type && item.name == abiItem.name)) result.push(abiItem);
@@ -84,7 +64,7 @@ export const diamondAbi = (
 
 export const diamondCut = (npid: NetworkProvider) => {
     const diamondCut = [];
-    for (const f of diamondContracts(npid, 'defaultPool', currentVersion)) {
+    for (const f of diamondContracts(npid, 'defaultPool')) {
         diamondCut.push({
             action: FacetCutAction.Add,
             facetAddress: f.options.address,
@@ -96,10 +76,24 @@ export const diamondCut = (npid: NetworkProvider) => {
 
 export const poolFacetAdressesPermutations = (npid: NetworkProvider) => {
     const result = [];
-    // const versions = contractAddressConfig[npid].map((config: any) => config.version);
-    // for (const version of versions) {
-    // }
-    result.push({ version: '1.0.9', facetAddresses: ['fdsa'], npid });
+    const versions = availableVersions(npToName(npid));
+    for (const version of versions) {
+        for (const variant of Object.keys(facetVariants) as any) {
+            const facetAddresses = diamonContractNames(variant).map(
+                (contractName) => getContractConfig(npid, contractName, version).address,
+            );
+            result.push({ version, variant, facetAddresses, npid });
+        }
+    }
 
     return result;
+};
+
+const npToName = (npid: NetworkProvider): TNetworkName => {
+    switch (npid) {
+        case NetworkProvider.Main:
+            return 'hardhat';
+        case NetworkProvider.Test:
+            return 'hardhat';
+    }
 };

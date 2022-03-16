@@ -82,7 +82,7 @@ export async function updateAssetPool(pool: AssetPoolDocument, version?: string)
 }
 
 export async function updateAssetPoolFactory(npid: NetworkProvider, version?: string) {
-    const factory = getContract(npid, 'IAssetPoolFactory');
+    const factory = getContract(npid, 'AssetPoolFactory');
     const facets = await factory.methods.facets().call();
     const newContracts = diamondContracts(npid, 'defaultPoolFactory', version);
     const diamondCuts = getDiamondCutForContractFacets(newContracts, facets);

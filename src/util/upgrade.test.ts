@@ -8,7 +8,8 @@ import { getToken } from '@/util/jest/jwt';
 import { afterAllCallback, beforeAllCallback } from '@/util/jest/config';
 import AssetPoolService from '@/services/AssetPoolService';
 import { updateAssetPool } from '@/util/upgrades';
-import { currentVersion, getContract } from '@/config/contracts';
+import { getContract } from '@/config/contracts';
+import { currentVersion } from '@thxnetwork/artifacts';
 
 const user = request.agent(app);
 
