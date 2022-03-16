@@ -2,7 +2,6 @@ import { NetworkProvider } from '@/types/enums';
 import { getProvider, getSelectors } from '@/util/network';
 import { FacetCutAction } from '@/util/upgrades';
 import { AbiItem } from 'web3-utils';
-import { uniq } from '@/util';
 import { availableVersions, contractConfig, TNetworkName } from '@thxnetwork/artifacts';
 import { MAINNET_NETWORK_NAME, TESTNET_NETWORK_NAME } from './secrets';
 
