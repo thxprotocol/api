@@ -6,6 +6,7 @@ import { NetworkProvider } from '@/types/enums';
 
 import InfuraService from '@/services/InfuraService';
 import { getContractConfig } from '@/config/contracts';
+import { currentVersion } from '@thxnetwork/artifacts';
 
 async function getNetworkDetails(npid: NetworkProvider, constants: { factory: string; registry: string }) {
     const { admin, web3 } = getProvider(npid);
@@ -26,7 +27,6 @@ async function getNetworkDetails(npid: NetworkProvider, constants: { factory: st
         feeData,
         factory: constants.factory,
         registry: constants.registry,
-        // facets: facetAdresses(npid),
     };
 }
 
@@ -35,7 +35,7 @@ export const getHealth = async (req: Request, res: Response) => {
         name,
         version,
         license,
-        // artifacts: currentVersion,
+        artifacts: currentVersion,
         testnet: await getNetworkDetails(NetworkProvider.Test, {
             factory: getContractConfig(NetworkProvider.Test, 'AssetPoolFactory', version).address,
             registry: getContractConfig(NetworkProvider.Test, 'PoolRegistry', version).address,
