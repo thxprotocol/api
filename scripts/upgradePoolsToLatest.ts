@@ -1,9 +1,9 @@
 import db from '@/util/database';
-import { currentVersion } from '@/config/contracts/index';
 import { MONGODB_URI } from '@/config/secrets';
 import { updateAssetPool, updateAssetPoolFactory } from '@/util/upgrades';
 import { AssetPool } from '@/models/AssetPool';
 import { NetworkProvider } from '@/types/enums';
+import { currentVersion } from '@thxnetwork/artifacts';
 
 db.connect(MONGODB_URI);
 
