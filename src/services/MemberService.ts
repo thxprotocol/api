@@ -11,10 +11,10 @@ export default class MemberService {
         const isMember = await this.isMember(assetPool, address);
         const isManager = await this.isManager(assetPool, address);
         const memberId = await TransactionService.call(
-            assetPool.solution.methods.getMemberByAddress(address),
+            assetPool.contract.methods.getMemberByAddress(address),
             assetPool.network,
         );
-        const tokenAddress = await TransactionService.call(assetPool.solution.methods.getToken(), assetPool.network);
+        const tokenAddress = await TransactionService.call(assetPool.contract.methods.getToken(), assetPool.network);
         const tokenInstance = tokenContract(assetPool.network, tokenAddress);
         const name = await TransactionService.call(tokenInstance.methods.name(), assetPool.network);
         const symbol = await TransactionService.call(tokenInstance.methods.symbol(), assetPool.network);
@@ -50,17 +50,17 @@ export default class MemberService {
     }
 
     static getMemberByAddress(assetPool: AssetPoolType, address: string): Promise<number> {
-        return TransactionService.call(assetPool.solution.methods.getMemberByAddress(address), assetPool.network);
+        return TransactionService.call(assetPool.contract.methods.getMemberByAddress(address), assetPool.network);
     }
 
     static async addMember(assetPool: AssetPoolType, address: string) {
         const { receipt } = await TransactionService.send(
             assetPool.address,
-            assetPool.solution.methods.addMember(address),
+            assetPool.contract.methods.addMember(address),
             assetPool.network,
         );
 
-        assertEvent('RoleGranted', parseLogs(assetPool.solution.options.jsonInterface, receipt.logs));
+        assertEvent('RoleGranted', parseLogs(assetPool.contract.options.jsonInterface, receipt.logs));
 
         const memberId = await this.getMemberByAddress(assetPool, address);
 
@@ -83,17 +83,17 @@ export default class MemberService {
     }
 
     static isMember(assetPool: AssetPoolType, address: string) {
-        return TransactionService.call(assetPool.solution.methods.isMember(address), assetPool.network);
+        return TransactionService.call(assetPool.contract.methods.isMember(address), assetPool.network);
     }
 
     static isManager(assetPool: AssetPoolType, address: string) {
-        return TransactionService.call(assetPool.solution.methods.isManager(address), assetPool.network);
+        return TransactionService.call(assetPool.contract.methods.isManager(address), assetPool.network);
     }
 
     static async removeMember(assetPool: AssetPoolType, address: string) {
         const { receipt } = await TransactionService.send(
             assetPool.address,
-            assetPool.solution.methods.removeMember(address),
+            assetPool.contract.methods.removeMember(address),
             assetPool.network,
         );
         assertEvent('RoleRevoked', parseLogs(diamondAbi(assetPool.network, 'defaultPool'), receipt.logs));

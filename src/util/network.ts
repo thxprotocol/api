@@ -113,15 +113,11 @@ export async function deployLimitedSupplyERC20Contract(
     return tokenContract(npid, event.args.token);
 }
 
-export const solutionContract = (npid: NetworkProvider, address: string): Contract => {
-    return getContractFromAbi(npid, diamondAbi(npid, 'defaultPool'), address);
-};
-
 export const tokenContract = (npid: NetworkProvider, address: string): Contract => {
     return getContractFromAbi(npid, getContractConfig(npid, 'TokenLimitedSupply').abi, address);
 };
 
-const getContractFromAbi = (npid: NetworkProvider, abi: AbiItem[], address: string): Contract => {
+export const getContractFromAbi = (npid: NetworkProvider, abi: AbiItem[], address: string): Contract => {
     const { web3 } = getProvider(npid);
     return new web3.eth.Contract(abi, address);
 };

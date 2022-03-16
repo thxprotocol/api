@@ -70,9 +70,9 @@ async function signRequest(tx: any, signer: Signer) {
     return await signer.signMessage(ethers.utils.arrayify(relayTransactionHash));
 }
 
-async function getCallData(solution: Contract, fn: string, args: any[], account: Signer) {
-    const nonce = Number(await solution.getLatestNonce(await account.getAddress())) + 1;
-    const call = solution.interface.encodeFunctionData(fn, args);
+async function getCallData(contract: Contract, fn: string, args: any[], account: Signer) {
+    const nonce = Number(await contract.getLatestNonce(await account.getAddress())) + 1;
+    const call = contract.interface.encodeFunctionData(fn, args);
     const hash = soliditySha3(call, nonce);
     const sig = await account.signMessage(ethers.utils.arrayify(hash));
 
@@ -81,11 +81,11 @@ async function getCallData(solution: Contract, fn: string, args: any[], account:
 
 async function send(to: string, fn: string, args: any[], npid: NetworkProvider) {
     const { provider, admin } = getProvider(npid);
-    const solution = new ethers.Contract(to, diamondAbi(npid, 'defaultPool') as any, admin);
+    const contract = new ethers.Contract(to, diamondAbi(npid, 'defaultPool') as any, admin);
     // Get the relayed call data, nonce and signature for this contract call
-    const { call, nonce, sig } = await getCallData(solution, fn, args, admin);
+    const { call, nonce, sig } = await getCallData(contract, fn, args, admin);
     // Encode a relay call witht he relayed call data
-    const data = solution.interface.encodeFunctionData('call', [call, nonce, sig]);
+    const data = contract.interface.encodeFunctionData('call', [call, nonce, sig]);
     // Estimate gas for the relayed ITX call
     const gas = String(
         await admin.estimateGas({

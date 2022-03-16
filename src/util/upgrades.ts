@@ -67,13 +67,13 @@ function getDiamondCutForContractFacets(newContracts: Contract[], facets: any[])
 }
 
 export async function updateAssetPool(pool: AssetPoolDocument, version?: string) {
-    const facets = await pool.solution.methods.facets().call();
+    const facets = await pool.contract.methods.facets().call();
     const newContracts = diamondContracts(pool.network, 'defaultPool', version);
     const diamondCuts = getDiamondCutForContractFacets(newContracts, facets);
 
     await TransactionService.send(
-        pool.solution.options.address,
-        pool.solution.methods.diamondCut(diamondCuts, ADDRESS_ZERO, '0x'),
+        pool.contract.options.address,
+        pool.contract.methods.diamondCut(diamondCuts, ADDRESS_ZERO, '0x'),
         pool.network,
     );
 

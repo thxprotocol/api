@@ -1,7 +1,7 @@
 import { Account } from 'web3-core';
 import { soliditySha3 } from 'web3-utils';
 import { VOTER_PK, DEPOSITOR_PK } from './constants';
-import { getProvider, solutionContract } from '@/util/network';
+import { getContractFromAbi, getProvider } from '@/util/network';
 import { NetworkProvider } from '@/types/enums';
 import TransactionService from '@/services/TransactionService';
 import { diamondAbi } from '@/config/contracts';
@@ -33,10 +33,14 @@ export const timeTravel = async (seconds: number) => {
 };
 
 export async function signMethod(poolAddress: string, name: string, params: any[], account: Account) {
-    const solution = solutionContract(NetworkProvider.Main, poolAddress);
+    const contract = getContractFromAbi(
+        NetworkProvider.Main,
+        diamondAbi(NetworkProvider.Main, 'defaultPool'),
+        poolAddress,
+    );
     const abi: any = diamondAbi(NetworkProvider.Main, 'defaultPool').find((fn) => fn.name === name);
     const nonce =
-        Number(await TransactionService.call(solution.methods.getLatestNonce(account.address), NetworkProvider.Main)) +
+        Number(await TransactionService.call(contract.methods.getLatestNonce(account.address), NetworkProvider.Main)) +
         1;
     const call = web3.eth.abi.encodeFunctionCall(abi, params);
     const hash = soliditySha3(call, nonce);

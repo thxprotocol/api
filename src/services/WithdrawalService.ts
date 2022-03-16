@@ -79,7 +79,7 @@ export default class WithdrawalService {
             try {
                 const { tx, receipt } = await TransactionService.send(
                     assetPool.address,
-                    assetPool.solution.methods.proposeWithdraw(amountInWei, account.address),
+                    assetPool.contract.methods.proposeWithdraw(amountInWei, account.address),
                     assetPool.network,
                 );
                 const events = parseLogs(diamondAbi(assetPool.network, 'defaultPool'), receipt.logs);
@@ -117,11 +117,11 @@ export default class WithdrawalService {
             try {
                 const { tx, receipt } = await TransactionService.send(
                     assetPool.address,
-                    assetPool.solution.methods.withdrawPollFinalize(withdrawal.withdrawalId),
+                    assetPool.contract.methods.withdrawPollFinalize(withdrawal.withdrawalId),
                     assetPool.network,
                 );
 
-                const events = parseLogs(assetPool.solution.options.jsonInterface, receipt.logs);
+                const events = parseLogs(assetPool.contract.options.jsonInterface, receipt.logs);
 
                 assertEvent('WithdrawPollFinalized', events);
                 assertEvent('Withdrawn', events);

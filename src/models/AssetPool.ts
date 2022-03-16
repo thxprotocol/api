@@ -1,10 +1,11 @@
 import mongoose from 'mongoose';
-import { solutionContract } from '@/util/network';
+import { getContractFromAbi } from '@/util/network';
 import { Contract } from 'web3-eth-contract';
+import { diamondAbi } from '@/config/contracts';
 
 export type AssetPoolType = {
     address: string;
-    solution: Contract;
+    contract: Contract;
     network: number;
     sub: string;
     clientId: string;
@@ -30,8 +31,9 @@ const assetPoolSchema = new mongoose.Schema(
     { timestamps: true },
 );
 
-assetPoolSchema.virtual('solution').get(function () {
-    return solutionContract(this.network, this.address);
+assetPoolSchema.virtual('contract').get(function () {
+    // Later we can change defaultpool to the actual configuration and add the version of the pool as well.
+    return getContractFromAbi(this.network, diamondAbi(this.network, 'defaultPool'), this.address);
 });
 
 export const AssetPool = mongoose.model<AssetPoolDocument>('AssetPool', assetPoolSchema);

@@ -16,24 +16,24 @@ export const createCallUpgradeAddressValidation = [
 ];
 
 export const postCallUpgradeAddress = async (req: Request, res: Response) => {
-    const { solution, network } = req.assetPool;
-    const isMember = await TransactionService.call(solution.methods.isMember(req.body.newAddress), network);
+    const { contract, network } = req.assetPool;
+    const isMember = await TransactionService.call(contract.methods.isMember(req.body.newAddress), network);
 
     if (!isMember) {
         await TransactionService.send(
-            solution.options.address,
-            solution.methods.addMember(req.body.newAddress),
+            contract.options.address,
+            contract.methods.addMember(req.body.newAddress),
             network,
         );
     }
 
     const { receipt } = await TransactionService.send(
-        solution.options.address,
-        solution.methods.call(req.body.call, req.body.nonce, req.body.sig),
+        contract.options.address,
+        contract.methods.call(req.body.call, req.body.nonce, req.body.sig),
         network,
         250000,
     );
-    const events = parseLogs(solution.options.jsonInterface, receipt.logs);
+    const events = parseLogs(contract.options.jsonInterface, receipt.logs);
     const event = assertEvent('MemberAddressChanged', events);
     const account = await AccountProxy.getByAddress(event.args.previousAddress);
 

@@ -35,7 +35,7 @@ export default class AssetPoolService {
     }
 
     static async getPoolToken(assetPool: AssetPoolDocument) {
-        const tokenAddress = await TransactionService.call(assetPool.solution.methods.getToken(), assetPool.network);
+        const tokenAddress = await TransactionService.call(assetPool.contract.methods.getToken(), assetPool.network);
         const tokenInstance = tokenContract(assetPool.network, tokenAddress);
 
         return {
@@ -91,8 +91,8 @@ export default class AssetPoolService {
         const tokenAddress = token.address || (await this.deployPoolToken(assetPool, token));
 
         await TransactionService.send(
-            assetPool.solution.options.address,
-            assetPool.solution.methods.addToken(tokenAddress),
+            assetPool.contract.options.address,
+            assetPool.contract.methods.addToken(tokenAddress),
             assetPool.network,
         );
 
@@ -148,7 +148,7 @@ export default class AssetPoolService {
 
     static async contractVersion(assetPool: AssetPoolDocument) {
         const permutations = Object.values(poolFacetAdressesPermutations(assetPool.network));
-        const facetAddresses = [...(await assetPool.solution.methods.facetAddresses().call())];
+        const facetAddresses = [...(await assetPool.contract.methods.facetAddresses().call())];
         const match = permutations.find(
             (permutation) => permutation.facetAddresses.sort().join('') === facetAddresses.sort().join(''),
         );
@@ -162,7 +162,7 @@ export default class AssetPoolService {
         const newOwner = web3.eth.accounts.privateKeyToAccount(newPrivateKey);
         const newOwnerAddress = toChecksumAddress(newOwner.address);
 
-        const { methods, options } = assetPool.solution;
+        const { methods, options } = assetPool.contract;
 
         const sendFromCurrentOwner = (fn: any) => {
             return TransactionService.send(options.address, fn, assetPool.network, null, currentPrivateKey);

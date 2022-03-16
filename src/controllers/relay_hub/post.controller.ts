@@ -9,15 +9,15 @@ import { Withdrawal } from '@/models/Withdrawal';
 export const createCallValidation = [body('call').exists(), body('nonce').exists(), body('sig').exists()];
 
 export const postCall = async (req: Request, res: Response) => {
-    const { solution, network, address } = req.assetPool;
+    const { contract, network, address } = req.assetPool;
     // Check NETWORK_ENVIRONMENT for dev and prod and invoke InfuraService if applicable
     const { tx, receipt } = await TransactionService.send(
-        solution.options.address,
-        solution.methods.call(req.body.call, req.body.nonce, req.body.sig),
+        contract.options.address,
+        contract.methods.call(req.body.call, req.body.nonce, req.body.sig),
         network,
         250000,
     );
-    const events = parseLogs(solution.options.jsonInterface, receipt.logs);
+    const events = parseLogs(contract.options.jsonInterface, receipt.logs);
     const event = findEvent('Result', events);
 
     if (!event) throw new InternalServerError();

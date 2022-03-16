@@ -20,7 +20,7 @@ export async function jobRequireTransactions() {
         const receipt = await InfuraService.getTransactionStatus(assetPool, tx);
         if (!receipt) return;
 
-        const events = parseLogs(assetPool.solution.options.jsonInterface, receipt.logs);
+        const events = parseLogs(assetPool.contract.options.jsonInterface, receipt.logs);
         const result = findEvent('Result', events);
 
         if (!result.args.success) {

@@ -67,7 +67,7 @@ describe('Transfer Pool Ownership', () => {
             await AssetPoolService.transferOwnership(assetPool, PRIVATE_KEY, DEPOSITOR_PK);
 
             const { web3 } = getProvider(assetPool.network);
-            const { methods } = assetPool.solution;
+            const { methods } = assetPool.contract;
             const newOwner = web3.eth.accounts.privateKeyToAccount(DEPOSITOR_PK);
             const newOwnerAddress = toChecksumAddress(newOwner.address);
             const formerOwner = web3.eth.accounts.privateKeyToAccount(PRIVATE_KEY);
