@@ -14,7 +14,7 @@ export async function jobProcessTransactions() {
         state: TransactionState.Pending,
         type: TransactionType.ITX,
         transactionHash: { $exists: false },
-    }).sort({ 'calldata.nonce': 'asc' });
+    }).sort({ createdAt: 'asc' });
 
     for (let tx of transactions) {
         const assetPool = await AssetPoolService.getByAddress(tx.to);
