@@ -25,6 +25,16 @@ function getDiamondCutsFromSelectorsMap(map: Map<string, string>, action: FacetC
 }
 
 export function getDiamondCutForContractFacets(newContracts: Contract[], facets: any[]) {
+    const diamondSelectors = [
+        '0x1f931c1c',
+        '0xadfca15e',
+        '0x7a0ed627',
+        '0xcdffacc6',
+        '0x52ef6b2c',
+        '0x01ffc9a7',
+        '0xf2fde38b',
+        '0x8da5cb5b',
+    ]; // We don't update these selectors as it breaks the diamond.
     const currentSelectorMapping = new Map();
     facets.forEach((facet: any) =>
         facet.functionSelectors.forEach((selector: string) => {
@@ -45,7 +55,10 @@ export function getDiamondCutForContractFacets(newContracts: Contract[], facets:
     for (const currentSelector of currentSelectorMapping) {
         if (additions.has(currentSelector[0])) {
             // If the selector address has changed in the new version.
-            if (additions.get(currentSelector[0]) !== currentSelector[1]) {
+            if (
+                additions.get(currentSelector[0]) !== currentSelector[1] &&
+                !diamondSelectors.includes(currentSelector[0])
+            ) {
                 replaces.set(currentSelector[0], additions.get(currentSelector[0]));
             }
             // The selector already exists so it's not an addition.
