@@ -6,7 +6,6 @@ export type AssetPoolType = {
     address: string;
     solution: Contract;
     network: number;
-    latestAdminNonce: number;
     sub: string;
     clientId: string;
     blockNumber: number;
@@ -21,7 +20,6 @@ const assetPoolSchema = new mongoose.Schema(
     {
         address: String,
         network: Number,
-        latestAdminNonce: Number,
         sub: String,
         clientId: String,
         blockNumber: Number,

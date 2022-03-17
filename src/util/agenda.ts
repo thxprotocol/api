@@ -1,7 +1,7 @@
 import db from './database';
 import { Agenda } from 'agenda';
 import { logger } from './logger';
-import { jobRequireTransactions } from '@/jobs/requireTransactions';
+import { jobProcessTransactions } from '@/jobs/requireTransactions';
 
 export const eventNameRequireTransactions = 'requireTransactions';
 
@@ -11,7 +11,7 @@ export const agenda = new Agenda({
     processEvery: '1 second',
 });
 
-agenda.define(eventNameRequireTransactions, jobRequireTransactions);
+agenda.define(eventNameRequireTransactions, jobProcessTransactions);
 
 db.connection.once('open', async () => {
     agenda.mongo(db.connection.getClient().db(), 'jobs');

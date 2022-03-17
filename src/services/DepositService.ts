@@ -23,7 +23,7 @@ async function schedule(assetPool: AssetPoolType, account: IAccount, price: numb
 
 async function create(assetPool: AssetPoolType, deposit: DepositDocument, call: string, nonce: number, sig: string) {
     if (NETWORK_ENVIRONMENT === 'dev' || NETWORK_ENVIRONMENT === 'prod') {
-        const tx = await InfuraService.send(assetPool.address, 'call', [call, nonce, sig], assetPool.network);
+        const tx = await InfuraService.schedule(assetPool.address, 'call', [call, nonce, sig], assetPool.network);
 
         deposit.transactions.push(String(tx._id));
 
