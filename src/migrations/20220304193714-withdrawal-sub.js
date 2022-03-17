@@ -26,6 +26,7 @@ async function getAuthAccessToken() {
 
 module.exports = {
     async up(db) {
+        return true; // Without the auth server running this breaks on local. Prod and dev have been migrated so commenting this out is fine..
         const authAccessToken = await getAuthAccessToken();
         const withdrawalsColl = db.collection('withdrawals');
 

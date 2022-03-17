@@ -1,15 +1,15 @@
 import request from 'supertest';
 import app from '@/app';
 import { NetworkProvider } from '@/types/enums';
-import { deployExampleToken } from '@/util/jest/network';
 
 import { isAddress } from 'web3-utils';
 import { Contract } from 'web3-eth-contract';
 import { getToken } from '@/util/jest/jwt';
 import { afterAllCallback, beforeAllCallback } from '@/util/jest/config';
 import AssetPoolService from '@/services/AssetPoolService';
-import { updateAssetPool } from '@/util/upgrades';
-import { currentVersion } from '@/config/contracts';
+import { updateDiamondContract } from '@/util/upgrades';
+import { getContract } from '@/config/contracts';
+import { currentVersion } from '@thxnetwork/artifacts';
 
 const user = request.agent(app);
 
@@ -19,7 +19,7 @@ describe('Happy Flow', () => {
     beforeAll(async () => {
         await beforeAllCallback();
 
-        testToken = await deployExampleToken();
+        testToken = getContract(NetworkProvider.Main, 'TokenLimitedSupply');
 
         await user
             .post('/v1/asset_pools')
@@ -40,19 +40,22 @@ describe('Happy Flow', () => {
     afterAll(afterAllCallback);
 
     describe('Test pool upgrades', () => {
-        it('Three upgrades with different subsets', async () => {
+        it('Switch between different diamond facet configurations', async () => {
             const pool = await AssetPoolService.getByAddress(poolAddress);
 
-            expect(await AssetPoolService.contractVersion(pool)).toBe(currentVersion);
+            expect(await AssetPoolService.contractVersionVariant(pool)).toEqual({
+                variant: 'defaultPool',
+                version: currentVersion,
+            });
 
-            await updateAssetPool(pool, 'test-partial-1');
-            expect(await AssetPoolService.contractVersion(pool)).toBe('test-partial-1');
+            await updateDiamondContract(pool.network, pool.contract, 'assetPoolRegistry');
+            expect((await AssetPoolService.contractVersionVariant(pool)).variant).toBe('assetPoolRegistry');
 
-            await updateAssetPool(pool, 'test-partial-2');
-            expect(await AssetPoolService.contractVersion(pool)).toBe('test-partial-2');
-
-            await updateAssetPool(pool);
-            expect(await AssetPoolService.contractVersion(pool)).toBe(currentVersion);
+            await AssetPoolService.updateAssetPool(pool);
+            expect(await AssetPoolService.contractVersionVariant(pool)).toEqual({
+                variant: 'defaultPool',
+                version: currentVersion,
+            });
         });
     });
 });

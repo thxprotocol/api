@@ -1,10 +1,10 @@
-import { getSelectors, ADDRESS_ZERO, getAssetPoolFactory } from './network';
+import { getSelectors, ADDRESS_ZERO } from './network';
 import TransactionService from '@/services/TransactionService';
 import { Contract } from 'web3-eth-contract';
-import { factoryFacetContracts, poolFacetContracts } from '@/config/contracts';
 import { uniq } from '.';
-import { AssetPoolDocument } from '@/models/AssetPool';
 import { NetworkProvider } from '@/types/enums';
+import { diamondContracts } from '@/config/contracts';
+import { DiamondVariant } from '@thxnetwork/artifacts';
 
 export enum FacetCutAction {
     Add = 0,
@@ -24,7 +24,17 @@ function getDiamondCutsFromSelectorsMap(map: Map<string, string>, action: FacetC
     return result;
 }
 
-function getDiamondCutForContractFacets(newContracts: Contract[], facets: any[]) {
+export function getDiamondCutForContractFacets(newContracts: Contract[], facets: any[]) {
+    const diamondSelectors = [
+        '0x1f931c1c',
+        '0xadfca15e',
+        '0x7a0ed627',
+        '0xcdffacc6',
+        '0x52ef6b2c',
+        '0x01ffc9a7',
+        '0xf2fde38b',
+        '0x8da5cb5b',
+    ]; // We don't update these selectors as it breaks the diamond.
     const currentSelectorMapping = new Map();
     facets.forEach((facet: any) =>
         facet.functionSelectors.forEach((selector: string) => {
@@ -45,7 +55,10 @@ function getDiamondCutForContractFacets(newContracts: Contract[], facets: any[])
     for (const currentSelector of currentSelectorMapping) {
         if (additions.has(currentSelector[0])) {
             // If the selector address has changed in the new version.
-            if (additions.get(currentSelector[0]) !== currentSelector[1]) {
+            if (
+                additions.get(currentSelector[0]) !== currentSelector[1] &&
+                !diamondSelectors.includes(currentSelector[0])
+            ) {
                 replaces.set(currentSelector[0], additions.get(currentSelector[0]));
             }
             // The selector already exists so it's not an addition.
@@ -65,30 +78,23 @@ function getDiamondCutForContractFacets(newContracts: Contract[], facets: any[])
     return diamondCuts;
 }
 
-export async function updateAssetPool(pool: AssetPoolDocument, version?: string) {
-    const facets = await pool.solution.methods.facets().call();
-    const newContracts = poolFacetContracts(pool.network, version);
+export const updateDiamondContract = async (
+    npid: NetworkProvider,
+    contract: Contract,
+    variant: DiamondVariant,
+    version?: string,
+) => {
+    const facets = await contract.methods.facets().call();
+    const newContracts = diamondContracts(npid, variant, version);
     const diamondCuts = getDiamondCutForContractFacets(newContracts, facets);
 
-    await TransactionService.send(
-        pool.solution.options.address,
-        pool.solution.methods.diamondCut(diamondCuts, ADDRESS_ZERO, '0x'),
-        pool.network,
-    );
+    if (diamondCuts.length > 0) {
+        return await TransactionService.send(
+            contract.options.address,
+            contract.methods.diamondCut(diamondCuts, ADDRESS_ZERO, '0x'),
+            npid,
+        );
+    }
 
-    pool.version = version;
-    await pool.save();
-}
-
-export async function updateAssetPoolFactory(npid: NetworkProvider, version?: string) {
-    const factory = getAssetPoolFactory(npid);
-    const facets = await factory.methods.facets().call();
-    const newContracts = factoryFacetContracts(npid, version);
-    const diamondCuts = getDiamondCutForContractFacets(newContracts, facets);
-
-    await TransactionService.send(
-        factory.options.address,
-        factory.methods.diamondCut(diamondCuts, ADDRESS_ZERO, '0x'),
-        npid,
-    );
-}
+    return false;
+};

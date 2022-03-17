@@ -5,15 +5,15 @@ import { mockClear } from './mock';
 import { logger } from '@/util/logger';
 import { getProvider } from '@/util/network';
 import { NetworkProvider } from '@/types/enums';
+import { getContractConfig } from '@/config/contracts';
 import { poll } from '../polling';
-import { assetPoolRegistryAddress } from '@/config/contracts';
 
 export async function beforeAllCallback() {
     await db.truncate();
     mockStart();
 
     const { web3 } = getProvider(NetworkProvider.Main);
-    const fn = () => web3.eth.getCode(assetPoolRegistryAddress(NetworkProvider.Main));
+    const fn = () => web3.eth.getCode(getContractConfig(NetworkProvider.Main, 'OwnershipFacet').address);
     const fnCondition = (result: string) => result === '0x';
 
     await poll(fn, fnCondition, 500);

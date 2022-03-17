@@ -4,14 +4,15 @@ import { fromWei } from 'web3-utils';
 import { getProvider, getEstimatesFromOracle } from '@/util/network';
 import { NetworkProvider } from '@/types/enums';
 import InfuraService from '@/services/InfuraService';
-import { assetPoolFactoryAddress, assetPoolRegistryAddress, currentVersion, facetAdresses } from '@/config/contracts';
+import { diamondFacetAddresses, getContractConfig } from '@/config/contracts';
 import { logger } from '@/util/logger';
 import newrelic from 'newrelic';
+import { currentVersion, diamondVariants } from '@thxnetwork/artifacts';
 
 function handleError(error: Error) {
     newrelic.noticeError(error);
     logger.error(error);
-    return 'invalid response';
+    return { error: 'invalid response' };
 }
 
 async function getFeeData(npid: NetworkProvider) {
@@ -30,7 +31,17 @@ async function getGasTankInfo(npid: NetworkProvider) {
     }
 }
 
-async function getNetworkDetails(npid: NetworkProvider, constants: { factory: string; registry: string }) {
+function facetAdresses(npid: NetworkProvider) {
+    const result: Record<string, unknown> = {};
+
+    for (const variant of diamondVariants) {
+        result[variant] = diamondFacetAddresses(npid, variant);
+    }
+
+    return result;
+}
+
+async function getNetworkDetails(npid: NetworkProvider) {
     try {
         const provider = getProvider(npid);
         const { admin, web3 } = provider;
@@ -47,8 +58,6 @@ async function getNetworkDetails(npid: NetworkProvider, constants: { factory: st
                 balance: await getGasTankInfo(npid),
             },
             feeData: await getFeeData(npid),
-            factory: constants.factory,
-            registry: constants.registry,
             facets: facetAdresses(npid),
         };
     } catch (error) {
@@ -56,20 +65,22 @@ async function getNetworkDetails(npid: NetworkProvider, constants: { factory: st
     }
 }
 
-export const getHealth = async (req: Request, res: Response) => {
+export const getHealth = async (_req: Request, res: Response) => {
     const jsonData = {
         name,
         version,
         license,
         artifacts: currentVersion,
-        testnet: await getNetworkDetails(NetworkProvider.Test, {
-            factory: assetPoolFactoryAddress(NetworkProvider.Test),
-            registry: assetPoolRegistryAddress(NetworkProvider.Test),
-        }),
-        mainnet: await getNetworkDetails(NetworkProvider.Main, {
-            factory: assetPoolFactoryAddress(NetworkProvider.Main),
-            registry: assetPoolRegistryAddress(NetworkProvider.Main),
-        }),
+        testnet: {
+            ...(await getNetworkDetails(NetworkProvider.Test)),
+            factory: getContractConfig(NetworkProvider.Test, 'AssetPoolFactory').address,
+            registry: getContractConfig(NetworkProvider.Test, 'AssetPoolRegistry').address,
+        },
+        mainnet: {
+            ...(await getNetworkDetails(NetworkProvider.Main)),
+            factory: getContractConfig(NetworkProvider.Main, 'AssetPoolFactory').address,
+            registry: getContractConfig(NetworkProvider.Main, 'AssetPoolRegistry').address,
+        },
     };
 
     res.header('Content-Type', 'application/json').send(JSON.stringify(jsonData, null, 4));

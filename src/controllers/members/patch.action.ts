@@ -41,14 +41,14 @@ import TransactionService from '@/services/TransactionService';
  */
 export const patchMember = async (req: Request, res: Response) => {
     const isMember = await TransactionService.call(
-        req.assetPool.solution.methods.isMember(req.params.address),
+        req.assetPool.contract.methods.isMember(req.params.address),
         req.assetPool.network,
     );
     if (!isMember) throw new NotFoundError();
 
     await TransactionService.send(
         req.assetPool.address,
-        req.assetPool.solution.methods[req.body.isManager ? 'addManager' : 'removeManager'](req.params.address),
+        req.assetPool.contract.methods[req.body.isManager ? 'addManager' : 'removeManager'](req.params.address),
         req.assetPool.network,
     );
 

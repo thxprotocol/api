@@ -26,7 +26,7 @@ export default async function CreateDepositController(req: Request, res: Respons
     const amount = Number(toWei(String(promoCode.price)));
 
     const tokenAddress = await TransactionService.call(
-        req.assetPool.solution.methods.getToken(),
+        req.assetPool.contract.methods.getToken(),
         req.assetPool.network,
     );
     const token = tokenContract(req.assetPool.network, tokenAddress);

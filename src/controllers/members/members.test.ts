@@ -2,12 +2,13 @@ import request from 'supertest';
 import app from '@/app';
 import { getProvider } from '@/util/network';
 import { NetworkProvider } from '@/types/enums';
-import { createWallet, deployExampleToken, voter } from '@/util/jest/network';
+import { createWallet, voter } from '@/util/jest/network';
 import { userWalletPrivateKey2 } from '@/util/jest/constants';
 import { Contract } from 'web3-eth-contract';
 import { getToken } from '@/util/jest/jwt';
 import { Account } from 'web3-core';
 import { afterAllCallback, beforeAllCallback } from '@/util/jest/config';
+import { getContract } from '@/config/contracts';
 
 const user = request.agent(app);
 
@@ -21,7 +22,7 @@ describe('Roles', () => {
     beforeAll(async () => {
         await beforeAllCallback();
 
-        testToken = await deployExampleToken();
+        testToken = getContract(NetworkProvider.Main, 'TokenLimitedSupply');
         userWallet = createWallet(userWalletPrivateKey2);
 
         adminAccessToken = getToken('openid admin');

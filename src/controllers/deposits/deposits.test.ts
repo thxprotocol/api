@@ -7,12 +7,12 @@ import { afterAllCallback, beforeAllCallback } from '@/util/jest/config';
 import { getToken } from '@/util/jest/jwt';
 import { NetworkProvider, TransactionState } from '@/types/enums';
 import { IPromoCodeResponse } from '@/types/interfaces/IPromoCodeResponse';
-import { createWallet, deployExampleToken, signMethod } from '@/util/jest/network';
+import { createWallet, signMethod } from '@/util/jest/network';
 import { findEvent, parseLogs } from '@/util/events';
-import { Artifacts } from '@/config/contracts/artifacts';
 import { MaxUint256, userWalletPrivateKey2 } from '@/util/jest/constants';
 import { AmountExceedsAllowanceError, InsufficientBalanceError } from '@/util/errors';
 import TransactionService from '@/services/TransactionService';
+import { getContract } from '@/config/contracts';
 
 const http = request.agent(app);
 
@@ -37,7 +37,7 @@ describe('Deposits', () => {
 
         userWallet = createWallet(userWalletPrivateKey2);
 
-        testToken = await deployExampleToken();
+        testToken = getContract(NetworkProvider.Main, 'TokenLimitedSupply');
         dashboardAccessToken = getToken('openid dashboard promo_codes:read promo_codes:write members:write');
         userAccessToken = getToken('openid user promo_codes:read payments:write payments:read');
     });
@@ -126,7 +126,7 @@ describe('Deposits', () => {
                 testToken.methods.transfer(userWallet.address, toWei(String(price))),
                 NetworkProvider.Main,
             );
-            const event = findEvent('Transfer', parseLogs(Artifacts.ERC20.abi, receipt.logs));
+            const event = findEvent('Transfer', parseLogs(testToken.options.jsonInterface, receipt.logs));
 
             expect(tx.state).toBe(TransactionState.Mined);
             expect(event).toBeDefined();

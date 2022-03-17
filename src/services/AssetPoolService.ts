@@ -1,7 +1,6 @@
 import { assertEvent, parseLogs } from '@/util/events';
-import { getAssetPoolFactory, tokenContract } from '@/util/network';
+import { tokenContract } from '@/util/network';
 import { NetworkProvider } from '@/types/enums';
-import { Artifacts } from '@/config/contracts/artifacts';
 import { AssetPool, AssetPoolDocument } from '@/models/AssetPool';
 import { deployUnlimitedSupplyERC20Contract, deployLimitedSupplyERC20Contract, getProvider } from '@/util/network';
 import { toWei, fromWei, toChecksumAddress } from 'web3-utils';
@@ -9,13 +8,11 @@ import { toWei, fromWei, toChecksumAddress } from 'web3-utils';
 import { Membership } from '@/models/Membership';
 import { THXError } from '@/util/errors';
 import TransactionService from './TransactionService';
-import {
-    assetPoolRegistryAddress,
-    currentVersion,
-    diamondCut,
-    poolFacetAdressesPermutations,
-} from '@/config/contracts';
+import { diamondContracts, getContract, poolFacetAdressesPermutations } from '@/config/contracts';
 import { logger } from '@/util/logger';
+import { pick } from '@/util';
+import { getDiamondCutForContractFacets, updateDiamondContract } from '@/util/upgrades';
+import { currentVersion } from '@thxnetwork/artifacts';
 
 export const ADMIN_ROLE = '0x0000000000000000000000000000000000000000000000000000000000000000';
 class NoDataAtAddressError extends THXError {
@@ -41,7 +38,7 @@ export default class AssetPoolService {
     }
 
     static async getPoolToken(assetPool: AssetPoolDocument) {
-        const tokenAddress = await TransactionService.call(assetPool.solution.methods.getToken(), assetPool.network);
+        const tokenAddress = await TransactionService.call(assetPool.contract.methods.getToken(), assetPool.network);
         const tokenInstance = tokenContract(assetPool.network, tokenAddress);
 
         return {
@@ -94,12 +91,11 @@ export default class AssetPoolService {
                 throw new NoDataAtAddressError(token.address);
             }
         }
-
         const tokenAddress = token.address || (await this.deployPoolToken(assetPool, token));
 
         await TransactionService.send(
-            assetPool.solution.options.address,
-            assetPool.solution.methods.addToken(tokenAddress),
+            assetPool.contract.options.address,
+            assetPool.contract.methods.addToken(tokenAddress),
             assetPool.network,
         );
 
@@ -107,14 +103,20 @@ export default class AssetPoolService {
     }
 
     static async deploy(sub: string, network: NetworkProvider) {
-        const assetPoolFactory = getAssetPoolFactory(network);
-        const registryAddress = assetPoolRegistryAddress(network);
+        const variant = 'defaultPool';
+        const assetPoolFactory = getContract(network, 'AssetPoolFactory');
+        const registryAddress = getContract(network, 'AssetPoolRegistry').options.address;
+        const poolContracts = diamondContracts(network, variant);
         const { receipt } = await TransactionService.send(
             assetPoolFactory.options.address,
-            assetPoolFactory.methods.deployAssetPool(diamondCut(network), registryAddress),
+            assetPoolFactory.methods.deployAssetPool(
+                getDiamondCutForContractFacets(poolContracts, []),
+                registryAddress,
+            ),
             network,
         );
-        const event = assertEvent('AssetPoolDeployed', parseLogs(Artifacts.IAssetPoolFactory.abi, receipt.logs));
+
+        const event = assertEvent('AssetPoolDeployed', parseLogs(assetPoolFactory.options.jsonInterface, receipt.logs));
 
         const assetPool = new AssetPool({
             sub,
@@ -123,6 +125,7 @@ export default class AssetPoolService {
             transactionHash: event.transactionHash,
             bypassPolls: true,
             network: network,
+            variant,
             version: currentVersion,
         });
 
@@ -152,13 +155,24 @@ export default class AssetPoolService {
         return await AssetPool.countDocuments({ network });
     }
 
-    static async contractVersion(assetPool: AssetPoolDocument) {
+    static async contractVersionVariant(assetPool: AssetPoolDocument) {
         const permutations = Object.values(poolFacetAdressesPermutations(assetPool.network));
-        const facetAddresses = [...(await assetPool.solution.methods.facetAddresses().call())];
+        const facetAddresses = [...(await assetPool.contract.methods.facetAddresses().call())];
         const match = permutations.find(
-            (permutation) => Object.values(permutation.facets).sort().join('') === facetAddresses.sort().join(''),
+            (permutation) => permutation.facetAddresses.sort().join('') === facetAddresses.sort().join(''),
         );
-        return match ? match.version : 'unknown';
+        return match ? pick(match, ['version', 'variant']) : { version: 'unknown', variant: 'unknown' };
+    }
+
+    static async updateAssetPool(pool: AssetPoolDocument, version?: string) {
+        const variant = 'defaultPool';
+        const tx = await updateDiamondContract(pool.network, pool.contract, variant, version);
+
+        pool.version = version;
+        pool.variant = variant;
+        await pool.save();
+
+        return tx;
     }
 
     static async transferOwnership(assetPool: AssetPoolDocument, currentPrivateKey: string, newPrivateKey: string) {
@@ -168,7 +182,7 @@ export default class AssetPoolService {
         const newOwner = web3.eth.accounts.privateKeyToAccount(newPrivateKey);
         const newOwnerAddress = toChecksumAddress(newOwner.address);
 
-        const { methods, options } = assetPool.solution;
+        const { methods, options } = assetPool.contract;
 
         const sendFromCurrentOwner = (fn: any) => {
             return TransactionService.send(options.address, fn, assetPool.network, null, currentPrivateKey);

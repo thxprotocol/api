@@ -19,7 +19,8 @@ const required = [
     'RATE_LIMIT_REWARD_GIVE_WINDOW',
     'INITIAL_ACCESS_TOKEN',
     'MAX_FEE_PER_GAS',
-    'NETWORK_ENVIRONMENT',
+    'MAINNET_NETWORK_NAME',
+    'TESTNET_NETWORK_NAME',
 ];
 
 required.forEach((value: string) => {
@@ -28,11 +29,6 @@ required.forEach((value: string) => {
         process.exit(1);
     }
 });
-
-if (!['local', 'prod', 'dev'].includes(process.env.NETWORK_ENVIRONMENT)) {
-    console.log('NETWORK_ENVIRONMENT environment variable needs to be set to local | dev | prod.');
-    process.exit(1);
-}
 
 // This allows you to use a single .env file with both regular and test configuration. This allows for an
 // easy to use setup locally without having hardcoded credentials during test runs.
@@ -67,7 +63,9 @@ export const INITIAL_ACCESS_TOKEN = process.env.INITIAL_ACCESS_TOKEN;
 export const CIRCULATING_SUPPLY = process.env.CIRCULATING_SUPPLY;
 export const MAX_FEE_PER_GAS = String(process.env.MAX_FEE_PER_GAS);
 export const INFURA_PROJECT_ID = process.env.INFURA_PROJECT_ID;
-export const NETWORK_ENVIRONMENT = process.env.NETWORK_ENVIRONMENT as 'local' | 'dev' | 'prod';
+export const MAINNET_NETWORK_NAME = process.env.MAINNET_NETWORK_NAME;
+export const TESTNET_NETWORK_NAME = process.env.TESTNET_NETWORK_NAME;
 export const MINIMUM_GAS_LIMIT = 54680;
 export const TESTNET_INFURA_GAS_TANK = process.env.TESTNET_INFURA_GAS_TANK;
 export const INFURA_GAS_TANK = process.env.INFURA_GAS_TANK;
+export const ITX_ACTIVE = process.env.ITX_ACTIVE === 'true' || process.env.ITX_ACTIVE === '1';

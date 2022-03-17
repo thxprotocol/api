@@ -2,10 +2,10 @@ import { NetworkProvider, TransactionState, TransactionType } from '@/types/enum
 import { BigNumber, Contract, ethers, Signer } from 'ethers';
 import { parseUnits } from 'ethers/lib/utils';
 import { INFURA_GAS_TANK, INFURA_PROJECT_ID, PRIVATE_KEY, TESTNET_INFURA_GAS_TANK } from '@/config/secrets';
-import { Artifacts } from '@/config/contracts/artifacts';
 import { soliditySha3 } from 'web3-utils';
 import { Transaction, TransactionDocument } from '@/models/Transaction';
 import { AssetPoolType } from '@/models/AssetPool';
+import { getDiamondAbi } from '@/config/contracts';
 import { poll } from '@/util/polling';
 
 const testnet = new ethers.providers.InfuraProvider('maticmum', INFURA_PROJECT_ID);
@@ -71,9 +71,9 @@ async function signRequest(tx: any, signer: Signer) {
     return await signer.signMessage(ethers.utils.arrayify(relayTransactionHash));
 }
 
-async function getCallData(solution: Contract, fn: string, args: any[], account: Signer) {
-    const nonce = Number(await solution.getLatestNonce(await account.getAddress())) + 1;
-    const call = solution.interface.encodeFunctionData(fn, args);
+async function getCallData(contract: Contract, fn: string, args: any[], account: Signer) {
+    const nonce = Number(await contract.getLatestNonce(await account.getAddress())) + 1;
+    const call = contract.interface.encodeFunctionData(fn, args);
     const hash = soliditySha3(call, nonce);
     const sig = await account.signMessage(ethers.utils.arrayify(hash));
 
@@ -95,7 +95,7 @@ async function schedule(to: string, fn: string, args: any[], npid: NetworkProvid
 
 async function send(tx: TransactionDocument) {
     const { provider, admin } = getProvider(tx.network);
-    const solution = new ethers.Contract(tx.to, Artifacts.IDefaultDiamond.abi, admin);
+    const solution = new ethers.Contract(tx.to, getDiamondAbi(tx.network, 'defaultPool') as any, admin);
     // Get the relayed call data, nonce and signature for this contract call
     const { call, nonce, sig } = await getCallData(solution, tx.call.fn, JSON.parse(tx.call.args), admin);
     // Encode a relay call with the relayed call data

@@ -18,14 +18,16 @@
         "test": "npx jest --runInBand",
         "test:coverage": "npx jest --coverage --runInBand",
         "test:debug": "npx jest --coverage --runInBand --detectOpenHandles",
-        "migrate": "migrate-mongo up -f src/migrate-mongo-config.js",
+        "migrate": "npm run migrate:db; npm run migrate:contracts",
+        "migrate:contracts": "ts-node -r tsconfig-paths/register ./scripts/upgradeContractsToLatest.ts",
+        "migrate:db": "migrate-mongo up -f src/migrate-mongo-config.js",
         "migrate:create": "sh -c 'migrate-mongo create -f src/migrate-mongo-config.js $0'",
         "migrate:status": "migrate-mongo status -f src/migrate-mongo-config.js",
         "migrate:down": "migrate-mongo down -f src/migrate-mongo-config.js && npm run migrate:status"
     },
     "dependencies": {
         "@godaddy/terminus": "^4.9.0",
-        "@thxnetwork/artifacts": "1.0.8",
+        "@thxnetwork/artifacts": "^2.0.0",
         "agenda": "^4.2.1",
         "axios": "^0.21.3",
         "axios-better-stacktrace": "^2.1.2",

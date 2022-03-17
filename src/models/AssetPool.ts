@@ -1,10 +1,11 @@
 import mongoose from 'mongoose';
-import { solutionContract } from '@/util/network';
+import { getContractFromAbi } from '@/util/network';
 import { Contract } from 'web3-eth-contract';
+import { getDiamondAbi } from '@/config/contracts';
 
 export type AssetPoolType = {
     address: string;
-    solution: Contract;
+    contract: Contract;
     network: number;
     sub: string;
     clientId: string;
@@ -12,6 +13,7 @@ export type AssetPoolType = {
     transactionHash: string;
     bypassPolls: boolean;
     version?: string;
+    variant?: string;
 };
 
 export type AssetPoolDocument = mongoose.Document & AssetPoolType;
@@ -26,12 +28,14 @@ const assetPoolSchema = new mongoose.Schema(
         transactionHash: String,
         bypassPolls: Boolean,
         version: String,
+        variant: String,
     },
     { timestamps: true },
 );
 
-assetPoolSchema.virtual('solution').get(function () {
-    return solutionContract(this.network, this.address);
+assetPoolSchema.virtual('contract').get(function () {
+    // Later we can add the version of the pool as well.
+    return getContractFromAbi(this.network, getDiamondAbi(this.network, this.variant || 'defaultPool'), this.address);
 });
 
 export const AssetPool = mongoose.model<AssetPoolDocument>('AssetPool', assetPoolSchema);

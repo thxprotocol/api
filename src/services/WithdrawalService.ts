@@ -4,14 +4,14 @@ import { WithdrawalState, WithdrawalType } from '@/types/enums';
 import { AssetPoolType } from '@/models/AssetPool';
 import { Withdrawal, WithdrawalDocument } from '@/models/Withdrawal';
 import { IAccount } from '@/models/Account';
-import { Artifacts } from '@/config/contracts/artifacts';
 import { parseLogs, assertEvent, findEvent } from '@/util/events';
 import { paginatedResults } from '@/util/pagination';
 import TransactionService from './TransactionService';
-import { NETWORK_ENVIRONMENT } from '@/config/secrets';
+import { ITX_ACTIVE } from '@/config/secrets';
 import InfuraService from './InfuraService';
 import AccountProxy from '@/proxies/AccountProxy';
 import MemberService from './MemberService';
+import { getDiamondAbi } from '@/config/contracts';
 
 export default class WithdrawalService {
     static getById(id: string) {
@@ -66,7 +66,7 @@ export default class WithdrawalService {
     static async proposeWithdraw(assetPool: AssetPoolType, withdrawal: WithdrawalDocument, account: IAccount) {
         const amountInWei = toWei(String(withdrawal.amount));
 
-        if (NETWORK_ENVIRONMENT === 'dev' || NETWORK_ENVIRONMENT === 'prod') {
+        if (ITX_ACTIVE) {
             const tx = await InfuraService.schedule(
                 assetPool.address,
                 'proposeWithdraw',
@@ -79,10 +79,10 @@ export default class WithdrawalService {
             try {
                 const { tx, receipt } = await TransactionService.send(
                     assetPool.address,
-                    assetPool.solution.methods.proposeWithdraw(amountInWei, account.address),
+                    assetPool.contract.methods.proposeWithdraw(amountInWei, account.address),
                     assetPool.network,
                 );
-                const events = parseLogs(Artifacts.IDefaultDiamond.abi, receipt.logs);
+                const events = parseLogs(getDiamondAbi(assetPool.network, 'defaultPool'), receipt.logs);
                 const event = assertEvent('WithdrawPollCreated', events);
                 const roleGranted = findEvent('RoleGranted', events);
 
@@ -102,7 +102,7 @@ export default class WithdrawalService {
     }
 
     static async withdraw(assetPool: AssetPoolType, withdrawal: WithdrawalDocument) {
-        if (NETWORK_ENVIRONMENT === 'dev' || NETWORK_ENVIRONMENT === 'prod') {
+        if (ITX_ACTIVE) {
             const tx = await InfuraService.schedule(
                 assetPool.address,
                 'withdrawPollFinalize',
@@ -117,11 +117,11 @@ export default class WithdrawalService {
             try {
                 const { tx, receipt } = await TransactionService.send(
                     assetPool.address,
-                    assetPool.solution.methods.withdrawPollFinalize(withdrawal.withdrawalId),
+                    assetPool.contract.methods.withdrawPollFinalize(withdrawal.withdrawalId),
                     assetPool.network,
                 );
 
-                const events = parseLogs(Artifacts.IDefaultDiamond.abi, receipt.logs);
+                const events = parseLogs(assetPool.contract.options.jsonInterface, receipt.logs);
 
                 assertEvent('WithdrawPollFinalized', events);
                 assertEvent('Withdrawn', events);

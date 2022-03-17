@@ -2,7 +2,6 @@ import AssetPoolService from '@/services/AssetPoolService';
 import InfuraService from '@/services/InfuraService';
 import { findEvent, hex2a, parseLogs } from '@/util/events';
 import { Transaction } from '@/models/Transaction';
-import { Artifacts } from '@/config/contracts/artifacts';
 import { Withdrawal } from '@/models/Withdrawal';
 import { logger } from '@/util/logger';
 import MemberService from '@/services/MemberService';
@@ -27,7 +26,7 @@ export async function jobProcessTransactions() {
         const receipt = await InfuraService.pollTransactionStatus(assetPool, tx);
         if (!receipt) return;
 
-        const events = parseLogs(Artifacts.IDefaultDiamond.abi, receipt.logs);
+        const events = parseLogs(assetPool.contract.options.jsonInterface, receipt.logs);
         const result = findEvent('Result', events);
 
         if (!result.args.success) {

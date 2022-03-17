@@ -1,7 +1,6 @@
 import request from 'supertest';
 import app from '@/app';
 import { NetworkProvider } from '@/types/enums';
-import { deployExampleToken } from '@/util/jest/network';
 import {
     rewardWithdrawAmount,
     rewardWithdrawDuration,
@@ -13,6 +12,7 @@ import {
 import { Contract } from 'web3-eth-contract';
 import { getToken } from '@/util/jest/jwt';
 import { afterAllCallback, beforeAllCallback } from '@/util/jest/config';
+import { getContract } from '@/config/contracts';
 
 const user = request.agent(app);
 
@@ -22,7 +22,7 @@ describe('Widgets', () => {
     beforeAll(async () => {
         await beforeAllCallback();
 
-        testToken = await deployExampleToken();
+        testToken = getContract(NetworkProvider.Main, 'TokenLimitedSupply');
 
         dashboardAccessToken = getToken('openid dashboard');
     });

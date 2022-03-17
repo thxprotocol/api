@@ -4,13 +4,12 @@ import Web3 from 'web3';
 import axios from 'axios';
 import BN from 'bn.js';
 import { Contract } from 'web3-eth-contract';
-import { Artifacts } from '../config/contracts/artifacts';
-import { assetPoolFactoryAddress } from '@/config/contracts';
 import { NetworkProvider } from '../types/enums';
 import TransactionService from '@/services/TransactionService';
 import { THXError } from './errors';
-import { keccak256, toUtf8Bytes } from 'ethers/lib/utils';
 import { AbiItem } from 'web3-utils';
+import { getContract, getContractConfig } from '@/config/contracts';
+import { assertEvent, parseLogs } from './events';
 
 export class MaxFeePerGasExceededError extends THXError {
     message = 'MaxFeePerGas from oracle exceeds configured cap';
@@ -70,16 +69,12 @@ export async function getEstimatesFromOracle(npid: NetworkProvider, type = 'fast
 
 export function getSelectors(contract: Contract) {
     const signatures = [];
-    for (const key of Object.keys(contract.methods)) {
-        signatures.push(keccak256(toUtf8Bytes(key)).substr(0, 10));
+    for (const sig of Object.keys(contract.methods)) {
+        if (sig.indexOf('(') === -1) continue; // Only add selectors for full function signatures.
+        signatures.push(testnet.eth.abi.encodeFunctionSignature(sig));
     }
     return signatures;
 }
-
-export const getAssetPoolFactory = (npid: NetworkProvider): Contract => {
-    const { web3 } = getProvider(npid);
-    return new web3.eth.Contract(Artifacts.IDefaultFactory.abi as any, assetPoolFactoryAddress(npid));
-};
 
 export async function deployUnlimitedSupplyERC20Contract(
     npid: NetworkProvider,
@@ -87,12 +82,16 @@ export async function deployUnlimitedSupplyERC20Contract(
     symbol: string,
     to: string,
 ) {
-    return await TransactionService.deploy(
-        Artifacts.ERC20UnlimitedSupply.abi,
-        Artifacts.ERC20UnlimitedSupply.bytecode,
-        [name, symbol, to],
+    const tokenFactory = getContract(npid, 'TokenFactory');
+    const { receipt } = await TransactionService.send(
+        tokenFactory.options.address,
+        tokenFactory.methods.deployUnlimitedSupplyToken(name, symbol, to),
         npid,
     );
+
+    const event = assertEvent('TokenDeployed', parseLogs(tokenFactory.options.jsonInterface, receipt.logs));
+
+    return tokenContract(npid, event.args.token);
 }
 
 export async function deployLimitedSupplyERC20Contract(
@@ -102,23 +101,23 @@ export async function deployLimitedSupplyERC20Contract(
     to: string,
     totalSupply: BN,
 ) {
-    return await TransactionService.deploy(
-        Artifacts.ERC20LimitedSupply.abi,
-        Artifacts.ERC20LimitedSupply.bytecode,
-        [name, symbol, to, totalSupply],
+    const tokenFactory = getContract(npid, 'TokenFactory');
+    const { receipt } = await TransactionService.send(
+        tokenFactory.options.address,
+        tokenFactory.methods.deployLimitedSupplyToken(name, symbol, to, totalSupply),
         npid,
     );
+
+    const event = assertEvent('TokenDeployed', parseLogs(tokenFactory.options.jsonInterface, receipt.logs));
+
+    return tokenContract(npid, event.args.token);
 }
 
-export const solutionContract = (npid: NetworkProvider, address: string): Contract => {
-    return getContract(npid, Artifacts.IDefaultDiamond.abi as any, address);
-};
-
 export const tokenContract = (npid: NetworkProvider, address: string): Contract => {
-    return getContract(npid, Artifacts.ERC20.abi as any, address);
+    return getContractFromAbi(npid, getContractConfig(npid, 'TokenLimitedSupply').abi, address);
 };
 
-export const getContract = (npid: NetworkProvider, abi: AbiItem | AbiItem[], address: string): Contract => {
+export const getContractFromAbi = (npid: NetworkProvider, abi: AbiItem[], address: string): Contract => {
     const { web3 } = getProvider(npid);
     return new web3.eth.Contract(abi, address);
 };
