@@ -11,7 +11,7 @@ import { MAINNET_NETWORK_NAME } from '@/config/secrets';
 import InfuraService from './InfuraService';
 import AccountProxy from '@/proxies/AccountProxy';
 import MemberService from './MemberService';
-import { diamondAbi } from '@/config/contracts';
+import { getDiamondAbi } from '@/config/contracts';
 
 export default class WithdrawalService {
     static getById(id: string) {
@@ -82,7 +82,7 @@ export default class WithdrawalService {
                     assetPool.contract.methods.proposeWithdraw(amountInWei, account.address),
                     assetPool.network,
                 );
-                const events = parseLogs(diamondAbi(assetPool.network, 'defaultPool'), receipt.logs);
+                const events = parseLogs(getDiamondAbi(assetPool.network, 'defaultPool'), receipt.logs);
                 const event = assertEvent('WithdrawPollCreated', events);
                 const roleGranted = findEvent('RoleGranted', events);
 

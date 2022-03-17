@@ -5,7 +5,7 @@ import { INFURA_GAS_TANK, INFURA_PROJECT_ID, PRIVATE_KEY, TESTNET_INFURA_GAS_TAN
 import { soliditySha3 } from 'web3-utils';
 import { Transaction, TransactionDocument } from '@/models/Transaction';
 import { AssetPoolType } from '@/models/AssetPool';
-import { diamondAbi } from '@/config/contracts';
+import { getDiamondAbi } from '@/config/contracts';
 
 const testnet = new ethers.providers.InfuraProvider('maticmum', INFURA_PROJECT_ID);
 const mainnet = new ethers.providers.InfuraProvider('matic', INFURA_PROJECT_ID);
@@ -81,7 +81,7 @@ async function getCallData(contract: Contract, fn: string, args: any[], account:
 
 async function send(to: string, fn: string, args: any[], npid: NetworkProvider) {
     const { provider, admin } = getProvider(npid);
-    const contract = new ethers.Contract(to, diamondAbi(npid, 'defaultPool') as any, admin);
+    const contract = new ethers.Contract(to, getDiamondAbi(npid, 'defaultPool') as any, admin);
     // Get the relayed call data, nonce and signature for this contract call
     const { call, nonce, sig } = await getCallData(contract, fn, args, admin);
     // Encode a relay call witht he relayed call data

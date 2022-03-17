@@ -4,7 +4,7 @@ import { VOTER_PK, DEPOSITOR_PK } from './constants';
 import { getContractFromAbi, getProvider } from '@/util/network';
 import { NetworkProvider } from '@/types/enums';
 import TransactionService from '@/services/TransactionService';
-import { diamondAbi } from '@/config/contracts';
+import { getDiamondAbi } from '@/config/contracts';
 
 const { web3 } = getProvider(NetworkProvider.Main);
 
@@ -33,12 +33,9 @@ export const timeTravel = async (seconds: number) => {
 };
 
 export async function signMethod(poolAddress: string, name: string, params: any[], account: Account) {
-    const contract = getContractFromAbi(
-        NetworkProvider.Main,
-        diamondAbi(NetworkProvider.Main, 'defaultPool'),
-        poolAddress,
-    );
-    const abi: any = diamondAbi(NetworkProvider.Main, 'defaultPool').find((fn) => fn.name === name);
+    const diamondAbi = getDiamondAbi(NetworkProvider.Main, 'defaultPool');
+    const contract = getContractFromAbi(NetworkProvider.Main, diamondAbi, poolAddress);
+    const abi: any = diamondAbi.find((fn) => fn.name === name);
     const nonce =
         Number(await TransactionService.call(contract.methods.getLatestNonce(account.address), NetworkProvider.Main)) +
         1;

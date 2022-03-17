@@ -101,7 +101,7 @@ export default class AssetPoolService {
 
     static async deploy(sub: string, network: NetworkProvider) {
         const assetPoolFactory = getContract(network, 'AssetPoolFactory');
-        const registryAddress = getContract(network, 'PoolRegistry').options.address;
+        const registryAddress = getContract(network, 'AssetPoolRegistry').options.address;
         const { receipt } = await TransactionService.send(
             assetPoolFactory.options.address,
             assetPoolFactory.methods.deployAssetPool(diamondCut(network), registryAddress),

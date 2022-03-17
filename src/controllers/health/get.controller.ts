@@ -4,10 +4,10 @@ import { fromWei } from 'web3-utils';
 import { getProvider, getEstimatesFromOracle } from '@/util/network';
 import { NetworkProvider } from '@/types/enums';
 import InfuraService from '@/services/InfuraService';
-import { getContractConfig } from '@/config/contracts';
+import { diamondFacetAddresses, getContractConfig } from '@/config/contracts';
 import { logger } from '@/util/logger';
 import newrelic from 'newrelic';
-import { currentVersion } from '@thxnetwork/artifacts';
+import { currentVersion, diamondVariants } from '@thxnetwork/artifacts';
 
 function handleError(error: Error) {
     newrelic.noticeError(error);
@@ -31,6 +31,16 @@ async function getGasTankInfo(npid: NetworkProvider) {
     }
 }
 
+function facetAdresses(npid: NetworkProvider) {
+    const result: Record<string, unknown> = {};
+
+    for (const variant of diamondVariants) {
+        result[variant] = diamondFacetAddresses(npid, variant);
+    }
+
+    return result;
+}
+
 async function getNetworkDetails(npid: NetworkProvider) {
     try {
         const provider = getProvider(npid);
@@ -48,7 +58,7 @@ async function getNetworkDetails(npid: NetworkProvider) {
                 balance: await getGasTankInfo(npid),
             },
             feeData: await getFeeData(npid),
-            // facets: facetAdresses(npid),
+            facets: facetAdresses(npid),
         };
     } catch (error) {
         return handleError(error);
@@ -63,13 +73,13 @@ export const getHealth = async (_req: Request, res: Response) => {
         artifacts: currentVersion,
         testnet: {
             ...(await getNetworkDetails(NetworkProvider.Test)),
-            factory: getContractConfig(NetworkProvider.Test, 'AssetPoolFactory', version).address,
-            registry: getContractConfig(NetworkProvider.Test, 'PoolRegistry', version).address,
+            factory: getContractConfig(NetworkProvider.Test, 'AssetPoolFactory').address,
+            registry: getContractConfig(NetworkProvider.Test, 'AssetPoolRegistry').address,
         },
         mainnet: {
             ...(await getNetworkDetails(NetworkProvider.Main)),
-            factory: getContractConfig(NetworkProvider.Main, 'AssetPoolFactory', version).address,
-            registry: getContractConfig(NetworkProvider.Main, 'PoolRegistry', version).address,
+            factory: getContractConfig(NetworkProvider.Main, 'AssetPoolFactory').address,
+            registry: getContractConfig(NetworkProvider.Main, 'AssetPoolRegistry').address,
         },
     };
 
