@@ -82,4 +82,6 @@ export const updateDiamondContract = async (
             npid,
         );
     }
+
+    return false;
 };

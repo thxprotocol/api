@@ -12,15 +12,6 @@ db.connect(MONGODB_URI);
 async function main() {
     const startTime = Date.now();
     console.log('Start!', startTime);
-    for (const pool of await AssetPool.find({ version: { $ne: currentVersion } })) {
-        try {
-            console.log('Upgrade:', pool.address, `${pool.variant} ${pool.version} -> ${currentVersion}`);
-            await AssetPoolService.updateAssetPool(pool, currentVersion);
-        } catch (error) {
-            console.error(pool.address, error);
-        }
-    }
-
     const diamonds: Partial<Record<ContractName, DiamondVariant>> = {
         AssetPoolRegistry: 'assetPoolRegistry',
         AssetPoolFactory: 'assetPoolFactory',
@@ -28,14 +19,26 @@ async function main() {
     };
 
     for (const [contractName, diamondVariant] of Object.entries(diamonds)) {
-        for (const npid in NetworkProvider) {
+        for (const npid of [NetworkProvider.Test, NetworkProvider.Main]) {
             try {
-                console.log(`Upgrade ${contractName} (${NetworkProvider[npid]}):`, currentVersion);
-                const contract = getContract(NetworkProvider.Test, contractName as ContractName);
-                await updateDiamondContract(NetworkProvider.Test, contract, diamondVariant);
+                const contract = getContract(npid, contractName as ContractName);
+                const changes = await updateDiamondContract(npid, contract, diamondVariant);
+                console.log(
+                    `${changes ? 'Upgraded' : 'Skipped'} ${contractName} (${NetworkProvider[npid]}):`,
+                    currentVersion,
+                );
             } catch (error) {
                 console.error(error);
             }
+        }
+    }
+
+    for (const pool of await AssetPool.find({ version: { $ne: currentVersion } })) {
+        try {
+            console.log('Upgrade:', pool.address, `${pool.variant} ${pool.version} -> ${currentVersion}`);
+            await AssetPoolService.updateAssetPool(pool, currentVersion);
+        } catch (error) {
+            console.error(pool.address, error);
         }
     }
 
