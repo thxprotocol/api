@@ -5,7 +5,7 @@ import { IAccount } from '@/models/Account';
 import { DepositState } from '@/types/enums/DepositState';
 import TransactionService from './TransactionService';
 import InfuraService from './InfuraService';
-import { MAINNET_NETWORK_NAME } from '@/config/secrets';
+import { ITX_ACTIVE } from '@/config/secrets';
 import { assertEvent, findEvent, hex2a, parseLogs } from '@/util/events';
 import { InternalServerError } from '@/util/errors';
 
@@ -21,7 +21,7 @@ async function schedule(assetPool: AssetPoolType, account: IAccount, price: numb
 }
 
 async function create(assetPool: AssetPoolType, deposit: DepositDocument, call: string, nonce: number, sig: string) {
-    if (MAINNET_NETWORK_NAME !== 'hardhat') {
+    if (ITX_ACTIVE) {
         const tx = await InfuraService.schedule(assetPool.address, 'call', [call, nonce, sig], assetPool.network);
         deposit.transactions.push(String(tx._id));
 

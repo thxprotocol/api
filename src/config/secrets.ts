@@ -68,3 +68,4 @@ export const TESTNET_NETWORK_NAME = process.env.TESTNET_NETWORK_NAME;
 export const MINIMUM_GAS_LIMIT = 54680;
 export const TESTNET_INFURA_GAS_TANK = process.env.TESTNET_INFURA_GAS_TANK;
 export const INFURA_GAS_TANK = process.env.INFURA_GAS_TANK;
+export const ITX_ACTIVE = process.env.ITX_ACTIVE === 'true' || process.env.ITX_ACTIVE === '1';
