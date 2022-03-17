@@ -54,18 +54,6 @@ export const diamondFacetAddresses = (npid: NetworkProvider, variant: DiamondVar
     return result;
 };
 
-export const diamondCut = (npid: NetworkProvider) => {
-    const diamondCut = [];
-    for (const f of diamondContracts(npid, 'defaultPool')) {
-        diamondCut.push({
-            action: FacetCutAction.Add,
-            facetAddress: f.options.address,
-            functionSelectors: getSelectors(f),
-        });
-    }
-    return diamondCut;
-};
-
 export const poolFacetAdressesPermutations = (npid: NetworkProvider) => {
     const result = [];
     const versions = availableVersions(npToName(npid));

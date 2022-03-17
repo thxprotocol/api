@@ -24,7 +24,7 @@ function getDiamondCutsFromSelectorsMap(map: Map<string, string>, action: FacetC
     return result;
 }
 
-function getDiamondCutForContractFacets(newContracts: Contract[], facets: any[]) {
+export function getDiamondCutForContractFacets(newContracts: Contract[], facets: any[]) {
     const currentSelectorMapping = new Map();
     facets.forEach((facet: any) =>
         facet.functionSelectors.forEach((selector: string) => {

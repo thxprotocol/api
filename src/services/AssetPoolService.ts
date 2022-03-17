@@ -8,10 +8,11 @@ import { toWei, fromWei, toChecksumAddress } from 'web3-utils';
 import { Membership } from '@/models/Membership';
 import { THXError } from '@/util/errors';
 import TransactionService from './TransactionService';
-import { diamondCut, getContract, poolFacetAdressesPermutations } from '@/config/contracts';
+import { diamondContracts, getContract, poolFacetAdressesPermutations } from '@/config/contracts';
 import { logger } from '@/util/logger';
 import { pick } from '@/util';
-import { updateDiamondContract } from '@/util/upgrades';
+import { getDiamondCutForContractFacets, updateDiamondContract } from '@/util/upgrades';
+import { currentVersion } from '@thxnetwork/artifacts';
 
 export const ADMIN_ROLE = '0x0000000000000000000000000000000000000000000000000000000000000000';
 class NoDataAtAddressError extends THXError {
@@ -102,11 +103,16 @@ export default class AssetPoolService {
     }
 
     static async deploy(sub: string, network: NetworkProvider) {
+        const variant = 'defaultPool';
         const assetPoolFactory = getContract(network, 'AssetPoolFactory');
         const registryAddress = getContract(network, 'AssetPoolRegistry').options.address;
+        const poolContracts = diamondContracts(network, variant);
         const { receipt } = await TransactionService.send(
             assetPoolFactory.options.address,
-            assetPoolFactory.methods.deployAssetPool(diamondCut(network), registryAddress),
+            assetPoolFactory.methods.deployAssetPool(
+                getDiamondCutForContractFacets(poolContracts, []),
+                registryAddress,
+            ),
             network,
         );
 
@@ -119,7 +125,8 @@ export default class AssetPoolService {
             transactionHash: event.transactionHash,
             bypassPolls: true,
             network: network,
-            // version: currentVersion,
+            variant,
+            version: currentVersion,
         });
 
         return assetPool;
