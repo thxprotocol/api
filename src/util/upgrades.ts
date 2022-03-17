@@ -1,11 +1,11 @@
 import { getSelectors, ADDRESS_ZERO } from './network';
 import TransactionService from '@/services/TransactionService';
 import { Contract } from 'web3-eth-contract';
-// import { factoryFacetContracts, poolFacetContracts } from '@/config/contracts';
 import { uniq } from '.';
 import { AssetPoolDocument } from '@/models/AssetPool';
 import { NetworkProvider } from '@/types/enums';
 import { diamondContracts, getContract } from '@/config/contracts';
+import { DiamondVariant } from '@thxnetwork/artifacts';
 
 export enum FacetCutAction {
     Add = 0,
@@ -67,29 +67,34 @@ function getDiamondCutForContractFacets(newContracts: Contract[], facets: any[])
 }
 
 export async function updateAssetPool(pool: AssetPoolDocument, version?: string) {
-    const facets = await pool.contract.methods.facets().call();
-    const newContracts = diamondContracts(pool.network, 'defaultPool', version);
-    const diamondCuts = getDiamondCutForContractFacets(newContracts, facets);
-
-    await TransactionService.send(
-        pool.contract.options.address,
-        pool.contract.methods.diamondCut(diamondCuts, ADDRESS_ZERO, '0x'),
-        pool.network,
-    );
+    const tx = await updateDiamondContract(pool.network, pool.contract, 'defaultPool', version);
 
     pool.version = version;
     await pool.save();
+
+    return tx;
 }
 
 export async function updateAssetPoolFactory(npid: NetworkProvider, version?: string) {
     const factory = getContract(npid, 'AssetPoolFactory');
-    const facets = await factory.methods.facets().call();
-    const newContracts = diamondContracts(npid, 'assetPoolFactory', version);
+    return await updateDiamondContract(npid, factory, 'assetPoolFactory', version);
+}
+
+export const updateDiamondContract = async (
+    npid: NetworkProvider,
+    contract: Contract,
+    variant: DiamondVariant,
+    version?: string,
+) => {
+    const facets = await contract.methods.facets().call();
+    const newContracts = diamondContracts(npid, variant, version);
     const diamondCuts = getDiamondCutForContractFacets(newContracts, facets);
 
-    await TransactionService.send(
-        factory.options.address,
-        factory.methods.diamondCut(diamondCuts, ADDRESS_ZERO, '0x'),
-        npid,
-    );
-}
+    if (diamondCuts.length > 0) {
+        return await TransactionService.send(
+            contract.options.address,
+            contract.methods.diamondCut(diamondCuts, ADDRESS_ZERO, '0x'),
+            npid,
+        );
+    }
+};

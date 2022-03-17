@@ -70,7 +70,7 @@ export const poolFacetAdressesPermutations = (npid: NetworkProvider) => {
     const result = [];
     const versions = availableVersions(npToName(npid));
     for (const version of versions) {
-        for (const variant of Object.keys(diamondVariants) as any) {
+        for (const variant of diamondVariants) {
             const facetAddresses = diamondFacetNames(variant).map(
                 (contractName) => getContractConfig(npid, contractName, version).address,
             );

@@ -7,7 +7,7 @@ export const getAssetPoolVersions = async (req: Request, res: Response) => {
 
     const data: Record<string, any> = {};
     assetPools.forEach((assetPool) => {
-        data[assetPool.address] = AssetPoolService.contractVersion(assetPool);
+        data[assetPool.address] = AssetPoolService.contractVersionVariant(assetPool);
     });
 
     res.header('Content-Type', 'application/json').send(JSON.stringify(await Bluebird.props(data), null, 4));

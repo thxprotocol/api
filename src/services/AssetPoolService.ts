@@ -10,6 +10,7 @@ import { THXError } from '@/util/errors';
 import TransactionService from './TransactionService';
 import { diamondCut, getContract, poolFacetAdressesPermutations } from '@/config/contracts';
 import { logger } from '@/util/logger';
+import { pick } from '@/util';
 
 export const ADMIN_ROLE = '0x0000000000000000000000000000000000000000000000000000000000000000';
 class NoDataAtAddressError extends THXError {
@@ -146,13 +147,13 @@ export default class AssetPoolService {
         return await AssetPool.countDocuments({ network });
     }
 
-    static async contractVersion(assetPool: AssetPoolDocument) {
+    static async contractVersionVariant(assetPool: AssetPoolDocument) {
         const permutations = Object.values(poolFacetAdressesPermutations(assetPool.network));
         const facetAddresses = [...(await assetPool.contract.methods.facetAddresses().call())];
         const match = permutations.find(
             (permutation) => permutation.facetAddresses.sort().join('') === facetAddresses.sort().join(''),
         );
-        return match ? match.version : 'unknown';
+        return match ? pick(match, ['version', 'variant']) : { version: 'unknown', variant: 'unknown' };
     }
 
     static async transferOwnership(assetPool: AssetPoolDocument, currentPrivateKey: string, newPrivateKey: string) {
