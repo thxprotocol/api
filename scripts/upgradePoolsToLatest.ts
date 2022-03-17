@@ -1,9 +1,11 @@
 import db from '@/util/database';
 import { MONGODB_URI } from '@/config/secrets';
-import { updateAssetPool, updateAssetPoolFactory } from '@/util/upgrades';
+import { updateDiamondContract } from '@/util/upgrades';
 import { AssetPool } from '@/models/AssetPool';
 import { NetworkProvider } from '@/types/enums';
-import { currentVersion } from '@thxnetwork/artifacts';
+import { ContractName, currentVersion, DiamondVariant } from '@thxnetwork/artifacts';
+import AssetPoolService from '@/services/AssetPoolService';
+import { getContract } from '@/config/contracts';
 
 db.connect(MONGODB_URI);
 
@@ -12,20 +14,29 @@ async function main() {
     console.log('Start!', startTime);
     for (const pool of await AssetPool.find({ version: { $ne: currentVersion } })) {
         try {
-            console.log('Upgrade:', pool.address, `${pool.version} -> ${currentVersion}`);
-            await updateAssetPool(pool, currentVersion);
+            console.log('Upgrade:', pool.address, `${pool.variant} ${pool.version} -> ${currentVersion}`);
+            await AssetPoolService.updateAssetPool(pool, currentVersion);
         } catch (error) {
             console.error(pool.address, error);
         }
     }
 
-    try {
-        console.log('Upgrade Factory (Mumbai):', currentVersion);
-        await updateAssetPoolFactory(NetworkProvider.Test, currentVersion);
-        console.log('Upgrade Factory (Mainnet):', currentVersion);
-        await updateAssetPoolFactory(NetworkProvider.Main, currentVersion);
-    } catch (error) {
-        console.error(error);
+    const diamonds: Partial<Record<ContractName, DiamondVariant>> = {
+        AssetPoolRegistry: 'assetPoolRegistry',
+        AssetPoolFactory: 'assetPoolFactory',
+        TokenFactory: 'tokenFactory',
+    };
+
+    for (const [contractName, diamondVariant] of Object.entries(diamonds)) {
+        for (const npid in NetworkProvider) {
+            try {
+                console.log(`Upgrade ${contractName} (${NetworkProvider[npid]}):`, currentVersion);
+                const contract = getContract(NetworkProvider.Test, contractName as ContractName);
+                await updateDiamondContract(NetworkProvider.Test, contract, diamondVariant);
+            } catch (error) {
+                console.error(error);
+            }
+        }
     }
 
     const endTime = Date.now();
