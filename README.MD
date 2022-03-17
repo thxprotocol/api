@@ -47,12 +47,7 @@ docker compose down
 
 ## 3. Usage
 
-The thx_mainnet and thx_testnet containers will start with 2 prefilled wallets and both the AssetPoolFactory and AssetPoolRegistry will be deployed automatically:
-
-```
-0x873c254263b17925b686f971d7724267710895f1585bb0533db8e693a2af32ff
-0x5a05e38394194379795422d2e8c1d33e90033d90defec4880174c39198f707e3
-```
+The thx_mainnet and thx_testnet containers will start with prefilled wallets and all required contracts will be deployed automatically.
 
 ## 4. Testing
 
@@ -144,7 +139,7 @@ npm run migrate:status
 To run your migrations, simply run the command
 
 ```
-npm run migrate
+npm run migrate:db
 ```
 
 To rollback a migration use the down command
