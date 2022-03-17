@@ -12,7 +12,6 @@ import { NETWORK_ENVIRONMENT } from '@/config/secrets';
 import InfuraService from './InfuraService';
 import AccountProxy from '@/proxies/AccountProxy';
 import MemberService from './MemberService';
-import { Member } from '@/models/Member';
 
 export default class WithdrawalService {
     static getById(id: string) {
@@ -68,7 +67,7 @@ export default class WithdrawalService {
         const amountInWei = toWei(String(withdrawal.amount));
 
         if (NETWORK_ENVIRONMENT === 'dev' || NETWORK_ENVIRONMENT === 'prod') {
-            const tx = await InfuraService.send(
+            const tx = await InfuraService.schedule(
                 assetPool.address,
                 'proposeWithdraw',
                 [amountInWei, account.address],
@@ -104,7 +103,7 @@ export default class WithdrawalService {
 
     static async withdraw(assetPool: AssetPoolType, withdrawal: WithdrawalDocument) {
         if (NETWORK_ENVIRONMENT === 'dev' || NETWORK_ENVIRONMENT === 'prod') {
-            const tx = await InfuraService.send(
+            const tx = await InfuraService.schedule(
                 assetPool.address,
                 'withdrawPollFinalize',
                 [withdrawal.withdrawalId],

@@ -47,6 +47,7 @@ async function send(to: string, fn: any, npid: NetworkProvider, gasLimit?: numbe
     let tx = await Transaction.create({
         type: TransactionType.Default,
         state: TransactionState.Pending,
+        network: npid,
         from,
         to,
         gas,
@@ -105,8 +106,9 @@ async function deploy(abi: any, bytecode: any, arg: any[], npid: NetworkProvider
     );
 
     const tx = await Transaction.create({
-        state: TransactionState.Pending,
         type: TransactionType.Default,
+        state: TransactionState.Pending,
+        network: npid,
         from: admin.address,
         gas,
         nonce,

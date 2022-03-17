@@ -16,6 +16,7 @@ const transactionSchema = new mongoose.Schema(
         maxFeePerGas: String,
         maxPriorityFeePerGas: String,
         state: Number,
+        calldata: { call: String, nonce: Number, sig: String },
         network: Number,
     },
     { timestamps: true },
