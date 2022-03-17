@@ -67,7 +67,7 @@ export default class WithdrawalService {
         const amountInWei = toWei(String(withdrawal.amount));
 
         if (MAINNET_NETWORK_NAME !== 'hardhat') {
-            const tx = await InfuraService.send(
+            const tx = await InfuraService.schedule(
                 assetPool.address,
                 'proposeWithdraw',
                 [amountInWei, account.address],
@@ -103,7 +103,7 @@ export default class WithdrawalService {
 
     static async withdraw(assetPool: AssetPoolType, withdrawal: WithdrawalDocument) {
         if (MAINNET_NETWORK_NAME !== 'hardhat') {
-            const tx = await InfuraService.send(
+            const tx = await InfuraService.schedule(
                 assetPool.address,
                 'withdrawPollFinalize',
                 [withdrawal.withdrawalId],

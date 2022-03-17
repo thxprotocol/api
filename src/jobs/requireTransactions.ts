@@ -1,23 +1,29 @@
 import AssetPoolService from '@/services/AssetPoolService';
 import InfuraService from '@/services/InfuraService';
 import { findEvent, hex2a, parseLogs } from '@/util/events';
-import { Transaction, TransactionDocument } from '@/models/Transaction';
+import { Transaction } from '@/models/Transaction';
 import { Withdrawal } from '@/models/Withdrawal';
 import { logger } from '@/util/logger';
 import MemberService from '@/services/MemberService';
-import { DepositState, WithdrawalState } from '@/types/enums';
+import { DepositState, TransactionState, TransactionType, WithdrawalState } from '@/types/enums';
 import { Deposit } from '@/models/Deposit';
 
-export async function jobRequireTransactions() {
+export async function jobProcessTransactions() {
     const transactions = await Transaction.find({
-        relayTransactionHash: { $exists: true },
+        state: TransactionState.Pending,
+        type: TransactionType.ITX,
         transactionHash: { $exists: false },
-    });
+    }).sort({ createdAt: 'asc' });
 
-    transactions.forEach(async (tx: TransactionDocument) => {
-        // Assumes that tx.to always is an AssetPool address
+    for (let tx of transactions) {
         const assetPool = await AssetPoolService.getByAddress(tx.to);
-        const receipt = await InfuraService.getTransactionStatus(assetPool, tx);
+        // If the TX does not have a relayTransactionHash yet, send it first. This might occur if
+        // a tx is scheduled but not send yet.
+        if (!tx.relayTransactionHash) {
+            tx = await InfuraService.send(tx);
+        }
+        // Poll for the receipt. This will return the receipt immediately if the tx has already been mined.
+        const receipt = await InfuraService.pollTransactionStatus(assetPool, tx);
         if (!receipt) return;
 
         const events = parseLogs(assetPool.contract.options.jsonInterface, receipt.logs);
@@ -68,5 +74,5 @@ export async function jobRequireTransactions() {
             const withdrawal = await Withdrawal.findOne({ transactions: String(tx._id) });
             await withdrawal.updateOne({ state: WithdrawalState.Withdrawn });
         }
-    });
+    }
 }

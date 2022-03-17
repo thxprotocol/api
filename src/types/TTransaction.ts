@@ -7,10 +7,11 @@ export type TTransaction = {
     to: string;
     nonce: number;
     gas: string;
+    network: NetworkProvider;
     transactionHash: string;
-    relayTransactionHash: string;
+    relayTransactionHash?: string;
+    call?: { fn: string; args: string };
     baseFee?: string;
     maxFeeForGas?: string;
     maxPriorityFeeForGas?: string;
-    network: NetworkProvider;
 };

@@ -15,7 +15,8 @@ describe('Account', () => {
         testToken: Contract,
         adminAccessToken: string,
         walletAccessToken: string,
-        membershipID: string;
+        membershipID: string,
+        userWalletAddress: string;
 
     beforeAll(async () => {
         await beforeAllCallback();
@@ -46,7 +47,7 @@ describe('Account', () => {
         });
     });
 
-    describe('POST /account (+ membership)', () => {
+    describe('POST /account', () => {
         it('HTTP 201', (done) => {
             user.post('/v1/account')
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
@@ -57,14 +58,26 @@ describe('Account', () => {
                 .expect((res: request.Response) => {
                     expect(res.body.id).toBe(account2.id);
                     expect(res.body.address).toBe(account2.address);
+
+                    userWalletAddress = res.body.address;
                 })
                 .expect(201, done);
         });
     });
 
+    describe('POST /members/:address', () => {
+        it('HTTP 302 if OK', (done) => {
+            user.post('/v1/members/')
+                .send({ address: userWalletAddress })
+                .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
+
+                .expect(302, done);
+        });
+    });
+
     describe('GET /members/:address', () => {
         it('HTTP 200 if OK', (done) => {
-            user.get('/v1/members/' + account2.address)
+            user.get('/v1/members/' + userWalletAddress)
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
                 .expect((res: request.Response) => {
                     expect(res.body.isMember).toBe(true);

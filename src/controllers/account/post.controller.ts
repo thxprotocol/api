@@ -1,7 +1,5 @@
 import { Request, Response } from 'express';
-import MemberService from '@/services/MemberService';
 import AccountProxy from '@/proxies/AccountProxy';
-import MembershipService from '@/services/MembershipService';
 import { body, check } from 'express-validator';
 import { isAddress } from 'web3-utils';
 import { DuplicateEmailError } from '@/util/errors';
@@ -26,11 +24,6 @@ export const postAccount = async (req: Request, res: Response) => {
     }
 
     const account = await AccountProxy.signupFor(req.body.email, req.body.password, req.body.address);
-
-    if (req.assetPool) {
-        await MemberService.addMember(req.assetPool, account.address);
-        await MembershipService.addMembership(account.id, req.assetPool);
-    }
 
     res.status(201).json({ id: account.id, address: account.address });
 };

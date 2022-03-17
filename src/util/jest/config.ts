@@ -5,8 +5,8 @@ import { mockClear } from './mock';
 import { logger } from '@/util/logger';
 import { getProvider } from '@/util/network';
 import { NetworkProvider } from '@/types/enums';
-import { poll } from './polling';
 import { getContractConfig } from '@/config/contracts';
+import { poll } from '../polling';
 
 export async function beforeAllCallback() {
     await db.truncate();
