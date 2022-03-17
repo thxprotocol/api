@@ -2,9 +2,8 @@ import { getSelectors, ADDRESS_ZERO } from './network';
 import TransactionService from '@/services/TransactionService';
 import { Contract } from 'web3-eth-contract';
 import { uniq } from '.';
-import { AssetPoolDocument } from '@/models/AssetPool';
 import { NetworkProvider } from '@/types/enums';
-import { diamondContracts, getContract } from '@/config/contracts';
+import { diamondContracts } from '@/config/contracts';
 import { DiamondVariant } from '@thxnetwork/artifacts';
 
 export enum FacetCutAction {
@@ -64,20 +63,6 @@ function getDiamondCutForContractFacets(newContracts: Contract[], facets: any[])
     diamondCuts.push(...getDiamondCutsFromSelectorsMap(additions, FacetCutAction.Add));
 
     return diamondCuts;
-}
-
-export async function updateAssetPool(pool: AssetPoolDocument, version?: string) {
-    const tx = await updateDiamondContract(pool.network, pool.contract, 'defaultPool', version);
-
-    pool.version = version;
-    await pool.save();
-
-    return tx;
-}
-
-export async function updateAssetPoolFactory(npid: NetworkProvider, version?: string) {
-    const factory = getContract(npid, 'AssetPoolFactory');
-    return await updateDiamondContract(npid, factory, 'assetPoolFactory', version);
 }
 
 export const updateDiamondContract = async (

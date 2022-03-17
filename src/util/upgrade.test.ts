@@ -7,7 +7,7 @@ import { Contract } from 'web3-eth-contract';
 import { getToken } from '@/util/jest/jwt';
 import { afterAllCallback, beforeAllCallback } from '@/util/jest/config';
 import AssetPoolService from '@/services/AssetPoolService';
-import { updateAssetPool, updateDiamondContract } from '@/util/upgrades';
+import { updateDiamondContract } from '@/util/upgrades';
 import { getContract } from '@/config/contracts';
 import { currentVersion } from '@thxnetwork/artifacts';
 
@@ -51,7 +51,7 @@ describe('Happy Flow', () => {
             await updateDiamondContract(pool.network, pool.contract, 'assetPoolRegistry');
             expect((await AssetPoolService.contractVersionVariant(pool)).variant).toBe('assetPoolRegistry');
 
-            await updateAssetPool(pool);
+            await AssetPoolService.updateAssetPool(pool);
             expect(await AssetPoolService.contractVersionVariant(pool)).toEqual({
                 variant: 'defaultPool',
                 version: currentVersion,
