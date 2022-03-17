@@ -7,7 +7,6 @@ import { Contract } from 'web3-eth-contract';
 import { NetworkProvider } from '../types/enums';
 import TransactionService from '@/services/TransactionService';
 import { THXError } from './errors';
-import { keccak256, toUtf8Bytes } from 'ethers/lib/utils';
 import { AbiItem } from 'web3-utils';
 import { getContract, getContractConfig } from '@/config/contracts';
 import { assertEvent, parseLogs } from './events';
@@ -70,8 +69,9 @@ export async function getEstimatesFromOracle(npid: NetworkProvider, type = 'fast
 
 export function getSelectors(contract: Contract) {
     const signatures = [];
-    for (const key of Object.keys(contract.methods)) {
-        signatures.push(keccak256(toUtf8Bytes(key)).substr(0, 10));
+    for (const sig of Object.keys(contract.methods)) {
+        if (sig.indexOf('(') === -1) continue; // Only add selectors for full function signatures.
+        signatures.push(testnet.eth.abi.encodeFunctionSignature(sig));
     }
     return signatures;
 }
