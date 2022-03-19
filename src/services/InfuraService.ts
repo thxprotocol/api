@@ -111,8 +111,8 @@ async function send(tx: TransactionDocument) {
     const signature = await signRequest(options, admin);
     // Send transaction data and receive relayTransactionHash to poll
     const { relayTransactionHash } = await provider.send('relay_sendTransaction', [options, signature]);
-
-    return await tx.updateOne({ relayTransactionHash });
+    tx.relayTransactionHash = relayTransactionHash;
+    return tx.save();
 }
 
 async function getTransactionStatus(assetPool: AssetPoolType, tx: TransactionDocument) {

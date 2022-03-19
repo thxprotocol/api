@@ -65,7 +65,7 @@ export async function jobProcessTransactions() {
             // If the TX does not have a relayTransactionHash yet, send it first. This might occur if
             // a tx is scheduled but not send yet.
             if (!tx.relayTransactionHash) {
-                tx = (await wrapBackgroundTransaction('joRequireTransactions', 'send', InfuraService.send(tx))) as any;
+                tx = (await wrapBackgroundTransaction('jobRequireTransactions', 'send', InfuraService.send(tx))) as any;
             }
             // Poll for the receipt. This will return the receipt immediately if the tx has already been mined.
             const receipt = (await wrapBackgroundTransaction(
