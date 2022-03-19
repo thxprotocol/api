@@ -69,7 +69,7 @@ export async function jobProcessTransactions() {
             }
             // Poll for the receipt. This will return the receipt immediately if the tx has already been mined.
             const receipt = (await wrapBackgroundTransaction(
-                'joRequireTransactions',
+                'jobRequireTransactions',
                 'pollTransactionStatus',
                 InfuraService.pollTransactionStatus(assetPool, tx),
             )) as any;
@@ -79,15 +79,14 @@ export async function jobProcessTransactions() {
             const events = parseLogs(assetPool.contract.options.jsonInterface, receipt.logs);
             const result = findEvent('Result', events);
 
-            if (result.args.success) {
-                await handleEvents(assetPool, tx, events);
-            } else {
+            if (!result) return;
+            if (!result.args.success) {
                 const failReason = hex2a(result.args.data.substr(10));
                 logger.error(failReason);
-                await Withdrawal.updateOne(
-                    { transactions: String(tx._id) },
-                    { poolAddress: assetPool.address, failReason },
-                );
+                await handleError(tx, failReason);
+            }
+            if (result.args.success) {
+                await handleEvents(assetPool, tx, events);
             }
         } catch (error) {
             await handleError(tx, error.message);

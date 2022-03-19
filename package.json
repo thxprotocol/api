@@ -11,6 +11,7 @@
         "lint": "tsc && eslint \"./src/**/*.ts\"",
         "lint:fix": "tsc && eslint \"./src/**/*.ts\" --fix",
         "dev": "docker-compose up -d && npm run watch:node",
+        "exec": "ts-node-dev -r tsconfig-paths/register ",
         "build": "npm run build:docs && tsc",
         "build:docs": "swagger-jsdoc -d ./src/swaggerDef.js -o ./src/swagger.json",
         "watch:node": "ts-node-dev -r tsconfig-paths/register src/server.ts",
