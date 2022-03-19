@@ -55,7 +55,7 @@ export function assertEvent(eventName: string, events: CustomEventLog[]): Custom
     return event;
 }
 
-interface CustomEventLog {
+export interface CustomEventLog {
     name: string;
     args: any;
     blockNumber: number;
