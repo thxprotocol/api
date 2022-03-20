@@ -39,39 +39,3 @@ export const postCall = async (req: Request, res: Response) => {
 
     res.json(tx);
 };
-
-/**
- * @swagger
- * /gas_station/call:
- *   post:
- *     tags:
- *       - Gas Station
- *     produces:
- *       - application/json
- *     parameters:
- *       - name: call
- *         in: body
- *         required: true
- *         type: string
- *       - name: nonce
- *         in: body
- *         required: true
- *         type: string
- *       - name: sig
- *         in: body
- *         required: true
- *         type: string
- *     responses:
- *       '200':
- *         description: Ok
- *       '400':
- *         $ref: '#/components/responses/400'
- *       '401':
- *         $ref: '#/components/responses/401'
- *       '403':
- *         description: Forbidden. Your account does not have access to make this call.
- *       '500':
- *         $ref: '#/components/responses/500'
- *       '502':
- *         $ref: '#/components/responses/502'
- */

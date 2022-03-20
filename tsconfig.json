@@ -19,5 +19,6 @@
         }
     },
     "include": ["./src/**/*.ts", "./src/migrations/*", "./scripts/**/*.ts"],
+    "exclude": ["./scripts/**/*.ts"],
     "ts-node": { "files": true }
 }

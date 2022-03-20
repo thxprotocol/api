@@ -5,7 +5,7 @@ import docsRouter from './docs/docs.router';
 import accountRouter from './account/account.router';
 import authRouter from './auth/auth.router';
 import widgetsRouter from './widgets/_.routing';
-import relayHubRouter from './relay_hub/relayHub.router';
+import relayHubRouter from './relay/relayHub.router';
 import assetPoolsRouter from './asset_pools/assetPools.router';
 import membersRouter from './members/_.routing';
 import rewardsRouter from './rewards/_.routing';

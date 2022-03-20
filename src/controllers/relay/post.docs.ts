@@ -1,16 +1,12 @@
 /**
  * @swagger
- * /gas_station/upgrade_address:
+ * /relay/call:
  *   post:
  *     tags:
- *       - Gas Station
+ *       - RelayHub
  *     produces:
  *       - application/json
  *     parameters:
- *       - name: newAddress
- *         in: body
- *         required: true
- *         type: string
  *       - name: call
  *         in: body
  *         required: true
