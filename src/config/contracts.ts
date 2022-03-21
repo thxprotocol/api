@@ -1,6 +1,5 @@
 import { NetworkProvider } from '@/types/enums';
-import { getProvider, getSelectors } from '@/util/network';
-import { FacetCutAction } from '@/util/upgrades';
+import { getProvider } from '@/util/network';
 import { AbiItem } from 'web3-utils';
 import {
     availableVersions,
@@ -59,9 +58,9 @@ export const poolFacetAdressesPermutations = (npid: NetworkProvider) => {
     const versions = availableVersions(npToName(npid));
     for (const version of versions) {
         for (const variant of diamondVariants) {
-            const facetAddresses = diamondFacetNames(variant).map(
-                (contractName) => getContractConfig(npid, contractName, version).address,
-            );
+            const facetAddresses = diamondFacetNames(variant)
+                .filter((name) => !['DiamondCutFacet', 'DiamondLoupeFacet', 'OwnershipFacet'].includes(name))
+                .map((contractName) => getContractConfig(npid, contractName, version).address);
             result.push({ version, variant, facetAddresses, npid });
         }
     }

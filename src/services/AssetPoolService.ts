@@ -11,7 +11,7 @@ import TransactionService from './TransactionService';
 import { diamondContracts, getContract, poolFacetAdressesPermutations } from '@/config/contracts';
 import { logger } from '@/util/logger';
 import { pick } from '@/util';
-import { getDiamondCutForContractFacets, updateDiamondContract } from '@/util/upgrades';
+import { diamondSelectors, getDiamondCutForContractFacets, updateDiamondContract } from '@/util/upgrades';
 import { currentVersion } from '@thxnetwork/artifacts';
 
 export const ADMIN_ROLE = '0x0000000000000000000000000000000000000000000000000000000000000000';
@@ -157,7 +157,12 @@ export default class AssetPoolService {
 
     static async contractVersionVariant(assetPool: AssetPoolDocument) {
         const permutations = Object.values(poolFacetAdressesPermutations(assetPool.network));
-        const facetAddresses = [...(await assetPool.contract.methods.facetAddresses().call())];
+        const facets = await assetPool.contract.methods.facets().call();
+
+        const facetAddresses = facets
+            .filter((facet: any) => !facet.functionSelectors.every((sel: string) => diamondSelectors.includes(sel)))
+            .map((facet: any) => facet.facetAddress);
+
         const match = permutations.find(
             (permutation) => permutation.facetAddresses.sort().join('') === facetAddresses.sort().join(''),
         );
