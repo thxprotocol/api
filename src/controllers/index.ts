@@ -14,6 +14,7 @@ import membershipsRouter from './memberships/_.routing';
 import tokenRouter from './token/_.routing';
 import promoCodesRouter from './promo_codes/promoCodes.router';
 import depositsRouter from './deposits/deposits.router';
+import erc721Router from './erc721/erc721.router';
 import { checkJwt } from '@/util/jwt';
 
 const router = express.Router();
@@ -35,5 +36,6 @@ router.use('/members', membersRouter);
 router.use('/rewards', rewardsRouter);
 router.use('/withdrawals', withdrawalsRouter);
 router.use('/memberships', membershipsRouter);
+router.use('/erc721', erc721Router);
 
 export default router;

@@ -69,6 +69,7 @@ async function send(to: string, fn: any, npid: NetworkProvider, gasLimit?: numbe
 }
 
 async function deploy(abi: any, bytecode: any, arg: any[], npid: NetworkProvider) {
+    console.log(npid);
     const { web3, admin } = getProvider(npid);
     const contract = new web3.eth.Contract(abi);
     const gas = await contract
@@ -83,6 +84,7 @@ async function deploy(abi: any, bytecode: any, arg: any[], npid: NetworkProvider
             arguments: arg,
         })
         .encodeABI();
+    console.log(gas, data);
     const nonce = await web3.eth.getTransactionCount(admin.address, 'pending');
     const feeData = await getEstimatesFromOracle(npid);
     const baseFee = Number(feeData.baseFee);
@@ -94,7 +96,7 @@ async function deploy(abi: any, bytecode: any, arg: any[], npid: NetworkProvider
     if (maxFeePerGas > maxFeePerGasLimit) {
         throw new MaxFeePerGasExceededError();
     }
-
+    console.log(nonce);
     const sig = await web3.eth.accounts.signTransaction(
         {
             gas,
@@ -104,7 +106,7 @@ async function deploy(abi: any, bytecode: any, arg: any[], npid: NetworkProvider
         },
         PRIVATE_KEY,
     );
-
+    console.log(sig);
     const tx = await Transaction.create({
         type: TransactionType.Default,
         state: TransactionState.Pending,
@@ -116,7 +118,7 @@ async function deploy(abi: any, bytecode: any, arg: any[], npid: NetworkProvider
         maxFeePerGas,
         maxPriorityFeePerGas,
     });
-
+    console.log(tx);
     const receipt = await web3.eth.sendSignedTransaction(sig.rawTransaction);
 
     if (receipt.transactionHash) {

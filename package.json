@@ -27,6 +27,7 @@
     },
     "dependencies": {
         "@godaddy/terminus": "^4.9.0",
+        "@openzeppelin/contracts": "^4.5.0",
         "@thxnetwork/artifacts": "^2.0.0",
         "agenda": "^4.2.1",
         "axios": "^0.21.3",
