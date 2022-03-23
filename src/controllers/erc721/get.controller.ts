@@ -1,31 +1,23 @@
-import { Request, Response } from 'express';
 import { param } from 'express-validator';
-import AssetPoolService from '@/services/AssetPoolService';
-import ClientService from '@/services/ClientService';
+import { Request, Response } from 'express';
+import { TERC721 } from '@/types/TERC721';
+import ERC721Service from '@/services/ERC721Service';
 import { NotFoundError } from '@/util/errors';
-import WithdrawalService from '@/services/WithdrawalService';
-import MemberService from '@/services/MemberService';
 
-export const readAssetPoolValidation = [param('address').exists().isEthereumAddress()];
+export const readERC721Validation = [param('id').isString().isLength({ min: 23, max: 25 })];
 
-export const getAssetPool = async (req: Request, res: Response) => {
-    const assetPool = await AssetPoolService.getByAddress(req.params.address);
-    if (!assetPool) throw new NotFoundError();
-
-    const token = await AssetPoolService.getPoolToken(req.assetPool);
-    const client = await ClientService.get(assetPool.clientId);
-    const metrics = {
-        withdrawals: await WithdrawalService.countByPoolAddress(assetPool),
-        members: await MemberService.countByPoolAddress(assetPool),
+export const ReadERC721Controller = async (req: Request, res: Response) => {
+    const erc721 = await ERC721Service.findById(req.params.id);
+    if (!erc721) throw new NotFoundError();
+    const { id, network, name, symbol, description, address } = erc721;
+    const result: TERC721 = {
+        id,
+        network,
+        name,
+        symbol,
+        description,
+        address,
     };
-    res.json({
-        token,
-        metrics,
-        sub: assetPool.sub,
-        clientId: assetPool.clientId,
-        clientSecret: client.clientSecret,
-        address: assetPool.address,
-        network: assetPool.network,
-        version: assetPool.version,
-    });
+
+    res.json(result);
 };

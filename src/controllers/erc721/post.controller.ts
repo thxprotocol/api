@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { body } from 'express-validator';
 import ERC721Service from '@/services/ERC721Service';
+import { TERC721 } from '@/types/TERC721';
 
 export const createERC721Validation = [
     body('name').exists().isString(),
@@ -16,7 +17,15 @@ export const CreateERC721Controller = async (req: Request, res: Response) => {
         symbol: req.body.symbol,
         description: req.body.description,
     });
-    await ERC721Service.deploy(erc721);
+    const { id, network, name, symbol, description, address } = await ERC721Service.deploy(erc721);
+    const result: TERC721 = {
+        id,
+        network,
+        name,
+        symbol,
+        description,
+        address,
+    };
 
-    res.status(201).json(erc721);
+    res.status(201).json(result);
 };
