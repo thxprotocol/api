@@ -21,5 +21,5 @@ export const postCreateToken = async (req: Request, res: Response) => {
         sub: req.user.sub,
     });
 
-    res.send({ address: token.options.address });
+    return res.send({ address: token.options.address });
 };
