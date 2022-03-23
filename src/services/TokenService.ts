@@ -1,7 +1,7 @@
 import BN from 'bn.js';
 import { toWei } from 'web3-utils';
-import { Contract } from 'web3-eth-contract';
 
+import Token from '@/models/Token';
 import { NetworkProvider } from '@/types/enums';
 import { deployLimitedSupplyERC20Contract, deployUnlimitedSupplyERC20Contract, getProvider } from '@/util/network';
 
@@ -29,6 +29,16 @@ export default class TokenService {
 
             return { token, receipt };
         }
+    }
+
+    static async getAllERC20TokenBySub(sub: string) {
+        const tokens = await Token.find({ sub });
+        return tokens || [];
+    }
+
+    static async getERC20TokenById(id: string) {
+        const token = await Token.findById(id);
+        return token;
     }
 }
 
