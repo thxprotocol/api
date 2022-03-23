@@ -4,6 +4,7 @@ import { toWei } from 'web3-utils';
 import Token from '@/models/Token';
 import { NetworkProvider } from '@/types/enums';
 import { deployLimitedSupplyERC20Contract, deployUnlimitedSupplyERC20Contract, getProvider } from '@/util/network';
+import TransactionService from './TransactionService';
 
 export default class TokenService {
     static async createERC20(params: CreateERC20Params) {
@@ -40,6 +41,31 @@ export default class TokenService {
         const token = await Token.findById(id);
         return token;
     }
+
+    static async transferERC20MintedBalance(params: TransferERC20MintedParams) {
+        const { admin } = getProvider(params.npid);
+        const token = await Token.findById(params.id);
+
+        if (token.network !== params.npid) {
+            throw Error('Cannot transfer balances that not in the same network');
+        }
+
+        const { methods } = token.contract;
+        const adminBalance: BN = await methods.balanceOf(admin.address);
+
+        if (adminBalance.toNumber() <= 0) {
+            throw Error('Cannot transfer token since due to insufficient fund of admin account');
+        }
+
+        const { tx, receipt } = await TransactionService.send(
+            token.contract.options.address,
+            methods.transfer(params.to, adminBalance),
+            params.npid,
+            250000,
+        );
+
+        return { tx, receipt };
+    }
 }
 
 export interface CreateERC20Params {
@@ -47,4 +73,10 @@ export interface CreateERC20Params {
     symbol: string;
     totalSupply: string;
     network: NetworkProvider;
+}
+
+export interface TransferERC20MintedParams {
+    id: string;
+    to: string;
+    npid: NetworkProvider;
 }
