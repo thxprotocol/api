@@ -4,7 +4,7 @@ import Token from '@/models/Token';
 import TokenService from '@/services/TokenService';
 
 export const postCreateToken = async (req: Request, res: Response) => {
-    const { token, receipt } = await TokenService.createERC20({
+    const { token, receipt } = await TokenService.createERC20Token({
         name: req.body['name'],
         symbol: req.body['symbol'],
         network: req.body['network'],
