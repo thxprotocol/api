@@ -5,7 +5,7 @@ const validation = {
     postERC20Token: [
         body('name').exists().isString(),
         body('symbol').exists().isString(),
-        body('network').exists().isString(),
+        body('network').exists().isNumeric(),
         body('totalSupply').exists().isString(),
     ],
 };
