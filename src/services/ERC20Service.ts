@@ -6,8 +6,9 @@ import { toWei } from 'web3-utils';
 import ERC20 from '@/models/ERC20';
 import { ERC20Type, NetworkProvider } from '@/types/enums';
 import { deployLimitedSupplyERC20Contract, deployUnlimitedSupplyERC20Contract, getProvider } from '@/util/network';
-import TransactionService from './TransactionService';
+
 import AssetPoolService from './AssetPoolService';
+import TransactionService from './TransactionService';
 
 export const create = async (params: CreateERC20Params) => {
     let response: { token: Contract; receipt: ethers.providers.TransactionReceipt };

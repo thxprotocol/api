@@ -7,9 +7,9 @@ import { NetworkProvider } from '@/types/enums';
 import { getProvider } from '@/util/network';
 import db from '@/util/database';
 
-import TokenService from './TokenService';
+import ERC20Service from './ERC20Service';
 
-describe('TokenService', () => {
+describe('ERC20Service', () => {
     const TOTAL_SUPPLY = 1000;
     const DEFAULT_SUB = 'an-unbeliveable-belief-1122';
 
@@ -24,7 +24,7 @@ describe('TokenService', () => {
     });
 
     it('Able to deploy limited token', async () => {
-        const { token } = await TokenService.createERC20Token({
+        const { token } = await ERC20Service.create({
             name: 'Test Token',
             symbol: 'TTK',
             network: NetworkProvider.Test,
@@ -37,7 +37,7 @@ describe('TokenService', () => {
     });
 
     it('Able to deploy unlimited token', async () => {
-        const { token } = await TokenService.createERC20Token({
+        const { token } = await ERC20Service.create({
             name: 'Test Token',
             symbol: 'TTK',
             network: NetworkProvider.Test,
@@ -56,7 +56,7 @@ describe('TokenService', () => {
     });
 
     it('Able to query all deployed tokens by a user', async () => {
-        const tokens = await TokenService.getAllERC20TokenBySub(DEFAULT_SUB);
+        const tokens = await ERC20Service.getAll(DEFAULT_SUB);
         expect(tokens.length).toEqual(2);
     });
 });
