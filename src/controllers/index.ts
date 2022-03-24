@@ -14,6 +14,8 @@ import membershipsRouter from './memberships/_.routing';
 import tokenRouter from './token/_.routing';
 import promoCodesRouter from './promo_codes/promoCodes.router';
 import depositsRouter from './deposits/deposits.router';
+import erc20Router from './token/erc20/_.routing';
+
 import { checkJwt } from '@/middlewares';
 
 const router = express.Router();
@@ -24,6 +26,7 @@ router.use('/token', tokenRouter);
 router.use('/docs', docsRouter);
 router.use(checkJwt);
 router.use('/', authRouter);
+router.use('/erc20', erc20Router);
 router.use('/promo_codes', promoCodesRouter);
 router.use('/deposits', depositsRouter);
 router.use('/metrics', metricsRouter);
