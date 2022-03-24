@@ -14,12 +14,7 @@ const router = express.Router();
 router.use(checkJwt);
 
 router.get('/', getAllERC20Token);
-<<<<<<< HEAD
 router.get('/:id', checkScopes(['dashboard']), validate(validation.getERC20Token), getById);
 router.post('/', checkScopes(['dashboard']), validate(validation.postERC20Token), postCreateToken);
-=======
-router.get('/:id', validate(validation.getERC20Token), getById);
-router.post('/', validate(validation.postERC20Token), postCreateToken);
->>>>>>> 809c574 (chore: rename TokenService and it methods to ERC20)
 
 export default router;
