@@ -5,9 +5,10 @@ import Token from '@/models/Token';
 import { NetworkProvider } from '@/types/enums';
 import { deployLimitedSupplyERC20Contract, deployUnlimitedSupplyERC20Contract, getProvider } from '@/util/network';
 import TransactionService from './TransactionService';
+import { ethers } from 'ethers';
 
 export default class TokenService {
-    static async createERC20(params: CreateERC20Params) {
+    static async createERC20Token(params: CreateERC20Params) {
         const { admin } = getProvider(params.network);
 
         if (Number(params.totalSupply) > 0) {
