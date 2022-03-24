@@ -62,7 +62,7 @@ export default class AssetPoolService {
 
     static async deployPoolToken(assetPool: AssetPoolDocument, token: any) {
         if (token.name && token.symbol && Number(token.totalSupply) > 0) {
-            const tokenInstance = await deployLimitedSupplyERC20Contract(
+            const { token: tokenInstance } = await deployLimitedSupplyERC20Contract(
                 assetPool.network,
                 token.name,
                 token.symbol,
@@ -71,7 +71,7 @@ export default class AssetPoolService {
             );
             return tokenInstance.options.address;
         } else if (token.name && token.symbol && Number(token.totalSupply) === 0) {
-            const tokenInstance = await deployUnlimitedSupplyERC20Contract(
+            const { token: tokenInstance } = await deployUnlimitedSupplyERC20Contract(
                 assetPool.network,
                 token.name,
                 token.symbol,
