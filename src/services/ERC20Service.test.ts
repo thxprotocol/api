@@ -8,6 +8,7 @@ import { getProvider } from '@/util/network';
 import db from '@/util/database';
 
 import ERC20Service from './ERC20Service';
+import { afterAllCallback, beforeAllCallback } from '@/util/jest/config';
 
 describe('ERC20Service', () => {
     const TOTAL_SUPPLY = 1000;
@@ -17,10 +18,11 @@ describe('ERC20Service', () => {
 
     beforeAll(async () => {
         await db.connect(MONGODB_URI);
+        await beforeAllCallback();
     });
 
     afterAll(async () => {
-        await db.truncate();
+        await afterAllCallback();
     });
 
     it('Able to deploy limited token', async () => {
