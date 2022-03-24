@@ -1,14 +1,16 @@
 import BN from 'bn.js';
+import { ethers } from 'ethers';
+import { Contract } from 'web3-eth-contract';
 import { toWei } from 'web3-utils';
 
 import Token from '@/models/Token';
 import { NetworkProvider } from '@/types/enums';
 import { deployLimitedSupplyERC20Contract, deployUnlimitedSupplyERC20Contract, getProvider } from '@/util/network';
 import TransactionService from './TransactionService';
-import { ethers } from 'ethers';
 
 export default class TokenService {
     static async createERC20Token(params: CreateERC20Params) {
+        let response: { token: Contract; receipt: ethers.providers.TransactionReceipt };
         const { admin } = getProvider(params.network);
 
         if (Number(params.totalSupply) > 0) {
@@ -20,7 +22,7 @@ export default class TokenService {
                 toWei(new BN(params.totalSupply)),
             );
 
-            return { token, receipt };
+            response = { token, receipt } as any;
         } else {
             const { token, receipt } = await deployUnlimitedSupplyERC20Contract(
                 params.network,
@@ -29,8 +31,20 @@ export default class TokenService {
                 admin.address,
             );
 
-            return { token, receipt };
+            response = { token, receipt } as any;
         }
+
+        await Token.create({
+            name: params.name,
+            symbol: params.symbol,
+            network: params.network,
+            totalSupply: params.totalSupply,
+            blockNumber: response.receipt.blockNumber,
+            transactionHash: response.receipt.transactionHash,
+            sub: params.sub,
+        });
+
+        return response;
     }
 
     static async getAllERC20TokenBySub(sub: string) {
@@ -74,6 +88,7 @@ export interface CreateERC20Params {
     symbol: string;
     totalSupply: string;
     network: NetworkProvider;
+    sub: string;
 }
 
 export interface TransferERC20MintedParams {
