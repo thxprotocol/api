@@ -1,9 +1,9 @@
 import { Request, Response } from 'express';
 
-import TokenService from '@/services/TokenService';
+import ERC20Service from '@/services/ERC20Service';
 
 export const postCreateToken = async (req: Request, res: Response) => {
-    const { token } = await TokenService.createERC20Token({
+    const { token } = await ERC20Service.create({
         name: req.body['name'],
         symbol: req.body['symbol'],
         network: req.body['network'],
