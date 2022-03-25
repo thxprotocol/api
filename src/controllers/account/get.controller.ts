@@ -10,6 +10,10 @@ export const getAccount = async (req: Request, res: Response) => {
     res.send({
         id: account.id,
         address: account.address,
+        firstName: account.firstName,
+        lastName: account.lastName,
+        company: account.company,
+        plan: account.plan,
         privateKey: account.privateKey,
     });
 };
