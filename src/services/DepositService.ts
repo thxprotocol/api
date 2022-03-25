@@ -9,12 +9,12 @@ import { ITX_ACTIVE } from '@/config/secrets';
 import { assertEvent, findEvent, hex2a, parseLogs } from '@/util/events';
 import { InternalServerError } from '@/util/errors';
 
-async function schedule(assetPool: AssetPoolType, account: IAccount, price: number, item: string) {
+async function schedule(assetPool: AssetPoolType, account: IAccount, amount: number, item?: string) {
     return await Deposit.create({
         sub: account.id,
         sender: account.address,
         receiver: assetPool.address,
-        amount: price,
+        amount,
         state: DepositState.Pending,
         item,
     });
