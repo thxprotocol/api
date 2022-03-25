@@ -1,6 +1,5 @@
 import { NetworkProvider } from '@/types/enums';
-import { getProvider, getSelectors } from '@/util/network';
-import { FacetCutAction } from '@/util/upgrades';
+import { getProvider } from '@/util/network';
 import { AbiItem } from 'web3-utils';
 import {
     availableVersions,

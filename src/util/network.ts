@@ -76,6 +76,25 @@ export function getSelectors(contract: Contract) {
     return signatures;
 }
 
+export async function deployERC721Contract(
+    npid: NetworkProvider,
+    name: string,
+    symbol: string,
+    to: string,
+    baseURL: string,
+) {
+    const tokenFactory = getContract(npid, 'TokenFactory');
+    const { receipt } = await TransactionService.send(
+        tokenFactory.options.address,
+        tokenFactory.methods.deployNonFungibleToken(name, symbol, to, baseURL),
+        npid,
+    );
+
+    const event = assertEvent('TokenDeployed', parseLogs(tokenFactory.options.jsonInterface, receipt.logs));
+
+    return tokenContract(npid, event.args.token);
+}
+
 export async function deployUnlimitedSupplyERC20Contract(
     npid: NetworkProvider,
     name: string,
