@@ -28,7 +28,7 @@ describe('/erc20/*', () => {
                 .send({
                     name: 'Test Token',
                     symbol: 'TTK',
-                    network: NetworkProvider.Test,
+                    network: NetworkProvider.Main,
                     totalSupply: `${TOTAL_SUPPLY}`,
                 });
 
@@ -39,7 +39,7 @@ describe('/erc20/*', () => {
             const response = await requester.post('/v1/erc20').set('Authorization', ACCESS_TOKEN).send({
                 name: 'Test Token',
                 symbol: 'TTK',
-                network: NetworkProvider.Test,
+                network: NetworkProvider.Main,
                 totalSupply: '0',
             });
 
