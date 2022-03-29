@@ -68,7 +68,10 @@ async function signRequest(tx: any, signer: Signer) {
             [tx.to, tx.data, tx.gas, chainId, tx.schedule],
         ),
     );
-    return await signer.signMessage(ethers.utils.arrayify(relayTransactionHash));
+    return {
+        relayTransactionHash,
+        signedMessage: await signer.signMessage(ethers.utils.arrayify(relayTransactionHash)),
+    };
 }
 
 async function getCallData(contract: Contract, fn: string, args: any[], account: Signer) {
@@ -108,11 +111,15 @@ async function send(tx: TransactionDocument) {
         gas: '500000',
         schedule: 'fast',
     };
-    const signature = await signRequest(options, admin);
-    // Send transaction data and receive relayTransactionHash to poll
-    const { relayTransactionHash } = await provider.send('relay_sendTransaction', [options, signature]);
+    // relayTransactionHash is generated based on encoded transaction abi and could be predetermined
+    const { relayTransactionHash, signedMessage } = await signRequest(options, admin);
     tx.relayTransactionHash = relayTransactionHash;
-    return await tx.save();
+    await tx.save();
+
+    // Send transaction data and receive relayTransactionHash to poll
+    await provider.send('relay_sendTransaction', [options, signedMessage]);
+
+    return tx;
 }
 
 async function getTransactionStatus(assetPool: AssetPoolType, tx: TransactionDocument) {
