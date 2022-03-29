@@ -85,7 +85,7 @@ async function getCallData(contract: Contract, fn: string, args: any[], account:
 
 async function schedule(to: string, fn: string, args: any[], npid: NetworkProvider) {
     return await Transaction.create({
-        state: TransactionState.Pending,
+        state: TransactionState.Scheduled,
         type: TransactionType.ITX,
         network: npid,
         to,
@@ -118,6 +118,9 @@ async function send(tx: TransactionDocument) {
 
     // Send transaction data and receive relayTransactionHash to poll
     await provider.send('relay_sendTransaction', [options, signedMessage]);
+
+    tx.state = TransactionState.Sent;
+    await tx.save();
 
     return tx;
 }
@@ -156,10 +159,10 @@ async function pollTransactionStatus(assetPool: AssetPoolType, tx: TransactionDo
     return await poll(fn, fnCondition, 500);
 }
 
-async function pending(npid: NetworkProvider) {
+async function scheduled(npid: NetworkProvider) {
     return Transaction.find({
         type: TransactionType.ITX,
-        state: TransactionState.Pending,
+        state: TransactionState.Scheduled,
         transactionHash: { $exists: false },
         network: npid,
     });
@@ -173,5 +176,5 @@ export default {
     send,
     getTransactionStatus,
     pollTransactionStatus,
-    pending,
+    scheduled,
 };
