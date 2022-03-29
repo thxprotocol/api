@@ -4,6 +4,7 @@ import app from '@/app';
 import { NetworkProvider } from '@/types/enums';
 import { afterAllCallback, beforeAllCallback } from '@/util/jest/config';
 import { getToken } from '@/util/jest/jwt';
+import { isAddress } from 'ethers/lib/utils';
 
 describe('/erc20/*', () => {
     const requester = request.agent(app);
@@ -43,7 +44,8 @@ describe('/erc20/*', () => {
                 totalSupply: '0',
             });
 
-            expect(response.body?.address).toBeDefined();
+            expect(response.body.address).toBeDefined();
+            expect(isAddress(response.body.address)).toBe(true);
         });
 
         it('Able to return list of created token', async () => {
