@@ -32,7 +32,7 @@ describe('/erc20/*', () => {
                     totalSupply: `${TOTAL_SUPPLY}`,
                 });
 
-            expect(response.body?.address).toBeDefined();
+            expect(response.body?.totalSupply).toEqual(String(TOTAL_SUPPLY));
         });
 
         it('Able to create unlimited token and return address', async () => {

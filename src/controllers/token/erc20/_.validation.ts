@@ -1,7 +1,7 @@
 import { body, param } from 'express-validator';
 
 const validation = {
-    getERC20Token: [param('id').exists().isString()],
+    getERC20Token: [param('id').exists().isMongoId()],
     postERC20Token: [
         body('name').exists().isString(),
         body('symbol').exists().isString(),
