@@ -112,7 +112,7 @@ async function send(tx: TransactionDocument) {
     // Send transaction data and receive relayTransactionHash to poll
     const { relayTransactionHash } = await provider.send('relay_sendTransaction', [options, signature]);
     tx.relayTransactionHash = relayTransactionHash;
-    return tx.save();
+    return await tx.save();
 }
 
 async function getTransactionStatus(assetPool: AssetPoolType, tx: TransactionDocument) {
