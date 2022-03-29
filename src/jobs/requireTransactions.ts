@@ -9,8 +9,7 @@ import { Deposit } from '@/models/Deposit';
 import { wrapBackgroundTransaction } from '@/util/newrelic';
 import { AssetPoolType } from '@/models/AssetPool';
 import { Transaction, TransactionDocument } from '@/models/Transaction';
-import { EventLog, TransactionReceipt } from 'web3-core';
-import { TTransaction } from '@/types/TTransaction';
+import { TransactionReceipt } from 'web3-core';
 
 async function handleEvents(assetPool: AssetPoolType, tx: TransactionDocument, events: CustomEventLog[]) {
     const eventDepositted = findEvent('Depositted', events);
