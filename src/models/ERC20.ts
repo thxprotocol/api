@@ -48,7 +48,6 @@ erc20Schema.virtual('contract').get(function () {
 erc20Schema.methods.getTotalSupply = async function () {
     const contract: Contract = this.contract;
     const totalSupply = await contract.methods.totalSupply().call();
-    console.log('What the heck of this', totalSupply);
     return fromWei(totalSupply, 'ether');
 };
 
