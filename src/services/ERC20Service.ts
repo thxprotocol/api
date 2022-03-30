@@ -4,11 +4,12 @@ import { Contract } from 'web3-eth-contract';
 import { toWei } from 'web3-utils';
 
 import ERC20 from '@/models/ERC20';
-import { ERC20Type, NetworkProvider } from '@/types/enums';
+import { ERC20Type } from '@/types/enums';
 import { deployLimitedSupplyERC20Contract, deployUnlimitedSupplyERC20Contract, getProvider } from '@/util/network';
+import { ICreateERC20Params, ITransferERC20MintedParams } from '@/types/interfaces';
 import TransactionService from './TransactionService';
 
-export const create = async (params: CreateERC20Params) => {
+export const create = async (params: ICreateERC20Params) => {
     let response: { token: Contract; receipt: ethers.providers.TransactionReceipt };
     const { admin } = getProvider(params.network);
 
@@ -57,7 +58,7 @@ export const getById = async (id: string) => {
     return token;
 };
 
-export const transferMintedBalance = async (params: TransferERC20MintedParams) => {
+export const transferMintedBalance = async (params: ITransferERC20MintedParams) => {
     const { admin } = getProvider(params.npid);
     const token = await ERC20.findById(params.id);
 
@@ -88,17 +89,3 @@ export default {
     getById,
     transferMintedBalance,
 };
-
-export interface CreateERC20Params {
-    name: string;
-    symbol: string;
-    totalSupply: string;
-    network: NetworkProvider;
-    sub: string;
-}
-
-export interface TransferERC20MintedParams {
-    id: string;
-    to: string;
-    npid: NetworkProvider;
-}
