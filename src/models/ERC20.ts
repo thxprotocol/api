@@ -1,12 +1,9 @@
-import BN from 'bn.js';
 import mongoose from 'mongoose';
 import { Contract } from 'web3-eth-contract';
 import { fromWei } from 'web3-utils';
 
-import { getContract } from '@/config/contracts';
 import { ERC20Type } from '@/types/enums';
-import { getContractFromAbi, tokenContract } from '@/util/network';
-import { ContractName } from '@thxnetwork/artifacts';
+import { tokenContract } from '@/util/network';
 
 export interface ERC20 {
     name: string;
@@ -15,6 +12,7 @@ export interface ERC20 {
     totalSupply: number;
     blockNumber: number;
     type: ERC20Type;
+    linkedAssetPoolAddress?: string;
     transactionHash: string;
     contract: Contract;
     network: number;
@@ -33,6 +31,7 @@ const erc20Schema = new mongoose.Schema(
         address: String,
         blockNumber: Number,
         type: Number,
+        linkedAssetPoolAddress: String,
         transactionHash: String,
         network: Number,
         sub: String,

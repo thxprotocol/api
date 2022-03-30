@@ -7,6 +7,7 @@ import ERC20 from '@/models/ERC20';
 import { ERC20Type, NetworkProvider } from '@/types/enums';
 import { deployLimitedSupplyERC20Contract, deployUnlimitedSupplyERC20Contract, getProvider } from '@/util/network';
 import TransactionService from './TransactionService';
+import AssetPoolService from './AssetPoolService';
 
 export const create = async (params: CreateERC20Params) => {
     let response: { token: Contract; receipt: ethers.providers.TransactionReceipt };
@@ -57,6 +58,36 @@ export const getById = async (id: string) => {
     return token;
 };
 
+export const addTokenToPool = async (params: AddTokenToPoolParams) => {
+    const token = await getById(params.tokenId);
+    const assetPool = await AssetPoolService.getByAddress(params.poolId);
+
+    if (token.linkedAssetPoolAddress) {
+        throw Error('This token is already linked to another Assetpool');
+    }
+
+    if (assetPool.sub !== params.sub) {
+        // eslint-disable-next-line quotes
+        throw Error("You're not the owner of this AssetPool");
+    }
+
+    if (token.sub !== params.sub) {
+        // eslint-disable-next-line quotes
+        throw Error("You're not the owner of this token");
+    }
+
+    if (token.network !== assetPool.network) {
+        throw Error('Token and AssetPool are not in the same network');
+    }
+
+    await AssetPoolService.addPoolToken(assetPool, token);
+    await transferMintedBalance({ id: token.id, to: assetPool.address, npid: params.npid });
+
+    // Update new info to token
+    token.linkedAssetPoolAddress = assetPool.address;
+    await token.save();
+};
+
 export const transferMintedBalance = async (params: TransferERC20MintedParams) => {
     const { admin } = getProvider(params.npid);
     const token = await ERC20.findById(params.id);
@@ -100,5 +131,12 @@ export interface CreateERC20Params {
 export interface TransferERC20MintedParams {
     id: string;
     to: string;
+    npid: NetworkProvider;
+}
+
+export interface AddTokenToPoolParams {
+    sub: string;
+    tokenId: string;
+    poolId: string;
     npid: NetworkProvider;
 }
