@@ -55,7 +55,7 @@ async function handleError(tx: TransactionDocument, failReason: string) {
 
 export async function jobProcessTransactions() {
     const transactions: TransactionDocument[] = await Transaction.find({
-        state: TransactionState.Pending,
+        $or: [{ state: TransactionState.Scheduled }, { state: TransactionState.Sent }],
         type: TransactionType.ITX,
         transactionHash: { $exists: false },
     }).sort({ createdAt: 'asc' });
@@ -73,26 +73,29 @@ export async function jobProcessTransactions() {
                 )) as TransactionDocument;
                 return;
             }
-            // Poll for the receipt. This will return the receipt immediately if the tx has already been mined.
-            const receipt = (await wrapBackgroundTransaction(
-                'jobRequireTransactions',
-                'pollTransactionStatus',
-                InfuraService.pollTransactionStatus(assetPool, tx),
-            )) as TransactionReceipt;
 
-            if (!receipt) return;
+            if (tx.state === TransactionState.Sent) {
+                // Poll for the receipt. This will return the receipt immediately if the tx has already been mined.
+                const receipt = (await wrapBackgroundTransaction(
+                    'jobRequireTransactions',
+                    'pollTransactionStatus',
+                    InfuraService.pollTransactionStatus(assetPool, tx),
+                )) as TransactionReceipt;
 
-            const events = parseLogs(assetPool.contract.options.jsonInterface, receipt.logs);
-            const result = findEvent('Result', events);
+                if (!receipt) return;
 
-            if (!result) return;
-            if (!result.args.success) {
-                const failReason = hex2a(result.args.data.substr(10));
-                logger.error(failReason);
-                await handleError(tx, failReason);
-            }
-            if (result.args.success) {
-                await handleEvents(assetPool, tx, events);
+                const events = parseLogs(assetPool.contract.options.jsonInterface, receipt.logs);
+                const result = findEvent('Result', events);
+
+                if (!result) return;
+                if (!result.args.success) {
+                    const failReason = hex2a(result.args.data.substr(10));
+                    logger.error(failReason);
+                    await handleError(tx, failReason);
+                }
+                if (result.args.success) {
+                    await handleEvents(assetPool, tx, events);
+                }
             }
         } catch (error) {
             await handleError(tx, error.message);
