@@ -9,8 +9,9 @@ import { deployLimitedSupplyERC20Contract, deployUnlimitedSupplyERC20Contract, g
 
 import AssetPoolService from './AssetPoolService';
 import TransactionService from './TransactionService';
+import { ICreateERC20Params } from '@/types/interfaces';
 
-export const create = async (params: CreateERC20Params) => {
+export const create = async (params: ICreateERC20Params) => {
     let response: { token: Contract; receipt: ethers.providers.TransactionReceipt };
     const { admin } = getProvider(params.network);
 
