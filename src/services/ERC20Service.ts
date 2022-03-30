@@ -3,8 +3,8 @@ import { ethers } from 'ethers';
 import { Contract } from 'web3-eth-contract';
 import { toWei } from 'web3-utils';
 
-import Token from '@/models/Token';
-import { NetworkProvider } from '@/types/enums';
+import ERC20 from '@/models/ERC20';
+import { ERC20Type, NetworkProvider } from '@/types/enums';
 import { deployLimitedSupplyERC20Contract, deployUnlimitedSupplyERC20Contract, getProvider } from '@/util/network';
 import TransactionService from './TransactionService';
 
@@ -33,32 +33,33 @@ export const create = async (params: CreateERC20Params) => {
         response = { token, receipt } as any;
     }
 
-    await Token.create({
+    const token = await ERC20.create({
         name: params.name,
         symbol: params.symbol,
-        network: params.network,
-        totalSupply: params.totalSupply,
+        address: response.token.options.address,
         blockNumber: response.receipt.blockNumber,
+        type: Number(params.totalSupply) > 0 ? ERC20Type.LIMITED : ERC20Type.UNLIMITED,
         transactionHash: response.receipt.transactionHash,
+        network: params.network,
         sub: params.sub,
     });
 
-    return response;
+    return token;
 };
 
 export const getAll = async (sub: string) => {
-    const tokens = await Token.find({ sub });
+    const tokens = await ERC20.find({ sub });
     return tokens || [];
 };
 
 export const getById = async (id: string) => {
-    const token = await Token.findById(id);
+    const token = await ERC20.findById(id);
     return token;
 };
 
 export const transferMintedBalance = async (params: TransferERC20MintedParams) => {
     const { admin } = getProvider(params.npid);
-    const token = await Token.findById(params.id);
+    const token = await ERC20.findById(params.id);
 
     if (token.network !== params.npid) {
         throw Error('Cannot transfer balances that not in the same network');

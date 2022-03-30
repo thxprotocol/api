@@ -3,7 +3,7 @@ import { Request, Response } from 'express';
 import ERC20Service from '@/services/ERC20Service';
 
 export const postCreateToken = async (req: Request, res: Response) => {
-    const { token } = await ERC20Service.create({
+    const token = await ERC20Service.create({
         name: req.body['name'],
         symbol: req.body['symbol'],
         network: req.body['network'],
@@ -11,5 +11,5 @@ export const postCreateToken = async (req: Request, res: Response) => {
         sub: req.user.sub,
     });
 
-    return res.send({ address: token.options.address });
+    return res.send({ ...token.toJSON(), totalSupply: await token.getTotalSupply() });
 };
