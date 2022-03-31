@@ -64,10 +64,6 @@ export const addTokenToPool = async (params: AddTokenToPoolParams) => {
     const token = await getById(params.tokenId);
     const assetPool = await AssetPoolService.getByAddress(params.poolId);
 
-    if (token.linkedAssetPoolAddress) {
-        throw Error('This token is already linked to another Assetpool');
-    }
-
     if (assetPool.sub !== params.sub) {
         // eslint-disable-next-line quotes
         throw Error("You're not the owner of this AssetPool");
@@ -84,10 +80,6 @@ export const addTokenToPool = async (params: AddTokenToPoolParams) => {
 
     await AssetPoolService.addPoolToken(assetPool, token);
     await transferMintedBalance({ id: token.id, to: assetPool.address, npid: params.npid });
-
-    // Update new info to token
-    token.linkedAssetPoolAddress = assetPool.address;
-    await token.save();
 };
 
 export const transferMintedBalance = async (params: TransferERC20MintedParams) => {

@@ -12,7 +12,6 @@ export interface ERC20 {
     totalSupply: number;
     blockNumber: number;
     type: ERC20Type;
-    linkedAssetPoolAddress?: string;
     transactionHash: string;
     contract: Contract;
     network: number;
@@ -31,7 +30,6 @@ const erc20Schema = new mongoose.Schema(
         address: String,
         blockNumber: Number,
         type: Number,
-        linkedAssetPoolAddress: String,
         transactionHash: String,
         network: Number,
         sub: String,
