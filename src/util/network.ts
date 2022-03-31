@@ -114,7 +114,7 @@ export async function deployLimitedSupplyERC20Contract(
 }
 
 export const tokenContract = (npid: NetworkProvider, address: string): Contract => {
-    return getContractFromAbi(npid, getContractConfig(npid, 'TokenLimitedSupply').abi, address);
+    return getContractFromAbi(npid, getContractConfig(npid, 'LimitedSupplyToken').abi, address);
 };
 
 export const getContractFromAbi = (npid: NetworkProvider, abi: AbiItem[], address: string): Contract => {
