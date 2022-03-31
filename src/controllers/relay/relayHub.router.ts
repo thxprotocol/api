@@ -2,7 +2,8 @@ import express from 'express';
 import { createCallValidation, postCall } from './post.controller';
 import assertScopes from 'express-jwt-authz';
 import { createCallUpgradeAddressValidation, postCallUpgradeAddress } from './upgrade_address/post';
-import { assertAssetPoolAccess, assertRequestInput, requireAssetPoolHeader } from '@/middlewares';
+import { assertAssetPoolAccess, assertPlan, assertRequestInput, requireAssetPoolHeader } from '@/middlewares';
+import { AccountPlanType } from '@/types/enums';
 
 const router = express.Router();
 
@@ -12,6 +13,7 @@ router.post(
     assertAssetPoolAccess,
     assertRequestInput(createCallValidation),
     requireAssetPoolHeader,
+    assertPlan([AccountPlanType.Community, AccountPlanType.Creator]),
     postCall,
 );
 router.post(
@@ -20,6 +22,7 @@ router.post(
     assertAssetPoolAccess,
     assertRequestInput(createCallUpgradeAddressValidation),
     requireAssetPoolHeader,
+    assertPlan([AccountPlanType.Community, AccountPlanType.Creator]),
     postCallUpgradeAddress,
 );
 

@@ -35,7 +35,7 @@ export const createAssetPoolValidation = [
 
 export const postAssetPool = async (req: Request, res: Response) => {
     const account = await AccountProxy.getById(req.user.sub);
-    if (account.plan === AccountPlanType.None && req.body.network === NetworkProvider.Main) {
+    if (account.plan === AccountPlanType.Solo && req.body.network === NetworkProvider.Main) {
         throw new ForbiddenError('Current plan is not sufficient');
     }
 
