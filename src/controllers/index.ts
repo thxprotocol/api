@@ -24,16 +24,19 @@ router.use('/token', tokenRouter);
 router.use('/docs', docsRouter);
 router.use(checkJwt);
 router.use('/', authRouter);
-router.use('/promo_codes', promoCodesRouter);
-router.use('/deposits', depositsRouter);
 router.use('/metrics', metricsRouter);
-router.use('/account', accountRouter);
-router.use('/widgets', widgetsRouter);
-router.use('/relay', relayHubRouter);
+// Dashboard only
 router.use('/asset_pools', assetPoolsRouter);
+router.use('/promo_codes', promoCodesRouter);
 router.use('/members', membersRouter);
 router.use('/rewards', rewardsRouter);
+// Use by both
+router.use('/account', accountRouter);
+router.use('/widgets', widgetsRouter);
 router.use('/withdrawals', withdrawalsRouter);
+// Use by wallet
+router.use('/deposits', depositsRouter);
+router.use('/relay', relayHubRouter);
 router.use('/memberships', membershipsRouter);
 
 export default router;

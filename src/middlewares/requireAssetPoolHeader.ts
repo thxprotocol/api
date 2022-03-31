@@ -1,7 +1,7 @@
 import { Response, Request, NextFunction } from 'express';
 import { isAddress } from 'web3-utils';
-import AssetPoolService from '@/services/AssetPoolService';
 import { BadRequestError } from '@/util/errors';
+import AssetPoolService from '@/services/AssetPoolService';
 
 export async function requireAssetPoolHeader(req: Request, _res: Response, next: NextFunction) {
     const address = req.header('AssetPool');

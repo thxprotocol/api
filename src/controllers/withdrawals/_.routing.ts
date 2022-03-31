@@ -4,12 +4,13 @@ import { validate, validateAssetPoolHeader } from '@/util/validation';
 import { validations } from './_.validation';
 import { getWithdrawal } from './get.action';
 import { getWithdrawals } from './getWithdrawals.action';
-import { requireAssetPoolHeader } from '@/middlewares';
+import { assertPlan, requireAssetPoolHeader } from '@/middlewares';
 import { postVote } from './postVote.action';
 import { postPollFinalize } from './postPollFinalize.action';
 import { deleteVote } from './deleteVote.action';
 import { postWithdrawal } from './post.action';
 import { DeleteWithdrawalController } from './delete.controller';
+import { AccountPlanType } from '@/types/enums';
 
 const router = express.Router();
 
@@ -19,6 +20,7 @@ router.post(
     validateAssetPoolHeader,
     validate(validations.postWithdrawal),
     requireAssetPoolHeader,
+    assertPlan([AccountPlanType.Community, AccountPlanType.Creator]),
     postWithdrawal,
 );
 router.get(
@@ -43,6 +45,7 @@ router.post(
     validateAssetPoolHeader,
     validate(validations.postVote),
     requireAssetPoolHeader,
+    assertPlan([AccountPlanType.Community, AccountPlanType.Creator]),
     postVote,
 );
 router.delete(
@@ -51,6 +54,7 @@ router.delete(
     validateAssetPoolHeader,
     validate(validations.deleteVote),
     requireAssetPoolHeader,
+    assertPlan([AccountPlanType.Community, AccountPlanType.Creator]),
     deleteVote,
 );
 router.post(
@@ -59,6 +63,7 @@ router.post(
     validateAssetPoolHeader,
     validate(validations.postPollFinalize),
     requireAssetPoolHeader,
+    assertPlan([AccountPlanType.Community, AccountPlanType.Creator]),
     postPollFinalize,
 );
 
@@ -68,6 +73,7 @@ router.delete(
     validateAssetPoolHeader,
     validate(validations.deleteWithdrawal),
     requireAssetPoolHeader,
+    assertPlan([AccountPlanType.Community, AccountPlanType.Creator]),
     DeleteWithdrawalController,
 );
 export default router;
