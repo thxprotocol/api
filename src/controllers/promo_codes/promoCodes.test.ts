@@ -22,7 +22,7 @@ describe('PromoCodes', () => {
     beforeAll(async () => {
         await beforeAllCallback();
 
-        testToken = getContract(NetworkProvider.Main, 'TokenLimitedSupply');
+        testToken = getContract(NetworkProvider.Main, 'LimitedSupplyToken');
 
         dashboardAccessToken = getToken('openid dashboard promo_codes:read promo_codes:write members:write');
     });

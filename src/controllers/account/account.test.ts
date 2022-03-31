@@ -21,7 +21,7 @@ describe('Account', () => {
     beforeAll(async () => {
         await beforeAllCallback();
 
-        testToken = getContract(NetworkProvider.Main, 'TokenLimitedSupply');
+        testToken = getContract(NetworkProvider.Main, 'LimitedSupplyToken');
 
         adminAccessToken = getToken('openid admin');
         dashboardAccessToken = getToken('openid dashboard');
