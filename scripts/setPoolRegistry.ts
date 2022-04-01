@@ -8,7 +8,8 @@ import TransactionService from '@/services/TransactionService';
 
 db.connect(MONGODB_URI);
 
-const FEE_COLLECTOR = '0x2e2fe80CD6C4933B3B97b4c0B5c8eC56b073bE27';
+const FEE_COLLECTOR_DEV = '0x2e2fe80CD6C4933B3B97b4c0B5c8eC56b073bE27';
+const FEE_COLLECTOR = '0x802505465CB707c9347B9631818e14f6066f7513';
 const multiplier = BigNumber.from('10').pow(15);
 const twoHalfPercent = BigNumber.from('25').mul(multiplier);
 
