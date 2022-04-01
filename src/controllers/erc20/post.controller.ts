@@ -6,7 +6,7 @@ export const postERC20TokenValidation = [
     body('name').exists().isString(),
     body('symbol').exists().isString(),
     body('network').exists().isNumeric(),
-    body('totalSupply').exists().isString(),
+    body('totalSupply').optional().isNumeric(),
 ];
 
 export const postCreateToken = async (req: Request, res: Response) => {
