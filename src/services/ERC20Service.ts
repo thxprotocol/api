@@ -4,10 +4,12 @@ import { Contract } from 'web3-eth-contract';
 import { toWei } from 'web3-utils';
 
 import ERC20 from '@/models/ERC20';
-import { ERC20Type } from '@/types/enums';
+import { ERC20Type, NetworkProvider } from '@/types/enums';
 import { deployLimitedSupplyERC20Contract, deployUnlimitedSupplyERC20Contract, getProvider } from '@/util/network';
-import { ICreateERC20Params, ITransferERC20MintedParams } from '@/types/interfaces';
+
+import AssetPoolService from './AssetPoolService';
 import TransactionService from './TransactionService';
+import { AddTokenToPoolParams, ICreateERC20Params, TransferERC20MintedParams } from '@/types/interfaces';
 
 export const create = async (params: ICreateERC20Params) => {
     let response: { token: Contract; receipt: ethers.providers.TransactionReceipt };
@@ -58,7 +60,29 @@ export const getById = async (id: string) => {
     return token;
 };
 
-export const transferMintedBalance = async (params: ITransferERC20MintedParams) => {
+export const addTokenToPool = async (params: AddTokenToPoolParams) => {
+    const token = await getById(params.tokenId);
+    const assetPool = await AssetPoolService.getByAddress(params.poolId);
+
+    if (assetPool.sub !== params.sub) {
+        // eslint-disable-next-line quotes
+        throw Error("You're not the owner of this AssetPool");
+    }
+
+    if (token.sub !== params.sub) {
+        // eslint-disable-next-line quotes
+        throw Error("You're not the owner of this token");
+    }
+
+    if (token.network !== assetPool.network) {
+        throw Error('Token and AssetPool are not in the same network');
+    }
+
+    await AssetPoolService.addPoolToken(assetPool, token);
+    await transferMintedBalance({ id: token.id, to: assetPool.address, npid: params.npid });
+};
+
+export const transferMintedBalance = async (params: TransferERC20MintedParams) => {
     const { admin } = getProvider(params.npid);
     const token = await ERC20.findById(params.id);
 

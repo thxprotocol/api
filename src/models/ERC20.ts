@@ -1,12 +1,8 @@
-import BN from 'bn.js';
 import mongoose from 'mongoose';
 import { Contract } from 'web3-eth-contract';
 import { fromWei } from 'web3-utils';
-
-import { getContract } from '@/config/contracts';
 import { ERC20Type } from '@/types/enums';
-import { getContractFromAbi, tokenContract } from '@/util/network';
-import { ContractName } from '@thxnetwork/artifacts';
+import { tokenContract } from '@/util/network';
 
 export interface ERC20 {
     name: string;
