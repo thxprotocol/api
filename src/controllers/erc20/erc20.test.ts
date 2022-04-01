@@ -6,7 +6,7 @@ import { afterAllCallback, beforeAllCallback } from '@/util/jest/config';
 import { getToken } from '@/util/jest/jwt';
 import { isAddress } from 'ethers/lib/utils';
 
-describe('/erc20/*', () => {
+describe('ERC20', () => {
     const requester = request.agent(app);
 
     const ACCESS_TOKEN = getToken('openid dashboard');

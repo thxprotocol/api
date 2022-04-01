@@ -1,6 +1,13 @@
 import { Request, Response } from 'express';
-
 import ERC20Service from '@/services/ERC20Service';
+import { body } from 'express-validator';
+
+export const postERC20TokenValidation = [
+    body('name').exists().isString(),
+    body('symbol').exists().isString(),
+    body('network').exists().isNumeric(),
+    body('totalSupply').exists().isString(),
+];
 
 export const postCreateToken = async (req: Request, res: Response) => {
     const token = await ERC20Service.create({

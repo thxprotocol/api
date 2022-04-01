@@ -14,7 +14,7 @@ import membershipsRouter from './memberships/_.routing';
 import tokenRouter from './token/_.routing';
 import promoCodesRouter from './promo_codes/promoCodes.router';
 import depositsRouter from './deposits/deposits.router';
-import erc20Router from './token/erc20/_.routing';
+import erc20Router from './erc20/erc20.router';
 
 import { checkJwt } from '@/middlewares';
 
