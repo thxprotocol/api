@@ -51,7 +51,6 @@ export const RPC = process.env.RPC;
 export const TESTNET_RPC = process.env.TESTNET_RPC;
 export const MONGODB_URI = process.env.MONGODB_URI;
 export const PRIVATE_KEY = process.env.PRIVATE_KEY;
-export const COLLECTOR = process.env.COLLECTOR;
 export const PORT = process.env.PORT;
 export const AUTH_CLIENT_ID = process.env.AUTH_CLIENT_ID;
 export const AUTH_CLIENT_SECRET = process.env.AUTH_CLIENT_SECRET;

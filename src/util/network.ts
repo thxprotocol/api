@@ -1,5 +1,5 @@
 import newrelic from 'newrelic';
-import { TESTNET_RPC, RPC } from '@/config/secrets';
+import { TESTNET_RPC, RPC, MAINNET_NETWORK_NAME } from '@/config/secrets';
 import Web3 from 'web3';
 import axios from 'axios';
 import BN from 'bn.js';
@@ -114,7 +114,9 @@ export async function deployLimitedSupplyERC20Contract(
 }
 
 export const tokenContract = (npid: NetworkProvider, address: string): Contract => {
-    return getContractFromAbi(npid, getContractConfig(npid, 'TokenLimitedSupply').abi, address);
+    // Temporary fix for issue in artifacts package where tests run against LimitedSupplyToken and other releases at TokenLimitedSupply
+    const contractName = MAINNET_NETWORK_NAME === 'hardhat' ? 'LimitedSupplyToken' : ('TokenLimitedSupply' as any);
+    return getContractFromAbi(npid, getContractConfig(npid, contractName).abi, address);
 };
 
 export const getContractFromAbi = (npid: NetworkProvider, abi: AbiItem[], address: string): Contract => {

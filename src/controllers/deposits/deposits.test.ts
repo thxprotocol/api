@@ -37,7 +37,7 @@ describe('Deposits', () => {
 
         userWallet = createWallet(userWalletPrivateKey2);
 
-        testToken = getContract(NetworkProvider.Main, 'TokenLimitedSupply');
+        testToken = getContract(NetworkProvider.Main, 'LimitedSupplyToken');
         dashboardAccessToken = getToken('openid dashboard promo_codes:read promo_codes:write members:write');
         userAccessToken = getToken('openid user promo_codes:read payments:write payments:read');
     });

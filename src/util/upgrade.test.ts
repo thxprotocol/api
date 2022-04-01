@@ -19,7 +19,7 @@ describe('Happy Flow', () => {
     beforeAll(async () => {
         await beforeAllCallback();
 
-        testToken = getContract(NetworkProvider.Main, 'TokenLimitedSupply');
+        testToken = getContract(NetworkProvider.Main, 'LimitedSupplyToken');
 
         await user
             .post('/v1/asset_pools')

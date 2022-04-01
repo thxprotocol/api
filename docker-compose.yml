@@ -18,13 +18,13 @@ services:
        
     api_testnet:
         container_name: thx_api_testnet
-        image: public.ecr.aws/o5j5y3t5/hardhat-thx-artifacts:2.0.0
+        image: public.ecr.aws/o5j5y3t5/hardhat-thx-artifacts:3.0.0
         ports:
             - '8547:8545'
 
     api_mainnet:
         container_name: thx_api_mainnet
-        image: public.ecr.aws/o5j5y3t5/hardhat-thx-artifacts:2.0.0
+        image: public.ecr.aws/o5j5y3t5/hardhat-thx-artifacts:3.0.0
         ports:
             - '8546:8545'
 
