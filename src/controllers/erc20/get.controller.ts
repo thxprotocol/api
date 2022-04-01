@@ -9,5 +9,5 @@ export const getById = async (req: Request, res: Response) => {
     const token = await ERC20Service.getById(id);
     const totalSupply = await token.getTotalSupply();
 
-    return res.send({ token: { ...token.toJSON(), totalSupply } });
+    return res.send({ ...token.toJSON(), totalSupply });
 };
