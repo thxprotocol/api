@@ -7,17 +7,26 @@ import { postMember } from './post.action';
 import { patchMember } from './patch.action';
 import { deleteMember } from './delete.action';
 import checkScopes from 'express-jwt-authz';
-import { requireAssetPoolHeader } from '@/middlewares';
+import { assertPlan, requireAssetPoolHeader } from '@/middlewares';
+import { AccountPlanType } from '@/types/enums';
 
 const router = express.Router();
 
-router.get('/', checkScopes(['admin']), validateAssetPoolHeader, requireAssetPoolHeader, getMembers);
+router.get(
+    '/',
+    checkScopes(['admin']),
+    validateAssetPoolHeader,
+    requireAssetPoolHeader,
+    assertPlan([AccountPlanType.Community, AccountPlanType.Creator]),
+    getMembers,
+);
 router.post(
     '/',
     checkScopes(['admin', 'members:write']),
     validateAssetPoolHeader,
     validate(validations.postMember),
     requireAssetPoolHeader,
+    assertPlan([AccountPlanType.Community, AccountPlanType.Creator]),
     postMember,
 );
 router.patch(
@@ -26,6 +35,7 @@ router.patch(
     validateAssetPoolHeader,
     validate(validations.patchMember),
     requireAssetPoolHeader,
+    assertPlan([AccountPlanType.Community, AccountPlanType.Creator]),
     patchMember,
 );
 router.delete(
@@ -34,6 +44,7 @@ router.delete(
     validateAssetPoolHeader,
     validate(validations.deleteMember),
     requireAssetPoolHeader,
+    assertPlan([AccountPlanType.Community, AccountPlanType.Creator]),
     deleteMember,
 );
 router.get(
@@ -42,6 +53,7 @@ router.get(
     validateAssetPoolHeader,
     validate(validations.getMember),
     requireAssetPoolHeader,
+    assertPlan([AccountPlanType.Community, AccountPlanType.Creator]),
     getMember,
 );
 
