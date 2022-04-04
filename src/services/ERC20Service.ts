@@ -4,7 +4,7 @@ import { Contract } from 'web3-eth-contract';
 import { toWei } from 'web3-utils';
 
 import ERC20 from '@/models/ERC20';
-import { ERC20Type, NetworkProvider } from '@/types/enums';
+import { ERC20Type } from '@/types/enums';
 import { deployLimitedSupplyERC20Contract, deployUnlimitedSupplyERC20Contract, getProvider } from '@/util/network';
 
 import AssetPoolService from './AssetPoolService';
@@ -80,6 +80,7 @@ export const addTokenToPool = async (params: AddTokenToPoolParams) => {
 
     await AssetPoolService.addPoolToken(assetPool, token);
     await transferMintedBalance({ id: token.id, to: assetPool.address, npid: params.npid });
+    return token;
 };
 
 export const transferMintedBalance = async (params: TransferERC20MintedParams) => {
@@ -112,4 +113,5 @@ export default {
     getAll,
     getById,
     transferMintedBalance,
+    addTokenToPool,
 };

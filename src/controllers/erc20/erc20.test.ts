@@ -32,8 +32,7 @@ describe('ERC20', () => {
                     network: NetworkProvider.Main,
                     totalSupply: `${TOTAL_SUPPLY}`,
                 });
-
-            expect(response.body?.totalSupply).toEqual(String(TOTAL_SUPPLY));
+            expect(response.body?.totalSupply).toEqual(TOTAL_SUPPLY);
         });
 
         it('Able to create unlimited token and return address', async () => {

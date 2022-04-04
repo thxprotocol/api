@@ -18,5 +18,5 @@ export const postCreateToken = async (req: Request, res: Response) => {
         sub: req.user.sub,
     });
 
-    return res.send({ ...token.toJSON(), totalSupply: await token.getTotalSupply() });
+    return res.send({ ...(await token.JSON()) });
 };

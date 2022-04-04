@@ -18,6 +18,7 @@ export interface ERC20 {
 
     // methods
     getTotalSupply(): Promise<number>;
+    JSON(): Promise<Omit<ERC20, 'JSON' | 'getTotalSupply'>>;
 }
 
 export type ERC20Document = mongoose.Document & ERC20;
@@ -41,10 +42,14 @@ erc20Schema.virtual('contract').get(function () {
     return tokenContract(this.network, this.address);
 });
 
-erc20Schema.methods.getTotalSupply = async function () {
+erc20Schema.methods.getTotalSupply = async function (): Promise<number> {
     const contract: Contract = this.contract;
     const totalSupply = await contract.methods.totalSupply().call();
-    return fromWei(totalSupply, 'ether');
+    return Number(fromWei(totalSupply, 'ether'));
+};
+
+erc20Schema.methods.JSON = async function () {
+    return { ...this.toJSON(), totalSupply: await this.getTotalSupply() };
 };
 
 export default mongoose.model<ERC20Document>('ERC20', erc20Schema);
