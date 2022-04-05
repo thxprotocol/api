@@ -17,7 +17,7 @@ router.get(
     checkScopes(['admin']),
     validateAssetPoolHeader,
     requireAssetPoolHeader,
-    assertPlan([AccountPlanType.Community, AccountPlanType.Creator]),
+    assertPlan([AccountPlanType.Basic, AccountPlanType.Premium]),
     getMembers,
 );
 router.post(
@@ -26,7 +26,7 @@ router.post(
     validateAssetPoolHeader,
     validate(validations.postMember),
     requireAssetPoolHeader,
-    assertPlan([AccountPlanType.Community, AccountPlanType.Creator]),
+    assertPlan([AccountPlanType.Basic, AccountPlanType.Premium]),
     postMember,
 );
 router.patch(
@@ -35,7 +35,7 @@ router.patch(
     validateAssetPoolHeader,
     validate(validations.patchMember),
     requireAssetPoolHeader,
-    assertPlan([AccountPlanType.Community, AccountPlanType.Creator]),
+    assertPlan([AccountPlanType.Basic, AccountPlanType.Premium]),
     patchMember,
 );
 router.delete(
@@ -44,7 +44,7 @@ router.delete(
     validateAssetPoolHeader,
     validate(validations.deleteMember),
     requireAssetPoolHeader,
-    assertPlan([AccountPlanType.Community, AccountPlanType.Creator]),
+    assertPlan([AccountPlanType.Basic, AccountPlanType.Premium]),
     deleteMember,
 );
 router.get(
@@ -53,7 +53,7 @@ router.get(
     validateAssetPoolHeader,
     validate(validations.getMember),
     requireAssetPoolHeader,
-    assertPlan([AccountPlanType.Community, AccountPlanType.Creator]),
+    assertPlan([AccountPlanType.Basic, AccountPlanType.Premium]),
     getMember,
 );
 

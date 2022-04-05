@@ -20,7 +20,7 @@ router.post(
     validateAssetPoolHeader,
     validate(validations.postWithdrawal),
     requireAssetPoolHeader,
-    assertPlan([AccountPlanType.Community, AccountPlanType.Creator]),
+    assertPlan([AccountPlanType.Basic, AccountPlanType.Premium]),
     postWithdrawal,
 );
 router.get(
@@ -45,7 +45,7 @@ router.post(
     validateAssetPoolHeader,
     validate(validations.postVote),
     requireAssetPoolHeader,
-    assertPlan([AccountPlanType.Community, AccountPlanType.Creator]),
+    assertPlan([AccountPlanType.Basic, AccountPlanType.Premium]),
     postVote,
 );
 router.delete(
@@ -54,7 +54,7 @@ router.delete(
     validateAssetPoolHeader,
     validate(validations.deleteVote),
     requireAssetPoolHeader,
-    assertPlan([AccountPlanType.Community, AccountPlanType.Creator]),
+    assertPlan([AccountPlanType.Basic, AccountPlanType.Premium]),
     deleteVote,
 );
 router.post(
@@ -63,7 +63,7 @@ router.post(
     validateAssetPoolHeader,
     validate(validations.postPollFinalize),
     requireAssetPoolHeader,
-    assertPlan([AccountPlanType.Community, AccountPlanType.Creator]),
+    assertPlan([AccountPlanType.Basic, AccountPlanType.Premium]),
     postPollFinalize,
 );
 
@@ -73,7 +73,7 @@ router.delete(
     validateAssetPoolHeader,
     validate(validations.deleteWithdrawal),
     requireAssetPoolHeader,
-    assertPlan([AccountPlanType.Community, AccountPlanType.Creator]),
+    assertPlan([AccountPlanType.Basic, AccountPlanType.Premium]),
     DeleteWithdrawalController,
 );
 export default router;

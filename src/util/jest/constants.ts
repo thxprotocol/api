@@ -23,12 +23,12 @@ export const userWalletPrivateKey2 = '0x97093724e1748ebfa6aa2d2ec4ec68df8678423a
 export const account: any = {
     id: sub,
     address: userWalletAddress,
-    plan: AccountPlanType.Community,
+    plan: AccountPlanType.Basic,
 };
 export const account2: any = {
     id: sub2,
     address: userWalletAddress2,
-    plan: AccountPlanType.Community,
+    plan: AccountPlanType.Basic,
 };
 
 export const rewardId = 1;

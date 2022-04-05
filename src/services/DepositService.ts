@@ -57,7 +57,6 @@ async function create(assetPool: AssetPoolType, deposit: DepositDocument, call: 
 }
 
 async function getAllowance(assetPool: AssetPoolType, token: Contract, account: IAccount) {
-    console.log(account.address, assetPool.address);
     const balance = await TransactionService.call(
         token.methods.allowance(account.address, assetPool.address),
         assetPool.network,

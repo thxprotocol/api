@@ -17,7 +17,7 @@ router.get(
     assertAssetPoolAccess,
     assertRequestInput(readAssetPoolValidation),
     requireAssetPoolHeader,
-    assertPlan([AccountPlanType.Community, AccountPlanType.Creator]),
+    assertPlan([AccountPlanType.Basic, AccountPlanType.Premium]),
     getAssetPool,
 );
 router.delete(
@@ -26,7 +26,7 @@ router.delete(
     assertAssetPoolAccess,
     assertRequestInput(deleteAssetPoolValidation),
     requireAssetPoolHeader,
-    assertPlan([AccountPlanType.Community, AccountPlanType.Creator]),
+    assertPlan([AccountPlanType.Basic, AccountPlanType.Premium]),
     deleteAssetPool,
 );
 export default router;

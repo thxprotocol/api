@@ -21,7 +21,7 @@ router.get(
     validateAssetPoolHeader,
     validate(validations.getRewards),
     requireAssetPoolHeader,
-    assertPlan([AccountPlanType.Community, AccountPlanType.Creator]),
+    assertPlan([AccountPlanType.Basic, AccountPlanType.Premium]),
     getRewards,
 );
 router.get(
@@ -30,7 +30,7 @@ router.get(
     validateAssetPoolHeader,
     validate(validations.getReward),
     requireAssetPoolHeader,
-    assertPlan([AccountPlanType.Community, AccountPlanType.Creator]),
+    assertPlan([AccountPlanType.Basic, AccountPlanType.Premium]),
     getReward,
 );
 router.post(
@@ -39,7 +39,7 @@ router.post(
     validateAssetPoolHeader,
     validate(validations.postReward),
     requireAssetPoolHeader,
-    assertPlan([AccountPlanType.Community, AccountPlanType.Creator]),
+    assertPlan([AccountPlanType.Basic, AccountPlanType.Premium]),
     postReward,
 );
 router.patch(
@@ -48,7 +48,7 @@ router.patch(
     validateAssetPoolHeader,
     validate(validations.patchReward),
     requireAssetPoolHeader,
-    assertPlan([AccountPlanType.Community, AccountPlanType.Creator]),
+    assertPlan([AccountPlanType.Basic, AccountPlanType.Premium]),
     patchReward,
 );
 router.post(
@@ -57,7 +57,7 @@ router.post(
     // rateLimitRewardClaim,
     validate(validations.postRewardClaim),
     requireAssetPoolHeader,
-    assertPlan([AccountPlanType.Community, AccountPlanType.Creator]),
+    assertPlan([AccountPlanType.Basic, AccountPlanType.Premium]),
     postRewardClaim,
 );
 router.post(
@@ -66,7 +66,7 @@ router.post(
     rateLimitRewardGive,
     validate(validations.postRewardClaimFor),
     requireAssetPoolHeader,
-    assertPlan([AccountPlanType.Community, AccountPlanType.Creator]),
+    assertPlan([AccountPlanType.Basic, AccountPlanType.Premium]),
     postRewardClaimFor,
 );
 

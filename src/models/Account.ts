@@ -1,4 +1,4 @@
-import { NetworkProvider } from '@/types/enums';
+import { AccountPlanType, NetworkProvider } from '@/types/enums';
 export interface IAccount {
     id: string;
     address: string;
@@ -8,6 +8,7 @@ export interface IAccount {
     youtube?: any;
     twitter?: any;
     spotify?: any;
+    plan: AccountPlanType;
 }
 export interface ERC20Token {
     network: NetworkProvider;
@@ -29,4 +30,5 @@ export interface IAccountUpdates {
     googleAccess?: string;
     twitterAccess?: string;
     spotifyAccess?: string;
+    plan?: AccountPlanType;
 }

@@ -1,4 +1,5 @@
 import express from 'express';
+
 import { getCirculatingSupply } from './getToken.action';
 
 const router = express.Router();

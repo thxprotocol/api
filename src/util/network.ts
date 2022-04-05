@@ -91,7 +91,7 @@ export async function deployUnlimitedSupplyERC20Contract(
 
     const event = assertEvent('TokenDeployed', parseLogs(tokenFactory.options.jsonInterface, receipt.logs));
 
-    return tokenContract(npid, event.args.token);
+    return { token: tokenContract(npid, event.args.token), receipt };
 }
 
 export async function deployLimitedSupplyERC20Contract(
@@ -110,7 +110,7 @@ export async function deployLimitedSupplyERC20Contract(
 
     const event = assertEvent('TokenDeployed', parseLogs(tokenFactory.options.jsonInterface, receipt.logs));
 
-    return tokenContract(npid, event.args.token);
+    return { token: tokenContract(npid, event.args.token), receipt };
 }
 
 export const tokenContract = (npid: NetworkProvider, address: string): Contract => {
