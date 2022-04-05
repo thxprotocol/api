@@ -55,9 +55,8 @@ export const getAll = async (sub: string) => {
     return tokens || [];
 };
 
-export const getById = async (id: string) => {
-    const token = await ERC20.findById(id);
-    return token;
+export const getById = (id: string) => {
+    return ERC20.findById(id);
 };
 
 export const addTokenToPool = async (params: AddTokenToPoolParams) => {
