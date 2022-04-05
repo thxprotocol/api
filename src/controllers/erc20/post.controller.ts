@@ -18,5 +18,5 @@ export const postCreateToken = async (req: Request, res: Response) => {
         sub: req.user.sub,
     });
 
-    return res.send({ ...(await token.JSON()) });
+    return res.send(await token.getResponse());
 };

@@ -88,14 +88,14 @@ export const transferMintedBalance = async (params: TransferERC20MintedParams) =
     const token = await ERC20.findById(params.id);
 
     if (token.network !== params.npid) {
-        throw Error('Cannot transfer balances that not in the same network');
+        throw new Error('Cannot transfer balances that not in the same network');
     }
 
     const { methods } = token.contract;
     const adminBalance: BN = await methods.balanceOf(admin.address);
 
     if (adminBalance.toNumber() <= 0) {
-        throw Error('Cannot transfer token since due to insufficient fund of admin account');
+        throw new Error('Cannot transfer token since due to insufficient fund of admin account');
     }
 
     const { tx, receipt } = await TransactionService.send(
