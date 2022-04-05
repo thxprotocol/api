@@ -49,7 +49,7 @@ describe('ERC20', () => {
 
         it('Able to return list of created token', async () => {
             const response = await requester.get('/v1/erc20').set('Authorization', ACCESS_TOKEN);
-            expect(response.body.tokens.length).toEqual(2);
+            expect(response.body.length).toEqual(2);
         });
     });
 });
