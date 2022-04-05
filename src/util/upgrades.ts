@@ -12,6 +12,17 @@ export enum FacetCutAction {
     Remove = 2,
 }
 
+export const diamondSelectors = [
+    '0x1f931c1c',
+    '0xadfca15e',
+    '0x7a0ed627',
+    '0xcdffacc6',
+    '0x52ef6b2c',
+    '0x01ffc9a7',
+    '0xf2fde38b',
+    '0x8da5cb5b',
+]; // We don't update these selectors as it breaks the diamond.
+
 function getDiamondCutsFromSelectorsMap(map: Map<string, string>, action: FacetCutAction) {
     const result = [];
     for (const facetAddress of uniq([...map.values()])) {
@@ -25,16 +36,6 @@ function getDiamondCutsFromSelectorsMap(map: Map<string, string>, action: FacetC
 }
 
 export function getDiamondCutForContractFacets(newContracts: Contract[], facets: any[]) {
-    const diamondSelectors = [
-        '0x1f931c1c',
-        '0xadfca15e',
-        '0x7a0ed627',
-        '0xcdffacc6',
-        '0x52ef6b2c',
-        '0x01ffc9a7',
-        '0xf2fde38b',
-        '0x8da5cb5b',
-    ]; // We don't update these selectors as it breaks the diamond.
     const currentSelectorMapping = new Map();
     facets.forEach((facet: any) =>
         facet.functionSelectors.forEach((selector: string) => {

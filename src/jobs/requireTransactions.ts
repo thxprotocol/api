@@ -9,6 +9,7 @@ import { Deposit } from '@/models/Deposit';
 import { wrapBackgroundTransaction } from '@/util/newrelic';
 import { AssetPoolType } from '@/models/AssetPool';
 import { Transaction, TransactionDocument } from '@/models/Transaction';
+import { TransactionReceipt } from 'web3-core';
 
 async function handleEvents(assetPool: AssetPoolType, tx: TransactionDocument, events: CustomEventLog[]) {
     const eventDepositted = findEvent('Depositted', events);
@@ -53,40 +54,48 @@ async function handleError(tx: TransactionDocument, failReason: string) {
 }
 
 export async function jobProcessTransactions() {
-    const transactions = await Transaction.find({
-        state: TransactionState.Pending,
+    const transactions: TransactionDocument[] = await Transaction.find({
+        $or: [{ state: TransactionState.Scheduled }, { state: TransactionState.Sent }],
         type: TransactionType.ITX,
         transactionHash: { $exists: false },
     }).sort({ createdAt: 'asc' });
 
-    for (let tx of transactions) {
+    for (const tx of transactions) {
         try {
             const assetPool = await AssetPoolService.getByAddress(tx.to);
             // If the TX does not have a relayTransactionHash yet, send it first. This might occur if
             // a tx is scheduled but not send yet.
             if (!tx.relayTransactionHash) {
-                tx = (await wrapBackgroundTransaction('jobRequireTransactions', 'send', InfuraService.send(tx))) as any;
+                (await wrapBackgroundTransaction(
+                    'jobRequireTransactions',
+                    'send',
+                    InfuraService.send(tx),
+                )) as TransactionDocument;
+                return;
             }
-            // Poll for the receipt. This will return the receipt immediately if the tx has already been mined.
-            const receipt = (await wrapBackgroundTransaction(
-                'jobRequireTransactions',
-                'pollTransactionStatus',
-                InfuraService.pollTransactionStatus(assetPool, tx),
-            )) as any;
 
-            if (!receipt) return;
+            if (tx.state === TransactionState.Sent) {
+                // Poll for the receipt. This will return the receipt immediately if the tx has already been mined.
+                const receipt = (await wrapBackgroundTransaction(
+                    'jobRequireTransactions',
+                    'pollTransactionStatus',
+                    InfuraService.pollTransactionStatus(assetPool, tx),
+                )) as TransactionReceipt;
 
-            const events = parseLogs(assetPool.contract.options.jsonInterface, receipt.logs);
-            const result = findEvent('Result', events);
+                if (!receipt) return;
 
-            if (!result) return;
-            if (!result.args.success) {
-                const failReason = hex2a(result.args.data.substr(10));
-                logger.error(failReason);
-                await handleError(tx, failReason);
-            }
-            if (result.args.success) {
-                await handleEvents(assetPool, tx, events);
+                const events = parseLogs(assetPool.contract.options.jsonInterface, receipt.logs);
+                const result = findEvent('Result', events);
+
+                if (!result) return;
+                if (!result.args.success) {
+                    const failReason = hex2a(result.args.data.substr(10));
+                    logger.error(failReason);
+                    await handleError(tx, failReason);
+                }
+                if (result.args.success) {
+                    await handleEvents(assetPool, tx, events);
+                }
             }
         } catch (error) {
             await handleError(tx, error.message);

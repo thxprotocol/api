@@ -15,7 +15,8 @@ import tokenRouter from './token/_.routing';
 import promoCodesRouter from './promo_codes/promoCodes.router';
 import depositsRouter from './deposits/deposits.router';
 import erc721Router from './erc721/erc721.router';
-import { checkJwt } from '@/util/jwt';
+import erc20Router from './erc20/erc20.router';
+import { checkJwt } from '@/middlewares';
 
 const router = express.Router();
 
@@ -25,16 +26,17 @@ router.use('/token', tokenRouter);
 router.use('/docs', docsRouter);
 router.use(checkJwt);
 router.use('/', authRouter);
-router.use('/promo_codes', promoCodesRouter);
-router.use('/deposits', depositsRouter);
+router.use('/erc20', erc20Router);
 router.use('/metrics', metricsRouter);
-router.use('/account', accountRouter);
-router.use('/widgets', widgetsRouter);
-router.use('/relay', relayHubRouter);
 router.use('/asset_pools', assetPoolsRouter);
+router.use('/promo_codes', promoCodesRouter);
 router.use('/members', membersRouter);
 router.use('/rewards', rewardsRouter);
+router.use('/account', accountRouter);
+router.use('/widgets', widgetsRouter);
 router.use('/withdrawals', withdrawalsRouter);
+router.use('/deposits', depositsRouter);
+router.use('/relay', relayHubRouter);
 router.use('/memberships', membershipsRouter);
 router.use('/erc721', erc721Router);
 

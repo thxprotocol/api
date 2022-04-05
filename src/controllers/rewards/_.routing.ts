@@ -9,8 +9,9 @@ import { postReward } from './post.action';
 import { patchReward } from './patch.action';
 import { postRewardClaim } from './postRewardClaim.action';
 import { postRewardClaimFor } from './postRewardClaimFor.action';
-import { requireAssetPoolHeader } from '@/middlewares';
+import { requireAssetPoolHeader, assertPlan } from '@/middlewares';
 import { rateLimitRewardGive } from '@/util/ratelimiter';
+import { AccountPlanType } from '@/types/enums';
 
 const router = express.Router();
 
@@ -20,6 +21,7 @@ router.get(
     validateAssetPoolHeader,
     validate(validations.getRewards),
     requireAssetPoolHeader,
+    assertPlan([AccountPlanType.Basic, AccountPlanType.Premium]),
     getRewards,
 );
 router.get(
@@ -28,6 +30,7 @@ router.get(
     validateAssetPoolHeader,
     validate(validations.getReward),
     requireAssetPoolHeader,
+    assertPlan([AccountPlanType.Basic, AccountPlanType.Premium]),
     getReward,
 );
 router.post(
@@ -36,6 +39,7 @@ router.post(
     validateAssetPoolHeader,
     validate(validations.postReward),
     requireAssetPoolHeader,
+    assertPlan([AccountPlanType.Basic, AccountPlanType.Premium]),
     postReward,
 );
 router.patch(
@@ -44,6 +48,7 @@ router.patch(
     validateAssetPoolHeader,
     validate(validations.patchReward),
     requireAssetPoolHeader,
+    assertPlan([AccountPlanType.Basic, AccountPlanType.Premium]),
     patchReward,
 );
 router.post(
@@ -52,6 +57,7 @@ router.post(
     // rateLimitRewardClaim,
     validate(validations.postRewardClaim),
     requireAssetPoolHeader,
+    assertPlan([AccountPlanType.Basic, AccountPlanType.Premium]),
     postRewardClaim,
 );
 router.post(
@@ -60,6 +66,7 @@ router.post(
     rateLimitRewardGive,
     validate(validations.postRewardClaimFor),
     requireAssetPoolHeader,
+    assertPlan([AccountPlanType.Basic, AccountPlanType.Premium]),
     postRewardClaimFor,
 );
 

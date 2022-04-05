@@ -1,6 +1,7 @@
 import { NetworkProvider } from '@/types/enums';
 import { getProvider } from '@/util/network';
 import { AbiItem } from 'web3-utils';
+import * as semver from 'semver';
 import {
     availableVersions,
     contractConfig,
@@ -55,12 +56,12 @@ export const diamondFacetAddresses = (npid: NetworkProvider, variant: DiamondVar
 
 export const poolFacetAdressesPermutations = (npid: NetworkProvider) => {
     const result = [];
-    const versions = availableVersions(npToName(npid));
+    const versions = semver.rsort(availableVersions(npToName(npid)));
     for (const version of versions) {
         for (const variant of diamondVariants) {
-            const facetAddresses = diamondFacetNames(variant).map(
-                (contractName) => getContractConfig(npid, contractName, version).address,
-            );
+            const facetAddresses = diamondFacetNames(variant)
+                .filter((name) => !['DiamondCutFacet', 'DiamondLoupeFacet', 'OwnershipFacet'].includes(name))
+                .map((contractName) => getContractConfig(npid, contractName, version).address);
             result.push({ version, variant, facetAddresses, npid });
         }
     }

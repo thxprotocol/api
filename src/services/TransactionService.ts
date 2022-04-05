@@ -46,7 +46,7 @@ async function send(to: string, fn: any, npid: NetworkProvider, gasLimit?: numbe
     // Prepare the Transaction and store in database so it could be retried if it fails
     let tx = await Transaction.create({
         type: TransactionType.Default,
-        state: TransactionState.Pending,
+        state: TransactionState.Scheduled,
         network: npid,
         from,
         to,
@@ -106,7 +106,7 @@ async function deploy(abi: any, bytecode: any, arg: any[], npid: NetworkProvider
     );
     const tx = await Transaction.create({
         type: TransactionType.Default,
-        state: TransactionState.Pending,
+        state: TransactionState.Scheduled,
         network: npid,
         from: admin.address,
         gas,

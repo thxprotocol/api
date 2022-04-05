@@ -68,7 +68,10 @@ async function signRequest(tx: any, signer: Signer) {
             [tx.to, tx.data, tx.gas, chainId, tx.schedule],
         ),
     );
-    return await signer.signMessage(ethers.utils.arrayify(relayTransactionHash));
+    return {
+        relayTransactionHash,
+        signedMessage: await signer.signMessage(ethers.utils.arrayify(relayTransactionHash)),
+    };
 }
 
 async function getCallData(contract: Contract, fn: string, args: any[], account: Signer) {
@@ -82,7 +85,7 @@ async function getCallData(contract: Contract, fn: string, args: any[], account:
 
 async function schedule(to: string, fn: string, args: any[], npid: NetworkProvider) {
     return await Transaction.create({
-        state: TransactionState.Pending,
+        state: TransactionState.Scheduled,
         type: TransactionType.ITX,
         network: npid,
         to,
@@ -108,11 +111,18 @@ async function send(tx: TransactionDocument) {
         gas: '500000',
         schedule: 'fast',
     };
-    const signature = await signRequest(options, admin);
-    // Send transaction data and receive relayTransactionHash to poll
-    const { relayTransactionHash } = await provider.send('relay_sendTransaction', [options, signature]);
+    // relayTransactionHash is generated based on encoded transaction abi and could be predetermined
+    const { relayTransactionHash, signedMessage } = await signRequest(options, admin);
     tx.relayTransactionHash = relayTransactionHash;
-    return tx.save();
+    await tx.save();
+
+    // Send transaction data and receive relayTransactionHash to poll
+    await provider.send('relay_sendTransaction', [options, signedMessage]);
+
+    tx.state = TransactionState.Sent;
+    await tx.save();
+
+    return tx;
 }
 
 async function getTransactionStatus(assetPool: AssetPoolType, tx: TransactionDocument) {
@@ -149,10 +159,10 @@ async function pollTransactionStatus(assetPool: AssetPoolType, tx: TransactionDo
     return await poll(fn, fnCondition, 500);
 }
 
-async function pending(npid: NetworkProvider) {
+async function scheduled(npid: NetworkProvider) {
     return Transaction.find({
         type: TransactionType.ITX,
-        state: TransactionState.Pending,
+        state: TransactionState.Scheduled,
         transactionHash: { $exists: false },
         network: npid,
     });
@@ -166,5 +176,5 @@ export default {
     send,
     getTransactionStatus,
     pollTransactionStatus,
-    pending,
+    scheduled,
 };

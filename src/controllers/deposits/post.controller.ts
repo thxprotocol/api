@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { body } from 'express-validator';
-import { AmountExceedsAllowanceError, InsufficientBalanceError } from '@/util/errors';
+import { AmountExceedsAllowanceError, InsufficientBalanceError, NotFoundError } from '@/util/errors';
 import { agenda, eventNameRequireTransactions } from '@/util/agenda';
 import { tokenContract } from '@/util/network';
 import { toWei } from 'web3-utils';
@@ -15,15 +15,22 @@ export const createDepositValidation = [
     body('call').exists(),
     body('nonce').exists(),
     body('sig').exists(),
+    body('amount').optional().isNumeric(),
     body('item').optional().isString().isLength({ min: 24, max: 24 }),
 ];
 
 export default async function CreateDepositController(req: Request, res: Response) {
-    const promoCode = await PromoCodeService.findById(req.body.item);
-    if (!promoCode) throw new Error();
+    let value = req.body.amount;
+
+    // If an item is referenced, replace the amount value with the price value
+    if (req.body.item) {
+        const promoCode = await PromoCodeService.findById(req.body.item);
+        if (!promoCode) throw new NotFoundError('Could not find promotion');
+        value = promoCode.price;
+    }
 
     const account = await AccountProxy.getById(req.user.sub);
-    const amount = Number(toWei(String(promoCode.price)));
+    const amount = Number(toWei(String(value)));
 
     const tokenAddress = await TransactionService.call(
         req.assetPool.contract.methods.getToken(),
@@ -32,14 +39,14 @@ export default async function CreateDepositController(req: Request, res: Respons
     const token = tokenContract(req.assetPool.network, tokenAddress);
 
     // Check balance to ensure throughput
-    const balance = await TransactionService.call(token.methods.balanceOf(account.address), req.assetPool.network);
+    const balance = await token.methods.balanceOf(account.address).call();
     if (balance < amount) throw new InsufficientBalanceError();
 
     // Check allowance for admin to ensure throughput
     const allowance = await DepositService.getAllowance(req.assetPool, token, account);
     if (allowance < amount) throw new AmountExceedsAllowanceError();
 
-    let d: DepositDocument = await DepositService.schedule(req.assetPool, account, promoCode.price, req.body.item);
+    let d: DepositDocument = await DepositService.schedule(req.assetPool, account, value, req.body.item);
     d = await DepositService.create(req.assetPool, d, req.body.call, req.body.nonce, req.body.sig);
 
     agenda.now(eventNameRequireTransactions, {});

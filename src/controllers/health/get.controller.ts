@@ -53,7 +53,7 @@ async function getNetworkDetails(npid: NetworkProvider) {
                 balance: fromWei(balance, 'ether'),
             },
             gasTank: {
-                queue: (await InfuraService.pending(npid)).length,
+                queue: (await InfuraService.scheduled(npid)).length,
                 address: InfuraService.getGasTank(npid),
                 balance: await getGasTankInfo(npid),
             },

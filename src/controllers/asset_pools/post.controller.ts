@@ -6,6 +6,10 @@ import AssetPoolService from '@/services/AssetPoolService';
 import ClientService from '@/services/ClientService';
 import MembershipService from '@/services/MembershipService';
 import { body } from 'express-validator';
+import { ForbiddenError } from '@/util/errors';
+import { AccountPlanType } from '@/types/enums/AccountPlanType';
+import { NetworkProvider } from '@/types/enums';
+import AccountProxy from '@/proxies/AccountProxy';
 
 export const createAssetPoolValidation = [
     body('token')
@@ -30,6 +34,12 @@ export const createAssetPoolValidation = [
 ];
 
 export const postAssetPool = async (req: Request, res: Response) => {
+    const account = await AccountProxy.getById(req.user.sub);
+
+    if (account.plan === AccountPlanType.Free && req.body.network === NetworkProvider.Main) {
+        await AccountProxy.update(account.id, { plan: AccountPlanType.Basic });
+    }
+
     const assetPool = await AssetPoolService.deploy(req.user.sub, req.body.network);
     await AssetPoolService.addPoolToken(assetPool, req.body.token);
     await MembershipService.addMembership(req.user.sub, assetPool);

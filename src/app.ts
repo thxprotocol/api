@@ -8,8 +8,7 @@ import axiosBetterStacktrace from 'axios-better-stacktrace';
 import router from '@/controllers';
 import db from '@/util/database';
 import { requestLogger } from '@/util/logger';
-import { corsHandler } from '@/util/cors';
-import { errorOutput, notFoundHandler, errorLogger, errorNormalizer } from '@/middlewares';
+import { errorOutput, notFoundHandler, errorLogger, errorNormalizer, corsHandler } from '@/middlewares';
 import { PORT, VERSION, MONGODB_URI } from '@/config/secrets';
 
 axiosBetterStacktrace(axios);

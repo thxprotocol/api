@@ -22,7 +22,7 @@ describe('Roles', () => {
     beforeAll(async () => {
         await beforeAllCallback();
 
-        testToken = getContract(NetworkProvider.Main, 'TokenLimitedSupply');
+        testToken = getContract(NetworkProvider.Main, 'LimitedSupplyToken');
         userWallet = createWallet(userWalletPrivateKey2);
 
         adminAccessToken = getToken('openid admin');

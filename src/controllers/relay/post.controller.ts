@@ -10,7 +10,6 @@ export const createCallValidation = [body('call').exists(), body('nonce').exists
 
 export const postCall = async (req: Request, res: Response) => {
     const { contract, network, address } = req.assetPool;
-    // Check NETWORK_ENVIRONMENT for dev and prod and invoke InfuraService if applicable
     const { tx, receipt } = await TransactionService.send(
         contract.options.address,
         contract.methods.call(req.body.call, req.body.nonce, req.body.sig),
