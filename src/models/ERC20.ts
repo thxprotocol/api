@@ -15,10 +15,9 @@ export interface ERC20 {
     contract: Contract;
     network: number;
     sub: string;
-
+    logoURI: string;
     // methods
-    getTotalSupply(): Promise<number>;
-    JSON(): Promise<Omit<ERC20, 'JSON' | 'getTotalSupply'>>;
+    getResponse(): Promise<Omit<ERC20, 'getResponse'>>;
 }
 
 export type ERC20Document = mongoose.Document & ERC20;
@@ -38,18 +37,18 @@ const erc20Schema = new mongoose.Schema(
 );
 
 erc20Schema.virtual('contract').get(function () {
-    // Later we can add the version of the pool as well.
     return tokenContract(this.network, this.address);
 });
 
-erc20Schema.methods.getTotalSupply = async function (): Promise<number> {
-    const contract: Contract = this.contract;
-    const totalSupply = await contract.methods.totalSupply().call();
-    return Number(fromWei(totalSupply, 'ether'));
-};
-
-erc20Schema.methods.JSON = async function () {
-    return { ...this.toJSON(), totalSupply: await this.getTotalSupply() };
+erc20Schema.methods.getResponse = async function () {
+    return {
+        ...this.toJSON(),
+        totalSupply: await (async () => {
+            const totalSupply = await this.contract.methods.totalSupply().call();
+            return Number(fromWei(totalSupply, 'ether'));
+        })(),
+        logoURI: `https://avatars.dicebear.com/api/identicon/${this.address}.svg`,
+    };
 };
 
 export default mongoose.model<ERC20Document>('ERC20', erc20Schema);
