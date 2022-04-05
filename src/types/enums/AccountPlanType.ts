@@ -1,5 +1,5 @@
 export enum AccountPlanType {
-    Solo = 0,
-    Community = 1,
-    Creator = 2,
+    Free = 0,
+    Basic = 1,
+    Premium = 2,
 }

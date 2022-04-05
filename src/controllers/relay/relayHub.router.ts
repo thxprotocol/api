@@ -13,7 +13,7 @@ router.post(
     assertAssetPoolAccess,
     assertRequestInput(createCallValidation),
     requireAssetPoolHeader,
-    assertPlan([AccountPlanType.Community, AccountPlanType.Creator]),
+    assertPlan([AccountPlanType.Basic, AccountPlanType.Premium]),
     postCall,
 );
 router.post(
@@ -22,7 +22,7 @@ router.post(
     assertAssetPoolAccess,
     assertRequestInput(createCallUpgradeAddressValidation),
     requireAssetPoolHeader,
-    assertPlan([AccountPlanType.Community, AccountPlanType.Creator]),
+    assertPlan([AccountPlanType.Basic, AccountPlanType.Premium]),
     postCallUpgradeAddress,
 );
 

@@ -1,6 +1,8 @@
 import { Request, Response } from 'express';
-import ERC20Service from '@/services/ERC20Service';
 import { body } from 'express-validator';
+import ERC20Service from '@/services/ERC20Service';
+import AccountProxy from '@/proxies/AccountProxy';
+import { AccountPlanType, NetworkProvider } from '@/types/enums';
 
 export const postERC20TokenValidation = [
     body('name').exists().isString(),
@@ -10,6 +12,12 @@ export const postERC20TokenValidation = [
 ];
 
 export const postCreateToken = async (req: Request, res: Response) => {
+    const account = await AccountProxy.getById(req.user.sub);
+
+    if (account.plan === AccountPlanType.Free && req.body.network === NetworkProvider.Main) {
+        await AccountProxy.update(account.id, { plan: AccountPlanType.Basic });
+    }
+
     const token = await ERC20Service.create({
         name: req.body['name'],
         symbol: req.body['symbol'],

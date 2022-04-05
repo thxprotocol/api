@@ -12,7 +12,7 @@ router.post(
     assertAssetPoolAccess,
     assertRequestInput(createDepositValidation),
     requireAssetPoolHeader,
-    assertPlan([AccountPlanType.Community, AccountPlanType.Creator]),
+    assertPlan([AccountPlanType.Basic, AccountPlanType.Premium]),
     CreateDepositController,
 );
 
