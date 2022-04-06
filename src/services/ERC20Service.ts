@@ -59,6 +59,10 @@ export const getById = (id: string) => {
     return ERC20.findById(id);
 };
 
+export const removeById = (id: string) => {
+    return ERC20.deleteOne({ _id: id });
+};
+
 export const addTokenToPool = async (params: AddTokenToPoolParams) => {
     const token = await getById(params.tokenId);
     const assetPool = await AssetPoolService.getByAddress(params.poolId);
@@ -111,6 +115,7 @@ export default {
     create,
     getAll,
     getById,
+    removeById,
     transferMintedBalance,
     addTokenToPool,
 };

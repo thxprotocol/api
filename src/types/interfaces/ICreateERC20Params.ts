@@ -1,10 +1,11 @@
-import { NetworkProvider } from '../enums';
+import { ERC20Type, NetworkProvider } from '../enums';
 
 export interface ICreateERC20Params {
     name: string;
     symbol: string;
     totalSupply: string;
     network: NetworkProvider;
+    type: ERC20Type;
     sub: string;
 }
 
