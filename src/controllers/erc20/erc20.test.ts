@@ -1,7 +1,7 @@
 import request from 'supertest';
 
 import app from '@/app';
-import { NetworkProvider } from '@/types/enums';
+import { ERC20Type, NetworkProvider } from '@/types/enums';
 import { afterAllCallback, beforeAllCallback } from '@/util/jest/config';
 import { getToken } from '@/util/jest/jwt';
 import { isAddress } from 'ethers/lib/utils';
@@ -31,6 +31,7 @@ describe('ERC20', () => {
                     symbol: 'TTK',
                     network: NetworkProvider.Main,
                     totalSupply: `${TOTAL_SUPPLY}`,
+                    type: ERC20Type.Limited,
                 });
             expect(response.body?.totalSupply).toEqual(TOTAL_SUPPLY);
         });
@@ -40,7 +41,8 @@ describe('ERC20', () => {
                 name: 'Test Token',
                 symbol: 'TTK',
                 network: NetworkProvider.Main,
-                totalSupply: '0',
+                totalSupply: 0,
+                type: ERC20Type.Unlimited,
             });
 
             expect(response.body.address).toBeDefined();

@@ -41,7 +41,7 @@ export const create = async (params: ICreateERC20Params) => {
         symbol: params.symbol,
         address: response.token.options.address,
         blockNumber: response.receipt.blockNumber,
-        type: Number(params.totalSupply) > 0 ? ERC20Type.LIMITED : ERC20Type.UNLIMITED,
+        type: Number(params.totalSupply) > 0 ? ERC20Type.Limited : ERC20Type.Limited,
         transactionHash: response.receipt.transactionHash,
         network: params.network,
         sub: params.sub,
