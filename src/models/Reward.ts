@@ -41,6 +41,7 @@ export type TReward = {
     state: number;
     isMembershipRequired: boolean;
     isClaimOnce: boolean;
+    withdrawLimit: number;
     withdrawAmount: number;
     withdrawDuration: number;
     withdrawCondition: IRewardCondition;
@@ -66,6 +67,7 @@ const rewardSchema = new mongoose.Schema(
         state: Number,
         isMembershipRequired: Boolean,
         isClaimOnce: Boolean,
+        withdrawLimit: Number,
         withdrawAmount: Number,
         withdrawDuration: Number,
         withdrawCondition: {

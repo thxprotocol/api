@@ -65,6 +65,14 @@ export default class RewardService {
             return false;
         }
 
+        // Can not claim if reward already extends the claim limit
+        // (included pending withdrawars)
+        if (reward.withdrawLimit > 0) {
+            const withdrawed = await WithdrawalService.getByPoolAndRewardID(reward.poolAddress, reward.id);
+            const totalWithdrawed = withdrawed.reduce((total, withdraw) => (total += withdraw.amount), 0);
+            if (totalWithdrawed >= reward.withdrawLimit) return false;
+        }
+
         const withdrawal = await WithdrawalService.hasClaimedOnce(assetPool.address, account.id, reward.id);
         // Can only claim this reward once and a withdrawal already exists
         if (reward.isClaimOnce && withdrawal) {
@@ -88,6 +96,7 @@ export default class RewardService {
 
     static async create(
         assetPool: AssetPoolType,
+        withdrawLimit: number,
         withdrawAmount: number,
         withdrawDuration: number,
         isMembershipRequired: boolean,
@@ -101,6 +110,7 @@ export default class RewardService {
             id,
             poolAddress: assetPool.address,
             withdrawAmount: String(withdrawAmount),
+            withdrawLimit,
             withdrawDuration,
             withdrawCondition,
             state: RewardState.Enabled,
