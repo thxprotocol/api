@@ -1,48 +1,48 @@
-import BN from 'bn.js';
-import { ethers } from 'ethers';
-import { Contract } from 'web3-eth-contract';
-import { toWei } from 'web3-utils';
-
-import ERC20 from '@/models/ERC20';
-import { ERC20Type } from '@/types/enums';
-import { deployLimitedSupplyERC20Contract, deployUnlimitedSupplyERC20Contract, getProvider } from '@/util/network';
-
-import AssetPoolService from './AssetPoolService';
+import ERC20, { ERC20Document } from '@/models/ERC20';
+import { toWei, fromWei } from 'web3-utils';
+import { getProvider, tokenContract } from '@/util/network';
+import { ICreateERC20Params } from '@/types/interfaces';
 import TransactionService from './TransactionService';
-import { AddTokenToPoolParams, ICreateERC20Params, TransferERC20MintedParams } from '@/types/interfaces';
+import { assertEvent, parseLogs } from '@/util/events';
+import { getContract } from '@/config/contracts';
+import { InternalServerError } from '@/util/errors';
+import { ERC20Type, NetworkProvider } from '@/types/enums';
+import { AssetPoolDocument } from '@/models/AssetPool';
+import { TERC20 } from '@/types/TERC20';
 
 export const create = async (params: ICreateERC20Params) => {
-    let response: { token: Contract; receipt: ethers.providers.TransactionReceipt };
     const { admin } = getProvider(params.network);
+    const tokenFactory = getContract(params.network, 'TokenFactory');
 
-    if (Number(params.totalSupply) > 0) {
-        const { token, receipt } = await deployLimitedSupplyERC20Contract(
-            params.network,
+    let fn;
+    if (params.name && params.symbol && Number(params.totalSupply) > 0) {
+        fn = tokenFactory.methods.deployLimitedSupplyToken(
             params.name,
             params.symbol,
             admin.address,
-            toWei(new BN(params.totalSupply)),
+            toWei(String(params.totalSupply)),
         );
-
-        response = { token, receipt } as any;
-    } else {
-        const { token, receipt } = await deployUnlimitedSupplyERC20Contract(
-            params.network,
+    }
+    if (params.name && params.symbol && Number(params.totalSupply) === 0) {
+        fn = tokenFactory.methods.deployUnlimitedSupplyToken(
             params.name,
             params.symbol,
+            [admin.address],
             admin.address,
         );
-
-        response = { token, receipt } as any;
     }
 
+    if (!fn) throw new InternalServerError('Could not determine fn to call');
+
+    const { receipt } = await TransactionService.send(tokenFactory.options.address, fn, params.network);
+    const event = assertEvent('TokenDeployed', parseLogs(tokenFactory.options.jsonInterface, receipt.logs));
     const token = await ERC20.create({
         name: params.name,
         symbol: params.symbol,
-        address: response.token.options.address,
-        blockNumber: response.receipt.blockNumber,
-        type: Number(params.totalSupply) > 0 ? ERC20Type.Limited : ERC20Type.Limited,
-        transactionHash: response.receipt.transactionHash,
+        address: event.args.token,
+        blockNumber: receipt.blockNumber,
+        type: params.type,
+        transactionHash: receipt.transactionHash,
         network: params.network,
         sub: params.sub,
     });
@@ -50,72 +50,62 @@ export const create = async (params: ICreateERC20Params) => {
     return token;
 };
 
-export const getAll = async (sub: string) => {
-    const tokens = await ERC20.find({ sub });
-    return tokens || [];
+export const getAll = (sub: string) => {
+    return ERC20.find({ sub });
 };
 
 export const getById = (id: string) => {
     return ERC20.findById(id);
 };
 
+export const findBy = (query: { address: string; network: NetworkProvider }) => {
+    return ERC20.findOne(query);
+};
+
+export const findByPool = async (assetPool: AssetPoolDocument): Promise<TERC20> => {
+    const address = await assetPool.contract.methods.getToken().call();
+    const erc20 = await ERC20.findOne({ network: assetPool.network, address });
+
+    if (erc20) {
+        const { name, type, symbol, totalSupply, logoURI } = await erc20.getResponse();
+        return {
+            address,
+            name,
+            type,
+            symbol,
+            contract: erc20.contract,
+            totalSupply,
+            logoURI,
+        };
+    }
+
+    const contract = tokenContract(assetPool.network, 'LimitedSupplyToken', address);
+    const [name, symbol, totalSupplyInWei] = await Promise.all([
+        contract.methods.name().call(),
+        contract.methods.symbol().call(),
+        contract.methods.totalSupply().call(),
+    ]);
+
+    return {
+        address,
+        name,
+        type: ERC20Type.Unknown,
+        symbol,
+        contract,
+        totalSupply: Number(fromWei(totalSupplyInWei)),
+        logoURI: '',
+    };
+};
+
 export const removeById = (id: string) => {
     return ERC20.deleteOne({ _id: id });
-};
-
-export const addTokenToPool = async (params: AddTokenToPoolParams) => {
-    const token = await getById(params.tokenId);
-    const assetPool = await AssetPoolService.getByAddress(params.poolId);
-
-    if (assetPool.sub !== params.sub) {
-        // eslint-disable-next-line quotes
-        throw Error("You're not the owner of this AssetPool");
-    }
-
-    if (token.sub !== params.sub) {
-        // eslint-disable-next-line quotes
-        throw Error("You're not the owner of this token");
-    }
-
-    if (token.network !== assetPool.network) {
-        throw Error('Token and AssetPool are not in the same network');
-    }
-
-    await AssetPoolService.addPoolToken(assetPool, token);
-    await transferMintedBalance({ id: token.id, to: assetPool.address, npid: params.npid });
-    return token;
-};
-
-export const transferMintedBalance = async (params: TransferERC20MintedParams) => {
-    const { admin } = getProvider(params.npid);
-    const token = await ERC20.findById(params.id);
-
-    if (token.network !== params.npid) {
-        throw new Error('Cannot transfer balances that not in the same network');
-    }
-
-    const { methods } = token.contract;
-    const adminBalance: BN = await methods.balanceOf(admin.address);
-
-    if (adminBalance.toNumber() <= 0) {
-        throw new Error('Cannot transfer token since due to insufficient fund of admin account');
-    }
-
-    const { tx, receipt } = await TransactionService.send(
-        token.contract.options.address,
-        methods.transfer(params.to, adminBalance),
-        params.npid,
-        250000,
-    );
-
-    return { tx, receipt };
 };
 
 export default {
     create,
     getAll,
+    findBy,
+    findByPool,
     getById,
     removeById,
-    transferMintedBalance,
-    addTokenToPool,
 };

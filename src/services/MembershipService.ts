@@ -2,6 +2,7 @@ import { AssetPoolType } from '@/models/AssetPool';
 import { NetworkProvider } from '@/types/enums';
 import { Membership } from '@/models/Membership';
 import AssetPoolService from './AssetPoolService';
+import ERC20Service from './ERC20Service';
 
 export default class MembershipService {
     static async get(sub: string) {
@@ -26,7 +27,7 @@ export default class MembershipService {
         const assetPool = await AssetPoolService.getByAddress(membership.poolAddress);
         if (!assetPool) return null;
 
-        const token = await AssetPoolService.getPoolToken(assetPool);
+        const token = await ERC20Service.findByPool(assetPool);
 
         return {
             id: membership._id.toString(),

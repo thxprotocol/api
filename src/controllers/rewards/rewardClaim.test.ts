@@ -1,7 +1,7 @@
 import request from 'supertest';
 import app from '@/app';
 import { Account } from 'web3-core';
-import { NetworkProvider } from '../../types/enums';
+import { ERC20Type, NetworkProvider } from '../../types/enums';
 import { createWallet, signMethod } from '@/util/jest/network';
 import { rewardWithdrawAmount, tokenName, tokenSymbol, userWalletPrivateKey2 } from '@/util/jest/constants';
 import { isAddress } from 'web3-utils';
@@ -19,7 +19,8 @@ describe('Reward Claim', () => {
         rewardID: string,
         withdrawalDocumentId: string,
         withdrawalId: string,
-        userWallet: Account;
+        userWallet: Account,
+        tokenAddress: string;
 
     beforeAll(async () => {
         await beforeAllCallback();
@@ -32,15 +33,30 @@ describe('Reward Claim', () => {
 
     afterAll(afterAllCallback);
 
+    it('Create ERC20', (done) => {
+        user.post('/v1/erc20')
+            .set('Authorization', dashboardAccessToken)
+            .send({
+                network: NetworkProvider.Main,
+                name: tokenName,
+                symbol: tokenSymbol,
+                type: ERC20Type.Unlimited,
+                totalSupply: 0,
+            })
+            .expect(({ body }: request.Response) => {
+                expect(isAddress(body.address)).toBe(true);
+                tokenAddress = body.address;
+            })
+            .expect(201, done);
+    });
+
     it('Create Asset Pool', (done) => {
         user.post('/v1/asset_pools')
             .set('Authorization', dashboardAccessToken)
             .send({
                 network: NetworkProvider.Main,
                 token: {
-                    name: tokenName,
-                    symbol: tokenSymbol,
-                    totalSupply: 0,
+                    address: tokenAddress,
                 },
             })
             .expect((res: request.Response) => {

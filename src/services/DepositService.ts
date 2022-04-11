@@ -8,6 +8,7 @@ import InfuraService from './InfuraService';
 import { ITX_ACTIVE } from '@/config/secrets';
 import { assertEvent, findEvent, hex2a, parseLogs } from '@/util/events';
 import { InternalServerError } from '@/util/errors';
+import { ERC20Document } from '@/models/ERC20';
 
 async function schedule(assetPool: AssetPoolType, account: IAccount, amount: number, item?: string) {
     return await Deposit.create({
@@ -55,13 +56,4 @@ async function create(assetPool: AssetPoolType, deposit: DepositDocument, call: 
         }
     }
 }
-
-async function getAllowance(assetPool: AssetPoolType, token: Contract, account: IAccount) {
-    const balance = await TransactionService.call(
-        token.methods.allowance(account.address, assetPool.address),
-        assetPool.network,
-    );
-    return Number(balance);
-}
-
-export default { create, getAllowance, schedule };
+export default { create, schedule };

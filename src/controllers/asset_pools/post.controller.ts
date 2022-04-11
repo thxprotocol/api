@@ -6,10 +6,10 @@ import AssetPoolService from '@/services/AssetPoolService';
 import ClientService from '@/services/ClientService';
 import MembershipService from '@/services/MembershipService';
 import { body } from 'express-validator';
-import { ForbiddenError } from '@/util/errors';
 import { AccountPlanType } from '@/types/enums/AccountPlanType';
 import { NetworkProvider } from '@/types/enums';
 import AccountProxy from '@/proxies/AccountProxy';
+import ERC20Service from '@/services/ERC20Service';
 
 export const createAssetPoolValidation = [
     body('token')
@@ -41,7 +41,8 @@ export const postAssetPool = async (req: Request, res: Response) => {
     }
 
     const assetPool = await AssetPoolService.deploy(req.user.sub, req.body.network);
-    await AssetPoolService.addPoolToken(assetPool, req.body.token);
+
+    await AssetPoolService.addPoolToken(assetPool, req.body.token.address);
     await MembershipService.addMembership(req.user.sub, assetPool);
 
     const client = await ClientService.create(req.user.sub, {

@@ -12,7 +12,7 @@ export const postERC20TokenValidation = [
     body('totalSupply').optional().isNumeric(),
 ];
 
-export const postCreateToken = async (req: Request, res: Response) => {
+export const CreateERC20Controller = async (req: Request, res: Response) => {
     const account = await AccountProxy.getById(req.user.sub);
 
     if (account.plan === AccountPlanType.Free && req.body.network === NetworkProvider.Main) {
@@ -28,5 +28,5 @@ export const postCreateToken = async (req: Request, res: Response) => {
         sub: req.user.sub,
     });
 
-    return res.send(await token.getResponse());
+    res.status(201).json(await token.getResponse());
 };
