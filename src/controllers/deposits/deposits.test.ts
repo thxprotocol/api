@@ -5,14 +5,15 @@ import { isAddress, toWei } from 'web3-utils';
 import { Contract } from 'web3-eth-contract';
 import { afterAllCallback, beforeAllCallback } from '@/util/jest/config';
 import { getToken } from '@/util/jest/jwt';
-import { NetworkProvider, TransactionState } from '@/types/enums';
+import { ERC20Type, NetworkProvider, TransactionState } from '@/types/enums';
 import { IPromoCodeResponse } from '@/types/interfaces/IPromoCodeResponse';
 import { createWallet, signMethod } from '@/util/jest/network';
 import { findEvent, parseLogs } from '@/util/events';
-import { MaxUint256, userWalletPrivateKey2 } from '@/util/jest/constants';
+import { MaxUint256, tokenName, tokenSymbol, userWalletPrivateKey2 } from '@/util/jest/constants';
 import { AmountExceedsAllowanceError, InsufficientBalanceError } from '@/util/errors';
 import TransactionService from '@/services/TransactionService';
 import { getContract } from '@/config/contracts';
+import { getContractFromAbi, tokenContract } from '@/util/network';
 
 const http = request.agent(app);
 
@@ -22,6 +23,7 @@ describe('Deposits', () => {
         poolAddress: string,
         promoCode: IPromoCodeResponse,
         userWallet: Account,
+        tokenAddress: string,
         testToken: Contract;
 
     const value = 'XX78WEJ1219WZ';
@@ -37,9 +39,26 @@ describe('Deposits', () => {
 
         userWallet = createWallet(userWalletPrivateKey2);
 
-        testToken = getContract(NetworkProvider.Main, 'LimitedSupplyToken');
         dashboardAccessToken = getToken('openid dashboard promo_codes:read promo_codes:write members:write');
         userAccessToken = getToken('openid user promo_codes:read payments:write payments:read');
+    });
+
+    it('Create token', (done) => {
+        http.post('/v1/erc20')
+            .set('Authorization', dashboardAccessToken)
+            .send({
+                network: NetworkProvider.Main,
+                name: tokenName,
+                symbol: tokenSymbol,
+                type: ERC20Type.Unlimited,
+                totalSupply: 0,
+            })
+            .expect(({ body }: request.Response) => {
+                expect(isAddress(body.address)).toBe(true);
+                tokenAddress = body.address;
+                testToken = tokenContract(NetworkProvider.Main, 'LimitedSupplyToken', tokenAddress);
+            })
+            .expect(201, done);
     });
 
     it('Create pool', (done) => {
@@ -48,7 +67,7 @@ describe('Deposits', () => {
             .send({
                 network: NetworkProvider.Main,
                 token: {
-                    address: testToken.options.address,
+                    address: tokenAddress,
                 },
             })
             .expect((res: request.Response) => {

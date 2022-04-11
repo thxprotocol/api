@@ -1,10 +1,9 @@
 import { assertEvent, parseLogs } from '@/util/events';
-import { tokenContract } from '@/util/network';
-import { NetworkProvider } from '@/types/enums';
+import { getContractFromAbi, tokenContract } from '@/util/network';
+import { ERC20Type, NetworkProvider } from '@/types/enums';
 import { AssetPool, AssetPoolDocument } from '@/models/AssetPool';
-import { deployUnlimitedSupplyERC20Contract, deployLimitedSupplyERC20Contract, getProvider } from '@/util/network';
-import { toWei, fromWei, toChecksumAddress } from 'web3-utils';
-
+import { getProvider } from '@/util/network';
+import { AbiItem, fromWei, toChecksumAddress } from 'web3-utils';
 import { Membership } from '@/models/Membership';
 import { THXError } from '@/util/errors';
 import TransactionService from './TransactionService';
@@ -13,6 +12,10 @@ import { logger } from '@/util/logger';
 import { pick } from '@/util';
 import { diamondSelectors, getDiamondCutForContractFacets, updateDiamondContract } from '@/util/upgrades';
 import { currentVersion } from '@thxnetwork/artifacts';
+import ERC20Service from './ERC20Service';
+import LimitedSupplyToken from '@thxnetwork/artifacts/dist/exports/abis/LimitedSupplyToken.json';
+import UnlimitedSupplyToken from '@thxnetwork/artifacts/dist/exports/abis/UnlimitedSupplyToken.json';
+import NonFungibleToken from '@thxnetwork/artifacts/dist/exports/abis/NonFungibleToken.json';
 
 export const ADMIN_ROLE = '0x0000000000000000000000000000000000000000000000000000000000000000';
 class NoDataAtAddressError extends THXError {
@@ -37,61 +40,13 @@ export default class AssetPoolService {
         return AssetPool.findOne({ address });
     }
 
-    static async getPoolToken(assetPool: AssetPoolDocument) {
-        const tokenAddress = await TransactionService.call(assetPool.contract.methods.getToken(), assetPool.network);
-        const tokenInstance = tokenContract(assetPool.network, tokenAddress);
+    static async addPoolToken(assetPool: AssetPoolDocument, tokenAddress: string) {
+        const { web3, admin } = getProvider(assetPool.network);
+        const code = await web3.eth.getCode(tokenAddress);
 
-        return {
-            address: tokenInstance.options.address,
-            //can we do these calls in parallel?
-            name: await TransactionService.call(tokenInstance.methods.name(), assetPool.network),
-            symbol: await TransactionService.call(tokenInstance.methods.symbol(), assetPool.network),
-            totalSupply: Number(
-                fromWei(await TransactionService.call(tokenInstance.methods.totalSupply(), assetPool.network)),
-            ),
-            balance: Number(
-                fromWei(
-                    await TransactionService.call(
-                        tokenInstance.methods.balanceOf(assetPool.address),
-                        assetPool.network,
-                    ),
-                ),
-            ),
-        };
-    }
-
-    static async deployPoolToken(assetPool: AssetPoolDocument, token: any) {
-        if (token.name && token.symbol && Number(token.totalSupply) > 0) {
-            const { token: tokenInstance } = await deployLimitedSupplyERC20Contract(
-                assetPool.network,
-                token.name,
-                token.symbol,
-                assetPool.address,
-                toWei(token.totalSupply),
-            );
-            return tokenInstance.options.address;
-        } else if (token.name && token.symbol && Number(token.totalSupply) === 0) {
-            const { token: tokenInstance } = await deployUnlimitedSupplyERC20Contract(
-                assetPool.network,
-                token.name,
-                token.symbol,
-                assetPool.address,
-            );
-
-            return tokenInstance.options.address;
+        if (code === '0x') {
+            throw new NoDataAtAddressError(tokenAddress);
         }
-    }
-
-    static async addPoolToken(assetPool: AssetPoolDocument, token: any) {
-        if (token.address) {
-            const { web3 } = getProvider(assetPool.network);
-            const code = await web3.eth.getCode(token.address);
-
-            if (code === '0x') {
-                throw new NoDataAtAddressError(token.address);
-            }
-        }
-        const tokenAddress = token.address || (await this.deployPoolToken(assetPool, token));
 
         await TransactionService.send(
             assetPool.contract.options.address,
@@ -99,7 +54,34 @@ export default class AssetPoolService {
             assetPool.network,
         );
 
-        return tokenAddress;
+        // Try to get ERC20 from db first so we can determine its type, it not available,
+        // construct a contract here
+        const erc20 = await ERC20Service.findByPool(assetPool);
+
+        // Add this pool as a minter in case of an UnlimitedSupplyToken
+        if (erc20 && erc20.type === ERC20Type.Unlimited) {
+            await TransactionService.send(
+                erc20.address,
+                erc20.contract.methods.addMinter(assetPool.address),
+                assetPool.network,
+            );
+        }
+
+        const adminBalance = await erc20.contract.methods.balanceOf(admin.address).call();
+
+        // TODO Move this to a user action
+        if (Number(String(adminBalance)) > 0) {
+            await TransactionService.send(
+                erc20.contract.options.address,
+                erc20.contract.methods.approve(assetPool.address, adminBalance),
+                assetPool.network,
+            );
+            await TransactionService.send(
+                assetPool.contract.options.address,
+                assetPool.contract.methods.deposit(adminBalance),
+                assetPool.network,
+            );
+        }
     }
 
     static async deploy(sub: string, network: NetworkProvider) {

@@ -1,17 +1,19 @@
 import { Request, Response } from 'express';
-import MemberService from '@/services/MemberService';
+import { fromWei } from 'web3-utils';
 import { NotFoundError } from '@/util/errors';
+import MemberService from '@/services/MemberService';
+import ERC20Service from '@/services/ERC20Service';
 
 export const getMember = async (req: Request, res: Response) => {
     const isMember = await MemberService.isMember(req.assetPool, req.params.address);
 
-    if (!isMember) {
-        throw new NotFoundError();
-    }
+    if (!isMember) throw new NotFoundError();
 
     const member = await MemberService.getByAddress(req.assetPool, req.params.address);
+    const erc20 = await ERC20Service.findByPool(req.assetPool);
+    const balance = Number(fromWei(await erc20.contract.methods.balanceOf(member.address).call()));
 
-    res.json(member);
+    res.json({ ...member, token: { name: erc20.name, symbol: erc20.symbol, balance } });
 };
 
 /**
@@ -39,6 +41,9 @@ export const getMember = async (req: Request, res: Response) => {
  *         schema:
  *               type: object
  *               properties:
+ *                 id:
+ *                   type: string
+ *                   description: The unique identifier of this member
  *                 address:
  *                   type: string
  *                   description: The most recent address known for this member
@@ -48,7 +53,7 @@ export const getMember = async (req: Request, res: Response) => {
  *                 isManager:
  *                   type: boolean
  *                   description: If this address is known as manager of the asset pool
- *                 balance:
+ *                 token:
  *                   type: object
  *                   properties:
  *                     name:
@@ -57,9 +62,9 @@ export const getMember = async (req: Request, res: Response) => {
  *                     symbol:
  *                       type: string
  *                       description: The symbol of the token configured for this asset pool
- *                     amount:
+ *                     balance:
  *                       type: number
- *                       description: The token balance of the asset pool for this token
+ *                       description: The token balance of the member
  *       '400':
  *         $ref: '#/components/responses/400'
  *       '401':

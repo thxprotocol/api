@@ -1,8 +1,6 @@
-import { tokenContract } from '@/util/network';
 import { AssetPoolType } from '@/models/AssetPool';
 import { assertEvent, parseLogs } from '@/util/events';
 import { IMember, Member } from '@/models/Member';
-import { fromWei } from 'web3-utils';
 import TransactionService from './TransactionService';
 import { getDiamondAbi } from '@/config/contracts';
 
@@ -14,24 +12,12 @@ export default class MemberService {
             assetPool.contract.methods.getMemberByAddress(address),
             assetPool.network,
         );
-        const tokenAddress = await TransactionService.call(assetPool.contract.methods.getToken(), assetPool.network);
-        const tokenInstance = tokenContract(assetPool.network, tokenAddress);
-        const name = await TransactionService.call(tokenInstance.methods.name(), assetPool.network);
-        const symbol = await TransactionService.call(tokenInstance.methods.symbol(), assetPool.network);
-        const balance = Number(
-            fromWei(await TransactionService.call(tokenInstance.methods.balanceOf(address), assetPool.network)),
-        );
 
         return {
             id: memberId,
             address,
             isMember,
             isManager,
-            token: {
-                name,
-                symbol,
-                balance,
-            },
         };
     }
 
