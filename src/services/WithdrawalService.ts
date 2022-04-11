@@ -35,6 +35,13 @@ export default class WithdrawalService {
         });
     }
 
+    static getByPoolAndRewardID(poolAddress: string, rewardId: number) {
+        return Withdrawal.find({
+            poolAddress,
+            rewardId,
+        });
+    }
+
     static schedule(
         assetPool: AssetPoolType,
         type: WithdrawalType,
