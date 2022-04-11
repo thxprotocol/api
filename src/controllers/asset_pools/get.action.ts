@@ -6,7 +6,6 @@ import { NotFoundError } from '@/util/errors';
 import WithdrawalService from '@/services/WithdrawalService';
 import MemberService from '@/services/MemberService';
 import ERC20Service from '@/services/ERC20Service';
-import { fromWei } from 'web3-utils';
 
 export const readAssetPoolValidation = [param('address').exists().isEthereumAddress()];
 
@@ -20,11 +19,9 @@ export const getAssetPool = async (req: Request, res: Response) => {
         withdrawals: await WithdrawalService.countByPoolAddress(assetPool),
         members: await MemberService.countByPoolAddress(assetPool),
     };
-    const balanceInWei = await token.contract.methods.balanceOf(req.assetPool.address).call();
 
     res.json({
         token,
-        balance: Number(fromWei(balanceInWei)),
         metrics,
         sub: assetPool.sub,
         clientId: assetPool.clientId,

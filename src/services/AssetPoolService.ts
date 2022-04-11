@@ -54,26 +54,28 @@ export default class AssetPoolService {
             assetPool.network,
         );
 
-        // Try to get ERC20 from db first so we can determine its type, it not available,
+        // Try to get ERC20 from db first so we can determine its type, if not available,
         // construct a contract here
         const erc20 = await ERC20Service.findByPool(assetPool);
+        let contract = tokenContract(assetPool.network, 'LimitedSupplyToken', tokenAddress);
 
         // Add this pool as a minter in case of an UnlimitedSupplyToken
         if (erc20 && erc20.type === ERC20Type.Unlimited) {
+            contract = tokenContract(assetPool.network, 'UnlimitedSupplyToken', tokenAddress);
             await TransactionService.send(
                 erc20.address,
-                erc20.contract.methods.addMinter(assetPool.address),
+                contract.methods.addMinter(assetPool.address),
                 assetPool.network,
             );
         }
 
-        const adminBalance = await erc20.contract.methods.balanceOf(admin.address).call();
+        const adminBalance = await contract.methods.balanceOf(admin.address).call();
 
         // TODO Move this to a user action
         if (Number(String(adminBalance)) > 0) {
             await TransactionService.send(
-                erc20.contract.options.address,
-                erc20.contract.methods.approve(assetPool.address, adminBalance),
+                contract.options.address,
+                contract.methods.approve(assetPool.address, adminBalance),
                 assetPool.network,
             );
             await TransactionService.send(

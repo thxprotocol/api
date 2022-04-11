@@ -2,6 +2,7 @@ import { ERC20Type } from './enums';
 import { Contract } from 'web3-eth-contract';
 
 export type TERC20 = {
+    _id?: string;
     name: string;
     symbol: string;
     address: string;
@@ -13,5 +14,7 @@ export type TERC20 = {
     network?: number;
     sub?: string;
     contract?: Contract;
+    adminBalance?: number;
+    poolBalance?: number;
     getResponse?(): Promise<Omit<TERC20, 'getResponse'>>;
 };

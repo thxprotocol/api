@@ -22,7 +22,7 @@ export const postCall = async (req: Request, res: Response) => {
     if (!event) throw new InternalServerError();
     if (!event.args.success) {
         const error = hex2a(event.args.data.substr(10));
-
+        console.log(error);
         return res.status(500).json({
             error,
         });

@@ -27,11 +27,9 @@ export default class MembershipService {
         const assetPool = await AssetPoolService.getByAddress(membership.poolAddress);
         if (!assetPool) return null;
 
-        const token = await ERC20Service.findByPool(assetPool);
-
         return {
-            id: membership._id.toString(),
-            token,
+            id: String(membership._id),
+            token: await ERC20Service.findByPool(assetPool),
             poolAddress: membership.poolAddress,
             network: membership.network,
         };

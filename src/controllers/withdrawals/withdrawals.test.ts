@@ -135,7 +135,7 @@ describe('Propose Withdrawal', () => {
             user.get('/v1/asset_pools/' + poolAddress)
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
                 .expect((res: request.Response) => {
-                    expect(res.body.balance).toBe(0);
+                    expect(res.body.token.poolBalance).toBe(0);
                     expect(res.body.token.name).toBe(tokenName);
                     expect(res.body.token.symbol).toBe(tokenSymbol);
                     expect(res.body.token.totalSupply).toBe(1000);
