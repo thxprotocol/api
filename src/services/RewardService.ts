@@ -13,6 +13,7 @@ import TwitterDataProxy from '@/proxies/TwitterDataProxy';
 import YouTubeDataProxy from '@/proxies/YoutubeDataProxy';
 import SpotifyDataProxy from '@/proxies/SpotifyDataProxy';
 import WithdrawalService from './WithdrawalService';
+import { ForbiddenError } from '@/util/errors';
 
 export default class RewardService {
     static async get(assetPool: AssetPoolType, rewardId: number): Promise<RewardDocument> {
@@ -27,6 +28,12 @@ export default class RewardService {
             rewards.push(await this.get(assetPool, r.id));
         }
         return rewards;
+    }
+
+    static async rewardProgress(reward: TReward) {
+        const withdrawed = await WithdrawalService.getByPoolAndRewardID(reward.poolAddress, reward.id);
+        const totalWithdrawed = withdrawed.reduce((total, withdraw) => (total += withdraw.amount), 0);
+        return totalWithdrawed;
     }
 
     static async canClaim(assetPool: AssetPoolType, reward: TReward, account: IAccount): Promise<boolean> {
@@ -62,21 +69,22 @@ export default class RewardService {
 
         // Can not claim if the reward is disabled
         if (reward.state === RewardState.Disabled) {
-            return false;
+            throw new ForbiddenError('This reward already disabled by it owner');
         }
 
         // Can not claim if reward already extends the claim limit
         // (included pending withdrawars)
         if (reward.withdrawLimit > 0) {
-            const withdrawed = await WithdrawalService.getByPoolAndRewardID(reward.poolAddress, reward.id);
-            const totalWithdrawed = withdrawed.reduce((total, withdraw) => (total += withdraw.amount), 0);
-            if (totalWithdrawed >= reward.withdrawLimit) return false;
+            const totalWithdrawed = await this.rewardProgress(reward);
+            if (totalWithdrawed >= reward.withdrawLimit) {
+                throw new ForbiddenError('This reward is reached it limit');
+            }
         }
 
         const withdrawal = await WithdrawalService.hasClaimedOnce(assetPool.address, account.id, reward.id);
         // Can only claim this reward once and a withdrawal already exists
         if (reward.isClaimOnce && withdrawal) {
-            return false;
+            throw new ForbiddenError('You have already claimed this reward');
         }
 
         // Can claim if no condition and channel are set

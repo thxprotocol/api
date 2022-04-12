@@ -9,6 +9,7 @@ export const getReward = async (req: Request, res: Response) => {
 
     const result: TReward = {
         id: reward.id,
+        withdrawLimit: reward.withdrawLimit,
         withdrawAmount: reward.withdrawAmount,
         withdrawDuration: reward.withdrawDuration,
         withdrawCondition: reward.withdrawCondition,

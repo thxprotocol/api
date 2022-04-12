@@ -45,6 +45,7 @@ export type TReward = {
     withdrawAmount: number;
     withdrawDuration: number;
     withdrawCondition: IRewardCondition;
+    progress?: number;
 };
 
 export type RewardDocument = mongoose.Document & TReward;
