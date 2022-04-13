@@ -1,29 +1,20 @@
 import ERC721Service from '@/services/ERC721Service';
 import { Request, Response } from 'express';
 import { body, param } from 'express-validator';
-import { TERC721 } from '@/types/TERC721';
 import { NotFoundError } from '@/util/errors';
 
 export const mintERC721TokenValidation = [
-    param('id').isString().isLength({ min: 23, max: 25 }),
-    body('recipient').isEthereumAddress(),
+    param('id').isMongoId(),
+    body('beneficiary').isEthereumAddress(),
+    body('metadata').exists(),
 ];
 
 export const MintERC721TokenController = async (req: Request, res: Response) => {
     const erc721 = await ERC721Service.findById(req.params.id);
-    if (!erc721) throw new NotFoundError();
+    if (!erc721) throw new NotFoundError('Could not find this NFT in the database');
 
-    await ERC721Service.mint(erc721, req.body.recipient);
+    const entry = await ERC721Service.mint(erc721, req.body.beneficiary, req.body.metadata);
+    const metadata = await ERC721Service.getMetadata(erc721, entry.tokenId);
 
-    const { id, network, name, symbol, description, address } = await ERC721Service.deploy(erc721);
-    const result: TERC721 = {
-        id,
-        network,
-        name,
-        symbol,
-        description,
-        address,
-    };
-
-    res.status(201).json(result);
+    res.status(201).json({ tokenId: entry.tokenId, ...metadata, createdAt: entry.createdAt });
 };

@@ -8,6 +8,7 @@ export const createERC721Validation = [
     body('symbol').exists().isString(),
     body('description').exists().isString(),
     body('network').exists().isNumeric(),
+    body('schema').exists().isArray(),
 ];
 
 export const CreateERC721Controller = async (req: Request, res: Response) => {
@@ -16,8 +17,9 @@ export const CreateERC721Controller = async (req: Request, res: Response) => {
         name: req.body.name,
         symbol: req.body.symbol,
         description: req.body.description,
+        schema: req.body.schema,
     });
-    const { id, network, name, symbol, description, address } = await ERC721Service.deploy(erc721);
+    const { id, network, name, symbol, description, address, schema } = erc721;
     const result: TERC721 = {
         id,
         network,
@@ -25,6 +27,7 @@ export const CreateERC721Controller = async (req: Request, res: Response) => {
         symbol,
         description,
         address,
+        schema,
     };
 
     res.status(201).json(result);

@@ -9,15 +9,7 @@ export const readERC721Validation = [param('id').isString().isLength({ min: 23, 
 export const ReadERC721Controller = async (req: Request, res: Response) => {
     const erc721 = await ERC721Service.findById(req.params.id);
     if (!erc721) throw new NotFoundError();
-    const { id, network, name, symbol, description, address } = erc721;
-    const result: TERC721 = {
-        id,
-        network,
-        name,
-        symbol,
-        description,
-        address,
-    };
+    const { id, network, name, symbol, description, address, schema, createdAt, updatedAt }: TERC721 = erc721;
 
-    res.json(result);
+    res.json({ id, network, name, symbol, description, address, schema, createdAt, updatedAt });
 };

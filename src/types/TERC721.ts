@@ -5,7 +5,19 @@ export type TERC721 = {
     network: number;
     name: string;
     symbol: string;
+    schema: string[];
+    baseURL?: string;
     description?: string;
     contract?: Contract;
     address?: string;
+    createdAt?: Date;
+    updatedAt?: Date;
+};
+
+export type TERC721Metadata = {
+    id?: string;
+    tokenId: number;
+    metadata: [{ key: string; value: string }];
+    createdAt: Date;
+    updatedAt: Date;
 };

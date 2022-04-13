@@ -12,8 +12,9 @@ describe('ERC721', () => {
     const network = NetworkProvider.Main,
         name = 'PolyPunks',
         symbol = 'POLYPNKS',
-        description = 'Collection full of rarities.';
-    let dashboardAccessToken: string, erc721ID: string;
+        description = 'Collection full of rarities.',
+        schema = ['color', 'size'];
+    let dashboardAccessToken: string, erc721ID: string, tokenId: number;
 
     beforeAll(async () => {
         await beforeAllCallback();
@@ -31,6 +32,7 @@ describe('ERC721', () => {
                     name,
                     symbol,
                     description,
+                    schema,
                 })
                 .expect(({ body }: request.Response) => {
                     expect(body.id).toBeDefined();
@@ -38,6 +40,8 @@ describe('ERC721', () => {
                     expect(body.name).toBe(name);
                     expect(body.symbol).toBe(symbol);
                     expect(body.description).toBe(description);
+                    expect(body.schema[0]).toBe(schema[0]);
+                    expect(body.schema[1]).toBe(schema[1]);
                     expect(isAddress(body.address)).toBe(true);
 
                     erc721ID = body.id;
@@ -56,6 +60,8 @@ describe('ERC721', () => {
                     expect(body.name).toBe(name);
                     expect(body.symbol).toBe(symbol);
                     expect(body.description).toBe(description);
+                    expect(body.schema[0]).toBe(schema[0]);
+                    expect(body.schema[1]).toBe(schema[1]);
                     expect(isAddress(body.address)).toBe(true);
                 })
                 .expect(200, done);
@@ -82,19 +88,37 @@ describe('ERC721', () => {
 
     describe('POST /erc721/:id/mint', () => {
         it('should 201 when token is minted', (done) => {
-            const tokenUri = 'http://example.com/ip_records/42';
             const beneficiary = account2.address;
 
-            user.get('/v1/erc721/' + erc721ID + '/mint')
+            user.post('/v1/erc721/' + erc721ID + '/mint')
                 .set('Authorization', dashboardAccessToken)
                 .send({
-                    tokenUri,
+                    metadata: [
+                        { key: schema[0], value: 'red' },
+                        { key: schema[1], value: 'large' },
+                    ],
                     beneficiary,
                 })
                 .expect(({ body }: request.Response) => {
                     expect(body.tokenId).toBe(1);
+                    expect(body[schema[0]]).toBe('red');
+                    expect(body[schema[1]]).toBe('large');
+                    tokenId = body.tokenId;
                 })
                 .expect(201, done);
+        });
+    });
+
+    describe('GET /erc721/:id/metadata/:tokenId', () => {
+        it('should return metadata for tokenId', (done) => {
+            user.get('/v1/erc721/' + erc721ID + '/metadata/' + tokenId)
+                .set('Authorization', dashboardAccessToken)
+                .send()
+                .expect(({ body }: request.Response) => {
+                    expect(body[schema[0]]).toBe('red');
+                    expect(body[schema[1]]).toBe('large');
+                })
+                .expect(200, done);
         });
     });
 });
