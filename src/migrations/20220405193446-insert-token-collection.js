@@ -16,19 +16,22 @@ module.exports = {
     async up(db) {
         const assetpoolsColl = db.collection('assetpools');
         const erc20Coll = db.collection('erc20');
-
-        for (const pool of await assetpoolsColl.find().toArray()) {
+        const pools = await assetpoolsColl.find().toArray();
+        const promises = pools.map(async (pool) => {
             try {
                 const { web3, admin } = networks[pool.network];
                 const contract = new web3.eth.Contract(TokenFacetArtifact, pool.address);
                 const tokenAddress = await contract.methods.getToken().call({ from: admin.address });
                 const tokenContract = new web3.eth.Contract(ERC20Artifact, tokenAddress);
+                const poolBalance = Number(await contract.methods.getBalance().call());
 
-                await erc20Coll.insertOne({
+                return await erc20Coll.insertOne({
                     name: await tokenContract.methods.name().call(),
                     symbol: await tokenContract.methods.symbol().call(),
                     address: tokenAddress,
-                    type: -1,
+                    // Assuming that pools with > 0 balance have an LimitedSupplyToken configured since
+                    // the supply would be minted into the pool
+                    type: poolBalance > 0 ? 0 : 1,
                     network: pool.network,
                     sub: pool.sub,
                     createdAt: pool.createdAt,
@@ -37,7 +40,33 @@ module.exports = {
             } catch (error) {
                 console.log(error);
             }
-        }
+        });
+
+        await Promise.all(promises);
+
+        // for (const pool of pool) {
+        //     try {
+        //         const { web3, admin } = networks[pool.network];
+        //         const contract = new web3.eth.Contract(TokenFacetArtifact, pool.address);
+        //         const tokenAddress = await contract.methods.getToken().call({ from: admin.address });
+        //         const tokenContract = new web3.eth.Contract(ERC20Artifact, tokenAddress);
+        //         const poolBalance = Number(await contract.methods.getBalance().call());
+
+        //         await erc20Coll.insertOne({
+        //             name: await tokenContract.methods.name().call(),
+        //             symbol: await tokenContract.methods.symbol().call(),
+        //             address: tokenAddress,
+        //             // Assuming that pools with 0 balance have an UnlimitedSupplyToken configured.
+        //             type: poolBalance > 0 ? 1 : 0,
+        //             network: pool.network,
+        //             sub: pool.sub,
+        //             createdAt: pool.createdAt,
+        //             updatedAt: pool.updatedAt,
+        //         });
+        //     } catch (error) {
+        //         console.log(error);
+        //     }
+        // }
     },
 
     async down(db) {

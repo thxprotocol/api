@@ -1,26 +1,10 @@
 import mongoose from 'mongoose';
-import { Contract } from 'web3-eth-contract';
 import { fromWei } from 'web3-utils';
 import { ERC20Type } from '@/types/enums';
-import { tokenContract } from '@/util/network';
+import { getProvider, tokenContract } from '@/util/network';
+import { TERC20 } from '@/types/TERC20';
 
-export interface ERC20 {
-    name: string;
-    symbol: string;
-    address: string;
-    totalSupply: number;
-    blockNumber: number;
-    type: ERC20Type;
-    transactionHash: string;
-    contract: Contract;
-    network: number;
-    sub: string;
-    logoURI: string;
-    // methods
-    getResponse(): Promise<Omit<ERC20, 'getResponse'>>;
-}
-
-export type ERC20Document = mongoose.Document & ERC20;
+export type ERC20Document = mongoose.Document & TERC20;
 
 const erc20Schema = new mongoose.Schema(
     {
@@ -37,7 +21,11 @@ const erc20Schema = new mongoose.Schema(
 );
 
 erc20Schema.virtual('contract').get(function () {
-    return tokenContract(this.network, this.address);
+    return tokenContract(
+        this.network,
+        this.type === ERC20Type.Unlimited ? 'UnlimitedSupplyToken' : 'LimitedSupplyToken',
+        this.address,
+    );
 });
 
 erc20Schema.methods.getResponse = async function () {
@@ -46,6 +34,11 @@ erc20Schema.methods.getResponse = async function () {
         totalSupply: await (async () => {
             const totalSupply = await this.contract.methods.totalSupply().call();
             return Number(fromWei(totalSupply, 'ether'));
+        })(),
+        adminBalance: await (async () => {
+            const { admin } = getProvider(this.network);
+            const balance = await this.contract.methods.balanceOf(admin.address).call();
+            return Number(fromWei(balance, 'ether'));
         })(),
         logoURI: `https://avatars.dicebear.com/api/identicon/${this.address}.svg`,
     };

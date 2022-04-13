@@ -1,6 +1,6 @@
 import request from 'supertest';
 import app from '@/app';
-import { NetworkProvider } from '@/types/enums';
+import { ERC20Type, NetworkProvider } from '@/types/enums';
 import { Account } from 'web3-core';
 import { timeTravel, signMethod, createWallet } from '@/util/jest/network';
 import {
@@ -8,8 +8,8 @@ import {
     rewardWithdrawDuration,
     userWalletPrivateKey2,
     sub2,
-    tokenSymbol,
     tokenName,
+    tokenSymbol,
 } from '@/util/jest/constants';
 import { isAddress } from 'web3-utils';
 import { getToken } from '@/util/jest/jwt';
@@ -24,6 +24,7 @@ describe('Happy Flow', () => {
         poolAddress: string,
         withdrawDocumentId: string,
         withdrawPollID: string,
+        tokenAddress: string,
         userWallet: Account;
 
     beforeAll(async () => {
@@ -38,6 +39,24 @@ describe('Happy Flow', () => {
 
     afterAll(afterAllCallback);
 
+    describe('POST /erc20', () => {
+        it('HTTP 201 (success)', (done) => {
+            user.post('/v1/erc20')
+                .set('Authorization', dashboardAccessToken)
+                .send({
+                    network: NetworkProvider.Main,
+                    name: tokenName,
+                    symbol: tokenSymbol,
+                    type: ERC20Type.Unlimited,
+                    totalSupply: 0,
+                })
+                .expect(({ body }: request.Response) => {
+                    expect(isAddress(body.address)).toBe(true);
+                    tokenAddress = body.address;
+                })
+                .expect(201, done);
+        });
+    });
     describe('POST /asset_pools', () => {
         it('HTTP 201 (success)', (done) => {
             user.post('/v1/asset_pools')
@@ -45,9 +64,7 @@ describe('Happy Flow', () => {
                 .send({
                     network: NetworkProvider.Main,
                     token: {
-                        name: tokenName,
-                        symbol: tokenSymbol,
-                        totalSupply: 0,
+                        address: tokenAddress,
                     },
                 })
                 .expect((res: request.Response) => {
@@ -63,13 +80,11 @@ describe('Happy Flow', () => {
             await user
                 .get('/v1/asset_pools/' + poolAddress)
                 .set({ AssetPool: poolAddress, Authorization: dashboardAccessToken })
-                .expect(async (res: request.Response) => {
-                    expect(res.body.address).toEqual(poolAddress);
-                    expect(isAddress(res.body.token.address)).toEqual(true);
-                    expect(res.body.token.name).toEqual(tokenName);
-                    expect(res.body.token.symbol).toEqual(tokenSymbol);
-                    expect(res.body.token.totalSupply).toBe(0);
-                    expect(res.body.token.balance).toBe(0);
+                .expect(async ({ body }: request.Response) => {
+                    expect(body.address).toEqual(poolAddress);
+                    expect(isAddress(body.token.address)).toEqual(true);
+                    expect(body.token.totalSupply).toBe(0);
+                    expect(body.token.poolBalance).toBe(0);
                 })
                 .expect(200);
         });
@@ -228,7 +243,7 @@ describe('Happy Flow', () => {
         it('HTTP 200 and return state Withdrawn', (done) => {
             user.get(`/v1/withdrawals/${withdrawDocumentId}`)
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
-                .expect(async ({ body }: request.Response) => {
+                .expect(({ body }: request.Response) => {
                     expect(body.id).toBeDefined();
                     expect(body.amount).toEqual(rewardWithdrawAmount);
                     expect(body.sub).toEqual(sub2);
@@ -253,7 +268,7 @@ describe('Happy Flow', () => {
             user.get(`/v1/asset_pools/${poolAddress}`)
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
                 .expect(async (res: request.Response) => {
-                    expect(res.body.token.balance).toBe(0);
+                    expect(res.body.token.poolBalance).toBe(0);
                 })
                 .expect(200, done);
         });

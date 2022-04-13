@@ -8,10 +8,11 @@ export const postERC20TokenValidation = [
     body('name').exists().isString(),
     body('symbol').exists().isString(),
     body('network').exists().isNumeric(),
+    body('type').exists().isNumeric(),
     body('totalSupply').optional().isNumeric(),
 ];
 
-export const postCreateToken = async (req: Request, res: Response) => {
+export const CreateERC20Controller = async (req: Request, res: Response) => {
     const account = await AccountProxy.getById(req.user.sub);
 
     if (account.plan === AccountPlanType.Free && req.body.network === NetworkProvider.Main) {
@@ -19,12 +20,13 @@ export const postCreateToken = async (req: Request, res: Response) => {
     }
 
     const token = await ERC20Service.create({
-        name: req.body['name'],
-        symbol: req.body['symbol'],
-        network: req.body['network'],
-        totalSupply: req.body['totalSupply'],
+        name: req.body.name,
+        symbol: req.body.symbol,
+        network: req.body.network,
+        totalSupply: req.body.totalSupply,
+        type: req.body.type,
         sub: req.user.sub,
     });
 
-    return res.send(await token.getResponse());
+    res.status(201).json(await token.getResponse());
 };

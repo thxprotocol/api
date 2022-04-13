@@ -1,6 +1,6 @@
 {
     "name": "@thxnetwork/api",
-    "version": "1.3.63",
+    "version": "1.4.6",
     "repository": {
         "type": "git",
         "url": "https://github.com/thxprotocol/api"
@@ -19,8 +19,7 @@
         "test:coverage": "npx jest --coverage --runInBand",
         "test:debug": "npx jest --coverage --runInBand --detectOpenHandles",
         "migrate": "npm run migrate:db; npm run migrate:contracts",
-        "migrate:token": "ts-node -r tsconfig-paths/register ./scripts/migrateToken.ts",
-        "migrate:contracts": "ts-node -r tsconfig-paths/register ./scripts/upgradeContractsToLatest.ts",
+        "migrate:contracts": "node -r tsconfig-paths/register ./scripts/upgradeContractsToLatest.js",
         "migrate:db": "migrate-mongo up -f src/migrate-mongo-config.js",
         "migrate:create": "sh -c 'migrate-mongo create -f src/migrate-mongo-config.js $0'",
         "migrate:status": "migrate-mongo status -f src/migrate-mongo-config.js",
@@ -28,7 +27,7 @@
     },
     "dependencies": {
         "@godaddy/terminus": "^4.9.0",
-        "@thxnetwork/artifacts": "^3.0.0",
+        "@thxnetwork/artifacts": "^3.1.3",
         "agenda": "^4.2.1",
         "axios": "^0.21.3",
         "axios-better-stacktrace": "^2.1.2",

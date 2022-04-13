@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-
+import { fromWei } from 'web3-utils';
 import MembershipService from '@/services/MembershipService';
 import WithdrawalService from '@/services/WithdrawalService';
 import AccountProxy from '@/proxies/AccountProxy';

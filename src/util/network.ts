@@ -1,15 +1,13 @@
 import newrelic from 'newrelic';
-import { TESTNET_RPC, RPC, MAINNET_NETWORK_NAME } from '@/config/secrets';
+import { TESTNET_RPC, RPC } from '@/config/secrets';
 import Web3 from 'web3';
 import axios from 'axios';
-import BN from 'bn.js';
 import { Contract } from 'web3-eth-contract';
 import { NetworkProvider } from '../types/enums';
-import TransactionService from '@/services/TransactionService';
 import { THXError } from './errors';
 import { AbiItem } from 'web3-utils';
-import { getContract, getContractConfig } from '@/config/contracts';
-import { assertEvent, parseLogs } from './events';
+import { getContractConfig } from '@/config/contracts';
+import { ContractName } from '@thxnetwork/artifacts';
 
 export class MaxFeePerGasExceededError extends THXError {
     message = 'MaxFeePerGas from oracle exceeds configured cap';
@@ -76,66 +74,9 @@ export function getSelectors(contract: Contract) {
     return signatures;
 }
 
-export async function deployERC721Contract(
-    npid: NetworkProvider,
-    name: string,
-    symbol: string,
-    to: string,
-    baseURL: string,
-) {
-    const tokenFactory = getContract(npid, 'TokenFactory');
-    const { receipt } = await TransactionService.send(
-        tokenFactory.options.address,
-        tokenFactory.methods.deployNonFungibleToken(name, symbol, to, baseURL),
-        npid,
-    );
-
-    const event = assertEvent('TokenDeployed', parseLogs(tokenFactory.options.jsonInterface, receipt.logs));
-
-    return tokenContract(npid, event.args.token);
-}
-
-export async function deployUnlimitedSupplyERC20Contract(
-    npid: NetworkProvider,
-    name: string,
-    symbol: string,
-    to: string,
-) {
-    const tokenFactory = getContract(npid, 'TokenFactory');
-    const { receipt } = await TransactionService.send(
-        tokenFactory.options.address,
-        tokenFactory.methods.deployUnlimitedSupplyToken(name, symbol, to),
-        npid,
-    );
-
-    const event = assertEvent('TokenDeployed', parseLogs(tokenFactory.options.jsonInterface, receipt.logs));
-
-    return { token: tokenContract(npid, event.args.token), receipt };
-}
-
-export async function deployLimitedSupplyERC20Contract(
-    npid: NetworkProvider,
-    name: string,
-    symbol: string,
-    to: string,
-    totalSupply: BN,
-) {
-    const tokenFactory = getContract(npid, 'TokenFactory');
-    const { receipt } = await TransactionService.send(
-        tokenFactory.options.address,
-        tokenFactory.methods.deployLimitedSupplyToken(name, symbol, to, totalSupply),
-        npid,
-    );
-
-    const event = assertEvent('TokenDeployed', parseLogs(tokenFactory.options.jsonInterface, receipt.logs));
-
-    return { token: tokenContract(npid, event.args.token), receipt };
-}
-
-export const tokenContract = (npid: NetworkProvider, address: string): Contract => {
-    // Temporary fix for issue in artifacts package where tests run against LimitedSupplyToken and other releases at TokenLimitedSupply
-    const contractName = MAINNET_NETWORK_NAME === 'hardhat' ? 'LimitedSupplyToken' : ('TokenLimitedSupply' as any);
-    return getContractFromAbi(npid, getContractConfig(npid, contractName).abi, address);
+export const tokenContract = (npid: NetworkProvider, contractName: ContractName, address: string): Contract => {
+    const abi = require(`@thxnetwork/artifacts/dist/exports/abis/${contractName}.json`);
+    return getContractFromAbi(npid, abi, address);
 };
 
 export const getContractFromAbi = (npid: NetworkProvider, abi: AbiItem[], address: string): Contract => {

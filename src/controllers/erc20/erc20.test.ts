@@ -1,15 +1,16 @@
 import request from 'supertest';
 
 import app from '@/app';
-import { NetworkProvider } from '@/types/enums';
+import { ERC20Type, NetworkProvider } from '@/types/enums';
 import { afterAllCallback, beforeAllCallback } from '@/util/jest/config';
 import { getToken } from '@/util/jest/jwt';
 import { isAddress } from 'ethers/lib/utils';
 
-describe('ERC20', () => {
-    const requester = request.agent(app);
+const http = request.agent(app);
 
+describe('ERC20', () => {
     const ACCESS_TOKEN = getToken('openid dashboard');
+    let tokenId: string;
 
     beforeAll(async () => {
         await beforeAllCallback();
@@ -22,34 +23,56 @@ describe('ERC20', () => {
     describe('POST /erc20', () => {
         const TOTAL_SUPPLY = 1000;
 
-        it('Able to create limited token and return address', async () => {
-            const response = await requester
-                .post('/v1/erc20')
+        it('Able to create limited token and return address', (done) => {
+            http.post('/v1/erc20')
                 .set('Authorization', ACCESS_TOKEN)
                 .send({
                     name: 'Test Token',
                     symbol: 'TTK',
                     network: NetworkProvider.Main,
-                    totalSupply: `${TOTAL_SUPPLY}`,
-                });
-            expect(response.body?.totalSupply).toEqual(TOTAL_SUPPLY);
+                    totalSupply: TOTAL_SUPPLY,
+                    type: ERC20Type.Limited,
+                })
+                .expect(({ body }: request.Response) => {
+                    expect(body.totalSupply).toEqual(TOTAL_SUPPLY);
+                })
+                .expect(201, done);
         });
 
-        it('Able to create unlimited token and return address', async () => {
-            const response = await requester.post('/v1/erc20').set('Authorization', ACCESS_TOKEN).send({
-                name: 'Test Token',
-                symbol: 'TTK',
-                network: NetworkProvider.Main,
-                totalSupply: '0',
-            });
-
-            expect(response.body.address).toBeDefined();
-            expect(isAddress(response.body.address)).toBe(true);
+        it('Able to create unlimited token and return address', (done) => {
+            http.post('/v1/erc20')
+                .set('Authorization', ACCESS_TOKEN)
+                .send({
+                    name: 'Test Token',
+                    symbol: 'TTK',
+                    network: NetworkProvider.Main,
+                    totalSupply: 0,
+                    type: ERC20Type.Unlimited,
+                })
+                .expect(({ body }: request.Response) => {
+                    expect(isAddress(body.address)).toBe(true);
+                    expect(isAddress(body._id)).toBeDefined();
+                    tokenId = body._id;
+                })
+                .expect(201, done);
         });
 
-        it('Able to return list of created token', async () => {
-            const response = await requester.get('/v1/erc20').set('Authorization', ACCESS_TOKEN);
-            expect(response.body.length).toEqual(2);
+        it('Able to return list of created token', (done) => {
+            http.get('/v1/erc20')
+                .set('Authorization', ACCESS_TOKEN)
+                .expect(({ body }: request.Response) => {
+                    expect(body.length).toEqual(2);
+                })
+                .expect(200, done);
+        });
+
+        it('Able to return a created token', (done) => {
+            http.get('/v1/erc20/' + tokenId)
+                .set('Authorization', ACCESS_TOKEN)
+                .expect(({ body }: request.Response) => {
+                    expect(body).toBeDefined();
+                })
+                .expect(200, done);
         });
     });
 });

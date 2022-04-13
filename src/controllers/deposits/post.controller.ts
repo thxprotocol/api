@@ -2,14 +2,14 @@ import { Request, Response } from 'express';
 import { body } from 'express-validator';
 import { AmountExceedsAllowanceError, InsufficientBalanceError, NotFoundError } from '@/util/errors';
 import { agenda, eventNameRequireTransactions } from '@/util/agenda';
-import { tokenContract } from '@/util/network';
 import { toWei } from 'web3-utils';
 import { TDeposit } from '@/types/TDeposit';
 import { DepositDocument } from '@/models/Deposit';
 import AccountProxy from '@/proxies/AccountProxy';
 import DepositService from '@/services/DepositService';
 import PromoCodeService from '@/services/PromoCodeService';
-import TransactionService from '@/services/TransactionService';
+import ERC20Service from '@/services/ERC20Service';
+import { tokenContract } from '@/util/network';
 
 export const createDepositValidation = [
     body('call').exists(),
@@ -31,19 +31,15 @@ export default async function CreateDepositController(req: Request, res: Respons
 
     const account = await AccountProxy.getById(req.user.sub);
     const amount = Number(toWei(String(value)));
-
-    const tokenAddress = await TransactionService.call(
-        req.assetPool.contract.methods.getToken(),
-        req.assetPool.network,
-    );
-    const token = tokenContract(req.assetPool.network, tokenAddress);
+    const erc20 = await ERC20Service.findByPool(req.assetPool);
+    const contract = tokenContract(req.assetPool.network, 'LimitedSupplyToken', erc20.address);
 
     // Check balance to ensure throughput
-    const balance = await token.methods.balanceOf(account.address).call();
+    const balance = await contract.methods.balanceOf(account.address).call();
     if (balance < amount) throw new InsufficientBalanceError();
 
     // Check allowance for admin to ensure throughput
-    const allowance = await DepositService.getAllowance(req.assetPool, token, account);
+    const allowance = Number(await contract.methods.allowance(account.address, req.assetPool.address).call());
     if (allowance < amount) throw new AmountExceedsAllowanceError();
 
     let d: DepositDocument = await DepositService.schedule(req.assetPool, account, value, req.body.item);

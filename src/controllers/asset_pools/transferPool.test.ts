@@ -4,23 +4,29 @@ import { getProvider } from '@/util/network';
 import { tokenName, tokenSymbol, userWalletPrivateKey2, DEPOSITOR_PK } from '@/util/jest/constants';
 import { isAddress, toChecksumAddress } from 'web3-utils';
 import { Account } from 'web3-core';
+import { Contract } from 'web3-eth-contract';
 import { createWallet } from '@/util/jest/network';
 import { getToken } from '@/util/jest/jwt';
 import { afterAllCallback, beforeAllCallback } from '@/util/jest/config';
 import AssetPoolService, { ADMIN_ROLE } from '@/services/AssetPoolService';
 import { PRIVATE_KEY } from '@/config/secrets';
 import { NetworkProvider } from '@/types/enums';
+import { getContract } from '@/config/contracts';
 
 const user = request.agent(app);
 
 describe('Transfer Pool Ownership', () => {
-    let adminAccessToken: string, dashboardAccessToken: string, poolAddress: string, userWallet: Account;
+    let adminAccessToken: string,
+        dashboardAccessToken: string,
+        poolAddress: string,
+        testToken: Contract,
+        userWallet: Account;
 
     beforeAll(async () => {
         await beforeAllCallback();
 
         userWallet = createWallet(userWalletPrivateKey2);
-
+        testToken = getContract(NetworkProvider.Main, 'LimitedSupplyToken');
         adminAccessToken = getToken('openid admin');
         dashboardAccessToken = getToken('openid dashboard');
     });
@@ -34,9 +40,7 @@ describe('Transfer Pool Ownership', () => {
                 .send({
                     network: NetworkProvider.Main,
                     token: {
-                        name: tokenName,
-                        symbol: tokenSymbol,
-                        totalSupply: 0,
+                        address: testToken.options.address,
                     },
                 })
                 .expect((res: request.Response) => {
