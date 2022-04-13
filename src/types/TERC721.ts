@@ -1,11 +1,17 @@
 import { Contract } from 'web3-eth-contract';
 
+type ERC721MetadataProp = {
+    name: string;
+    propType: string;
+    description: string;
+};
+
 export type TERC721 = {
     id?: string;
     network: number;
     name: string;
     symbol: string;
-    schema: string[];
+    properties: ERC721MetadataProp[];
     baseURL?: string;
     description?: string;
     contract?: Contract;

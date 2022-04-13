@@ -1,4 +1,5 @@
-import { ERC721, ERC721Document, ERC721Metadata, ERC721MetadataDocument } from '@/models/ERC721';
+import { ERC721, ERC721Document } from '@/models/ERC721';
+import { ERC721Metadata, ERC721MetadataDocument } from '@/models/ERC721Metadata';
 import { TERC721 } from '@/types/TERC721';
 import { paginatedResults } from '@/util/pagination';
 import TransactionService from './TransactionService';
@@ -28,6 +29,10 @@ async function create(data: TERC721): Promise<ERC721Document> {
 
 export async function findById(id: string): Promise<ERC721Document> {
     return await ERC721.findById(id);
+}
+
+export async function findBySub(sub: string): Promise<ERC721Document[]> {
+    return await ERC721.find({ sub });
 }
 
 export async function mint(
@@ -64,4 +69,4 @@ function findByQuery(query: { poolAddress: string }, page = 1, limit = 10) {
     return paginatedResults(ERC721, page, limit, query);
 }
 
-export default { create, findById, mint, findByQuery, getMetadata };
+export default { create, findById, mint, findBySub, findByQuery, getMetadata };

@@ -1,6 +1,5 @@
 import { param } from 'express-validator';
 import { Request, Response } from 'express';
-import { TERC721 } from '@/types/TERC721';
 import ERC721Service from '@/services/ERC721Service';
 import { NotFoundError } from '@/util/errors';
 

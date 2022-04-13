@@ -13,6 +13,7 @@ export const MintERC721TokenController = async (req: Request, res: Response) => 
     const erc721 = await ERC721Service.findById(req.params.id);
     if (!erc721) throw new NotFoundError('Could not find this NFT in the database');
 
+    // TODO Validate the metadata with the schema configured in the collection here
     const entry = await ERC721Service.mint(erc721, req.body.beneficiary, req.body.metadata);
     const metadata = await ERC721Service.getMetadata(erc721, entry.tokenId);
 

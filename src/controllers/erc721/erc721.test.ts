@@ -13,7 +13,10 @@ describe('ERC721', () => {
         name = 'PolyPunks',
         symbol = 'POLYPNKS',
         description = 'Collection full of rarities.',
-        schema = ['color', 'size'];
+        schema = [
+            { name: 'color', propType: 'string', description: 'lorem ipsum' },
+            { name: 'size', propType: 'string', description: 'lorem ipsum dolor sit' },
+        ];
     let dashboardAccessToken: string, erc721ID: string, tokenId: number;
 
     beforeAll(async () => {
@@ -35,16 +38,20 @@ describe('ERC721', () => {
                     schema,
                 })
                 .expect(({ body }: request.Response) => {
-                    expect(body.id).toBeDefined();
+                    expect(body._id).toBeDefined();
                     expect(body.network).toBe(network);
                     expect(body.name).toBe(name);
                     expect(body.symbol).toBe(symbol);
                     expect(body.description).toBe(description);
-                    expect(body.schema[0]).toBe(schema[0]);
-                    expect(body.schema[1]).toBe(schema[1]);
+                    expect(body.properties[0].description).toBe(schema[0].description);
+                    expect(body.properties[0].name).toBe(schema[0].name);
+                    expect(body.properties[0].propType).toBe(schema[0].propType);
+                    expect(body.properties[1].description).toBe(schema[1].description);
+                    expect(body.properties[1].name).toBe(schema[1].name);
+                    expect(body.properties[1].propType).toBe(schema[1].propType);
                     expect(isAddress(body.address)).toBe(true);
 
-                    erc721ID = body.id;
+                    erc721ID = body._id;
                 })
                 .expect(201, done);
         });
@@ -60,8 +67,12 @@ describe('ERC721', () => {
                     expect(body.name).toBe(name);
                     expect(body.symbol).toBe(symbol);
                     expect(body.description).toBe(description);
-                    expect(body.schema[0]).toBe(schema[0]);
-                    expect(body.schema[1]).toBe(schema[1]);
+                    expect(body.properties[0].description).toBe(schema[0].description);
+                    expect(body.properties[0].name).toBe(schema[0].name);
+                    expect(body.properties[0].propType).toBe(schema[0].propType);
+                    expect(body.properties[1].description).toBe(schema[1].description);
+                    expect(body.properties[1].name).toBe(schema[1].name);
+                    expect(body.properties[1].propType).toBe(schema[1].propType);
                     expect(isAddress(body.address)).toBe(true);
                 })
                 .expect(200, done);
@@ -94,15 +105,15 @@ describe('ERC721', () => {
                 .set('Authorization', dashboardAccessToken)
                 .send({
                     metadata: [
-                        { key: schema[0], value: 'red' },
-                        { key: schema[1], value: 'large' },
+                        { key: schema[0].name, value: 'red' },
+                        { key: schema[1].name, value: 'large' },
                     ],
                     beneficiary,
                 })
                 .expect(({ body }: request.Response) => {
                     expect(body.tokenId).toBe(1);
-                    expect(body[schema[0]]).toBe('red');
-                    expect(body[schema[1]]).toBe('large');
+                    expect(body[schema[0].name]).toBe('red');
+                    expect(body[schema[1].name]).toBe('large');
                     tokenId = body.tokenId;
                 })
                 .expect(201, done);
@@ -115,8 +126,8 @@ describe('ERC721', () => {
                 .set('Authorization', dashboardAccessToken)
                 .send()
                 .expect(({ body }: request.Response) => {
-                    expect(body[schema[0]]).toBe('red');
-                    expect(body[schema[1]]).toBe('large');
+                    expect(body[schema[0].name]).toBe('red');
+                    expect(body[schema[1].name]).toBe('large');
                 })
                 .expect(200, done);
         });
