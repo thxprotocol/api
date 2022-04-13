@@ -75,7 +75,7 @@ export const findByPool = async (assetPool: AssetPoolDocument): Promise<TERC20> 
             symbol,
             totalSupply,
             logoURI,
-            poolBalance: Number(fromWei(await erc20.contract.methods.balanceOf(assetPool.address).call())),
+            poolBalance: Number(fromWei(await assetPool.contract.methods.getBalance().call())),
         };
     }
 
@@ -92,7 +92,7 @@ export const findByPool = async (assetPool: AssetPoolDocument): Promise<TERC20> 
         symbol,
         type: ERC20Type.Unknown,
         totalSupply: Number(fromWei(totalSupplyInWei)),
-        poolBalance: Number(fromWei(await contract.methods.balanceOf(assetPool.address).call())),
+        poolBalance: Number(fromWei(await assetPool.contract.methods.getBalance().call())),
         logoURI: '',
     };
 };
