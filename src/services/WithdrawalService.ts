@@ -89,6 +89,7 @@ export default class WithdrawalService {
                     assetPool.contract.methods.proposeWithdraw(amountInWei, account.address),
                     assetPool.network,
                 );
+
                 const events = parseLogs(getDiamondAbi(assetPool.network, 'defaultPool'), receipt.logs);
                 const event = assertEvent('WithdrawPollCreated', events);
                 const roleGranted = findEvent('RoleGranted', events);
@@ -146,6 +147,10 @@ export default class WithdrawalService {
 
     static async countByPoolAddress(assetPool: AssetPoolType) {
         return (await Withdrawal.find({ poolAddress: assetPool.address })).length;
+    }
+
+    static findByQuery(query: { poolAddress: string; rewardId: number }) {
+        return Withdrawal.find(query);
     }
 
     static async getAll(

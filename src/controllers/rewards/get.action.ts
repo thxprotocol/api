@@ -1,16 +1,18 @@
 import { Request, Response } from 'express';
 import RewardService from '@/services/RewardService';
 import { TReward } from '@/models/Reward';
+import WithdrawalService from '@/services/WithdrawalService';
 
 export const getRewards = async (req: Request, res: Response) => {
     const result: TReward[] = [];
     const rewards = await RewardService.findByPoolAddress(req.assetPool);
 
     for (const r of rewards) {
-        const totalWithdrawed = await RewardService.rewardProgress(r);
+        const rewardId = Number(r.id);
+        const withdrawals = await WithdrawalService.findByQuery({ poolAddress: req.assetPool.address, rewardId });
 
         result.push({
-            id: Number(r.id),
+            id: rewardId,
             poolAddress: req.assetPool.address,
             withdrawLimit: r.withdrawLimit,
             withdrawAmount: r.withdrawAmount,
@@ -18,7 +20,7 @@ export const getRewards = async (req: Request, res: Response) => {
             withdrawCondition: r.withdrawCondition,
             isClaimOnce: r.isClaimOnce,
             isMembershipRequired: r.isMembershipRequired,
-            progress: totalWithdrawed,
+            progress: withdrawals.length,
             state: r.state,
         });
     }

@@ -1,6 +1,7 @@
 import express from 'express';
 import checkScopes from 'express-jwt-authz';
-import { validate, validateAssetPoolHeader } from '@/util/validation';
+import { validate } from '@/util/validation';
+import { assertAssetPoolAccess } from '@/middlewares';
 import { validations } from './_.validation';
 import { getWithdrawal } from './get.action';
 import { getWithdrawals } from './getWithdrawals.action';
@@ -17,7 +18,7 @@ const router = express.Router();
 router.post(
     '/',
     checkScopes(['admin']),
-    validateAssetPoolHeader,
+    assertAssetPoolAccess,
     validate(validations.postWithdrawal),
     requireAssetPoolHeader,
     assertPlan([AccountPlanType.Basic, AccountPlanType.Premium]),
@@ -26,7 +27,7 @@ router.post(
 router.get(
     '/',
     checkScopes(['admin', 'user']),
-    validateAssetPoolHeader,
+    assertAssetPoolAccess,
     validate(validations.getWithdrawals),
     requireAssetPoolHeader,
     getWithdrawals,
@@ -34,7 +35,7 @@ router.get(
 router.get(
     '/:id',
     checkScopes(['admin', 'user']),
-    validateAssetPoolHeader,
+    assertAssetPoolAccess,
     validate(validations.getWithdrawal),
     requireAssetPoolHeader,
     getWithdrawal,
@@ -42,7 +43,7 @@ router.get(
 router.post(
     '/:id/vote',
     checkScopes(['admin']),
-    validateAssetPoolHeader,
+    assertAssetPoolAccess,
     validate(validations.postVote),
     requireAssetPoolHeader,
     assertPlan([AccountPlanType.Basic, AccountPlanType.Premium]),
@@ -51,7 +52,7 @@ router.post(
 router.delete(
     '/:id/vote',
     checkScopes(['admin']),
-    validateAssetPoolHeader,
+    assertAssetPoolAccess,
     validate(validations.deleteVote),
     requireAssetPoolHeader,
     assertPlan([AccountPlanType.Basic, AccountPlanType.Premium]),
@@ -60,7 +61,7 @@ router.delete(
 router.post(
     '/:id/withdraw',
     checkScopes(['admin', 'user']),
-    validateAssetPoolHeader,
+    assertAssetPoolAccess,
     validate(validations.postPollFinalize),
     requireAssetPoolHeader,
     assertPlan([AccountPlanType.Basic, AccountPlanType.Premium]),
@@ -70,7 +71,7 @@ router.post(
 router.delete(
     '/:id',
     checkScopes(['user']),
-    validateAssetPoolHeader,
+    assertAssetPoolAccess,
     validate(validations.deleteWithdrawal),
     requireAssetPoolHeader,
     assertPlan([AccountPlanType.Basic, AccountPlanType.Premium]),

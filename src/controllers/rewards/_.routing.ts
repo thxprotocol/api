@@ -1,7 +1,8 @@
 import express from 'express';
 import checkScopes from 'express-jwt-authz';
 
-import { validate, validateAssetPoolHeader } from '@/util/validation';
+import { validate } from '@/util/validation';
+import { assertAssetPoolAccess } from '@/middlewares';
 import { validations } from './_.validation';
 import { getRewards } from './get.action';
 import { getReward } from './getReward.action';
@@ -18,7 +19,7 @@ const router = express.Router();
 router.get(
     '/',
     checkScopes(['admin', 'user', 'dashboard']),
-    validateAssetPoolHeader,
+    assertAssetPoolAccess,
     validate(validations.getRewards),
     requireAssetPoolHeader,
     assertPlan([AccountPlanType.Basic, AccountPlanType.Premium]),
@@ -27,7 +28,7 @@ router.get(
 router.get(
     '/:id',
     checkScopes(['admin', 'user', 'widget', 'dashboard']),
-    validateAssetPoolHeader,
+    assertAssetPoolAccess,
     validate(validations.getReward),
     requireAssetPoolHeader,
     assertPlan([AccountPlanType.Basic, AccountPlanType.Premium]),
@@ -36,7 +37,7 @@ router.get(
 router.post(
     '/',
     checkScopes(['admin', 'dashboard']),
-    validateAssetPoolHeader,
+    assertAssetPoolAccess,
     validate(validations.postReward),
     requireAssetPoolHeader,
     assertPlan([AccountPlanType.Basic, AccountPlanType.Premium]),
@@ -45,7 +46,7 @@ router.post(
 router.patch(
     '/:id',
     checkScopes(['admin', 'dashboard']),
-    validateAssetPoolHeader,
+    assertAssetPoolAccess,
     validate(validations.patchReward),
     requireAssetPoolHeader,
     assertPlan([AccountPlanType.Basic, AccountPlanType.Premium]),
