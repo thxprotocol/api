@@ -12,10 +12,8 @@ import { logger } from '@/util/logger';
 import { pick } from '@/util';
 import { diamondSelectors, getDiamondCutForContractFacets, updateDiamondContract } from '@/util/upgrades';
 import { currentVersion } from '@thxnetwork/artifacts';
+import { ERC20Document } from '@/models/ERC20';
 import ERC20Service from './ERC20Service';
-import LimitedSupplyToken from '@thxnetwork/artifacts/dist/exports/abis/LimitedSupplyToken.json';
-import UnlimitedSupplyToken from '@thxnetwork/artifacts/dist/exports/abis/UnlimitedSupplyToken.json';
-import NonFungibleToken from '@thxnetwork/artifacts/dist/exports/abis/NonFungibleToken.json';
 
 export const ADMIN_ROLE = '0x0000000000000000000000000000000000000000000000000000000000000000';
 class NoDataAtAddressError extends THXError {
@@ -56,22 +54,21 @@ export default class AssetPoolService {
 
         // Try to get ERC20 from db first so we can determine its type, if not available,
         // construct a contract here
-        const erc20 = await ERC20Service.findByPool(assetPool);
         let contract = tokenContract(assetPool.network, 'LimitedSupplyToken', tokenAddress);
+        const erc20 = await ERC20Service.findBy({ network: assetPool.network, address: tokenAddress });
 
         // Add this pool as a minter in case of an UnlimitedSupplyToken
         if (erc20 && erc20.type === ERC20Type.Unlimited) {
             contract = tokenContract(assetPool.network, 'UnlimitedSupplyToken', tokenAddress);
             await TransactionService.send(
-                erc20.address,
+                tokenAddress,
                 contract.methods.addMinter(assetPool.address),
                 assetPool.network,
             );
         }
 
-        const adminBalance = await contract.methods.balanceOf(admin.address).call();
-
         // TODO Move this to a user action
+        const adminBalance = await contract.methods.balanceOf(admin.address).call();
         if (Number(String(adminBalance)) > 0) {
             await TransactionService.send(
                 contract.options.address,

@@ -40,7 +40,6 @@ erc20Schema.methods.getResponse = async function () {
             const balance = await this.contract.methods.balanceOf(admin.address).call();
             return Number(fromWei(balance, 'ether'));
         })(),
-        logoURI: `https://avatars.dicebear.com/api/identicon/${this.address}.svg`,
     };
 };
 

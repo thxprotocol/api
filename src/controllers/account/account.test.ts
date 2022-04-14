@@ -36,9 +36,7 @@ describe('Account', () => {
                 .set({ Authorization: dashboardAccessToken })
                 .send({
                     network: NetworkProvider.Main,
-                    token: {
-                        address: testToken.options.address,
-                    },
+                    token: testToken.options.address,
                 })
                 .expect((res: request.Response) => {
                     poolAddress = res.body.address;
@@ -143,9 +141,7 @@ describe('Account', () => {
                     expect(res.body.id).toBe(membershipID);
                     expect(res.body.poolAddress).toBe(poolAddress);
                     expect(res.body.network).toBe(NetworkProvider.Main);
-                    expect(res.body.token.address).toBe(testToken.options.address);
-                    expect(res.body.token.symbol).toBeDefined();
-                    expect(res.body.token.name).toBeDefined();
+                    expect(res.body.erc20).toBeDefined();
                 })
                 .expect(200, done);
         });

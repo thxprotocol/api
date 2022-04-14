@@ -66,9 +66,7 @@ describe('Deposits', () => {
             .set('Authorization', dashboardAccessToken)
             .send({
                 network: NetworkProvider.Main,
-                token: {
-                    address: tokenAddress,
-                },
+                token: tokenAddress,
             })
             .expect((res: request.Response) => {
                 expect(isAddress(res.body.address)).toBe(true);

@@ -17,7 +17,6 @@ export const getById = async (req: Request, res: Response) => {
     ) {
         throw new ForbiddenError('Active plan of this pool owner is not sufficient.');
     }
-    const { _id, address, network, name, type, symbol, totalSupply, logoURI, adminBalance } = await token.getResponse();
 
-    return res.send({ _id, address, network, name, type, symbol, totalSupply, logoURI, adminBalance });
+    return res.send(await token.getResponse());
 };

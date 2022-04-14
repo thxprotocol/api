@@ -9,7 +9,7 @@ import { deleteERC20TokenValidation, DeleteERC20Controller } from './delete.cont
 const router = express.Router();
 
 router.get('/', getAllERC20Token);
-router.get('/:id', checkScopes(['dashboard']), validate(getERC20TokenValidation), getById);
+router.get('/:id', checkScopes(['dashboard', 'user']), validate(getERC20TokenValidation), getById);
 router.post('/', checkScopes(['dashboard']), validate(postERC20TokenValidation), CreateERC20Controller);
 router.delete('/:id', checkScopes(['dashboard']), validate(deleteERC20TokenValidation), DeleteERC20Controller);
 
