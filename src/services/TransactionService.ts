@@ -104,7 +104,6 @@ async function deploy(abi: any, bytecode: any, arg: any[], npid: NetworkProvider
         },
         PRIVATE_KEY,
     );
-
     const tx = await Transaction.create({
         type: TransactionType.Default,
         state: TransactionState.Scheduled,
