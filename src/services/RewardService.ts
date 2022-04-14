@@ -29,54 +29,44 @@ export default class RewardService {
         return rewards;
     }
 
-    static async canClaim(assetPool: AssetPoolType, reward: TReward, account: IAccount): Promise<boolean> {
-        function validate(channelAction: ChannelAction, channelItem: string): Promise<boolean> {
-            switch (channelAction) {
-                case ChannelAction.YouTubeLike:
-                    return YouTubeDataProxy.validateLike(account, channelItem);
-                case ChannelAction.YouTubeSubscribe:
-                    return YouTubeDataProxy.validateSubscribe(account, channelItem);
-
-                case ChannelAction.TwitterLike:
-                    return TwitterDataProxy.validateLike(account, channelItem);
-                case ChannelAction.TwitterRetweet:
-                    return TwitterDataProxy.validateRetweet(account, channelItem);
-                case ChannelAction.TwitterFollow:
-                    return TwitterDataProxy.validateFollow(account, channelItem);
-
-                case ChannelAction.SpotifyUserFollow:
-                    return SpotifyDataProxy.validateUserFollow(account, channelItem);
-                case ChannelAction.SpotifyPlaylistFollow:
-                    return SpotifyDataProxy.validatePlaylistFollow(account, channelItem);
-                case ChannelAction.SpotifyTrackPlaying:
-                    return SpotifyDataProxy.validateTrackPlaying(account, channelItem);
-                case ChannelAction.SpotifyTrackRecent:
-                    return SpotifyDataProxy.validateRecentTrack(account, channelItem);
-                case ChannelAction.SpotifyTrackSaved:
-                    return SpotifyDataProxy.validateSavedTracks(account, channelItem);
-
-                default:
-                    return Promise.resolve(false);
-            }
-        }
-
+    static async canClaim(
+        assetPool: AssetPoolType,
+        reward: TReward,
+        account: IAccount,
+    ): Promise<{ result?: boolean; error?: string }> {
         // Can not claim if the reward is disabled
         if (reward.state === RewardState.Disabled) {
-            return false;
+            return { error: 'This reward already disabled by it owner' };
+        }
+
+        // Can not claim if reward already extends the claim limit
+        // (included pending withdrawars)
+        if (reward.withdrawLimit > 0) {
+            const withdrawals = await WithdrawalService.findByQuery({
+                poolAddress: assetPool.address,
+                rewardId: reward.id,
+            });
+            if (withdrawals.length >= reward.withdrawLimit) {
+                return { error: 'This reward is reached it limit' };
+            }
         }
 
         const withdrawal = await WithdrawalService.hasClaimedOnce(assetPool.address, account.id, reward.id);
         // Can only claim this reward once and a withdrawal already exists
         if (reward.isClaimOnce && withdrawal) {
-            return false;
+            return { error: 'You have already claimed this reward' };
         }
 
         // Can claim if no condition and channel are set
         if (!reward.withdrawCondition || !reward.withdrawCondition.channelType) {
-            return true;
+            return { result: true };
         }
 
-        return await validate(reward.withdrawCondition.channelAction, reward.withdrawCondition.channelItem);
+        return await this.validate(
+            account,
+            reward.withdrawCondition.channelAction,
+            reward.withdrawCondition.channelItem,
+        );
     }
 
     static async removeAllForAddress(address: string) {
@@ -88,6 +78,7 @@ export default class RewardService {
 
     static async create(
         assetPool: AssetPoolType,
+        withdrawLimit: number,
         withdrawAmount: number,
         withdrawDuration: number,
         isMembershipRequired: boolean,
@@ -101,6 +92,7 @@ export default class RewardService {
             id,
             poolAddress: assetPool.address,
             withdrawAmount: String(withdrawAmount),
+            withdrawLimit,
             withdrawDuration,
             withdrawCondition,
             state: RewardState.Enabled,
@@ -111,5 +103,65 @@ export default class RewardService {
 
     static update(reward: RewardDocument, updates: IRewardUpdates) {
         return Reward.findByIdAndUpdate(reward._id, updates, { new: true });
+    }
+
+    static async validate(
+        account: IAccount,
+        channelAction: ChannelAction,
+        channelItem: string,
+    ): Promise<{ result?: boolean; error?: string }> {
+        switch (channelAction) {
+            case ChannelAction.YouTubeLike: {
+                const result = await YouTubeDataProxy.validateLike(account, channelItem);
+                if (!result) return { error: 'Youtube: Video has not been liked.' };
+                break;
+            }
+            case ChannelAction.YouTubeSubscribe: {
+                const result = await YouTubeDataProxy.validateSubscribe(account, channelItem);
+                if (!result) return { error: 'Youtube: Not subscribed to channel.' };
+                break;
+            }
+            case ChannelAction.TwitterLike: {
+                const result = await TwitterDataProxy.validateLike(account, channelItem);
+                if (!result) return { error: 'Twitter: Tweet has not been liked.' };
+                break;
+            }
+            case ChannelAction.TwitterRetweet: {
+                const result = await TwitterDataProxy.validateRetweet(account, channelItem);
+                if (!result) return { error: 'Twitter: Tweet is not retweeted.' };
+                break;
+            }
+            case ChannelAction.TwitterFollow: {
+                const result = await TwitterDataProxy.validateFollow(account, channelItem);
+                if (!result) return { error: 'Twitter: Account is not followed.' };
+                break;
+            }
+            case ChannelAction.SpotifyUserFollow: {
+                const result = await SpotifyDataProxy.validateUserFollow(account, channelItem);
+                if (!result) return { error: 'Spotify: User not followed.' };
+                break;
+            }
+            case ChannelAction.SpotifyPlaylistFollow: {
+                const result = await SpotifyDataProxy.validatePlaylistFollow(account, channelItem);
+                if (!result) return { error: 'Spotify: Playlist is not followed.' };
+                break;
+            }
+            case ChannelAction.SpotifyTrackPlaying: {
+                const result = await SpotifyDataProxy.validateTrackPlaying(account, channelItem);
+                if (!result) return { error: 'Spotify: Track is not playing.' };
+                break;
+            }
+            case ChannelAction.SpotifyTrackRecent: {
+                const result = await SpotifyDataProxy.validateRecentTrack(account, channelItem);
+                if (!result) return { error: 'Spotify: Track not found in recent tracks.' };
+                break;
+            }
+            case ChannelAction.SpotifyTrackSaved: {
+                const result = await SpotifyDataProxy.validateSavedTracks(account, channelItem);
+                if (!result) return { error: 'Spotify: Track not saved.' };
+                break;
+            }
+        }
+        return { result: true };
     }
 }

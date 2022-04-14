@@ -5,6 +5,7 @@ import RewardService from '@/services/RewardService';
 export const postReward = async (req: Request, res: Response) => {
     const reward = await RewardService.create(
         req.assetPool,
+        req.body.withdrawLimit || 0,
         req.body.withdrawAmount,
         req.body.withdrawDuration,
         req.body.isMembershipRequired,
@@ -20,6 +21,7 @@ export const postReward = async (req: Request, res: Response) => {
         withdrawAmount: reward.withdrawAmount,
         withdrawDuration: reward.withdrawDuration,
         withdrawCondition: reward.withdrawCondition,
+        withdrawLimit: reward.withdrawLimit,
     };
 
     res.status(201).json(result);

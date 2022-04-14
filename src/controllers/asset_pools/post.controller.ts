@@ -10,27 +10,7 @@ import { AccountPlanType } from '@/types/enums/AccountPlanType';
 import { NetworkProvider } from '@/types/enums';
 import AccountProxy from '@/proxies/AccountProxy';
 
-export const createAssetPoolValidation = [
-    body('token')
-        .exists()
-        .custom((value) => {
-            if (value.address) {
-                return isAddress(value.address);
-            }
-
-            if (
-                !value.address &&
-                value.name &&
-                value.symbol &&
-                (!Number.isNaN(value.totalSupply) || value.totalSupply === 0)
-            ) {
-                return true;
-            }
-
-            return false;
-        }),
-    body('network').exists().isNumeric(),
-];
+export const createAssetPoolValidation = [body('token').isEthereumAddress(), body('network').exists().isNumeric()];
 
 export const postAssetPool = async (req: Request, res: Response) => {
     const account = await AccountProxy.getById(req.user.sub);
@@ -41,8 +21,8 @@ export const postAssetPool = async (req: Request, res: Response) => {
 
     const assetPool = await AssetPoolService.deploy(req.user.sub, req.body.network);
 
-    await AssetPoolService.addPoolToken(assetPool, req.body.token.address);
-    await MembershipService.addMembership(req.user.sub, assetPool);
+    await AssetPoolService.addPoolToken(assetPool, req.body.token);
+    // await MembershipService.addMembership(req.user.sub, assetPool);
 
     const client = await ClientService.create(req.user.sub, {
         application_type: 'web',

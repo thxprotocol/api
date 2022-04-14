@@ -39,9 +39,7 @@ describe('Transfer Pool Ownership', () => {
                 .set('Authorization', dashboardAccessToken)
                 .send({
                     network: NetworkProvider.Main,
-                    token: {
-                        address: testToken.options.address,
-                    },
+                    token: testToken.options.address,
                 })
                 .expect((res: request.Response) => {
                     expect(isAddress(res.body.address)).toBe(true);

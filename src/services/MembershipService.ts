@@ -1,8 +1,11 @@
-import { AssetPoolType } from '@/models/AssetPool';
-import { NetworkProvider } from '@/types/enums';
+import { AssetPoolDocument, AssetPoolType } from '@/models/AssetPool';
+import { ERC20Type, NetworkProvider } from '@/types/enums';
 import { Membership } from '@/models/Membership';
 import AssetPoolService from './AssetPoolService';
+import { tokenContract } from '@/util/network';
+import { fromWei } from 'web3-utils';
 import ERC20Service from './ERC20Service';
+import ERC20 from '@/models/ERC20';
 
 export default class MembershipService {
     static async get(sub: string) {
@@ -24,18 +27,23 @@ export default class MembershipService {
         const membership = await Membership.findById(id);
         if (!membership) return null;
 
+        let poolBalance = 0;
         const assetPool = await AssetPoolService.getByAddress(membership.poolAddress);
-        if (!assetPool) return null;
+        if (assetPool) {
+            const balanceInWei = await assetPool.contract.methods.getBalance().call();
+            poolBalance = Number(fromWei(balanceInWei));
+        }
 
         return {
             id: String(membership._id),
-            token: await ERC20Service.findByPool(assetPool),
             poolAddress: membership.poolAddress,
+            poolBalance,
+            erc20: membership.erc20,
             network: membership.network,
         };
     }
 
-    static async addMembership(sub: string, assetPool: AssetPoolType) {
+    static async addMembership(sub: string, assetPool: AssetPoolDocument) {
         const membership = await Membership.findOne({
             sub,
             network: assetPool.network,
@@ -43,12 +51,31 @@ export default class MembershipService {
         });
 
         if (!membership) {
-            const membership = new Membership({
+            const address = await assetPool.contract.methods.getToken().call();
+            let erc20 = await ERC20Service.findBy({ network: assetPool.network, address });
+
+            if (!erc20) {
+                const contract = tokenContract(assetPool.network, 'LimitedSupplyToken', address);
+                const [name, symbol] = await Promise.all([
+                    contract.methods.name().call(),
+                    contract.methods.symbol().call(),
+                ]);
+
+                erc20 = await ERC20.create({
+                    name,
+                    symbol,
+                    address,
+                    type: ERC20Type.Unknown,
+                    network: assetPool.network,
+                });
+            }
+
+            await Membership.create({
                 sub,
                 network: assetPool.network,
                 poolAddress: assetPool.address,
+                erc20: String(erc20._id),
             });
-            await membership.save();
         }
     }
 

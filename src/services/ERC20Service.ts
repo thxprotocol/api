@@ -15,7 +15,7 @@ export const create = async (params: ICreateERC20Params) => {
     const tokenFactory = getContract(params.network, 'TokenFactory');
 
     let fn;
-    if (params.name && params.symbol && Number(params.totalSupply) > 0) {
+    if (params.name && params.symbol && params.type === ERC20Type.Limited) {
         fn = tokenFactory.methods.deployLimitedSupplyToken(
             params.name,
             params.symbol,
@@ -23,7 +23,7 @@ export const create = async (params: ICreateERC20Params) => {
             toWei(String(params.totalSupply)),
         );
     }
-    if (params.name && params.symbol && Number(params.totalSupply) === 0) {
+    if (params.name && params.symbol && params.type === ERC20Type.Unlimited) {
         fn = tokenFactory.methods.deployUnlimitedSupplyToken(
             params.name,
             params.symbol,
@@ -36,18 +36,18 @@ export const create = async (params: ICreateERC20Params) => {
 
     const { receipt } = await TransactionService.send(tokenFactory.options.address, fn, params.network);
     const event = assertEvent('TokenDeployed', parseLogs(tokenFactory.options.jsonInterface, receipt.logs));
-    const token = await ERC20.create({
+    const erc20 = await ERC20.create({
         name: params.name,
         symbol: params.symbol,
         address: event.args.token,
-        blockNumber: receipt.blockNumber,
-        type: params.type,
-        transactionHash: receipt.transactionHash,
         network: params.network,
+        type: params.type,
+        blockNumber: receipt.blockNumber,
+        transactionHash: receipt.transactionHash,
         sub: params.sub,
     });
 
-    return token;
+    return erc20;
 };
 
 export const getAll = (sub: string) => {

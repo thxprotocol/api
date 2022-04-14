@@ -1,5 +1,6 @@
 import express from 'express';
-import { validate, validateAssetPoolHeader } from '@/util/validation';
+import { validate } from '@/util/validation';
+import { assertAssetPoolAccess } from '@/middlewares';
 import { validations } from './_.validation';
 import { getMembers } from './get.action';
 import { getMember } from './getMember.action';
@@ -15,7 +16,7 @@ const router = express.Router();
 router.get(
     '/',
     checkScopes(['admin']),
-    validateAssetPoolHeader,
+    assertAssetPoolAccess,
     requireAssetPoolHeader,
     assertPlan([AccountPlanType.Basic, AccountPlanType.Premium]),
     getMembers,
@@ -23,7 +24,7 @@ router.get(
 router.post(
     '/',
     checkScopes(['admin', 'members:write']),
-    validateAssetPoolHeader,
+    assertAssetPoolAccess,
     validate(validations.postMember),
     requireAssetPoolHeader,
     assertPlan([AccountPlanType.Basic, AccountPlanType.Premium]),
@@ -32,7 +33,7 @@ router.post(
 router.patch(
     '/:address',
     checkScopes(['admin']),
-    validateAssetPoolHeader,
+    assertAssetPoolAccess,
     validate(validations.patchMember),
     requireAssetPoolHeader,
     assertPlan([AccountPlanType.Basic, AccountPlanType.Premium]),
@@ -41,7 +42,7 @@ router.patch(
 router.delete(
     '/:address',
     checkScopes(['admin']),
-    validateAssetPoolHeader,
+    assertAssetPoolAccess,
     validate(validations.deleteMember),
     requireAssetPoolHeader,
     assertPlan([AccountPlanType.Basic, AccountPlanType.Premium]),
@@ -50,7 +51,7 @@ router.delete(
 router.get(
     '/:address',
     checkScopes(['admin', 'user']),
-    validateAssetPoolHeader,
+    assertAssetPoolAccess,
     validate(validations.getMember),
     requireAssetPoolHeader,
     assertPlan([AccountPlanType.Basic, AccountPlanType.Premium]),

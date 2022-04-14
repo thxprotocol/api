@@ -13,7 +13,6 @@ import { agenda, eventNameRequireTransactions } from '@/util/agenda';
 const ERROR_REWARD_NOT_FOUND = 'The reward for this ID does not exist.';
 const ERROR_ACCOUNT_NO_ADDRESS = 'The authenticated account has not wallet address. Sign in the Web Wallet once.';
 const ERROR_INCORRECT_SCOPE = 'No subscription is found for this type of access token.';
-const ERROR_CAIM_NOT_ALLOWED = 'You are not allowed to claim this reward.';
 const ERROR_NO_MEMBER = 'Could not claim this reward since you are not a member of the pool.';
 
 export async function postRewardClaim(req: Request, res: Response) {
@@ -26,8 +25,8 @@ export async function postRewardClaim(req: Request, res: Response) {
     const account = await AccountProxy.getById(req.user.sub);
     if (!account.address) throw new BadRequestError(ERROR_ACCOUNT_NO_ADDRESS);
 
-    const canClaim = await RewardService.canClaim(req.assetPool, reward, account);
-    if (!canClaim) throw new ForbiddenError(ERROR_CAIM_NOT_ALLOWED);
+    const { result, error } = await RewardService.canClaim(req.assetPool, reward, account);
+    if (!result && error) throw new ForbiddenError(error);
 
     const isMember = await MemberService.isMember(req.assetPool, account.address);
     if (!isMember && reward.isMembershipRequired) throw new ForbiddenError(ERROR_NO_MEMBER);
@@ -50,7 +49,7 @@ export async function postRewardClaim(req: Request, res: Response) {
 
     agenda.now(eventNameRequireTransactions, {});
 
-    const result: TWithdrawal = {
+    const response: TWithdrawal = {
         id: String(w._id),
         sub: w.sub,
         poolAddress: req.assetPool.address,
@@ -63,7 +62,7 @@ export async function postRewardClaim(req: Request, res: Response) {
         createdAt: w.createdAt,
     };
 
-    return res.json(result);
+    return res.json(response);
 }
 
 /**

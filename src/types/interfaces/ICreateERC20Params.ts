@@ -7,6 +7,7 @@ export interface ICreateERC20Params {
     network: NetworkProvider;
     type: ERC20Type;
     sub: string;
+    address?: string;
 }
 
 export interface CreateERC20Params {

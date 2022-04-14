@@ -4,6 +4,7 @@ export const validations = {
     postReward: [
         body('withdrawAmount').exists().isNumeric(),
         body('withdrawDuration').exists().isNumeric(),
+        body('withdrawLimit').optional().isNumeric(),
         body('withdrawCondition.channelType').optional().isNumeric(),
         body('withdrawCondition.channelAction').optional().isNumeric(),
         body('withdrawCondition.channelItem').optional().isString(),
