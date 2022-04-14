@@ -1,15 +1,12 @@
 import newrelic from 'newrelic';
-import { TESTNET_RPC, RPC, MAINNET_NETWORK_NAME } from '@/config/secrets';
+import { TESTNET_RPC, RPC } from '@/config/secrets';
 import Web3 from 'web3';
 import axios from 'axios';
-import BN from 'bn.js';
 import { Contract } from 'web3-eth-contract';
 import { NetworkProvider } from '../types/enums';
-import TransactionService from '@/services/TransactionService';
 import { THXError } from './errors';
 import { AbiItem } from 'web3-utils';
-import { getContract, getContractConfig } from '@/config/contracts';
-import { assertEvent, parseLogs } from './events';
+import { getContractConfig } from '@/config/contracts';
 import { ContractName } from '@thxnetwork/artifacts';
 
 export class MaxFeePerGasExceededError extends THXError {
@@ -78,7 +75,8 @@ export function getSelectors(contract: Contract) {
 }
 
 export const tokenContract = (npid: NetworkProvider, contractName: ContractName, address: string): Contract => {
-    return getContractFromAbi(npid, getContractConfig(npid, contractName).abi, address);
+    const abi = require(`@thxnetwork/artifacts/dist/exports/abis/${contractName}.json`);
+    return getContractFromAbi(npid, abi, address);
 };
 
 export const getContractFromAbi = (npid: NetworkProvider, abi: AbiItem[], address: string): Contract => {

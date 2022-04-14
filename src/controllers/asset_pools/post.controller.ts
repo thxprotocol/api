@@ -9,7 +9,6 @@ import { body } from 'express-validator';
 import { AccountPlanType } from '@/types/enums/AccountPlanType';
 import { NetworkProvider } from '@/types/enums';
 import AccountProxy from '@/proxies/AccountProxy';
-import ERC20Service from '@/services/ERC20Service';
 
 export const createAssetPoolValidation = [
     body('token')

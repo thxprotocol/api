@@ -84,7 +84,7 @@ describe('Happy Flow', () => {
                     expect(body.address).toEqual(poolAddress);
                     expect(isAddress(body.token.address)).toEqual(true);
                     expect(body.token.totalSupply).toBe(0);
-                    expect(body.balance).toBe(0);
+                    expect(body.token.poolBalance).toBe(0);
                 })
                 .expect(200);
         });
@@ -243,7 +243,7 @@ describe('Happy Flow', () => {
         it('HTTP 200 and return state Withdrawn', (done) => {
             user.get(`/v1/withdrawals/${withdrawDocumentId}`)
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
-                .expect(async ({ body }: request.Response) => {
+                .expect(({ body }: request.Response) => {
                     expect(body.id).toBeDefined();
                     expect(body.amount).toEqual(rewardWithdrawAmount);
                     expect(body.sub).toEqual(sub2);
@@ -268,7 +268,7 @@ describe('Happy Flow', () => {
             user.get(`/v1/asset_pools/${poolAddress}`)
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
                 .expect(async (res: request.Response) => {
-                    expect(res.body.balance).toBe(0);
+                    expect(res.body.token.poolBalance).toBe(0);
                 })
                 .expect(200, done);
         });

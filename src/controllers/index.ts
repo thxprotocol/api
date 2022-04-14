@@ -14,8 +14,8 @@ import membershipsRouter from './memberships/_.routing';
 import tokenRouter from './token/_.routing';
 import promoCodesRouter from './promo_codes/promoCodes.router';
 import depositsRouter from './deposits/deposits.router';
+import erc721Router from './erc721/erc721.router';
 import erc20Router from './erc20/erc20.router';
-
 import { checkJwt } from '@/middlewares';
 
 const router = express.Router();
@@ -38,5 +38,6 @@ router.use('/withdrawals', withdrawalsRouter);
 router.use('/deposits', depositsRouter);
 router.use('/relay', relayHubRouter);
 router.use('/memberships', membershipsRouter);
+router.use('/erc721', erc721Router);
 
 export default router;
