@@ -32,7 +32,7 @@ export default class RewardService {
 
     static async rewardProgress(reward: TReward) {
         const withdrawed = await WithdrawalService.getByPoolAndRewardID(reward.poolAddress, reward.id);
-        const totalWithdrawed = withdrawed.reduce((total, withdraw) => (total += withdraw.amount), 0);
+        const totalWithdrawed = withdrawed.reduce((total, withdraw) => total + withdraw.amount || 0, 0);
         return totalWithdrawed;
     }
 
