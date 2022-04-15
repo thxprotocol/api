@@ -23,7 +23,7 @@ module.exports = {
                 const contract = new web3.eth.Contract(TokenFacetArtifact, pool.address);
                 const tokenAddress = await contract.methods.getToken().call({ from: admin.address });
                 const erc20 = await erc20Coll.findOne({ network: pool.network, address: tokenAddress });
-                console.log(String(erc20._id), pool.network, pool.address);
+
                 await membershipsColl.updateMany(
                     { network: pool.network, poolAddress: pool.address },
                     { $set: { erc20: String(erc20._id) } },

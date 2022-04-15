@@ -1,5 +1,6 @@
 import swaggerJsdoc from 'swagger-jsdoc';
 import packageJSON from '../../package.json';
+import { NODE_ENV } from './secrets';
 
 const options = {
     definition: {
@@ -25,7 +26,7 @@ const options = {
             },
         },
     },
-    apis: ['./src/controllers/**/*.ts'],
+    apis: [`./src/controllers/**/*.${NODE_ENV === 'development' ? 'ts' : 'js'}`],
 };
 
 export const openapiSpecification = swaggerJsdoc(options);
