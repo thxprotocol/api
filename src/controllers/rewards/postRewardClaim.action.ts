@@ -56,6 +56,7 @@ export async function postRewardClaim(req: Request, res: Response) {
         type: w.type,
         amount: w.amount,
         beneficiary: w.beneficiary,
+        unlockDate: w.unlockDate,
         state: w.state,
         rewardId: w.rewardId,
         transactions: w.transactions,

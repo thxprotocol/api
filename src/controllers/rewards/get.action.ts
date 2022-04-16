@@ -18,6 +18,7 @@ export const getRewards = async (req: Request, res: Response) => {
             withdrawAmount: r.withdrawAmount,
             withdrawDuration: Number(r.withdrawDuration),
             withdrawCondition: r.withdrawCondition,
+            withdrawUnlockDate: r.withdrawUnlockDate,
             isClaimOnce: r.isClaimOnce,
             isMembershipRequired: r.isMembershipRequired,
             progress: withdrawals.length,

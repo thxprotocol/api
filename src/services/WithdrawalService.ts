@@ -72,12 +72,12 @@ export default class WithdrawalService {
 
     static async proposeWithdraw(assetPool: AssetPoolType, withdrawal: WithdrawalDocument, account: IAccount) {
         const amountInWei = toWei(String(withdrawal.amount));
-
+        const unlockDateTmestamp = withdrawal.unlockDate.getTime();
         if (ITX_ACTIVE) {
             const tx = await InfuraService.schedule(
                 assetPool.address,
                 'proposeWithdraw',
-                [amountInWei, account.address],
+                [amountInWei, account.address, unlockDateTmestamp],
                 assetPool.network,
             );
             withdrawal.transactions.push(String(tx._id));
@@ -86,7 +86,7 @@ export default class WithdrawalService {
             try {
                 const { tx, receipt } = await TransactionService.send(
                     assetPool.address,
-                    assetPool.contract.methods.proposeWithdraw(amountInWei, account.address),
+                    assetPool.contract.methods.proposeWithdraw(amountInWei, account.address, unlockDateTmestamp),
                     assetPool.network,
                 );
 

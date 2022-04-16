@@ -39,6 +39,12 @@ export default class RewardService {
             return { error: 'This reward already disabled by it owner' };
         }
 
+        // Can not claim if reward has an unlockDate and the Now is not greather than unlockDate
+        // (included pending withdrawars)
+        if (new Date().getTime()< reward.withdrawUnlockDate.getTime()) {
+            return { error: 'This reward is not yet withdrawable' };
+        }
+
         // Can not claim if reward already extends the claim limit
         // (included pending withdrawars)
         if (reward.withdrawLimit > 0) {
@@ -84,6 +90,7 @@ export default class RewardService {
         isMembershipRequired: boolean,
         isClaimOnce: boolean,
         withdrawCondition?: IRewardCondition,
+        withdrawUnlockDate?: Date,
     ) {
         // Calculates an incrementing id as was done in Solidity before.
         // TODO Add migration to remove id and start using default collection _id.
@@ -95,6 +102,7 @@ export default class RewardService {
             withdrawLimit,
             withdrawDuration,
             withdrawCondition,
+            withdrawUnlockDate,
             state: RewardState.Enabled,
             isMembershipRequired,
             isClaimOnce,

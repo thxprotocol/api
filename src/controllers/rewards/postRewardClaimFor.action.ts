@@ -45,6 +45,7 @@ export const postRewardClaimFor = async (req: Request, res: Response) => {
         withdrawalId: w.withdrawalId,
         beneficiary: w.beneficiary,
         amount: w.amount,
+        unlockDate: w.unlockDate,
         state: w.state,
         transactions: w.transactions,
         createdAt: w.createdAt,

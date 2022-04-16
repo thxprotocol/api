@@ -43,6 +43,7 @@ export const postWithdrawal = async (req: Request, res: Response) => {
         rewardId: withdrawal.rewardId,
         beneficiary: withdrawal.beneficiary,
         amount: withdrawal.amount,
+        unlockDate: withdrawal.unlockDate,
         state: withdrawal.state,
         transactions: withdrawal.transactions,
         createdAt: withdrawal.createdAt,

@@ -21,6 +21,7 @@ export const postPollFinalize = async (req: Request, res: Response) => {
         rewardId: w.rewardId,
         beneficiary: w.beneficiary,
         amount: w.amount,
+        unlockDate: w.unlockDate,
         state: w.state,
         transactions: w.transactions,
         createdAt: w.createdAt,

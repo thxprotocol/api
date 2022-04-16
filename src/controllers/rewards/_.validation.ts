@@ -5,6 +5,7 @@ export const validations = {
         body('withdrawAmount').exists().isNumeric(),
         body('withdrawDuration').exists().isNumeric(),
         body('withdrawLimit').optional().isNumeric(),
+        body('withdrawUnlockDate').optional().isDate(),
         body('withdrawCondition.channelType').optional().isNumeric(),
         body('withdrawCondition.channelAction').optional().isNumeric(),
         body('withdrawCondition.channelItem').optional().isString(),
