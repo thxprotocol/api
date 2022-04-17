@@ -74,15 +74,12 @@ export function getSelectors(contract: Contract) {
     return signatures;
 }
 
-export const tokenFactoryContract = (npid: NetworkProvider) => {
-    const contractConfig = getContractConfig(npid, 'TokenFactory', currentVersion);
-    const abi = require(`@thxnetwork/artifacts/dist/exports/abis/TokenFactory.json`);
-    return getContractFromAbi(npid, abi, contractConfig.address);
-};
-
-export const tokenContract = (npid: NetworkProvider, contractName: ContractName, address: string): Contract => {
+export const getContractFromName = (npid: NetworkProvider, contractName: ContractName, address?: string) => {
+    const { web3 } = getProvider(npid);
+    const contractConfig = getContractConfig(npid, contractName, currentVersion);
     const abi = require(`@thxnetwork/artifacts/dist/exports/abis/${contractName}.json`);
-    return getContractFromAbi(npid, abi, address);
+
+    return new web3.eth.Contract(abi, address || contractConfig.address);
 };
 
 export const getContractFromAbi = (npid: NetworkProvider, abi: AbiItem[], address: string): Contract => {
