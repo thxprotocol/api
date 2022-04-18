@@ -11,6 +11,7 @@ export type AssetPoolType = {
     clientId: string;
     blockNumber: number;
     transactionHash: string;
+    lastTransactionTime?: number;
     bypassPolls: boolean;
     version?: string;
     variant?: string;
@@ -26,6 +27,7 @@ const assetPoolSchema = new mongoose.Schema(
         clientId: String,
         blockNumber: Number,
         transactionHash: String,
+        lastTransactionTime: Date,
         bypassPolls: Boolean,
         version: String,
         variant: String,

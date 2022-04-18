@@ -7,7 +7,7 @@ import MemberService from '@/services/MemberService';
 import { DepositState, TransactionState, TransactionType, WithdrawalState } from '@/types/enums';
 import { Deposit } from '@/models/Deposit';
 import { wrapBackgroundTransaction } from '@/util/newrelic';
-import { AssetPoolType } from '@/models/AssetPool';
+import { AssetPool, AssetPoolType } from '@/models/AssetPool';
 import { Transaction, TransactionDocument } from '@/models/Transaction';
 import { TransactionReceipt } from 'web3-core';
 
@@ -17,6 +17,13 @@ async function handleEvents(assetPool: AssetPoolType, tx: TransactionDocument, e
     const eventWithdrawPollCreated = findEvent('WithdrawPollCreated', events);
     const eventWithdrawPollFinalized = findEvent('WithdrawPollFinalized', events);
     const eventWithdrawn = findEvent('Withdrawn', events);
+
+    const isPoolAction =
+        eventDepositted ||
+        eventRoleGranted ||
+        eventWithdrawPollCreated ||
+        eventWithdrawPollFinalized ||
+        eventRoleGranted;
 
     if (eventDepositted) {
         const deposit = await Deposit.findOne({ transactions: String(tx._id) });
@@ -45,6 +52,12 @@ async function handleEvents(assetPool: AssetPoolType, tx: TransactionDocument, e
             { transactions: String(tx._id) },
             { state: WithdrawalState.Withdrawn, failReason: '' },
         );
+    }
+
+    if (isPoolAction) {
+        const filter = { address: tx.to };
+        const update = { lastTransactionTime: new Date().getTime() };
+        await AssetPool.findOneAndUpdate(filter, update);
     }
 }
 
