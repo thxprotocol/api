@@ -12,6 +12,7 @@ export const getRewards = async (req: Request, res: Response) => {
         const withdrawals = await WithdrawalService.findByQuery({ poolAddress: req.assetPool.address, rewardId });
 
         result.push({
+            _id: String(r._id),
             id: rewardId,
             poolAddress: req.assetPool.address,
             withdrawLimit: r.withdrawLimit,
