@@ -41,7 +41,7 @@ export default class RewardService {
 
         // Can not claim if reward has an unlockDate and the Now is not greather than unlockDate
         // (included pending withdrawars)
-        if (new Date().getTime()< reward.withdrawUnlockDate.getTime()) {
+        if (Date.now() < reward.withdrawUnlockDate.getTime()) {
             return { error: 'This reward is not yet withdrawable' };
         }
 
