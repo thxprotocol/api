@@ -2,7 +2,7 @@ import { AssetPoolDocument, AssetPoolType } from '@/models/AssetPool';
 import { ERC20Type, NetworkProvider } from '@/types/enums';
 import { Membership } from '@/models/Membership';
 import AssetPoolService from './AssetPoolService';
-import { tokenContract } from '@/util/network';
+import { getContractFromName } from '@/util/network';
 import { fromWei } from 'web3-utils';
 import ERC20Service from './ERC20Service';
 import ERC20 from '@/models/ERC20';
@@ -55,7 +55,7 @@ export default class MembershipService {
             let erc20 = await ERC20Service.findBy({ network: assetPool.network, address });
 
             if (!erc20) {
-                const contract = tokenContract(assetPool.network, 'LimitedSupplyToken', address);
+                const contract = getContractFromName(assetPool.network, 'LimitedSupplyToken', address);
                 const [name, symbol] = await Promise.all([
                     contract.methods.name().call(),
                     contract.methods.symbol().call(),

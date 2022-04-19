@@ -3,14 +3,13 @@ import { ERC721Metadata, ERC721MetadataDocument } from '@/models/ERC721Metadata'
 import { TERC721 } from '@/types/TERC721';
 import { paginatedResults } from '@/util/pagination';
 import TransactionService from './TransactionService';
-import { getProvider } from '@/util/network';
+import { getContractFromName, getProvider } from '@/util/network';
 import { API_URL } from '@/config/secrets';
-import { getContract } from '@/config/contracts';
 import { assertEvent, parseLogs } from '@/util/events';
 
 async function create(data: TERC721): Promise<ERC721Document> {
     const { admin } = getProvider(data.network);
-    const tokenFactory = getContract(data.network, 'TokenFactory');
+    const tokenFactory = getContractFromName(data.network, 'TokenFactory');
     const erc721 = await ERC721.create(data);
 
     erc721.baseURL = `${API_URL}/erc721/${String(erc721._id)}/metadata/`;

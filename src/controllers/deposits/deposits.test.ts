@@ -12,8 +12,7 @@ import { findEvent, parseLogs } from '@/util/events';
 import { MaxUint256, tokenName, tokenSymbol, userWalletPrivateKey2 } from '@/util/jest/constants';
 import { AmountExceedsAllowanceError, InsufficientBalanceError } from '@/util/errors';
 import TransactionService from '@/services/TransactionService';
-import { getContract } from '@/config/contracts';
-import { getContractFromAbi, tokenContract } from '@/util/network';
+import { getContractFromName } from '@/util/network';
 
 const http = request.agent(app);
 
@@ -56,7 +55,7 @@ describe('Deposits', () => {
             .expect(({ body }: request.Response) => {
                 expect(isAddress(body.address)).toBe(true);
                 tokenAddress = body.address;
-                testToken = tokenContract(NetworkProvider.Main, 'LimitedSupplyToken', tokenAddress);
+                testToken = getContractFromName(NetworkProvider.Main, 'LimitedSupplyToken', tokenAddress);
             })
             .expect(201, done);
     });

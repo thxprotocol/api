@@ -3,7 +3,7 @@ import { fromWei } from 'web3-utils';
 import { NotFoundError } from '@/util/errors';
 import MemberService from '@/services/MemberService';
 import ERC20Service from '@/services/ERC20Service';
-import { tokenContract } from '@/util/network';
+import { getContractFromName } from '@/util/network';
 
 export const getMember = async (req: Request, res: Response) => {
     const isMember = await MemberService.isMember(req.assetPool, req.params.address);
@@ -12,7 +12,7 @@ export const getMember = async (req: Request, res: Response) => {
 
     const member = await MemberService.getByAddress(req.assetPool, req.params.address);
     const erc20 = await ERC20Service.findByPool(req.assetPool);
-    const contract = tokenContract(req.assetPool.network, 'LimitedSupplyToken', erc20.address);
+    const contract = getContractFromName(req.assetPool.network, 'LimitedSupplyToken', erc20.address);
     const balance = Number(fromWei(await contract.methods.balanceOf(member.address).call()));
 
     res.json({ ...member, token: { name: erc20.name, symbol: erc20.symbol, balance } });
