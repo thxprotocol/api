@@ -9,7 +9,7 @@ import AccountProxy from '@/proxies/AccountProxy';
 import DepositService from '@/services/DepositService';
 import PromoCodeService from '@/services/PromoCodeService';
 import ERC20Service from '@/services/ERC20Service';
-import { tokenContract } from '@/util/network';
+import { getContractFromName } from '@/util/network';
 
 export const createDepositValidation = [
     body('call').exists(),
@@ -32,7 +32,7 @@ export default async function CreateDepositController(req: Request, res: Respons
     const account = await AccountProxy.getById(req.user.sub);
     const amount = Number(toWei(String(value)));
     const erc20 = await ERC20Service.findByPool(req.assetPool);
-    const contract = tokenContract(req.assetPool.network, 'LimitedSupplyToken', erc20.address);
+    const contract = getContractFromName(req.assetPool.network, 'LimitedSupplyToken', erc20.address);
 
     // Check balance to ensure throughput
     const balance = await contract.methods.balanceOf(account.address).call();

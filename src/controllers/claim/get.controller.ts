@@ -4,7 +4,7 @@ import { NotFoundError } from '@/util/errors';
 import { TReward } from '@/models/Reward';
 import WithdrawalService from '@/services/WithdrawalService';
 
-export const getReward = async (req: Request, res: Response) => {
+export const ReadClaimController = async (req: Request, res: Response) => {
     const reward = await RewardService.get(req.assetPool, Number(req.params.id));
     if (!reward) throw new NotFoundError();
 
@@ -20,7 +20,6 @@ export const getReward = async (req: Request, res: Response) => {
         withdrawAmount: reward.withdrawAmount,
         withdrawDuration: reward.withdrawDuration,
         withdrawCondition: reward.withdrawCondition,
-        withdrawUnlockDate: reward.withdrawUnlockDate,
         isClaimOnce: reward.isClaimOnce,
         isMembershipRequired: reward.isMembershipRequired,
         poolAddress: req.assetPool.address,

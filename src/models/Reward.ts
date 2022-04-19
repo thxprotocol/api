@@ -36,6 +36,7 @@ export interface IRewardCondition {
 }
 
 export type TReward = {
+    _id?: string;
     id: number;
     poolAddress: string;
     state: number;

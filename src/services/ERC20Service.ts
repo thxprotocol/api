@@ -1,10 +1,9 @@
-import ERC20, { ERC20Document } from '@/models/ERC20';
+import ERC20 from '@/models/ERC20';
 import { toWei, fromWei } from 'web3-utils';
-import { getProvider, tokenContract } from '@/util/network';
+import { getProvider, getContractFromName } from '@/util/network';
 import { ICreateERC20Params } from '@/types/interfaces';
 import TransactionService from './TransactionService';
 import { assertEvent, parseLogs } from '@/util/events';
-import { getContract } from '@/config/contracts';
 import { InternalServerError } from '@/util/errors';
 import { ERC20Type, NetworkProvider } from '@/types/enums';
 import { AssetPoolDocument } from '@/models/AssetPool';
@@ -12,7 +11,7 @@ import { TERC20 } from '@/types/TERC20';
 
 export const create = async (params: ICreateERC20Params) => {
     const { admin } = getProvider(params.network);
-    const tokenFactory = getContract(params.network, 'TokenFactory');
+    const tokenFactory = getContractFromName(params.network, 'TokenFactory');
 
     let fn;
     if (params.name && params.symbol && params.type === ERC20Type.Limited) {
@@ -79,7 +78,7 @@ export const findByPool = async (assetPool: AssetPoolDocument): Promise<TERC20> 
         };
     }
 
-    const contract = tokenContract(assetPool.network, 'LimitedSupplyToken', address);
+    const contract = getContractFromName(assetPool.network, 'LimitedSupplyToken', address);
     const [name, symbol, totalSupplyInWei] = await Promise.all([
         contract.methods.name().call(),
         contract.methods.symbol().call(),
