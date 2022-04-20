@@ -14,6 +14,8 @@ export const ReadClaimController = async (req: Request, res: Response) => {
     });
 
     const result: TReward = {
+        slug: reward.slug,
+        title: reward.title,
         _id: String(reward._id),
         id: reward.id,
         withdrawLimit: reward.withdrawLimit,
