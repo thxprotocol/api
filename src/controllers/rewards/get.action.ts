@@ -14,6 +14,8 @@ export const getRewards = async (req: Request, res: Response) => {
         result.push({
             _id: String(r._id),
             id: rewardId,
+            title: r.title,
+            slug: r.slug,
             poolAddress: req.assetPool.address,
             withdrawLimit: r.withdrawLimit,
             withdrawAmount: r.withdrawAmount,
