@@ -1,18 +1,17 @@
 import { assertEvent, parseLogs } from '@/util/events';
-import { getContractFromAbi, tokenContract } from '@/util/network';
 import { ERC20Type, NetworkProvider } from '@/types/enums';
+import { getContractFromName } from '@/util/network';
 import { AssetPool, AssetPoolDocument } from '@/models/AssetPool';
 import { getProvider } from '@/util/network';
-import { AbiItem, fromWei, toChecksumAddress } from 'web3-utils';
+import { toChecksumAddress } from 'web3-utils';
 import { Membership } from '@/models/Membership';
 import { THXError } from '@/util/errors';
 import TransactionService from './TransactionService';
-import { diamondContracts, getContract, poolFacetAdressesPermutations } from '@/config/contracts';
+import { diamondContracts, poolFacetAdressesPermutations } from '@/config/contracts';
 import { logger } from '@/util/logger';
 import { pick } from '@/util';
 import { diamondSelectors, getDiamondCutForContractFacets, updateDiamondContract } from '@/util/upgrades';
 import { currentVersion } from '@thxnetwork/artifacts';
-import { ERC20Document } from '@/models/ERC20';
 import ERC20Service from './ERC20Service';
 
 export const ADMIN_ROLE = '0x0000000000000000000000000000000000000000000000000000000000000000';
@@ -54,12 +53,12 @@ export default class AssetPoolService {
 
         // Try to get ERC20 from db first so we can determine its type, if not available,
         // construct a contract here
-        let contract = tokenContract(assetPool.network, 'LimitedSupplyToken', tokenAddress);
+        let contract = getContractFromName(assetPool.network, 'LimitedSupplyToken', tokenAddress);
         const erc20 = await ERC20Service.findBy({ network: assetPool.network, address: tokenAddress });
 
         // Add this pool as a minter in case of an UnlimitedSupplyToken
         if (erc20 && erc20.type === ERC20Type.Unlimited) {
-            contract = tokenContract(assetPool.network, 'UnlimitedSupplyToken', tokenAddress);
+            contract = getContractFromName(assetPool.network, 'UnlimitedSupplyToken', tokenAddress);
             await TransactionService.send(
                 tokenAddress,
                 contract.methods.addMinter(assetPool.address),
@@ -85,8 +84,8 @@ export default class AssetPoolService {
 
     static async deploy(sub: string, network: NetworkProvider) {
         const variant = 'defaultPool';
-        const assetPoolFactory = getContract(network, 'AssetPoolFactory');
-        const registryAddress = getContract(network, 'AssetPoolRegistry').options.address;
+        const assetPoolFactory = getContractFromName(network, 'AssetPoolFactory');
+        const registryAddress = getContractFromName(network, 'AssetPoolRegistry').options.address;
         const poolContracts = diamondContracts(network, variant);
         const { receipt } = await TransactionService.send(
             assetPoolFactory.options.address,
