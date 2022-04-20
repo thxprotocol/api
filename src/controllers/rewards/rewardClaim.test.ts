@@ -12,6 +12,9 @@ import { WithdrawalState } from '@/types/enums';
 const user = request.agent(app);
 
 describe('Reward Claim', () => {
+    const title = 'Welcome Package',
+        slug = 'welcome-package';
+
     let adminAccessToken: string,
         userAccessToken: string,
         dashboardAccessToken: string,
@@ -68,6 +71,8 @@ describe('Reward Claim', () => {
         user.post('/v1/rewards/')
             .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
             .send({
+                title,
+                slug,
                 withdrawAmount: rewardWithdrawAmount,
                 withdrawDuration: 0,
                 isClaimOnce: true,
