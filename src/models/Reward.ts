@@ -38,6 +38,8 @@ export interface IRewardCondition {
 export type TReward = {
     _id?: string;
     id: number;
+    title: string;
+    slug: string;
     poolAddress: string;
     state: number;
     isMembershipRequired: boolean;
@@ -65,6 +67,8 @@ export type TRewardPoll = {
 const rewardSchema = new mongoose.Schema(
     {
         id: Number,
+        title: String,
+        slug: String,
         poolAddress: String,
         state: Number,
         isMembershipRequired: Boolean,

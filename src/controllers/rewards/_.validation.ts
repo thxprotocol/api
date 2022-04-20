@@ -2,6 +2,8 @@ import { body, header, param } from 'express-validator';
 
 export const validations = {
     postReward: [
+        body('title').exists().isString(),
+        body('slug').exists().isString(),
         body('withdrawAmount').exists().isNumeric(),
         body('withdrawDuration').exists().isNumeric(),
         body('withdrawLimit').optional().isNumeric(),
