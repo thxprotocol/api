@@ -18,13 +18,6 @@ async function handleEvents(assetPool: AssetPoolType, tx: TransactionDocument, e
     const eventWithdrawPollFinalized = findEvent('WithdrawPollFinalized', events);
     const eventWithdrawn = findEvent('Withdrawn', events);
 
-    const isPoolAction =
-        eventDepositted ||
-        eventRoleGranted ||
-        eventWithdrawPollCreated ||
-        eventWithdrawPollFinalized ||
-        eventRoleGranted;
-
     if (eventDepositted) {
         const deposit = await Deposit.findOne({ transactions: String(tx._id) });
         deposit.transactions.push(String(tx._id));
@@ -52,12 +45,6 @@ async function handleEvents(assetPool: AssetPoolType, tx: TransactionDocument, e
             { transactions: String(tx._id) },
             { state: WithdrawalState.Withdrawn, failReason: '' },
         );
-    }
-
-    if (isPoolAction) {
-        const filter = { address: tx.to };
-        const update = { lastTransactionTime: new Date().getTime() };
-        await AssetPool.findOneAndUpdate(filter, update);
     }
 }
 
@@ -107,6 +94,7 @@ export async function jobProcessTransactions() {
                     await handleError(tx, failReason);
                 }
                 if (result.args.success) {
+                    await AssetPool.findOneAndUpdate({ address: tx.to }, { lastTransaction: Date.now() });
                     await handleEvents(assetPool, tx, events);
                 }
             }

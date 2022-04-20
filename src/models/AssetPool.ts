@@ -11,7 +11,7 @@ export type AssetPoolType = {
     clientId: string;
     blockNumber: number;
     transactionHash: string;
-    lastTransactionTime?: number;
+    lastTransactionAt?: number;
     bypassPolls: boolean;
     version?: string;
     variant?: string;
@@ -27,7 +27,7 @@ const assetPoolSchema = new mongoose.Schema(
         clientId: String,
         blockNumber: Number,
         transactionHash: String,
-        lastTransactionTime: Date,
+        lastTransactionAt: Date,
         bypassPolls: Boolean,
         version: String,
         variant: String,
@@ -36,7 +36,6 @@ const assetPoolSchema = new mongoose.Schema(
 );
 
 assetPoolSchema.virtual('contract').get(function () {
-    // Later we can add the version of the pool as well.
     return getContractFromAbi(this.network, getDiamondAbi(this.network, this.variant || 'defaultPool'), this.address);
 });
 

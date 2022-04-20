@@ -3,6 +3,8 @@ import { Transaction } from '@/models/Transaction';
 import { getEstimatesFromOracle, getProvider, MaxFeePerGasExceededError } from '@/util/network';
 import { NetworkProvider, TransactionState, TransactionType } from '@/types/enums';
 import { MAX_FEE_PER_GAS, MINIMUM_GAS_LIMIT, PRIVATE_KEY } from '@/config/secrets';
+import { AssetPool } from '@/models/AssetPool';
+import AssetPoolService from './AssetPoolService';
 
 function getById(id: string) {
     return Transaction.findById(id);
@@ -63,6 +65,11 @@ async function send(to: string, fn: any, npid: NetworkProvider, gasLimit?: numbe
         tx.transactionHash = receipt.transactionHash;
         tx.state = TransactionState.Mined;
         tx = await tx.save();
+
+        // Update lastTransactionAt value for the pool if the address is a pool
+        if (await AssetPoolService.getByAddress(tx.to)) {
+            await AssetPool.findOneAndUpdate({ address: tx.to }, { lastTransactionAt: Date.now() });
+        }
     }
 
     return { tx, receipt };
