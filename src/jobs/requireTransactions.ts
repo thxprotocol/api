@@ -94,7 +94,7 @@ export async function jobProcessTransactions() {
                     await handleError(tx, failReason);
                 }
                 if (result.args.success) {
-                    await AssetPool.findOneAndUpdate({ address: tx.to }, { lastTransaction: Date.now() });
+                    await AssetPool.findOneAndUpdate({ address: tx.to }, { lastTransactionAt: Date.now() });
                     await handleEvents(assetPool, tx, events);
                 }
             }
