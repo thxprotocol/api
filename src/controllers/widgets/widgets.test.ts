@@ -17,6 +17,9 @@ import { getContract } from '@/config/contracts';
 const user = request.agent(app);
 
 describe('Widgets', () => {
+    const title = 'Welcome Package',
+        slug = 'welcome-package';
+
     let poolAddress: string, dashboardAccessToken: string, testToken: Contract, clientId: string;
 
     beforeAll(async () => {
@@ -50,6 +53,8 @@ describe('Widgets', () => {
                 .post('/v1/rewards/')
                 .set({ AssetPool: poolAddress, Authorization: dashboardAccessToken })
                 .send({
+                    title,
+                    slug,
                     withdrawAmount: rewardWithdrawAmount,
                     withdrawDuration: rewardWithdrawDuration,
                 })

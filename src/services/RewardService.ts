@@ -78,6 +78,8 @@ export default class RewardService {
 
     static async create(
         assetPool: AssetPoolType,
+        title: string,
+        slug: string,
         withdrawLimit: number,
         withdrawAmount: number,
         withdrawDuration: number,
@@ -90,6 +92,8 @@ export default class RewardService {
         const id = (await this.findByPoolAddress(assetPool)).length + 1;
         return await Reward.create({
             id,
+            title,
+            slug,
             poolAddress: assetPool.address,
             withdrawAmount: String(withdrawAmount),
             withdrawLimit,
