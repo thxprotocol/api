@@ -13,6 +13,7 @@ export const postReward = async (req: Request, res: Response) => {
         req.body.isMembershipRequired,
         req.body.isClaimOnce,
         req.body.withdrawCondition,
+        req.body.expiryDate,
     );
     const result: TReward = {
         id: reward.id,
@@ -26,6 +27,7 @@ export const postReward = async (req: Request, res: Response) => {
         withdrawDuration: reward.withdrawDuration,
         withdrawCondition: reward.withdrawCondition,
         withdrawLimit: reward.withdrawLimit,
+        expiryDate: reward.expiryDate,
     };
 
     res.status(201).json(result);

@@ -42,6 +42,7 @@ export type TReward = {
     slug: string;
     poolAddress: string;
     state: number;
+    expiryDate: number;
     isMembershipRequired: boolean;
     isClaimOnce: boolean;
     withdrawLimit: number;
@@ -69,6 +70,7 @@ const rewardSchema = new mongoose.Schema(
         id: Number,
         title: String,
         slug: String,
+        expiryDate: Date,
         poolAddress: String,
         state: Number,
         isMembershipRequired: Boolean,
