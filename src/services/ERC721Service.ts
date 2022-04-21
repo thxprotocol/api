@@ -1,11 +1,12 @@
 import { ERC721, ERC721Document } from '@/models/ERC721';
 import { ERC721Metadata, ERC721MetadataDocument } from '@/models/ERC721Metadata';
 import { TERC721 } from '@/types/TERC721';
-import { paginatedResults } from '@/util/pagination';
 import TransactionService from './TransactionService';
 import { getContractFromName, getProvider } from '@/util/network';
 import { API_URL } from '@/config/secrets';
 import { assertEvent, parseLogs } from '@/util/events';
+import { AssetPoolDocument } from '@/models/AssetPool';
+import { NetworkProvider } from '@/types/enums';
 
 async function create(data: TERC721): Promise<ERC721Document> {
     const { admin } = getProvider(data.network);
@@ -35,15 +36,16 @@ export async function findBySub(sub: string): Promise<ERC721Document[]> {
 }
 
 export async function mint(
+    assetPool: AssetPoolDocument,
     erc721: ERC721Document,
     beneficiary: string,
     metadata: any,
 ): Promise<ERC721MetadataDocument> {
     const erc721metadata = await ERC721Metadata.create({ erc721: String(erc721._id), metadata });
     const { receipt } = await TransactionService.send(
-        erc721.address,
-        erc721.contract.methods.mint(beneficiary, erc721.baseURL),
-        erc721.network,
+        assetPool.address,
+        assetPool.contract.methods.mintFor(beneficiary, erc721.baseURL + String(erc721metadata._id)),
+        assetPool.network,
     );
     const event = assertEvent('Transfer', parseLogs(erc721.contract.options.jsonInterface, receipt.logs));
 
@@ -52,8 +54,7 @@ export async function mint(
     return await erc721metadata.save();
 }
 
-export async function getMetadata(erc721: ERC721Document, tokenId: number) {
-    const entry = await ERC721Metadata.findOne({ tokenId, erc721: String(erc721._id) });
+export async function parseMetadata(entry: ERC721MetadataDocument) {
     const metadata: { [key: string]: string } = {};
 
     for (const { key, value } of entry.metadata) {
@@ -63,9 +64,12 @@ export async function getMetadata(erc721: ERC721Document, tokenId: number) {
     return metadata;
 }
 
-// page 1 and limit 10 are the default pagination start settings
-function findByQuery(query: { poolAddress: string }, page = 1, limit = 10) {
-    return paginatedResults(ERC721, page, limit, query);
+async function findMetadataById(id: string) {
+    return await ERC721Metadata.findById(id);
 }
 
-export default { create, findById, mint, findBySub, findByQuery, getMetadata };
+async function findByQuery(query: { address: string; network: NetworkProvider }) {
+    return await ERC721.findOne(query);
+}
+
+export default { create, findById, mint, findBySub, findMetadataById, findByQuery, parseMetadata };

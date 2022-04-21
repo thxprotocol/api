@@ -11,13 +11,14 @@ import { diamondContracts, poolFacetAdressesPermutations } from '@/config/contra
 import { logger } from '@/util/logger';
 import { pick } from '@/util';
 import { diamondSelectors, getDiamondCutForContractFacets, updateDiamondContract } from '@/util/upgrades';
-import { currentVersion } from '@thxnetwork/artifacts';
+import { currentVersion, DiamondVariant } from '@thxnetwork/artifacts';
 import ERC20Service from './ERC20Service';
+import { ERC721Document } from '@/models/ERC721';
 
 export const ADMIN_ROLE = '0x0000000000000000000000000000000000000000000000000000000000000000';
 class NoDataAtAddressError extends THXError {
     constructor(address: string) {
-        super(`No data found at ERC20 address ${address}`);
+        super(`No data found at address ${address}`);
     }
 }
 
@@ -37,7 +38,7 @@ export default class AssetPoolService {
         return AssetPool.findOne({ address });
     }
 
-    static async addPoolToken(assetPool: AssetPoolDocument, tokenAddress: string) {
+    static async setERC20(assetPool: AssetPoolDocument, tokenAddress: string) {
         const { web3, admin } = getProvider(assetPool.network);
         const code = await web3.eth.getCode(tokenAddress);
 
@@ -82,22 +83,41 @@ export default class AssetPoolService {
         }
     }
 
-    static async deploy(sub: string, network: NetworkProvider) {
-        const variant = 'defaultPool';
+    static async setERC721(assetPool: AssetPoolDocument, erc721: ERC721Document) {
+        const { web3, admin } = getProvider(assetPool.network);
+        const code = await web3.eth.getCode(erc721.address);
+
+        if (code === '0x') throw new NoDataAtAddressError(erc721.address);
+
+        await TransactionService.send(
+            assetPool.contract.options.address,
+            assetPool.contract.methods.setERC721(erc721.address),
+            assetPool.network,
+        );
+
+        await TransactionService.send(
+            erc721.contract.options.address,
+            erc721.contract.methods.transferOwnership(assetPool.address),
+            erc721.network,
+        );
+    }
+
+    static async deploy(sub: string, network: NetworkProvider, variant: DiamondVariant = 'defaultPool') {
         const assetPoolFactory = getContractFromName(network, 'AssetPoolFactory');
         const registryAddress = getContractFromName(network, 'AssetPoolRegistry').options.address;
         const poolContracts = diamondContracts(network, variant);
-        const { receipt } = await TransactionService.send(
-            assetPoolFactory.options.address,
-            assetPoolFactory.methods.deployAssetPool(
+
+        let deployFn;
+        if (variant === 'defaultPool')
+            deployFn = assetPoolFactory.methods.deployAssetPool(
                 getDiamondCutForContractFacets(poolContracts, []),
                 registryAddress,
-            ),
-            network,
-        );
+            );
+        if (variant === 'nftPool')
+            deployFn = assetPoolFactory.methods.deployNFTPool(getDiamondCutForContractFacets(poolContracts, []));
 
+        const { receipt } = await TransactionService.send(assetPoolFactory.options.address, deployFn, network);
         const event = assertEvent('AssetPoolDeployed', parseLogs(assetPoolFactory.options.jsonInterface, receipt.logs));
-
         const assetPool = new AssetPool({
             sub,
             address: event.args.assetPool,

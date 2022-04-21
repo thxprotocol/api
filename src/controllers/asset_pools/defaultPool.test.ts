@@ -17,7 +17,7 @@ import { afterAllCallback, beforeAllCallback } from '@/util/jest/config';
 
 const user = request.agent(app);
 
-describe('Happy Flow', () => {
+describe('Default Pool', () => {
     const title = 'Welcome Package',
         slug = 'welcome-package';
 
