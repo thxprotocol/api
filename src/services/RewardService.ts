@@ -51,6 +51,13 @@ export default class RewardService {
             }
         }
 
+        if (reward.expiryDate) {
+            const expiryTime = new Date(reward.expiryDate).getTime();
+            const currentTime = new Date().getTime();
+            const isRewardExpired = currentTime < expiryTime;
+            if (isRewardExpired) return { error: 'This reward is expired' };
+        }
+
         const withdrawal = await WithdrawalService.hasClaimedOnce(assetPool.address, account.id, reward.id);
         // Can only claim this reward once and a withdrawal already exists
         if (reward.isClaimOnce && withdrawal) {
