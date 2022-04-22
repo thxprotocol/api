@@ -68,7 +68,7 @@ async function findMetadataById(id: string) {
     return await ERC721Metadata.findById(id);
 }
 
-async function findByQuery(query: { address: string; network: NetworkProvider }) {
+async function findByQuery(query: { poolAddress?: string; address?: string; network?: NetworkProvider }) {
     return await ERC721.findOne(query);
 }
 
