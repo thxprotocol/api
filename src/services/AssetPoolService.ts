@@ -84,7 +84,7 @@ export default class AssetPoolService {
     }
 
     static async setERC721(assetPool: AssetPoolDocument, erc721: ERC721Document) {
-        const { web3, admin } = getProvider(assetPool.network);
+        const { web3 } = getProvider(assetPool.network);
         const code = await web3.eth.getCode(erc721.address);
 
         if (code === '0x') throw new NoDataAtAddressError(erc721.address);
