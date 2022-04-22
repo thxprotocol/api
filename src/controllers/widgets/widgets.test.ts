@@ -4,6 +4,7 @@ import { NetworkProvider } from '@/types/enums';
 import {
     rewardWithdrawAmount,
     rewardWithdrawDuration,
+    rewardWithdrawUnlockDate,
     rewardId,
     requestUris,
     redirectUris,
@@ -52,6 +53,7 @@ describe('Widgets', () => {
                 .send({
                     withdrawAmount: rewardWithdrawAmount,
                     withdrawDuration: rewardWithdrawDuration,
+                    withdrawUnlockDate: rewardWithdrawUnlockDate
                 })
                 .expect(201);
         });

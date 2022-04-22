@@ -6,6 +6,7 @@ import { timeTravel, signMethod, createWallet } from '@/util/jest/network';
 import {
     rewardWithdrawAmount,
     rewardWithdrawDuration,
+    rewardWithdrawUnlockDate,
     userWalletPrivateKey2,
     sub2,
     tokenName,
@@ -95,6 +96,7 @@ describe('Happy Flow', () => {
                 .send({
                     withdrawAmount: rewardWithdrawAmount,
                     withdrawDuration: rewardWithdrawDuration,
+                    rewardWithdrawUnlockDate: rewardWithdrawUnlockDate
                 })
                 .expect(async (res: request.Response) => {
                     expect(res.body.id).toEqual(1);
@@ -187,6 +189,7 @@ describe('Happy Flow', () => {
                     const withdrawal = res.body.results[index];
                     expect(withdrawal.state).toEqual(0);
                     expect(withdrawal.amount).toEqual(rewardWithdrawAmount);
+                    expect(withdrawal.withdrawUnlockDate).toEqual(rewardWithdrawUnlockDate)
                 })
                 .expect(200, done);
         });

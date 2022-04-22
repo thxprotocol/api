@@ -42,6 +42,7 @@ export async function postRewardClaim(req: Request, res: Response) {
         req.user.sub,
         reward.withdrawAmount,
         WithdrawalState.Pending,
+        reward.withdrawUnlockDate,
         reward.id,
     );
 

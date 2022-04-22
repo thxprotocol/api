@@ -39,12 +39,6 @@ export default class RewardService {
             return { error: 'This reward already disabled by it owner' };
         }
 
-        // Can not claim if reward has an unlockDate and the Now is not greather than unlockDate
-        // (included pending withdrawars)
-        if (Date.now() < reward.withdrawUnlockDate.getTime()) {
-            return { error: 'This reward is not yet withdrawable' };
-        }
-
         // Can not claim if reward already extends the claim limit
         // (included pending withdrawars)
         if (reward.withdrawLimit > 0) {
@@ -89,13 +83,13 @@ export default class RewardService {
         withdrawDuration: number,
         isMembershipRequired: boolean,
         isClaimOnce: boolean,
-        withdrawCondition?: IRewardCondition,
-        withdrawUnlockDate?: Date,
+        withdrawUnlockDate: Date,
+        withdrawCondition?: IRewardCondition
     ) {
         // Calculates an incrementing id as was done in Solidity before.
         // TODO Add migration to remove id and start using default collection _id.
         const id = (await this.findByPoolAddress(assetPool)).length + 1;
-        return await Reward.create({
+        const reward =  await Reward.create({
             id,
             poolAddress: assetPool.address,
             withdrawAmount: String(withdrawAmount),
@@ -107,6 +101,7 @@ export default class RewardService {
             isMembershipRequired,
             isClaimOnce,
         });
+        return reward;
     }
 
     static update(reward: RewardDocument, updates: IRewardUpdates) {

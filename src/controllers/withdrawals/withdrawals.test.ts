@@ -1,7 +1,7 @@
 import request from 'supertest';
 import app from '@/app';
 import { ERC20Type, NetworkProvider } from '@/types/enums';
-import { rewardWithdrawAmount, sub2, tokenName, tokenSymbol, userWalletPrivateKey2 } from '@/util/jest/constants';
+import { rewardWithdrawAmount, rewardWithdrawUnlockDate, sub2, tokenName, tokenSymbol, userWalletPrivateKey2 } from '@/util/jest/constants';
 import { isAddress } from 'web3-utils';
 import { Account } from 'web3-core';
 import { getToken } from '@/util/jest/jwt';
@@ -17,7 +17,6 @@ describe('Propose Withdrawal', () => {
         withdrawalDocumentId: number,
         tokenAddress: string,
         userWallet: Account;
-
     beforeAll(async () => {
         await beforeAllCallback();
 
@@ -84,7 +83,7 @@ describe('Propose Withdrawal', () => {
             user.post('/v1/withdrawals')
                 .send({
                     member: userWallet.address,
-                    amount: rewardWithdrawAmount,
+                    amount: rewardWithdrawAmount
                 })
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
                 .expect(({ body }: request.Response) => {
@@ -131,7 +130,7 @@ describe('Propose Withdrawal', () => {
     describe('GET /asset_pools/:address (totalSupply)', () => {
         it('HTTP 200 state OK', (done) => {
             user.get('/v1/asset_pools/' + poolAddress)
-                .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
+                .set({ AssetPool: poolAddress, Authorization: adminAccessToken })   
                 .expect((res: request.Response) => {
                     expect(res.body.token.poolBalance).toBe(0);
                     expect(res.body.token.name).toBe(tokenName);

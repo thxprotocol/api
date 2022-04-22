@@ -3,7 +3,7 @@ import app from '@/app';
 import { Account } from 'web3-core';
 import { ERC20Type, NetworkProvider } from '../../types/enums';
 import { createWallet, signMethod } from '@/util/jest/network';
-import { rewardWithdrawAmount, tokenName, tokenSymbol, userWalletPrivateKey2 } from '@/util/jest/constants';
+import { rewardWithdrawAmount, rewardWithdrawUnlockDate, tokenName, tokenSymbol, userWalletPrivateKey2 } from '@/util/jest/constants';
 import { isAddress } from 'web3-utils';
 import { getToken } from '@/util/jest/jwt';
 import { afterAllCallback, beforeAllCallback } from '@/util/jest/config';
@@ -69,6 +69,7 @@ describe('Reward Claim', () => {
             .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
             .send({
                 withdrawAmount: rewardWithdrawAmount,
+                withdrawUnlockDate: rewardWithdrawUnlockDate,
                 withdrawDuration: 0,
                 isClaimOnce: true,
                 isMembershipRequired: false,
