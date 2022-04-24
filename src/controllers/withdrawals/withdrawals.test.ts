@@ -94,6 +94,8 @@ describe('Propose Withdrawal', () => {
                     expect(body.state).toEqual(0);
                     expect(body.createdAt).toBeDefined();
                     expect(body.withdrawalId).toEqual(1);
+                    expect(body.unlockDate).not.toBe(undefined)
+                    
                     withdrawalDocumentId = body.id;
                 })
                 .expect(201, done);

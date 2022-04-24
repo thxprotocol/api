@@ -189,7 +189,7 @@ describe('Happy Flow', () => {
                     const withdrawal = res.body.results[index];
                     expect(withdrawal.state).toEqual(0);
                     expect(withdrawal.amount).toEqual(rewardWithdrawAmount);
-                    expect(withdrawal.withdrawUnlockDate).toEqual(rewardWithdrawUnlockDate)
+                    expect(withdrawal.unlockDate).not.toBe(undefined)
                 })
                 .expect(200, done);
         });
@@ -209,6 +209,7 @@ describe('Happy Flow', () => {
                     expect(body.state).toEqual(0);
                     expect(body.createdAt).toBeDefined();
                     expect(body.withdrawalId).toEqual(2);
+                    expect(body.unlockDate).not.toBe(undefined)
 
                     withdrawDocumentId = body.id;
                     withdrawPollID = body.withdrawalId;
@@ -250,6 +251,7 @@ describe('Happy Flow', () => {
                     expect(body.sub).toEqual(sub2);
                     expect(body.withdrawalId).toEqual(2);
                     expect(body.state).toEqual(1);
+                    expect(body.unlockDate).not.toBe(undefined)
                 })
                 .expect(200, done);
         });

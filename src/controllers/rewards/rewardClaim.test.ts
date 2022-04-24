@@ -69,10 +69,10 @@ describe('Reward Claim', () => {
             .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
             .send({
                 withdrawAmount: rewardWithdrawAmount,
-                withdrawUnlockDate: rewardWithdrawUnlockDate,
                 withdrawDuration: 0,
+                withdrawUnlockDate: rewardWithdrawUnlockDate,
                 isClaimOnce: true,
-                isMembershipRequired: false,
+                isMembershipRequired: false
             })
             .expect((res: request.Response) => {
                 expect(res.body.id).toEqual(1);

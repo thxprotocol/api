@@ -22,6 +22,7 @@ export const getWithdrawals = async (req: Request, res: Response) => {
             rewardId: w.rewardId,
             beneficiary: w.beneficiary,
             amount: w.amount,
+            unlockDate: w.unlockDate,
             state: w.state,
             poll: w.poll,
             transactions: w.transactions,
