@@ -85,6 +85,7 @@ describe('Propose Withdrawal', () => {
                     member: userWallet.address,
                     amount: rewardWithdrawAmount
                 })
+
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
                 .expect(({ body }: request.Response) => {
                     expect(body.id).toBeDefined();
@@ -93,13 +94,12 @@ describe('Propose Withdrawal', () => {
                     expect(body.state).toEqual(0);
                     expect(body.createdAt).toBeDefined();
                     expect(body.withdrawalId).toEqual(1);
-
                     withdrawalDocumentId = body.id;
                 })
                 .expect(201, done);
         });
     });
-
+    
     describe('POST /withdrawals/:id/withdraw', () => {
         it('HTTP 200 and 0 balance', (done) => {
             user.get('/v1/members/' + userWallet.address)
@@ -140,4 +140,5 @@ describe('Propose Withdrawal', () => {
                 .expect(200, done);
         });
     });
+    
 });

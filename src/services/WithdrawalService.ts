@@ -74,7 +74,7 @@ export default class WithdrawalService {
 
     static async proposeWithdraw(assetPool: AssetPoolType, withdrawal: WithdrawalDocument, account: IAccount) {
         const amountInWei = toWei(String(withdrawal.amount));
-        const unlockDateTmestamp = withdrawal.unlockDate.getTime();
+        const unlockDateTmestamp = withdrawal.unlockDate.getTime() / 1000;
         
         if (ITX_ACTIVE) {
             const tx = await InfuraService.schedule(
@@ -101,6 +101,7 @@ export default class WithdrawalService {
                     await MemberService.addExistingMember(assetPool, roleGranted.args.account);
                 }
 
+                withdrawal.withdrawalId = event.args.id;
                 withdrawal.transactions.push(String(tx._id));
                 
                 return await withdrawal.save();
