@@ -53,9 +53,9 @@ export default class RewardService {
 
         if (reward.expiryDate) {
             const expiryTime = new Date(reward.expiryDate).getTime();
-            const currentTime = new Date().getTime();
-            const isRewardExpired = currentTime < expiryTime;
-            if (isRewardExpired) return { error: 'This reward is expired' };
+            const currentTime = Date.now();
+
+            if (currentTime < expiryTime) return { error: 'This reward URL has expired' };
         }
 
         const withdrawal = await WithdrawalService.hasClaimedOnce(assetPool.address, account.id, reward.id);

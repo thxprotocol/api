@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import WithdrawalService from '@/services/WithdrawalService';
-import { NotFoundError } from '@/util/errors';
+import { ForbiddenError, NotFoundError } from '@/util/errors';
 import { TWithdrawal } from '@/types/TWithdrawal';
 import { agenda, eventNameRequireTransactions } from '@/util/agenda';
 
@@ -10,8 +10,8 @@ export const postPollFinalize = async (req: Request, res: Response) => {
 
     // Can not withdraw if reward has an unlockDate and the Now is not greather than unlockDate
     // (included pending withdrawars)
-    if (Date.now() < withdrawal.unlockDate.getTime()) {
-        return { error: 'Not yet withdrawable' };
+    if (withdrawal.unlockDate && Date.now() < withdrawal.unlockDate.getTime()) {
+        throw new ForbiddenError('This withdrawal is locked.');
     }
 
     const w = await WithdrawalService.withdraw(req.assetPool, withdrawal);
