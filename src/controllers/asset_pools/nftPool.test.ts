@@ -89,9 +89,9 @@ describe('NFT Pool', () => {
         });
     });
 
-    describe('GET /erc721/:id/metadata/:metadataId', () => {
+    describe('GET /metadata/:metadataId', () => {
         it('should return metadata for metadataId', (done) => {
-            user.get('/v1/erc721/' + erc721ID + '/metadata/' + metadataId)
+            user.get('/v1/metadata/' + metadataId)
                 .set('Authorization', dashboardAccessToken)
                 .send()
                 .expect(({ body }: request.Response) => {
