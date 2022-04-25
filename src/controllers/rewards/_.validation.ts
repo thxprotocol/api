@@ -8,6 +8,7 @@ export const validations = {
         body('withdrawAmount').exists().isNumeric(),
         body('withdrawDuration').exists().isNumeric(),
         body('withdrawLimit').optional().isNumeric(),
+        body('withdrawUnlockDate').isDate().optional({ nullable: true }),
         body('withdrawCondition.channelType').optional().isNumeric(),
         body('withdrawCondition.channelAction').optional().isNumeric(),
         body('withdrawCondition.channelItem').optional().isString(),
@@ -17,7 +18,7 @@ export const validations = {
     patchReward: [
         param('id').exists().isNumeric(),
         body('withdrawAmount').optional().isNumeric(),
-        body('withdrawDuration').optional().isNumeric(),
+        body('withdrawDuration').optional().isNumeric()
     ],
     postRewardClaim: [param('id').exists().isNumeric()],
     postRewardClaimFor: [param('id').exists(), body('member').exists()],

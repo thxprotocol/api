@@ -30,6 +30,7 @@ export const postRewardClaimFor = async (req: Request, res: Response) => {
         // Accounts with stored (encrypted) privateKeys are custodial and should not be processed before
         // they have logged into their wallet to update their account with a new wallet address.
         account.privateKey ? WithdrawalState.Deferred : WithdrawalState.Pending,
+        reward.withdrawUnlockDate,
         rewardId,
     );
 
@@ -45,6 +46,7 @@ export const postRewardClaimFor = async (req: Request, res: Response) => {
         withdrawalId: w.withdrawalId,
         beneficiary: w.beneficiary,
         amount: w.amount,
+        unlockDate: w.unlockDate,
         state: w.state,
         transactions: w.transactions,
         createdAt: w.createdAt,

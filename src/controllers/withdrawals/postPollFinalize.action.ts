@@ -7,6 +7,13 @@ import { agenda, eventNameRequireTransactions } from '@/util/agenda';
 export const postPollFinalize = async (req: Request, res: Response) => {
     const withdrawal = await WithdrawalService.getById(req.params.id);
     if (!withdrawal) throw new NotFoundError('Withdrawal not found');
+
+    // Can not withdraw if reward has an unlockDate and the Now is not greather than unlockDate
+    // (included pending withdrawars)
+    if (Date.now() < withdrawal.unlockDate.getTime()) {
+        return { error: 'Not yet withdrawable' };
+    }
+
     const w = await WithdrawalService.withdraw(req.assetPool, withdrawal);
 
     agenda.now(eventNameRequireTransactions, {});
@@ -21,6 +28,7 @@ export const postPollFinalize = async (req: Request, res: Response) => {
         rewardId: w.rewardId,
         beneficiary: w.beneficiary,
         amount: w.amount,
+        unlockDate: w.unlockDate,
         state: w.state,
         transactions: w.transactions,
         createdAt: w.createdAt,

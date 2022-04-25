@@ -79,9 +79,10 @@ export const getWithdrawal = async (req: Request, res: Response) => {
 
     const result: TWithdrawal = {
         id: String(withdrawal._id),
-        type: withdrawal.type,
+        type: withdrawal.type, 
         sub: withdrawal.sub,
         beneficiary: withdrawal.beneficiary,
+        unlockDate: withdrawal.unlockDate,
         poolAddress: req.assetPool.address,
         withdrawalId: withdrawal.withdrawalId,
         state: withdrawal.state,
