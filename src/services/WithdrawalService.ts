@@ -48,6 +48,7 @@ export default class WithdrawalService {
         sub: string,
         amount: number,
         state = WithdrawalState.Pending,
+        unlockDate: Date,
         rewardId?: number,
     ) {
         return Withdrawal.create({
@@ -57,6 +58,7 @@ export default class WithdrawalService {
             poolAddress: assetPool.address,
             state,
             rewardId,
+            unlockDate,
             transactions: [],
         });
     }
@@ -72,12 +74,13 @@ export default class WithdrawalService {
 
     static async proposeWithdraw(assetPool: AssetPoolType, withdrawal: WithdrawalDocument, account: IAccount) {
         const amountInWei = toWei(String(withdrawal.amount));
-
+        const unlockDateTmestamp = withdrawal.unlockDate.getTime() / 1000;
+        
         if (ITX_ACTIVE) {
             const tx = await InfuraService.schedule(
                 assetPool.address,
                 'proposeWithdraw',
-                [amountInWei, account.address],
+                [amountInWei, account.address, unlockDateTmestamp],
                 assetPool.network,
             );
             withdrawal.transactions.push(String(tx._id));
@@ -86,10 +89,10 @@ export default class WithdrawalService {
             try {
                 const { tx, receipt } = await TransactionService.send(
                     assetPool.address,
-                    assetPool.contract.methods.proposeWithdraw(amountInWei, account.address),
+                    assetPool.contract.methods.proposeWithdraw(amountInWei, account.address, unlockDateTmestamp),
                     assetPool.network,
                 );
-
+                
                 const events = parseLogs(getDiamondAbi(assetPool.network, 'defaultPool'), receipt.logs);
                 const event = assertEvent('WithdrawPollCreated', events);
                 const roleGranted = findEvent('RoleGranted', events);
@@ -100,7 +103,7 @@ export default class WithdrawalService {
 
                 withdrawal.withdrawalId = event.args.id;
                 withdrawal.transactions.push(String(tx._id));
-
+                
                 return await withdrawal.save();
             } catch (error) {
                 withdrawal.updateOne({ failReason: error.message });
@@ -110,6 +113,7 @@ export default class WithdrawalService {
     }
 
     static async withdraw(assetPool: AssetPoolType, withdrawal: WithdrawalDocument) {
+        
         if (ITX_ACTIVE) {
             const tx = await InfuraService.schedule(
                 assetPool.address,
@@ -119,7 +123,7 @@ export default class WithdrawalService {
             );
 
             withdrawal.transactions.push(String(tx._id));
-
+           
             return await withdrawal.save();
         } else {
             try {

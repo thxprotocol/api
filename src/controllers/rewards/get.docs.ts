@@ -29,6 +29,9 @@
  *                   withdrawDuration:
  *                     type: number
  *                     description: Current duration of the withdraw poll
+ *                   withdrawUnlockDate:
+ *                     type: Date
+ *                     description: Date after which the withdraw will be available
  *                   state:
  *                     type: number
  *                     description: Current state of the reward [Disabled, Enabled]

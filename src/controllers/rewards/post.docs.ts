@@ -19,6 +19,10 @@
  *         in: body
  *         required: true
  *         type: integer
+ *       - name: withdrawUnlockDate
+ *         in: body
+ *         required: false
+ *         type: Date
  *     responses:
  *       '200':
  *          description: OK

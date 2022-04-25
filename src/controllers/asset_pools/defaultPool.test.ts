@@ -6,6 +6,7 @@ import { timeTravel, signMethod, createWallet } from '@/util/jest/network';
 import {
     rewardWithdrawAmount,
     rewardWithdrawDuration,
+    rewardWithdrawUnlockDate,
     userWalletPrivateKey2,
     sub2,
     tokenName,
@@ -100,6 +101,7 @@ describe('Default Pool', () => {
                     slug,
                     withdrawAmount: rewardWithdrawAmount,
                     withdrawDuration: rewardWithdrawDuration,
+                    rewardWithdrawUnlockDate: rewardWithdrawUnlockDate
                 })
                 .expect(async (res: request.Response) => {
                     expect(res.body.id).toEqual(1);
@@ -194,6 +196,7 @@ describe('Default Pool', () => {
                     const withdrawal = res.body.results[index];
                     expect(withdrawal.state).toEqual(0);
                     expect(withdrawal.amount).toEqual(rewardWithdrawAmount);
+                    expect(withdrawal.unlockDate).not.toBe(undefined)
                 })
                 .expect(200, done);
         });
@@ -213,6 +216,7 @@ describe('Default Pool', () => {
                     expect(body.state).toEqual(0);
                     expect(body.createdAt).toBeDefined();
                     expect(body.withdrawalId).toEqual(2);
+                    expect(body.unlockDate).not.toBe(undefined)
 
                     withdrawDocumentId = body.id;
                     withdrawPollID = body.withdrawalId;
@@ -254,6 +258,7 @@ describe('Default Pool', () => {
                     expect(body.sub).toEqual(sub2);
                     expect(body.withdrawalId).toEqual(2);
                     expect(body.state).toEqual(1);
+                    expect(body.unlockDate).not.toBe(undefined)
                 })
                 .expect(200, done);
         });

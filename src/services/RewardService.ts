@@ -85,12 +85,13 @@ export default class RewardService {
         withdrawDuration: number,
         isMembershipRequired: boolean,
         isClaimOnce: boolean,
-        withdrawCondition?: IRewardCondition,
+        withdrawUnlockDate: Date,
+        withdrawCondition?: IRewardCondition
     ) {
         // Calculates an incrementing id as was done in Solidity before.
         // TODO Add migration to remove id and start using default collection _id.
         const id = (await this.findByPoolAddress(assetPool)).length + 1;
-        return await Reward.create({
+        const reward =  await Reward.create({
             id,
             title,
             slug,
@@ -99,10 +100,12 @@ export default class RewardService {
             withdrawLimit,
             withdrawDuration,
             withdrawCondition,
+            withdrawUnlockDate,
             state: RewardState.Enabled,
             isMembershipRequired,
             isClaimOnce,
         });
+        return reward;
     }
 
     static update(reward: RewardDocument, updates: IRewardUpdates) {

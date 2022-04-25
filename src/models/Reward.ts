@@ -48,6 +48,7 @@ export type TReward = {
     withdrawAmount: number;
     withdrawDuration: number;
     withdrawCondition: IRewardCondition;
+    withdrawUnlockDate: Date,
     progress?: number;
 };
 
@@ -57,6 +58,7 @@ export type TRewardPoll = {
     id: number;
     withdrawAmount: number;
     withdrawDuration: number;
+    withdrawUnlockDate: Date;
     startTime: number;
     endTime: number;
     yesCounter: number;
@@ -81,6 +83,7 @@ const rewardSchema = new mongoose.Schema(
             channelAction: Number,
             channelItem: String,
         },
+        withdrawUnlockDate: Date,
         pollId: Number,
     },
     { timestamps: true },

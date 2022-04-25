@@ -9,6 +9,7 @@ export type TWithdrawal = {
     beneficiary: string; // TODO Should be deprecated after sub was added
     transactions: string[];
     amount: number;
+    unlockDate: Date;
     rewardId?: number;
     withdrawalId?: number;
     failReason?: string;
