@@ -19,6 +19,9 @@ import { afterAllCallback, beforeAllCallback } from '@/util/jest/config';
 const user = request.agent(app);
 
 describe('Happy Flow', () => {
+    const title = 'Welcome Package',
+        slug = 'welcome-package';
+
     let adminAccessToken: string,
         userAccessToken: string,
         dashboardAccessToken: string,
@@ -94,6 +97,8 @@ describe('Happy Flow', () => {
             user.post('/v1/rewards/')
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
                 .send({
+                    title,
+                    slug,
                     withdrawAmount: rewardWithdrawAmount,
                     withdrawDuration: rewardWithdrawDuration,
                     rewardWithdrawUnlockDate: rewardWithdrawUnlockDate
@@ -166,6 +171,8 @@ describe('Happy Flow', () => {
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
                 .expect(async (res: request.Response) => {
                     expect(res.body.state).toEqual(1);
+                    expect(res.body.title).toEqual(title);
+                    expect(res.body.slug).toEqual(slug);
                     expect(res.body.withdrawAmount).toEqual(rewardWithdrawAmount);
                 })
                 .expect(200, done);

@@ -7,7 +7,7 @@ import MemberService from '@/services/MemberService';
 import { DepositState, TransactionState, TransactionType, WithdrawalState } from '@/types/enums';
 import { Deposit } from '@/models/Deposit';
 import { wrapBackgroundTransaction } from '@/util/newrelic';
-import { AssetPoolType } from '@/models/AssetPool';
+import { AssetPool, AssetPoolType } from '@/models/AssetPool';
 import { Transaction, TransactionDocument } from '@/models/Transaction';
 import { TransactionReceipt } from 'web3-core';
 
@@ -94,6 +94,7 @@ export async function jobProcessTransactions() {
                     await handleError(tx, failReason);
                 }
                 if (result.args.success) {
+                    await AssetPool.findOneAndUpdate({ address: tx.to }, { lastTransactionAt: Date.now() });
                     await handleEvents(assetPool, tx, events);
                 }
             }

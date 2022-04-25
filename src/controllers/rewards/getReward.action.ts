@@ -16,6 +16,8 @@ export const getReward = async (req: Request, res: Response) => {
     const result: TReward = {
         _id: String(reward._id),
         id: reward.id,
+        title: reward.title,
+        slug: reward.slug,
         withdrawLimit: reward.withdrawLimit,
         withdrawAmount: reward.withdrawAmount,
         withdrawDuration: reward.withdrawDuration,

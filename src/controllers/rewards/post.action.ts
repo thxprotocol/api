@@ -12,6 +12,8 @@ export const postReward = async (req: Request, res: Response) => {
     
     const reward = await RewardService.create(
         req.assetPool,
+        req.body.title,
+        req.body.slug,
         req.body.withdrawLimit || 0,
         req.body.withdrawAmount,
         req.body.withdrawDuration,
@@ -22,6 +24,8 @@ export const postReward = async (req: Request, res: Response) => {
     );
     const result: TReward = {
         id: reward.id,
+        title: reward.title,
+        slug: reward.slug,
         poolAddress: reward.poolAddress,
         state: reward.state,
         isMembershipRequired: reward.isMembershipRequired,
