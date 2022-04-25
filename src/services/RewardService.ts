@@ -51,6 +51,13 @@ export default class RewardService {
             }
         }
 
+        if (reward.expiryDate) {
+            const expiryTime = new Date(reward.expiryDate).getTime();
+            const currentTime = new Date().getTime();
+            const isRewardExpired = currentTime < expiryTime;
+            if (isRewardExpired) return { error: 'This reward is expired' };
+        }
+
         const withdrawal = await WithdrawalService.hasClaimedOnce(assetPool.address, account.id, reward.id);
         // Can only claim this reward once and a withdrawal already exists
         if (reward.isClaimOnce && withdrawal) {
@@ -86,15 +93,18 @@ export default class RewardService {
         isMembershipRequired: boolean,
         isClaimOnce: boolean,
         withdrawUnlockDate: Date,
-        withdrawCondition?: IRewardCondition
+        withdrawCondition?: IRewardCondition,
+        expiryDate?: Date,
     ) {
         // Calculates an incrementing id as was done in Solidity before.
         // TODO Add migration to remove id and start using default collection _id.
         const id = (await this.findByPoolAddress(assetPool)).length + 1;
-        const reward =  await Reward.create({
+        const expiryDateObj = expiryDate && new Date(expiryDate);
+        const reward = await Reward.create({
             id,
             title,
             slug,
+            expiryDate: expiryDateObj,
             poolAddress: assetPool.address,
             withdrawAmount: String(withdrawAmount),
             withdrawLimit,

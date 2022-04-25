@@ -4,12 +4,12 @@ import RewardService from '@/services/RewardService';
 
 export const postReward = async (req: Request, res: Response) => {
     let withdrawUnlockDate = req.body.withdrawUnlockDate;
-    
-    if(!withdrawUnlockDate) {
+
+    if (!withdrawUnlockDate) {
         const now = new Date();
-        withdrawUnlockDate = `${now.getFullYear()}/${(now.getMonth() + 1)}/${now.getDate()}`
-    } 
-    
+        withdrawUnlockDate = `${now.getFullYear()}/${now.getMonth() + 1}/${now.getDate()}`;
+    }
+
     const reward = await RewardService.create(
         req.assetPool,
         req.body.title,
@@ -20,7 +20,8 @@ export const postReward = async (req: Request, res: Response) => {
         req.body.isMembershipRequired,
         req.body.isClaimOnce,
         new Date(withdrawUnlockDate),
-        req.body.withdrawCondition
+        req.body.withdrawCondition,
+        req.body.expiryDate,
     );
     const result: TReward = {
         id: reward.id,
@@ -34,7 +35,8 @@ export const postReward = async (req: Request, res: Response) => {
         withdrawDuration: reward.withdrawDuration,
         withdrawCondition: reward.withdrawCondition,
         withdrawLimit: reward.withdrawLimit,
-        withdrawUnlockDate: reward.withdrawUnlockDate
+        withdrawUnlockDate: reward.withdrawUnlockDate,
+        expiryDate: reward.expiryDate,
     };
 
     res.status(201).json(result);
