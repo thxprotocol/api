@@ -48,7 +48,7 @@ export default class WithdrawalService {
         sub: string,
         amount: number,
         state = WithdrawalState.Pending,
-        unlockDate: Date,
+        unlockDate?: Date,
         rewardId?: number,
     ) {
         return Withdrawal.create({
@@ -74,8 +74,10 @@ export default class WithdrawalService {
 
     static async proposeWithdraw(assetPool: AssetPoolType, withdrawal: WithdrawalDocument, account: IAccount) {
         const amountInWei = toWei(String(withdrawal.amount));
-        const unlockDateTmestamp = withdrawal.unlockDate.getTime() / 1000;
-        
+        const unlockDateTmestamp = Math.floor(
+            (withdrawal.unlockDate ? withdrawal.unlockDate.getTime() : Date.now()) / 1000,
+        );
+
         if (ITX_ACTIVE) {
             const tx = await InfuraService.schedule(
                 assetPool.address,
@@ -92,7 +94,7 @@ export default class WithdrawalService {
                     assetPool.contract.methods.proposeWithdraw(amountInWei, account.address, unlockDateTmestamp),
                     assetPool.network,
                 );
-                
+
                 const events = parseLogs(getDiamondAbi(assetPool.network, 'defaultPool'), receipt.logs);
                 const event = assertEvent('WithdrawPollCreated', events);
                 const roleGranted = findEvent('RoleGranted', events);
@@ -103,7 +105,7 @@ export default class WithdrawalService {
 
                 withdrawal.withdrawalId = event.args.id;
                 withdrawal.transactions.push(String(tx._id));
-                
+
                 return await withdrawal.save();
             } catch (error) {
                 withdrawal.updateOne({ failReason: error.message });
@@ -113,7 +115,6 @@ export default class WithdrawalService {
     }
 
     static async withdraw(assetPool: AssetPoolType, withdrawal: WithdrawalDocument) {
-        
         if (ITX_ACTIVE) {
             const tx = await InfuraService.schedule(
                 assetPool.address,
@@ -123,7 +124,7 @@ export default class WithdrawalService {
             );
 
             withdrawal.transactions.push(String(tx._id));
-           
+
             return await withdrawal.save();
         } else {
             try {
