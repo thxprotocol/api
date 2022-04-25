@@ -18,6 +18,7 @@ export const ReadClaimController = async (req: Request, res: Response) => {
         title: reward.title,
         _id: String(reward._id),
         id: reward.id,
+        expiryDate: reward.expiryDate,
         withdrawLimit: reward.withdrawLimit,
         withdrawAmount: reward.withdrawAmount,
         withdrawDuration: reward.withdrawDuration,
@@ -27,7 +28,7 @@ export const ReadClaimController = async (req: Request, res: Response) => {
         poolAddress: req.assetPool.address,
         progress: withdrawals.length,
         state: reward.state,
-        withdrawUnlockDate: reward.withdrawUnlockDate
+        withdrawUnlockDate: reward.withdrawUnlockDate,
     };
 
     res.json(result);
