@@ -4,14 +4,13 @@ import { NetworkProvider } from '@/types/enums';
 import { isAddress } from 'web3-utils';
 import { getToken } from '@/util/jest/jwt';
 import { afterAllCallback, beforeAllCallback } from '@/util/jest/config';
-import { account2 } from '@/util/jest/constants';
 
 const user = request.agent(app);
 
 describe('ERC721', () => {
     const network = NetworkProvider.Main,
-        name = 'PolyPunks',
-        symbol = 'POLYPNKS',
+        name = 'Planets of the Galaxy',
+        symbol = 'GLXY',
         description = 'Collection full of rarities.',
         schema = [
             { name: 'color', propType: 'string', description: 'lorem ipsum' },
@@ -94,42 +93,6 @@ describe('ERC721', () => {
                     expect(body.error.message).toContain('Not Found');
                 })
                 .expect(404, done);
-        });
-    });
-
-    describe('POST /erc721/:id/mint', () => {
-        it('should 201 when token is minted', (done) => {
-            const beneficiary = account2.address;
-
-            user.post('/v1/erc721/' + erc721ID + '/mint')
-                .set('Authorization', dashboardAccessToken)
-                .send({
-                    metadata: [
-                        { key: schema[0].name, value: 'red' },
-                        { key: schema[1].name, value: 'large' },
-                    ],
-                    beneficiary,
-                })
-                .expect(({ body }: request.Response) => {
-                    expect(body.tokenId).toBe(1);
-                    expect(body[schema[0].name]).toBe('red');
-                    expect(body[schema[1].name]).toBe('large');
-                    tokenId = body.tokenId;
-                })
-                .expect(201, done);
-        });
-    });
-
-    describe('GET /erc721/:id/metadata/:tokenId', () => {
-        it('should return metadata for tokenId', (done) => {
-            user.get('/v1/erc721/' + erc721ID + '/metadata/' + tokenId)
-                .set('Authorization', dashboardAccessToken)
-                .send()
-                .expect(({ body }: request.Response) => {
-                    expect(body[schema[0].name]).toBe('red');
-                    expect(body[schema[1].name]).toBe('large');
-                })
-                .expect(200, done);
         });
     });
 });

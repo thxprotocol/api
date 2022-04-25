@@ -7,8 +7,13 @@ import { body } from 'express-validator';
 import { AccountPlanType } from '@/types/enums/AccountPlanType';
 import { NetworkProvider } from '@/types/enums';
 import AccountProxy from '@/proxies/AccountProxy';
+import ERC721Service from '@/services/ERC721Service';
 
-export const createAssetPoolValidation = [body('token').isEthereumAddress(), body('network').exists().isNumeric()];
+export const createAssetPoolValidation = [
+    body('token').isEthereumAddress(),
+    body('network').exists().isNumeric(),
+    body('variant').optional().isString(),
+];
 
 export const postAssetPool = async (req: Request, res: Response) => {
     const account = await AccountProxy.getById(req.user.sub);
@@ -17,9 +22,16 @@ export const postAssetPool = async (req: Request, res: Response) => {
         await AccountProxy.update(account.id, { plan: AccountPlanType.Basic });
     }
 
-    const assetPool = await AssetPoolService.deploy(req.user.sub, req.body.network);
+    const assetPool = await AssetPoolService.deploy(req.user.sub, req.body.network, req.body.variant);
 
-    await AssetPoolService.addPoolToken(assetPool, req.body.token);
+    if (assetPool.variant === 'defaultPool') {
+        await AssetPoolService.setERC20(assetPool, req.body.token);
+    }
+
+    if (assetPool.variant === 'nftPool') {
+        const erc721 = await ERC721Service.findByQuery({ address: req.body.token, network: assetPool.network });
+        await AssetPoolService.setERC721(assetPool, erc721);
+    }
 
     const client = await ClientService.create(req.user.sub, {
         application_type: 'web',

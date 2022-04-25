@@ -24,6 +24,7 @@ export type TERC721Metadata = {
     id?: string;
     tokenId: number;
     metadata: [{ key: string; value: string }];
+    beneficiary: string;
     createdAt: Date;
     updatedAt: Date;
 };

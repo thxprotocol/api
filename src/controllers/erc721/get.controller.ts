@@ -8,7 +8,9 @@ export const readERC721Validation = [param('id').isString().isLength({ min: 23, 
 export const ReadERC721Controller = async (req: Request, res: Response) => {
     const erc721 = await ERC721Service.findById(req.params.id);
     if (!erc721) throw new NotFoundError();
-    const totalSupply = await erc721.contract.methods.totalSupply().call();
 
-    res.json({ ...erc721.toJSON(), totalSupply });
+    const totalSupply = await erc721.contract.methods.totalSupply().call();
+    const owner = await erc721.contract.methods.owner().call();
+
+    res.json({ ...erc721.toJSON(), totalSupply, owner });
 };
