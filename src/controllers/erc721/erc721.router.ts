@@ -1,11 +1,11 @@
 import express from 'express';
 import assertScopes from 'express-jwt-authz';
-import { assertAssetPoolAccess, assertRequestInput, requireAssetPoolHeader } from '@/middlewares';
+import { assertRequestInput, requireAssetPoolHeader } from '@/middlewares';
 import { ReadERC721Controller, readERC721Validation } from './get.controller';
 import { ListERC721Controller } from './getAll.controller';
+import { ListERC721MetadataController } from './metadata/getAll.controller';
 import { createERC721Validation, CreateERC721Controller } from './post.controller';
 import { mintERC721TokenValidation, MintERC721TokenController } from './mint/post.controller';
-import { ReadERC721MetadataController, readERC721MetadataValidation } from './metadata/get.controller';
 
 const router = express.Router();
 
@@ -19,10 +19,6 @@ router.post(
     assertRequestInput(mintERC721TokenValidation),
     MintERC721TokenController,
 );
-router.get(
-    '/:id/metadata/:metadataId',
-    assertScopes(['dashboard']),
-    assertRequestInput(readERC721MetadataValidation),
-    ReadERC721MetadataController,
-);
+router.get('/:id/metadata', assertScopes(['dashboard']), ListERC721MetadataController);
+
 export default router;

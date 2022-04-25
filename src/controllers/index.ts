@@ -16,6 +16,7 @@ import tokenRouter from './token/_.routing';
 import promoCodesRouter from './promo_codes/promoCodes.router';
 import depositsRouter from './deposits/deposits.router';
 import erc721Router from './erc721/erc721.router';
+import erc721MetadataRouter from './erc721/metadata/metadata.router';
 import erc20Router from './erc20/erc20.router';
 import { checkJwt } from '@/middlewares';
 
@@ -26,6 +27,7 @@ router.use('/health', healthRouter);
 router.use('/token', tokenRouter);
 router.use('/docs', docsRouter);
 router.use('/claim', claimRouter);
+router.use('/metadata', erc721MetadataRouter);
 router.use(checkJwt);
 router.use('/', authRouter);
 router.use('/erc20', erc20Router);

@@ -50,6 +50,7 @@ export async function mint(
     const event = assertEvent('Transfer', parseLogs(erc721.contract.options.jsonInterface, receipt.logs));
 
     erc721metadata.tokenId = Number(event.args.tokenId);
+    erc721metadata.beneficiary = event.args.to;
 
     return await erc721metadata.save();
 }
@@ -58,7 +59,7 @@ export async function parseMetadata(entry: ERC721MetadataDocument) {
     const metadata: { [key: string]: string } = {};
 
     for (const { key, value } of entry.metadata) {
-        metadata[key] = value;
+        metadata[key.toLowerCase()] = value;
     }
 
     return metadata;
@@ -68,8 +69,12 @@ async function findMetadataById(id: string) {
     return await ERC721Metadata.findById(id);
 }
 
+async function findMetadataBySub(sub: string) {
+    return await ERC721Metadata.find({ sub });
+}
+
 async function findByQuery(query: { poolAddress?: string; address?: string; network?: NetworkProvider }) {
     return await ERC721.findOne(query);
 }
 
-export default { create, findById, mint, findBySub, findMetadataById, findByQuery, parseMetadata };
+export default { create, findById, mint, findBySub, findMetadataById, findMetadataBySub, findByQuery, parseMetadata };
