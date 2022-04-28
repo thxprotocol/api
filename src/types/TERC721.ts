@@ -8,6 +8,7 @@ type ERC721MetadataProp = {
 
 export type TERC721 = {
     id?: string;
+    sub: string;
     network: number;
     name: string;
     symbol: string;

@@ -7,6 +7,7 @@ export type ERC721Document = mongoose.Document & TERC721;
 const ERC721Schema = new mongoose.Schema(
     {
         network: Number,
+        sub: String,
         name: String,
         symbol: String,
         description: String,

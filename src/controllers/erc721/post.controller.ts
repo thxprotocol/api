@@ -12,6 +12,7 @@ export const createERC721Validation = [
 
 export const CreateERC721Controller = async (req: Request, res: Response) => {
     const erc721 = await ERC721Service.create({
+        sub: req.user.sub,
         network: req.body.network,
         name: req.body.name,
         symbol: req.body.symbol,
