@@ -11,7 +11,7 @@ import { MintERC721MetadataController, mintERC721MetadataValidation } from './me
 const router = express.Router();
 
 router.get('/', assertScopes(['dashboard']), ListERC721Controller);
-router.get('/:id', assertScopes(['dashboard']), assertRequestInput(readERC721Validation), ReadERC721Controller);
+router.get('/:id', assertScopes(['dashboard', 'user']), assertRequestInput(readERC721Validation), ReadERC721Controller);
 router.post('/', assertScopes(['dashboard']), assertRequestInput(createERC721Validation), CreateERC721Controller);
 router.post(
     '/:id/metadata/:metadataId/mint',

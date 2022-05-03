@@ -65,7 +65,9 @@ describe('NFT Pool', () => {
     });
 
     describe('POST /erc721/:id/metadata', () => {
-        it('should 201 when token is minted', (done) => {
+        const beneficiary = account2.address;
+
+        it('should return tokenId when token is minted', (done) => {
             user.post('/v1/erc721/' + erc721ID + '/metadata')
                 .set('Authorization', dashboardAccessToken)
                 .set('AssetPool', poolAddress)
@@ -74,11 +76,29 @@ describe('NFT Pool', () => {
                         { key: schema[0].name, value: 'red' },
                         { key: schema[1].name, value: 'large' },
                     ],
-                    // beneficiary,
+                    beneficiary,
                 })
                 .expect(({ body }: request.Response) => {
                     expect(body._id).toBeDefined();
-                    // expect(body.tokenId).toBe(1);
+                    expect(body.tokenId).toBe(1);
+                    expect(body[schema[0].name]).toBe('red');
+                    expect(body[schema[1].name]).toBe('large');
+                })
+                .expect(201, done);
+        });
+
+        it('should return no tokenId when metadata is created', (done) => {
+            user.post('/v1/erc721/' + erc721ID + '/metadata')
+                .set('Authorization', dashboardAccessToken)
+                .set('AssetPool', poolAddress)
+                .send({
+                    metadata: [
+                        { key: schema[0].name, value: 'red' },
+                        { key: schema[1].name, value: 'large' },
+                    ],
+                })
+                .expect(({ body }: request.Response) => {
+                    expect(body._id).toBeDefined();
                     expect(body[schema[0].name]).toBe('red');
                     expect(body[schema[1].name]).toBe('large');
                     metadataId = body._id;
@@ -98,7 +118,7 @@ describe('NFT Pool', () => {
                     beneficiary,
                 })
                 .expect(({ body }: request.Response) => {
-                    expect(body.tokenId).toBe(1);
+                    expect(body.tokenId).toBe(2);
                 })
                 .expect(201, done);
         });

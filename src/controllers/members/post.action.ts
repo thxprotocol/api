@@ -11,7 +11,13 @@ export async function postMember(req: Request, res: Response) {
     if (isMember) throw new AlreadyAMemberError(account.address, req.assetPool.address);
 
     await MemberService.addMember(req.assetPool, req.body.address);
-    await MembershipService.addMembership(account.id, req.assetPool);
+    if (req.assetPool.variant === 'defaultPool') {
+        await MembershipService.addERC20Membership(account.id, req.assetPool);
+    }
+
+    if (req.assetPool.variant === 'nftPool') {
+        await MembershipService.addERC721Membership(account.id, req.assetPool);
+    }
 
     res.redirect(`/${VERSION}/members/${account.address}`);
 }

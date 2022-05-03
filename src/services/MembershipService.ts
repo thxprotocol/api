@@ -6,6 +6,9 @@ import { getContractFromName } from '@/util/network';
 import { fromWei } from 'web3-utils';
 import ERC20Service from './ERC20Service';
 import ERC20 from '@/models/ERC20';
+import ERC721Service from './ERC721Service';
+import { ERC721Type } from '@/types/enums/ERC721Type';
+import { ERC721 } from '@/models/ERC721';
 
 export default class MembershipService {
     static async get(sub: string) {
@@ -29,7 +32,8 @@ export default class MembershipService {
 
         let poolBalance = 0;
         const assetPool = await AssetPoolService.getByAddress(membership.poolAddress);
-        if (assetPool) {
+
+        if (assetPool && assetPool.variant === 'defaultPool') {
             const balanceInWei = await assetPool.contract.methods.getBalance().call();
             poolBalance = Number(fromWei(balanceInWei));
         }
@@ -39,11 +43,12 @@ export default class MembershipService {
             poolAddress: membership.poolAddress,
             poolBalance,
             erc20: membership.erc20,
+            erc721: membership.erc721,
             network: membership.network,
         };
     }
 
-    static async addMembership(sub: string, assetPool: AssetPoolDocument) {
+    static async addERC20Membership(sub: string, assetPool: AssetPoolDocument) {
         const membership = await Membership.findOne({
             sub,
             network: assetPool.network,
@@ -75,6 +80,42 @@ export default class MembershipService {
                 network: assetPool.network,
                 poolAddress: assetPool.address,
                 erc20: String(erc20._id),
+            });
+        }
+    }
+
+    static async addERC721Membership(sub: string, assetPool: AssetPoolDocument) {
+        const membership = await Membership.findOne({
+            sub,
+            network: assetPool.network,
+            poolAddress: assetPool.address,
+        });
+
+        if (!membership) {
+            const address = await assetPool.contract.methods.getERC721().call();
+            let erc721 = await ERC721Service.findByQuery({ network: assetPool.network, address });
+
+            if (!erc721) {
+                const contract = getContractFromName(assetPool.network, 'NonFungibleToken', address);
+                const [name, symbol] = await Promise.all([
+                    contract.methods.name().call(),
+                    contract.methods.symbol().call(),
+                ]);
+
+                erc721 = await ERC721.create({
+                    name,
+                    symbol,
+                    address,
+                    type: ERC721Type.Unknown,
+                    network: assetPool.network,
+                });
+            }
+
+            await Membership.create({
+                sub,
+                network: assetPool.network,
+                poolAddress: assetPool.address,
+                erc721: String(erc721._id),
             });
         }
     }

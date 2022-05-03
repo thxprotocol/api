@@ -81,39 +81,41 @@ export default class RewardService {
         }
     }
 
-    static async create(
-        assetPool: AssetPoolType,
-        title: string,
-        slug: string,
-        withdrawLimit: number,
-        withdrawAmount: number,
-        withdrawDuration: number,
-        isMembershipRequired: boolean,
-        isClaimOnce: boolean,
-        withdrawUnlockDate: Date,
-        withdrawCondition?: IRewardCondition,
-        expiryDate?: Date,
-    ) {
+    static async create(data: {
+        assetPool: AssetPoolType;
+        title: string;
+        slug: string;
+        withdrawLimit: number;
+        withdrawAmount: number;
+        withdrawDuration: number;
+        isMembershipRequired: boolean;
+        isClaimOnce: boolean;
+        withdrawUnlockDate: Date;
+        withdrawCondition?: IRewardCondition;
+        expiryDate?: Date;
+        erc721metadataId?: string;
+    }) {
         // Calculates an incrementing id as was done in Solidity before.
         // TODO Add migration to remove id and start using default collection _id.
-        const id = (await this.findByPoolAddress(assetPool)).length + 1;
-        const expiryDateObj = expiryDate && new Date(expiryDate);
-        const reward = await Reward.create({
+        const id = (await this.findByPoolAddress(data.assetPool)).length + 1;
+        const expiryDateObj = data.expiryDate && new Date(data.expiryDate);
+
+        return await Reward.create({
             id,
-            title,
-            slug,
+            title: data.title,
+            slug: data.slug,
             expiryDate: expiryDateObj,
-            poolAddress: assetPool.address,
-            withdrawAmount: String(withdrawAmount),
-            withdrawLimit,
-            withdrawDuration,
-            withdrawCondition,
-            withdrawUnlockDate,
+            poolAddress: data.assetPool.address,
+            withdrawAmount: String(data.withdrawAmount),
+            erc721metadataId: data.erc721metadataId,
+            withdrawLimit: data.withdrawLimit,
+            withdrawDuration: data.withdrawDuration,
+            withdrawCondition: data.withdrawCondition,
+            withdrawUnlockDate: data.withdrawUnlockDate,
             state: RewardState.Enabled,
-            isMembershipRequired,
-            isClaimOnce,
+            isMembershipRequired: data.isMembershipRequired,
+            isClaimOnce: data.isClaimOnce,
         });
-        return reward;
     }
 
     static update(reward: RewardDocument, updates: IRewardUpdates) {

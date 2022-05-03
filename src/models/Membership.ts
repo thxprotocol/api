@@ -6,7 +6,8 @@ export type MembershipDocument = mongoose.Document & {
     network: NetworkProvider;
     poolAddress: string;
     poolBalance: number;
-    erc20: string;
+    erc20?: string;
+    erc721?: string;
 };
 
 const membershipSchema = new mongoose.Schema(
@@ -14,6 +15,7 @@ const membershipSchema = new mongoose.Schema(
         sub: String,
         network: Number,
         erc20: String,
+        erc721: String,
         poolAddress: String,
     },
     { timestamps: true },

@@ -9,6 +9,7 @@ import WithdrawalService from '@/services/WithdrawalService';
 import MembershipService from '@/services/MembershipService';
 import { WithdrawalDocument } from '@/models/Withdrawal';
 import { agenda, eventNameRequireTransactions } from '@/util/agenda';
+import ERC721Service from '@/services/ERC721Service';
 
 const ERROR_REWARD_NOT_FOUND = 'The reward for this ID does not exist.';
 const ERROR_ACCOUNT_NO_ADDRESS = 'The authenticated account has not wallet address. Sign in the Web Wallet once.';
@@ -28,81 +29,63 @@ export async function postRewardClaim(req: Request, res: Response) {
     const { result, error } = await RewardService.canClaim(req.assetPool, reward, account);
     if (!result && error) throw new ForbiddenError(error);
 
-    const isMember = await MemberService.isMember(req.assetPool, account.address);
-    if (!isMember && reward.isMembershipRequired) throw new ForbiddenError(ERROR_NO_MEMBER);
-
-    const hasMembership = await MembershipService.hasMembership(req.assetPool, account.id);
-    if (!hasMembership && !reward.isMembershipRequired) {
-        await MembershipService.addMembership(account.id, req.assetPool);
+    // TODO add MemberAccess facets to NFTPools and remove this check
+    if (req.assetPool.variant === 'defaultPool') {
+        const isMember = await MemberService.isMember(req.assetPool, account.address);
+        if (!isMember && reward.isMembershipRequired) throw new ForbiddenError(ERROR_NO_MEMBER);
     }
 
-    let w: WithdrawalDocument = await WithdrawalService.schedule(
-        req.assetPool,
-        WithdrawalType.ClaimReward,
-        req.user.sub,
-        reward.withdrawAmount,
-        WithdrawalState.Pending,
-        reward.withdrawUnlockDate,
-        reward.id,
-    );
+    const hasMembership = await MembershipService.hasMembership(req.assetPool, account.id);
 
-    w = await WithdrawalService.proposeWithdraw(req.assetPool, w, account);
+    if (!hasMembership && !reward.isMembershipRequired) {
+        if (req.assetPool.variant === 'defaultPool') {
+            await MembershipService.addERC20Membership(account.id, req.assetPool);
+        }
+        if (req.assetPool.variant === 'nftPool') {
+            await MembershipService.addERC721Membership(account.id, req.assetPool);
+        }
+    }
 
-    agenda.now(eventNameRequireTransactions, {});
+    if (req.assetPool.variant === 'defaultPool') {
+        let w: WithdrawalDocument = await WithdrawalService.schedule(
+            req.assetPool,
+            WithdrawalType.ClaimReward,
+            req.user.sub,
+            reward.withdrawAmount,
+            WithdrawalState.Pending,
+            reward.withdrawUnlockDate,
+            reward.id,
+        );
 
-    const response: TWithdrawal = {
-        id: String(w._id),
-        sub: w.sub,
-        poolAddress: req.assetPool.address,
-        type: w.type,
-        amount: w.amount,
-        beneficiary: w.beneficiary,
-        unlockDate: w.unlockDate,
-        state: w.state,
-        rewardId: w.rewardId,
-        transactions: w.transactions,
-        createdAt: w.createdAt,
-    };
+        await WithdrawalService.proposeWithdraw(req.assetPool, w, account);
 
-    return res.json(response);
+        agenda.now(eventNameRequireTransactions, {});
+
+        const response: TWithdrawal = {
+            id: String(w._id),
+            sub: w.sub,
+            poolAddress: req.assetPool.address,
+            type: w.type,
+            amount: w.amount,
+            beneficiary: w.beneficiary,
+            unlockDate: w.unlockDate,
+            state: w.state,
+            rewardId: w.rewardId,
+            transactions: w.transactions,
+            createdAt: w.createdAt,
+        };
+
+        return res.json(response);
+    }
+
+    if (req.assetPool.variant === 'nftPool') {
+        let metadata = await ERC721Service.findMetadataById(reward.erc721metadataId);
+        const erc721 = await ERC721Service.findById(metadata.erc721);
+
+        metadata = await ERC721Service.mint(req.assetPool, erc721, metadata, account.address);
+
+        agenda.now(eventNameRequireTransactions, {});
+
+        return res.json(metadata);
+    }
 }
-
-/**
- * @swagger
- * /rewards/:id/claim:
- *   post:
- *     tags:
- *       - Rewards
- *     description: Create a quick response image to claim the reward.
- *     produces:
- *       - application/json
- *     parameters:
- *       - name: AssetPool
- *         in: header
- *         required: true
- *         type: string
- *       - name: id
- *         in: path
- *         required: true
- *         type: integer
- *     responses:
- *       '200':
- *         description: OK
- *         content: application/json
- *         schema:
- *               type: object
- *               properties:
- *                 base64:
- *                   type: string
- *                   description: Base64 string representing function call
- *       '400':
- *         $ref: '#/components/responses/400'
- *       '401':
- *         $ref: '#/components/responses/401'
- *       '403':
- *         description: Forbidden. Your account does not have access to this pool.
- *       '500':
- *         $ref: '#/components/responses/500'
- *       '502':
- *         $ref: '#/components/responses/502'
- */

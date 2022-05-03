@@ -114,40 +114,6 @@ export default class WithdrawalService {
         }
     }
 
-    static async proposeMint(assetPool: AssetPoolType, withdrawal: WithdrawalDocument, account: IAccount) {
-        const tokenUri = 'blabla.json';
-
-        if (ITX_ACTIVE) {
-            const tx = await InfuraService.schedule(
-                assetPool.address,
-                'mintFor',
-                [account.address, tokenUri],
-                assetPool.network,
-            );
-            withdrawal.transactions.push(String(tx._id));
-            return await withdrawal.save();
-        } else {
-            try {
-                const { tx, receipt } = await TransactionService.send(
-                    assetPool.address,
-                    assetPool.contract.methods.mintFor(account.address, tokenUri),
-                    assetPool.network,
-                );
-
-                const events = parseLogs(getDiamondAbi(assetPool.network, 'nftPool'), receipt.logs);
-                const event = assertEvent('Transfer', events);
-
-                withdrawal.tokenId = event.args.tokenId;
-                withdrawal.transactions.push(String(tx._id));
-
-                return await withdrawal.save();
-            } catch (error) {
-                withdrawal.updateOne({ failReason: error.message });
-                throw error;
-            }
-        }
-    }
-
     static async withdraw(assetPool: AssetPoolType, withdrawal: WithdrawalDocument) {
         if (ITX_ACTIVE) {
             const tx = await InfuraService.schedule(

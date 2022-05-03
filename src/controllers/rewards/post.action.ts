@@ -10,34 +10,36 @@ export const postReward = async (req: Request, res: Response) => {
         withdrawUnlockDate = `${now.getFullYear()}/${now.getMonth() + 1}/${now.getDate()}`;
     }
 
-    const reward = await RewardService.create(
-        req.assetPool,
-        req.body.title,
-        req.body.slug,
-        req.body.withdrawLimit || 0,
-        req.body.withdrawAmount,
-        req.body.withdrawDuration,
-        req.body.isMembershipRequired,
-        req.body.isClaimOnce,
-        new Date(withdrawUnlockDate),
-        req.body.withdrawCondition,
-        req.body.expiryDate,
-    );
-    const result: TReward = {
-        id: reward.id,
-        title: reward.title,
-        slug: reward.slug,
-        poolAddress: reward.poolAddress,
-        state: reward.state,
-        isMembershipRequired: reward.isMembershipRequired,
-        isClaimOnce: reward.isClaimOnce,
-        withdrawAmount: reward.withdrawAmount,
-        withdrawDuration: reward.withdrawDuration,
-        withdrawCondition: reward.withdrawCondition,
-        withdrawLimit: reward.withdrawLimit,
-        withdrawUnlockDate: reward.withdrawUnlockDate,
-        expiryDate: reward.expiryDate,
-    };
+    const reward = await RewardService.create({
+        assetPool: req.assetPool,
+        title: req.body.title,
+        slug: req.body.slug,
+        withdrawLimit: req.body.withdrawLimit || 0,
+        withdrawAmount: req.body.withdrawAmount,
+        withdrawDuration: req.body.withdrawDuration,
+        isMembershipRequired: req.body.isMembershipRequired,
+        isClaimOnce: req.body.isClaimOnce,
+        withdrawUnlockDate: new Date(withdrawUnlockDate),
+        withdrawCondition: req.body.withdrawCondition,
+        expiryDate: req.body.expiryDate,
+        erc721metadataId: req.body.erc721metadataId,
+    });
+    // const result: TReward = {
+    //     id: reward.id,
+    //     title: reward.title,
+    //     slug: reward.slug,
+    //     poolAddress: reward.poolAddress,
+    //     state: reward.state,
+    //     erc721metadataId: reward.erc721metadataId,
+    //     isMembershipRequired: reward.isMembershipRequired,
+    //     isClaimOnce: reward.isClaimOnce,
+    //     withdrawAmount: reward.withdrawAmount,
+    //     withdrawDuration: reward.withdrawDuration,
+    //     withdrawCondition: reward.withdrawCondition,
+    //     withdrawLimit: reward.withdrawLimit,
+    //     withdrawUnlockDate: reward.withdrawUnlockDate,
+    //     expiryDate: reward.expiryDate,
+    // };
 
-    res.status(201).json(result);
+    res.status(201).json(reward);
 };
