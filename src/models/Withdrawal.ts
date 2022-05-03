@@ -14,6 +14,7 @@ const withdrawalSchema = new mongoose.Schema(
         unlockDate: Date,
         rewardId: Number,
         withdrawalId: Number,
+        tokenId: Number,
         transactions: [String],
         failReason: String,
     },

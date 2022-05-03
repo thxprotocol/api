@@ -64,11 +64,9 @@ describe('NFT Pool', () => {
         });
     });
 
-    describe('POST /erc721/:id/mint', () => {
+    describe('POST /erc721/:id/metadata', () => {
         it('should 201 when token is minted', (done) => {
-            const beneficiary = account2.address;
-
-            user.post('/v1/erc721/' + erc721ID + '/mint')
+            user.post('/v1/erc721/' + erc721ID + '/metadata')
                 .set('Authorization', dashboardAccessToken)
                 .set('AssetPool', poolAddress)
                 .send({
@@ -76,14 +74,31 @@ describe('NFT Pool', () => {
                         { key: schema[0].name, value: 'red' },
                         { key: schema[1].name, value: 'large' },
                     ],
-                    beneficiary,
+                    // beneficiary,
                 })
                 .expect(({ body }: request.Response) => {
                     expect(body._id).toBeDefined();
-                    expect(body.tokenId).toBe(1);
+                    // expect(body.tokenId).toBe(1);
                     expect(body[schema[0].name]).toBe('red');
                     expect(body[schema[1].name]).toBe('large');
                     metadataId = body._id;
+                })
+                .expect(201, done);
+        });
+    });
+
+    describe('POST /erc721/:id/metadata/:metadataId/mint', () => {
+        it('should 201 when token is minted', (done) => {
+            const beneficiary = account2.address;
+
+            user.post('/v1/erc721/' + erc721ID + '/metadata/' + metadataId + '/mint')
+                .set('Authorization', dashboardAccessToken)
+                .set('AssetPool', poolAddress)
+                .send({
+                    beneficiary,
+                })
+                .expect(({ body }: request.Response) => {
+                    expect(body.tokenId).toBe(1);
                 })
                 .expect(201, done);
         });

@@ -35,13 +35,16 @@ export async function findBySub(sub: string): Promise<ERC721Document[]> {
     return await ERC721.find({ sub });
 }
 
+export async function createMetadata(erc721: ERC721Document, metadata: any): Promise<ERC721MetadataDocument> {
+    return await ERC721Metadata.create({ erc721: String(erc721._id), metadata });
+}
+
 export async function mint(
     assetPool: AssetPoolDocument,
     erc721: ERC721Document,
+    erc721metadata: ERC721MetadataDocument,
     beneficiary: string,
-    metadata: any,
 ): Promise<ERC721MetadataDocument> {
-    const erc721metadata = await ERC721Metadata.create({ erc721: String(erc721._id), metadata });
     const { receipt } = await TransactionService.send(
         assetPool.address,
         assetPool.contract.methods.mintFor(beneficiary, erc721.baseURL + String(erc721metadata._id)),
@@ -55,26 +58,36 @@ export async function mint(
     return await erc721metadata.save();
 }
 
-export async function parseMetadata(entry: ERC721MetadataDocument) {
-    const metadata: { [key: string]: string } = {};
+export async function parseAttributes(entry: ERC721MetadataDocument) {
+    const attrs: { [key: string]: string } = {};
 
     for (const { key, value } of entry.metadata) {
-        metadata[key.toLowerCase()] = value;
+        attrs[key.toLowerCase()] = value;
     }
 
-    return metadata;
+    return attrs;
 }
 
 async function findMetadataById(id: string) {
     return await ERC721Metadata.findById(id);
 }
 
-async function findMetadataBySub(sub: string) {
-    return await ERC721Metadata.find({ sub });
+async function findMetadataByNFT(erc721: string) {
+    return await ERC721Metadata.find({ erc721 });
 }
 
 async function findByQuery(query: { poolAddress?: string; address?: string; network?: NetworkProvider }) {
     return await ERC721.findOne(query);
 }
 
-export default { create, findById, mint, findBySub, findMetadataById, findMetadataBySub, findByQuery, parseMetadata };
+export default {
+    create,
+    findById,
+    createMetadata,
+    mint,
+    findBySub,
+    findMetadataById,
+    findMetadataByNFT,
+    findByQuery,
+    parseAttributes,
+};
