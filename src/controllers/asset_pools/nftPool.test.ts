@@ -66,6 +66,8 @@ describe('NFT Pool', () => {
 
     describe('POST /erc721/:id/metadata', () => {
         const beneficiary = account2.address;
+        const value1 = 'red',
+            value2 = 'large';
 
         it('should return tokenId when token is minted', (done) => {
             user.post('/v1/erc721/' + erc721ID + '/metadata')
@@ -73,34 +75,41 @@ describe('NFT Pool', () => {
                 .set('AssetPool', poolAddress)
                 .send({
                     metadata: [
-                        { key: schema[0].name, value: 'red' },
-                        { key: schema[1].name, value: 'large' },
+                        { key: schema[0].name, value: value1 },
+                        { key: schema[1].name, value: value2 },
                     ],
                     beneficiary,
                 })
                 .expect(({ body }: request.Response) => {
                     expect(body._id).toBeDefined();
                     expect(body.tokenId).toBe(1);
-                    expect(body[schema[0].name]).toBe('red');
-                    expect(body[schema[1].name]).toBe('large');
+                    expect(body.metadata[0].key).toBe(schema[0].name);
+                    expect(body.metadata[0].value).toBe(value1);
+                    expect(body.metadata[1].key).toBe(schema[1].name);
+                    expect(body.metadata[1].value).toBe(value2);
                 })
                 .expect(201, done);
         });
 
         it('should return no tokenId when metadata is created', (done) => {
+            const value1 = 'blue',
+                value2 = 'small';
+
             user.post('/v1/erc721/' + erc721ID + '/metadata')
                 .set('Authorization', dashboardAccessToken)
                 .set('AssetPool', poolAddress)
                 .send({
                     metadata: [
-                        { key: schema[0].name, value: 'red' },
-                        { key: schema[1].name, value: 'large' },
+                        { key: schema[0].name, value: value1 },
+                        { key: schema[1].name, value: value2 },
                     ],
                 })
                 .expect(({ body }: request.Response) => {
                     expect(body._id).toBeDefined();
-                    expect(body[schema[0].name]).toBe('red');
-                    expect(body[schema[1].name]).toBe('large');
+                    expect(body.metadata[0].key).toBe(schema[0].name);
+                    expect(body.metadata[0].value).toBe(value1);
+                    expect(body.metadata[1].key).toBe(schema[1].name);
+                    expect(body.metadata[1].value).toBe(value2);
                     metadataId = body._id;
                 })
                 .expect(201, done);
@@ -125,13 +134,16 @@ describe('NFT Pool', () => {
     });
 
     describe('GET /metadata/:metadataId', () => {
+        const value1 = 'blue',
+            value2 = 'small';
+
         it('should return metadata for metadataId', (done) => {
             user.get('/v1/metadata/' + metadataId)
                 .set('Authorization', dashboardAccessToken)
                 .send()
                 .expect(({ body }: request.Response) => {
-                    expect(body[schema[0].name]).toBe('red');
-                    expect(body[schema[1].name]).toBe('large');
+                    expect(body[schema[0].name]).toBe(value1);
+                    expect(body[schema[1].name]).toBe(value2);
                 })
                 .expect(200, done);
         });
