@@ -27,7 +27,7 @@ async function handleEvents(assetPool: AssetPoolType, tx: TransactionDocument, e
             {
                 state: ERC721MetadataState.Minted,
                 tokenId: Number(eventTransfer.args.tokenId),
-                beneficiary: eventTransfer.args.to,
+                recipient: eventTransfer.args.to,
                 failReason: '',
             },
         );

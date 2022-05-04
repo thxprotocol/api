@@ -32,9 +32,11 @@ export type TERC721Metadata = {
     erc721: string;
     state: ERC721MetadataState;
     tokenId: number;
-    metadata: [{ key: string; value: string }];
+    title: string;
+    description: string;
+    recipient: string;
+    attributes: [{ key: string; value: string }];
     transactions: string[];
-    beneficiary: string;
     createdAt: Date;
     updatedAt: Date;
 };

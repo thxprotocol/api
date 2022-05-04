@@ -19,7 +19,7 @@ export const getMembership = async (req: Request, res: Response) => {
     }
 
     if (membership.erc721) {
-        const tokens = await ERC721Service.findMetadataByBeneficiary(account.address);
+        const tokens = await ERC721Service.findMetadataByRecipient(account.address);
         return res.json({ ...membership, tokens });
     }
 };

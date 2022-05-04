@@ -71,7 +71,7 @@ export default class RewardService {
         if (reward.isClaimOnce && !!metadata.tokenId) {
             return {
                 error:
-                    metadata.beneficiary === account.address
+                    metadata.recipient === account.address
                         ? 'You have already claimed this NFT'
                         : 'Someone has already claimed this NFT',
             };

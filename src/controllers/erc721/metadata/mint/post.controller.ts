@@ -7,7 +7,7 @@ import { ERC721MetadataDocument } from '@/models/ERC721Metadata';
 export const mintERC721MetadataValidation = [
     param('id').isMongoId(),
     param('metadataId').isMongoId(),
-    body('beneficiary').isEthereumAddress(),
+    body('recipient').isEthereumAddress(),
 ];
 
 export const MintERC721MetadataController = async (req: Request, res: Response) => {
@@ -17,7 +17,7 @@ export const MintERC721MetadataController = async (req: Request, res: Response) 
     let erc721metadata: ERC721MetadataDocument = await ERC721Service.findMetadataById(req.params.metadataId);
     if (!erc721metadata) throw new NotFoundError('Could not find this NFT metadata in the database');
 
-    erc721metadata = await ERC721Service.mint(req.assetPool, erc721, erc721metadata, req.body.beneficiary);
+    erc721metadata = await ERC721Service.mint(req.assetPool, erc721, erc721metadata, req.body.recipient);
 
     res.status(201).json(erc721metadata);
 };

@@ -65,8 +65,10 @@ describe('NFT Pool', () => {
     });
 
     describe('POST /erc721/:id/metadata', () => {
-        const beneficiary = account2.address;
-        const value1 = 'red',
+        const recipient = account2.address,
+            title = 'NFT title',
+            description = 'NFT description',
+            value1 = 'red',
             value2 = 'large';
 
         it('should return tokenId when token is minted', (done) => {
@@ -74,42 +76,54 @@ describe('NFT Pool', () => {
                 .set('Authorization', dashboardAccessToken)
                 .set('AssetPool', poolAddress)
                 .send({
-                    metadata: [
+                    title,
+                    description,
+                    attributes: [
                         { key: schema[0].name, value: value1 },
                         { key: schema[1].name, value: value2 },
                     ],
-                    beneficiary,
+                    recipient,
                 })
                 .expect(({ body }: request.Response) => {
+                    console.log(body);
                     expect(body._id).toBeDefined();
                     expect(body.tokenId).toBe(1);
-                    expect(body.metadata[0].key).toBe(schema[0].name);
-                    expect(body.metadata[0].value).toBe(value1);
-                    expect(body.metadata[1].key).toBe(schema[1].name);
-                    expect(body.metadata[1].value).toBe(value2);
+                    expect(body.title).toBe(title);
+                    expect(body.description).toBe(description);
+                    expect(body.attributes[0].key).toBe(schema[0].name);
+                    expect(body.attributes[0].value).toBe(value1);
+                    expect(body.attributes[1].key).toBe(schema[1].name);
+                    expect(body.attributes[1].value).toBe(value2);
                 })
                 .expect(201, done);
         });
 
         it('should return no tokenId when metadata is created', (done) => {
-            const value1 = 'blue',
+            const title = 'NFT title 2',
+                description = 'NFT description 2',
+                value1 = 'blue',
                 value2 = 'small';
 
             user.post('/v1/erc721/' + erc721ID + '/metadata')
                 .set('Authorization', dashboardAccessToken)
                 .set('AssetPool', poolAddress)
                 .send({
-                    metadata: [
+                    title,
+                    description,
+                    attributes: [
                         { key: schema[0].name, value: value1 },
                         { key: schema[1].name, value: value2 },
                     ],
                 })
                 .expect(({ body }: request.Response) => {
+                    console.log(body);
                     expect(body._id).toBeDefined();
-                    expect(body.metadata[0].key).toBe(schema[0].name);
-                    expect(body.metadata[0].value).toBe(value1);
-                    expect(body.metadata[1].key).toBe(schema[1].name);
-                    expect(body.metadata[1].value).toBe(value2);
+                    expect(body.title).toBe(title);
+                    expect(body.description).toBe(description);
+                    expect(body.attributes[0].key).toBe(schema[0].name);
+                    expect(body.attributes[0].value).toBe(value1);
+                    expect(body.attributes[1].key).toBe(schema[1].name);
+                    expect(body.attributes[1].value).toBe(value2);
                     metadataId = body._id;
                 })
                 .expect(201, done);
@@ -118,13 +132,13 @@ describe('NFT Pool', () => {
 
     describe('POST /erc721/:id/metadata/:metadataId/mint', () => {
         it('should 201 when token is minted', (done) => {
-            const beneficiary = account2.address;
+            const recipient = account2.address;
 
             user.post('/v1/erc721/' + erc721ID + '/metadata/' + metadataId + '/mint')
                 .set('Authorization', dashboardAccessToken)
                 .set('AssetPool', poolAddress)
                 .send({
-                    beneficiary,
+                    recipient,
                 })
                 .expect(({ body }: request.Response) => {
                     expect(body.tokenId).toBe(2);

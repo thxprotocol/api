@@ -1,6 +1,6 @@
 import { ERC721, ERC721Document } from '@/models/ERC721';
 import { ERC721Metadata, ERC721MetadataDocument } from '@/models/ERC721Metadata';
-import { TERC721 } from '@/types/TERC721';
+import { ERC721MetadataState, TERC721 } from '@/types/TERC721';
 import TransactionService from './TransactionService';
 import { getContractFromName, getProvider } from '@/util/network';
 import { API_URL, ITX_ACTIVE } from '@/config/secrets';
@@ -36,21 +36,32 @@ export async function findBySub(sub: string): Promise<ERC721Document[]> {
     return await ERC721.find({ sub });
 }
 
-export async function createMetadata(erc721: ERC721Document, metadata: any): Promise<ERC721MetadataDocument> {
-    return await ERC721Metadata.create({ erc721: String(erc721._id), metadata });
+export async function createMetadata(
+    erc721: ERC721Document,
+    title: string,
+    description: string,
+    attributes: any,
+): Promise<ERC721MetadataDocument> {
+    return await ERC721Metadata.create({
+        erc721: String(erc721._id),
+        state: ERC721MetadataState.Minted,
+        title,
+        description,
+        attributes,
+    });
 }
 
 export async function mint(
     assetPool: AssetPoolDocument,
     erc721: ERC721Document,
     erc721metadata: ERC721MetadataDocument,
-    beneficiary: string,
+    recipient: string,
 ): Promise<ERC721MetadataDocument> {
     if (ITX_ACTIVE) {
         const tx = await InfuraService.schedule(
             assetPool.address,
             'mintFor',
-            [beneficiary, String(erc721metadata._id)],
+            [recipient, String(erc721metadata._id)],
             assetPool.network,
         );
         erc721metadata.transactions.push(String(tx._id));
@@ -60,14 +71,15 @@ export async function mint(
         try {
             const { tx, receipt } = await TransactionService.send(
                 assetPool.address,
-                assetPool.contract.methods.mintFor(beneficiary, erc721.baseURL + String(erc721metadata._id)),
+                assetPool.contract.methods.mintFor(recipient, erc721.baseURL + String(erc721metadata._id)),
                 assetPool.network,
             );
             const event = assertEvent('Transfer', parseLogs(erc721.contract.options.jsonInterface, receipt.logs));
 
             erc721metadata.transactions.push(String(tx._id));
+            erc721metadata.state = ERC721MetadataState.Minted;
             erc721metadata.tokenId = Number(event.args.tokenId);
-            erc721metadata.beneficiary = event.args.to;
+            erc721metadata.recipient = event.args.to;
 
             return await erc721metadata.save();
         } catch (error) {
@@ -80,7 +92,7 @@ export async function mint(
 export async function parseAttributes(entry: ERC721MetadataDocument) {
     const attrs: { [key: string]: string } = {};
 
-    for (const { key, value } of entry.metadata) {
+    for (const { key, value } of entry.attributes) {
         attrs[key.toLowerCase()] = value;
     }
 
@@ -91,8 +103,8 @@ async function findMetadataById(id: string): Promise<ERC721MetadataDocument> {
     return await ERC721Metadata.findById(id);
 }
 
-async function findMetadataByBeneficiary(beneficiary: string): Promise<ERC721MetadataDocument[]> {
-    return await ERC721Metadata.find({ beneficiary });
+async function findMetadataByRecipient(recipient: string): Promise<ERC721MetadataDocument[]> {
+    return await ERC721Metadata.find({ recipient });
 }
 
 async function findMetadataByNFT(erc721: string): Promise<ERC721MetadataDocument[]> {
@@ -111,7 +123,7 @@ export default {
     findBySub,
     findMetadataById,
     findMetadataByNFT,
-    findMetadataByBeneficiary,
+    findMetadataByRecipient,
     findByQuery,
     parseAttributes,
 };
