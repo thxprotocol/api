@@ -1,72 +1,13 @@
 import AssetPoolService from '@/services/AssetPoolService';
 import InfuraService from '@/services/InfuraService';
-import { CustomEventLog, findEvent, hex2a, parseLogs } from '@/util/events';
-import { Withdrawal } from '@/models/Withdrawal';
+import { findEvent, hex2a, parseLogs } from '@/util/events';
 import { logger } from '@/util/logger';
-import MemberService from '@/services/MemberService';
-import { DepositState, TransactionState, TransactionType, WithdrawalState } from '@/types/enums';
-import { Deposit } from '@/models/Deposit';
+import { TransactionState, TransactionType } from '@/types/enums';
 import { wrapBackgroundTransaction } from '@/util/newrelic';
-import { AssetPool, AssetPoolType } from '@/models/AssetPool';
+import { AssetPool } from '@/models/AssetPool';
 import { Transaction, TransactionDocument } from '@/models/Transaction';
 import { TransactionReceipt } from 'web3-core';
-import { ERC721Metadata } from '@/models/ERC721Metadata';
-import { ERC721MetadataState } from '@/types/TERC721';
-
-async function handleEvents(assetPool: AssetPoolType, tx: TransactionDocument, events: CustomEventLog[]) {
-    const eventDepositted = findEvent('Depositted', events);
-    const eventRoleGranted = findEvent('RoleGranted', events);
-    const eventWithdrawPollCreated = findEvent('WithdrawPollCreated', events);
-    const eventWithdrawPollFinalized = findEvent('WithdrawPollFinalized', events);
-    const eventWithdrawn = findEvent('Withdrawn', events);
-    const eventTransfer = findEvent('Transfer', events);
-
-    if (eventTransfer) {
-        await ERC721Metadata.updateOne(
-            { transactions: String(tx._id) },
-            {
-                state: ERC721MetadataState.Minted,
-                tokenId: Number(eventTransfer.args.tokenId),
-                recipient: eventTransfer.args.to,
-                failReason: '',
-            },
-        );
-    }
-
-    if (eventDepositted) {
-        const deposit = await Deposit.findOne({ transactions: String(tx._id) });
-        deposit.transactions.push(String(tx._id));
-        deposit.state = DepositState.Completed;
-        await deposit.save();
-    }
-
-    if (eventRoleGranted) {
-        await MemberService.addExistingMember(assetPool, eventRoleGranted.args.account);
-    }
-
-    if (eventWithdrawPollCreated) {
-        await Withdrawal.updateOne(
-            { transactions: String(tx._id) },
-            {
-                withdrawalId: Number(eventWithdrawPollCreated.args.id),
-                poolAddress: assetPool.address,
-                failReason: '',
-            },
-        );
-    }
-
-    if (eventWithdrawPollFinalized && eventWithdrawn) {
-        await Withdrawal.updateOne(
-            { transactions: String(tx._id) },
-            { state: WithdrawalState.Withdrawn, failReason: '' },
-        );
-    }
-}
-
-async function handleError(tx: TransactionDocument, failReason: string) {
-    await Withdrawal.updateOne({ transactions: String(tx._id) }, { failReason });
-    await Deposit.updateOne({ transactions: String(tx._id) }, { failReason });
-}
+import { handleError, handleEvents } from '@/util/jobs';
 
 export async function jobProcessTransactions() {
     const transactions: TransactionDocument[] = await Transaction.find({
@@ -77,14 +18,14 @@ export async function jobProcessTransactions() {
 
     for (const tx of transactions) {
         try {
-            const assetPool = await AssetPoolService.getByAddress(tx.to);
+            const pool = await AssetPoolService.getByAddress(tx.to);
             // If the TX does not have a relayTransactionHash yet, send it first. This might occur if
             // a tx is scheduled but not send yet.
             if (!tx.relayTransactionHash) {
                 (await wrapBackgroundTransaction(
                     'jobRequireTransactions',
                     'send',
-                    InfuraService.send(tx),
+                    InfuraService.send(pool, tx),
                 )) as TransactionDocument;
                 return;
             }
@@ -94,12 +35,12 @@ export async function jobProcessTransactions() {
                 const receipt = (await wrapBackgroundTransaction(
                     'jobRequireTransactions',
                     'pollTransactionStatus',
-                    InfuraService.pollTransactionStatus(assetPool, tx),
+                    InfuraService.pollTransactionStatus(pool, tx),
                 )) as TransactionReceipt;
 
                 if (!receipt) return;
 
-                const events = parseLogs(assetPool.contract.options.jsonInterface, receipt.logs);
+                const events = parseLogs(pool.contract.options.jsonInterface, receipt.logs);
                 const result = findEvent('Result', events);
 
                 if (!result) return;
@@ -110,7 +51,7 @@ export async function jobProcessTransactions() {
                 }
                 if (result.args.success) {
                     await AssetPool.findOneAndUpdate({ address: tx.to }, { lastTransactionAt: Date.now() });
-                    await handleEvents(assetPool, tx, events);
+                    await handleEvents(pool, tx, events);
                 }
             }
         } catch (error) {
