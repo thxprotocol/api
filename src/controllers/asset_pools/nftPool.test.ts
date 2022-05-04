@@ -85,7 +85,6 @@ describe('NFT Pool', () => {
                     recipient,
                 })
                 .expect(({ body }: request.Response) => {
-                    console.log(body);
                     expect(body._id).toBeDefined();
                     expect(body.tokenId).toBe(1);
                     expect(body.title).toBe(title);
@@ -116,7 +115,6 @@ describe('NFT Pool', () => {
                     ],
                 })
                 .expect(({ body }: request.Response) => {
-                    console.log(body);
                     expect(body._id).toBeDefined();
                     expect(body.title).toBe(title);
                     expect(body.description).toBe(description);

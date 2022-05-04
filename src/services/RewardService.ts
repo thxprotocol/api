@@ -67,8 +67,8 @@ export default class RewardService {
 
         const metadata = await ERC721Service.findMetadataById(reward.erc721metadataId);
 
-        // Can only claim this reward once and a withdrawal already exists
-        if (reward.isClaimOnce && !!metadata.tokenId) {
+        // Can only claim this reward once, metadata exists, but is not minted
+        if (reward.isClaimOnce && metadata && !!metadata.tokenId) {
             return {
                 error:
                     metadata.recipient === account.address
