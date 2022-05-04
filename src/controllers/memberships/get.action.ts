@@ -1,9 +1,10 @@
 import { Request, Response } from 'express';
-import { fromWei } from 'web3-utils';
 import MembershipService from '@/services/MembershipService';
 import WithdrawalService from '@/services/WithdrawalService';
 import AccountProxy from '@/proxies/AccountProxy';
 import { NotFoundError } from '@/util/errors';
+import { ERC721 } from '@/models/ERC721';
+import ERC721Service from '@/services/ERC721Service';
 
 export const getMembership = async (req: Request, res: Response) => {
     const membership = await MembershipService.getById(req.params.id);
@@ -12,9 +13,15 @@ export const getMembership = async (req: Request, res: Response) => {
     const account = await AccountProxy.getById(req.user.sub);
     if (!account) throw new NotFoundError('No Account');
 
-    const pending = await WithdrawalService.getPendingBalance(account, membership.poolAddress);
+    if (membership.erc20) {
+        const pending = await WithdrawalService.getPendingBalance(account, membership.poolAddress);
+        return res.json({ ...membership, pendingBalance: pending });
+    }
 
-    res.json({ ...membership, pendingBalance: pending });
+    if (membership.erc721) {
+        const tokens = await ERC721Service.findMetadataByRecipient(account.address);
+        return res.json({ ...membership, tokens });
+    }
 };
 
 /**

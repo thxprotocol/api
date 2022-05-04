@@ -16,6 +16,7 @@ export const getRewards = async (req: Request, res: Response) => {
             id: rewardId,
             title: r.title,
             slug: r.slug,
+            erc721metadataId: r.erc721metadataId,
             expiryDate: r.expiryDate,
             poolAddress: req.assetPool.address,
             withdrawLimit: r.withdrawLimit,

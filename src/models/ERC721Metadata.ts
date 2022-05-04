@@ -7,8 +7,12 @@ const ERC721MetadataSchema = new mongoose.Schema(
     {
         erc721: String,
         tokenId: Number,
-        beneficiary: String,
-        metadata: [{ key: String, value: String }],
+        recipient: String,
+        state: Number,
+        title: String,
+        description: String,
+        attributes: [{ key: String, value: String }],
+        transactions: [String],
     },
     { timestamps: true },
 );

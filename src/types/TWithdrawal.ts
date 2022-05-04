@@ -12,6 +12,7 @@ export type TWithdrawal = {
     unlockDate: Date;
     rewardId?: number;
     withdrawalId?: number;
+    tokenId?: number;
     failReason?: string;
     createdAt: Date;
     updatedAt?: Date;

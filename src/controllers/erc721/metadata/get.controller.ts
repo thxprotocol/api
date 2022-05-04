@@ -6,7 +6,7 @@ export const readERC721MetadataValidation = [param('metadataId').isMongoId()];
 
 export const ReadERC721MetadataController = async (req: Request, res: Response) => {
     const entry = await ERC721Service.findMetadataById(req.params.metadataId);
-    const metadata = await ERC721Service.parseMetadata(entry);
+    const attributes = await ERC721Service.parseAttributes(entry);
 
-    res.header('Content-Type', 'application/json').send(JSON.stringify(metadata, null, 4));
+    res.header('Content-Type', 'application/json').send(JSON.stringify(attributes, null, 4));
 };

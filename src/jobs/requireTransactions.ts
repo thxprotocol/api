@@ -10,6 +10,8 @@ import { wrapBackgroundTransaction } from '@/util/newrelic';
 import { AssetPool, AssetPoolType } from '@/models/AssetPool';
 import { Transaction, TransactionDocument } from '@/models/Transaction';
 import { TransactionReceipt } from 'web3-core';
+import { ERC721Metadata } from '@/models/ERC721Metadata';
+import { ERC721MetadataState } from '@/types/TERC721';
 
 async function handleEvents(assetPool: AssetPoolType, tx: TransactionDocument, events: CustomEventLog[]) {
     const eventDepositted = findEvent('Depositted', events);
@@ -17,6 +19,19 @@ async function handleEvents(assetPool: AssetPoolType, tx: TransactionDocument, e
     const eventWithdrawPollCreated = findEvent('WithdrawPollCreated', events);
     const eventWithdrawPollFinalized = findEvent('WithdrawPollFinalized', events);
     const eventWithdrawn = findEvent('Withdrawn', events);
+    const eventTransfer = findEvent('Transfer', events);
+
+    if (eventTransfer) {
+        await ERC721Metadata.updateOne(
+            { transactions: String(tx._id) },
+            {
+                state: ERC721MetadataState.Minted,
+                tokenId: Number(eventTransfer.args.tokenId),
+                recipient: eventTransfer.args.to,
+                failReason: '',
+            },
+        );
+    }
 
     if (eventDepositted) {
         const deposit = await Deposit.findOne({ transactions: String(tx._id) });
