@@ -3,6 +3,8 @@ import { assertEvent, parseLogs } from '@/util/events';
 import { IMember, Member } from '@/models/Member';
 import TransactionService from './TransactionService';
 import { getDiamondAbi } from '@/config/contracts';
+import { paginatedResults } from '@/util/pagination';
+import { Membership } from '@/models/Membership';
 
 export default class MemberService {
     static async getByAddress(assetPool: TAssetPool, address: string) {
@@ -74,6 +76,10 @@ export default class MemberService {
 
     static isManager(assetPool: TAssetPool, address: string) {
         return TransactionService.call(assetPool.contract.methods.isManager(address), assetPool.network);
+    }
+
+    static async findByQuery(query: { poolAddress: string }, page = 1, limit = 10) {
+        return paginatedResults(Membership, page, limit, query);
     }
 
     static async removeMember(assetPool: TAssetPool, address: string) {

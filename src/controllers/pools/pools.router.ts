@@ -6,11 +6,21 @@ import CreatePool from './post.controller';
 import ReadPool from './get.controller';
 import DeletePool from './delete.controller';
 import ListPools from './list.controller';
+import GetPoolMembers from './get.members.action';
 
 const router = express.Router();
 
 router.post('/', assertScopes(['dashboard']), assertRequestInput(CreatePool.validation), CreatePool.controller);
 router.get('/', assertScopes(['dashboard']), ListPools.controller);
+router.get(
+    '/:address/members',
+    assertScopes(['dashboard']),
+    assertAssetPoolAccess,
+    assertRequestInput(readAssetPoolValidation),
+    requireAssetPoolHeader,
+    assertPlan([AccountPlanType.Basic, AccountPlanType.Premium]),
+    GetPoolMembers.controller,
+);
 router.get(
     '/:address',
     assertScopes(['admin', 'dashboard']),
