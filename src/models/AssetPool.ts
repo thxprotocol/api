@@ -1,23 +1,9 @@
 import mongoose from 'mongoose';
 import { getContractFromAbi } from '@/util/network';
-import { Contract } from 'web3-eth-contract';
 import { getDiamondAbi } from '@/config/contracts';
+import { TAssetPool } from '@/types/TAssetPool';
 
-export type AssetPoolType = {
-    address: string;
-    contract: Contract;
-    network: number;
-    sub: string;
-    clientId: string;
-    blockNumber: number;
-    transactionHash: string;
-    lastTransactionAt?: number;
-    bypassPolls: boolean;
-    version?: string;
-    variant?: string;
-};
-
-export type AssetPoolDocument = mongoose.Document & AssetPoolType;
+export type AssetPoolDocument = mongoose.Document & TAssetPool;
 
 const assetPoolSchema = new mongoose.Schema(
     {

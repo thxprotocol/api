@@ -1,7 +1,7 @@
 import { toWei } from 'web3-utils';
 import { NetworkProvider } from '@/types/enums';
 import { WithdrawalState, WithdrawalType } from '@/types/enums';
-import { AssetPoolType } from '@/models/AssetPool';
+import { TAssetPool } from '@/types/TAssetPool';
 import { Withdrawal, WithdrawalDocument } from '@/models/Withdrawal';
 import { IAccount } from '@/models/Account';
 import { parseLogs, assertEvent, findEvent } from '@/util/events';
@@ -43,7 +43,7 @@ export default class WithdrawalService {
     }
 
     static schedule(
-        assetPool: AssetPoolType,
+        assetPool: TAssetPool,
         type: WithdrawalType,
         sub: string,
         amount: number,
@@ -72,7 +72,7 @@ export default class WithdrawalService {
         return withdrawals.map((item) => item.amount).reduce((prev, curr) => prev + curr, 0);
     }
 
-    static async proposeWithdraw(assetPool: AssetPoolType, withdrawal: WithdrawalDocument, account: IAccount) {
+    static async proposeWithdraw(assetPool: TAssetPool, withdrawal: WithdrawalDocument, account: IAccount) {
         const amountInWei = toWei(String(withdrawal.amount));
         const unlockDateTmestamp = Math.floor(
             (withdrawal.unlockDate ? withdrawal.unlockDate.getTime() : Date.now()) / 1000,
@@ -114,7 +114,7 @@ export default class WithdrawalService {
         }
     }
 
-    static async withdraw(assetPool: AssetPoolType, withdrawal: WithdrawalDocument) {
+    static async withdraw(assetPool: TAssetPool, withdrawal: WithdrawalDocument) {
         if (ITX_ACTIVE) {
             const tx = await InfuraService.schedule(
                 assetPool.address,
@@ -150,7 +150,7 @@ export default class WithdrawalService {
         }
     }
 
-    static async countByPoolAddress(assetPool: AssetPoolType) {
+    static async countByPoolAddress(assetPool: TAssetPool) {
         return (await Withdrawal.find({ poolAddress: assetPool.address })).length;
     }
 

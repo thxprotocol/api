@@ -8,7 +8,7 @@ import {
     RewardState,
     TReward,
 } from '@/models/Reward';
-import { AssetPoolType } from '@/models/AssetPool';
+import { TAssetPool } from '@/types/TAssetPool';
 import TwitterDataProxy from '@/proxies/TwitterDataProxy';
 import YouTubeDataProxy from '@/proxies/YoutubeDataProxy';
 import SpotifyDataProxy from '@/proxies/SpotifyDataProxy';
@@ -17,13 +17,13 @@ import ERC721Service from './ERC721Service';
 import { ERC721MetadataDocument } from '@/models/ERC721Metadata';
 
 export default class RewardService {
-    static async get(assetPool: AssetPoolType, rewardId: number): Promise<RewardDocument> {
+    static async get(assetPool: TAssetPool, rewardId: number): Promise<RewardDocument> {
         const reward = await Reward.findOne({ poolAddress: assetPool.address, id: rewardId });
         if (!reward) return null;
         return reward;
     }
 
-    static async findByPoolAddress(assetPool: AssetPoolType): Promise<RewardDocument[]> {
+    static async findByPoolAddress(assetPool: TAssetPool): Promise<RewardDocument[]> {
         const rewards = [];
         for (const r of await Reward.find({ poolAddress: assetPool.address })) {
             rewards.push(await this.get(assetPool, r.id));
@@ -32,7 +32,7 @@ export default class RewardService {
     }
 
     static async canClaim(
-        assetPool: AssetPoolType,
+        assetPool: TAssetPool,
         reward: TReward,
         account: IAccount,
     ): Promise<{ result?: boolean; error?: string }> {
@@ -97,7 +97,7 @@ export default class RewardService {
     }
 
     static async create(data: {
-        assetPool: AssetPoolType;
+        assetPool: TAssetPool;
         title: string;
         slug: string;
         withdrawLimit: number;

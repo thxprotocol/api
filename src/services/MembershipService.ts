@@ -1,4 +1,4 @@
-import { AssetPoolDocument, AssetPoolType } from '@/models/AssetPool';
+import { TAssetPool } from '@/types/TAssetPool';
 import { ERC20Type, NetworkProvider } from '@/types/enums';
 import { Membership } from '@/models/Membership';
 import AssetPoolService from './AssetPoolService';
@@ -16,7 +16,7 @@ export default class MembershipService {
         return memberships.map((m) => String(m._id));
     }
 
-    static async hasMembership(assetPool: AssetPoolType, sub: string) {
+    static async hasMembership(assetPool: TAssetPool, sub: string) {
         const membership = await Membership.findOne({
             sub,
             network: assetPool.network,
@@ -48,7 +48,7 @@ export default class MembershipService {
         };
     }
 
-    static async addERC20Membership(sub: string, assetPool: AssetPoolDocument) {
+    static async addERC20Membership(sub: string, assetPool: TAssetPool) {
         const membership = await Membership.findOne({
             sub,
             network: assetPool.network,
@@ -84,7 +84,7 @@ export default class MembershipService {
         }
     }
 
-    static async addERC721Membership(sub: string, assetPool: AssetPoolDocument) {
+    static async addERC721Membership(sub: string, assetPool: TAssetPool) {
         const membership = await Membership.findOne({
             sub,
             network: assetPool.network,
@@ -120,7 +120,7 @@ export default class MembershipService {
         }
     }
 
-    static async removeMembership(sub: string, assetPool: AssetPoolType) {
+    static async removeMembership(sub: string, assetPool: TAssetPool) {
         const membership = await Membership.findOne({
             sub,
             network: assetPool.network,

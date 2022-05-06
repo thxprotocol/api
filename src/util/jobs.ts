@@ -1,4 +1,4 @@
-import { AssetPoolType } from '@/models/AssetPool';
+import { TAssetPool } from '@/types/TAssetPool';
 import { Deposit } from '@/models/Deposit';
 import { ERC721Metadata } from '@/models/ERC721Metadata';
 import { TransactionDocument } from '@/models/Transaction';
@@ -8,7 +8,7 @@ import { DepositState, WithdrawalState } from '@/types/enums';
 import { ERC721MetadataState } from '@/types/TERC721';
 import { CustomEventLog, findEvent } from './events';
 
-async function handleEvents(assetPool: AssetPoolType, tx: TransactionDocument, events: CustomEventLog[]) {
+async function handleEvents(assetPool: TAssetPool, tx: TransactionDocument, events: CustomEventLog[]) {
     const eventDepositted = findEvent('Depositted', events);
     const eventRoleGranted = findEvent('RoleGranted', events);
     const eventWithdrawPollCreated = findEvent('WithdrawPollCreated', events);
