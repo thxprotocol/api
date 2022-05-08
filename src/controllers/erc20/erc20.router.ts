@@ -2,7 +2,7 @@ import express from 'express';
 import checkScopes from 'express-jwt-authz';
 import { validate } from '@/util/validation';
 import { getById, getERC20TokenValidation } from './get.controller';
-import { getAllERC20Token } from './getAll.controller';
+import { getAllERC20Token } from './list.controller';
 import { CreateERC20Controller, postERC20TokenValidation } from './post.controller';
 import { deleteERC20TokenValidation, DeleteERC20Controller } from './delete.controller';
 

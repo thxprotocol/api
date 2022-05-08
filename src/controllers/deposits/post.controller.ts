@@ -20,6 +20,7 @@ export const createDepositValidation = [
 ];
 
 export default async function CreateDepositController(req: Request, res: Response) {
+    // #swagger.tags = ['Deposits']
     let value = req.body.amount;
 
     // If an item is referenced, replace the amount value with the price value

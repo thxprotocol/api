@@ -1,4 +1,5 @@
 import 'express-async-errors';
+import '@/config/openapi';
 import express from 'express';
 import compression from 'compression';
 import lusca from 'lusca';

@@ -66,6 +66,7 @@ async function getNetworkDetails(npid: NetworkProvider) {
 }
 
 export const getHealth = async (_req: Request, res: Response) => {
+    // #swagger.tags = ['Health']
     const jsonData = {
         name,
         version,
