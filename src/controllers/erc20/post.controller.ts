@@ -13,6 +13,7 @@ export const postERC20TokenValidation = [
 ];
 
 export const CreateERC20Controller = async (req: Request, res: Response) => {
+    // #swagger.tags = ['ERC20']
     const account = await AccountProxy.getById(req.user.sub);
 
     if (account.plan === AccountPlanType.Free && req.body.network === NetworkProvider.Main) {

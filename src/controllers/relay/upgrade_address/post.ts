@@ -16,6 +16,7 @@ export const createCallUpgradeAddressValidation = [
 ];
 
 export const postCallUpgradeAddress = async (req: Request, res: Response) => {
+    // #swagger.tags = ['Relay Hub']
     const { contract, network } = req.assetPool;
     const isMember = await TransactionService.call(contract.methods.isMember(req.body.newAddress), network);
 

@@ -5,6 +5,7 @@ import { param } from 'express-validator';
 export const deleteERC20TokenValidation = [param('id').exists().isMongoId()];
 
 export const DeleteERC20Controller = async (req: Request, res: Response) => {
+    // #swagger.tags = ['ERC20']
     await ERC20Service.removeById(req.params.id);
 
     return res.status(204).end();

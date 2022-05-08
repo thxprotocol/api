@@ -10,6 +10,7 @@ export const createLoginValidation = [
 ];
 
 export const postLogin = async (req: Request, res: Response) => {
+    // #swagger.tags = ['Account']
     const r = await authClient.post(
         '/account/login',
         { email: req.body.email, password: req.body.password },

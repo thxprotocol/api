@@ -11,6 +11,7 @@ export const mintERC721MetadataValidation = [
 ];
 
 export const MintERC721MetadataController = async (req: Request, res: Response) => {
+    // #swagger.tags = ['ERC721']
     const erc721 = await ERC721Service.findById(req.params.id);
     if (!erc721) throw new NotFoundError('Could not find this NFT in the database');
 

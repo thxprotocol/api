@@ -17,6 +17,7 @@ export const createAccountValidation = [
 ];
 
 export const postAccount = async (req: Request, res: Response) => {
+    // #swagger.tags = ['Account']
     const isDuplicate = await AccountProxy.isEmailDuplicate(req.body.email);
 
     if (isDuplicate) {

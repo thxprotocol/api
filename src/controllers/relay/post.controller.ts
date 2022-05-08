@@ -9,6 +9,7 @@ import { Withdrawal } from '@/models/Withdrawal';
 export const createCallValidation = [body('call').exists(), body('nonce').exists(), body('sig').exists()];
 
 export const postCall = async (req: Request, res: Response) => {
+    // #swagger.tags = ['Relay Hub']
     const { contract, network, address } = req.assetPool;
     const { tx, receipt } = await TransactionService.send(
         contract.options.address,

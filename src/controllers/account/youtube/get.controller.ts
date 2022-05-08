@@ -2,6 +2,7 @@ import YoutubeDataProxy from '@/proxies/YoutubeDataProxy';
 import { Request, Response } from 'express';
 
 export const getYoutube = async (req: Request, res: Response) => {
+    // #swagger.tags = ['Account']
     const { isAuthorized, channels, videos } = await YoutubeDataProxy.getYoutube(req.user.sub);
 
     if (!isAuthorized) {
