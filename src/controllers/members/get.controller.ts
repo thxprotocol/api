@@ -1,11 +1,14 @@
 import { Request, Response } from 'express';
+import { param } from 'express-validator';
 import { fromWei } from 'web3-utils';
 import { NotFoundError } from '@/util/errors';
 import MemberService from '@/services/MemberService';
 import ERC20Service from '@/services/ERC20Service';
 import { getContractFromName } from '@/util/network';
 
-export const getMember = async (req: Request, res: Response) => {
+const validation = [param('address').isEthereumAddress()];
+
+const controller = async (req: Request, res: Response) => {
     // #swagger.tags = ['Members']
     const isMember = await MemberService.isMember(req.assetPool, req.params.address);
 
@@ -18,3 +21,5 @@ export const getMember = async (req: Request, res: Response) => {
 
     res.json({ ...member, token: { name: erc20.name, symbol: erc20.symbol, balance } });
 };
+
+export default { controller, validation };

@@ -1,7 +1,21 @@
 import { Request, Response } from 'express';
+import { body } from 'express-validator';
 import RewardService from '@/services/RewardService';
 
-export const postReward = async (req: Request, res: Response) => {
+const validation = [
+    body('title').exists().isString(),
+    body('slug').exists().isString(),
+    body('expiryDate').optional().isString(),
+    body('withdrawAmount').exists().isNumeric(),
+    body('withdrawDuration').exists().isNumeric(),
+    body('withdrawLimit').optional().isNumeric(),
+    body('withdrawUnlockDate').isDate().optional({ nullable: true }),
+    body('withdrawCondition.channelType').optional().isNumeric(),
+    body('withdrawCondition.channelAction').optional().isNumeric(),
+    body('withdrawCondition.channelItem').optional().isString(),
+];
+
+const controller = async (req: Request, res: Response) => {
     // #swagger.tags = ['Rewards']
 
     let withdrawUnlockDate = req.body.withdrawUnlockDate;
@@ -28,3 +42,5 @@ export const postReward = async (req: Request, res: Response) => {
 
     res.status(201).json(reward);
 };
+
+export default { controller, validation };

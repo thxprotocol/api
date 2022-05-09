@@ -3,7 +3,7 @@ import RewardService from '@/services/RewardService';
 import { TReward } from '@/models/Reward';
 import WithdrawalService from '@/services/WithdrawalService';
 
-export const getRewards = async (req: Request, res: Response) => {
+const controller = async (req: Request, res: Response) => {
     // #swagger.tags = ['Rewards']
     const result: TReward[] = [];
     const rewards = await RewardService.findByPoolAddress(req.assetPool);
@@ -34,3 +34,5 @@ export const getRewards = async (req: Request, res: Response) => {
 
     res.json(result);
 };
+
+export default { controller };

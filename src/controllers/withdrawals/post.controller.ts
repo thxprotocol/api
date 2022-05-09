@@ -1,16 +1,17 @@
 import newrelic from 'newrelic';
+import { body } from 'express-validator';
 import { Request, Response } from 'express';
 import { Withdrawal, WithdrawalDocument } from '@/models/Withdrawal';
 import { BadRequestError, NotFoundError } from '@/util/errors';
-
-import MemberService from '@/services/MemberService';
-import WithdrawalService from '@/services/WithdrawalService';
-
-import AccountProxy from '@/proxies/AccountProxy';
 import { WithdrawalState, WithdrawalType } from '@/types/enums';
 import { TWithdrawal } from '@/types/TWithdrawal';
+import MemberService from '@/services/MemberService';
+import WithdrawalService from '@/services/WithdrawalService';
+import AccountProxy from '@/proxies/AccountProxy';
 
-export const postWithdrawal = async (req: Request, res: Response) => {
+const validation = [body('member').isEthereumAddress(), , body('amount').exists().isNumeric()];
+
+const controller = async (req: Request, res: Response) => {
     // #swagger.tags = ['Withdrawals']
     const account = await AccountProxy.getByAddress(req.body.member);
     if (!account) throw new NotFoundError('Account not found');
@@ -59,3 +60,4 @@ export const postWithdrawal = async (req: Request, res: Response) => {
 
     res.status(201).json(result);
 };
+export default { controller, validation };

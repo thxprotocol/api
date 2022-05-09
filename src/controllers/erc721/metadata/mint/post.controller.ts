@@ -4,13 +4,9 @@ import { body, param } from 'express-validator';
 import { NotFoundError } from '@/util/errors';
 import { ERC721MetadataDocument } from '@/models/ERC721Metadata';
 
-export const mintERC721MetadataValidation = [
-    param('id').isMongoId(),
-    param('metadataId').isMongoId(),
-    body('recipient').isEthereumAddress(),
-];
+const validation = [param('id').isMongoId(), param('metadataId').isMongoId(), body('recipient').isEthereumAddress()];
 
-export const MintERC721MetadataController = async (req: Request, res: Response) => {
+const controller = async (req: Request, res: Response) => {
     // #swagger.tags = ['ERC721']
     const erc721 = await ERC721Service.findById(req.params.id);
     if (!erc721) throw new NotFoundError('Could not find this NFT in the database');
@@ -22,3 +18,5 @@ export const MintERC721MetadataController = async (req: Request, res: Response) 
 
     res.status(201).json(erc721metadata);
 };
+
+export default { controller, validation };

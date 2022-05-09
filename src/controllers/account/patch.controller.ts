@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import { VERSION } from '@/config/secrets';
 import AccountProxy from '@/proxies/AccountProxy';
 
-export const patchAccount = async (req: Request, res: Response) => {
+const controller = async (req: Request, res: Response) => {
     // #swagger.tags = ['Account']
     await AccountProxy.update(req.user.sub, {
         address: req.body.address,
@@ -13,3 +13,5 @@ export const patchAccount = async (req: Request, res: Response) => {
 
     res.redirect(303, `/${VERSION}/account`);
 };
+
+export default { controller };

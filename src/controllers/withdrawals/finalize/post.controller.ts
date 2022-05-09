@@ -1,10 +1,13 @@
 import { Request, Response } from 'express';
-import WithdrawalService from '@/services/WithdrawalService';
+import { param } from 'express-validator';
 import { ForbiddenError, NotFoundError } from '@/util/errors';
-import { TWithdrawal } from '@/types/TWithdrawal';
 import { agenda, eventNameRequireTransactions } from '@/util/agenda';
+import { TWithdrawal } from '@/types/TWithdrawal';
+import WithdrawalService from '@/services/WithdrawalService';
 
-export const postPollFinalize = async (req: Request, res: Response) => {
+const validation = [param('id').isMongoId()];
+
+const controller = async (req: Request, res: Response) => {
     // #swagger.tags = ['Withdrawals']
     const withdrawal = await WithdrawalService.getById(req.params.id);
     if (!withdrawal) throw new NotFoundError('Withdrawal not found');
@@ -38,3 +41,5 @@ export const postPollFinalize = async (req: Request, res: Response) => {
 
     res.json(result);
 };
+
+export default { controller, validation };

@@ -1,15 +1,19 @@
 import express from 'express';
 import checkScopes from 'express-jwt-authz';
-import { validate } from '@/util/validation';
-import { validations } from './_.validation';
-import { getMembership } from './get.controller';
-import { getMemberships } from './list.controller';
-import { deleteMembership } from './delete.controller';
+import { assertRequestInput } from '@/middlewares';
+import ReadMembership from './get.controller';
+import DeleteMembership from './delete.controller';
+import ListMemberships from './list.controller';
 
 const router = express.Router();
 
-router.get('/', checkScopes(['user']), getMemberships);
-router.get('/:id', checkScopes(['user']), validate(validations.getMembership), getMembership);
-router.delete('/:id', checkScopes(['user']), validate(validations.deleteMembership), deleteMembership);
+router.get('/', checkScopes(['user']), ListMemberships.controller);
+router.get('/:id', checkScopes(['user']), assertRequestInput(ReadMembership.validation), ReadMembership.controller);
+router.delete(
+    '/:id',
+    checkScopes(['user']),
+    assertRequestInput(DeleteMembership.validation),
+    DeleteMembership.controller,
+);
 
 export default router;

@@ -1,11 +1,14 @@
 import { Request, Response } from 'express';
+import { param } from 'express-validator';
 import MembershipService from '@/services/MembershipService';
 import WithdrawalService from '@/services/WithdrawalService';
 import AccountProxy from '@/proxies/AccountProxy';
 import { NotFoundError } from '@/util/errors';
 import ERC721Service from '@/services/ERC721Service';
 
-export const getMembership = async (req: Request, res: Response) => {
+const validation = [param('id').isMongoId()];
+
+const controller = async (req: Request, res: Response) => {
     // #swagger.tags = ['Memberships']
     const membership = await MembershipService.getById(req.params.id);
     if (!membership) throw new NotFoundError();
@@ -23,3 +26,5 @@ export const getMembership = async (req: Request, res: Response) => {
         return res.json({ ...membership, tokens });
     }
 };
+
+export default { controller, validation };

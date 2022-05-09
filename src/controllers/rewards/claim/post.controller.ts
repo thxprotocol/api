@@ -1,31 +1,30 @@
 import { Request, Response } from 'express';
+import { param } from 'express-validator';
 import { BadRequestError, ForbiddenError } from '@/util/errors';
 import { WithdrawalState, WithdrawalType } from '@/types/enums';
 import { TWithdrawal } from '@/types/TWithdrawal';
+import { WithdrawalDocument } from '@/models/Withdrawal';
+import { agenda, eventNameRequireTransactions } from '@/util/agenda';
 import AccountProxy from '@/proxies/AccountProxy';
 import RewardService from '@/services/RewardService';
 import MemberService from '@/services/MemberService';
 import WithdrawalService from '@/services/WithdrawalService';
 import MembershipService from '@/services/MembershipService';
-import { WithdrawalDocument } from '@/models/Withdrawal';
-import { agenda, eventNameRequireTransactions } from '@/util/agenda';
 import ERC721Service from '@/services/ERC721Service';
 
-const ERROR_REWARD_NOT_FOUND = 'The reward for this ID does not exist.';
-const ERROR_ACCOUNT_NO_ADDRESS = 'The authenticated account has not wallet address. Sign in the Web Wallet once.';
-const ERROR_INCORRECT_SCOPE = 'No subscription is found for this type of access token.';
-const ERROR_NO_MEMBER = 'Could not claim this reward since you are not a member of the pool.';
+const validation = [param('id').exists().isNumeric()];
 
-export async function postRewardClaim(req: Request, res: Response) {
+const controller = async (req: Request, res: Response) => {
     // #swagger.tags = ['Rewards']
-    if (!req.user.sub) throw new BadRequestError(ERROR_INCORRECT_SCOPE);
+    if (!req.user.sub) throw new BadRequestError('No subscription is found for this type of access token.');
 
     const rewardId = Number(req.params.id);
     const reward = await RewardService.get(req.assetPool, rewardId);
-    if (!reward) throw new BadRequestError(ERROR_REWARD_NOT_FOUND);
+    if (!reward) throw new BadRequestError('The reward for this ID does not exist.');
 
     const account = await AccountProxy.getById(req.user.sub);
-    if (!account.address) throw new BadRequestError(ERROR_ACCOUNT_NO_ADDRESS);
+    if (!account.address)
+        throw new BadRequestError('The authenticated account has not wallet address. Sign in the Web Wallet once.');
 
     const { result, error } = await RewardService.canClaim(req.assetPool, reward, account);
     if (!result && error) throw new ForbiddenError(error);
@@ -33,7 +32,8 @@ export async function postRewardClaim(req: Request, res: Response) {
     // TODO add MemberAccess facets to NFTPools and remove this check
     if (req.assetPool.variant === 'defaultPool') {
         const isMember = await MemberService.isMember(req.assetPool, account.address);
-        if (!isMember && reward.isMembershipRequired) throw new ForbiddenError(ERROR_NO_MEMBER);
+        if (!isMember && reward.isMembershipRequired)
+            throw new ForbiddenError('Could not claim this reward since you are not a member of the pool.');
     }
 
     const hasMembership = await MembershipService.hasMembership(req.assetPool, account.id);
@@ -89,4 +89,6 @@ export async function postRewardClaim(req: Request, res: Response) {
 
         return res.json(metadata);
     }
-}
+};
+
+export default { controller, validation };

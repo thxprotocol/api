@@ -1,9 +1,9 @@
 import express from 'express';
 
-import { getCirculatingSupply } from './get.controller';
+import ReadToken from './get.controller';
 
 const router = express.Router();
 
-router.get('/cs', getCirculatingSupply);
+router.get('/cs', ReadToken.controller);
 
 export default router;

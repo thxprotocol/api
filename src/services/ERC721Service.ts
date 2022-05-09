@@ -2,23 +2,25 @@ import { ERC721, ERC721Document } from '@/models/ERC721';
 import { ERC721Metadata, ERC721MetadataDocument } from '@/models/ERC721Metadata';
 import { ERC721MetadataState, TERC721 } from '@/types/TERC721';
 import TransactionService from './TransactionService';
-import { getContractFromName, getProvider } from '@/util/network';
+import { getProvider } from '@/util/network';
 import { API_URL, ITX_ACTIVE } from '@/config/secrets';
 import { assertEvent, parseLogs } from '@/util/events';
 import { AssetPoolDocument } from '@/models/AssetPool';
 import { NetworkProvider } from '@/types/enums';
 import InfuraService from './InfuraService';
+import { getContract } from '@/config/contracts';
+import { currentVersion } from '@thxnetwork/artifacts';
 
 async function create(data: TERC721): Promise<ERC721Document> {
     const { admin } = getProvider(data.network);
-    const tokenFactory = getContractFromName(data.network, 'TokenFactory');
+    const tokenFactory = getContract(data.network, 'TokenFactory', currentVersion);
     const erc721 = await ERC721.create(data);
 
     erc721.baseURL = `${API_URL}/metadata/`;
 
     const { receipt } = await TransactionService.send(
         tokenFactory.options.address,
-        tokenFactory.methods.deployNonFungibleToken(erc721.name, erc721.symbol, admin.address, erc721.baseURL),
+        tokenFactory.methods.deployNonFungibleToken(erc721.name, erc721.symbol, erc721.baseURL, admin.address),
         erc721.network,
     );
     const event = assertEvent('TokenDeployed', parseLogs(tokenFactory.options.jsonInterface, receipt.logs));

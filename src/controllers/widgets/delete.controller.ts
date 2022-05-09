@@ -1,9 +1,11 @@
 import { Request, Response } from 'express';
+import { param } from 'express-validator';
+import { BadRequestError } from '@/util/errors';
 import WidgetService from '@/services/WidgetService';
 import ClientService from '@/services/ClientService';
-import { BadRequestError } from '@/util/errors';
 
-export const deleteWidget = async (req: Request, res: Response) => {
+const validation = [param('clientId').exists()];
+const controller = async (req: Request, res: Response) => {
     // #swagger.tags = ['Widgets']
     const client = await ClientService.get(req.params.clientId);
 
@@ -16,3 +18,5 @@ export const deleteWidget = async (req: Request, res: Response) => {
 
     res.status(204).end();
 };
+
+export default { controller, validation };
