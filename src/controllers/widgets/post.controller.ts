@@ -2,8 +2,11 @@ import { Request, Response } from 'express';
 import { WIDGETS_URL } from '@/config/secrets';
 import WidgetService from '@/services/WidgetService';
 import ClientService from '@/services/ClientService';
+import { body } from 'express-validator';
 
-export const postWidget = async (req: Request, res: Response) => {
+const validation = [body('requestUris').exists(), body('postLogoutRedirectUris').exists(), body('metadata').exists()];
+
+const controller = async (req: Request, res: Response) => {
     // #swagger.tags = ['Widgets']
     const client = await ClientService.create(req.user.sub, {
         application_type: 'web',
@@ -24,3 +27,5 @@ export const postWidget = async (req: Request, res: Response) => {
 
     res.status(201).json(widget);
 };
+
+export default { controller, validation };

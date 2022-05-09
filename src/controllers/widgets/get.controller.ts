@@ -1,9 +1,12 @@
 import { Request, Response } from 'express';
+import { param } from 'express-validator';
 import WidgetService from '@/services/WidgetService';
 import ClientService from '@/services/ClientService';
 import { BadRequestError, NotFoundError } from '@/util/errors';
 
-export const getWidget = async (req: Request, res: Response) => {
+const validation = [param('clientId').exists()];
+
+const controller = async (req: Request, res: Response) => {
     // #swagger.tags = ['Widgets']
     const client = await ClientService.get(req.params.clientId);
     if (!client) {
@@ -26,3 +29,5 @@ export const getWidget = async (req: Request, res: Response) => {
         },
     });
 };
+
+export default { controller, validation };

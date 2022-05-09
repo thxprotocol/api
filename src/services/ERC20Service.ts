@@ -8,10 +8,12 @@ import { InternalServerError } from '@/util/errors';
 import { ERC20Type, NetworkProvider } from '@/types/enums';
 import { AssetPoolDocument } from '@/models/AssetPool';
 import { TERC20 } from '@/types/TERC20';
+import { currentVersion } from '@thxnetwork/artifacts';
+import { getContract } from '@/config/contracts';
 
 export const create = async (params: ICreateERC20Params) => {
     const { admin } = getProvider(params.network);
-    const tokenFactory = getContractFromName(params.network, 'TokenFactory');
+    const tokenFactory = getContract(params.network, 'TokenFactory', currentVersion);
 
     let fn;
     if (params.name && params.symbol && params.type === ERC20Type.Limited) {
@@ -23,12 +25,7 @@ export const create = async (params: ICreateERC20Params) => {
         );
     }
     if (params.name && params.symbol && params.type === ERC20Type.Unlimited) {
-        fn = tokenFactory.methods.deployUnlimitedSupplyToken(
-            params.name,
-            params.symbol,
-            [admin.address],
-            admin.address,
-        );
+        fn = tokenFactory.methods.deployUnlimitedSupplyToken(params.name, params.symbol, admin.address);
     }
 
     if (!fn) throw new InternalServerError('Could not determine fn to call');

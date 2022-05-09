@@ -1,8 +1,16 @@
 import { Request, Response } from 'express';
-
+import { query } from 'express-validator';
 import WithdrawalService from '@/services/WithdrawalService';
 
-export const getWithdrawals = async (req: Request, res: Response) => {
+const validation = [
+    query('page').exists().isNumeric(),
+    query('limit').exists().isNumeric(),
+    query('member').optional().isEthereumAddress(),
+    query('rewardId').optional().isNumeric(),
+    query('state').optional().isNumeric(),
+];
+
+const controller = async (req: Request, res: Response) => {
     // #swagger.tags = ['Withdrawals']
     const withdrawals = [];
     const result = await WithdrawalService.getAll(
@@ -34,3 +42,5 @@ export const getWithdrawals = async (req: Request, res: Response) => {
     result.results = withdrawals;
     res.json(result);
 };
+
+export default { controller, validation };

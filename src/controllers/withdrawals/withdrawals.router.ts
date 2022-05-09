@@ -1,15 +1,12 @@
 import express from 'express';
 import checkScopes from 'express-jwt-authz';
-import { validate } from '@/util/validation';
-import { assertAssetPoolAccess } from '@/middlewares';
-import { validations } from './_.validation';
-import { getWithdrawal } from './get.controller';
-import { getWithdrawals } from './list.controller';
-import { assertPlan, requireAssetPoolHeader } from '@/middlewares';
-import { postPollFinalize } from './finalize/post.controller';
-import { postWithdrawal } from './post.controller';
-import { DeleteWithdrawalController } from './delete.controller';
+import { assertPlan, assertAssetPoolAccess, assertRequestInput, requireAssetPoolHeader } from '@/middlewares';
 import { AccountPlanType } from '@/types/enums';
+import CreateWithdrawalFinalize from './finalize/post.controller';
+import CreateWithdrawal from './post.controller';
+import ReadWithdrawal from './get.controller';
+import DeleteWithdrawal from './delete.controller';
+import ListWithdrawal from './list.controller';
 
 const router = express.Router();
 
@@ -17,44 +14,44 @@ router.post(
     '/',
     checkScopes(['admin']),
     assertAssetPoolAccess,
-    validate(validations.postWithdrawal),
+    assertRequestInput(CreateWithdrawal.validation),
     requireAssetPoolHeader,
     assertPlan([AccountPlanType.Basic, AccountPlanType.Premium]),
-    postWithdrawal,
+    CreateWithdrawal.controller,
 );
 router.get(
     '/',
     checkScopes(['admin', 'user']),
     assertAssetPoolAccess,
-    validate(validations.getWithdrawals),
+    assertRequestInput(ListWithdrawal.validation),
     requireAssetPoolHeader,
-    getWithdrawals,
+    ListWithdrawal.controller,
 );
 router.get(
     '/:id',
     checkScopes(['admin', 'user']),
     assertAssetPoolAccess,
-    validate(validations.getWithdrawal),
+    assertRequestInput(ReadWithdrawal.validation),
     requireAssetPoolHeader,
-    getWithdrawal,
+    ReadWithdrawal.controller,
 );
 router.post(
     '/:id/withdraw',
     checkScopes(['admin', 'user']),
     assertAssetPoolAccess,
-    validate(validations.postPollFinalize),
+    assertRequestInput(CreateWithdrawalFinalize.validation),
     requireAssetPoolHeader,
     assertPlan([AccountPlanType.Basic, AccountPlanType.Premium]),
-    postPollFinalize,
+    CreateWithdrawalFinalize.controller,
 );
-
 router.delete(
     '/:id',
     checkScopes(['user']),
     assertAssetPoolAccess,
-    validate(validations.deleteWithdrawal),
+    assertRequestInput(DeleteWithdrawal.validation),
     requireAssetPoolHeader,
     assertPlan([AccountPlanType.Basic, AccountPlanType.Premium]),
-    DeleteWithdrawalController,
+    DeleteWithdrawal.controller,
 );
+
 export default router;

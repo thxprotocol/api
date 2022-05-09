@@ -6,7 +6,7 @@ import WithdrawalService from '@/services/WithdrawalService';
 import ClientService from '@/services/ClientService';
 import AssetPoolService from '@/services/AssetPoolService';
 
-export const deleteAssetPoolValidation = [
+const validation = [
     param('address')
         .exists()
         .custom((value) => {
@@ -14,7 +14,7 @@ export const deleteAssetPoolValidation = [
         }),
 ];
 
-export async function deleteAssetPool(req: Request, res: Response) {
+const controller = async (req: Request, res: Response) => {
     // #swagger.tags = ['Pools']
     await RewardService.removeAllForAddress(req.assetPool.address);
     await WithdrawalService.removeAllForAddress(req.assetPool.address);
@@ -22,4 +22,6 @@ export async function deleteAssetPool(req: Request, res: Response) {
     await AssetPoolService.removeByAddress(req.assetPool.address);
 
     res.status(204).end();
-}
+};
+
+export default { controller, validation };

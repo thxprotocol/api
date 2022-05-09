@@ -2,9 +2,12 @@ import { Request, Response } from 'express';
 import RewardService from '@/services/RewardService';
 import { NotFoundError } from '@/util/errors';
 import { TReward } from '@/models/Reward';
+import { param } from 'express-validator';
 import WithdrawalService from '@/services/WithdrawalService';
 
-export const getReward = async (req: Request, res: Response) => {
+const validation = [param('id').exists().isNumeric()];
+
+const controller = async (req: Request, res: Response) => {
     // #swagger.tags = ['Rewards']
     const reward = await RewardService.get(req.assetPool, Number(req.params.id));
     if (!reward) throw new NotFoundError();
@@ -35,3 +38,5 @@ export const getReward = async (req: Request, res: Response) => {
 
     res.json(result);
 };
+
+export default { controller, validation };

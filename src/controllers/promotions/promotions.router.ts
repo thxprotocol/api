@@ -1,10 +1,10 @@
 import express from 'express';
 import assertScopes from 'express-jwt-authz';
 import { assertAssetPoolAccess, assertRequestInput, requireAssetPoolHeader } from '@/middlewares';
-import CreatePromoCodeController, { createPromoCodeValidation } from './post.controller';
-import ReadPromoCodeController, { readPromoCodeValidation } from './get.controller';
-import ReadAllPromoCodeController, { readAllPromoCodeValidation } from './list.controller';
-import DeletePromoCodeController from './delete.controller';
+import CreatePromotion from './post.controller';
+import ReadPromotion from './get.controller';
+import ListPromotion from './list.controller';
+import DeletePromotion from './delete.controller';
 
 const router = express.Router();
 
@@ -12,33 +12,33 @@ router.post(
     '/',
     assertAssetPoolAccess,
     assertScopes(['dashboard', 'promo_codes:read', 'promo_codes:write']),
-    assertRequestInput(createPromoCodeValidation),
+    assertRequestInput(CreatePromotion.validation),
     requireAssetPoolHeader,
-    CreatePromoCodeController,
+    CreatePromotion.controller,
 );
 router.get(
     '/',
     assertAssetPoolAccess,
     assertScopes(['dashboard', 'user', 'promo_codes:read']),
-    assertRequestInput(readAllPromoCodeValidation),
+    assertRequestInput(ListPromotion.validation),
     requireAssetPoolHeader,
-    ReadAllPromoCodeController,
+    ListPromotion.controller,
 );
 router.get(
     '/:id',
     assertAssetPoolAccess,
     assertScopes(['dashboard', 'promo_codes:read']),
-    assertRequestInput(readPromoCodeValidation),
+    assertRequestInput(ReadPromotion.validation),
     requireAssetPoolHeader,
-    ReadPromoCodeController,
+    ReadPromotion.controller,
 );
 router.delete(
     '/:id',
     assertAssetPoolAccess,
     assertScopes(['dashboard', 'promo_codes:read', 'promo_codes:write']),
-    assertRequestInput(readPromoCodeValidation),
+    assertRequestInput(DeletePromotion.validation),
     requireAssetPoolHeader,
-    DeletePromoCodeController,
+    DeletePromotion.controller,
 );
 
 export default router;

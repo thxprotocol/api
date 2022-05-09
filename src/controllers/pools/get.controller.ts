@@ -8,9 +8,9 @@ import MemberService from '@/services/MemberService';
 import ERC20Service from '@/services/ERC20Service';
 import ERC721Service from '@/services/ERC721Service';
 
-export const readAssetPoolValidation = [param('address').exists().isEthereumAddress()];
+export const validation = [param('address').isEthereumAddress()];
 
-export const getAssetPool = async (req: Request, res: Response) => {
+export const controller = async (req: Request, res: Response) => {
     // #swagger.tags = ['Pools']
     const assetPool = await AssetPoolService.getByAddress(req.params.address);
     if (!assetPool) throw new NotFoundError();
@@ -41,3 +41,5 @@ export const getAssetPool = async (req: Request, res: Response) => {
         version: assetPool.version,
     });
 };
+
+export default { controller, validation };

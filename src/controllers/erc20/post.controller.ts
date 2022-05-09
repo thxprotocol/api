@@ -4,7 +4,7 @@ import ERC20Service from '@/services/ERC20Service';
 import AccountProxy from '@/proxies/AccountProxy';
 import { AccountPlanType, NetworkProvider } from '@/types/enums';
 
-export const postERC20TokenValidation = [
+export const validation = [
     body('name').exists().isString(),
     body('symbol').exists().isString(),
     body('network').exists().isNumeric(),
@@ -12,7 +12,7 @@ export const postERC20TokenValidation = [
     body('totalSupply').optional().isNumeric(),
 ];
 
-export const CreateERC20Controller = async (req: Request, res: Response) => {
+export const controller = async (req: Request, res: Response) => {
     // #swagger.tags = ['ERC20']
     const account = await AccountProxy.getById(req.user.sub);
 
@@ -31,3 +31,4 @@ export const CreateERC20Controller = async (req: Request, res: Response) => {
 
     res.status(201).json(await token.getResponse());
 };
+export default { controller, validation };

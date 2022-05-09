@@ -4,8 +4,11 @@ import AccountProxy from '@/proxies/AccountProxy';
 import { Request, Response } from 'express';
 import { VERSION } from '@/config/secrets';
 import { AlreadyAMemberError } from '@/util/errors';
+import { body } from 'express-validator';
 
-export async function postMember(req: Request, res: Response) {
+const validation = [body('address').isEthereumAddress()];
+
+const controller = async (req: Request, res: Response) => {
     // #swagger.tags = ['Members']
     const account = await AccountProxy.getByAddress(req.body.address);
     const isMember = await MemberService.isMember(req.assetPool, account.address);
@@ -21,4 +24,6 @@ export async function postMember(req: Request, res: Response) {
     }
 
     res.redirect(`/${VERSION}/members/${account.address}`);
-}
+};
+
+export default { controller, validation };
