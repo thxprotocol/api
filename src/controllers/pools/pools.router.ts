@@ -3,7 +3,7 @@ import assertScopes from 'express-jwt-authz';
 import { assertAssetPoolAccess, assertRequestInput, requireAssetPoolHeader, assertPlan } from '@/middlewares';
 import { getAssetPools } from './getAll.controller';
 import { getAssetPool, readAssetPoolValidation } from './get.controller';
-import { createAssetPoolValidation, postAssetPool } from './post.controller';
+import { createAssetPoolValidation, postAssetPool} from './post.controller';
 import { deleteAssetPool, deleteAssetPoolValidation } from './delete.controller';
 import { AccountPlanType } from '@/types/enums';
 

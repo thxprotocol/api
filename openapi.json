@@ -1,7 +1,7 @@
 {
   "swagger": "2.0",
   "info": {
-    "version": "1.9.7",
+    "version": "1.9.8",
     "title": "THX API Specification",
     "description": "User guides are available at https://docs.thx.network."
   },
@@ -1044,9 +1044,86 @@
     },
     "/deposits/": {
       "post": {
+        "tags": [
+          "Deposits"
+        ],
         "description": "",
-        "parameters": [],
-        "responses": {}
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "amount": {
+                  "example": "any"
+                },
+                "item": {
+                  "example": "any"
+                },
+                "call": {
+                  "example": "any"
+                },
+                "nonce": {
+                  "example": "any"
+                },
+                "sig": {
+                  "example": "any"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/deposits/{address}/deposit": {
+      "post": {
+        "tags": [
+          "Deposits"
+        ],
+        "description": "",
+        "parameters": [
+          {
+            "name": "address",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "amount": {
+                  "example": "any"
+                },
+                "item": {
+                  "example": "any"
+                },
+                "call": {
+                  "example": "any"
+                },
+                "nonce": {
+                  "example": "any"
+                },
+                "sig": {
+                  "example": "any"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
       }
     },
     "/relay/call": {
