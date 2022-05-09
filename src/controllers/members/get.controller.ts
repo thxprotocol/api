@@ -4,7 +4,7 @@ import { fromWei } from 'web3-utils';
 import { NotFoundError } from '@/util/errors';
 import MemberService from '@/services/MemberService';
 import ERC20Service from '@/services/ERC20Service';
-import { getContractFromName } from '@/util/network';
+import { getContractFromName } from '@/config/contracts';
 
 const validation = [param('address').isEthereumAddress()];
 
