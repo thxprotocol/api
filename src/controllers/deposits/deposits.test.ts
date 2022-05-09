@@ -12,7 +12,7 @@ import { findEvent, parseLogs } from '@/util/events';
 import { MaxUint256, tokenName, tokenSymbol, userWalletPrivateKey2 } from '@/util/jest/constants';
 import { AmountExceedsAllowanceError, InsufficientBalanceError } from '@/util/errors';
 import TransactionService from '@/services/TransactionService';
-import { getContractFromName } from '@/util/network';
+import { getContractFromName } from '@/config/contracts';
 
 const http = request.agent(app);
 

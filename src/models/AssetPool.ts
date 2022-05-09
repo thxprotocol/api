@@ -1,6 +1,5 @@
 import mongoose from 'mongoose';
-import { getContractFromAbi } from '@/util/network';
-import { getDiamondAbi } from '@/config/contracts';
+import { getContractFromAbi, getDiamondAbi } from '@/config/contracts';
 import { TAssetPool } from '@/types/TAssetPool';
 
 export type AssetPoolDocument = mongoose.Document & TAssetPool;

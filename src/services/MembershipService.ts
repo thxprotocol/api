@@ -2,7 +2,7 @@ import { TAssetPool } from '@/types/TAssetPool';
 import { ERC20Type, NetworkProvider } from '@/types/enums';
 import { Membership } from '@/models/Membership';
 import AssetPoolService from './AssetPoolService';
-import { getContractFromName } from '@/util/network';
+import { getContractFromName } from '@/config/contracts';
 import { fromWei } from 'web3-utils';
 import ERC20Service from './ERC20Service';
 import ERC20 from '@/models/ERC20';

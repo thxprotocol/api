@@ -1,10 +1,10 @@
 import { Account } from 'web3-core';
 import { soliditySha3 } from 'web3-utils';
 import { VOTER_PK, DEPOSITOR_PK } from './constants';
-import { getContractFromAbi, getProvider } from '@/util/network';
+import { getProvider } from '@/util/network';
 import { NetworkProvider } from '@/types/enums';
 import TransactionService from '@/services/TransactionService';
-import { getDiamondAbi } from '@/config/contracts';
+import { getContractFromAbi, getDiamondAbi } from '@/config/contracts';
 
 const { web3 } = getProvider(NetworkProvider.Main);
 
