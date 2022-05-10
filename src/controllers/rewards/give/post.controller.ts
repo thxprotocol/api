@@ -8,14 +8,15 @@ import WithdrawalService from '@/services/WithdrawalService';
 import MemberService from '@/services/MemberService';
 import { WithdrawalDocument } from '@/models/Withdrawal';
 import { agenda, eventNameRequireTransactions } from '@/util/agenda';
+import { param, body } from 'express-validator';
 
-const ERROR_NO_REWARD = 'Could not find a reward for this id';
+const validation = [param('id').exists(), body('member').exists()];
 
-export const postRewardClaimFor = async (req: Request, res: Response) => {
+const controller = async (req: Request, res: Response) => {
     // #swagger.tags = ['Rewards']
     const rewardId = Number(req.params.id);
     const reward = await RewardService.get(req.assetPool, rewardId);
-    if (!reward) throw new BadRequestError(ERROR_NO_REWARD);
+    if (!reward) throw new BadRequestError('Could not find a reward for this id');
 
     const isMember = await MemberService.isMember(req.assetPool, req.body.member);
     if (!isMember && reward.isMembershipRequired) throw new ForbiddenError();
@@ -53,5 +54,7 @@ export const postRewardClaimFor = async (req: Request, res: Response) => {
         createdAt: w.createdAt,
     };
 
-    return res.json(result);
+    res.json(result);
 };
+
+export default { controller, validation };

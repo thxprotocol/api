@@ -1,18 +1,14 @@
 import express from 'express';
 import checkScopes from 'express-jwt-authz';
-
-import { validate } from '@/util/validation';
-import { assertAssetPoolAccess } from '@/middlewares';
-import { validations } from './_.validation';
-import { getRewards } from './list.controller';
-import { getReward } from './get.controller';
-import { postReward } from './post.controller';
-import { patchReward } from './patch.controller';
-import { postRewardClaim } from './claim/post.controller';
-import { postRewardClaimFor } from './give/post.controller';
-import { requireAssetPoolHeader, assertPlan } from '@/middlewares';
-import { rateLimitRewardGive } from '@/util/ratelimiter';
+import { assertAssetPoolAccess, assertRequestInput, requireAssetPoolHeader, assertPlan } from '@/middlewares';
 import { AccountPlanType } from '@/types/enums';
+import CreateReward from './post.controller';
+import ReadReward from './get.controller';
+import UpdateReward from './patch.controller';
+import ListRewards from './list.controller';
+import CreateRewardClaim from './claim/post.controller';
+import CreateRewardGive from './give/post.controller';
+import { rateLimitRewardClaim, rateLimitRewardGive } from '@/util/ratelimiter';
 
 const router = express.Router();
 
@@ -20,55 +16,54 @@ router.get(
     '/',
     checkScopes(['admin', 'user', 'dashboard']),
     assertAssetPoolAccess,
-    validate(validations.getRewards),
     requireAssetPoolHeader,
     assertPlan([AccountPlanType.Basic, AccountPlanType.Premium]),
-    getRewards,
+    ListRewards.controller,
 );
 router.get(
     '/:id',
     checkScopes(['admin', 'user', 'widget', 'dashboard']),
     assertAssetPoolAccess,
-    validate(validations.getReward),
+    assertRequestInput(ReadReward.validation),
     requireAssetPoolHeader,
     assertPlan([AccountPlanType.Basic, AccountPlanType.Premium]),
-    getReward,
+    ReadReward.controller,
 );
 router.post(
     '/',
     checkScopes(['admin', 'dashboard']),
     assertAssetPoolAccess,
-    validate(validations.postReward),
+    assertRequestInput(CreateReward.validation),
     requireAssetPoolHeader,
     assertPlan([AccountPlanType.Basic, AccountPlanType.Premium]),
-    postReward,
+    CreateReward.controller,
 );
 router.patch(
     '/:id',
     checkScopes(['admin', 'dashboard']),
     assertAssetPoolAccess,
-    validate(validations.patchReward),
+    assertRequestInput(UpdateReward.validation),
     requireAssetPoolHeader,
     assertPlan([AccountPlanType.Basic, AccountPlanType.Premium]),
-    patchReward,
+    UpdateReward.controller,
 );
 router.post(
     '/:id/claim',
     checkScopes(['widget', 'user']),
     // rateLimitRewardClaim,
-    validate(validations.postRewardClaim),
+    assertRequestInput(CreateRewardClaim.validation),
     requireAssetPoolHeader,
     assertPlan([AccountPlanType.Basic, AccountPlanType.Premium]),
-    postRewardClaim,
+    CreateRewardClaim.controller,
 );
 router.post(
     '/:id/give',
     checkScopes(['admin']),
     rateLimitRewardGive,
-    validate(validations.postRewardClaimFor),
+    assertRequestInput(CreateRewardGive.validation),
     requireAssetPoolHeader,
     assertPlan([AccountPlanType.Basic, AccountPlanType.Premium]),
-    postRewardClaimFor,
+    CreateRewardGive.controller,
 );
 
 export default router;

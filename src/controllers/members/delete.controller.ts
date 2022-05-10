@@ -1,10 +1,13 @@
 import { Request, Response } from 'express';
+import { param } from 'express-validator';
 import MemberService from '@/services/MemberService';
 import AccountProxy from '@/proxies/AccountProxy';
 import MembershipService from '@/services/MembershipService';
 import { NotFoundError } from '@/util/errors';
 
-export const deleteMember = async (req: Request, res: Response) => {
+const validation = [param('address').isEthereumAddress()];
+
+const controller = async (req: Request, res: Response) => {
     // #swagger.tags = ['Members']
     const isMember = await MemberService.isMember(req.assetPool, req.params.address);
     if (!isMember) throw new NotFoundError();
@@ -16,3 +19,5 @@ export const deleteMember = async (req: Request, res: Response) => {
 
     res.status(204).end();
 };
+
+export default { controller, validation };

@@ -2,8 +2,11 @@ import { Request, Response } from 'express';
 import { VERSION } from '@/config/secrets';
 import { NotFoundError } from '@/util/errors';
 import TransactionService from '@/services/TransactionService';
+import { body, param } from 'express-validator';
 
-export const patchMember = async (req: Request, res: Response) => {
+const validation = [param('address').isEthereumAddress(), , body('isManager').exists()];
+
+const controller = async (req: Request, res: Response) => {
     // #swagger.tags = ['Members']
     const isMember = await TransactionService.call(
         req.assetPool.contract.methods.isMember(req.params.address),
@@ -19,3 +22,5 @@ export const patchMember = async (req: Request, res: Response) => {
 
     res.redirect(`/${VERSION}/members/${req.params.address}`);
 };
+
+export default { controller, validation };

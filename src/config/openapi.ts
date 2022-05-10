@@ -8,9 +8,9 @@ const doc: any = {
         title: 'THX API Specification',
         description: 'User guides are available at https://docs.thx.network.', // by default: ''
     },
-    host: 'https://api.thx.network',
+    host: 'api.thx.network',
     basePath: '/v1',
-    schemes: ['https'],
+    schemes: ['https', 'http'],
 };
 const outputFile = './openapi.json';
 const endpointsFiles = ['./src/controllers/index.ts'];

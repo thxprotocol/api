@@ -5,7 +5,7 @@ import AssetPoolService from '@/services/AssetPoolService';
 import WithdrawalService from '@/services/WithdrawalService';
 import MembershipService from '@/services/MembershipService';
 
-export const getMetrics = async (_req: Request, res: Response) => {
+const controller = async (_req: Request, res: Response) => {
     // #swagger.tags = ['Metrics']
     const providerTest = getProvider(NetworkProvider.Main);
     const providerMain = getProvider(NetworkProvider.Test);
@@ -35,3 +35,5 @@ export const getMetrics = async (_req: Request, res: Response) => {
 
     res.json(metrics);
 };
+
+export default { controller };

@@ -13,8 +13,8 @@ async function main() {
     const startTime = Date.now();
     console.log('Start!', startTime);
     const diamonds: Partial<Record<ContractName, DiamondVariant>> = {
-        AssetPoolRegistry: 'assetPoolRegistry',
-        AssetPoolFactory: 'assetPoolFactory',
+        PoolRegistry: 'poolRegistry',
+        PoolFactory: 'poolFactory',
         TokenFactory: 'tokenFactory',
     };
 

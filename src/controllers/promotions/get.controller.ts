@@ -1,13 +1,15 @@
 import { Request, Response } from 'express';
 import { param } from 'express-validator';
-import PromoCodeService from '@/services/PromoCodeService';
+import PromotionService from '@/services/PromotionService';
 
-export const readPromoCodeValidation = [param('id').isMongoId()];
+const validation = [param('id').isMongoId()];
 
-export default async function ReadPromoCodeController(req: Request, res: Response) {
+const controller = async (req: Request, res: Response) => {
     // #swagger.tags = ['Promotions']
-    const promoCode = await PromoCodeService.findById(req.params.id);
-    const result = await PromoCodeService.formatResult(req.user.sub, promoCode);
+    const promoCode = await PromotionService.findById(req.params.id);
+    const result = await PromotionService.formatResult(req.user.sub, promoCode);
 
     res.json(result);
-}
+};
+
+export default { controller, validation };

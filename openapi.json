@@ -1,14 +1,15 @@
 {
   "swagger": "2.0",
   "info": {
-    "version": "1.9.8",
+    "version": "1.9.10",
     "title": "THX API Specification",
     "description": "User guides are available at https://docs.thx.network."
   },
-  "host": "https://api.thx.network",
+  "host": "api.thx.network",
   "basePath": "/v1",
   "schemes": [
-    "https"
+    "https",
+    "http"
   ],
   "paths": {
     "/health/": {
@@ -44,7 +45,7 @@
     "/metadata/{metadataId}": {
       "get": {
         "tags": [
-          "ERC721"
+          "ERC721 Metadata"
         ],
         "description": "",
         "parameters": [
@@ -56,585 +57,6 @@
           }
         ],
         "responses": {}
-      }
-    },
-    "/signup": {
-      "post": {
-        "tags": [
-          "Account"
-        ],
-        "description": "",
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "schema": {
-              "type": "object",
-              "properties": {
-                "email": {
-                  "example": "any"
-                },
-                "password": {
-                  "example": "any"
-                },
-                "address": {
-                  "example": "any"
-                }
-              }
-            }
-          }
-        ],
-        "responses": {
-          "201": {
-            "description": "Created"
-          }
-        }
-      }
-    },
-    "/authentication_token": {
-      "post": {
-        "tags": [
-          "Account"
-        ],
-        "description": "",
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "schema": {
-              "type": "object",
-              "properties": {
-                "email": {
-                  "example": "any"
-                },
-                "password": {
-                  "example": "any"
-                }
-              }
-            }
-          }
-        ],
-        "responses": {}
-      }
-    },
-    "/erc20/": {
-      "get": {
-        "tags": [
-          "ERC20"
-        ],
-        "description": "",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        }
-      },
-      "post": {
-        "tags": [
-          "ERC20"
-        ],
-        "description": "",
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "schema": {
-              "type": "object",
-              "properties": {
-                "network": {
-                  "example": "any"
-                },
-                "name": {
-                  "example": "any"
-                },
-                "symbol": {
-                  "example": "any"
-                },
-                "totalSupply": {
-                  "example": "any"
-                },
-                "type": {
-                  "example": "any"
-                }
-              }
-            }
-          }
-        ],
-        "responses": {
-          "201": {
-            "description": "Created"
-          },
-          "400": {
-            "description": "Bad Request"
-          }
-        }
-      }
-    },
-    "/erc20/{id}": {
-      "get": {
-        "tags": [
-          "ERC20"
-        ],
-        "description": "",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK"
-          },
-          "400": {
-            "description": "Bad Request"
-          }
-        }
-      },
-      "delete": {
-        "tags": [
-          "ERC20"
-        ],
-        "description": "",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          }
-        ],
-        "responses": {
-          "204": {
-            "description": "No Content"
-          },
-          "400": {
-            "description": "Bad Request"
-          }
-        }
-      }
-    },
-    "/metrics/": {
-      "get": {
-        "tags": [
-          "Metrics"
-        ],
-        "description": "",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        }
-      }
-    },
-    "/pools/": {
-      "post": {
-        "tags": [
-          "Pools"
-        ],
-        "description": "",
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "schema": {
-              "type": "object",
-              "properties": {
-                "network": {
-                  "example": "any"
-                },
-                "variant": {
-                  "example": "any"
-                },
-                "token": {
-                  "example": "any"
-                }
-              }
-            }
-          }
-        ],
-        "responses": {
-          "201": {
-            "description": "Created"
-          }
-        }
-      },
-      "get": {
-        "tags": [
-          "Pools"
-        ],
-        "description": "",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        }
-      }
-    },
-    "/pools/{address}": {
-      "get": {
-        "tags": [
-          "Pools"
-        ],
-        "description": "",
-        "parameters": [
-          {
-            "name": "address",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        }
-      },
-      "delete": {
-        "tags": [
-          "Pools"
-        ],
-        "description": "",
-        "parameters": [
-          {
-            "name": "address",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          }
-        ],
-        "responses": {
-          "204": {
-            "description": "No Content"
-          }
-        }
-      }
-    },
-    "/promotions/": {
-      "post": {
-        "description": "",
-        "parameters": [],
-        "responses": {}
-      },
-      "get": {
-        "description": "",
-        "parameters": [],
-        "responses": {}
-      }
-    },
-    "/promotions/{id}": {
-      "get": {
-        "description": "",
-        "parameters": [],
-        "responses": {}
-      },
-      "delete": {
-        "description": "",
-        "parameters": [],
-        "responses": {}
-      }
-    },
-    "/members/": {
-      "get": {
-        "tags": [
-          "Members"
-        ],
-        "description": "",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        }
-      },
-      "post": {
-        "tags": [
-          "Members"
-        ],
-        "description": "",
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "schema": {
-              "type": "object",
-              "properties": {
-                "address": {
-                  "example": "any"
-                }
-              }
-            }
-          }
-        ],
-        "responses": {
-          "400": {
-            "description": "Bad Request"
-          }
-        }
-      }
-    },
-    "/members/{address}": {
-      "patch": {
-        "tags": [
-          "Members"
-        ],
-        "description": "",
-        "parameters": [
-          {
-            "name": "address",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "body",
-            "in": "body",
-            "schema": {
-              "type": "object",
-              "properties": {
-                "isManager": {
-                  "example": "any"
-                }
-              }
-            }
-          }
-        ],
-        "responses": {
-          "400": {
-            "description": "Bad Request"
-          }
-        }
-      },
-      "delete": {
-        "tags": [
-          "Members"
-        ],
-        "description": "",
-        "parameters": [
-          {
-            "name": "address",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          }
-        ],
-        "responses": {
-          "204": {
-            "description": "No Content"
-          },
-          "400": {
-            "description": "Bad Request"
-          }
-        }
-      },
-      "get": {
-        "tags": [
-          "Members"
-        ],
-        "description": "",
-        "parameters": [
-          {
-            "name": "address",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK"
-          },
-          "400": {
-            "description": "Bad Request"
-          }
-        }
-      }
-    },
-    "/rewards/": {
-      "get": {
-        "tags": [
-          "Rewards"
-        ],
-        "description": "",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "OK"
-          },
-          "400": {
-            "description": "Bad Request"
-          }
-        }
-      },
-      "post": {
-        "tags": [
-          "Rewards"
-        ],
-        "description": "",
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "schema": {
-              "type": "object",
-              "properties": {
-                "withdrawUnlockDate": {
-                  "example": "any"
-                },
-                "title": {
-                  "example": "any"
-                },
-                "slug": {
-                  "example": "any"
-                },
-                "withdrawLimit": {
-                  "example": "any"
-                },
-                "withdrawAmount": {
-                  "example": "any"
-                },
-                "withdrawDuration": {
-                  "example": "any"
-                },
-                "isMembershipRequired": {
-                  "example": "any"
-                },
-                "isClaimOnce": {
-                  "example": "any"
-                },
-                "withdrawCondition": {
-                  "example": "any"
-                },
-                "expiryDate": {
-                  "example": "any"
-                },
-                "erc721metadataId": {
-                  "example": "any"
-                }
-              }
-            }
-          }
-        ],
-        "responses": {
-          "201": {
-            "description": "Created"
-          },
-          "400": {
-            "description": "Bad Request"
-          }
-        }
-      }
-    },
-    "/rewards/{id}": {
-      "get": {
-        "tags": [
-          "Rewards"
-        ],
-        "description": "",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK"
-          },
-          "400": {
-            "description": "Bad Request"
-          }
-        }
-      },
-      "patch": {
-        "tags": [
-          "Rewards"
-        ],
-        "description": "",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK"
-          },
-          "400": {
-            "description": "Bad Request"
-          }
-        }
-      }
-    },
-    "/rewards/{id}/claim": {
-      "post": {
-        "tags": [
-          "Rewards"
-        ],
-        "description": "",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK"
-          },
-          "400": {
-            "description": "Bad Request"
-          }
-        }
-      }
-    },
-    "/rewards/{id}/give": {
-      "post": {
-        "tags": [
-          "Rewards"
-        ],
-        "description": "",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "body",
-            "in": "body",
-            "schema": {
-              "type": "object",
-              "properties": {
-                "member": {
-                  "example": "any"
-                }
-              }
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK"
-          },
-          "400": {
-            "description": "Bad Request"
-          }
-        }
       }
     },
     "/account/": {
@@ -792,31 +214,10 @@
         "responses": {}
       }
     },
-    "/widgets/": {
-      "get": {
-        "tags": [
-          "Widgets"
-        ],
-        "description": "",
-        "parameters": [
-          {
-            "name": "asset_pool",
-            "in": "query",
-            "type": "string"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK"
-          },
-          "400": {
-            "description": "Bad Request"
-          }
-        }
-      },
+    "/asset_pools/": {
       "post": {
         "tags": [
-          "Widgets"
+          "Pools"
         ],
         "description": "",
         "parameters": [
@@ -826,13 +227,13 @@
             "schema": {
               "type": "object",
               "properties": {
-                "requestUris": {
+                "network": {
                   "example": "any"
                 },
-                "postLogoutRedirectUris": {
+                "variant": {
                   "example": "any"
                 },
-                "metadata": {
+                "token": {
                   "example": "any"
                 }
               }
@@ -842,366 +243,12 @@
         "responses": {
           "201": {
             "description": "Created"
-          },
-          "400": {
-            "description": "Bad Request"
-          }
-        }
-      }
-    },
-    "/widgets/{clientId}": {
-      "get": {
-        "tags": [
-          "Widgets"
-        ],
-        "description": "",
-        "parameters": [
-          {
-            "name": "clientId",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK"
-          },
-          "400": {
-            "description": "Bad Request"
-          }
-        }
-      },
-      "delete": {
-        "tags": [
-          "Widgets"
-        ],
-        "description": "",
-        "parameters": [
-          {
-            "name": "clientId",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          }
-        ],
-        "responses": {
-          "204": {
-            "description": "No Content"
-          },
-          "400": {
-            "description": "Bad Request"
-          }
-        }
-      }
-    },
-    "/withdrawals/": {
-      "post": {
-        "tags": [
-          "Withdrawals"
-        ],
-        "description": "",
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "schema": {
-              "type": "object",
-              "properties": {
-                "member": {
-                  "example": "any"
-                },
-                "withdrawUnlockDate": {
-                  "example": "any"
-                },
-                "amount": {
-                  "example": "any"
-                }
-              }
-            }
-          }
-        ],
-        "responses": {
-          "201": {
-            "description": "Created"
-          },
-          "400": {
-            "description": "Bad Request"
           }
         }
       },
       "get": {
         "tags": [
-          "Withdrawals"
-        ],
-        "description": "",
-        "parameters": [
-          {
-            "name": "page",
-            "in": "query",
-            "type": "string"
-          },
-          {
-            "name": "limit",
-            "in": "query",
-            "type": "string"
-          },
-          {
-            "name": "member",
-            "in": "query",
-            "type": "string"
-          },
-          {
-            "name": "rewardId",
-            "in": "query",
-            "type": "string"
-          },
-          {
-            "name": "state",
-            "in": "query",
-            "type": "string"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK"
-          },
-          "400": {
-            "description": "Bad Request"
-          }
-        }
-      }
-    },
-    "/withdrawals/{id}": {
-      "get": {
-        "tags": [
-          "Withdrawals"
-        ],
-        "description": "",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK"
-          },
-          "400": {
-            "description": "Bad Request"
-          }
-        }
-      },
-      "delete": {
-        "tags": [
-          "Withdrawals"
-        ],
-        "description": "",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          }
-        ],
-        "responses": {
-          "204": {
-            "description": "No Content"
-          },
-          "400": {
-            "description": "Bad Request"
-          }
-        }
-      }
-    },
-    "/withdrawals/{id}/withdraw": {
-      "post": {
-        "tags": [
-          "Withdrawals"
-        ],
-        "description": "",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK"
-          },
-          "400": {
-            "description": "Bad Request"
-          }
-        }
-      }
-    },
-    "/deposits/": {
-      "post": {
-        "tags": [
-          "Deposits"
-        ],
-        "description": "",
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "schema": {
-              "type": "object",
-              "properties": {
-                "amount": {
-                  "example": "any"
-                },
-                "item": {
-                  "example": "any"
-                },
-                "call": {
-                  "example": "any"
-                },
-                "nonce": {
-                  "example": "any"
-                },
-                "sig": {
-                  "example": "any"
-                }
-              }
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        }
-      }
-    },
-    "/deposits/{address}/deposit": {
-      "post": {
-        "tags": [
-          "Deposits"
-        ],
-        "description": "",
-        "parameters": [
-          {
-            "name": "address",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "body",
-            "in": "body",
-            "schema": {
-              "type": "object",
-              "properties": {
-                "amount": {
-                  "example": "any"
-                },
-                "item": {
-                  "example": "any"
-                },
-                "call": {
-                  "example": "any"
-                },
-                "nonce": {
-                  "example": "any"
-                },
-                "sig": {
-                  "example": "any"
-                }
-              }
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        }
-      }
-    },
-    "/relay/call": {
-      "post": {
-        "tags": [
-          "Relay Hub"
-        ],
-        "description": "",
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "schema": {
-              "type": "object",
-              "properties": {
-                "call": {
-                  "example": "any"
-                },
-                "nonce": {
-                  "example": "any"
-                },
-                "sig": {
-                  "example": "any"
-                }
-              }
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK"
-          },
-          "500": {
-            "description": "Internal Server Error"
-          }
-        }
-      }
-    },
-    "/relay/upgrade_address": {
-      "post": {
-        "tags": [
-          "Relay Hub"
-        ],
-        "description": "",
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "schema": {
-              "type": "object",
-              "properties": {
-                "newAddress": {
-                  "example": "any"
-                },
-                "call": {
-                  "example": "any"
-                },
-                "nonce": {
-                  "example": "any"
-                },
-                "sig": {
-                  "example": "any"
-                }
-              }
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        }
-      }
-    },
-    "/memberships/": {
-      "get": {
-        "tags": [
-          "Memberships"
+          "Pools"
         ],
         "description": "",
         "parameters": [],
@@ -1212,10 +259,115 @@
         }
       }
     },
-    "/memberships/{id}": {
+    "/asset_pools/{address}": {
       "get": {
         "tags": [
-          "Memberships"
+          "Pools"
+        ],
+        "description": "",
+        "parameters": [
+          {
+            "name": "address",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Pools"
+        ],
+        "description": "",
+        "parameters": [
+          {
+            "name": "address",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        }
+      }
+    },
+    "/metrics/": {
+      "get": {
+        "tags": [
+          "Metrics"
+        ],
+        "description": "",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/erc20/": {
+      "get": {
+        "tags": [
+          "ERC20"
+        ],
+        "description": "",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "ERC20"
+        ],
+        "description": "",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "network": {
+                  "example": "any"
+                },
+                "name": {
+                  "example": "any"
+                },
+                "symbol": {
+                  "example": "any"
+                },
+                "totalSupply": {
+                  "example": "any"
+                },
+                "type": {
+                  "example": "any"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created"
+          }
+        }
+      }
+    },
+    "/erc20/{id}": {
+      "get": {
+        "tags": [
+          "ERC20"
         ],
         "description": "",
         "parameters": [
@@ -1229,15 +381,12 @@
         "responses": {
           "200": {
             "description": "OK"
-          },
-          "400": {
-            "description": "Bad Request"
           }
         }
       },
       "delete": {
         "tags": [
-          "Memberships"
+          "ERC20"
         ],
         "description": "",
         "parameters": [
@@ -1251,9 +400,6 @@
         "responses": {
           "204": {
             "description": "No Content"
-          },
-          "400": {
-            "description": "Bad Request"
           }
         }
       }
@@ -1430,10 +576,10 @@
         }
       }
     },
-    "/asset_pools/": {
+    "/deposits/": {
       "post": {
         "tags": [
-          "Pools"
+          "Deposits"
         ],
         "description": "",
         "parameters": [
@@ -1443,13 +589,19 @@
             "schema": {
               "type": "object",
               "properties": {
-                "network": {
+                "amount": {
                   "example": "any"
                 },
-                "variant": {
+                "item": {
                   "example": "any"
                 },
-                "token": {
+                "call": {
+                  "example": "any"
+                },
+                "nonce": {
+                  "example": "any"
+                },
+                "sig": {
                   "example": "any"
                 }
               }
@@ -1457,28 +609,16 @@
           }
         ],
         "responses": {
-          "201": {
-            "description": "Created"
-          }
-        }
-      },
-      "get": {
-        "tags": [
-          "Pools"
-        ],
-        "description": "",
-        "parameters": [],
-        "responses": {
           "200": {
             "description": "OK"
           }
         }
       }
     },
-    "/asset_pools/{address}": {
-      "get": {
+    "/deposits/{address}/deposit": {
+      "post": {
         "tags": [
-          "Pools"
+          "Deposits"
         ],
         "description": "",
         "parameters": [
@@ -1487,6 +627,30 @@
             "in": "path",
             "required": true,
             "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "amount": {
+                  "example": "any"
+                },
+                "item": {
+                  "example": "any"
+                },
+                "call": {
+                  "example": "any"
+                },
+                "nonce": {
+                  "example": "any"
+                },
+                "sig": {
+                  "example": "any"
+                }
+              }
+            }
           }
         ],
         "responses": {
@@ -1494,10 +658,74 @@
             "description": "OK"
           }
         }
+      }
+    },
+    "/members/": {
+      "get": {
+        "tags": [
+          "Members"
+        ],
+        "description": "",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Members"
+        ],
+        "description": "",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "address": {
+                  "example": "any"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {}
+      }
+    },
+    "/members/{address}": {
+      "patch": {
+        "tags": [
+          "Members"
+        ],
+        "description": "",
+        "parameters": [
+          {
+            "name": "address",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "isManager": {
+                  "example": "any"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {}
       },
       "delete": {
         "tags": [
-          "Pools"
+          "Members"
         ],
         "description": "",
         "parameters": [
@@ -1513,30 +741,636 @@
             "description": "No Content"
           }
         }
+      },
+      "get": {
+        "tags": [
+          "Members"
+        ],
+        "description": "",
+        "parameters": [
+          {
+            "name": "address",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/memberships/": {
+      "get": {
+        "tags": [
+          "Memberships"
+        ],
+        "description": "",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/memberships/{id}": {
+      "get": {
+        "tags": [
+          "Memberships"
+        ],
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Memberships"
+        ],
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        }
       }
     },
     "/promo_codes/": {
       "post": {
+        "tags": [
+          "Promotions"
+        ],
         "description": "",
-        "parameters": [],
-        "responses": {}
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "title": {
+                  "example": "any"
+                },
+                "description": {
+                  "example": "any"
+                },
+                "value": {
+                  "example": "any"
+                },
+                "price": {
+                  "example": "any"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created"
+          }
+        }
       },
       "get": {
+        "tags": [
+          "Promotions"
+        ],
         "description": "",
-        "parameters": [],
-        "responses": {}
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "type": "string"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
       }
     },
     "/promo_codes/{id}": {
       "get": {
+        "tags": [
+          "Promotions"
+        ],
         "description": "",
-        "parameters": [],
-        "responses": {}
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
       },
       "delete": {
+        "tags": [
+          "Promotions"
+        ],
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        }
+      }
+    },
+    "/relay/call": {
+      "post": {
+        "tags": [
+          "Relay Hub"
+        ],
+        "description": "",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "call": {
+                  "example": "any"
+                },
+                "nonce": {
+                  "example": "any"
+                },
+                "sig": {
+                  "example": "any"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/relay/upgrade_address": {
+      "post": {
+        "tags": [
+          "Relay Hub"
+        ],
+        "description": "",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "call": {
+                  "example": "any"
+                },
+                "nonce": {
+                  "example": "any"
+                },
+                "sig": {
+                  "example": "any"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/rewards/": {
+      "get": {
+        "tags": [
+          "Rewards"
+        ],
         "description": "",
         "parameters": [],
-        "responses": {}
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Rewards"
+        ],
+        "description": "",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "withdrawUnlockDate": {
+                  "example": "any"
+                },
+                "title": {
+                  "example": "any"
+                },
+                "slug": {
+                  "example": "any"
+                },
+                "withdrawLimit": {
+                  "example": "any"
+                },
+                "withdrawAmount": {
+                  "example": "any"
+                },
+                "withdrawDuration": {
+                  "example": "any"
+                },
+                "isMembershipRequired": {
+                  "example": "any"
+                },
+                "isClaimOnce": {
+                  "example": "any"
+                },
+                "withdrawCondition": {
+                  "example": "any"
+                },
+                "expiryDate": {
+                  "example": "any"
+                },
+                "erc721metadataId": {
+                  "example": "any"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created"
+          }
+        }
+      }
+    },
+    "/rewards/{id}": {
+      "get": {
+        "tags": [
+          "Rewards"
+        ],
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "Rewards"
+        ],
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/rewards/{id}/claim": {
+      "post": {
+        "tags": [
+          "Rewards"
+        ],
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/rewards/{id}/give": {
+      "post": {
+        "tags": [
+          "Rewards"
+        ],
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "member": {
+                  "example": "any"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/widgets/": {
+      "get": {
+        "tags": [
+          "Widgets"
+        ],
+        "description": "",
+        "parameters": [
+          {
+            "name": "asset_pool",
+            "in": "query",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Widgets"
+        ],
+        "description": "",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "requestUris": {
+                  "example": "any"
+                },
+                "postLogoutRedirectUris": {
+                  "example": "any"
+                },
+                "metadata": {
+                  "example": "any"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created"
+          }
+        }
+      }
+    },
+    "/widgets/{clientId}": {
+      "get": {
+        "tags": [
+          "Widgets"
+        ],
+        "description": "",
+        "parameters": [
+          {
+            "name": "clientId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Widgets"
+        ],
+        "description": "",
+        "parameters": [
+          {
+            "name": "clientId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        }
+      }
+    },
+    "/withdrawals/": {
+      "post": {
+        "tags": [
+          "Withdrawals"
+        ],
+        "description": "",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "member": {
+                  "example": "any"
+                },
+                "withdrawUnlockDate": {
+                  "example": "any"
+                },
+                "amount": {
+                  "example": "any"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created"
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Withdrawals"
+        ],
+        "description": "",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "type": "string"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "type": "string"
+          },
+          {
+            "name": "member",
+            "in": "query",
+            "type": "string"
+          },
+          {
+            "name": "rewardId",
+            "in": "query",
+            "type": "string"
+          },
+          {
+            "name": "state",
+            "in": "query",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/withdrawals/{id}": {
+      "get": {
+        "tags": [
+          "Withdrawals"
+        ],
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Withdrawals"
+        ],
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        }
+      }
+    },
+    "/withdrawals/{id}/withdraw": {
+      "post": {
+        "tags": [
+          "Withdrawals"
+        ],
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
       }
     }
   }

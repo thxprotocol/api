@@ -4,7 +4,7 @@ import { body, check } from 'express-validator';
 import { isAddress } from 'web3-utils';
 import { DuplicateEmailError } from '@/util/errors';
 
-export const createAccountValidation = [
+const validation = [
     body('email').exists(),
     body('password').exists(),
     body('address')
@@ -16,7 +16,7 @@ export const createAccountValidation = [
     check('password', 'Password must be at least 4 characters long').isLength({ min: 16 }),
 ];
 
-export const postAccount = async (req: Request, res: Response) => {
+const controller = async (req: Request, res: Response) => {
     // #swagger.tags = ['Account']
     const isDuplicate = await AccountProxy.isEmailDuplicate(req.body.email);
 
@@ -28,3 +28,5 @@ export const postAccount = async (req: Request, res: Response) => {
 
     res.status(201).json({ id: account.id, address: account.address });
 };
+
+export default { controller, validation };

@@ -1,16 +1,16 @@
 import express from 'express';
 import checkScopes from 'express-jwt-authz';
-import { validate } from '@/util/validation';
-import { getById, getERC20TokenValidation } from './get.controller';
-import { getAllERC20Token } from './list.controller';
-import { CreateERC20Controller, postERC20TokenValidation } from './post.controller';
-import { deleteERC20TokenValidation, DeleteERC20Controller } from './delete.controller';
+import { assertRequestInput } from '@/middlewares';
+import ReadERC20 from './get.controller';
+import ListERC20 from './list.controller';
+import CreateERC20 from './post.controller';
+import DeleteERC20 from './delete.controller';
 
 const router = express.Router();
 
-router.get('/', getAllERC20Token);
-router.get('/:id', checkScopes(['dashboard', 'user']), validate(getERC20TokenValidation), getById);
-router.post('/', checkScopes(['dashboard']), validate(postERC20TokenValidation), CreateERC20Controller);
-router.delete('/:id', checkScopes(['dashboard']), validate(deleteERC20TokenValidation), DeleteERC20Controller);
+router.get('/', ListERC20.controller);
+router.get('/:id', checkScopes(['dashboard', 'user']), assertRequestInput(ReadERC20.validation), ReadERC20.controller);
+router.post('/', checkScopes(['dashboard']), assertRequestInput(CreateERC20.validation), CreateERC20.controller);
+router.delete('/:id', checkScopes(['dashboard']), assertRequestInput(DeleteERC20.validation), DeleteERC20.controller);
 
 export default router;

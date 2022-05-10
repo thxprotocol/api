@@ -9,13 +9,13 @@ import { NetworkProvider } from '@/types/enums';
 import AccountProxy from '@/proxies/AccountProxy';
 import ERC721Service from '@/services/ERC721Service';
 
-export const createAssetPoolValidation = [
+const validation = [
     body('token').isEthereumAddress(),
     body('network').exists().isNumeric(),
     body('variant').optional().isString(),
 ];
 
-export const postAssetPool = async (req: Request, res: Response) => {
+const controller = async (req: Request, res: Response) => {
     // #swagger.tags = ['Pools']
     const account = await AccountProxy.getById(req.user.sub);
 
@@ -51,3 +51,5 @@ export const postAssetPool = async (req: Request, res: Response) => {
 
     res.status(201).json({ address: assetPool.address });
 };
+
+export default { controller, validation };

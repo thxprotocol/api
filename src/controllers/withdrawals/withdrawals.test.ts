@@ -137,7 +137,7 @@ describe('Propose Withdrawal', () => {
                     expect(res.body.token.poolBalance).toBe(0);
                     expect(res.body.token.name).toBe(tokenName);
                     expect(res.body.token.symbol).toBe(tokenSymbol);
-                    expect(res.body.token.totalSupply).toBe(1000);
+                    expect(res.body.token.totalSupply).toBe(1025); // 1000 token reward + 25 protocol fee
                 })
                 .expect(200, done);
         });
