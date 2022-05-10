@@ -7,7 +7,6 @@ import {
     availableVersions,
     contractConfig,
     ContractName,
-    currentVersion,
     diamondAbi,
     diamondFacetConfigs,
     diamondFacetNames,
@@ -31,7 +30,9 @@ export const getContractFromAbi = (npid: NetworkProvider, abi: AbiItem[], addres
 };
 
 export const getContractFromName = (npid: NetworkProvider, contractName: ContractName, address?: string) => {
-    const { abi } = getContractConfig(npid, contractName, currentVersion);
+    // We are requiring the abi file here since the network specific exports only hold diamond related contracts
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const abi: AbiItem[] = require(`@thxnetwork/artifacts/dist/exports/abis/${contractName}.json`);
     return getContractFromAbi(npid, abi, address);
 };
 
