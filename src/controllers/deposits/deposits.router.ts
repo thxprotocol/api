@@ -7,14 +7,21 @@ import { assertRequestInput, assertAssetPoolAccess, requireAssetPoolHeader, asse
 import { AccountPlanType } from '@/types/enums';
 
 const router = express.Router();
+
 router.post(
-    '/',
-    assertScopes(['user', 'deposits:read', 'deposits:write']),
-    assertAssetPoolAccess,
-    assertRequestInput(CreateDeposit.validation),
-    requireAssetPoolHeader,
-    assertPlan([AccountPlanType.Basic, AccountPlanType.Premium]),
-    CreateDeposit.controller,
+        '/',
+        assertScopes(['user', 'deposits:read', 'deposits:write']),
+        assertAssetPoolAccess,
+        assertRequestInput(CreateDeposit.createDepositValidation),
+        requireAssetPoolHeader,
+        assertPlan([AccountPlanType.Basic, AccountPlanType.Premium]),
+        CreateDeposit.createDepositController,
 );
-router.post('/:address/deposit', assertScopes(['dashboard']), assertRequestInput(CreateDeposit.validation), CreateDeposit.controller);
+router.post('/:address', 
+    assertScopes(['admin', 'deposits:read', 'deposits:write']),
+    assertAssetPoolAccess,
+    assertRequestInput(CreateDeposit.createAssetPoolDepositValidation), 
+    requireAssetPoolHeader,
+    CreateDeposit.createAssetPoolDepositController
+);
 export default router;

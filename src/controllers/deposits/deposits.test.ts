@@ -13,6 +13,7 @@ import { MaxUint256, tokenName, tokenSymbol, userWalletPrivateKey2 } from '@/uti
 import { AmountExceedsAllowanceError, InsufficientBalanceError } from '@/util/errors';
 import TransactionService from '@/services/TransactionService';
 import { getContractFromName } from '@/config/contracts';
+import { getProvider } from '@/util/network';
 
 const http = request.agent(app);
 
@@ -23,7 +24,8 @@ describe('Deposits', () => {
         promoCode: IPromoCodeResponse,
         userWallet: Account,
         tokenAddress: string,
-        testToken: Contract;
+        testToken: Contract,
+        adminAccessToken: string
 
     const value = 'XX78WEJ1219WZ';
     const price = 10;
@@ -40,6 +42,8 @@ describe('Deposits', () => {
 
         dashboardAccessToken = getToken('openid dashboard promo_codes:read promo_codes:write members:write');
         userAccessToken = getToken('openid user promo_codes:read payments:write payments:read');
+        adminAccessToken = getToken('openid admin');
+        
     });
 
     it('Create token', (done) => {
@@ -194,6 +198,38 @@ describe('Deposits', () => {
                     expect(body.value).toEqual(value);
                 })
                 .expect(200, done);
+        });
+    });
+
+    describe('Create Asset Pool Deposit', () => {
+        
+        const { admin } = getProvider(NetworkProvider.Main);
+        const amount = '1000000000000000000';
+
+        it('Increase admin balance', async () => {
+            const { tx, receipt } = await TransactionService.send(
+                testToken.options.address,
+                testToken.methods.transfer(admin.address, toWei(String(amount))),
+                NetworkProvider.Main,
+            );
+            const event = findEvent('Transfer', parseLogs(testToken.options.jsonInterface, receipt.logs));
+
+            expect(tx.state).toBe(TransactionState.Mined);
+            expect(event).toBeDefined();
+        });
+
+        it('POST /deposits/:address/ 200 OK', async () => {
+            const { call, nonce, sig } = await signMethod(
+                poolAddress,
+                'deposit',
+                [toWei(amount)],
+                admin,
+            );
+            await http
+                .post(`/v1/deposits/${admin.address}`)
+                .set({ Authorization: adminAccessToken, AssetPool: poolAddress })
+                .send({ call, nonce, sig, amount})
+                .expect(200);
         });
     });
 });

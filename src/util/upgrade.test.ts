@@ -46,8 +46,8 @@ describe('Happy Flow', () => {
                 version: currentVersion,
             });
 
-            await updateDiamondContract(pool.network, pool.contract, 'poolRegistry');
-            expect((await AssetPoolService.contractVersionVariant(pool)).variant).toBe('poolRegistry');
+            await updateDiamondContract(pool.network, pool.contract, 'assetPoolRegistry');
+            expect((await AssetPoolService.contractVersionVariant(pool)).variant).toBe('assetPoolRegistry');
 
             await AssetPoolService.updateAssetPool(pool);
             expect(await AssetPoolService.contractVersionVariant(pool)).toEqual({
