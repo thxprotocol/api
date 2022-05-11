@@ -1,3 +1,4 @@
+import { DiamondVariant } from '@thxnetwork/artifacts';
 import { Contract } from 'web3-eth-contract';
 
 export type TAssetPool = {
@@ -11,5 +12,5 @@ export type TAssetPool = {
     lastTransactionAt?: number;
     bypassPolls: boolean;
     version?: string;
-    variant?: string;
+    variant?: DiamondVariant;
 };
