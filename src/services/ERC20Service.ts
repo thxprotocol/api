@@ -66,12 +66,13 @@ export const findByPool = async (assetPool: AssetPoolDocument): Promise<TERC20> 
     const erc20 = await ERC20.findOne({ network: assetPool.network, address });
 
     if (erc20) {
-        const { name, type, symbol, totalSupply, logoURI } = await erc20.getResponse();
+        const { name, type, symbol, totalSupply, logoURI, decimals } = await erc20.getResponse();
         return {
             address,
             name,
             type,
             symbol,
+            decimals,
             totalSupply,
             logoURI,
             poolBalance: Number(fromWei(await assetPool.contract.methods.getBalance().call())),

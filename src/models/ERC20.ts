@@ -35,6 +35,10 @@ erc20Schema.methods.getResponse = async function () {
             const totalSupply = await this.contract.methods.totalSupply().call();
             return Number(fromWei(totalSupply, 'ether'));
         })(),
+        decimals: await (async () => {
+            const decimals = await this.contract.methods.decimals().call();
+            return Number(decimals);
+        })(),
         adminBalance: await (async () => {
             const { admin } = getProvider(this.network);
             const balance = await this.contract.methods.balanceOf(admin.address).call();

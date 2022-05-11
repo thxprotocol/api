@@ -11,6 +11,7 @@ import {
     diamondFacetNames,
     DiamondVariant,
     diamondVariants,
+    networkChainId,
     TNetworkName,
 } from '@thxnetwork/artifacts';
 import { MAINNET_NETWORK_NAME, TESTNET_NETWORK_NAME } from './secrets';
@@ -76,4 +77,8 @@ const npToName = (npid: NetworkProvider): TNetworkName => {
         case NetworkProvider.Test:
             return TESTNET_NETWORK_NAME as TNetworkName;
     }
+};
+
+export const npToChainId = (npid: NetworkProvider): string => {
+    return networkChainId(npToName(npid));
 };

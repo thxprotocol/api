@@ -7,6 +7,7 @@ export type TERC20 = {
     symbol: string;
     address: string;
     totalSupply: number;
+    decimals?: number;
     type: ERC20Type;
     logoURI: string;
     blockNumber?: number;
