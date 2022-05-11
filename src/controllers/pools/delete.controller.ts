@@ -1,18 +1,11 @@
 import { Request, Response } from 'express';
 import { param } from 'express-validator';
-import { isAddress } from 'web3-utils';
 import RewardService from '@/services/RewardService';
 import WithdrawalService from '@/services/WithdrawalService';
 import ClientService from '@/services/ClientService';
 import AssetPoolService from '@/services/AssetPoolService';
 
-const validation = [
-    param('address')
-        .exists()
-        .custom((value) => {
-            return isAddress(value);
-        }),
-];
+const validation = [param('address').isEthereumAddress()];
 
 const controller = async (req: Request, res: Response) => {
     // #swagger.tags = ['Pools']

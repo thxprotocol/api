@@ -5,6 +5,7 @@ import { getContract } from '@/config/contracts';
 import { NetworkProvider } from '@/types/enums';
 import { BigNumber } from 'ethers';
 import TransactionService from '@/services/TransactionService';
+import { currentVersion } from '@thxnetwork/artifacts';
 
 db.connect(MONGODB_URI);
 
@@ -17,7 +18,7 @@ async function main() {
     const startTime = Date.now();
     console.log('Start!', startTime);
 
-    const registry = getContract(NetworkProvider.Main, 'AssetPoolRegistry', '3.0.0');
+    const registry = getContract(NetworkProvider.Main, 'PoolRegistry', currentVersion);
 
     await TransactionService.send(
         registry.options.address,
@@ -33,7 +34,7 @@ async function main() {
     for (const pool of await AssetPool.find()) {
         try {
             const currentRegistryAddress = await pool.contract.methods.getPoolRegistry().call();
-            const registry = getContract(pool.network, 'AssetPoolRegistry', '3.0.0');
+            const registry = getContract(pool.network, 'PoolRegistry', currentVersion);
 
             if (registry.options.address !== currentRegistryAddress) {
                 const { receipt } = await TransactionService.send(

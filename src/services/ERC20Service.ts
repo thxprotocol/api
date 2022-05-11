@@ -1,6 +1,6 @@
 import ERC20 from '@/models/ERC20';
 import { toWei, fromWei } from 'web3-utils';
-import { getProvider, getContractFromName } from '@/util/network';
+import { getProvider } from '@/util/network';
 import { ICreateERC20Params } from '@/types/interfaces';
 import TransactionService from './TransactionService';
 import { assertEvent, parseLogs } from '@/util/events';
@@ -9,7 +9,7 @@ import { ERC20Type, NetworkProvider } from '@/types/enums';
 import { AssetPoolDocument } from '@/models/AssetPool';
 import { TERC20 } from '@/types/TERC20';
 import { currentVersion } from '@thxnetwork/artifacts';
-import { getContract } from '@/config/contracts';
+import { getContract, getContractFromName } from '@/config/contracts';
 
 export const create = async (params: ICreateERC20Params) => {
     const { admin } = getProvider(params.network);

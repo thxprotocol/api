@@ -34,7 +34,7 @@ router.delete(
     '/:address',
     assertScopes(['dashboard']),
     assertAssetPoolAccess,
-    assertRequestInput(DeletePool.controller),
+    assertRequestInput(DeletePool.validation),
     requireAssetPoolHeader,
     assertPlan([AccountPlanType.Basic, AccountPlanType.Premium]),
     DeletePool.controller,

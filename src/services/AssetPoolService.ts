@@ -1,13 +1,12 @@
 import { assertEvent, parseLogs } from '@/util/events';
 import { ERC20Type, NetworkProvider } from '@/types/enums';
-import { getContractFromName } from '@/util/network';
 import { AssetPool, AssetPoolDocument } from '@/models/AssetPool';
 import { getProvider } from '@/util/network';
 import { toChecksumAddress } from 'web3-utils';
 import { Membership } from '@/models/Membership';
 import { THXError } from '@/util/errors';
 import TransactionService from './TransactionService';
-import { diamondContracts, getContract, poolFacetAdressesPermutations } from '@/config/contracts';
+import { diamondContracts, getContract, getContractFromName, poolFacetAdressesPermutations } from '@/config/contracts';
 import { logger } from '@/util/logger';
 import { pick } from '@/util';
 import { diamondSelectors, getDiamondCutForContractFacets, updateDiamondContract } from '@/util/upgrades';
@@ -63,6 +62,7 @@ export default class AssetPoolService {
         // Add this pool as a minter in case of an UnlimitedSupplyToken
         if (erc20 && erc20.type === ERC20Type.Unlimited) {
             contract = getContractFromName(assetPool.network, 'UnlimitedSupplyToken', tokenAddress);
+
             await TransactionService.send(
                 tokenAddress,
                 contract.methods.grantRole(MINTER_ROLE, assetPool.address),
@@ -70,7 +70,7 @@ export default class AssetPoolService {
             );
         }
 
-        // TODO Move this to a user action
+        // TODO Move this to a user action from dashboard
         const adminBalance = await contract.methods.balanceOf(admin.address).call();
         if (Number(String(adminBalance)) > 0) {
             await TransactionService.send(
@@ -172,11 +172,10 @@ export default class AssetPoolService {
     }
 
     static async updateAssetPool(pool: AssetPoolDocument, version?: string) {
-        const variant = 'defaultPool';
-        const tx = await updateDiamondContract(pool.network, pool.contract, variant, version);
+        const tx = await updateDiamondContract(pool.network, pool.contract, pool.variant, version);
 
         pool.version = version;
-        pool.variant = variant;
+
         await pool.save();
 
         return tx;

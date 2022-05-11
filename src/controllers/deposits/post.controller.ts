@@ -9,14 +9,14 @@ import AccountProxy from '@/proxies/AccountProxy';
 import DepositService from '@/services/DepositService';
 import PromotionService from '@/services/PromotionService';
 import ERC20Service from '@/services/ERC20Service';
-import { getContractFromName } from '@/util/network';
+import { getContractFromName } from '@/config/contracts';
 
 const validation = [
     body('call').exists(),
     body('nonce').exists(),
     body('sig').exists(),
+    body('item').optional().isMongoId(),
     body('amount').optional().isNumeric(),
-    body('item').optional().isString().isLength({ min: 24, max: 24 }),
 ];
 
 const controller = async (req: Request, res: Response) => {

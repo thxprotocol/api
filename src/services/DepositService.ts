@@ -1,4 +1,3 @@
-import { Contract } from 'web3-eth-contract';
 import { TAssetPool } from '@/types/TAssetPool';
 import { Deposit, DepositDocument } from '@/models/Deposit';
 import { IAccount } from '@/models/Account';
@@ -8,7 +7,7 @@ import InfuraService from './InfuraService';
 import { ITX_ACTIVE } from '@/config/secrets';
 import { assertEvent, findEvent, hex2a, parseLogs } from '@/util/events';
 import { InternalServerError } from '@/util/errors';
-import { ERC20Document } from '@/models/ERC20';
+import { logger } from '@/util/logger';
 
 async function schedule(assetPool: TAssetPool, account: IAccount, amount: number, item?: string) {
     return await Deposit.create({
@@ -41,6 +40,7 @@ async function create(assetPool: TAssetPool, deposit: DepositDocument, call: str
 
             if (!result.args.success) {
                 const error = hex2a(result.args.data.substr(10));
+                logger.error(error);
                 throw new InternalServerError(error);
             }
 
