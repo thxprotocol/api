@@ -6,7 +6,7 @@ import CreatePool from './post.controller';
 import ReadPool from './get.controller';
 import DeletePool from './delete.controller';
 import ListPools from './list.controller';
-import GetPoolMembers from './get.members.action';
+import ListPoolMembers from './members/list.controller';
 
 const router = express.Router();
 
@@ -16,10 +16,9 @@ router.get(
     '/:address/members',
     assertScopes(['dashboard']),
     assertAssetPoolAccess,
-    assertRequestInput(readAssetPoolValidation),
     requireAssetPoolHeader,
     assertPlan([AccountPlanType.Basic, AccountPlanType.Premium]),
-    GetPoolMembers.controller,
+    ListPoolMembers.controller,
 );
 router.get(
     '/:address',

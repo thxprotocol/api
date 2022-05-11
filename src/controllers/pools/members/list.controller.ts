@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import MemberService from '@/services/MemberService';
 
-const getPoolMembers = async (req: Request, res: Response) => {
+const controller = async (req: Request, res: Response) => {
     const response = await MemberService.findByQuery(
         { poolAddress: req.params.id },
         Number(req.query.page),
@@ -11,6 +11,4 @@ const getPoolMembers = async (req: Request, res: Response) => {
     res.send(response);
 };
 
-export default {
-    controller: getPoolMembers,
-};
+export default { controller };
