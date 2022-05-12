@@ -28,7 +28,6 @@ async function create(assetPool: TAssetPool, deposit: DepositDocument, call: str
         return await deposit.save();
     } else {
         try {
-            console.log('SONO QUI 2:', {poolAdfress: assetPool.address, call, nonce, sig})
             const { tx, receipt } = await TransactionService.send(
                 assetPool.address,
                 assetPool.contract.methods.call(call, nonce, sig),

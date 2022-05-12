@@ -81,7 +81,6 @@ const createAssetPoolDepositController = async (req: Request, res: Response) => 
     
     // Check balance to ensure throughput
     const balance = await contract.methods.balanceOf(account.address).call();
-    console.log('SONO QUI 1:', {adminBalance: balance.toString()})
     if (balance < amount) throw new InsufficientBalanceError();
 
     // Check allowance for admin to ensure throughput
