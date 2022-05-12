@@ -18,10 +18,11 @@ router.post(
         CreateDeposit.createDepositController,
 );
 router.post('/:address', 
-    assertScopes(['admin', 'deposits:read', 'deposits:write']),
+    assertScopes(['admin', 'dashboard']),
     assertAssetPoolAccess,
     assertRequestInput(CreateDeposit.createAssetPoolDepositValidation), 
     requireAssetPoolHeader,
+    assertPlan([AccountPlanType.Basic, AccountPlanType.Premium]),
     CreateDeposit.createAssetPoolDepositController
 );
 export default router;
