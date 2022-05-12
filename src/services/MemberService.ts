@@ -4,7 +4,6 @@ import { IMember, Member } from '@/models/Member';
 import TransactionService from './TransactionService';
 import { getDiamondAbi } from '@/config/contracts';
 import { paginatedResults } from '@/util/pagination';
-import { Membership } from '@/models/Membership';
 
 export default class MemberService {
     static async getByAddress(assetPool: TAssetPool, address: string) {
@@ -79,7 +78,7 @@ export default class MemberService {
     }
 
     static async findByQuery(query: { poolAddress: string }, page = 1, limit = 10) {
-        return paginatedResults(Membership, page, limit, query);
+        return paginatedResults(Member, page, limit, query);
     }
 
     static async removeMember(assetPool: TAssetPool, address: string) {

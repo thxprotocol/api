@@ -29,7 +29,7 @@ async function send(to: string, fn: any, npid: NetworkProvider, gasLimit?: numbe
     const maxFeePerGasLimit = Number(toWei(MAX_FEE_PER_GAS, 'gwei'));
 
     // This comparison is in gwei
-    if (maxFeePerGas > maxFeePerGasLimit) {
+    if (maxFeePerGasLimit > 0 && maxFeePerGas > maxFeePerGasLimit) {
         throw new MaxFeePerGasExceededError();
     }
 
