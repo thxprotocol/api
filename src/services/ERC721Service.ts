@@ -14,7 +14,7 @@ import { currentVersion } from '@thxnetwork/artifacts';
 async function create(data: TERC721): Promise<ERC721Document> {
     const { admin } = getProvider(data.network);
     const tokenFactory = getContract(data.network, 'TokenFactory', currentVersion);
-    const erc721 = await ERC721.create(data);
+    const erc721 = new ERC721(data);
 
     erc721.baseURL = `${API_URL}/metadata/`;
 

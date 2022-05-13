@@ -1,11 +1,12 @@
 import db from '@/util/database';
 import { MONGODB_URI } from '@/config/secrets';
+import { getContract } from '@/config/contracts';
 import { updateDiamondContract } from '@/util/upgrades';
 import { AssetPool } from '@/models/AssetPool';
-import { NetworkProvider } from '@/types/enums';
+import { AccountPlanType, NetworkProvider } from '@/types/enums';
 import { ContractName, currentVersion, DiamondVariant } from '@thxnetwork/artifacts';
 import AssetPoolService from '@/services/AssetPoolService';
-import { getContract } from '@/config/contracts';
+import AccountProxy from '@/proxies/AccountProxy';
 
 db.connect(MONGODB_URI);
 
@@ -35,8 +36,14 @@ async function main() {
 
     for (const pool of await AssetPool.find({ version: { $ne: currentVersion } })) {
         try {
-            console.log('Upgrade:', pool.address, `${pool.variant} ${pool.version} -> ${currentVersion}`);
-            await AssetPoolService.updateAssetPool(pool, currentVersion);
+            const account = await AccountProxy.getById(pool.sub);
+            // We only upgrade paying accounts automatically. Other accounts will see a notification in Dashboard
+            if (account.plan !== AccountPlanType.Free) {
+                console.log('Upgrade:', pool.address, `${pool.variant} ${pool.version} -> ${currentVersion}`);
+                await AssetPoolService.updateAssetPool(pool, currentVersion);
+            } else {
+                console.log('Skipped:', pool.address, `${pool.variant} ${pool.version} -> Account #${account.id}`);
+            }
         } catch (error) {
             console.error(pool.address, error);
         }
