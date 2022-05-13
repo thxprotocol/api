@@ -7,7 +7,7 @@ import InfuraService from './InfuraService';
 import { ITX_ACTIVE } from '@/config/secrets';
 import { assertEvent, findEvent, hex2a, parseLogs } from '@/util/events';
 import { InternalServerError } from '@/util/errors';
-import { logger } from '@/util/logger';
+import { logger } from '@/util/logger'; 
 
 async function schedule(assetPool: TAssetPool, account: IAccount, amount: number, item?: string) {
     return await Deposit.create({
