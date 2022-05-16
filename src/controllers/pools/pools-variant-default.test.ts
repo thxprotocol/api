@@ -1,7 +1,8 @@
 import request from 'supertest';
 import app from '@/app';
-import { ERC20Type, NetworkProvider } from '@/types/enums';
+import { NetworkProvider } from '@/types/enums';
 import { Account } from 'web3-core';
+import { toWei } from 'web3-utils';
 import { timeTravel, signMethod, createWallet } from '@/util/jest/network';
 import {
     rewardWithdrawAmount,
@@ -11,10 +12,16 @@ import {
     sub2,
     tokenName,
     tokenSymbol,
+    tokenTotalSupply,
+    MaxUint256,
 } from '@/util/jest/constants';
 import { isAddress } from 'web3-utils';
 import { getToken } from '@/util/jest/jwt';
 import { afterAllCallback, beforeAllCallback } from '@/util/jest/config';
+import { getContract, getContractFromName } from '@/config/contracts';
+import { currentVersion } from '@thxnetwork/artifacts';
+import { assertEvent, parseLogs } from '@/util/events';
+import TransactionService from '@/services/TransactionService';
 
 const user = request.agent(app);
 
@@ -38,29 +45,29 @@ describe('Default Pool', () => {
 
         adminAccessToken = getToken('openid admin');
         dashboardAccessToken = getToken('openid dashboard');
-        userAccessToken = getToken('openid user');
+        userAccessToken = getToken('openid user deposits:read deposits:write');
     });
 
     afterAll(afterAllCallback);
 
-    describe('POST /erc20', () => {
-        it('HTTP 201 (success)', (done) => {
-            user.post('/v1/erc20')
-                .set('Authorization', dashboardAccessToken)
-                .send({
-                    network: NetworkProvider.Main,
-                    name: tokenName,
-                    symbol: tokenSymbol,
-                    type: ERC20Type.Unlimited,
-                    totalSupply: 0,
-                })
-                .expect(({ body }: request.Response) => {
-                    expect(isAddress(body.address)).toBe(true);
-                    tokenAddress = body.address;
-                })
-                .expect(201, done);
+    describe('Existing ERC20 contract', () => {
+        it('TokenDeployed event', async () => {
+            const tokenFactory = getContract(NetworkProvider.Main, 'TokenFactory', currentVersion);
+            const { receipt } = await TransactionService.send(
+                tokenFactory.options.address,
+                tokenFactory.methods.deployLimitedSupplyToken(
+                    tokenName,
+                    tokenSymbol,
+                    userWallet.address,
+                    toWei(String(tokenTotalSupply)),
+                ),
+                NetworkProvider.Main,
+            );
+            const event = assertEvent('TokenDeployed', parseLogs(tokenFactory.options.jsonInterface, receipt.logs));
+            tokenAddress = event.args.token;
         });
     });
+
     describe('POST /asset_pools', () => {
         it('HTTP 201 (success)', (done) => {
             user.post('/v1/asset_pools')
@@ -77,18 +84,67 @@ describe('Default Pool', () => {
         });
     });
 
-    describe('GET /asset_pools/:address', () => {
-        it('HTTP 200 and expose pool information', async () => {
+    describe('POST /members/:address', () => {
+        let redirectURL = '';
+
+        it('HTTP 302 when member is added', (done) => {
+            user.post('/v1/members/')
+                .send({ address: userWallet.address })
+                .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
+                .expect(async (res: request.Response) => {
+                    redirectURL = res.headers.location;
+                })
+                .expect(302, done);
+        });
+
+        it('HTTP 200 for the redirect', (done) => {
+            user.get(redirectURL)
+                .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
+                .expect(async (res: request.Response) => {
+                    expect(res.body.isMember).toEqual(true);
+                    expect(res.body.isManager).toEqual(false);
+                    expect(res.body.token.balance).toEqual(tokenTotalSupply);
+                })
+                .expect(200, done);
+        });
+    });
+
+    describe('Make deposit into pool', () => {
+        it('Approve for infinite amount', async () => {
+            const testToken = getContractFromName(NetworkProvider.Main, 'LimitedSupplyToken', tokenAddress);
+            const tx = await testToken.methods.approve(poolAddress, MaxUint256).send({ from: userWallet.address });
+            const event: any = Object.values(tx.events).filter((e: any) => e.event === 'Approval')[0];
+            expect(event.returnValues.owner).toEqual(userWallet.address);
+            expect(event.returnValues.spender).toEqual(poolAddress);
+            expect(event.returnValues.value).toEqual(MaxUint256);
+        });
+
+        it('POST /deposits 201', async () => {
+            const { call, nonce, sig } = await signMethod(
+                poolAddress,
+                'deposit',
+                [toWei(String(tokenTotalSupply))],
+                userWallet,
+            );
             await user
-                .get('/v1/asset_pools/' + poolAddress)
+                .post('/v1/deposits')
+                .set({ Authorization: userAccessToken, AssetPool: poolAddress })
+                .send({ call, nonce, sig, amount: tokenTotalSupply })
+                .expect(200);
+        });
+    });
+
+    describe('GET /asset_pools/:address', () => {
+        it('HTTP 200 and expose pool information', (done) => {
+            user.get('/v1/asset_pools/' + poolAddress)
                 .set({ AssetPool: poolAddress, Authorization: dashboardAccessToken })
                 .expect(async ({ body }: request.Response) => {
                     expect(body.address).toEqual(poolAddress);
                     expect(isAddress(body.token.address)).toEqual(true);
-                    expect(body.token.totalSupply).toBe(0);
-                    expect(body.token.poolBalance).toBe(0);
+                    expect(body.token.totalSupply).toBe(tokenTotalSupply);
+                    expect(body.token.poolBalance).toBe(97500000); // Total supply - 2.5% protocol fee on deposit
                 })
-                .expect(200);
+                .expect(200, done);
         });
     });
 
@@ -127,41 +183,6 @@ describe('Default Pool', () => {
             user.get('/v1/rewards/id_invalid')
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
                 .expect(400, done);
-        });
-    });
-
-    describe('POST /members/:address', () => {
-        let redirectURL = '';
-
-        it('HTTP 302 when member is added', (done) => {
-            user.post('/v1/members/')
-                .send({ address: userWallet.address })
-                .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
-                .expect(async (res: request.Response) => {
-                    redirectURL = res.headers.location;
-                })
-                .expect(302, done);
-        });
-
-        it('HTTP 302 when member is patched', (done) => {
-            user.patch(`/v1/members/${userWallet.address}`)
-                .send({ isManager: true })
-                .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
-                .expect(async (res: request.Response) => {
-                    redirectURL = res.headers.location;
-                })
-                .expect(302, done);
-        });
-
-        it('HTTP 200 for the redirect', (done) => {
-            user.get(redirectURL)
-                .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
-                .expect(async (res: request.Response) => {
-                    expect(res.body.isMember).toEqual(true);
-                    expect(res.body.isManager).toEqual(true);
-                    expect(res.body.token.balance).toEqual(0);
-                })
-                .expect(200, done);
         });
     });
 
@@ -274,11 +295,12 @@ describe('Default Pool', () => {
     });
 
     describe('GET /asset_pools/:address (after withdraw)', () => {
-        it('HTTP 200 and have 0 balance', (done) => {
+        it('HTTP 200 and have decreased balance', (done) => {
             user.get(`/v1/asset_pools/${poolAddress}`)
                 .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
                 .expect(async (res: request.Response) => {
-                    expect(res.body.token.poolBalance).toBe(0);
+                    // Total supply - 2.5% = 250000 deposit fee - 1000 token reward - 2.5% = 25 withdraw fee
+                    expect(res.body.token.poolBalance).toBe(97498975);
                 })
                 .expect(200, done);
         });

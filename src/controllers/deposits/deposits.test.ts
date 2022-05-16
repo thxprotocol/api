@@ -39,7 +39,9 @@ describe('Deposits', () => {
         userWallet = createWallet(userWalletPrivateKey2);
 
         dashboardAccessToken = getToken('openid dashboard promo_codes:read promo_codes:write members:write');
-        userAccessToken = getToken('openid user promo_codes:read payments:write payments:read');
+        userAccessToken = getToken(
+            'openid user promo_codes:read payments:write payments:read deposits:write deposits:read',
+        );
     });
 
     it('Create token', (done) => {
