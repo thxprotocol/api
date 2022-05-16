@@ -9,6 +9,17 @@ import { assertEvent, findEvent, hex2a, parseLogs } from '@/util/events';
 import { InternalServerError } from '@/util/errors';
 import { logger } from '@/util/logger';
 
+async function approve(assetPool: TAssetPool, account: IAccount, amount: number, item?: string) {
+    return await Deposit.create({
+        sub: account.id,
+        sender: account.address,
+        receiver: assetPool.address,
+        amount,
+        state: DepositState.Pending,
+        item,
+    });
+}
+
 async function schedule(assetPool: TAssetPool, account: IAccount, amount: number, item?: string) {
     return await Deposit.create({
         sub: account.id,
@@ -56,4 +67,4 @@ async function create(assetPool: TAssetPool, deposit: DepositDocument, call: str
         }
     }
 }
-export default { create, schedule };
+export default { create, schedule, approve };
