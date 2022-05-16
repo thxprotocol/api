@@ -605,6 +605,18 @@
       }
     },
     "/deposits/": {
+      "get": {
+        "tags": [
+          "Deposits"
+        ],
+        "description": "",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      },
       "post": {
         "tags": [
           "Deposits"
@@ -643,6 +655,27 @@
         }
       }
     },
+    "/deposits/{id}": {
+      "get": {
+        "tags": [
+          "Deposits"
+        ],
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
     "/deposits/{address}": {
       "post": {
         "tags": [
@@ -663,9 +696,6 @@
               "type": "object",
               "properties": {
                 "amount": {
-                  "example": "any"
-                },
-                "call": {
                   "example": "any"
                 }
               }

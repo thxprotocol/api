@@ -1,12 +1,32 @@
 import express from 'express';
 import assertScopes from 'express-jwt-authz';
 import CreateDeposit from './post.controller';
+import ReadDeposit from './get.controller';
+import ListDeposits from './list.controller';
 import { assertRequestInput, assertAssetPoolAccess, requireAssetPoolHeader, assertPlan } from '@/middlewares';
 
 
 import { AccountPlanType } from '@/types/enums';
 
 const router = express.Router();
+
+router.get(
+    '/',
+    assertScopes(['admin', 'dashboard']),
+    assertAssetPoolAccess,
+    requireAssetPoolHeader,
+    assertPlan([AccountPlanType.Basic, AccountPlanType.Premium]),
+    ListDeposits.controller,
+);
+router.get(
+    '/:id',
+    assertScopes(['admin', 'dashboard']),
+    assertAssetPoolAccess,
+    assertRequestInput(ReadDeposit.validation),
+    requireAssetPoolHeader,
+    assertPlan([AccountPlanType.Basic, AccountPlanType.Premium]),
+    ReadDeposit.controller,
+);
 
 router.post(
         '/',

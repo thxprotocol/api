@@ -8,7 +8,18 @@ import { ITX_ACTIVE } from '@/config/secrets';
 import { assertEvent, findEvent, hex2a, parseLogs } from '@/util/events';
 import { InternalServerError } from '@/util/errors';
 import { logger } from '@/util/logger'; 
-import { toWei, fromWei } from 'web3-utils';
+import { fromWei } from 'web3-utils';
+
+async function get(assetPool: TAssetPool, depositId: number): Promise<DepositDocument> {
+    const deposit = await Deposit.findOne({ poolAddress: assetPool.address, id: depositId });
+    if (!deposit) return null;
+    return deposit;
+}
+
+async function getAll(assetPool: TAssetPool): Promise<DepositDocument[]> {
+    const deposit = await Deposit.find({ poolAddress: assetPool.address});
+    return deposit;
+}
 
 async function schedule(assetPool: TAssetPool, account: IAccount, amount: number, item?: string) {
     return await Deposit.create({
@@ -61,8 +72,6 @@ async function create(assetPool: TAssetPool, deposit: DepositDocument, call: str
 
 async function depositForAdmin(assetPool: TAssetPool, deposit: DepositDocument) {
     const amountInWei = fromWei(String(deposit.amount), 'wei');
-
-    console.log('amountInWei', amountInWei.toString())
     if (ITX_ACTIVE) {
         const tx = await InfuraService.schedule(
             assetPool.address,
@@ -97,6 +106,6 @@ async function depositForAdmin(assetPool: TAssetPool, deposit: DepositDocument) 
         throw error;
     }
 }
-export default { create, schedule, depositForAdmin };
+export default { get, getAll, create, schedule, depositForAdmin };
 
 
