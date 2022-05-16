@@ -25,6 +25,8 @@ const controller = async (req: Request, res: Response) => {
         const tokens = await ERC721Service.findMetadataByRecipient(account.address);
         return res.json({ ...membership, tokens });
     }
+
+    res.json(membership);
 };
 
 export default { controller, validation };
