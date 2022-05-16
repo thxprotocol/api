@@ -82,7 +82,7 @@ const createAssetPoolDepositController = async (req: Request, res: Response) => 
     // Check balance to ensure throughput
     const balance = await contract.methods.balanceOf(account.address).call();
     if (balance < amount) throw new InsufficientBalanceError();
-
+    
     // Check allowance for admin to ensure throughput
     const allowance = Number(await contract.methods.allowance(account.address, req.assetPool.address).call());
     if (allowance < amount) {
@@ -93,7 +93,7 @@ const createAssetPoolDepositController = async (req: Request, res: Response) => 
         );
     }
     let d: DepositDocument = await DepositService.schedule(req.assetPool, account, amount);
-    d = await DepositService.create(req.assetPool, d, req.body.call, req.body.nonce, req.body.sig);
+    d = await DepositService.depositForAdmin(req.assetPool, d);
 
     agenda.now(eventNameRequireTransactions, {});
 

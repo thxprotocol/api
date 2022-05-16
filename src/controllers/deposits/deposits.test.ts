@@ -14,6 +14,8 @@ import { AmountExceedsAllowanceError, InsufficientBalanceError } from '@/util/er
 import TransactionService from '@/services/TransactionService';
 import { getContractFromName } from '@/config/contracts';
 import { getProvider } from '@/util/network';
+import { BigNumber } from 'ethers';
+import { fromWei } from 'web3-utils';
 
 const http = request.agent(app);
 
@@ -202,34 +204,61 @@ describe('Deposits', () => {
     });
 
     describe('Create Asset Pool Deposit', () => {
-        
         const { admin } = getProvider(NetworkProvider.Main);
-        const amount = '1000000000000000000';
+        const totalSupply = fromWei('200000000000000000000', 'ether') // 200 eth
 
-        it('Increase admin balance', async () => {
-            const { tx, receipt } = await TransactionService.send(
-                testToken.options.address,
-                testToken.methods.transfer(admin.address, toWei(String(amount))),
-                NetworkProvider.Main,
-            );
-            const event = findEvent('Transfer', parseLogs(testToken.options.jsonInterface, receipt.logs));
-
-            expect(tx.state).toBe(TransactionState.Mined);
-            expect(event).toBeDefined();
+        it('Create token', (done) => {
+            http.post('/v1/erc20')
+                .set('Authorization', dashboardAccessToken)
+                .send({
+                    network: NetworkProvider.Main,
+                    name: 'LIMITED SUPPLY TOKEN',
+                    symbol: 'LIM',
+                    type: ERC20Type.Limited,
+                    totalSupply: totalSupply,
+                })
+                .expect(async ({ body }: request.Response) => {
+                    expect(isAddress(body.address)).toBe(true);
+                    tokenAddress = body.address;
+                    testToken = getContractFromName(NetworkProvider.Main, 'LimitedSupplyToken', tokenAddress);
+                    const adminBalance: BigNumber = await testToken.methods.balanceOf(admin.address).call();
+                    expect(fromWei(adminBalance.toString(), 'ether')).toBe(totalSupply);
+                })
+                .expect(201, done);
+        });
+    
+        it('Create pool', (done) => {
+            http.post('/v1/asset_pools')
+                .set('Authorization', dashboardAccessToken)
+                .send({
+                    network: NetworkProvider.Main,
+                    token: tokenAddress,
+                })
+                .expect(async (res: request.Response) => {
+                    expect(isAddress(res.body.address)).toBe(true);
+                    poolAddress = res.body.address;
+                    const adminBalance: BigNumber = await testToken.methods.balanceOf(admin.address).call();
+                    const poolBalance: BigNumber = await testToken.methods.balanceOf(poolAddress).call();
+                    expect(poolBalance.toString()).toBe('0');
+                    expect(fromWei(adminBalance.toString(), 'ether')).toBe(totalSupply);
+                })
+                .expect(201, done);
         });
 
         it('POST /deposits/:address/ 200 OK', async () => {
-            const { call, nonce, sig } = await signMethod(
-                poolAddress,
-                'deposit',
-                [toWei(amount)],
-                admin,
-            );
+            const depositAmount = fromWei('100000000000000000000', 'ether'); // 100 eth
             await http
                 .post(`/v1/deposits/${admin.address}`)
                 .set({ Authorization: adminAccessToken, AssetPool: poolAddress })
-                .send({ call, nonce, sig, amount})
+                .send({amount: depositAmount})
+                .expect(async (res: request.Response) => {
+                    const adminBalance: BigNumber = await testToken.methods.balanceOf(admin.address).call();
+                    const poolBalance: BigNumber = await testToken.methods.balanceOf(poolAddress).call();
+                    expect(poolBalance.toString()).toBe('97500000000000000000'); // 100 eth - protocol fee = 97.5 eth
+                    expect(adminBalance.toString()).toBe('100000000000000000000'); // 100 eth
+                })
                 .expect(200);
         });
     });
 });
+
