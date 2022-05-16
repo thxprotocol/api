@@ -643,6 +643,29 @@
         }
       }
     },
+    "/deposits/approve": {
+      "post": {
+        "tags": [
+          "Deposits"
+        ],
+        "description": "",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "amount": {
+                  "example": "any"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {}
+      }
+    },
     "/members/": {
       "get": {
         "tags": [
