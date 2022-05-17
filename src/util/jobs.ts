@@ -7,6 +7,7 @@ import { DepositState, WithdrawalState } from '@/types/enums';
 import { ERC721TokenState } from '@/types/TERC721';
 import { CustomEventLog, findEvent } from './events';
 import { ERC721Token } from '@/models/ERC721Token';
+import { logger } from './logger';
 
 async function handleEvents(assetPool: TAssetPool, tx: TransactionDocument, events: CustomEventLog[]) {
     const eventDepositted = findEvent('Depositted', events);
@@ -59,8 +60,11 @@ async function handleEvents(assetPool: TAssetPool, tx: TransactionDocument, even
 }
 
 async function handleError(tx: TransactionDocument, failReason: string) {
+    logger.error(failReason);
+
     await Withdrawal.updateOne({ transactions: String(tx._id) }, { failReason });
     await Deposit.updateOne({ transactions: String(tx._id) }, { failReason });
+    await ERC721Token.updateOne({ transactions: String(tx._id) }, { failReason });
 }
 
 export { handleEvents, handleError };
