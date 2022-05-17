@@ -23,7 +23,7 @@ const controller = async (req: Request, res: Response) => {
 
     if (membership.erc721) {
         const tokens = await ERC721Service.findTokensByRecipient(account.address);
-        console.log(tokens);
+
         return res.json({
             ...membership,
             tokens,

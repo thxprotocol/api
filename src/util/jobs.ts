@@ -15,15 +15,15 @@ async function handleEvents(assetPool: TAssetPool, tx: TransactionDocument, even
     const eventWithdrawPollCreated = findEvent('WithdrawPollCreated', events);
     const eventWithdrawPollFinalized = findEvent('WithdrawPollFinalized', events);
     const eventWithdrawn = findEvent('Withdrawn', events);
-    const eventTransfer = findEvent('Transfer', events);
+    const eventERC721Minted = findEvent('ERC721Minted', events);
 
-    if (eventTransfer) {
+    if (eventERC721Minted) {
         await ERC721Token.updateOne(
             { transactions: String(tx._id) },
             {
                 state: ERC721TokenState.Minted,
-                tokenId: Number(eventTransfer.args.tokenId),
-                recipient: eventTransfer.args.to,
+                tokenId: Number(eventERC721Minted.args.tokenId),
+                recipient: eventERC721Minted.args.beneficiary,
                 failReason: '',
             },
         );

@@ -82,12 +82,15 @@ export async function mint(
                 assetPool.contract.methods.mintFor(recipient, erc721.baseURL + String(erc721token.metadataId)),
                 assetPool.network,
             );
-            const event = assertEvent('Transfer', parseLogs(erc721.contract.options.jsonInterface, receipt.logs));
+            const event = assertEvent(
+                'ERC721Minted',
+                parseLogs(assetPool.contract.options.jsonInterface, receipt.logs),
+            );
 
             erc721token.transactions.push(String(tx._id));
             erc721token.state = ERC721TokenState.Minted;
             erc721token.tokenId = Number(event.args.tokenId);
-            erc721token.recipient = event.args.to;
+            erc721token.recipient = event.args.beneficiary;
 
             return await erc721token.save();
         } catch (error) {
