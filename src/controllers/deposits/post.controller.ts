@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { body } from 'express-validator';
-import { AmountExceedsAllowanceError, InsufficientBalanceError, NotFoundError } from '@/util/errors';
+import { AmountExceedsAllowanceError, BadRequestError, InsufficientBalanceError, NotFoundError } from '@/util/errors';
 import { agenda, eventNameRequireTransactions } from '@/util/agenda';
 import { toWei } from 'web3-utils';
 import { TDeposit } from '@/types/TDeposit';
@@ -14,6 +14,7 @@ import { getContractFromName } from '@/config/contracts';
 import PromotionService from '@/services/PromotionService';
 import AccountProxy from '@/proxies/AccountProxy';
 import TransactionService from '@/services/TransactionService';
+import { ERC20Type } from '@/types/enums';
 
 const createDepositValidation = [
     body('call').exists(),
@@ -67,7 +68,7 @@ const createDepositController = async (req: Request, res: Response) => {
 };
 
 export const createAssetPoolDepositValidation = [
-    body('amount').isNumeric()
+    body('amount').isInt({gt: 0})
 ];
 
 const createAssetPoolDepositController = async (req: Request, res: Response) => {
@@ -77,6 +78,10 @@ const createAssetPoolDepositController = async (req: Request, res: Response) => 
     const account = {address: admin.address} as IAccount;
     const amount = Number(toWei(String(value)));
     const erc20 = await ERC20Service.findByPool(req.assetPool);
+    
+    if(erc20.type !== ERC20Type.Limited) {
+        throw new BadRequestError('Token type is not Limited type')
+    }
     const contract = getContractFromName(req.assetPool.network, 'LimitedSupplyToken', erc20.address);
     
     // Check balance to ensure throughput

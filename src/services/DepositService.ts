@@ -8,7 +8,7 @@ import { ITX_ACTIVE } from '@/config/secrets';
 import { assertEvent, findEvent, hex2a, parseLogs } from '@/util/events';
 import { InternalServerError } from '@/util/errors';
 import { logger } from '@/util/logger'; 
-import { fromWei } from 'web3-utils';
+import { toWei } from 'web3-utils';
 
 async function get(assetPool: TAssetPool, depositId: number): Promise<DepositDocument> {
     const deposit = await Deposit.findOne({ poolAddress: assetPool.address, id: depositId });
@@ -71,7 +71,7 @@ async function create(assetPool: TAssetPool, deposit: DepositDocument, call: str
 }
 
 async function depositForAdmin(assetPool: TAssetPool, deposit: DepositDocument) {
-    const amountInWei = fromWei(String(deposit.amount), 'wei');
+    const amountInWei = deposit.amount.toString()
     if (ITX_ACTIVE) {
         const tx = await InfuraService.schedule(
             assetPool.address,
