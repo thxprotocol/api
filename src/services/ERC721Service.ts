@@ -118,9 +118,9 @@ async function findMetadataById(id: string): Promise<ERC721MetadataDocument> {
     return await ERC721Metadata.findById(id);
 }
 
-async function findTokensByRecipient(recipient: string): Promise<TERC721Token[]> {
+async function findTokensByRecipient(recipient: string, erc721Id: string): Promise<TERC721Token[]> {
     const result = [];
-    for await (const token of ERC721Token.find({ recipient })) {
+    for await (const token of ERC721Token.find({ recipient, erc721Id })) {
         const metadata = await ERC721Metadata.findById(token.metadataId);
         result.push({ ...token.toJSON(), metadata });
     }
