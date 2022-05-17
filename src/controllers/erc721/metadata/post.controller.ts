@@ -2,7 +2,6 @@ import ERC721Service from '@/services/ERC721Service';
 import { Request, Response } from 'express';
 import { body, param } from 'express-validator';
 import { NotFoundError } from '@/util/errors';
-import { ERC721TokenDocument } from '@/models/ERC721Token';
 
 const validation = [
     param('id').isMongoId(),
@@ -10,7 +9,7 @@ const validation = [
     body('description').isString().isLength({ min: 0, max: 400 }),
     // TODO Validate the metadata with the schema configured in the collection here
     body('attributes').exists(),
-    body('beneficiary').optional().isEthereumAddress(),
+    body('recipient').optional().isEthereumAddress(),
 ];
 
 const controller = async (req: Request, res: Response) => {
@@ -25,12 +24,14 @@ const controller = async (req: Request, res: Response) => {
         req.body.attributes,
     );
 
+    const tokens = metadata.tokens || [];
+
     if (req.body.recipient) {
         const token = await ERC721Service.mint(req.assetPool, erc721, metadata, req.body.recipient);
-        return res.status(201).json({ ...token.toJSON(), metadata: metadata.toJSON() });
+        tokens.push(token);
     }
 
-    res.status(201).json({ metadata: metadata.toJSON() });
+    res.status(201).json({ ...metadata.toJSON(), tokens });
 };
 
 export default { controller, validation };

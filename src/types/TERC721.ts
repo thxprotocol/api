@@ -1,4 +1,3 @@
-import { ERC721MetadataDocument } from '@/models/ERC721Metadata';
 import { Contract } from 'web3-eth-contract';
 
 export enum ERC721TokenState {

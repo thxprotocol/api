@@ -14,9 +14,12 @@ const controller = async (req: Request, res: Response) => {
     const metadata: ERC721MetadataDocument = await ERC721Service.findMetadataById(req.params.metadataId);
     if (!metadata) throw new NotFoundError('Could not find this NFT metadata in the database');
 
+    const tokens = await ERC721Service.findTokensByMetadata(metadata);
     const token = await ERC721Service.mint(req.assetPool, erc721, metadata, req.body.recipient);
 
-    res.status(201).json({ ...token.toJSON(), metadata: metadata.toJSON() });
+    tokens.push(token);
+
+    res.status(201).json({ ...metadata.toJSON(), tokens });
 };
 
 export default { controller, validation };

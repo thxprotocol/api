@@ -124,10 +124,14 @@ async function findTokensByRecipient(recipient: string): Promise<TERC721Token[]>
     return result;
 }
 
+async function findTokensByMetadata(metadata: ERC721MetadataDocument): Promise<TERC721Token[]> {
+    return ERC721Token.find({ metadataId: String(metadata._id) });
+}
+
 async function findMetadataByNFT(erc721: string): Promise<TERC721Metadata[]> {
     const result: TERC721Metadata[] = [];
     for await (const metadata of ERC721Metadata.find({ erc721 })) {
-        const tokens = (await ERC721Token.find({ metadataId: String(metadata._id) })).map((m) => m.toJSON());
+        const tokens = (await this.findTokensByMetadata(metadata)).map((m: ERC721MetadataDocument) => m.toJSON());
         result.push({ ...metadata.toJSON(), tokens });
     }
     return result;
@@ -144,6 +148,7 @@ export default {
     mint,
     findBySub,
     findTokenById,
+    findTokensByMetadata,
     findMetadataById,
     findMetadataByNFT,
     findTokensByRecipient,
