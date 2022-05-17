@@ -87,12 +87,12 @@ describe('NFT Pool', () => {
                 .expect(({ body }: request.Response) => {
                     expect(body._id).toBeDefined();
                     expect(body.tokenId).toBe(1);
-                    expect(body.title).toBe(title);
-                    expect(body.description).toBe(description);
-                    expect(body.attributes[0].key).toBe(schema[0].name);
-                    expect(body.attributes[0].value).toBe(value1);
-                    expect(body.attributes[1].key).toBe(schema[1].name);
-                    expect(body.attributes[1].value).toBe(value2);
+                    expect(body.metadata.title).toBe(title);
+                    expect(body.metadata.description).toBe(description);
+                    expect(body.metadata.attributes[0].key).toBe(schema[0].name);
+                    expect(body.metadata.attributes[0].value).toBe(value1);
+                    expect(body.metadata.attributes[1].key).toBe(schema[1].name);
+                    expect(body.metadata.attributes[1].value).toBe(value2);
                 })
                 .expect(201, done);
         });
@@ -115,14 +115,14 @@ describe('NFT Pool', () => {
                     ],
                 })
                 .expect(({ body }: request.Response) => {
-                    expect(body._id).toBeDefined();
-                    expect(body.title).toBe(title);
-                    expect(body.description).toBe(description);
-                    expect(body.attributes[0].key).toBe(schema[0].name);
-                    expect(body.attributes[0].value).toBe(value1);
-                    expect(body.attributes[1].key).toBe(schema[1].name);
-                    expect(body.attributes[1].value).toBe(value2);
-                    metadataId = body._id;
+                    expect(body.metadata._id).toBeDefined();
+                    expect(body.metadata.title).toBe(title);
+                    expect(body.metadata.description).toBe(description);
+                    expect(body.metadata.attributes[0].key).toBe(schema[0].name);
+                    expect(body.metadata.attributes[0].value).toBe(value1);
+                    expect(body.metadata.attributes[1].key).toBe(schema[1].name);
+                    expect(body.metadata.attributes[1].value).toBe(value2);
+                    metadataId = body.metadata._id;
                 })
                 .expect(201, done);
         });
@@ -139,6 +139,7 @@ describe('NFT Pool', () => {
                     recipient,
                 })
                 .expect(({ body }: request.Response) => {
+                    console.log(body);
                     expect(body.tokenId).toBe(2);
                 })
                 .expect(201, done);

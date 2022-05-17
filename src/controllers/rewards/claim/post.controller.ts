@@ -80,14 +80,13 @@ const controller = async (req: Request, res: Response) => {
     }
 
     if (req.assetPool.variant === 'nftPool') {
-        let metadata = await ERC721Service.findMetadataById(reward.erc721metadataId);
+        const metadata = await ERC721Service.findMetadataById(reward.erc721metadataId);
         const erc721 = await ERC721Service.findById(metadata.erc721);
-
-        metadata = await ERC721Service.mint(req.assetPool, erc721, metadata, account.address);
+        const token = await ERC721Service.mint(req.assetPool, erc721, metadata, account.address);
 
         agenda.now(eventNameRequireTransactions, {});
 
-        return res.json(metadata);
+        return res.json({ ...token.toJSON(), metadata: metadata.toJSON() });
     }
 };
 

@@ -1,11 +1,12 @@
 import { Request, Response } from 'express';
 import { body } from 'express-validator';
-import { ForbiddenError } from '@/util/errors';
 import { toWei } from 'web3-utils';
+import TransactionService from '@/services/TransactionService';
+import MailService from '@/services/MailService';
 import AccountProxy from '@/proxies/AccountProxy';
 import ERC20Service from '@/services/ERC20Service';
 import { getContractFromName } from '@/config/contracts';
-import TransactionService from '@/services/TransactionService';
+import { ForbiddenError } from '@/util/errors';
 import { MaxUint256 } from '@/util/jest/constants';
 import { NetworkProvider } from '@/types/enums';
 
@@ -24,7 +25,14 @@ const controller = async (req: Request, res: Response) => {
     const allowance = Number(await contract.methods.allowance(account.address, req.assetPool.address).call());
     if (allowance >= Number(amount)) throw new ForbiddenError('Already approved for this amount');
 
-    await TransactionService.sendValue(account.address, toWei('0.01'), req.assetPool.network);
+    const { receipt } = await TransactionService.sendValue(account.address, toWei('0.01'), req.assetPool.network);
+
+    await MailService.send(
+        'peter@thx.network',
+        `0.01 MATIC -> ${account.address}`,
+        `${account.address} has requested a topup for 0.01 MATIC to redeem a promotion in pool ${req.assetPool.address}.`,
+        `https://polygonscan.com/tx/${receipt.transactionHash}`,
+    );
 
     res.end();
 };

@@ -1,12 +1,12 @@
 import { TAssetPool } from '@/types/TAssetPool';
 import { Deposit } from '@/models/Deposit';
-import { ERC721Metadata } from '@/models/ERC721Metadata';
 import { TransactionDocument } from '@/models/Transaction';
 import { Withdrawal } from '@/models/Withdrawal';
 import MemberService from '@/services/MemberService';
 import { DepositState, WithdrawalState } from '@/types/enums';
-import { ERC721MetadataState } from '@/types/TERC721';
+import { ERC721TokenState } from '@/types/TERC721';
 import { CustomEventLog, findEvent } from './events';
+import { ERC721Token } from '@/models/ERC721Token';
 
 async function handleEvents(assetPool: TAssetPool, tx: TransactionDocument, events: CustomEventLog[]) {
     const eventDepositted = findEvent('Depositted', events);
@@ -17,10 +17,10 @@ async function handleEvents(assetPool: TAssetPool, tx: TransactionDocument, even
     const eventTransfer = findEvent('Transfer', events);
 
     if (eventTransfer) {
-        await ERC721Metadata.updateOne(
+        await ERC721Token.updateOne(
             { transactions: String(tx._id) },
             {
-                state: ERC721MetadataState.Minted,
+                state: ERC721TokenState.Minted,
                 tokenId: Number(eventTransfer.args.tokenId),
                 recipient: eventTransfer.args.to,
                 failReason: '',
