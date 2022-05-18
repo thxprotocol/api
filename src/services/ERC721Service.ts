@@ -11,6 +11,7 @@ import InfuraService from './InfuraService';
 import { getContract } from '@/config/contracts';
 import { currentVersion } from '@thxnetwork/artifacts';
 import { ERC721Token, ERC721TokenDocument } from '@/models/ERC721Token';
+import { TAssetPool } from '@/types/TAssetPool';
 
 async function create(data: TERC721): Promise<ERC721Document> {
     const { admin } = getProvider(data.network);
@@ -140,6 +141,14 @@ async function findMetadataByNFT(erc721: string): Promise<TERC721Metadata[]> {
     return result;
 }
 
+async function findByPool(assetPool: TAssetPool) {
+    return ERC721.findOne({
+        poolAddress: assetPool.address,
+        address: await assetPool.contract.methods.getERC721().call(),
+        network: assetPool.network,
+    });
+}
+
 async function findByQuery(query: { poolAddress?: string; address?: string; network?: NetworkProvider }) {
     return await ERC721.findOne(query);
 }
@@ -155,6 +164,7 @@ export default {
     findMetadataById,
     findMetadataByNFT,
     findTokensByRecipient,
+    findByPool,
     findByQuery,
     parseAttributes,
 };
