@@ -90,7 +90,7 @@ export async function mint(
             erc721token.transactions.push(String(tx._id));
             erc721token.state = ERC721TokenState.Minted;
             erc721token.tokenId = Number(event.args.tokenId);
-            erc721token.recipient = event.args._beneficiary;
+            erc721token.recipient = event.args.recipient;
 
             return await erc721token.save();
         } catch (error) {

@@ -10,6 +10,8 @@ const ERC721TokenSchema = new mongoose.Schema(
         erc721Id: String,
         metadataId: String,
         tokenId: Number,
+        recipient: String,
+        failReason: String,
         transactions: [String],
     },
     { timestamps: true },
