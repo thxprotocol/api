@@ -63,7 +63,7 @@ async function create(assetPool: TAssetPool, deposit: DepositDocument, call: str
 
             return await deposit.save();
         } catch (error) {
-            console.log('ERROR ON CREATE DEPOSIT', error.message)
+            logger.error(error);
             deposit.failReason = error.message;
             throw error;
         }
