@@ -87,6 +87,7 @@ describe('NFT Pool', () => {
                 .expect(({ body }: request.Response) => {
                     expect(body._id).toBeDefined();
                     expect(body.tokens[0].tokenId).toBe(1);
+                    expect(body.tokens[0].recipient).toBe(recipient);
                     expect(body.title).toBe(title);
                     expect(body.description).toBe(description);
                     expect(body.attributes[0].key).toBe(schema[0].name);
@@ -140,6 +141,7 @@ describe('NFT Pool', () => {
                 })
                 .expect(({ body }: request.Response) => {
                     expect(body.tokens[0].tokenId).toBe(2);
+                    expect(body.tokens[0].recipient).toBe(recipient);
                 })
                 .expect(201, done);
         });

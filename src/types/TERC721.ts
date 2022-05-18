@@ -22,6 +22,7 @@ export type TERC721Token = {
     sub: string;
     state: ERC721TokenState;
     recipient: string;
+    failReason: string;
     transactions: string[];
     tokenId: number;
     erc721Id: string;

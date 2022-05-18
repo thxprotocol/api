@@ -23,7 +23,7 @@ async function handleEvents(assetPool: TAssetPool, tx: TransactionDocument, even
             {
                 state: ERC721TokenState.Minted,
                 tokenId: Number(eventERC721Minted.args.tokenId),
-                recipient: eventERC721Minted.args._beneficiary,
+                recipient: eventERC721Minted.args.recipient,
                 failReason: '',
             },
         );
