@@ -68,23 +68,7 @@ export default class AssetPoolService {
                 contract.methods.grantRole(MINTER_ROLE, assetPool.address),
                 assetPool.network,
             );
-
-            const adminBalance = await contract.methods.balanceOf(admin.address).call();
-            if (Number(String(adminBalance)) > 0) {
-                await TransactionService.send(
-                    contract.options.address,
-                    contract.methods.approve(assetPool.address, adminBalance),
-                    assetPool.network,
-                );
-                await TransactionService.send(
-                    assetPool.contract.options.address,
-                    assetPool.contract.methods.deposit(adminBalance),
-                    assetPool.network,
-                );
-            }
         }
-
-        
     }
 
     static async setERC721(assetPool: AssetPoolDocument, erc721: ERC721Document) {
