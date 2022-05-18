@@ -8,14 +8,11 @@ import ERC20Service from '@/services/ERC20Service';
 import { getContractFromName } from '@/config/contracts';
 import { ForbiddenError } from '@/util/errors';
 import { MaxUint256 } from '@/util/jest/constants';
-import { NetworkProvider } from '@/types/enums';
 
 const validation = [body('amount').optional().isNumeric()];
 
 const controller = async (req: Request, res: Response) => {
     // #swagger.tags = ['Deposits']
-    if (req.assetPool.network === NetworkProvider.Main) throw new ForbiddenError('Not available for main net yet.');
-
     const account = await AccountProxy.getById(req.user.sub);
     const amount = req.body.amount ? toWei(String(req.body.amount)) : MaxUint256;
     const erc20 = await ERC20Service.findByPool(req.assetPool);
