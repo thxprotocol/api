@@ -11,12 +11,15 @@ const controller = async (req: Request, res: Response) => {
     const erc721 = await ERC721Service.findById(req.params.id);
     if (!erc721) throw new NotFoundError('Could not find this NFT in the database');
 
-    let erc721metadata: ERC721MetadataDocument = await ERC721Service.findMetadataById(req.params.metadataId);
-    if (!erc721metadata) throw new NotFoundError('Could not find this NFT metadata in the database');
+    const metadata: ERC721MetadataDocument = await ERC721Service.findMetadataById(req.params.metadataId);
+    if (!metadata) throw new NotFoundError('Could not find this NFT metadata in the database');
 
-    erc721metadata = await ERC721Service.mint(req.assetPool, erc721, erc721metadata, req.body.recipient);
+    const tokens = await ERC721Service.findTokensByMetadata(metadata);
+    const token = await ERC721Service.mint(req.assetPool, erc721, metadata, req.body.recipient);
 
-    res.status(201).json(erc721metadata);
+    tokens.push(token);
+
+    res.status(201).json({ ...metadata.toJSON(), tokens });
 };
 
 export default { controller, validation };

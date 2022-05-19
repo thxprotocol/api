@@ -1,13 +1,13 @@
 import AssetPoolService from '@/services/AssetPoolService';
 import InfuraService from '@/services/InfuraService';
 import { findEvent, hex2a, parseLogs } from '@/util/events';
-import { logger } from '@/util/logger';
 import { TransactionState, TransactionType } from '@/types/enums';
 import { wrapBackgroundTransaction } from '@/util/newrelic';
 import { AssetPool } from '@/models/AssetPool';
 import { Transaction, TransactionDocument } from '@/models/Transaction';
 import { TransactionReceipt } from 'web3-core';
 import { handleError, handleEvents } from '@/util/jobs';
+import { InternalServerError } from '@/util/errors';
 
 export async function jobProcessTransactions() {
     const transactions: TransactionDocument[] = await Transaction.find({
@@ -43,11 +43,11 @@ export async function jobProcessTransactions() {
                 const events = parseLogs(pool.contract.options.jsonInterface, receipt.logs);
                 const result = findEvent('Result', events);
 
-                if (!result) return;
+                if (!result) {
+                    throw new InternalServerError('No result found in receipt');
+                }
                 if (!result.args.success) {
-                    const failReason = hex2a(result.args.data.substr(10));
-                    logger.error(failReason);
-                    await handleError(tx, failReason);
+                    await handleError(tx, hex2a(result.args.data.substr(10)));
                 }
                 if (result.args.success) {
                     await AssetPool.findOneAndUpdate({ address: tx.to }, { lastTransactionAt: Date.now() });

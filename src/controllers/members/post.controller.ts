@@ -15,6 +15,7 @@ const controller = async (req: Request, res: Response) => {
     if (isMember) throw new AlreadyAMemberError(account.address, req.assetPool.address);
 
     await MemberService.addMember(req.assetPool, req.body.address);
+
     if (req.assetPool.variant === 'defaultPool') {
         await MembershipService.addERC20Membership(account.id, req.assetPool);
     }

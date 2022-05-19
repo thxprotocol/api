@@ -7,8 +7,7 @@ import InfuraService from './InfuraService';
 import { ITX_ACTIVE } from '@/config/secrets';
 import { assertEvent, findEvent, hex2a, parseLogs } from '@/util/events';
 import { InternalServerError } from '@/util/errors';
-import { logger } from '@/util/logger'; 
-import { toWei } from 'web3-utils';
+import { logger } from '@/util/logger';
 
 async function get(assetPool: TAssetPool, depositId: number): Promise<DepositDocument> {
     const deposit = await Deposit.findOne({ poolAddress: assetPool.address, id: depositId });
@@ -17,8 +16,19 @@ async function get(assetPool: TAssetPool, depositId: number): Promise<DepositDoc
 }
 
 async function getAll(assetPool: TAssetPool): Promise<DepositDocument[]> {
-    const deposit = await Deposit.find({ poolAddress: assetPool.address});
+    const deposit = await Deposit.find({ poolAddress: assetPool.address });
     return deposit;
+}
+
+async function approve(assetPool: TAssetPool, account: IAccount, amount: number, item?: string) {
+    return await Deposit.create({
+        sub: account.id,
+        sender: account.address,
+        receiver: assetPool.address,
+        amount,
+        state: DepositState.Pending,
+        item,
+    });
 }
 
 async function schedule(assetPool: TAssetPool, account: IAccount, amount: number, item?: string) {
@@ -71,14 +81,9 @@ async function create(assetPool: TAssetPool, deposit: DepositDocument, call: str
 }
 
 async function depositForAdmin(assetPool: TAssetPool, deposit: DepositDocument) {
-    const amountInWei = deposit.amount.toString()
+    const amountInWei = deposit.amount.toString();
     if (ITX_ACTIVE) {
-        const tx = await InfuraService.schedule(
-            assetPool.address,
-            'deposit',
-            [amountInWei],
-            assetPool.network
-        );
+        const tx = await InfuraService.schedule(assetPool.address, 'deposit', [amountInWei], assetPool.network);
 
         deposit.transactions.push(String(tx._id));
 
@@ -101,11 +106,10 @@ async function depositForAdmin(assetPool: TAssetPool, deposit: DepositDocument) 
 
         return await deposit.save();
     } catch (error) {
-        console.log('ERROR ON DEPOSIT FOR ADMIN', error.message)
+        console.log('ERROR ON DEPOSIT FOR ADMIN', error.message);
         deposit.failReason = error.message;
         throw error;
     }
 }
-export default { get, getAll, create, schedule, depositForAdmin };
 
-
+export default { create, schedule, approve, get, getAll, depositForAdmin };

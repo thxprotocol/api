@@ -20,7 +20,7 @@ export const controller = async (req: Request, res: Response) => {
         token = await ERC20Service.findByPool(assetPool);
     }
     if (assetPool.variant === 'nftPool') {
-        token = await ERC721Service.findByQuery({ poolAddress: assetPool.address, network: assetPool.network });
+        token = await ERC721Service.findByPool(assetPool);
     }
 
     const client = await ClientService.get(assetPool.clientId);

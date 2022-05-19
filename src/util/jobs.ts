@@ -1,12 +1,13 @@
 import { TAssetPool } from '@/types/TAssetPool';
 import { Deposit } from '@/models/Deposit';
-import { ERC721Metadata } from '@/models/ERC721Metadata';
 import { TransactionDocument } from '@/models/Transaction';
 import { Withdrawal } from '@/models/Withdrawal';
 import MemberService from '@/services/MemberService';
 import { DepositState, WithdrawalState } from '@/types/enums';
-import { ERC721MetadataState } from '@/types/TERC721';
+import { ERC721TokenState } from '@/types/TERC721';
 import { CustomEventLog, findEvent } from './events';
+import { ERC721Token } from '@/models/ERC721Token';
+import { logger } from './logger';
 
 async function handleEvents(assetPool: TAssetPool, tx: TransactionDocument, events: CustomEventLog[]) {
     const eventDepositted = findEvent('Depositted', events);
@@ -14,15 +15,15 @@ async function handleEvents(assetPool: TAssetPool, tx: TransactionDocument, even
     const eventWithdrawPollCreated = findEvent('WithdrawPollCreated', events);
     const eventWithdrawPollFinalized = findEvent('WithdrawPollFinalized', events);
     const eventWithdrawn = findEvent('Withdrawn', events);
-    const eventTransfer = findEvent('Transfer', events);
+    const eventERC721Minted = findEvent('ERC721Minted', events);
 
-    if (eventTransfer) {
-        await ERC721Metadata.updateOne(
+    if (eventERC721Minted) {
+        await ERC721Token.updateOne(
             { transactions: String(tx._id) },
             {
-                state: ERC721MetadataState.Minted,
-                tokenId: Number(eventTransfer.args.tokenId),
-                recipient: eventTransfer.args.to,
+                state: ERC721TokenState.Minted,
+                tokenId: Number(eventERC721Minted.args.tokenId),
+                recipient: eventERC721Minted.args.recipient,
                 failReason: '',
             },
         );
@@ -59,8 +60,11 @@ async function handleEvents(assetPool: TAssetPool, tx: TransactionDocument, even
 }
 
 async function handleError(tx: TransactionDocument, failReason: string) {
+    logger.error(failReason);
+
     await Withdrawal.updateOne({ transactions: String(tx._id) }, { failReason });
     await Deposit.updateOne({ transactions: String(tx._id) }, { failReason });
+    await ERC721Token.updateOne({ transactions: String(tx._id) }, { failReason });
 }
 
 export { handleEvents, handleError };

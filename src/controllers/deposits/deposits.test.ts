@@ -27,7 +27,7 @@ describe('Deposits', () => {
         userWallet: Account,
         tokenAddress: string,
         testToken: Contract,
-        adminAccessToken: string
+        adminAccessToken: string;
 
     const value = 'XX78WEJ1219WZ';
     const price = 10;
@@ -43,9 +43,10 @@ describe('Deposits', () => {
         userWallet = createWallet(userWalletPrivateKey2);
 
         dashboardAccessToken = getToken('openid dashboard promo_codes:read promo_codes:write members:write');
-        userAccessToken = getToken('openid user promo_codes:read payments:write payments:read');
+        userAccessToken = getToken(
+            'openid user promo_codes:read payments:write payments:read deposits:write deposits:read',
+        );
         adminAccessToken = getToken('openid admin');
-        
     });
 
     it('Create token', (done) => {
@@ -205,7 +206,7 @@ describe('Deposits', () => {
 
     describe('Create Asset Pool Deposit', () => {
         const { admin } = getProvider(NetworkProvider.Main);
-        const totalSupply = fromWei('200000000000000000000', 'ether') // 200 eth
+        const totalSupply = fromWei('200000000000000000000', 'ether'); // 200 eth
 
         it('Create token', (done) => {
             http.post('/v1/erc20')
@@ -226,7 +227,7 @@ describe('Deposits', () => {
                 })
                 .expect(201, done);
         });
-    
+
         it('Create pool', (done) => {
             http.post('/v1/asset_pools')
                 .set('Authorization', dashboardAccessToken)
@@ -245,12 +246,12 @@ describe('Deposits', () => {
                 .expect(201, done);
         });
 
-        it('POST /deposits/:address/ 200 OK', async () => {
+        it('POST /deposits/admin/ 200 OK', async () => {
             const depositAmount = fromWei('100000000000000000000', 'ether'); // 100 eth
             await http
                 .post(`/v1/deposits/${admin.address}`)
                 .set({ Authorization: adminAccessToken, AssetPool: poolAddress })
-                .send({amount: depositAmount})
+                .send({ amount: depositAmount })
                 .expect(async (res: request.Response) => {
                     const adminBalance: BigNumber = await testToken.methods.balanceOf(admin.address).call();
                     const poolBalance: BigNumber = await testToken.methods.balanceOf(poolAddress).call();
@@ -261,4 +262,3 @@ describe('Deposits', () => {
         });
     });
 });
-

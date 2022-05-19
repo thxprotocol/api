@@ -8,6 +8,7 @@ import { AccountPlanType } from '@/types/enums/AccountPlanType';
 import { NetworkProvider } from '@/types/enums';
 import AccountProxy from '@/proxies/AccountProxy';
 import ERC721Service from '@/services/ERC721Service';
+import MembershipService from '@/services/MembershipService';
 
 const validation = [
     body('token').isEthereumAddress(),
@@ -27,11 +28,13 @@ const controller = async (req: Request, res: Response) => {
 
     if (assetPool.variant === 'defaultPool') {
         await AssetPoolService.setERC20(assetPool, req.body.token);
+        await MembershipService.addERC20Membership(req.user.sub, assetPool);
     }
 
     if (assetPool.variant === 'nftPool') {
         const erc721 = await ERC721Service.findByQuery({ address: req.body.token, network: assetPool.network });
         await AssetPoolService.setERC721(assetPool, erc721);
+        await MembershipService.addERC721Membership(req.user.sub, assetPool);
     }
 
     const client = await ClientService.create(req.user.sub, {

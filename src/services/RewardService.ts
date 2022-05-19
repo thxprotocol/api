@@ -14,7 +14,6 @@ import YouTubeDataProxy from '@/proxies/YoutubeDataProxy';
 import SpotifyDataProxy from '@/proxies/SpotifyDataProxy';
 import WithdrawalService from './WithdrawalService';
 import ERC721Service from './ERC721Service';
-import { ERC721MetadataDocument } from '@/models/ERC721Metadata';
 
 export default class RewardService {
     static async get(assetPool: TAssetPool, rewardId: number): Promise<RewardDocument> {
@@ -65,13 +64,13 @@ export default class RewardService {
             return { error: 'You have already claimed this reward' };
         }
 
-        const metadata = await ERC721Service.findMetadataById(reward.erc721metadataId);
+        const token = await ERC721Service.findTokenById(reward.erc721metadataId);
 
         // Can only claim this reward once, metadata exists, but is not minted
-        if (reward.isClaimOnce && metadata && !!metadata.tokenId) {
+        if (reward.isClaimOnce && token && !!token.tokenId) {
             return {
                 error:
-                    metadata.recipient === account.address
+                    token.recipient === account.address
                         ? 'You have already claimed this NFT'
                         : 'Someone has already claimed this NFT',
             };
