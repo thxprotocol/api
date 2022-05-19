@@ -1,9 +1,9 @@
 import express from 'express';
-import swaggerUi from 'swagger-ui-express';
-import { openapiSpecification } from '@/config/openapi';
+import openapiUi from 'swagger-ui-express';
+import openapiFile from '../../../openapi.json';
 
 const router = express.Router();
 
-router.use('/', swaggerUi.serve, swaggerUi.setup(openapiSpecification));
+router.use('/', openapiUi.serve, openapiUi.setup(openapiFile));
 
 export default router;

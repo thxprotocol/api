@@ -6,9 +6,9 @@ export type ERC721MetadataDocument = mongoose.Document & TERC721Metadata;
 const ERC721MetadataSchema = new mongoose.Schema(
     {
         erc721: String,
-        tokenId: Number,
-        beneficiary: String,
-        metadata: [{ key: String, value: String }],
+        title: String,
+        description: String,
+        attributes: [{ key: String, value: String }],
     },
     { timestamps: true },
 );

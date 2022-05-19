@@ -1,6 +1,6 @@
 {
     "name": "@thxnetwork/api",
-    "version": "1.9.3",
+    "version": "1.10.14",
     "repository": {
         "type": "git",
         "url": "https://github.com/thxprotocol/api"
@@ -14,8 +14,8 @@
         "exec": "ts-node-dev -r tsconfig-paths/register ",
         "build": "tsc",
         "start": "npm run watch:node",
-        "watch:node": "ts-node-dev -r tsconfig-paths/register src/server.ts",
-        "watch:node-debug": "ts-node-dev -r tsconfig-paths/register --inspect=7000 src/server.ts",
+        "watch:node": "ts-node-dev --ignore-watch openapi.json -r tsconfig-paths/register src/server.ts",
+        "watch:node-debug": "ts-node-dev --ignore-watch openapi.json -r tsconfig-paths/register --inspect=7000 src/server.ts",
         "test": "npx jest --runInBand",
         "test:coverage": "npx jest --coverage --runInBand",
         "test:debug": "npx jest --coverage --runInBand --detectOpenHandles",
@@ -28,7 +28,8 @@
     },
     "dependencies": {
         "@godaddy/terminus": "^4.9.0",
-        "@thxnetwork/artifacts": "3.1.5",
+        "@sendgrid/mail": "^7.6.2",
+        "@thxnetwork/artifacts": "^3.1.12",
         "agenda": "^4.2.1",
         "axios": "^0.21.3",
         "axios-better-stacktrace": "^2.1.2",
@@ -53,6 +54,7 @@
         "newrelic": "^8.9.0",
         "qrcode": "^1.5.0",
         "semver": "^7.3.5",
+        "swagger-autogen": "^2.21.1",
         "swagger-jsdoc": "^6.1.0",
         "swagger-ui-express": "^4.3.0",
         "tsconfig-paths": "^3.12.0",

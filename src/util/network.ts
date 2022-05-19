@@ -6,8 +6,6 @@ import { Contract } from 'web3-eth-contract';
 import { NetworkProvider } from '../types/enums';
 import { THXError } from './errors';
 import { AbiItem } from 'web3-utils';
-import { getContractConfig } from '@/config/contracts';
-import { ContractName, currentVersion } from '@thxnetwork/artifacts';
 
 export class MaxFeePerGasExceededError extends THXError {
     message = 'MaxFeePerGas from oracle exceeds configured cap';
@@ -73,16 +71,3 @@ export function getSelectors(contract: Contract) {
     }
     return signatures;
 }
-
-export const getContractFromName = (npid: NetworkProvider, contractName: ContractName, address?: string) => {
-    const { web3 } = getProvider(npid);
-    const contractConfig = getContractConfig(npid, contractName, currentVersion);
-    const abi = require(`@thxnetwork/artifacts/dist/exports/abis/${contractName}.json`);
-
-    return new web3.eth.Contract(abi, address || contractConfig.address);
-};
-
-export const getContractFromAbi = (npid: NetworkProvider, abi: AbiItem[], address: string): Contract => {
-    const { web3 } = getProvider(npid);
-    return new web3.eth.Contract(abi, address);
-};

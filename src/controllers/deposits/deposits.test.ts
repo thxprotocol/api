@@ -12,7 +12,7 @@ import { findEvent, parseLogs } from '@/util/events';
 import { MaxUint256, tokenName, tokenSymbol, userWalletPrivateKey2 } from '@/util/jest/constants';
 import { AmountExceedsAllowanceError, InsufficientBalanceError } from '@/util/errors';
 import TransactionService from '@/services/TransactionService';
-import { getContractFromName } from '@/util/network';
+import { getContractFromName } from '@/config/contracts';
 
 const http = request.agent(app);
 
@@ -39,7 +39,9 @@ describe('Deposits', () => {
         userWallet = createWallet(userWalletPrivateKey2);
 
         dashboardAccessToken = getToken('openid dashboard promo_codes:read promo_codes:write members:write');
-        userAccessToken = getToken('openid user promo_codes:read payments:write payments:read');
+        userAccessToken = getToken(
+            'openid user promo_codes:read payments:write payments:read deposits:write deposits:read',
+        );
     });
 
     it('Create token', (done) => {

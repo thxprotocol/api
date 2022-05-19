@@ -1,5 +1,4 @@
-import { Contract } from 'web3-eth-contract';
-import { AssetPoolType } from '@/models/AssetPool';
+import { TAssetPool } from '@/types/TAssetPool';
 import { Deposit, DepositDocument } from '@/models/Deposit';
 import { IAccount } from '@/models/Account';
 import { DepositState } from '@/types/enums/DepositState';
@@ -8,9 +7,9 @@ import InfuraService from './InfuraService';
 import { ITX_ACTIVE } from '@/config/secrets';
 import { assertEvent, findEvent, hex2a, parseLogs } from '@/util/events';
 import { InternalServerError } from '@/util/errors';
-import { ERC20Document } from '@/models/ERC20';
+import { logger } from '@/util/logger';
 
-async function schedule(assetPool: AssetPoolType, account: IAccount, amount: number, item?: string) {
+async function approve(assetPool: TAssetPool, account: IAccount, amount: number, item?: string) {
     return await Deposit.create({
         sub: account.id,
         sender: account.address,
@@ -21,7 +20,18 @@ async function schedule(assetPool: AssetPoolType, account: IAccount, amount: num
     });
 }
 
-async function create(assetPool: AssetPoolType, deposit: DepositDocument, call: string, nonce: number, sig: string) {
+async function schedule(assetPool: TAssetPool, account: IAccount, amount: number, item?: string) {
+    return await Deposit.create({
+        sub: account.id,
+        sender: account.address,
+        receiver: assetPool.address,
+        amount,
+        state: DepositState.Pending,
+        item,
+    });
+}
+
+async function create(assetPool: TAssetPool, deposit: DepositDocument, call: string, nonce: number, sig: string) {
     if (ITX_ACTIVE) {
         const tx = await InfuraService.schedule(assetPool.address, 'call', [call, nonce, sig], assetPool.network);
         deposit.transactions.push(String(tx._id));
@@ -41,6 +51,7 @@ async function create(assetPool: AssetPoolType, deposit: DepositDocument, call: 
 
             if (!result.args.success) {
                 const error = hex2a(result.args.data.substr(10));
+                logger.error(error);
                 throw new InternalServerError(error);
             }
 
@@ -56,4 +67,4 @@ async function create(assetPool: AssetPoolType, deposit: DepositDocument, call: 
         }
     }
 }
-export default { create, schedule };
+export default { create, schedule, approve };

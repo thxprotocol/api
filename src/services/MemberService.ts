@@ -1,11 +1,12 @@
-import { AssetPoolType } from '@/models/AssetPool';
+import { TAssetPool } from '@/types/TAssetPool';
 import { assertEvent, parseLogs } from '@/util/events';
 import { IMember, Member } from '@/models/Member';
 import TransactionService from './TransactionService';
 import { getDiamondAbi } from '@/config/contracts';
+import { paginatedResults } from '@/util/pagination';
 
 export default class MemberService {
-    static async getByAddress(assetPool: AssetPoolType, address: string) {
+    static async getByAddress(assetPool: TAssetPool, address: string) {
         const isMember = await this.isMember(assetPool, address);
         const isManager = await this.isManager(assetPool, address);
         const memberId = await TransactionService.call(
@@ -25,21 +26,21 @@ export default class MemberService {
         return Member.findOne({ address });
     }
 
-    static async countByPoolAddress(assetPool: AssetPoolType) {
+    static async countByPoolAddress(assetPool: TAssetPool) {
         return (await Member.find({ poolAddress: assetPool.address })).length;
     }
 
-    static async getByPoolAddress(assetPool: AssetPoolType) {
+    static async getByPoolAddress(assetPool: TAssetPool) {
         const members = await Member.find({ poolAddress: assetPool.address });
 
         return members.map((member: IMember) => member.address);
     }
 
-    static getMemberByAddress(assetPool: AssetPoolType, address: string): Promise<number> {
+    static getMemberByAddress(assetPool: TAssetPool, address: string): Promise<number> {
         return TransactionService.call(assetPool.contract.methods.getMemberByAddress(address), assetPool.network);
     }
 
-    static async addMember(assetPool: AssetPoolType, address: string) {
+    static async addMember(assetPool: TAssetPool, address: string) {
         const { receipt } = await TransactionService.send(
             assetPool.address,
             assetPool.contract.methods.addMember(address),
@@ -57,7 +58,7 @@ export default class MemberService {
         });
     }
 
-    static async addExistingMember(assetPool: AssetPoolType, address: string) {
+    static async addExistingMember(assetPool: TAssetPool, address: string) {
         const memberId = await MemberService.getMemberByAddress(assetPool, address);
         // Not using MemberService.addMember here since member is already added in the
         // solidity storage
@@ -68,15 +69,19 @@ export default class MemberService {
         });
     }
 
-    static isMember(assetPool: AssetPoolType, address: string) {
+    static isMember(assetPool: TAssetPool, address: string) {
         return TransactionService.call(assetPool.contract.methods.isMember(address), assetPool.network);
     }
 
-    static isManager(assetPool: AssetPoolType, address: string) {
+    static isManager(assetPool: TAssetPool, address: string) {
         return TransactionService.call(assetPool.contract.methods.isManager(address), assetPool.network);
     }
 
-    static async removeMember(assetPool: AssetPoolType, address: string) {
+    static async findByQuery(query: { poolAddress: string }, page = 1, limit = 10) {
+        return paginatedResults(Member, page, limit, query);
+    }
+
+    static async removeMember(assetPool: TAssetPool, address: string) {
         const { receipt } = await TransactionService.send(
             assetPool.address,
             assetPool.contract.methods.removeMember(address),

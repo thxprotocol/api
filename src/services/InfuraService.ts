@@ -4,9 +4,10 @@ import { parseUnits } from 'ethers/lib/utils';
 import { INFURA_GAS_TANK, INFURA_PROJECT_ID, PRIVATE_KEY, TESTNET_INFURA_GAS_TANK } from '@/config/secrets';
 import { soliditySha3 } from 'web3-utils';
 import { Transaction, TransactionDocument } from '@/models/Transaction';
-import { AssetPoolType } from '@/models/AssetPool';
+import { TAssetPool } from '@/types/TAssetPool';
 import { getDiamondAbi } from '@/config/contracts';
 import { poll } from '@/util/polling';
+import { DiamondVariant } from '@thxnetwork/artifacts';
 
 const testnet = new ethers.providers.InfuraProvider('maticmum', INFURA_PROJECT_ID);
 const mainnet = new ethers.providers.InfuraProvider('matic', INFURA_PROJECT_ID);
@@ -96,9 +97,13 @@ async function schedule(to: string, fn: string, args: any[], npid: NetworkProvid
     });
 }
 
-async function send(tx: TransactionDocument) {
+async function send(pool: TAssetPool, tx: TransactionDocument) {
     const { provider, admin } = getProvider(tx.network);
-    const solution = new ethers.Contract(tx.to, getDiamondAbi(tx.network, 'defaultPool') as any, admin);
+    const solution = new ethers.Contract(
+        tx.to,
+        getDiamondAbi(tx.network, pool.variant as DiamondVariant) as any,
+        admin,
+    );
     // Get the relayed call data, nonce and signature for this contract call
     const { call, nonce, sig } = await getCallData(solution, tx.call.fn, JSON.parse(tx.call.args), admin);
     // Encode a relay call with the relayed call data
@@ -125,7 +130,7 @@ async function send(tx: TransactionDocument) {
     return tx;
 }
 
-async function getTransactionStatus(assetPool: AssetPoolType, tx: TransactionDocument) {
+async function getTransactionStatus(assetPool: TAssetPool, tx: TransactionDocument) {
     const { provider } = getProvider(assetPool.network);
     const { broadcasts } = await provider.send('relay_getTransactionStatus', [tx.relayTransactionHash]);
     if (!broadcasts) return;
@@ -146,7 +151,7 @@ async function getTransactionStatus(assetPool: AssetPoolType, tx: TransactionDoc
     }
 }
 
-async function pollTransactionStatus(assetPool: AssetPoolType, tx: TransactionDocument) {
+async function pollTransactionStatus(assetPool: TAssetPool, tx: TransactionDocument) {
     const fn = () => getTransactionStatus(assetPool, tx);
     const fnCondition = (result: string) => typeof result === undefined;
 

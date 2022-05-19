@@ -1,12 +1,13 @@
 import mongoose from 'mongoose';
 import { TERC721 } from '@/types/TERC721';
-import { getContractFromName } from '@/util/network';
+import { getContractFromName } from '@/config/contracts';
 
 export type ERC721Document = mongoose.Document & TERC721;
 
 const ERC721Schema = new mongoose.Schema(
     {
         network: Number,
+        sub: String,
         name: String,
         symbol: String,
         description: String,

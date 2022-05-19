@@ -1,7 +1,8 @@
 import TwitterDataProxy from '@/proxies/TwitterDataProxy';
 import { Request, Response } from 'express';
 
-export const getTwitter = async (req: Request, res: Response) => {
+export const controller = async (req: Request, res: Response) => {
+    // #swagger.tags = ['Account']
     const { isAuthorized, tweets, users } = await TwitterDataProxy.getTwitter(req.user.sub);
 
     if (!isAuthorized) {
@@ -14,3 +15,4 @@ export const getTwitter = async (req: Request, res: Response) => {
         });
     }
 };
+export default { controller };

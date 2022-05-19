@@ -2,9 +2,10 @@ import { Request, Response } from 'express';
 import { param } from 'express-validator';
 import AccountProxy from '@/proxies/AccountProxy';
 
-export const readAccountValidation = [param('id').exists()];
+const validation = [param('id').isMongoId()];
 
-export const getAccount = async (req: Request, res: Response) => {
+const controller = async (req: Request, res: Response) => {
+    // #swagger.tags = ['Account']
     const account = await AccountProxy.getById(req.user.sub);
 
     res.send({
@@ -17,3 +18,4 @@ export const getAccount = async (req: Request, res: Response) => {
         privateKey: account.privateKey,
     });
 };
+export default { controller, validation };

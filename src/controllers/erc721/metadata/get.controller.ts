@@ -2,11 +2,14 @@ import { param } from 'express-validator';
 import { Request, Response } from 'express';
 import ERC721Service from '@/services/ERC721Service';
 
-export const readERC721MetadataValidation = [param('metadataId').isMongoId()];
+export const validation = [param('metadataId').isMongoId()];
 
-export const ReadERC721MetadataController = async (req: Request, res: Response) => {
+export const controller = async (req: Request, res: Response) => {
+    // #swagger.tags = ['ERC721 Metadata']
     const entry = await ERC721Service.findMetadataById(req.params.metadataId);
-    const metadata = await ERC721Service.parseMetadata(entry);
+    const attributes = await ERC721Service.parseAttributes(entry);
 
-    res.header('Content-Type', 'application/json').send(JSON.stringify(metadata, null, 4));
+    res.header('Content-Type', 'application/json').send(JSON.stringify(attributes, null, 4));
 };
+
+export default { controller, validation };

@@ -2,14 +2,15 @@ import { authClient, getAuthAccessToken } from '@/util/auth';
 import { Request, Response } from 'express';
 import { body } from 'express-validator';
 
-export const createLoginValidation = [
+export const validation = [
     body('email').exists(),
     body('email', 'Email is not valid').isEmail(),
     body('password').exists(),
     body('password', 'Password must be at least 4 characters long').isLength({ min: 16 }),
 ];
 
-export const postLogin = async (req: Request, res: Response) => {
+export const controller = async (req: Request, res: Response) => {
+    // #swagger.tags = ['Account']
     const r = await authClient.post(
         '/account/login',
         { email: req.body.email, password: req.body.password },
@@ -21,3 +22,5 @@ export const postLogin = async (req: Request, res: Response) => {
     );
     res.status(r.status).json(r.data);
 };
+
+export default { controller, validation };

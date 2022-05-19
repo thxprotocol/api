@@ -66,6 +66,7 @@ async function getNetworkDetails(npid: NetworkProvider) {
 }
 
 export const getHealth = async (_req: Request, res: Response) => {
+    // #swagger.tags = ['Health']
     const jsonData = {
         name,
         version,
@@ -73,13 +74,15 @@ export const getHealth = async (_req: Request, res: Response) => {
         artifacts: currentVersion,
         testnet: {
             ...(await getNetworkDetails(NetworkProvider.Test)),
-            factory: getContractConfig(NetworkProvider.Test, 'AssetPoolFactory').address,
-            registry: getContractConfig(NetworkProvider.Test, 'AssetPoolRegistry').address,
+            poolRegistry: getContractConfig(NetworkProvider.Test, 'PoolRegistry').address,
+            poolFactory: getContractConfig(NetworkProvider.Test, 'PoolFactory').address,
+            tokenFactory: getContractConfig(NetworkProvider.Test, 'TokenFactory').address,
         },
         mainnet: {
             ...(await getNetworkDetails(NetworkProvider.Main)),
-            factory: getContractConfig(NetworkProvider.Main, 'AssetPoolFactory').address,
-            registry: getContractConfig(NetworkProvider.Main, 'AssetPoolRegistry').address,
+            poolRegistry: getContractConfig(NetworkProvider.Main, 'PoolRegistry').address,
+            poolFactory: getContractConfig(NetworkProvider.Main, 'PoolFactory').address,
+            tokenFactory: getContractConfig(NetworkProvider.Main, 'TokenFactory').address,
         },
     };
 

@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import { body } from 'express-validator';
 import ERC721Service from '@/services/ERC721Service';
 
-export const createERC721Validation = [
+const validation = [
     body('name').exists().isString(),
     body('symbol').exists().isString(),
     body('description').exists().isString(),
@@ -10,8 +10,10 @@ export const createERC721Validation = [
     body('schema').exists().isArray(),
 ];
 
-export const CreateERC721Controller = async (req: Request, res: Response) => {
+const controller = async (req: Request, res: Response) => {
+    // #swagger.tags = ['ERC721']
     const erc721 = await ERC721Service.create({
+        sub: req.user.sub,
         network: req.body.network,
         name: req.body.name,
         symbol: req.body.symbol,
@@ -21,3 +23,5 @@ export const CreateERC721Controller = async (req: Request, res: Response) => {
 
     res.status(201).json(erc721.toJSON());
 };
+
+export default { controller, validation };

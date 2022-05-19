@@ -3,9 +3,10 @@ import { Request, Response } from 'express';
 import ERC721Service from '@/services/ERC721Service';
 import { NotFoundError } from '@/util/errors';
 
-export const readERC721Validation = [param('id').isString().isLength({ min: 23, max: 25 })];
+const validation = [param('id').isMongoId()];
 
-export const ReadERC721Controller = async (req: Request, res: Response) => {
+const controller = async (req: Request, res: Response) => {
+    // #swagger.tags = ['ERC721']
     const erc721 = await ERC721Service.findById(req.params.id);
     if (!erc721) throw new NotFoundError();
 
@@ -14,3 +15,5 @@ export const ReadERC721Controller = async (req: Request, res: Response) => {
 
     res.json({ ...erc721.toJSON(), totalSupply, owner });
 };
+
+export default { controller, validation };

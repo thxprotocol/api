@@ -8,14 +8,15 @@ import { body } from 'express-validator';
 import { InternalServerError } from '@/util/errors';
 import TransactionService from '@/services/TransactionService';
 
-export const createCallUpgradeAddressValidation = [
+const validation = [
     body('newAddress').isEthereumAddress(),
     body('call').exists(),
     body('nonce').exists(),
     body('sig').exists(),
 ];
 
-export const postCallUpgradeAddress = async (req: Request, res: Response) => {
+const controller = async (req: Request, res: Response) => {
+    // #swagger.tags = ['Relay Hub']
     const { contract, network } = req.assetPool;
     const isMember = await TransactionService.call(contract.methods.isMember(req.body.newAddress), network);
 
@@ -57,3 +58,5 @@ export const postCallUpgradeAddress = async (req: Request, res: Response) => {
 
     return res.status(200).end();
 };
+
+export default { controller, validation };

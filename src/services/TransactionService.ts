@@ -14,6 +14,59 @@ function parseFee(value: number, npid: NetworkProvider) {
     return Number(toWei(String(Math.ceil(value + (npid === NetworkProvider.Test ? 30 : 0))), 'gwei'));
 }
 
+async function sendValue(to: string, value: string, npid: NetworkProvider) {
+    const { web3, admin } = getProvider(npid);
+    const from = admin.address;
+    const gas = '21000';
+    const nonce = await web3.eth.getTransactionCount(from, 'pending');
+    const feeData = await getEstimatesFromOracle(npid);
+    const baseFee = Number(feeData.baseFee);
+    const maxFeePerGas = parseFee(feeData.maxFeePerGas, npid);
+    const maxPriorityFeePerGas = parseFee(feeData.maxPriorityFeePerGas, npid);
+    const maxFeePerGasLimit = Number(toWei(MAX_FEE_PER_GAS, 'gwei'));
+
+    // This comparison is in gwei
+    if (maxFeePerGasLimit > 0 && maxFeePerGas > maxFeePerGasLimit) {
+        throw new MaxFeePerGasExceededError();
+    }
+
+    const sig = await web3.eth.accounts.signTransaction(
+        {
+            gas,
+            to,
+            from,
+            maxPriorityFeePerGas,
+            value,
+            nonce,
+        },
+        PRIVATE_KEY,
+    );
+
+    // Prepare the Transaction and store in database so it could be retried if it fails
+    let tx = await Transaction.create({
+        type: TransactionType.Default,
+        state: TransactionState.Scheduled,
+        network: npid,
+        from,
+        to,
+        gas,
+        nonce,
+        baseFee,
+        maxFeePerGas,
+        maxPriorityFeePerGas,
+    });
+
+    const receipt = await web3.eth.sendSignedTransaction(sig.rawTransaction);
+
+    if (receipt.transactionHash) {
+        tx.transactionHash = receipt.transactionHash;
+        tx.state = TransactionState.Mined;
+        tx = await tx.save();
+    }
+
+    return { tx, receipt };
+}
+
 async function send(to: string, fn: any, npid: NetworkProvider, gasLimit?: number, fromPK?: string) {
     const { web3, admin } = getProvider(npid);
     const from = fromPK ? web3.eth.accounts.privateKeyToAccount(fromPK).address : admin.address;
@@ -29,7 +82,7 @@ async function send(to: string, fn: any, npid: NetworkProvider, gasLimit?: numbe
     const maxFeePerGasLimit = Number(toWei(MAX_FEE_PER_GAS, 'gwei'));
 
     // This comparison is in gwei
-    if (maxFeePerGas > maxFeePerGasLimit) {
+    if (maxFeePerGasLimit > 0 && maxFeePerGas > maxFeePerGasLimit) {
         throw new MaxFeePerGasExceededError();
     }
 
@@ -147,4 +200,4 @@ async function call(fn: any, npid: NetworkProvider) {
     });
 }
 
-export default { getById, send, call, deploy };
+export default { getById, send, call, deploy, sendValue };

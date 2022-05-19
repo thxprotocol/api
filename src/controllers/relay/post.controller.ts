@@ -6,15 +6,16 @@ import { InternalServerError } from '@/util/errors';
 import { WithdrawalState } from '@/types/enums';
 import { Withdrawal } from '@/models/Withdrawal';
 
-export const createCallValidation = [body('call').exists(), body('nonce').exists(), body('sig').exists()];
+const validation = [body('call').exists(), body('nonce').exists(), body('sig').exists()];
 
-export const postCall = async (req: Request, res: Response) => {
+const controller = async (req: Request, res: Response) => {
+    // #swagger.tags = ['Relay Hub']
     const { contract, network, address } = req.assetPool;
     const { tx, receipt } = await TransactionService.send(
         contract.options.address,
         contract.methods.call(req.body.call, req.body.nonce, req.body.sig),
         network,
-        250000,
+        500000,
     );
     const events = parseLogs(contract.options.jsonInterface, receipt.logs);
     const event = findEvent('Result', events);
@@ -38,3 +39,5 @@ export const postCall = async (req: Request, res: Response) => {
 
     res.json(tx);
 };
+
+export default { controller, validation };

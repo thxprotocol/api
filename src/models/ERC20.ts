@@ -1,8 +1,9 @@
 import mongoose from 'mongoose';
 import { fromWei } from 'web3-utils';
-import { ERC20Type } from '@/types/enums';
-import { getProvider, getContractFromName } from '@/util/network';
+import { getProvider } from '@/util/network';
 import { TERC20 } from '@/types/TERC20';
+import { getContractFromName } from '@/config/contracts';
+import { ERC20Type } from '@/types/enums';
 
 export type ERC20Document = mongoose.Document & TERC20;
 
@@ -21,11 +22,8 @@ const erc20Schema = new mongoose.Schema(
 );
 
 erc20Schema.virtual('contract').get(function () {
-    return getContractFromName(
-        this.network,
-        this.type === ERC20Type.Unlimited ? 'UnlimitedSupplyToken' : 'LimitedSupplyToken',
-        this.address,
-    );
+    const contractName = this.type === ERC20Type.Unlimited ? 'UnlimitedSupplyToken' : 'LimitedSupplyToken';
+    return getContractFromName(this.network, contractName, this.address);
 });
 
 erc20Schema.methods.getResponse = async function () {

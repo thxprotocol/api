@@ -45,6 +45,7 @@ export type TReward = {
     expiryDate: Date;
     isMembershipRequired: boolean;
     isClaimOnce: boolean;
+    erc721metadataId?: string;
     withdrawLimit: number;
     withdrawAmount: number;
     withdrawDuration: number;
@@ -77,6 +78,7 @@ const rewardSchema = new mongoose.Schema(
         state: Number,
         isMembershipRequired: Boolean,
         isClaimOnce: Boolean,
+        erc721metadataId: String,
         withdrawLimit: Number,
         withdrawAmount: Number,
         withdrawDuration: Number,

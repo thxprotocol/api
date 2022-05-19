@@ -7,24 +7,25 @@ import { TDeposit } from '@/types/TDeposit';
 import { DepositDocument } from '@/models/Deposit';
 import AccountProxy from '@/proxies/AccountProxy';
 import DepositService from '@/services/DepositService';
-import PromoCodeService from '@/services/PromoCodeService';
+import PromotionService from '@/services/PromotionService';
 import ERC20Service from '@/services/ERC20Service';
-import { getContractFromName } from '@/util/network';
+import { getContractFromName } from '@/config/contracts';
 
-export const createDepositValidation = [
+const validation = [
     body('call').exists(),
     body('nonce').exists(),
     body('sig').exists(),
+    body('item').optional().isMongoId(),
     body('amount').optional().isNumeric(),
-    body('item').optional().isString().isLength({ min: 24, max: 24 }),
 ];
 
-export default async function CreateDepositController(req: Request, res: Response) {
+const controller = async (req: Request, res: Response) => {
+    // #swagger.tags = ['Deposits']
     let value = req.body.amount;
 
     // If an item is referenced, replace the amount value with the price value
     if (req.body.item) {
-        const promoCode = await PromoCodeService.findById(req.body.item);
+        const promoCode = await PromotionService.findById(req.body.item);
         if (!promoCode) throw new NotFoundError('Could not find promotion');
         value = promoCode.price;
     }
@@ -59,4 +60,6 @@ export default async function CreateDepositController(req: Request, res: Respons
     };
 
     res.json(result);
-}
+};
+
+export default { controller, validation };

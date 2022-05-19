@@ -1,6 +1,7 @@
 import { NetworkProvider } from '@/types/enums';
 import { getProvider } from '@/util/network';
 import { AbiItem } from 'web3-utils';
+import { Contract } from 'web3-eth-contract';
 import * as semver from 'semver';
 import {
     availableVersions,
@@ -22,6 +23,18 @@ export const getContractConfig = (
     version?: string,
 ): { address: string; abi: AbiItem[] } => {
     return contractConfig(npToName(npid), contractName, version);
+};
+
+export const getContractFromAbi = (npid: NetworkProvider, abi: AbiItem[], address: string): Contract => {
+    const { web3 } = getProvider(npid);
+    return new web3.eth.Contract(abi, address);
+};
+
+export const getContractFromName = (npid: NetworkProvider, contractName: ContractName, address?: string) => {
+    // We are requiring the abi file here since the network specific exports only hold diamond related contracts
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const abi: AbiItem[] = require(`@thxnetwork/artifacts/dist/exports/abis/${contractName}.json`);
+    return getContractFromAbi(npid, abi, address);
 };
 
 export const getDiamondAbi = (npid: NetworkProvider, variant: DiamondVariant) => {
