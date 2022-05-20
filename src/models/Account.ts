@@ -1,6 +1,6 @@
 import { AccountPlanType, NetworkProvider } from '@/types/enums';
 export interface IAccount {
-    id: string;
+    id?: string;
     address: string;
     privateKey: string;
     googleAccess: boolean;

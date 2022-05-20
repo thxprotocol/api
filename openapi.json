@@ -1,7 +1,7 @@
 {
   "swagger": "2.0",
   "info": {
-    "version": "1.10.12",
+    "version": "1.10.14",
     "title": "THX API Specification",
     "description": "User guides are available at https://docs.thx.network."
   },
@@ -605,6 +605,18 @@
       }
     },
     "/deposits/": {
+      "get": {
+        "tags": [
+          "Deposits"
+        ],
+        "description": "",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      },
       "post": {
         "tags": [
           "Deposits"
@@ -630,6 +642,54 @@
                   "example": "any"
                 },
                 "sig": {
+                  "example": "any"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/deposits/{id}": {
+      "get": {
+        "tags": [
+          "Deposits"
+        ],
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/deposits/admin": {
+      "post": {
+        "tags": [
+          "Deposits"
+        ],
+        "description": "",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "amount": {
                   "example": "any"
                 }
               }

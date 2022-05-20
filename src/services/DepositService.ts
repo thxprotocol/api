@@ -9,6 +9,17 @@ import { assertEvent, findEvent, hex2a, parseLogs } from '@/util/events';
 import { InternalServerError } from '@/util/errors';
 import { logger } from '@/util/logger';
 
+async function get(assetPool: TAssetPool, depositId: number): Promise<DepositDocument> {
+    const deposit = await Deposit.findOne({ poolAddress: assetPool.address, id: depositId });
+    if (!deposit) return null;
+    return deposit;
+}
+
+async function getAll(assetPool: TAssetPool): Promise<DepositDocument[]> {
+    const deposit = await Deposit.find({ poolAddress: assetPool.address });
+    return deposit;
+}
+
 async function approve(assetPool: TAssetPool, account: IAccount, amount: number, item?: string) {
     return await Deposit.create({
         sub: account.id,
@@ -62,9 +73,43 @@ async function create(assetPool: TAssetPool, deposit: DepositDocument, call: str
 
             return await deposit.save();
         } catch (error) {
+            logger.error(error);
             deposit.failReason = error.message;
             throw error;
         }
     }
 }
-export default { create, schedule, approve };
+
+async function depositForAdmin(assetPool: TAssetPool, deposit: DepositDocument) {
+    const amountInWei = String(deposit.amount);
+    if (ITX_ACTIVE) {
+        const tx = await InfuraService.schedule(assetPool.address, 'deposit', [amountInWei], assetPool.network);
+
+        deposit.transactions.push(String(tx._id));
+
+        return await deposit.save();
+    }
+    try {
+        const { tx, receipt } = await TransactionService.send(
+            assetPool.address,
+            assetPool.contract.methods.deposit(amountInWei),
+            assetPool.network,
+            500000,
+        );
+
+        const events = parseLogs(assetPool.contract.options.jsonInterface, receipt.logs);
+
+        assertEvent('Depositted', events);
+
+        deposit.transactions.push(String(tx._id));
+        deposit.state = DepositState.Completed;
+
+        return await deposit.save();
+    } catch (error) {
+        console.log('ERROR ON DEPOSIT FOR ADMIN', error.message);
+        deposit.failReason = error.message;
+        throw error;
+    }
+}
+
+export default { create, schedule, approve, get, getAll, depositForAdmin };

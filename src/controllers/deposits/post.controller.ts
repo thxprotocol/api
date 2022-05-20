@@ -5,11 +5,11 @@ import { agenda, eventNameRequireTransactions } from '@/util/agenda';
 import { toWei } from 'web3-utils';
 import { TDeposit } from '@/types/TDeposit';
 import { DepositDocument } from '@/models/Deposit';
-import AccountProxy from '@/proxies/AccountProxy';
 import DepositService from '@/services/DepositService';
-import PromotionService from '@/services/PromotionService';
 import ERC20Service from '@/services/ERC20Service';
 import { getContractFromName } from '@/config/contracts';
+import PromotionService from '@/services/PromotionService';
+import AccountProxy from '@/proxies/AccountProxy';
 
 const validation = [
     body('call').exists(),
@@ -62,4 +62,7 @@ const controller = async (req: Request, res: Response) => {
     res.json(result);
 };
 
-export default { controller, validation };
+export default {
+    validation,
+    controller,
+};
