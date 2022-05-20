@@ -81,7 +81,7 @@ async function create(assetPool: TAssetPool, deposit: DepositDocument, call: str
 }
 
 async function depositForAdmin(assetPool: TAssetPool, deposit: DepositDocument) {
-    const amountInWei = deposit.amount.toString();
+    const amountInWei = String(deposit.amount);
     if (ITX_ACTIVE) {
         const tx = await InfuraService.schedule(assetPool.address, 'deposit', [amountInWei], assetPool.network);
 
