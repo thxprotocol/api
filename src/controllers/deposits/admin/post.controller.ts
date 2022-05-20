@@ -3,15 +3,14 @@ import { body } from 'express-validator';
 import { BadRequestError, InsufficientBalanceError } from '@/util/errors';
 import { agenda, eventNameRequireTransactions } from '@/util/agenda';
 import { toWei } from 'web3-utils';
-import { TDeposit } from '@/types/TDeposit';
 import { DepositDocument } from '@/models/Deposit';
-import DepositService from '@/services/DepositService';
-import ERC20Service from '@/services/ERC20Service';
 import { getProvider } from '@/util/network';
 import { ethers } from 'ethers';
 import { IAccount } from '@/models/Account';
-import TransactionService from '@/services/TransactionService';
 import { ERC20Type } from '@/types/enums';
+import DepositService from '@/services/DepositService';
+import ERC20Service from '@/services/ERC20Service';
+import TransactionService from '@/services/TransactionService';
 
 export const validation = [body('amount').isInt({ gt: 0 })];
 
@@ -47,7 +46,4 @@ const controller = async (req: Request, res: Response) => {
     res.json(deposit);
 };
 
-export default {
-    validation,
-    controller,
-};
+export default { validation, controller };
