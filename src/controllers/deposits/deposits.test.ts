@@ -223,7 +223,7 @@ describe('Deposits', () => {
                     tokenAddress = body.address;
                     testToken = getContractFromName(NetworkProvider.Main, 'LimitedSupplyToken', tokenAddress);
                     const adminBalance: BigNumber = await testToken.methods.balanceOf(admin.address).call();
-                    expect(fromWei(adminBalance.toString(), 'ether')).toBe(totalSupply);
+                    expect(fromWei(String(adminBalance), 'ether')).toBe(totalSupply);
                 })
                 .expect(201, done);
         });
@@ -240,25 +240,24 @@ describe('Deposits', () => {
                     poolAddress = res.body.address;
                     const adminBalance: BigNumber = await testToken.methods.balanceOf(admin.address).call();
                     const poolBalance: BigNumber = await testToken.methods.balanceOf(poolAddress).call();
-                    expect(poolBalance.toString()).toBe('0');
-                    expect(fromWei(adminBalance.toString(), 'ether')).toBe(totalSupply);
+                    expect(String(poolBalance)).toBe('0');
+                    expect(fromWei(String(adminBalance), 'ether')).toBe(totalSupply);
                 })
                 .expect(201, done);
         });
 
-        it('POST /deposits/admin/ 200 OK', async () => {
-            const depositAmount = fromWei('100000000000000000000', 'ether'); // 100 eth
-            await http
-                .post(`/v1/deposits/${admin.address}`)
-                .set({ Authorization: adminAccessToken, AssetPool: poolAddress })
-                .send({ amount: depositAmount })
-                .expect(async (res: request.Response) => {
+        it('POST /deposits/admin/ 200 OK', (done) => {
+            const amount = fromWei('100000000000000000000', 'ether'); // 100 eth
+            http.post('/v1/deposits/admin')
+                .set({ Authorization: dashboardAccessToken, AssetPool: poolAddress })
+                .send({ amount })
+                .expect(async () => {
                     const adminBalance: BigNumber = await testToken.methods.balanceOf(admin.address).call();
                     const poolBalance: BigNumber = await testToken.methods.balanceOf(poolAddress).call();
-                    expect(poolBalance.toString()).toBe('97500000000000000000'); // 100 eth - protocol fee = 97.5 eth
-                    expect(adminBalance.toString()).toBe('100000000000000000000'); // 100 eth
+                    expect(String(poolBalance)).toBe('97500000000000000000'); // 100 eth - protocol fee = 97.5 eth
+                    expect(String(adminBalance)).toBe('100000000000000000000'); // 100 eth
                 })
-                .expect(200);
+                .expect(200, done);
         });
     });
 });

@@ -4,9 +4,8 @@ import { AssetPool, AssetPoolDocument } from '@/models/AssetPool';
 import { getProvider } from '@/util/network';
 import { toChecksumAddress } from 'web3-utils';
 import { Membership } from '@/models/Membership';
-import { THXError } from '@/util/errors';
 import TransactionService from './TransactionService';
-import { diamondContracts, getContract, getContractFromName, poolFacetAdressesPermutations } from '@/config/contracts';
+import { diamondContracts, getContract, poolFacetAdressesPermutations } from '@/config/contracts';
 import { logger } from '@/util/logger';
 import { pick } from '@/util';
 import { diamondSelectors, getDiamondCutForContractFacets, updateDiamondContract } from '@/util/upgrades';
@@ -14,15 +13,10 @@ import { currentVersion, DiamondVariant } from '@thxnetwork/artifacts';
 import ERC20Service from './ERC20Service';
 import { ERC721Document } from '@/models/ERC721';
 import { keccak256, toUtf8Bytes } from 'ethers/lib/utils';
+import { getCodeForAddressOnNetwork } from '@/util/code';
 
 export const MINTER_ROLE = keccak256(toUtf8Bytes('MINTER_ROLE'));
 export const ADMIN_ROLE = '0x0000000000000000000000000000000000000000000000000000000000000000';
-
-class NoDataAtAddressError extends THXError {
-    constructor(address: string) {
-        super(`No data found at address ${address}`);
-    }
-}
 
 export default class AssetPoolService {
     static getByClientIdAndAddress(clientId: string, address: string) {
@@ -41,12 +35,7 @@ export default class AssetPoolService {
     }
 
     static async setERC20(assetPool: AssetPoolDocument, tokenAddress: string) {
-        const { web3, admin } = getProvider(assetPool.network);
-        const code = await web3.eth.getCode(tokenAddress);
-
-        if (code === '0x') {
-            throw new NoDataAtAddressError(tokenAddress);
-        }
+        await getCodeForAddressOnNetwork(tokenAddress, assetPool.network);
 
         await TransactionService.send(
             assetPool.contract.options.address,
@@ -56,26 +45,20 @@ export default class AssetPoolService {
 
         // Try to get ERC20 from db first so we can determine its type, if not available,
         // construct a contract here
-        let contract = getContractFromName(assetPool.network, 'LimitedSupplyToken', tokenAddress);
         const erc20 = await ERC20Service.findBy({ network: assetPool.network, address: tokenAddress });
 
         // Add this pool as a minter in case of an UnlimitedSupplyToken
         if (erc20 && erc20.type === ERC20Type.Unlimited) {
-            contract = getContractFromName(assetPool.network, 'UnlimitedSupplyToken', tokenAddress);
-
             await TransactionService.send(
-                tokenAddress,
-                contract.methods.grantRole(MINTER_ROLE, assetPool.address),
-                assetPool.network,
+                erc20.address,
+                erc20.contract.methods.grantRole(MINTER_ROLE, assetPool.address),
+                erc20.network,
             );
         }
     }
 
     static async setERC721(assetPool: AssetPoolDocument, erc721: ERC721Document) {
-        const { web3 } = getProvider(assetPool.network);
-        const code = await web3.eth.getCode(erc721.address);
-
-        if (code === '0x') throw new NoDataAtAddressError(erc721.address);
+        await getCodeForAddressOnNetwork(erc721.address, assetPool.network);
 
         await TransactionService.send(
             assetPool.contract.options.address,

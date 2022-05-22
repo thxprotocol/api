@@ -19,6 +19,12 @@ class AlreadyAMemberError extends THXError {
     }
 }
 
+class NoDataAtAddressError extends THXError {
+    constructor(address: string) {
+        super(`No data found at address ${address}`);
+    }
+}
+
 class THXHttpError extends THXError {
     status: number;
     constructor(message?: string, status?: number) {
@@ -138,4 +144,5 @@ export {
     GetPastWithdrawPollCreatedEventsError,
     NotAMemberError,
     AlreadyAMemberError,
+    NoDataAtAddressError,
 };
