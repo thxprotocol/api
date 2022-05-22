@@ -8,7 +8,7 @@ import { DepositDocument } from '@/models/Deposit';
 import DepositService from '@/services/DepositService';
 import ERC20Service from '@/services/ERC20Service';
 import { getProvider } from '@/util/network';
-import { ethers } from 'ethers';
+import { BigNumber, ethers } from 'ethers';
 import { IAccount } from '@/models/Account';
 import { getContractFromName } from '@/config/contracts';
 import TransactionService from '@/services/TransactionService';
@@ -18,10 +18,15 @@ export const validation = [body('amount').isInt({ gt: 0 })];
 
 const controller = async (req: Request, res: Response) => {
     // #swagger.tags = ['Deposits']
-    const value = req.body.amount;
+    let value = String(req.body.amount);
+    
     const { admin } = getProvider(req.assetPool.network);
     const account = { address: admin.address } as IAccount;
-    const amount = Number(toWei(String(value)));
+    let amount = Number(toWei(value));
+
+    if(amount.toString().includes('+')) {
+        amount = Number(BigInt(value).toString());
+    }
     const erc20 = await ERC20Service.findByPool(req.assetPool);
 
     if (erc20.type !== ERC20Type.Limited) {

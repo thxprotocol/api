@@ -8,6 +8,8 @@ import { ITX_ACTIVE } from '@/config/secrets';
 import { assertEvent, findEvent, hex2a, parseLogs } from '@/util/events';
 import { InternalServerError } from '@/util/errors';
 import { logger } from '@/util/logger';
+import { BigNumber } from 'ethers';
+import { paginatedResults } from '@/util/pagination';
 
 async function get(assetPool: TAssetPool, depositId: number): Promise<DepositDocument> {
     const deposit = await Deposit.findOne({ poolAddress: assetPool.address, id: depositId });
@@ -15,8 +17,12 @@ async function get(assetPool: TAssetPool, depositId: number): Promise<DepositDoc
     return deposit;
 }
 
+async function getAllPaginated(query: { receiver: string }, page = 1, limit = 10) {
+    return paginatedResults(Deposit, page, limit, query);
+}
+
 async function getAll(assetPool: TAssetPool): Promise<DepositDocument[]> {
-    const deposit = await Deposit.find({ poolAddress: assetPool.address });
+    const deposit = await Deposit.find({ receiver: assetPool.address });
     return deposit;
 }
 
@@ -81,7 +87,9 @@ async function create(assetPool: TAssetPool, deposit: DepositDocument, call: str
 }
 
 async function depositForAdmin(assetPool: TAssetPool, deposit: DepositDocument) {
-    const amountInWei = deposit.amount.toString();
+    
+    const amountInWei = BigNumber.from(deposit.amount.toString())
+
     if (ITX_ACTIVE) {
         const tx = await InfuraService.schedule(assetPool.address, 'deposit', [amountInWei], assetPool.network);
 
@@ -112,4 +120,4 @@ async function depositForAdmin(assetPool: TAssetPool, deposit: DepositDocument) 
     }
 }
 
-export default { create, schedule, approve, get, getAll, depositForAdmin };
+export default { create, schedule, approve, get, getAll, depositForAdmin, getAllPaginated };
