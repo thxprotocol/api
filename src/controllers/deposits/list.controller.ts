@@ -24,7 +24,6 @@ const controller = async (req: Request, res: Response) => {
     })
 
     res.json(result);
-    console.log('REEEEEEEEEEEESSSSSSSSSSSSS', result)
 };
 
 export default { controller };
