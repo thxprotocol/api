@@ -4,7 +4,7 @@ module.exports = {
         const rewards = await rewardsColl.find().toArray();
         const promises = rewards.map(async (reward) => {
             try {
-                await rewardsColl.updateOne({ _id: String(reward._id) }, { withdrawUnlockDate: Date.now() });
+                await rewardsColl.updateOne({ _id: reward._id }, { withdrawUnlockDate: Date.now() });
             } catch (error) {
                 console.log(error);
             }
