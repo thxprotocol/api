@@ -1,15 +1,15 @@
 import { Request, Response } from 'express';
 import { body } from 'express-validator';
+import { toWei } from 'web3-utils';
 import { BadRequestError, InsufficientBalanceError } from '@/util/errors';
 import { agenda, eventNameRequireTransactions } from '@/util/agenda';
-import { toWei } from 'web3-utils';
 import { getProvider } from '@/util/network';
-import { ethers } from 'ethers';
 import { IAccount } from '@/models/Account';
 import { ERC20Type } from '@/types/enums';
 import DepositService from '@/services/DepositService';
 import ERC20Service from '@/services/ERC20Service';
 import TransactionService from '@/services/TransactionService';
+import { MaxUint256 } from '@/util/jest/constants';
 
 export const validation = [body('amount').isInt({ gt: 0 })];
 
@@ -32,7 +32,7 @@ const controller = async (req: Request, res: Response) => {
     if (Number(allowance) < Number(amount)) {
         await TransactionService.send(
             erc20.contract.options.address,
-            erc20.contract.methods.approve(req.assetPool.address, ethers.constants.MaxUint256),
+            erc20.contract.methods.approve(req.assetPool.address, MaxUint256),
             req.assetPool.network,
         );
     }

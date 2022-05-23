@@ -2,17 +2,20 @@ import { TAssetPool } from '@/types/TAssetPool';
 import { Deposit, DepositDocument } from '@/models/Deposit';
 import { IAccount } from '@/models/Account';
 import { DepositState } from '@/types/enums/DepositState';
-import TransactionService from './TransactionService';
-import InfuraService from './InfuraService';
 import { ITX_ACTIVE } from '@/config/secrets';
 import { assertEvent, findEvent, hex2a, parseLogs } from '@/util/events';
 import { InternalServerError } from '@/util/errors';
 import { logger } from '@/util/logger';
+import { paginatedResults } from '@/util/pagination';
+import TransactionService from './TransactionService';
+import InfuraService from './InfuraService';
 
 async function get(assetPool: TAssetPool, depositId: number): Promise<DepositDocument> {
-    const deposit = await Deposit.findOne({ poolAddress: assetPool.address, id: depositId });
-    if (!deposit) return null;
-    return deposit;
+    return await Deposit.findOne({ poolAddress: assetPool.address, id: depositId });
+}
+
+async function getAllPaginated(query: { receiver: string }, page = 1, limit = 10) {
+    return paginatedResults(Deposit, page, limit, query);
 }
 
 async function getAll(assetPool: TAssetPool): Promise<DepositDocument[]> {
@@ -117,4 +120,4 @@ async function depositForAdmin(assetPool: TAssetPool, account: IAccount, amount:
     }
 }
 
-export default { get, getAll, deposit, depositForAdmin };
+export default { get, getAll, getAllPaginated, deposit, depositForAdmin };

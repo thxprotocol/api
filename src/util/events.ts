@@ -23,7 +23,7 @@ export function parseLog(abi: any, log: any) {
     try {
         return contractInterface.parseLog(log);
     } catch (e) {
-        logger.error(e.toString());
+        logger.error(String(e));
         return;
     }
 }
