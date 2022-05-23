@@ -46,7 +46,6 @@ describe('Deposits', () => {
         userAccessToken = getToken(
             'openid user promo_codes:read payments:write payments:read deposits:write deposits:read',
         );
-        adminAccessToken = getToken('openid admin');
     });
 
     it('Create token', (done) => {

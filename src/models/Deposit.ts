@@ -6,7 +6,7 @@ export type DepositDocument = mongoose.Document & TDeposit;
 const DepositSchema = new mongoose.Schema(
     {
         sub: String,
-        amount: Number,
+        amount: String,
         transactions: [String],
         failReason: String,
         sender: String,

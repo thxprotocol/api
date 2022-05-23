@@ -3,7 +3,6 @@ import { body } from 'express-validator';
 import { BadRequestError, InsufficientBalanceError } from '@/util/errors';
 import { agenda, eventNameRequireTransactions } from '@/util/agenda';
 import { toWei } from 'web3-utils';
-import { DepositDocument } from '@/models/Deposit';
 import { getProvider } from '@/util/network';
 import { ethers } from 'ethers';
 import { IAccount } from '@/models/Account';
@@ -18,7 +17,7 @@ const controller = async (req: Request, res: Response) => {
     // #swagger.tags = ['Deposits']
     const { admin } = getProvider(req.assetPool.network);
     const account = { address: admin.address } as IAccount;
-    const amount = Number(toWei(String(req.body.amount)));
+    const amount = toWei(String(req.body.amount));
     const address = await req.assetPool.contract.methods.getToken().call();
     const erc20 = await ERC20Service.findBy({ address, network: req.assetPool.network });
 
@@ -29,17 +28,16 @@ const controller = async (req: Request, res: Response) => {
     if (balance < amount) throw new InsufficientBalanceError();
 
     // Check allowance for admin to ensure throughput
-    const allowance = Number(await erc20.contract.methods.allowance(account.address, req.assetPool.address).call());
-    if (allowance < amount) {
+    const allowance = await erc20.contract.methods.allowance(account.address, req.assetPool.address).call();
+    if (Number(allowance) < Number(amount)) {
         await TransactionService.send(
             erc20.contract.options.address,
             erc20.contract.methods.approve(req.assetPool.address, ethers.constants.MaxUint256),
             req.assetPool.network,
         );
     }
-    let deposit: DepositDocument = await DepositService.schedule(req.assetPool, account, amount);
 
-    deposit = await DepositService.depositForAdmin(req.assetPool, deposit);
+    const deposit = await DepositService.depositForAdmin(req.assetPool, account, amount);
 
     agenda.now(eventNameRequireTransactions, {});
 
