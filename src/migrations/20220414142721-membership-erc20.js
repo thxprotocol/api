@@ -1,4 +1,4 @@
-const TokenFacetArtifact = require('@thxnetwork/artifacts/dist/exports/abis/Token.json');
+const TokenFacetArtifact = require('@thxnetwork/artifacts/dist/exports/abis/ERC20Facet.json');
 const Web3 = require('web3');
 
 function getProvider(rpc) {
