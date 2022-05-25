@@ -33,9 +33,9 @@ describe('Widgets', () => {
 
     afterAll(afterAllCallback);
 
-    describe('POST /asset_pools', () => {
+    describe('POST /pools', () => {
         it('HTTP 200', (done) => {
-            user.post('/v1/asset_pools')
+            user.post('/v1/pools')
                 .set({ Authorization: dashboardAccessToken })
                 .send({
                     network: NetworkProvider.Main,
@@ -58,7 +58,7 @@ describe('Widgets', () => {
                     slug,
                     withdrawAmount: rewardWithdrawAmount,
                     withdrawDuration: rewardWithdrawDuration,
-                    withdrawUnlockDate: rewardWithdrawUnlockDate
+                    withdrawUnlockDate: rewardWithdrawUnlockDate,
                 })
                 .expect(201);
         });

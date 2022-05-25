@@ -69,9 +69,9 @@ describe('Default Pool', () => {
         });
     });
 
-    describe('POST /asset_pools', () => {
+    describe('POST /pools', () => {
         it('HTTP 201 (success)', (done) => {
-            user.post('/v1/asset_pools')
+            user.post('/v1/pools')
                 .set('Authorization', dashboardAccessToken)
                 .send({
                     network: NetworkProvider.Main,
@@ -84,7 +84,7 @@ describe('Default Pool', () => {
         });
 
         it('HTTP 201 (success)', (done) => {
-            user.get(`/v1/asset_pools/${poolId}`)
+            user.get(`/v1/pools/${poolId}`)
                 .set('Authorization', dashboardAccessToken)
                 .expect((res: request.Response) => {
                     expect(isAddress(res.body.address)).toBe(true);
@@ -144,9 +144,9 @@ describe('Default Pool', () => {
         });
     });
 
-    describe('GET /asset_pools/:address', () => {
+    describe('GET /pools/:address', () => {
         it('HTTP 200 and expose pool information', (done) => {
-            user.get('/v1/asset_pools/' + poolId)
+            user.get('/v1/pools/' + poolId)
                 .set({ AssetPool: poolAddress, Authorization: dashboardAccessToken })
                 .expect(async ({ body }: request.Response) => {
                     expect(body.address).toEqual(poolAddress);
@@ -304,9 +304,9 @@ describe('Default Pool', () => {
         });
     });
 
-    describe('GET /asset_pools/:address (after withdraw)', () => {
+    describe('GET /pools/:address (after withdraw)', () => {
         it('HTTP 200 and have decreased balance', (done) => {
-            user.get(`/v1/asset_pools/${poolId}`)
+            user.get(`/v1/pools/${poolId}`)
                 .set({ AssetPool: poolAddress, Authorization: dashboardAccessToken })
                 .expect(async (res: request.Response) => {
                     // Total supply - 2.5% = 250000 deposit fee - 1000 token reward - 2.5% = 25 withdraw fee

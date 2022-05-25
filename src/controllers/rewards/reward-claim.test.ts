@@ -60,7 +60,7 @@ describe('Reward Claim', () => {
     });
 
     it('Create Asset Pool', (done) => {
-        user.post('/v1/asset_pools')
+        user.post('/v1/pools')
             .set('Authorization', dashboardAccessToken)
             .send({
                 network: NetworkProvider.Main,

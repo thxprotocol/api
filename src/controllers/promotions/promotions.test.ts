@@ -30,7 +30,7 @@ describe('PromoCodes', () => {
     afterAll(afterAllCallback);
 
     it('Create pool', (done) => {
-        http.post('/v1/asset_pools')
+        http.post('/v1/pools')
             .set('Authorization', dashboardAccessToken)
             .send({
                 network: NetworkProvider.Main,

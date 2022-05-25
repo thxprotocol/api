@@ -27,7 +27,7 @@ router.use('/docs', docsRouter);
 router.use('/metadata', erc721MetadataRouter);
 router.use(checkJwt);
 router.use('/account', accountRouter);
-router.use('/asset_pools', poolsRouter);
+router.use('/pools', poolsRouter);
 router.use('/metrics', metricsRouter);
 router.use('/erc20', erc20Router);
 router.use('/erc721', erc721Router);

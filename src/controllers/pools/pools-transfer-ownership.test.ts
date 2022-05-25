@@ -33,9 +33,9 @@ describe('Transfer Pool Ownership', () => {
 
     afterAll(afterAllCallback);
 
-    describe('POST /asset_pools', () => {
+    describe('POST /pools', () => {
         it('HTTP 201 (success)', (done) => {
-            user.post('/v1/asset_pools')
+            user.post('/v1/pools')
                 .set('Authorization', dashboardAccessToken)
                 .send({
                     network: NetworkProvider.Main,

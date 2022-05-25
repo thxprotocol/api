@@ -47,9 +47,9 @@ describe('Propose Withdrawal', () => {
                 .expect(201, done);
         });
     });
-    describe('POST /asset_pools', () => {
+    describe('POST /pools', () => {
         it('HTTP 201 (success)', (done) => {
-            user.post('/v1/asset_pools')
+            user.post('/v1/pools')
                 .set('Authorization', dashboardAccessToken)
                 .send({
                     network: NetworkProvider.Main,
@@ -64,7 +64,7 @@ describe('Propose Withdrawal', () => {
         });
 
         it('HTTP 200 (success)', (done) => {
-            user.get('/v1/asset_pools/' + poolId)
+            user.get('/v1/pools/' + poolId)
                 .set({ AssetPool: poolAddress, Authorization: dashboardAccessToken })
                 .send()
                 .expect((res: request.Response) => {
@@ -132,9 +132,9 @@ describe('Propose Withdrawal', () => {
         });
     });
 
-    describe('GET /asset_pools/:address (totalSupply)', () => {
+    describe('GET /pools/:address (totalSupply)', () => {
         it('HTTP 200 state OK', (done) => {
-            user.get('/v1/asset_pools/' + poolId)
+            user.get('/v1/pools/' + poolId)
                 .set({ AssetPool: poolAddress, Authorization: dashboardAccessToken })
                 .expect((res: request.Response) => {
                     expect(res.body.token.poolBalance).toBe(0);
