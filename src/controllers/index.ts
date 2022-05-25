@@ -34,7 +34,7 @@ router.use('/erc721', erc721Router);
 router.use('/deposits', depositsRouter);
 router.use('/members', membersRouter);
 router.use('/memberships', membershipsRouter);
-router.use('/promo_codes', promotionsRouter);
+router.use('/promotions', promotionsRouter);
 router.use('/relay', relayHubRouter);
 router.use('/rewards', rewardsRouter);
 router.use('/widgets', widgetsRouter);

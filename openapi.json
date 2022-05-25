@@ -882,7 +882,7 @@
         }
       }
     },
-    "/promo_codes/": {
+    "/promotions/": {
       "post": {
         "tags": [
           "Promotions"
@@ -941,7 +941,7 @@
         }
       }
     },
-    "/promo_codes/{id}": {
+    "/promotions/{id}": {
       "get": {
         "tags": [
           "Promotions"

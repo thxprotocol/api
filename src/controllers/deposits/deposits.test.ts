@@ -26,8 +26,7 @@ describe('Deposits', () => {
         promoCode: IPromoCodeResponse,
         userWallet: Account,
         tokenAddress: string,
-        testToken: Contract,
-        adminAccessToken: string;
+        testToken: Contract;
 
     const value = 'XX78WEJ1219WZ';
     const price = 10;
@@ -42,9 +41,9 @@ describe('Deposits', () => {
 
         userWallet = createWallet(userWalletPrivateKey2);
 
-        dashboardAccessToken = getToken('openid dashboard promo_codes:read promo_codes:write members:write');
+        dashboardAccessToken = getToken('openid dashboard promotions:read promotions:write members:write');
         userAccessToken = getToken(
-            'openid user promo_codes:read payments:write payments:read deposits:write deposits:read',
+            'openid user promotions:read payments:write payments:read deposits:write deposits:read',
         );
     });
 
@@ -90,7 +89,7 @@ describe('Deposits', () => {
     });
 
     it('Create promo code', (done) => {
-        http.post('/v1/promo_codes')
+        http.post('/v1/promotions')
             .set({ 'Authorization': dashboardAccessToken, 'X-PoolAddress': poolAddress })
             .send({
                 price,
@@ -111,8 +110,8 @@ describe('Deposits', () => {
     });
 
     describe('Create Deposit', () => {
-        it('GET /promo_codes/:id', (done) => {
-            http.get('/v1/promo_codes/' + promoCode.id)
+        it('GET /promotions/:id', (done) => {
+            http.get('/v1/promotions/' + promoCode.id)
                 .set({ 'Authorization': userAccessToken, 'X-PoolAddress': poolAddress })
                 .expect(({ body }: Response) => {
                     expect(body.id).toEqual(promoCode.id);
@@ -193,8 +192,8 @@ describe('Deposits', () => {
                 .expect(200);
         });
 
-        it('GET /promo_codes/:id', (done) => {
-            http.get('/v1/promo_codes/' + promoCode.id)
+        it('GET /promotions/:id', (done) => {
+            http.get('/v1/promotions/' + promoCode.id)
                 .set({ 'Authorization': userAccessToken, 'X-PoolAddress': poolAddress })
                 .expect(({ body }: Response) => {
                     expect(body.value).toEqual(value);
