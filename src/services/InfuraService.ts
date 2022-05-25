@@ -5,9 +5,7 @@ import { INFURA_GAS_TANK, INFURA_PROJECT_ID, PRIVATE_KEY, TESTNET_INFURA_GAS_TAN
 import { soliditySha3 } from 'web3-utils';
 import { Transaction, TransactionDocument } from '@/models/Transaction';
 import { TAssetPool } from '@/types/TAssetPool';
-import { getDiamondAbi } from '@/config/contracts';
 import { poll } from '@/util/polling';
-import { DiamondVariant } from '@thxnetwork/artifacts';
 
 const testnet = new ethers.providers.InfuraProvider('maticmum', INFURA_PROJECT_ID);
 const mainnet = new ethers.providers.InfuraProvider('matic', INFURA_PROJECT_ID);
@@ -84,7 +82,7 @@ async function getCallData(contract: Contract, fn: string, args: any[], account:
     return { call, nonce, sig };
 }
 
-async function schedule(to: string, fn: string, args: any[], npid: NetworkProvider) {
+async function create(to: string, fn: string, args: any[], npid: NetworkProvider) {
     return await Transaction.create({
         state: TransactionState.Scheduled,
         type: TransactionType.ITX,
@@ -97,13 +95,11 @@ async function schedule(to: string, fn: string, args: any[], npid: NetworkProvid
     });
 }
 
-async function send(pool: TAssetPool, tx: TransactionDocument) {
+async function send(solution: Contract, tx: TransactionDocument) {
     const { provider, admin } = getProvider(tx.network);
-    const solution = new ethers.Contract(
-        tx.to,
-        getDiamondAbi(tx.network, pool.variant as DiamondVariant) as any,
-        admin,
-    );
+
+    solution.connect(admin);
+
     // Get the relayed call data, nonce and signature for this contract call
     const { call, nonce, sig } = await getCallData(solution, tx.call.fn, JSON.parse(tx.call.args), admin);
     // Encode a relay call with the relayed call data
@@ -130,8 +126,8 @@ async function send(pool: TAssetPool, tx: TransactionDocument) {
     return tx;
 }
 
-async function getTransactionStatus(assetPool: TAssetPool, tx: TransactionDocument) {
-    const { provider } = getProvider(assetPool.network);
+async function getTransactionStatus(tx: TransactionDocument) {
+    const { provider } = getProvider(tx.network);
     const { broadcasts } = await provider.send('relay_getTransactionStatus', [tx.relayTransactionHash]);
     if (!broadcasts) return;
 
@@ -151,8 +147,8 @@ async function getTransactionStatus(assetPool: TAssetPool, tx: TransactionDocume
     }
 }
 
-async function pollTransactionStatus(assetPool: TAssetPool, tx: TransactionDocument) {
-    const fn = () => getTransactionStatus(assetPool, tx);
+async function pollTransactionStatus(tx: TransactionDocument) {
+    const fn = () => getTransactionStatus(tx);
     const fnCondition = (result: string) => typeof result === undefined;
 
     // Waiting for the corresponding Polygon transaction to be mined
@@ -177,7 +173,7 @@ export default {
     getGasTank,
     deposit,
     getAdminBalance,
-    schedule,
+    create,
     send,
     getTransactionStatus,
     pollTransactionStatus,

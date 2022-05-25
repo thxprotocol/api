@@ -79,7 +79,7 @@ export default class WithdrawalService {
         );
 
         if (ITX_ACTIVE) {
-            const tx = await InfuraService.schedule(
+            const tx = await InfuraService.create(
                 assetPool.address,
                 'proposeWithdraw',
                 [amountInWei, account.address, unlockDateTmestamp],
@@ -116,11 +116,11 @@ export default class WithdrawalService {
 
     static async withdraw(assetPool: TAssetPool, withdrawal: WithdrawalDocument) {
         if (ITX_ACTIVE) {
-            const tx = await InfuraService.schedule(
+            const tx = await InfuraService.create(
                 assetPool.address,
                 'withdrawPollFinalize',
                 [withdrawal.withdrawalId],
-                assetPool.network
+                assetPool.network,
             );
 
             withdrawal.transactions.push(String(tx._id));
@@ -131,7 +131,7 @@ export default class WithdrawalService {
                 const { tx, receipt } = await TransactionService.send(
                     assetPool.address,
                     assetPool.contract.methods.withdrawPollFinalize(withdrawal.withdrawalId),
-                    assetPool.network
+                    assetPool.network,
                 );
 
                 const events = parseLogs(assetPool.contract.options.jsonInterface, receipt.logs);

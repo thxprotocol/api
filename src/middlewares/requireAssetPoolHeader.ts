@@ -4,7 +4,7 @@ import { BadRequestError } from '@/util/errors';
 import AssetPoolService from '@/services/AssetPoolService';
 
 export async function requireAssetPoolHeader(req: Request, _res: Response, next: NextFunction) {
-    const address = req.header('AssetPool');
+    const address = req.header('AssetPool') || (await AssetPoolService.getById(req.params.id)).address;
     if (!address || !isAddress(address)) {
         throw new BadRequestError('Valid AssetPool header is required for this request.');
     }

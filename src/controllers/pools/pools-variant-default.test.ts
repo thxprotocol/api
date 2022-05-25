@@ -36,7 +36,8 @@ describe('Default Pool', () => {
         withdrawDocumentId: string,
         withdrawPollID: string,
         tokenAddress: string,
-        userWallet: Account;
+        userWallet: Account,
+        poolId: string;
 
     beforeAll(async () => {
         await beforeAllCallback();
@@ -77,10 +78,19 @@ describe('Default Pool', () => {
                     token: tokenAddress,
                 })
                 .expect((res: request.Response) => {
+                    poolId = res.body._id;
+                })
+                .expect(201, done);
+        });
+
+        it('HTTP 201 (success)', (done) => {
+            user.get(`/v1/asset_pools/${poolId}`)
+                .set('Authorization', dashboardAccessToken)
+                .expect((res: request.Response) => {
                     expect(isAddress(res.body.address)).toBe(true);
                     poolAddress = res.body.address;
                 })
-                .expect(201, done);
+                .expect(200, done);
         });
     });
 
@@ -136,7 +146,7 @@ describe('Default Pool', () => {
 
     describe('GET /asset_pools/:address', () => {
         it('HTTP 200 and expose pool information', (done) => {
-            user.get('/v1/asset_pools/' + poolAddress)
+            user.get('/v1/asset_pools/' + poolId)
                 .set({ AssetPool: poolAddress, Authorization: dashboardAccessToken })
                 .expect(async ({ body }: request.Response) => {
                     expect(body.address).toEqual(poolAddress);
@@ -296,8 +306,8 @@ describe('Default Pool', () => {
 
     describe('GET /asset_pools/:address (after withdraw)', () => {
         it('HTTP 200 and have decreased balance', (done) => {
-            user.get(`/v1/asset_pools/${poolAddress}`)
-                .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
+            user.get(`/v1/asset_pools/${poolId}`)
+                .set({ AssetPool: poolAddress, Authorization: dashboardAccessToken })
                 .expect(async (res: request.Response) => {
                     // Total supply - 2.5% = 250000 deposit fee - 1000 token reward - 2.5% = 25 withdraw fee
                     expect(res.body.token.poolBalance).toBe(97498975);

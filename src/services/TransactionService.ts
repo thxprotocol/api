@@ -1,10 +1,16 @@
+import { Document } from 'mongoose';
 import { toWei } from 'web3-utils';
-import { Transaction } from '@/models/Transaction';
+import { Contract } from 'web3-eth-contract';
+import { Transaction, TransactionDocument } from '@/models/Transaction';
 import { getEstimatesFromOracle, getProvider, MaxFeePerGasExceededError } from '@/util/network';
 import { NetworkProvider, TransactionState, TransactionType } from '@/types/enums';
-import { MAX_FEE_PER_GAS, MINIMUM_GAS_LIMIT, PRIVATE_KEY } from '@/config/secrets';
+import { ITX_ACTIVE, MAX_FEE_PER_GAS, MINIMUM_GAS_LIMIT, PRIVATE_KEY } from '@/config/secrets';
 import { AssetPool } from '@/models/AssetPool';
 import AssetPoolService from './AssetPoolService';
+import InfuraService from './InfuraService';
+import { CustomEventLog, findEvent, hex2a, parseLogs } from '@/util/events';
+import { logger } from '@/util/logger';
+import { InternalServerError } from '@/util/errors';
 
 function getById(id: string) {
     return Transaction.findById(id);
@@ -65,6 +71,31 @@ async function sendValue(to: string, value: string, npid: NetworkProvider) {
     }
 
     return { tx, receipt };
+}
+
+async function relay(
+    contract: Contract,
+    fn: any,
+    args: any[],
+    npid: NetworkProvider,
+    callback: (tx: TransactionDocument, events?: CustomEventLog[]) => Promise<Document>,
+): Promise<any> {
+    // If ITX is active run the callback for the scheduled ITX transaction right away
+    if (ITX_ACTIVE) {
+        return await callback(await InfuraService.create(contract.options.address, fn, args, npid));
+    }
+
+    const { tx, receipt } = await send(contract.options.address, contract.methods[fn](...args), npid);
+    const events = parseLogs(contract.options.jsonInterface, receipt.logs);
+    const result = findEvent('Result', events);
+
+    if (result && !result.args.success) {
+        const error = hex2a(result.args.data.substr(10));
+        logger.error(error);
+        throw new InternalServerError(error);
+    }
+
+    return await callback(tx, events);
 }
 
 async function send(to: string, fn: any, npid: NetworkProvider, gasLimit?: number, fromPK?: string) {
@@ -200,4 +231,4 @@ async function call(fn: any, npid: NetworkProvider) {
     });
 }
 
-export default { getById, send, call, deploy, sendValue };
+export default { relay, getById, send, call, deploy, sendValue };

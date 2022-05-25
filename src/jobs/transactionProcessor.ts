@@ -3,11 +3,32 @@ import InfuraService from '@/services/InfuraService';
 import { findEvent, hex2a, parseLogs } from '@/util/events';
 import { TransactionState, TransactionType } from '@/types/enums';
 import { wrapBackgroundTransaction } from '@/util/newrelic';
-import { AssetPool } from '@/models/AssetPool';
 import { Transaction, TransactionDocument } from '@/models/Transaction';
 import { TransactionReceipt } from 'web3-core';
 import { handleError, handleEvents } from '@/util/jobs';
-import { InternalServerError } from '@/util/errors';
+import { DiamondVariant } from '@thxnetwork/artifacts';
+import { ethers } from 'ethers';
+import { getContractConfig, getDiamondAbi } from '@/config/contracts';
+
+async function getContractForTransaction(tx: TransactionDocument) {
+    let abi: ethers.ContractInterface;
+
+    const pool = await AssetPoolService.getByAddress(tx.to);
+
+    if (pool) {
+        abi = getDiamondAbi(tx.network, pool.variant as DiamondVariant) as unknown as ethers.ContractInterface;
+    }
+
+    if (tx.to === getContractConfig(tx.network, 'PoolFactory').address) {
+        abi = getDiamondAbi(tx.network, 'poolFactory') as unknown as ethers.ContractInterface;
+    }
+
+    if (tx.to === getContractConfig(tx.network, 'TokenFactory').address) {
+        abi = getDiamondAbi(tx.network, 'tokenFactory') as unknown as ethers.ContractInterface;
+    }
+
+    return new ethers.Contract(tx.to, abi);
+}
 
 export async function jobProcessTransactions() {
     const transactions: TransactionDocument[] = await Transaction.find({
@@ -18,14 +39,15 @@ export async function jobProcessTransactions() {
 
     for (const tx of transactions) {
         try {
-            const pool = await AssetPoolService.getByAddress(tx.to);
+            // Get the related ethers contract for this transaction (pool, poolFactory, tokenFactory)
+            const contract = await getContractForTransaction(tx);
             // If the TX does not have a relayTransactionHash yet, send it first. This might occur if
             // a tx is scheduled but not send yet.
             if (!tx.relayTransactionHash) {
                 (await wrapBackgroundTransaction(
                     'jobRequireTransactions',
                     'send',
-                    InfuraService.send(pool, tx),
+                    InfuraService.send(contract, tx),
                 )) as TransactionDocument;
                 return;
             }
@@ -35,23 +57,19 @@ export async function jobProcessTransactions() {
                 const receipt = (await wrapBackgroundTransaction(
                     'jobRequireTransactions',
                     'pollTransactionStatus',
-                    InfuraService.pollTransactionStatus(pool, tx),
+                    InfuraService.pollTransactionStatus(tx),
                 )) as TransactionReceipt;
 
                 if (!receipt) return;
 
-                const events = parseLogs(pool.contract.options.jsonInterface, receipt.logs);
+                const events = parseLogs(contract.options.jsonInterface, receipt.logs);
                 const result = findEvent('Result', events);
 
-                if (!result) {
-                    throw new InternalServerError('No result found in receipt');
-                }
-                if (!result.args.success) {
+                if (result && !result.args.success) {
                     await handleError(tx, hex2a(result.args.data.substr(10)));
                 }
                 if (result.args.success) {
-                    await AssetPool.findOneAndUpdate({ address: tx.to }, { lastTransactionAt: Date.now() });
-                    await handleEvents(pool, tx, events);
+                    await handleEvents(tx, events);
                 }
             }
         } catch (error) {

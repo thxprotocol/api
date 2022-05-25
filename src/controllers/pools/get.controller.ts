@@ -1,44 +1,37 @@
 import { Request, Response } from 'express';
 import { param } from 'express-validator';
-import { NotFoundError } from '@/util/errors';
-import AssetPoolService from '@/services/AssetPoolService';
 import ClientService from '@/services/ClientService';
 import WithdrawalService from '@/services/WithdrawalService';
 import MemberService from '@/services/MemberService';
 import ERC20Service from '@/services/ERC20Service';
 import ERC721Service from '@/services/ERC721Service';
+import { ForbiddenError } from '@/util/errors';
 
-export const validation = [param('address').isEthereumAddress()];
+export const validation = [param('id').isMongoId()];
 
 export const controller = async (req: Request, res: Response) => {
     // #swagger.tags = ['Pools']
-    const assetPool = await AssetPoolService.getByAddress(req.params.address);
-    if (!assetPool) throw new NotFoundError();
+    if (req.assetPool.sub !== req.user.sub) throw new ForbiddenError('Only the pool owner can access this pool info');
 
     let token;
-    if (assetPool.variant === 'defaultPool') {
-        token = await ERC20Service.findByPool(assetPool);
+    if (req.assetPool.variant === 'defaultPool') {
+        token = await ERC20Service.findByPool(req.assetPool);
     }
-    if (assetPool.variant === 'nftPool') {
-        token = await ERC721Service.findByPool(assetPool);
+    if (req.assetPool.variant === 'nftPool') {
+        token = await ERC721Service.findByPool(req.assetPool);
     }
 
-    const client = await ClientService.get(assetPool.clientId);
+    const client = await ClientService.get(req.assetPool.clientId);
     const metrics = {
-        withdrawals: await WithdrawalService.countByPoolAddress(assetPool),
-        members: await MemberService.countByPoolAddress(assetPool),
+        withdrawals: await WithdrawalService.countByPoolAddress(req.assetPool),
+        members: await MemberService.countByPoolAddress(req.assetPool),
     };
 
     res.json({
         token,
         metrics,
-        sub: assetPool.sub,
-        variant: assetPool.variant,
-        clientId: assetPool.clientId,
+        ...req.assetPool.toJSON(),
         clientSecret: client.clientSecret,
-        address: assetPool.address,
-        network: assetPool.network,
-        version: assetPool.version,
     });
 };
 

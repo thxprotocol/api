@@ -1,7 +1,7 @@
 {
   "swagger": "2.0",
   "info": {
-    "version": "1.10.15",
+    "version": "1.10.17",
     "title": "THX API Specification",
     "description": "User guides are available at https://docs.thx.network."
   },
@@ -259,12 +259,12 @@
         }
       }
     },
-    "/asset_pools/{address}/members": {
+    "/asset_pools/{id}/members": {
       "get": {
         "description": "",
         "parameters": [
           {
-            "name": "address",
+            "name": "id",
             "in": "path",
             "required": true,
             "type": "string"
@@ -287,7 +287,7 @@
         }
       }
     },
-    "/asset_pools/{address}": {
+    "/asset_pools/{id}": {
       "get": {
         "tags": [
           "Pools"
@@ -295,7 +295,7 @@
         "description": "",
         "parameters": [
           {
-            "name": "address",
+            "name": "id",
             "in": "path",
             "required": true,
             "type": "string"
@@ -314,7 +314,7 @@
         "description": "",
         "parameters": [
           {
-            "name": "address",
+            "name": "id",
             "in": "path",
             "required": true,
             "type": "string"

@@ -18,7 +18,7 @@ const controller = async (req: Request, res: Response) => {
     const { admin } = getProvider(req.assetPool.network);
     const account = { address: admin.address } as IAccount;
     const amount = toWei(String(req.body.amount));
-    const address = await req.assetPool.contract.methods.getToken().call();
+    const address = await req.assetPool.contract.methods.getERC20().call();
     const erc20 = await ERC20Service.findBy({ address, network: req.assetPool.network });
 
     if (erc20.type !== ERC20Type.Limited) throw new BadRequestError('Token type is not Limited type');

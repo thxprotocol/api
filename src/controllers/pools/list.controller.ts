@@ -1,10 +1,13 @@
 import { Request, Response } from 'express';
+import { AssetPoolDocument } from '@/models/AssetPool';
 import AssetPoolService from '@/services/AssetPoolService';
 
 const controller = async (req: Request, res: Response) => {
     // #swagger.tags = ['Pools']
-    const result = await AssetPoolService.getAllBySub(req.user.sub);
-    res.json(result);
+    const pools = await AssetPoolService.getAllBySub(req.user.sub);
+    const list = pools.map((pool: AssetPoolDocument) => pool._id);
+
+    res.json(list);
 };
 
 export default { controller };

@@ -13,7 +13,7 @@ const router = express.Router();
 router.post('/', assertScopes(['dashboard']), assertRequestInput(CreatePool.validation), CreatePool.controller);
 router.get('/', assertScopes(['dashboard']), ListPools.controller);
 router.get(
-    '/:address/members',
+    '/:id/members',
     assertScopes(['dashboard']),
     assertAssetPoolAccess,
     requireAssetPoolHeader,
@@ -21,16 +21,16 @@ router.get(
     ListPoolMembers.controller,
 );
 router.get(
-    '/:address',
+    '/:id',
     assertScopes(['admin', 'dashboard']),
     assertAssetPoolAccess,
-    assertRequestInput(ReadPool.validation),
     requireAssetPoolHeader,
+    assertRequestInput(ReadPool.validation),
     assertPlan([AccountPlanType.Basic, AccountPlanType.Premium]),
     ReadPool.controller,
 );
 router.delete(
-    '/:address',
+    '/:id',
     assertScopes(['dashboard']),
     assertAssetPoolAccess,
     assertRequestInput(DeletePool.validation),
