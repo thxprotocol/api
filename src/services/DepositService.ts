@@ -9,8 +9,24 @@ import { assertEvent, findEvent, hex2a, parseLogs } from '@/util/events';
 import { InternalServerError } from '@/util/errors';
 import { logger } from '@/util/logger';
 
-async function approve(assetPool: TAssetPool, account: IAccount, amount: number, item?: string) {
-    return await Deposit.create({
+async function get(assetPool: TAssetPool, depositId: number): Promise<DepositDocument> {
+    const deposit = await Deposit.findOne({ poolAddress: assetPool.address, id: depositId });
+    if (!deposit) return null;
+    return deposit;
+}
+
+async function getAll(assetPool: TAssetPool): Promise<DepositDocument[]> {
+    return await Deposit.find({ poolAddress: assetPool.address });
+}
+
+async function deposit(
+    assetPool: TAssetPool,
+    account: IAccount,
+    amount: string,
+    callData: { call: string; nonce: number; sig: string },
+    item: string,
+) {
+    const deposit = await Deposit.create({
         sub: account.id,
         sender: account.address,
         receiver: assetPool.address,
@@ -18,22 +34,14 @@ async function approve(assetPool: TAssetPool, account: IAccount, amount: number,
         state: DepositState.Pending,
         item,
     });
-}
 
-async function schedule(assetPool: TAssetPool, account: IAccount, amount: number, item?: string) {
-    return await Deposit.create({
-        sub: account.id,
-        sender: account.address,
-        receiver: assetPool.address,
-        amount,
-        state: DepositState.Pending,
-        item,
-    });
-}
-
-async function create(assetPool: TAssetPool, deposit: DepositDocument, call: string, nonce: number, sig: string) {
     if (ITX_ACTIVE) {
-        const tx = await InfuraService.schedule(assetPool.address, 'call', [call, nonce, sig], assetPool.network);
+        const tx = await InfuraService.schedule(
+            assetPool.address,
+            'call',
+            [callData.call, callData.nonce, callData.sig],
+            assetPool.network,
+        );
         deposit.transactions.push(String(tx._id));
 
         return await deposit.save();
@@ -41,7 +49,7 @@ async function create(assetPool: TAssetPool, deposit: DepositDocument, call: str
         try {
             const { tx, receipt } = await TransactionService.send(
                 assetPool.address,
-                assetPool.contract.methods.call(call, nonce, sig),
+                assetPool.contract.methods.call(callData.call, callData.nonce, callData.sig),
                 assetPool.network,
                 500000,
             );
@@ -62,9 +70,51 @@ async function create(assetPool: TAssetPool, deposit: DepositDocument, call: str
 
             return await deposit.save();
         } catch (error) {
+            logger.error(error);
             deposit.failReason = error.message;
             throw error;
         }
     }
 }
-export default { create, schedule, approve };
+
+async function depositForAdmin(assetPool: TAssetPool, account: IAccount, amount: string) {
+    const deposit = await Deposit.create({
+        sub: account.id,
+        sender: account.address,
+        receiver: assetPool.address,
+        amount,
+        state: DepositState.Pending,
+    });
+
+    if (ITX_ACTIVE) {
+        const tx = await InfuraService.schedule(assetPool.address, 'deposit', [amount], assetPool.network);
+
+        deposit.transactions.push(String(tx._id));
+
+        return await deposit.save();
+    } else {
+        try {
+            const { tx, receipt } = await TransactionService.send(
+                assetPool.address,
+                assetPool.contract.methods.deposit(amount),
+                assetPool.network,
+                500000,
+            );
+
+            const events = parseLogs(assetPool.contract.options.jsonInterface, receipt.logs);
+
+            assertEvent('Depositted', events);
+
+            deposit.transactions.push(String(tx._id));
+            deposit.state = DepositState.Completed;
+
+            return await deposit.save();
+        } catch (error) {
+            logger.error(error);
+            deposit.failReason = error.message;
+            throw error;
+        }
+    }
+}
+
+export default { get, getAll, deposit, depositForAdmin };

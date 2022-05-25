@@ -13,6 +13,9 @@ import { MaxUint256, tokenName, tokenSymbol, userWalletPrivateKey2 } from '@/uti
 import { AmountExceedsAllowanceError, InsufficientBalanceError } from '@/util/errors';
 import TransactionService from '@/services/TransactionService';
 import { getContractFromName } from '@/config/contracts';
+import { getProvider } from '@/util/network';
+import { BigNumber } from 'ethers';
+import { fromWei } from 'web3-utils';
 
 const http = request.agent(app);
 
@@ -23,7 +26,8 @@ describe('Deposits', () => {
         promoCode: IPromoCodeResponse,
         userWallet: Account,
         tokenAddress: string,
-        testToken: Contract;
+        testToken: Contract,
+        adminAccessToken: string;
 
     const value = 'XX78WEJ1219WZ';
     const price = 10;
@@ -194,6 +198,63 @@ describe('Deposits', () => {
                 .set({ Authorization: userAccessToken, AssetPool: poolAddress })
                 .expect(({ body }: Response) => {
                     expect(body.value).toEqual(value);
+                })
+                .expect(200, done);
+        });
+    });
+
+    describe('Create Asset Pool Deposit', () => {
+        const { admin } = getProvider(NetworkProvider.Main);
+        const totalSupply = fromWei('200000000000000000000', 'ether'); // 200 eth
+
+        it('Create token', (done) => {
+            http.post('/v1/erc20')
+                .set('Authorization', dashboardAccessToken)
+                .send({
+                    network: NetworkProvider.Main,
+                    name: 'LIMITED SUPPLY TOKEN',
+                    symbol: 'LIM',
+                    type: ERC20Type.Limited,
+                    totalSupply: totalSupply,
+                })
+                .expect(async ({ body }: request.Response) => {
+                    expect(isAddress(body.address)).toBe(true);
+                    tokenAddress = body.address;
+                    testToken = getContractFromName(NetworkProvider.Main, 'LimitedSupplyToken', tokenAddress);
+                    const adminBalance: BigNumber = await testToken.methods.balanceOf(admin.address).call();
+                    expect(fromWei(String(adminBalance), 'ether')).toBe(totalSupply);
+                })
+                .expect(201, done);
+        });
+
+        it('Create pool', (done) => {
+            http.post('/v1/asset_pools')
+                .set('Authorization', dashboardAccessToken)
+                .send({
+                    network: NetworkProvider.Main,
+                    token: tokenAddress,
+                })
+                .expect(async (res: request.Response) => {
+                    expect(isAddress(res.body.address)).toBe(true);
+                    poolAddress = res.body.address;
+                    const adminBalance: BigNumber = await testToken.methods.balanceOf(admin.address).call();
+                    const poolBalance: BigNumber = await testToken.methods.balanceOf(poolAddress).call();
+                    expect(String(poolBalance)).toBe('0');
+                    expect(fromWei(String(adminBalance), 'ether')).toBe(totalSupply);
+                })
+                .expect(201, done);
+        });
+
+        it('POST /deposits/admin/ 200 OK', (done) => {
+            const amount = fromWei('100000000000000000000', 'ether'); // 100 eth
+            http.post('/v1/deposits/admin')
+                .set({ Authorization: dashboardAccessToken, AssetPool: poolAddress })
+                .send({ amount })
+                .expect(async () => {
+                    const adminBalance: BigNumber = await testToken.methods.balanceOf(admin.address).call();
+                    const poolBalance: BigNumber = await testToken.methods.balanceOf(poolAddress).call();
+                    expect(String(poolBalance)).toBe('97500000000000000000'); // 100 eth - protocol fee = 97.5 eth
+                    expect(String(adminBalance)).toBe('100000000000000000000'); // 100 eth
                 })
                 .expect(200, done);
         });

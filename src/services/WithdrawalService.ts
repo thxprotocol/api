@@ -120,7 +120,7 @@ export default class WithdrawalService {
                 assetPool.address,
                 'withdrawPollFinalize',
                 [withdrawal.withdrawalId],
-                assetPool.network,
+                assetPool.network
             );
 
             withdrawal.transactions.push(String(tx._id));
@@ -131,7 +131,7 @@ export default class WithdrawalService {
                 const { tx, receipt } = await TransactionService.send(
                     assetPool.address,
                     assetPool.contract.methods.withdrawPollFinalize(withdrawal.withdrawalId),
-                    assetPool.network,
+                    assetPool.network
                 );
 
                 const events = parseLogs(assetPool.contract.options.jsonInterface, receipt.logs);

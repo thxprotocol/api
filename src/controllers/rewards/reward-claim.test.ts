@@ -3,7 +3,13 @@ import app from '@/app';
 import { Account } from 'web3-core';
 import { ERC20Type, NetworkProvider } from '../../types/enums';
 import { createWallet, signMethod } from '@/util/jest/network';
-import { rewardWithdrawAmount, rewardWithdrawUnlockDate, tokenName, tokenSymbol, userWalletPrivateKey2 } from '@/util/jest/constants';
+import {
+    rewardWithdrawAmount,
+    rewardWithdrawUnlockDate,
+    tokenName,
+    tokenSymbol,
+    userWalletPrivateKey2,
+} from '@/util/jest/constants';
 import { isAddress } from 'web3-utils';
 import { getToken } from '@/util/jest/jwt';
 import { afterAllCallback, beforeAllCallback } from '@/util/jest/config';
@@ -77,7 +83,7 @@ describe('Reward Claim', () => {
                 withdrawDuration: 0,
                 withdrawUnlockDate: rewardWithdrawUnlockDate,
                 isClaimOnce: true,
-                isMembershipRequired: false
+                isMembershipRequired: false,
             })
             .expect((res: request.Response) => {
                 expect(res.body.id).toEqual(1);

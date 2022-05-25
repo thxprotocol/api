@@ -3,7 +3,7 @@ import { DepositState } from '@/types/enums/DepositState';
 export type TDeposit = {
     id: string;
     sub: string;
-    amount: number;
+    amount: string;
     sender: string;
     receiver: string;
     state: DepositState;
