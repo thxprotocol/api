@@ -65,7 +65,7 @@ describe('Propose Withdrawal', () => {
 
         it('HTTP 200 (success)', (done) => {
             user.get('/v1/pools/' + poolId)
-                .set({ AssetPool: poolAddress, Authorization: dashboardAccessToken })
+                .set({ 'X-PoolAddress': poolAddress, 'Authorization': dashboardAccessToken })
                 .send()
                 .expect((res: request.Response) => {
                     expect(isAddress(res.body.token.address)).toBe(true);
@@ -76,7 +76,7 @@ describe('Propose Withdrawal', () => {
         it('HTTP 302 when member is added', (done) => {
             user.post('/v1/members/')
                 .send({ address: userWallet.address })
-                .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
+                .set({ 'X-PoolAddress': poolAddress, 'Authorization': adminAccessToken })
                 .expect(302, done);
         });
     });
@@ -89,7 +89,7 @@ describe('Propose Withdrawal', () => {
                     amount: rewardWithdrawAmount,
                 })
 
-                .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
+                .set({ 'X-PoolAddress': poolAddress, 'Authorization': adminAccessToken })
                 .expect(({ body }: request.Response) => {
                     expect(body.id).toBeDefined();
                     expect(body.sub).toEqual(sub2);
@@ -108,7 +108,7 @@ describe('Propose Withdrawal', () => {
     describe('POST /withdrawals/:id/withdraw', () => {
         it('HTTP 200 and 0 balance', (done) => {
             user.get('/v1/members/' + userWallet.address)
-                .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
+                .set({ 'X-PoolAddress': poolAddress, 'Authorization': adminAccessToken })
                 .expect((res: request.Response) => {
                     expect(res.body.token.balance).toBe(0);
                 })
@@ -118,13 +118,13 @@ describe('Propose Withdrawal', () => {
         it('HTTP 200 OK', (done) => {
             user.post(`/v1/withdrawals/${withdrawalDocumentId}/withdraw`)
                 .send()
-                .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
+                .set({ 'X-PoolAddress': poolAddress, 'Authorization': adminAccessToken })
                 .expect(200, done);
         });
 
         it('HTTP 200 and 1000 balance', (done) => {
             user.get('/v1/members/' + userWallet.address)
-                .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
+                .set({ 'X-PoolAddress': poolAddress, 'Authorization': adminAccessToken })
                 .expect((res: request.Response) => {
                     expect(res.body.token.balance).toBe(1000);
                 })
@@ -135,7 +135,7 @@ describe('Propose Withdrawal', () => {
     describe('GET /pools/:address (totalSupply)', () => {
         it('HTTP 200 state OK', (done) => {
             user.get('/v1/pools/' + poolId)
-                .set({ AssetPool: poolAddress, Authorization: dashboardAccessToken })
+                .set({ 'X-PoolAddress': poolAddress, 'Authorization': dashboardAccessToken })
                 .expect((res: request.Response) => {
                     expect(res.body.token.poolBalance).toBe(0);
                     expect(res.body.token.name).toBe(tokenName);

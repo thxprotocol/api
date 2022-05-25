@@ -7,7 +7,7 @@ export async function assertAssetPoolAccess(
     res: Response,
     next: NextFunction,
 ) {
-    const address = req.header('AssetPool') || (await AssetPoolService.getById(req.params.id)).address;
+    const address = req.header('X-PoolAddress') || (await AssetPoolService.getById(req.params.id)).address;
 
     // If there is a sub check the account for user membership
     if (req.user.sub) {

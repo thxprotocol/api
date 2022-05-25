@@ -75,7 +75,7 @@ describe('Reward Claim', () => {
 
     it('Create reward', (done) => {
         user.post('/v1/rewards/')
-            .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
+            .set({ 'X-PoolAddress': poolAddress, 'Authorization': adminAccessToken })
             .send({
                 title,
                 slug,
@@ -96,7 +96,7 @@ describe('Reward Claim', () => {
     describe('POST /rewards/:id/claim', () => {
         it('should return a 200 and withdrawal id', (done) => {
             user.post(`/v1/rewards/${rewardID}/claim`)
-                .set({ AssetPool: poolAddress, Authorization: userAccessToken })
+                .set({ 'X-PoolAddress': poolAddress, 'Authorization': userAccessToken })
                 .expect((res: request.Response) => {
                     expect(res.body.id).toBeDefined();
                     expect(res.body.state).toEqual(WithdrawalState.Pending);
@@ -108,7 +108,7 @@ describe('Reward Claim', () => {
 
         it('should return Pending state', (done) => {
             user.get(`/v1/withdrawals/${withdrawalDocumentId}`)
-                .set({ AssetPool: poolAddress, Authorization: userAccessToken })
+                .set({ 'X-PoolAddress': poolAddress, 'Authorization': userAccessToken })
                 .expect((res: request.Response) => {
                     expect(res.body.state).toEqual(WithdrawalState.Pending);
                     expect(res.body.withdrawalId).toBeDefined();
@@ -128,7 +128,7 @@ describe('Reward Claim', () => {
 
             await user
                 .post('/v1/relay/call')
-                .set({ AssetPool: poolAddress, Authorization: userAccessToken })
+                .set({ 'X-PoolAddress': poolAddress, 'Authorization': userAccessToken })
                 .send({
                     call,
                     nonce,
@@ -139,7 +139,7 @@ describe('Reward Claim', () => {
 
         it('should return Withdrawn state', (done) => {
             user.get(`/v1/withdrawals/${withdrawalDocumentId}`)
-                .set({ AssetPool: poolAddress, Authorization: userAccessToken })
+                .set({ 'X-PoolAddress': poolAddress, 'Authorization': userAccessToken })
                 .expect((res: request.Response) => {
                     expect(res.body.state).toEqual(WithdrawalState.Withdrawn);
                 })
@@ -148,7 +148,7 @@ describe('Reward Claim', () => {
 
         it('should return a 403 for this second claim', (done) => {
             user.post(`/v1/rewards/${rewardID}/claim`)
-                .set({ AssetPool: poolAddress, Authorization: userAccessToken })
+                .set({ 'X-PoolAddress': poolAddress, 'Authorization': userAccessToken })
                 .expect(403, done);
         });
     });

@@ -74,7 +74,7 @@ describe('NFT Pool', () => {
         it('should return tokenId when token is minted', (done) => {
             user.post('/v1/erc721/' + erc721ID + '/metadata')
                 .set('Authorization', dashboardAccessToken)
-                .set('AssetPool', poolAddress)
+                .set('X-PoolAddress', poolAddress)
                 .send({
                     title,
                     description,
@@ -106,7 +106,7 @@ describe('NFT Pool', () => {
 
             user.post('/v1/erc721/' + erc721ID + '/metadata')
                 .set('Authorization', dashboardAccessToken)
-                .set('AssetPool', poolAddress)
+                .set('X-PoolAddress', poolAddress)
                 .send({
                     title,
                     description,
@@ -135,7 +135,7 @@ describe('NFT Pool', () => {
 
             user.post('/v1/erc721/' + erc721ID + '/metadata/' + metadataId + '/mint')
                 .set('Authorization', dashboardAccessToken)
-                .set('AssetPool', poolAddress)
+                .set('X-PoolAddress', poolAddress)
                 .send({
                     recipient,
                 })
