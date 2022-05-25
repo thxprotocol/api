@@ -81,9 +81,9 @@ async function relay(
     callback: (tx: TransactionDocument, events?: CustomEventLog[]) => Promise<Document>,
 ): Promise<any> {
     // If ITX is active run the callback for the scheduled ITX transaction right away
-    if (ITX_ACTIVE) {
-        return await callback(await InfuraService.create(contract.options.address, fn, args, npid));
-    }
+    // if (ITX_ACTIVE) {
+    //     return await callback(await InfuraService.create(contract.options.address, fn, args, npid));
+    // }
 
     const { tx, receipt } = await send(contract.options.address, contract.methods[fn](...args), npid);
     const events = parseLogs(contract.options.jsonInterface, receipt.logs);
