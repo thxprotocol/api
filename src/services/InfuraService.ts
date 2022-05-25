@@ -4,7 +4,6 @@ import { parseUnits } from 'ethers/lib/utils';
 import { INFURA_GAS_TANK, INFURA_PROJECT_ID, PRIVATE_KEY, TESTNET_INFURA_GAS_TANK } from '@/config/secrets';
 import { soliditySha3 } from 'web3-utils';
 import { Transaction, TransactionDocument } from '@/models/Transaction';
-import { TAssetPool } from '@/types/TAssetPool';
 import { poll } from '@/util/polling';
 
 const testnet = new ethers.providers.InfuraProvider('maticmum', INFURA_PROJECT_ID);

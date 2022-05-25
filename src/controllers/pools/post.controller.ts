@@ -45,7 +45,8 @@ const controller = async (req: Request, res: Response) => {
     const pool = await AssetPoolService.deploy(req.user.sub, req.body.network, req.body.variant, req.body.token);
 
     // When ITX is initalization is not handled by the job processor but could be executed right away
-    if (!ITX_ACTIVE) await initialize(pool, req.body.token);
+    // if (!ITX_ACTIVE) await initialize(pool, req.body.token);
+    await initialize(pool, req.body.token);
 
     const client = await ClientService.create(req.user.sub, {
         application_type: 'web',
