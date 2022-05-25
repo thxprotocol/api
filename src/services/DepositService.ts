@@ -36,7 +36,7 @@ async function deposit(
     });
 
     if (ITX_ACTIVE) {
-        const tx = await InfuraService.schedule(
+        const tx = await InfuraService.create(
             assetPool.address,
             'call',
             [callData.call, callData.nonce, callData.sig],
@@ -87,7 +87,7 @@ async function depositForAdmin(assetPool: TAssetPool, account: IAccount, amount:
     });
 
     if (ITX_ACTIVE) {
-        const tx = await InfuraService.schedule(assetPool.address, 'deposit', [amount], assetPool.network);
+        const tx = await InfuraService.create(assetPool.address, 'deposit', [amount], assetPool.network);
 
         deposit.transactions.push(String(tx._id));
 

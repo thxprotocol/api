@@ -26,8 +26,7 @@ describe('Deposits', () => {
         promoCode: IPromoCodeResponse,
         userWallet: Account,
         tokenAddress: string,
-        testToken: Contract,
-        adminAccessToken: string;
+        testToken: Contract;
 
     const value = 'XX78WEJ1219WZ';
     const price = 10;
@@ -42,9 +41,9 @@ describe('Deposits', () => {
 
         userWallet = createWallet(userWalletPrivateKey2);
 
-        dashboardAccessToken = getToken('openid dashboard promo_codes:read promo_codes:write members:write');
+        dashboardAccessToken = getToken('openid dashboard promotions:read promotions:write members:write');
         userAccessToken = getToken(
-            'openid user promo_codes:read payments:write payments:read deposits:write deposits:read',
+            'openid user promotions:read payments:write payments:read deposits:write deposits:read',
         );
     });
 
@@ -67,7 +66,7 @@ describe('Deposits', () => {
     });
 
     it('Create pool', (done) => {
-        http.post('/v1/asset_pools')
+        http.post('/v1/pools')
             .set('Authorization', dashboardAccessToken)
             .send({
                 network: NetworkProvider.Main,
@@ -82,7 +81,7 @@ describe('Deposits', () => {
 
     it('Add member', (done) => {
         http.post('/v1/members')
-            .set({ Authorization: dashboardAccessToken, AssetPool: poolAddress })
+            .set({ 'Authorization': dashboardAccessToken, 'X-PoolAddress': poolAddress })
             .send({
                 address: userWallet.address,
             })
@@ -90,8 +89,8 @@ describe('Deposits', () => {
     });
 
     it('Create promo code', (done) => {
-        http.post('/v1/promo_codes')
-            .set({ Authorization: dashboardAccessToken, AssetPool: poolAddress })
+        http.post('/v1/promotions')
+            .set({ 'Authorization': dashboardAccessToken, 'X-PoolAddress': poolAddress })
             .send({
                 price,
                 value,
@@ -111,9 +110,9 @@ describe('Deposits', () => {
     });
 
     describe('Create Deposit', () => {
-        it('GET /promo_codes/:id', (done) => {
-            http.get('/v1/promo_codes/' + promoCode.id)
-                .set({ Authorization: userAccessToken, AssetPool: poolAddress })
+        it('GET /promotions/:id', (done) => {
+            http.get('/v1/promotions/' + promoCode.id)
+                .set({ 'Authorization': userAccessToken, 'X-PoolAddress': poolAddress })
                 .expect(({ body }: Response) => {
                     expect(body.id).toEqual(promoCode.id);
                     expect(body.value).toEqual('');
@@ -134,7 +133,7 @@ describe('Deposits', () => {
             );
             await http
                 .post('/v1/deposits')
-                .set({ Authorization: userAccessToken, AssetPool: poolAddress })
+                .set({ 'Authorization': userAccessToken, 'X-PoolAddress': poolAddress })
                 .send({ call, nonce, sig, item: promoCode.id })
                 .expect(({ body }: Response) => {
                     expect(body.error.message).toEqual(new InsufficientBalanceError().message);
@@ -163,7 +162,7 @@ describe('Deposits', () => {
             );
             await http
                 .post('/v1/deposits')
-                .set({ Authorization: userAccessToken, AssetPool: poolAddress })
+                .set({ 'Authorization': userAccessToken, 'X-PoolAddress': poolAddress })
                 .send({ call, nonce, sig, item: promoCode.id })
                 .expect(({ body }: Response) => {
                     expect(body.error.message).toEqual(new AmountExceedsAllowanceError().message);
@@ -188,14 +187,14 @@ describe('Deposits', () => {
             );
             await http
                 .post('/v1/deposits')
-                .set({ Authorization: userAccessToken, AssetPool: poolAddress })
+                .set({ 'Authorization': userAccessToken, 'X-PoolAddress': poolAddress })
                 .send({ call, nonce, sig, item: promoCode.id })
                 .expect(200);
         });
 
-        it('GET /promo_codes/:id', (done) => {
-            http.get('/v1/promo_codes/' + promoCode.id)
-                .set({ Authorization: userAccessToken, AssetPool: poolAddress })
+        it('GET /promotions/:id', (done) => {
+            http.get('/v1/promotions/' + promoCode.id)
+                .set({ 'Authorization': userAccessToken, 'X-PoolAddress': poolAddress })
                 .expect(({ body }: Response) => {
                     expect(body.value).toEqual(value);
                 })
@@ -228,7 +227,7 @@ describe('Deposits', () => {
         });
 
         it('Create pool', (done) => {
-            http.post('/v1/asset_pools')
+            http.post('/v1/pools')
                 .set('Authorization', dashboardAccessToken)
                 .send({
                     network: NetworkProvider.Main,
@@ -248,7 +247,7 @@ describe('Deposits', () => {
         it('POST /deposits/admin/ 200 OK', (done) => {
             const amount = fromWei('100000000000000000000', 'ether'); // 100 eth
             http.post('/v1/deposits/admin')
-                .set({ Authorization: dashboardAccessToken, AssetPool: poolAddress })
+                .set({ 'Authorization': dashboardAccessToken, 'X-PoolAddress': poolAddress })
                 .send({ amount })
                 .expect(async () => {
                     const adminBalance: BigNumber = await testToken.methods.balanceOf(admin.address).call();

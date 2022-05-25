@@ -7,10 +7,8 @@ export type TAssetPool = {
     network: number;
     sub: string;
     clientId: string;
-    blockNumber: number;
-    transactionHash: string;
+    transactions: string[];
     lastTransactionAt?: number;
-    bypassPolls: boolean;
     version?: string;
     variant?: DiamondVariant;
 };

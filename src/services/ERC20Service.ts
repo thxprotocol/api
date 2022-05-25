@@ -1,4 +1,4 @@
-import ERC20 from '@/models/ERC20';
+import ERC20, { ERC20Document } from '@/models/ERC20';
 import { toWei, fromWei } from 'web3-utils';
 import { getProvider } from '@/util/network';
 import { ICreateERC20Params } from '@/types/interfaces';
@@ -10,6 +10,7 @@ import { AssetPoolDocument } from '@/models/AssetPool';
 import { TERC20 } from '@/types/TERC20';
 import { currentVersion } from '@thxnetwork/artifacts';
 import { getContract, getContractFromName } from '@/config/contracts';
+import { keccak256, toUtf8Bytes } from 'ethers/lib/utils';
 
 export const create = async (params: ICreateERC20Params) => {
     const { admin } = getProvider(params.network);
@@ -46,6 +47,16 @@ export const create = async (params: ICreateERC20Params) => {
     return erc20;
 };
 
+const addMinter = async (erc20: ERC20Document, address: string) => {
+    const { receipt } = await TransactionService.send(
+        erc20.address,
+        erc20.contract.methods.grantRole(keccak256(toUtf8Bytes('MINTER_ROLE')), address),
+        erc20.network,
+    );
+
+    assertEvent('RoleGranted', parseLogs(erc20.contract.options.jsonInterface, receipt.logs));
+};
+
 export const getAll = (sub: string) => {
     return ERC20.find({ sub });
 };
@@ -59,7 +70,7 @@ export const findBy = (query: { address: string; network: NetworkProvider }) => 
 };
 
 export const findByPool = async (assetPool: AssetPoolDocument): Promise<TERC20> => {
-    const address = await assetPool.contract.methods.getToken().call();
+    const address = await assetPool.contract.methods.getERC20().call();
     const erc20 = await ERC20.findOne({ network: assetPool.network, address });
 
     if (erc20) {
@@ -104,4 +115,5 @@ export default {
     findByPool,
     getById,
     removeById,
+    addMinter,
 };

@@ -36,7 +36,8 @@ describe('Default Pool', () => {
         withdrawDocumentId: string,
         withdrawPollID: string,
         tokenAddress: string,
-        userWallet: Account;
+        userWallet: Account,
+        poolId: string;
 
     beforeAll(async () => {
         await beforeAllCallback();
@@ -68,19 +69,28 @@ describe('Default Pool', () => {
         });
     });
 
-    describe('POST /asset_pools', () => {
+    describe('POST /pools', () => {
         it('HTTP 201 (success)', (done) => {
-            user.post('/v1/asset_pools')
+            user.post('/v1/pools')
                 .set('Authorization', dashboardAccessToken)
                 .send({
                     network: NetworkProvider.Main,
                     token: tokenAddress,
                 })
                 .expect((res: request.Response) => {
+                    poolId = res.body._id;
+                })
+                .expect(201, done);
+        });
+
+        it('HTTP 201 (success)', (done) => {
+            user.get(`/v1/pools/${poolId}`)
+                .set('Authorization', dashboardAccessToken)
+                .expect((res: request.Response) => {
                     expect(isAddress(res.body.address)).toBe(true);
                     poolAddress = res.body.address;
                 })
-                .expect(201, done);
+                .expect(200, done);
         });
     });
 
@@ -90,7 +100,7 @@ describe('Default Pool', () => {
         it('HTTP 302 when member is added', (done) => {
             user.post('/v1/members/')
                 .send({ address: userWallet.address })
-                .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
+                .set({ 'X-PoolAddress': poolAddress, 'Authorization': adminAccessToken })
                 .expect(async (res: request.Response) => {
                     redirectURL = res.headers.location;
                 })
@@ -99,7 +109,7 @@ describe('Default Pool', () => {
 
         it('HTTP 200 for the redirect', (done) => {
             user.get(redirectURL)
-                .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
+                .set({ 'X-PoolAddress': poolAddress, 'Authorization': adminAccessToken })
                 .expect(async (res: request.Response) => {
                     expect(res.body.isMember).toEqual(true);
                     expect(res.body.isManager).toEqual(false);
@@ -128,16 +138,16 @@ describe('Default Pool', () => {
             );
             await user
                 .post('/v1/deposits')
-                .set({ Authorization: userAccessToken, AssetPool: poolAddress })
+                .set({ 'Authorization': userAccessToken, 'X-PoolAddress': poolAddress })
                 .send({ call, nonce, sig, amount: tokenTotalSupply })
                 .expect(200);
         });
     });
 
-    describe('GET /asset_pools/:address', () => {
+    describe('GET /pools/:address', () => {
         it('HTTP 200 and expose pool information', (done) => {
-            user.get('/v1/asset_pools/' + poolAddress)
-                .set({ AssetPool: poolAddress, Authorization: dashboardAccessToken })
+            user.get('/v1/pools/' + poolId)
+                .set({ 'X-PoolAddress': poolAddress, 'Authorization': dashboardAccessToken })
                 .expect(async ({ body }: request.Response) => {
                     expect(body.address).toEqual(poolAddress);
                     expect(isAddress(body.token.address)).toEqual(true);
@@ -151,7 +161,7 @@ describe('Default Pool', () => {
     describe('POST /rewards/', () => {
         it('HTTP 302 when reward is added', (done) => {
             user.post('/v1/rewards/')
-                .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
+                .set({ 'X-PoolAddress': poolAddress, 'Authorization': adminAccessToken })
                 .send({
                     title,
                     slug,
@@ -169,19 +179,19 @@ describe('Default Pool', () => {
     describe('GET /rewards/:id', () => {
         it('HTTP 200 when successful', (done) => {
             user.get('/v1/rewards/1')
-                .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
+                .set({ 'X-PoolAddress': poolAddress, 'Authorization': adminAccessToken })
                 .expect(200, done);
         });
 
         it('HTTP 404 if reward can not be found', (done) => {
             user.get('/v1/rewards/2')
-                .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
+                .set({ 'X-PoolAddress': poolAddress, 'Authorization': adminAccessToken })
                 .expect(404, done);
         });
 
         it('HTTP 400 if the id parameter is invalid', (done) => {
             user.get('/v1/rewards/id_invalid')
-                .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
+                .set({ 'X-PoolAddress': poolAddress, 'Authorization': adminAccessToken })
                 .expect(400, done);
         });
     });
@@ -189,7 +199,7 @@ describe('Default Pool', () => {
     describe('GET /rewards/:id (after finalizing)', () => {
         it('HTTP 200 and return updated withdrawAmount and state 1', (done) => {
             user.get('/v1/rewards/1')
-                .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
+                .set({ 'X-PoolAddress': poolAddress, 'Authorization': adminAccessToken })
                 .expect(async (res: request.Response) => {
                     expect(res.body.state).toEqual(1);
                     expect(res.body.title).toEqual(title);
@@ -204,14 +214,14 @@ describe('Default Pool', () => {
         it('HTTP 302 when tx is handled', async () => {
             await user
                 .post('/v1/rewards/1/claim')
-                .set({ AssetPool: poolAddress, Authorization: userAccessToken })
+                .set({ 'X-PoolAddress': poolAddress, 'Authorization': userAccessToken })
                 .send()
                 .expect(200);
         });
 
         it('HTTP 200 after return state Pending', (done) => {
             user.get('/v1/withdrawals?member=' + userWallet.address + '&page=1&limit=2')
-                .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
+                .set({ 'X-PoolAddress': poolAddress, 'Authorization': adminAccessToken })
                 .expect(async (res: request.Response) => {
                     const index = res.body.results.length - 1;
                     const withdrawal = res.body.results[index];
@@ -229,7 +239,7 @@ describe('Default Pool', () => {
                 .send({
                     member: userWallet.address,
                 })
-                .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
+                .set({ 'X-PoolAddress': poolAddress, 'Authorization': adminAccessToken })
                 .expect(async ({ body }: request.Response) => {
                     expect(body.id).toBeDefined();
                     expect(body.sub).toEqual(sub2);
@@ -266,13 +276,13 @@ describe('Default Pool', () => {
                     nonce,
                     sig,
                 })
-                .set({ AssetPool: poolAddress, Authorization: userAccessToken })
+                .set({ 'X-PoolAddress': poolAddress, 'Authorization': userAccessToken })
                 .expect(200);
         });
 
         it('HTTP 200 and return state Withdrawn', (done) => {
             user.get(`/v1/withdrawals/${withdrawDocumentId}`)
-                .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
+                .set({ 'X-PoolAddress': poolAddress, 'Authorization': adminAccessToken })
                 .expect(({ body }: request.Response) => {
                     expect(body.id).toBeDefined();
                     expect(body.amount).toEqual(rewardWithdrawAmount);
@@ -286,7 +296,7 @@ describe('Default Pool', () => {
 
         it('HTTP 200 and have the minted amount balance again', (done) => {
             user.get('/v1/members/' + userWallet.address)
-                .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
+                .set({ 'X-PoolAddress': poolAddress, 'Authorization': adminAccessToken })
                 .expect(async (res: request.Response) => {
                     expect(res.body.token.balance).toBe(rewardWithdrawAmount);
                 })
@@ -294,10 +304,10 @@ describe('Default Pool', () => {
         });
     });
 
-    describe('GET /asset_pools/:address (after withdraw)', () => {
+    describe('GET /pools/:address (after withdraw)', () => {
         it('HTTP 200 and have decreased balance', (done) => {
-            user.get(`/v1/asset_pools/${poolAddress}`)
-                .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
+            user.get(`/v1/pools/${poolId}`)
+                .set({ 'X-PoolAddress': poolAddress, 'Authorization': dashboardAccessToken })
                 .expect(async (res: request.Response) => {
                     // Total supply - 2.5% = 250000 deposit fee - 1000 token reward - 2.5% = 25 withdraw fee
                     expect(res.body.token.poolBalance).toBe(97498975);
@@ -309,7 +319,7 @@ describe('Default Pool', () => {
     describe('GET /withdrawals (before proposed withdrawal)', () => {
         it('HTTP 200 and returns 2 items', (done) => {
             user.get(`/v1/withdrawals?member=${userWallet.address}&page=1&limit=2`)
-                .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
+                .set({ 'X-PoolAddress': poolAddress, 'Authorization': adminAccessToken })
                 .expect(async (res: request.Response) => {
                     expect(res.body.results.length).toBe(2);
                 })
@@ -320,7 +330,7 @@ describe('Default Pool', () => {
     describe('GET /withdrawals for withdrawn state', () => {
         it('HTTP 200 and returns 1 items', (done) => {
             user.get('/v1/withdrawals?state=1&page=1&limit=2')
-                .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
+                .set({ 'X-PoolAddress': poolAddress, 'Authorization': adminAccessToken })
                 .expect(async (res: request.Response) => {
                     expect(res.body.results.length).toBe(1);
                 })
@@ -329,7 +339,7 @@ describe('Default Pool', () => {
 
         it('HTTP 200 and returns 2 item for state = 0', (done) => {
             user.get('/v1/withdrawals?state=0&page=1&limit=2')
-                .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
+                .set({ 'X-PoolAddress': poolAddress, 'Authorization': adminAccessToken })
                 .expect(async (res: request.Response) => {
                     expect(res.body.results.length).toBe(1);
                 })
@@ -338,7 +348,7 @@ describe('Default Pool', () => {
 
         it('HTTP 200 and returns 0 items for state = 0 and rewardId = 1 since rewardId 2 does not exist.', (done) => {
             user.get('/v1/withdrawals?state=0&rewardId=2&page=1&limit=2')
-                .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
+                .set({ 'X-PoolAddress': poolAddress, 'Authorization': adminAccessToken })
                 .expect(async (res: request.Response) => {
                     expect(res.body.results.length).toBe(0);
                 })
@@ -347,7 +357,7 @@ describe('Default Pool', () => {
 
         it('HTTP 200 and returns 1 item for state = 1 and rewardId = 1', (done) => {
             user.get('/v1/withdrawals?state=1&rewardId=1&page=1&limit=2')
-                .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
+                .set({ 'X-PoolAddress': poolAddress, 'Authorization': adminAccessToken })
                 .expect(async (res: request.Response) => {
                     expect(res.body.results.length).toBe(1);
                 })
@@ -356,7 +366,7 @@ describe('Default Pool', () => {
 
         it('HTTP 200 and returns 1 item state = 1 and rewardId = 1 and member address', (done) => {
             user.get(`/v1/withdrawals?member=${userWallet.address}&state=1&rewardId=1&page=1&limit=2`)
-                .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
+                .set({ 'X-PoolAddress': poolAddress, 'Authorization': adminAccessToken })
                 .expect(async (res: request.Response) => {
                     expect(res.body.results.length).toBe(1);
                 })
@@ -365,7 +375,7 @@ describe('Default Pool', () => {
 
         it('HTTP 200 and returns 0 items for unknown rewardId', (done) => {
             user.get('/v1/withdrawals?state=1&rewardId=2&page=1&limit=2')
-                .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
+                .set({ 'X-PoolAddress': poolAddress, 'Authorization': adminAccessToken })
                 .expect(async (res: request.Response) => {
                     expect(res.body.results.length).toBe(0);
                 })
@@ -374,7 +384,7 @@ describe('Default Pool', () => {
 
         it('HTTP 200 and returns 2 items for page=1 and limit=2', (done) => {
             user.get('/v1/withdrawals?page=1&limit=2')
-                .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
+                .set({ 'X-PoolAddress': poolAddress, 'Authorization': adminAccessToken })
                 .expect(async (res: request.Response) => {
                     expect(res.body.results.length).toBe(2);
                     expect(res.body.previous).toBeUndefined();

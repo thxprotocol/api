@@ -214,7 +214,7 @@
         "responses": {}
       }
     },
-    "/asset_pools/": {
+    "/pools/": {
       "post": {
         "tags": [
           "Pools"
@@ -259,12 +259,12 @@
         }
       }
     },
-    "/asset_pools/{address}/members": {
+    "/pools/{id}/members": {
       "get": {
         "description": "",
         "parameters": [
           {
-            "name": "address",
+            "name": "id",
             "in": "path",
             "required": true,
             "type": "string"
@@ -287,7 +287,7 @@
         }
       }
     },
-    "/asset_pools/{address}": {
+    "/pools/{id}": {
       "get": {
         "tags": [
           "Pools"
@@ -295,7 +295,7 @@
         "description": "",
         "parameters": [
           {
-            "name": "address",
+            "name": "id",
             "in": "path",
             "required": true,
             "type": "string"
@@ -314,7 +314,7 @@
         "description": "",
         "parameters": [
           {
-            "name": "address",
+            "name": "id",
             "in": "path",
             "required": true,
             "type": "string"
@@ -882,7 +882,7 @@
         }
       }
     },
-    "/promo_codes/": {
+    "/promotions/": {
       "post": {
         "tags": [
           "Promotions"
@@ -941,7 +941,7 @@
         }
       }
     },
-    "/promo_codes/{id}": {
+    "/promotions/{id}": {
       "get": {
         "tags": [
           "Promotions"

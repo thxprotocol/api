@@ -56,7 +56,7 @@ export default class MembershipService {
         });
 
         if (!membership) {
-            const address = await assetPool.contract.methods.getToken().call();
+            const address = await assetPool.contract.methods.getERC20().call();
             let erc20 = await ERC20Service.findBy({ network: assetPool.network, address });
 
             if (!erc20) {

@@ -1,5 +1,5 @@
-import { assertEvent, parseLogs } from '@/util/events';
-import { ERC20Type, NetworkProvider } from '@/types/enums';
+import { CustomEventLog, findEvent } from '@/util/events';
+import { NetworkProvider } from '@/types/enums';
 import { AssetPool, AssetPoolDocument } from '@/models/AssetPool';
 import { getProvider } from '@/util/network';
 import { toChecksumAddress } from 'web3-utils';
@@ -10,12 +10,8 @@ import { logger } from '@/util/logger';
 import { pick } from '@/util';
 import { diamondSelectors, getDiamondCutForContractFacets, updateDiamondContract } from '@/util/upgrades';
 import { currentVersion, DiamondVariant } from '@thxnetwork/artifacts';
-import ERC20Service from './ERC20Service';
-import { ERC721Document } from '@/models/ERC721';
-import { keccak256, toUtf8Bytes } from 'ethers/lib/utils';
-import { getCodeForAddressOnNetwork } from '@/util/code';
+import { TransactionDocument } from '@/models/Transaction';
 
-export const MINTER_ROLE = keccak256(toUtf8Bytes('MINTER_ROLE'));
 export const ADMIN_ROLE = '0x0000000000000000000000000000000000000000000000000000000000000000';
 
 export default class AssetPoolService {
@@ -30,80 +26,55 @@ export default class AssetPoolService {
         });
     }
 
+    static getById(id: string) {
+        return AssetPool.findById(id);
+    }
+
     static getByAddress(address: string) {
         return AssetPool.findOne({ address });
     }
 
-    static async setERC20(assetPool: AssetPoolDocument, tokenAddress: string) {
-        await getCodeForAddressOnNetwork(tokenAddress, assetPool.network);
-
-        await TransactionService.send(
-            assetPool.contract.options.address,
-            assetPool.contract.methods.addToken(tokenAddress),
-            assetPool.network,
-        );
-
-        // Try to get ERC20 from db first so we can determine its type, if not available,
-        // construct a contract here
-        const erc20 = await ERC20Service.findBy({ network: assetPool.network, address: tokenAddress });
-
-        // Add this pool as a minter in case of an UnlimitedSupplyToken
-        if (erc20 && erc20.type === ERC20Type.Unlimited) {
-            await TransactionService.send(
-                erc20.address,
-                erc20.contract.methods.grantRole(MINTER_ROLE, assetPool.address),
-                erc20.network,
-            );
-        }
-    }
-
-    static async setERC721(assetPool: AssetPoolDocument, erc721: ERC721Document) {
-        await getCodeForAddressOnNetwork(erc721.address, assetPool.network);
-
-        await TransactionService.send(
-            assetPool.contract.options.address,
-            assetPool.contract.methods.setERC721(erc721.address),
-            assetPool.network,
-        );
-        await TransactionService.send(
-            erc721.contract.options.address,
-            erc721.contract.methods.grantRole(MINTER_ROLE, assetPool.address),
-            erc721.network,
-        );
-    }
-
-    static async deploy(sub: string, network: NetworkProvider, variant: DiamondVariant = 'defaultPool') {
+    static async deploy(
+        sub: string,
+        network: NetworkProvider,
+        variant: DiamondVariant = 'defaultPool',
+        tokenAddress: string,
+    ): Promise<AssetPoolDocument> {
         const poolFactory = getContract(network, 'PoolFactory', currentVersion);
         const registry = getContract(network, 'PoolRegistry', currentVersion);
-        const poolContracts = diamondContracts(network, variant);
-
-        let deployFn;
-        if (variant === 'defaultPool')
-            deployFn = poolFactory.methods.deployAssetPool(
-                getDiamondCutForContractFacets(poolContracts, []),
-                registry.options.address,
-            );
-        if (variant === 'nftPool')
-            deployFn = poolFactory.methods.deployNFTPool(getDiamondCutForContractFacets(poolContracts, []));
-
-        const { receipt } = await TransactionService.send(poolFactory.options.address, deployFn, network);
-        const event = assertEvent('AssetPoolDeployed', parseLogs(poolFactory.options.jsonInterface, receipt.logs));
-        const assetPool = new AssetPool({
+        const poolFacetContracts = diamondContracts(network, variant);
+        const pool = new AssetPool({
             sub,
-            address: event.args.assetPool,
-            blockNumber: event.blockNumber,
-            transactionHash: event.transactionHash,
-            bypassPolls: true,
             network: network,
             variant,
             version: currentVersion,
         });
 
-        return assetPool;
+        let fn, args;
+        if (variant === 'defaultPool') {
+            fn = 'deployDefaultPool';
+            args = [getDiamondCutForContractFacets(poolFacetContracts, []), registry.options.address, tokenAddress];
+        }
+
+        if (variant === 'nftPool') {
+            fn = 'deployNFTPool';
+            args = [getDiamondCutForContractFacets(poolFacetContracts, []), tokenAddress];
+        }
+
+        const callback = async (tx: TransactionDocument, events?: CustomEventLog[]): Promise<AssetPoolDocument> => {
+            if (events) {
+                const event = findEvent('PoolDeployed', events);
+                pool.address = event.args.pool;
+            }
+            pool.transactions.push(String(tx._id));
+
+            return await pool.save();
+        };
+        return await TransactionService.relay(poolFactory, fn, args, network, callback);
     }
 
     static async getAllBySub(sub: string) {
-        return (await AssetPool.find({ sub })).map((pool) => pool.address);
+        return await AssetPool.find({ sub });
     }
 
     static getAll() {

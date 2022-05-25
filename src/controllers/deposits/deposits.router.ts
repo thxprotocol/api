@@ -31,8 +31,8 @@ router.post(
     '/',
     assertScopes(['user', 'deposits:read', 'deposits:write']),
     assertAssetPoolAccess,
-    assertRequestInput(CreateDeposit.validation),
     requireAssetPoolHeader,
+    assertRequestInput(CreateDeposit.validation),
     assertPlan([AccountPlanType.Basic, AccountPlanType.Premium]),
     CreateDeposit.controller,
 );

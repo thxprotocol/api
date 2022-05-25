@@ -33,9 +33,9 @@ describe('Transfer Pool Ownership', () => {
 
     afterAll(afterAllCallback);
 
-    describe('POST /asset_pools', () => {
+    describe('POST /pools', () => {
         it('HTTP 201 (success)', (done) => {
-            user.post('/v1/asset_pools')
+            user.post('/v1/pools')
                 .set('Authorization', dashboardAccessToken)
                 .send({
                     network: NetworkProvider.Main,
@@ -51,14 +51,14 @@ describe('Transfer Pool Ownership', () => {
         it('HTTP 302 when member is added', (done) => {
             user.post('/v1/members/')
                 .send({ address: userWallet.address })
-                .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
+                .set({ 'X-PoolAddress': poolAddress, 'Authorization': adminAccessToken })
                 .expect(302, done);
         });
 
         it('HTTP 302 when member is promoted', (done) => {
             user.patch(`/v1/members/${userWallet.address}`)
                 .send({ isManager: true })
-                .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
+                .set({ 'X-PoolAddress': poolAddress, 'Authorization': adminAccessToken })
                 .expect(302, done);
         });
     });

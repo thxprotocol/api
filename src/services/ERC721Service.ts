@@ -12,6 +12,7 @@ import { getContract } from '@/config/contracts';
 import { currentVersion } from '@thxnetwork/artifacts';
 import { ERC721Token, ERC721TokenDocument } from '@/models/ERC721Token';
 import { TAssetPool } from '@/types/TAssetPool';
+import { keccak256, toUtf8Bytes } from 'ethers/lib/utils';
 
 async function create(data: TERC721): Promise<ERC721Document> {
     const { admin } = getProvider(data.network);
@@ -67,7 +68,7 @@ export async function mint(
     });
 
     if (ITX_ACTIVE) {
-        const tx = await InfuraService.schedule(
+        const tx = await InfuraService.create(
             assetPool.address,
             'mintFor',
             [recipient, String(metadata._id)],
@@ -109,6 +110,16 @@ export async function parseAttributes(entry: ERC721MetadataDocument) {
     }
 
     return attrs;
+}
+
+async function addMinter(erc721: ERC721Document, address: string) {
+    const { receipt } = await TransactionService.send(
+        erc721.address,
+        erc721.contract.methods.grantRole(keccak256(toUtf8Bytes('MINTER_ROLE')), address),
+        erc721.network,
+    );
+
+    assertEvent('RoleGranted', parseLogs(erc721.contract.options.jsonInterface, receipt.logs));
 }
 
 async function findTokenById(id: string): Promise<ERC721TokenDocument> {
@@ -166,5 +177,6 @@ export default {
     findTokensByRecipient,
     findByPool,
     findByQuery,
+    addMinter,
     parseAttributes,
 };
