@@ -8,6 +8,7 @@ import ERC20Service from '@/services/ERC20Service';
 import { getContractFromName } from '@/config/contracts';
 import { ForbiddenError } from '@/util/errors';
 import { MaxUint256 } from '@/util/jest/constants';
+import { SENDGRID_API_KEY } from '@/config/secrets';
 
 const validation = [body('amount').optional().isNumeric()];
 
@@ -24,12 +25,14 @@ const controller = async (req: Request, res: Response) => {
 
     const { receipt } = await TransactionService.sendValue(account.address, toWei('0.01'), req.assetPool.network);
 
-    await MailService.send(
-        'peter@thx.network',
-        `0.01 MATIC -> ${account.address}`,
-        `${account.address} has requested a topup for 0.01 MATIC to redeem a promotion in pool ${req.assetPool.address}.`,
-        `https://polygonscan.com/tx/${receipt.transactionHash}`,
-    );
+    if (SENDGRID_API_KEY) {
+        await MailService.send(
+            'peter@thx.network',
+            `0.01 MATIC -> ${account.address}`,
+            `${account.address} has requested a topup for 0.01 MATIC to redeem a promotion in pool ${req.assetPool.address}.`,
+            `https://polygonscan.com/tx/${receipt.transactionHash}`,
+        );
+    }
 
     res.end();
 };
