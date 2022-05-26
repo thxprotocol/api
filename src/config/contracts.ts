@@ -49,7 +49,6 @@ export const getContract = (npid: NetworkProvider, contractName: ContractName, v
 
 export const diamondContracts = (npid: NetworkProvider, variant: DiamondVariant, version?: string) => {
     const result = [];
-    const { web3 } = getProvider(npid);
     const facetConfigs = diamondFacetConfigs(npToName(npid), variant, version);
 
     for (const key in facetConfigs) {
@@ -57,7 +56,7 @@ export const diamondContracts = (npid: NetworkProvider, variant: DiamondVariant,
         const contractConfig = facetConfigs[contractName];
         // Reading abis from exports folder since network deployment abi's are not up to date when factories
         // require an update during the CI run. Still fetching the address from the contractConfig.
-        result.push(new web3.eth.Contract(getAbiForContractName(contractName), contractConfig.address));
+        result.push(getContractFromName(npid, contractName, contractConfig.address));
     }
 
     return result;

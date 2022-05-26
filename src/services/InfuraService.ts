@@ -117,9 +117,7 @@ async function send(contract: Contract, tx: TransactionDocument) {
     await provider.send('relay_sendTransaction', [options, signedMessage]);
 
     tx.state = TransactionState.Sent;
-    await tx.save();
-
-    return tx;
+    return await tx.save();
 }
 
 async function getTransactionStatus(tx: TransactionDocument) {
