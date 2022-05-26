@@ -252,7 +252,7 @@ describe('Deposits', () => {
                 .expect(async () => {
                     const adminBalance: BigNumber = await testToken.methods.balanceOf(admin.address).call();
                     const poolBalance: BigNumber = await testToken.methods.balanceOf(poolAddress).call();
-                    expect(String(poolBalance)).toBe('97500000000000000000'); // 100 eth - protocol fee = 97.5 eth
+                    expect(String(poolBalance)).toBe('100000000000000000000'); // 100 eth - protocol fee = 97.5 eth
                     expect(String(adminBalance)).toBe('100000000000000000000'); // 100 eth
                 })
                 .expect(200, done);

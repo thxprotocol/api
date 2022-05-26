@@ -5,9 +5,10 @@ import { DepositState } from '@/types/enums/DepositState';
 import TransactionService from './TransactionService';
 import InfuraService from './InfuraService';
 import { ITX_ACTIVE } from '@/config/secrets';
-import { assertEvent, findEvent, hex2a, parseLogs } from '@/util/events';
+import { assertEvent, CustomEventLog, findEvent, hex2a, parseLogs } from '@/util/events';
 import { InternalServerError } from '@/util/errors';
 import { logger } from '@/util/logger';
+import { TransactionDocument } from '@/models/Transaction';
 
 async function get(assetPool: TAssetPool, depositId: number): Promise<DepositDocument> {
     const deposit = await Deposit.findOne({ poolAddress: assetPool.address, id: depositId });
@@ -86,35 +87,22 @@ async function depositForAdmin(assetPool: TAssetPool, account: IAccount, amount:
         state: DepositState.Pending,
     });
 
-    if (ITX_ACTIVE) {
-        const tx = await InfuraService.create(assetPool.address, 'deposit', [amount], assetPool.network);
-
-        deposit.transactions.push(String(tx._id));
-
-        return await deposit.save();
-    } else {
-        try {
-            const { tx, receipt } = await TransactionService.send(
-                assetPool.address,
-                assetPool.contract.methods.deposit(amount),
-                assetPool.network,
-                500000,
-            );
-
-            const events = parseLogs(assetPool.contract.options.jsonInterface, receipt.logs);
-
-            assertEvent('Depositted', events);
+    return await TransactionService.relay(
+        assetPool.contract,
+        'topup',
+        [amount],
+        assetPool.network,
+        async (tx: TransactionDocument, events: CustomEventLog[]) => {
+            if (events) {
+                assertEvent('Topup', events);
+                deposit.state = DepositState.Completed;
+            }
 
             deposit.transactions.push(String(tx._id));
-            deposit.state = DepositState.Completed;
 
             return await deposit.save();
-        } catch (error) {
-            logger.error(error);
-            deposit.failReason = error.message;
-            throw error;
-        }
-    }
+        },
+    );
 }
 
 export default { get, getAll, deposit, depositForAdmin };
