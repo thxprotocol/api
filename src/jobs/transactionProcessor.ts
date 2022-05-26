@@ -27,7 +27,7 @@ async function getContractForTransaction(tx: TransactionDocument) {
         abi = getDiamondAbi(tx.network, 'tokenFactory') as unknown as ethers.ContractInterface;
     }
 
-    return new ethers.Contract(tx.to, abi);
+    return { contract: new ethers.Contract(tx.to, abi), abi };
 }
 
 export async function jobProcessTransactions() {
@@ -40,7 +40,7 @@ export async function jobProcessTransactions() {
     for (const tx of transactions) {
         try {
             // Get the related ethers contract for this transaction (pool, poolFactory, tokenFactory)
-            const contract = await getContractForTransaction(tx);
+            const { contract, abi } = await getContractForTransaction(tx);
             // If the TX does not have a relayTransactionHash yet, send it first. This might occur if
             // a tx is scheduled but not send yet.
             if (!tx.relayTransactionHash) {
@@ -62,7 +62,7 @@ export async function jobProcessTransactions() {
 
                 if (!receipt) return;
 
-                const events = parseLogs(contract.options.jsonInterface, receipt.logs);
+                const events = parseLogs(abi, receipt.logs);
                 const result = findEvent('Result', events);
 
                 if (result && !result.args.success) {

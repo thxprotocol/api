@@ -70,6 +70,7 @@ export default class AssetPoolService {
 
             return await pool.save();
         };
+
         return await TransactionService.relay(poolFactory, fn, args, network, callback);
     }
 

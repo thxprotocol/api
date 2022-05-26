@@ -94,15 +94,12 @@ async function create(to: string, fn: string, args: any[], npid: NetworkProvider
     });
 }
 
-async function send(solution: Contract, tx: TransactionDocument) {
+async function send(contract: Contract, tx: TransactionDocument) {
     const { provider, admin } = getProvider(tx.network);
-
-    solution.connect(admin);
-
     // Get the relayed call data, nonce and signature for this contract call
-    const { call, nonce, sig } = await getCallData(solution, tx.call.fn, JSON.parse(tx.call.args), admin);
+    const { call, nonce, sig } = await getCallData(contract, tx.call.fn, JSON.parse(tx.call.args), admin);
     // Encode a relay call with the relayed call data
-    const data = solution.interface.encodeFunctionData('call', [call, nonce, sig]);
+    const data = contract.interface.encodeFunctionData('call', [call, nonce, sig]);
     // Sign the req with the ITX gas tank admin
     const options = {
         to: tx.to,
