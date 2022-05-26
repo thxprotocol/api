@@ -11,9 +11,9 @@ import { ethers } from 'ethers';
 import { getContractConfig, getDiamondAbi } from '@/config/contracts';
 
 async function getContractForTransaction(tx: TransactionDocument) {
-    let abi: ethers.ContractInterface;
-
+    const { admin } = InfuraService.getProvider(tx.network);
     const pool = await AssetPoolService.getByAddress(tx.to);
+    let abi: ethers.ContractInterface;
 
     if (pool) {
         abi = getDiamondAbi(tx.network, pool.variant as DiamondVariant) as unknown as ethers.ContractInterface;
@@ -27,7 +27,7 @@ async function getContractForTransaction(tx: TransactionDocument) {
         abi = getDiamondAbi(tx.network, 'tokenFactory') as unknown as ethers.ContractInterface;
     }
 
-    return { contract: new ethers.Contract(tx.to, abi), abi };
+    return { contract: new ethers.Contract(tx.to, abi, admin), abi };
 }
 
 export async function jobProcessTransactions() {

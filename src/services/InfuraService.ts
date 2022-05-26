@@ -174,4 +174,5 @@ export default {
     getTransactionStatus,
     pollTransactionStatus,
     scheduled,
+    getProvider,
 };
