@@ -75,7 +75,7 @@ async function sendValue(to: string, value: string, npid: NetworkProvider) {
 
 async function relay(
     contract: Contract,
-    fn: any,
+    fn: string,
     args: any[],
     npid: NetworkProvider,
     callback: (tx: TransactionDocument, events?: CustomEventLog[]) => Promise<Document>,
@@ -84,7 +84,6 @@ async function relay(
     // if (ITX_ACTIVE) {
     //     return await callback(await InfuraService.create(contract.options.address, fn, args, npid));
     // }
-
     const { tx, receipt } = await send(contract.options.address, contract.methods[fn](...args), npid);
     const events = parseLogs(contract.options.jsonInterface, receipt.logs);
     const result = findEvent('Result', events);

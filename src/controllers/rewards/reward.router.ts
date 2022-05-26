@@ -8,7 +8,7 @@ import UpdateReward from './patch.controller';
 import ListRewards from './list.controller';
 import CreateRewardClaim from './claim/post.controller';
 import CreateRewardGive from './give/post.controller';
-import { rateLimitRewardClaim, rateLimitRewardGive } from '@/util/ratelimiter';
+import { rateLimitRewardGive } from '@/util/ratelimiter';
 
 const router = express.Router();
 
