@@ -1,5 +1,5 @@
 import { CustomEventLog, findEvent } from '@/util/events';
-import { NetworkProvider } from '@/types/enums';
+import { ERC20Type, NetworkProvider } from '@/types/enums';
 import { AssetPool, AssetPoolDocument } from '@/models/AssetPool';
 import { getProvider } from '@/util/network';
 import { toChecksumAddress } from 'web3-utils';
@@ -11,6 +11,10 @@ import { pick } from '@/util';
 import { diamondSelectors, getDiamondCutForContractFacets, updateDiamondContract } from '@/util/upgrades';
 import { currentVersion, DiamondVariant } from '@thxnetwork/artifacts';
 import { TransactionDocument } from '@/models/Transaction';
+import MembershipService from './MembershipService';
+import ERC20Service from './ERC20Service';
+import ERC721Service from './ERC721Service';
+import { ITX_ACTIVE } from '@/config/secrets';
 
 export const ADMIN_ROLE = '0x0000000000000000000000000000000000000000000000000000000000000000';
 
@@ -72,6 +76,22 @@ export default class AssetPoolService {
         };
 
         return await TransactionService.relay(poolFactory, fn, args, network, callback);
+    }
+
+    static async initialize(pool: AssetPoolDocument, tokenAddress: string) {
+        if (pool.variant === 'defaultPool') {
+            const erc20 = await ERC20Service.findBy({ network: pool.network, address: tokenAddress });
+            if (erc20 && erc20.type === ERC20Type.Unlimited) {
+                await ERC20Service.addMinter(erc20, pool.address);
+            }
+            await MembershipService.addERC20Membership(pool.sub, pool);
+        }
+
+        if (pool.variant === 'nftPool') {
+            const erc721 = await ERC721Service.findByQuery({ address: tokenAddress, network: pool.network });
+            await ERC721Service.addMinter(erc721, pool.address);
+            await MembershipService.addERC721Membership(pool.sub, pool);
+        }
     }
 
     static async getAllBySub(sub: string) {

@@ -2,13 +2,13 @@ import { Deposit } from '@/models/Deposit';
 import { TransactionDocument } from '@/models/Transaction';
 import { Withdrawal } from '@/models/Withdrawal';
 import MemberService from '@/services/MemberService';
+import AssetPoolService from '@/services/AssetPoolService';
 import { DepositState, WithdrawalState } from '@/types/enums';
 import { ERC721TokenState } from '@/types/TERC721';
 import { CustomEventLog, findEvent } from './events';
 import { ERC721Token } from '@/models/ERC721Token';
 import { logger } from './logger';
 import { AssetPool } from '@/models/AssetPool';
-import CreatePoolController from '@/controllers/pools/post.controller';
 
 type CustomEventHandler = (event?: CustomEventLog) => Promise<void>;
 
@@ -30,7 +30,7 @@ async function handleEvents(tx: TransactionDocument, events: CustomEventLog[]) {
             pool.address = event.args.pool;
             await pool.save();
 
-            await CreatePoolController.initialize(pool, event.args.token);
+            await AssetPoolService.initialize(pool, event.args.token);
         },
         ERC721Minted: async function (event?: CustomEventLog) {
             await ERC721Token.updateOne(
