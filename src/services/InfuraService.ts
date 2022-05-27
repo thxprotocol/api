@@ -105,7 +105,7 @@ async function send(contract: Contract, tx: TransactionDocument) {
         to: tx.to,
         data,
         // Hardcode value since relayed calls are not estimated correctly
-        gas: '500000',
+        gas: '4000000',
         schedule: 'fast',
     };
     // relayTransactionHash is generated based on encoded transaction abi and could be predetermined

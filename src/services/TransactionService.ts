@@ -84,6 +84,7 @@ async function relay(
     if (ITX_ACTIVE) {
         return await callback(await InfuraService.create(contract.options.address, fn, args, npid));
     }
+
     const { tx, receipt } = await send(contract.options.address, contract.methods[fn](...args), npid);
     const events = parseLogs(contract.options.jsonInterface, receipt.logs);
     const result = findEvent('Result', events);
