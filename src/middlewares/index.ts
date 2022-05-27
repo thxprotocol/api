@@ -8,3 +8,4 @@ export * from './notFoundHandler';
 export * from './corsHandler';
 export * from './checkJwt';
 export * from './assertPlan';
+export * from './assertPoolOwner';

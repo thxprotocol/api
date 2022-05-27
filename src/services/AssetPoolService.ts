@@ -14,19 +14,25 @@ import { TransactionDocument } from '@/models/Transaction';
 import MembershipService from './MembershipService';
 import ERC20Service from './ERC20Service';
 import ERC721Service from './ERC721Service';
-import { ITX_ACTIVE } from '@/config/secrets';
 
 export const ADMIN_ROLE = '0x0000000000000000000000000000000000000000000000000000000000000000';
 
 export default class AssetPoolService {
-    static getByClientIdAndAddress(clientId: string, address: string) {
-        return AssetPool.find({ clientId, address });
+    static isPoolClient(clientId: string, address: string) {
+        return AssetPool.exists({ clientId, address });
     }
 
-    static isAssetPoolMember(sub: string, poolAddress: string) {
+    static isPoolMember(sub: string, poolAddress: string) {
         return Membership.exists({
             sub,
             poolAddress,
+        });
+    }
+
+    static isPoolOwner(sub: string, address: string) {
+        return AssetPool.exists({
+            sub,
+            address,
         });
     }
 

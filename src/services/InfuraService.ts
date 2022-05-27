@@ -98,14 +98,15 @@ async function send(contract: Contract, tx: TransactionDocument) {
     const { provider, admin } = getProvider(tx.network);
     // Get the relayed call data, nonce and signature for this contract call
     const { call, nonce, sig } = await getCallData(contract, tx.call.fn, JSON.parse(tx.call.args), admin);
-    // Encode a relay call with the relayed call data
+    const gas = await contract.estimateGas.call(call, nonce, sig);
     const data = contract.interface.encodeFunctionData('call', [call, nonce, sig]);
     // Sign the req with the ITX gas tank admin
     const options = {
         to: tx.to,
         data,
         // Hardcode value since relayed calls are not estimated correctly
-        gas: '4000000',
+        // gas: '4000000',
+        gas,
         schedule: 'fast',
     };
     // relayTransactionHash is generated based on encoded transaction abi and could be predetermined

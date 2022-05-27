@@ -1,17 +1,21 @@
 import { Request, Response } from 'express';
 import { param } from 'express-validator';
+import { ForbiddenError } from '@/util/errors';
 import ClientService from '@/services/ClientService';
 import WithdrawalService from '@/services/WithdrawalService';
 import MemberService from '@/services/MemberService';
 import ERC20Service from '@/services/ERC20Service';
 import ERC721Service from '@/services/ERC721Service';
-import { ForbiddenError } from '@/util/errors';
 
 export const validation = [param('id').isMongoId()];
 
 export const controller = async (req: Request, res: Response) => {
     // #swagger.tags = ['Pools']
     if (req.assetPool.sub !== req.user.sub) throw new ForbiddenError('Only the pool owner can access this pool info');
+
+    if (!req.assetPool.address) {
+        return res.json(req.assetPool.toJSON());
+    }
 
     let token;
     if (req.assetPool.variant === 'defaultPool') {

@@ -19,6 +19,7 @@ const assetPoolSchema = new mongoose.Schema(
 );
 
 assetPoolSchema.virtual('contract').get(function () {
+    if (!this.address) return;
     return getContractFromAbi(this.network, getDiamondAbi(this.network, this.variant || 'defaultPool'), this.address);
 });
 
