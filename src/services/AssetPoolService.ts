@@ -1,5 +1,5 @@
-import { CustomEventLog, findEvent } from '@/util/events';
-import { ERC20Type, NetworkProvider } from '@/types/enums';
+import { assertEvent, CustomEventLog, findEvent } from '@/util/events';
+import { DepositState, ERC20Type, NetworkProvider } from '@/types/enums';
 import { AssetPool, AssetPoolDocument } from '@/models/AssetPool';
 import { getProvider } from '@/util/network';
 import { toChecksumAddress } from 'web3-utils';
@@ -14,6 +14,9 @@ import { TransactionDocument } from '@/models/Transaction';
 import MembershipService from './MembershipService';
 import ERC20Service from './ERC20Service';
 import ERC721Service from './ERC721Service';
+import { Deposit } from '@/models/Deposit';
+import { IAccount } from '@/models/Account';
+import { TAssetPool } from '@/types/TAssetPool';
 
 export const ADMIN_ROLE = '0x0000000000000000000000000000000000000000000000000000000000000000';
 
@@ -82,6 +85,33 @@ export default class AssetPoolService {
         };
 
         return await TransactionService.relay(poolFactory, fn, args, network, callback);
+    }
+
+    static async topup(assetPool: TAssetPool, amount: string) {
+        const { admin } = getProvider(assetPool.network);
+        const deposit = await Deposit.create({
+            amount,
+            sender: admin.address,
+            receiver: assetPool.address,
+            state: DepositState.Pending,
+        });
+
+        return await TransactionService.relay(
+            assetPool.contract,
+            'topup',
+            [amount],
+            assetPool.network,
+            async (tx: TransactionDocument, events: CustomEventLog[]) => {
+                if (events) {
+                    assertEvent('Topup', events);
+                    deposit.state = DepositState.Completed;
+                }
+
+                deposit.transactions.push(String(tx._id));
+
+                return await deposit.save();
+            },
+        );
     }
 
     static async initialize(pool: AssetPoolDocument, tokenAddress: string) {

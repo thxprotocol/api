@@ -5,12 +5,12 @@ import { TDeposit } from '@/types/TDeposit';
 const controller = async (req: Request, res: Response) => {
     // #swagger.tags = ['Deposits']
     const deposits = await DepositService.getAll(req.assetPool);
-    const result = deposits.map(deposit => {
+    const result = deposits.map((deposit) => {
         const result: TDeposit = {
-            ...deposit
-        }; 
+            ...deposit,
+        };
         return result;
-    })
+    });
 
     res.json(result);
 };

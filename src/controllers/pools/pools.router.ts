@@ -1,12 +1,19 @@
 import express from 'express';
 import assertScopes from 'express-jwt-authz';
-import { assertRequestInput, assertPlan, assertPoolOwner } from '@/middlewares';
+import {
+    assertRequestInput,
+    assertPlan,
+    assertPoolOwner,
+    assertAssetPoolAccess,
+    requireAssetPoolHeader,
+} from '@/middlewares';
 import { AccountPlanType } from '@/types/enums';
 import CreatePool from './post.controller';
 import ReadPool from './get.controller';
 import DeletePool from './delete.controller';
 import ListPools from './list.controller';
 import ListPoolMembers from './members/list.controller';
+import CreatePoolTopup from './topup/post.controller';
 
 const router = express.Router();
 
@@ -35,5 +42,14 @@ router.delete(
     assertPoolOwner,
     assertPlan([AccountPlanType.Basic, AccountPlanType.Premium]),
     DeletePool.controller,
+);
+router.post(
+    '/:id/topup',
+    assertScopes(['dashboard', 'deposits:read', 'deposits:write']),
+    assertAssetPoolAccess,
+    assertRequestInput(CreatePoolTopup.validation),
+    requireAssetPoolHeader,
+    assertPlan([AccountPlanType.Basic, AccountPlanType.Premium]),
+    CreatePoolTopup.controller,
 );
 export default router;

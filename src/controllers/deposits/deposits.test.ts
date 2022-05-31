@@ -26,6 +26,7 @@ describe('Deposits', () => {
         promoCode: IPromoCodeResponse,
         userWallet: Account,
         tokenAddress: string,
+        poolId: string,
         testToken: Contract;
 
     const value = 'XX78WEJ1219WZ';
@@ -236,6 +237,7 @@ describe('Deposits', () => {
                 .expect(async (res: request.Response) => {
                     expect(isAddress(res.body.address)).toBe(true);
                     poolAddress = res.body.address;
+                    poolId = res.body._id;
                     const adminBalance: BigNumber = await testToken.methods.balanceOf(admin.address).call();
                     const poolBalance: BigNumber = await testToken.methods.balanceOf(poolAddress).call();
                     expect(String(poolBalance)).toBe('0');
@@ -246,7 +248,7 @@ describe('Deposits', () => {
 
         it('POST /deposits/admin/ 200 OK', (done) => {
             const amount = fromWei('100000000000000000000', 'ether'); // 100 eth
-            http.post('/v1/deposits/admin')
+            http.post(`/v1/pools/${poolId}/topup`)
                 .set({ 'Authorization': dashboardAccessToken, 'X-PoolAddress': poolAddress })
                 .send({ amount })
                 .expect(async () => {
