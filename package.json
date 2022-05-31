@@ -27,6 +27,8 @@
         "migrate:down": "migrate-mongo down -f src/migrate-mongo-config.js && npm run migrate:status"
     },
     "dependencies": {
+        "@aws-sdk/client-s3": "^3.100.0",
+        "@aws-sdk/s3-request-presigner": "^3.100.0",
         "@godaddy/terminus": "^4.9.0",
         "@sendgrid/mail": "^7.6.2",
         "@thxnetwork/artifacts": "^3.1.18",
@@ -51,9 +53,11 @@
         "mongoose": "^6.2.1",
         "morgan": "^1.10.0",
         "morgan-json": "^1.1.0",
+        "multer": "^1.4.4",
         "newrelic": "^8.9.0",
         "qrcode": "^1.5.0",
         "semver": "^7.3.5",
+        "short-uuid": "^4.2.0",
         "swagger-autogen": "^2.21.1",
         "swagger-jsdoc": "^6.1.0",
         "swagger-ui-express": "^4.3.0",
@@ -64,6 +68,7 @@
     "devDependencies": {
         "@types/bluebird": "^3.5.27",
         "@types/compression": "^1.0.1",
+        "@types/multer": "^1.4.7",
         "@types/eslint": "^6.1.1",
         "@types/express": "^4.17.1",
         "@types/express-rate-limit": "^5.1.3",

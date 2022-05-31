@@ -18,6 +18,7 @@ router.get(
     ReadERC721.controller,
 );
 router.post('/', assertScopes(['dashboard']), assertRequestInput(CreateERC721.validation), CreateERC721.controller);
+
 router.post(
     '/:id/metadata/:metadataId/mint',
     assertScopes(['dashboard']),
