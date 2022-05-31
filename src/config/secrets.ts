@@ -21,6 +21,11 @@ const required = [
     'MAX_FEE_PER_GAS',
     'MAINNET_NETWORK_NAME',
     'TESTNET_NETWORK_NAME',
+    'AWS_BUCKET_NAME',
+    'AWS_BUCKET_REGION',
+    'AWS_ACCESS_KEY',
+    'AWS_SECRET_KEY',
+    'AWS_ARN_KEY',
 ];
 
 required.forEach((value: string) => {
@@ -69,3 +74,8 @@ export const TESTNET_INFURA_GAS_TANK = process.env.TESTNET_INFURA_GAS_TANK;
 export const INFURA_GAS_TANK = process.env.INFURA_GAS_TANK;
 export const SENDGRID_API_KEY = process.env.SENDGRID_API_KEY;
 export const ITX_ACTIVE = process.env.ITX_ACTIVE === 'true' || process.env.ITX_ACTIVE === '1';
+export const AWS_ARN_KEY = process.env.AWS_ARN_KEY;
+export const AWS_ACCESS_KEY = process.env.AWS_ACCESS_KEY;
+export const AWS_SECRET_KEY = process.env.AWS_SECRET_KEY;
+export const AWS_BUCKET_NAME = process.env.AWS_BUCKET_NAME;
+export const AWS_BUCKET_REGION = process.env.AWS_BUCKET_REGION;
