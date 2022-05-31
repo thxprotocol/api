@@ -1,16 +1,19 @@
 import mongoose from 'mongoose';
-import { WALLET_URL } from '@/config/secrets';
+import { PaymentState } from '@/types/enums/PaymentState';
+import PaymentService from '@/services/PaymentService';
 
 export type TPayment = {
-    id: string;
     amount: string;
-    token: string;
+    token: string; // TODO Shouldnt this be a ref to a pool?
+    poolId: string;
     network: number;
-    chainId: string;
+    chainId: number;
     sender: string;
     receiver: string;
-    state: number;
+    transactions: string[];
+    state: PaymentState;
     redirectUrl: string;
+    returnUrl: string;
     createdAt: Date;
     updatedAt?: Date;
 };
@@ -21,18 +24,20 @@ const paymentSchema = new mongoose.Schema(
     {
         amount: String,
         token: String,
-        chainId: String,
+        chainId: Number,
         network: Number,
         sender: String,
         receiver: String,
+        transactions: [String],
         item: String,
         state: Number,
+        returnUrl: String,
     },
     { timestamps: true },
 );
 
 paymentSchema.virtual('redirectUrl').get(function () {
-    return `${WALLET_URL}/payment/${String(this._id)}`;
+    return PaymentService.getPaymentUrl(this._id);
 });
 
 export const Payment = mongoose.model<PaymentDocument>('Payment', paymentSchema, 'payments');

@@ -5,7 +5,8 @@ import axios from 'axios';
 import { Contract } from 'web3-eth-contract';
 import { NetworkProvider } from '../types/enums';
 import { THXError } from './errors';
-import { AbiItem } from 'web3-utils';
+import { soliditySha3 } from 'web3-utils';
+import { arrayify, computeAddress, hashMessage, recoverPublicKey } from 'ethers/lib/utils';
 
 export class MaxFeePerGasExceededError extends THXError {
     message = 'MaxFeePerGas from oracle exceeds configured cap';
@@ -23,6 +24,13 @@ testnet.eth.defaultAccount = testnetAdmin.address;
 const mainnet = new Web3(RPC);
 const mainnetAdmin = mainnet.eth.accounts.privateKeyToAccount(process.env.PRIVATE_KEY);
 mainnet.eth.defaultAccount = mainnetAdmin.address;
+
+export const recoverAddress = (call: string, nonce: number, sig: string) => {
+    const hash = soliditySha3(call, nonce);
+    const pubKey = recoverPublicKey(arrayify(hashMessage(arrayify(hash))), sig);
+
+    return computeAddress(pubKey);
+};
 
 export const getProvider = (npid: NetworkProvider) => {
     switch (npid) {

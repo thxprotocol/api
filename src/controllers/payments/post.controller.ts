@@ -1,34 +1,26 @@
 import { Request, Response } from 'express';
 import { body } from 'express-validator';
 import PaymentService from '@/services/PaymentService';
-import { TPayment } from '@/models/Payment';
-import ERC20Service from '@/services/ERC20Service';
+import { PaymentDocument } from '@/models/Payment';
 import { npToChainId } from '@/config/contracts';
-export const createPaymentValidation = [body('amount').isNumeric()];
 
-export default async function createPayment(req: Request, res: Response) {
-    const token = await ERC20Service.findByPool(req.assetPool);
+const validation = [body('amount').isNumeric(), body('chainId').optional().isNumeric()];
 
-    const p = await PaymentService.create(
+async function controller(req: Request, res: Response) {
+    // #swagger.tags = ['Payments']
+    const tokenAddress = await req.assetPool.contract.methods.getERC20().call();
+    const chainId = req.body.chainId || npToChainId(req.assetPool.network);
+    const payment: PaymentDocument = await PaymentService.create(
         req.assetPool.address,
-        token.address,
+        tokenAddress,
         req.assetPool.network,
-        npToChainId(req.assetPool.network),
+        chainId,
         req.body.amount,
+        req.body.returnUrl,
     );
+    const redirectUrl = PaymentService.getPaymentUrl(payment._id);
 
-    const result: TPayment = {
-        id: String(p._id),
-        sender: p.sender,
-        receiver: p.receiver,
-        amount: p.amount,
-        token: p.token,
-        chainId: p.chainId,
-        network: p.network,
-        state: p.state,
-        createdAt: p.createdAt,
-        redirectUrl: p.redirectUrl,
-    };
-
-    res.json(result);
+    res.status(201).json({ ...payment.toJSON(), redirectUrl });
 }
+
+export default { validation, controller };

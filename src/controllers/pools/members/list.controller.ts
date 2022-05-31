@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import MemberService from '@/services/MemberService';
 
 const controller = async (req: Request, res: Response) => {
+    // #swagger.tags = ['Pools']
     const response = await MemberService.findByQuery(
         { poolAddress: req.params.address },
         Number(req.query.page),

@@ -1,8 +1,19 @@
 import { PaymentState } from '@/types/enums/PaymentState';
+import { Payment, PaymentDocument } from '@/models/Payment';
+import { WALLET_URL } from '@/config/secrets';
+import { assertEvent, CustomEventLog } from '@/util/events';
+import { TransactionDocument } from '@/models/Transaction';
+import TransactionService from './TransactionService';
+import { TAssetPool } from '@/types/TAssetPool';
 
-import { Payment } from '@/models/Payment';
-
-async function create(receiver: string, token: string, network: number, chainId: string, amount: string) {
+async function create(
+    receiver: string,
+    token: string,
+    network: number,
+    chainId: string,
+    amount: string,
+    returnUrl: string,
+) {
     return await Payment.create({
         receiver,
         amount,
@@ -10,6 +21,7 @@ async function create(receiver: string, token: string, network: number, chainId:
         chainId,
         token,
         state: PaymentState.Pending,
+        returnUrl,
     });
 }
 
@@ -17,40 +29,29 @@ async function get(id: string) {
     return Payment.findById(id);
 }
 
-// async function transact(assetPool: AssetPoolType, deposit: DepositDocument, call: string, nonce: number, sig: string) {
-//     if (ITX_ACTIVE) {
-//         const tx = await InfuraService.schedule(assetPool.address, 'call', [call, nonce, sig], assetPool.network);
-//         deposit.transactions.push(String(tx._id));
+async function pay(pool: TAssetPool, payment: PaymentDocument, callData: { call: string; nonce: number; sig: string }) {
+    const callback = async (tx: TransactionDocument, events?: CustomEventLog[]): Promise<PaymentDocument> => {
+        if (events) {
+            assertEvent('Depositted', events);
+            payment.state = PaymentState.Completed;
+        }
 
-//         return await deposit.save();
-//     } else {
-//         try {
-//             const { tx, receipt } = await TransactionService.send(
-//                 assetPool.address,
-//                 assetPool.contract.methods.call(call, nonce, sig),
-//                 assetPool.network,
-//                 500000,
-//             );
+        payment.transactions.push(String(tx._id));
 
-//             const events = parseLogs(assetPool.contract.options.jsonInterface, receipt.logs);
-//             const result = findEvent('Result', events);
+        return await payment.save();
+    };
 
-//             if (!result.args.success) {
-//                 const error = hex2a(result.args.data.substr(10));
-//                 throw new InternalServerError(error);
-//             }
+    return await TransactionService.relay(
+        pool.contract,
+        'call',
+        [callData.call, callData.nonce, callData.sig],
+        pool.network,
+        callback,
+    );
+}
 
-//             assertEvent('Depositted', events);
+function getPaymentUrl(id: string) {
+    return `${WALLET_URL}/payments/${String(id)}`;
+}
 
-//             deposit.transactions.push(String(tx._id));
-//             deposit.state = DepositState.Completed;
-
-//             return await deposit.save();
-//         } catch (error) {
-//             deposit.failReason = error.message;
-//             throw error;
-//         }
-//     }
-// }
-
-export default { create, get };
+export default { create, pay, get, getPaymentUrl };
