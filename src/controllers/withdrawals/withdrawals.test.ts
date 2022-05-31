@@ -16,7 +16,9 @@ describe('Propose Withdrawal', () => {
         poolAddress: string,
         withdrawalDocumentId: number,
         tokenAddress: string,
-        userWallet: Account;
+        userWallet: Account,
+        poolId: string;
+
     beforeAll(async () => {
         await beforeAllCallback();
 
@@ -45,9 +47,9 @@ describe('Propose Withdrawal', () => {
                 .expect(201, done);
         });
     });
-    describe('POST /asset_pools', () => {
+    describe('POST /pools', () => {
         it('HTTP 201 (success)', (done) => {
-            user.post('/v1/asset_pools')
+            user.post('/v1/pools')
                 .set('Authorization', dashboardAccessToken)
                 .send({
                     network: NetworkProvider.Main,
@@ -55,14 +57,15 @@ describe('Propose Withdrawal', () => {
                 })
                 .expect((res: request.Response) => {
                     expect(isAddress(res.body.address)).toBe(true);
+                    poolId = res.body._id;
                     poolAddress = res.body.address;
                 })
                 .expect(201, done);
         });
 
         it('HTTP 200 (success)', (done) => {
-            user.get('/v1/asset_pools/' + poolAddress)
-                .set({ AssetPool: poolAddress, Authorization: dashboardAccessToken })
+            user.get('/v1/pools/' + poolId)
+                .set({ 'X-PoolAddress': poolAddress, 'Authorization': dashboardAccessToken })
                 .send()
                 .expect((res: request.Response) => {
                     expect(isAddress(res.body.token.address)).toBe(true);
@@ -73,7 +76,7 @@ describe('Propose Withdrawal', () => {
         it('HTTP 302 when member is added', (done) => {
             user.post('/v1/members/')
                 .send({ address: userWallet.address })
-                .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
+                .set({ 'X-PoolAddress': poolAddress, 'Authorization': adminAccessToken })
                 .expect(302, done);
         });
     });
@@ -86,7 +89,7 @@ describe('Propose Withdrawal', () => {
                     amount: rewardWithdrawAmount,
                 })
 
-                .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
+                .set({ 'X-PoolAddress': poolAddress, 'Authorization': adminAccessToken })
                 .expect(({ body }: request.Response) => {
                     expect(body.id).toBeDefined();
                     expect(body.sub).toEqual(sub2);
@@ -105,7 +108,7 @@ describe('Propose Withdrawal', () => {
     describe('POST /withdrawals/:id/withdraw', () => {
         it('HTTP 200 and 0 balance', (done) => {
             user.get('/v1/members/' + userWallet.address)
-                .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
+                .set({ 'X-PoolAddress': poolAddress, 'Authorization': adminAccessToken })
                 .expect((res: request.Response) => {
                     expect(res.body.token.balance).toBe(0);
                 })
@@ -115,13 +118,13 @@ describe('Propose Withdrawal', () => {
         it('HTTP 200 OK', (done) => {
             user.post(`/v1/withdrawals/${withdrawalDocumentId}/withdraw`)
                 .send()
-                .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
+                .set({ 'X-PoolAddress': poolAddress, 'Authorization': adminAccessToken })
                 .expect(200, done);
         });
 
         it('HTTP 200 and 1000 balance', (done) => {
             user.get('/v1/members/' + userWallet.address)
-                .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
+                .set({ 'X-PoolAddress': poolAddress, 'Authorization': adminAccessToken })
                 .expect((res: request.Response) => {
                     expect(res.body.token.balance).toBe(1000);
                 })
@@ -129,10 +132,10 @@ describe('Propose Withdrawal', () => {
         });
     });
 
-    describe('GET /asset_pools/:address (totalSupply)', () => {
+    describe('GET /pools/:address (totalSupply)', () => {
         it('HTTP 200 state OK', (done) => {
-            user.get('/v1/asset_pools/' + poolAddress)
-                .set({ AssetPool: poolAddress, Authorization: adminAccessToken })
+            user.get('/v1/pools/' + poolId)
+                .set({ 'X-PoolAddress': poolAddress, 'Authorization': dashboardAccessToken })
                 .expect((res: request.Response) => {
                     expect(res.body.token.poolBalance).toBe(0);
                     expect(res.body.token.name).toBe(tokenName);

@@ -12,7 +12,7 @@ const controller = async (req: Request, res: Response) => {
     if (!deposit) throw new NotFoundError();
 
     const result: TDeposit = {
-        ...deposit
+        ...deposit,
     };
 
     res.json(result);

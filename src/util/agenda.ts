@@ -1,7 +1,7 @@
 import db from './database';
 import { Agenda } from 'agenda';
 import { logger } from './logger';
-import { jobProcessTransactions } from '@/jobs/requireTransactions';
+import { jobProcessTransactions } from '@/jobs/transactionProcessor';
 
 export const eventNameRequireTransactions = 'requireTransactions';
 

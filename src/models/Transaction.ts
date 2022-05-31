@@ -19,6 +19,7 @@ const transactionSchema = new mongoose.Schema(
         state: Number,
         call: { fn: String, args: String },
         network: Number,
+        failReason: String,
     },
     { timestamps: true },
 );

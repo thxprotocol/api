@@ -22,7 +22,7 @@ describe('Happy Flow', () => {
         testToken = getContract(NetworkProvider.Main, 'LimitedSupplyToken');
 
         await user
-            .post('/v1/asset_pools')
+            .post('/v1/pools')
             .set('Authorization', getToken('openid dashboard'))
             .send({
                 network: NetworkProvider.Main,

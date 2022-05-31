@@ -1,7 +1,7 @@
 {
   "swagger": "2.0",
   "info": {
-    "version": "1.10.17",
+    "version": "1.10.28",
     "title": "THX API Specification",
     "description": "User guides are available at https://docs.thx.network."
   },
@@ -214,7 +214,7 @@
         "responses": {}
       }
     },
-    "/asset_pools/": {
+    "/pools/": {
       "post": {
         "tags": [
           "Pools"
@@ -259,12 +259,12 @@
         }
       }
     },
-    "/asset_pools/{address}/members": {
+    "/pools/{id}/members": {
       "get": {
         "description": "",
         "parameters": [
           {
-            "name": "address",
+            "name": "id",
             "in": "path",
             "required": true,
             "type": "string"
@@ -287,7 +287,7 @@
         }
       }
     },
-    "/asset_pools/{address}": {
+    "/pools/{id}": {
       "get": {
         "tags": [
           "Pools"
@@ -295,7 +295,7 @@
         "description": "",
         "parameters": [
           {
-            "name": "address",
+            "name": "id",
             "in": "path",
             "required": true,
             "type": "string"
@@ -314,7 +314,7 @@
         "description": "",
         "parameters": [
           {
-            "name": "address",
+            "name": "id",
             "in": "path",
             "required": true,
             "type": "string"
@@ -323,6 +323,39 @@
         "responses": {
           "204": {
             "description": "No Content"
+          }
+        }
+      }
+    },
+    "/pools/{id}/topup": {
+      "post": {
+        "tags": [
+          "Pools"
+        ],
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "amount": {
+                  "example": "any"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
           }
         }
       }
@@ -676,33 +709,6 @@
         }
       }
     },
-    "/deposits/admin": {
-      "post": {
-        "tags": [
-          "Deposits"
-        ],
-        "description": "",
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "schema": {
-              "type": "object",
-              "properties": {
-                "amount": {
-                  "example": "any"
-                }
-              }
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        }
-      }
-    },
     "/deposits/approve": {
       "post": {
         "tags": [
@@ -882,7 +888,7 @@
         }
       }
     },
-    "/promo_codes/": {
+    "/promotions/": {
       "post": {
         "tags": [
           "Promotions"
@@ -941,7 +947,7 @@
         }
       }
     },
-    "/promo_codes/{id}": {
+    "/promotions/{id}": {
       "get": {
         "tags": [
           "Promotions"

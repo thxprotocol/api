@@ -5,7 +5,7 @@ import WithdrawalService from '@/services/WithdrawalService';
 import ClientService from '@/services/ClientService';
 import AssetPoolService from '@/services/AssetPoolService';
 
-const validation = [param('address').isEthereumAddress()];
+const validation = [param('id').isMongoId()];
 
 const controller = async (req: Request, res: Response) => {
     // #swagger.tags = ['Pools']

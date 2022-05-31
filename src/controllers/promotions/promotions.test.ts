@@ -24,13 +24,13 @@ describe('PromoCodes', () => {
 
         testToken = getContract(NetworkProvider.Main, 'LimitedSupplyToken');
 
-        dashboardAccessToken = getToken('openid dashboard promo_codes:read promo_codes:write members:write');
+        dashboardAccessToken = getToken('openid dashboard promotions:read promotions:write members:write');
     });
 
     afterAll(afterAllCallback);
 
     it('Create pool', (done) => {
-        http.post('/v1/asset_pools')
+        http.post('/v1/pools')
             .set('Authorization', dashboardAccessToken)
             .send({
                 network: NetworkProvider.Main,
@@ -44,9 +44,9 @@ describe('PromoCodes', () => {
     });
 
     describe('Management (Dashboard)', () => {
-        it('POST /promo_codes', (done) => {
-            http.post('/v1/promo_codes')
-                .set({ Authorization: dashboardAccessToken, AssetPool: poolAddress })
+        it('POST /promotions', (done) => {
+            http.post('/v1/promotions')
+                .set({ 'Authorization': dashboardAccessToken, 'X-PoolAddress': poolAddress })
                 .send({
                     price,
                     value,
@@ -66,9 +66,9 @@ describe('PromoCodes', () => {
                 .expect(201, done);
         });
 
-        it('GET /promo_codes 200 OK', (done) => {
-            http.get('/v1/promo_codes')
-                .set({ Authorization: dashboardAccessToken, AssetPool: poolAddress })
+        it('GET /promotions 200 OK', (done) => {
+            http.get('/v1/promotions')
+                .set({ 'Authorization': dashboardAccessToken, 'X-PoolAddress': poolAddress })
                 .expect(({ body }: Response) => {
                     expect(body.total).toEqual(1);
                     expect(body.results).toHaveLength(1);
@@ -82,9 +82,9 @@ describe('PromoCodes', () => {
                 .expect(200, done);
         });
 
-        it('GET /promo_codes/:id', (done) => {
-            http.get('/v1/promo_codes/' + promoCode.id)
-                .set({ Authorization: dashboardAccessToken, AssetPool: poolAddress })
+        it('GET /promotions/:id', (done) => {
+            http.get('/v1/promotions/' + promoCode.id)
+                .set({ 'Authorization': dashboardAccessToken, 'X-PoolAddress': poolAddress })
                 .expect(({ body }: Response) => {
                     expect(body.id).toEqual(promoCode.id);
                     expect(body.value).toEqual(value);
@@ -94,9 +94,9 @@ describe('PromoCodes', () => {
                 .expect(200, done);
         });
 
-        it('GET /promo_codes/:id 400 Bad Input', (done) => {
-            http.get('/v1/promo_codes/' + 'invalid_id')
-                .set({ Authorization: dashboardAccessToken, AssetPool: poolAddress })
+        it('GET /promotions/:id 400 Bad Input', (done) => {
+            http.get('/v1/promotions/' + 'invalid_id')
+                .set({ 'Authorization': dashboardAccessToken, 'X-PoolAddress': poolAddress })
                 .expect(({ body }: Response) => {
                     expect(body.errors).toHaveLength(1);
                     expect(body.errors[0].param).toEqual('id');
@@ -105,9 +105,9 @@ describe('PromoCodes', () => {
                 .expect(400, done);
         });
 
-        it('GET /promo_codes/:id 404 Not Found', (done) => {
-            http.get('/v1/promo_codes/' + '6208dfa33400429348c5e61b')
-                .set({ Authorization: dashboardAccessToken, AssetPool: poolAddress })
+        it('GET /promotions/:id 404 Not Found', (done) => {
+            http.get('/v1/promotions/' + '6208dfa33400429348c5e61b')
+                .set({ 'Authorization': dashboardAccessToken, 'X-PoolAddress': poolAddress })
                 .expect(({ body }: Response) => {
                     expect(body.error.message).toEqual('Could not find this promo code');
                 })

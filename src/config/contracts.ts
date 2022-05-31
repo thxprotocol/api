@@ -30,11 +30,14 @@ export const getContractFromAbi = (npid: NetworkProvider, abi: AbiItem[], addres
     return new web3.eth.Contract(abi, address);
 };
 
-export const getContractFromName = (npid: NetworkProvider, contractName: ContractName, address?: string) => {
+export const getAbiForContractName = (contractName: ContractName): AbiItem[] => {
     // We are requiring the abi file here since the network specific exports only hold diamond related contracts
     // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const abi: AbiItem[] = require(`@thxnetwork/artifacts/dist/exports/abis/${contractName}.json`);
-    return getContractFromAbi(npid, abi, address);
+    return require(`@thxnetwork/artifacts/dist/exports/abis/${contractName}.json`);
+};
+
+export const getContractFromName = (npid: NetworkProvider, contractName: ContractName, address: string) => {
+    return getContractFromAbi(npid, getAbiForContractName(contractName), address);
 };
 
 export const getDiamondAbi = (npid: NetworkProvider, variant: DiamondVariant) => {
@@ -42,17 +45,19 @@ export const getDiamondAbi = (npid: NetworkProvider, variant: DiamondVariant) =>
 };
 
 export const getContract = (npid: NetworkProvider, contractName: ContractName, version?: string) => {
-    const contractConfig = getContractConfig(npid, contractName, version);
-    const { web3 } = getProvider(npid);
-    return new web3.eth.Contract(contractConfig.abi, contractConfig.address);
+    return getContractFromName(npid, contractName, getContractConfig(npid, contractName, version).address);
 };
 
 export const diamondContracts = (npid: NetworkProvider, variant: DiamondVariant, version?: string) => {
     const result = [];
-    const { web3 } = getProvider(npid);
+    const facetConfigs = diamondFacetConfigs(npToName(npid), variant, version);
 
-    for (const contractConfig of Object.values(diamondFacetConfigs(npToName(npid), variant, version))) {
-        result.push(new web3.eth.Contract(contractConfig.abi, contractConfig.address));
+    for (const key in facetConfigs) {
+        const contractName = key as ContractName;
+        const contractConfig = facetConfigs[contractName];
+        // Reading abis from exports folder since network deployment abi's are not up to date when factories
+        // require an update during the CI run. Still fetching the address from the contractConfig.
+        result.push(getContractFromName(npid, contractName, contractConfig.address));
     }
 
     return result;
