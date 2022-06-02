@@ -9,7 +9,7 @@ import { ERC20Type, NetworkProvider, TransactionState } from '@/types/enums';
 import { IPromoCodeResponse } from '@/types/interfaces/IPromoCodeResponse';
 import { createWallet, signMethod } from '@/util/jest/network';
 import { findEvent, parseLogs } from '@/util/events';
-import { MaxUint256, tokenName, tokenSymbol, userWalletPrivateKey2 } from '@/util/jest/constants';
+import { adminAccessToken, dashboardAccessToken, MaxUint256, tokenName, tokenSymbol, userAccessToken, userWalletPrivateKey2 } from '@/util/jest/constants';
 import { AmountExceedsAllowanceError, InsufficientBalanceError } from '@/util/errors';
 import TransactionService from '@/services/TransactionService';
 import { getContractFromName } from '@/config/contracts';
@@ -20,9 +20,7 @@ import { fromWei } from 'web3-utils';
 const http = request.agent(app);
 
 describe('Deposits', () => {
-    let dashboardAccessToken: string,
-        userAccessToken: string,
-        poolAddress: string,
+    let poolAddress: string,
         promoCode: IPromoCodeResponse,
         userWallet: Account,
         tokenAddress: string,
@@ -40,11 +38,6 @@ describe('Deposits', () => {
         await beforeAllCallback();
 
         userWallet = createWallet(userWalletPrivateKey2);
-
-        dashboardAccessToken = getToken('openid dashboard promotions:read promotions:write members:write');
-        userAccessToken = getToken(
-            'openid user promotions:read payments:write payments:read deposits:write deposits:read',
-        );
     });
 
     it('Create token', (done) => {
@@ -81,7 +74,7 @@ describe('Deposits', () => {
 
     it('Add member', (done) => {
         http.post('/v1/members')
-            .set({ 'Authorization': dashboardAccessToken, 'X-PoolAddress': poolAddress })
+            .set({ 'Authorization': adminAccessToken, 'X-PoolAddress': poolAddress })
             .send({
                 address: userWallet.address,
             })
@@ -194,7 +187,7 @@ describe('Deposits', () => {
 
         it('GET /promotions/:id', (done) => {
             http.get('/v1/promotions/' + promoCode.id)
-                .set({ 'Authorization': userAccessToken, 'X-PoolAddress': poolAddress })
+                .set({ 'Authorization': dashboardAccessToken, 'X-PoolAddress': poolAddress })
                 .expect(({ body }: Response) => {
                     expect(body.value).toEqual(value);
                 })

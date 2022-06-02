@@ -14,9 +14,11 @@ import {
     tokenSymbol,
     tokenTotalSupply,
     MaxUint256,
+    adminAccessToken,
+    dashboardAccessToken,
+    userAccessToken,
 } from '@/util/jest/constants';
 import { isAddress } from 'web3-utils';
-import { getToken } from '@/util/jest/jwt';
 import { afterAllCallback, beforeAllCallback } from '@/util/jest/config';
 import { getContract, getContractFromName } from '@/config/contracts';
 import { currentVersion } from '@thxnetwork/artifacts';
@@ -29,10 +31,7 @@ describe('Default Pool', () => {
     const title = 'Welcome Package',
         slug = 'welcome-package';
 
-    let adminAccessToken: string,
-        userAccessToken: string,
-        dashboardAccessToken: string,
-        poolAddress: string,
+    let poolAddress: string,
         withdrawDocumentId: string,
         withdrawPollID: string,
         tokenAddress: string,
@@ -43,10 +42,6 @@ describe('Default Pool', () => {
         await beforeAllCallback();
 
         userWallet = createWallet(userWalletPrivateKey2);
-
-        adminAccessToken = getToken('openid admin');
-        dashboardAccessToken = getToken('openid dashboard');
-        userAccessToken = getToken('openid user deposits:read deposits:write');
     });
 
     afterAll(afterAllCallback);

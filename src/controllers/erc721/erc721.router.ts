@@ -7,28 +7,29 @@ import ListERC721Metadata from './metadata/list.controller';
 import CreateERC721 from './post.controller';
 import CreateERC721Metadata from './metadata/post.controller';
 import MintERC721Metadata from './metadata/mint/post.controller';
+import { dashboardScopes, userDashboardScopes } from '../scopes';
 
 const router = express.Router();
 
-router.get('/', assertScopes(['dashboard']), ListERC721.controller);
+router.get('/', assertScopes(dashboardScopes), ListERC721.controller);
 router.get(
     '/:id',
-    assertScopes(['dashboard', 'user']),
+    assertScopes(userDashboardScopes),
     assertRequestInput(ReadERC721.validation),
     ReadERC721.controller,
 );
-router.post('/', assertScopes(['dashboard']), assertRequestInput(CreateERC721.validation), CreateERC721.controller);
+router.post('/', assertScopes(dashboardScopes), assertRequestInput(CreateERC721.validation), CreateERC721.controller);
 router.post(
     '/:id/metadata/:metadataId/mint',
-    assertScopes(['dashboard']),
+    assertScopes(dashboardScopes),
     requireAssetPoolHeader,
     assertRequestInput(MintERC721Metadata.validation),
     MintERC721Metadata.controller,
 );
-router.get('/:id/metadata', assertScopes(['dashboard']), ListERC721Metadata.controller);
+router.get('/:id/metadata', assertScopes(dashboardScopes), ListERC721Metadata.controller);
 router.post(
     '/:id/metadata',
-    assertScopes(['dashboard']),
+    assertScopes(dashboardScopes),
     requireAssetPoolHeader,
     assertRequestInput(CreateERC721Metadata.validation),
     CreateERC721Metadata.controller,

@@ -1,12 +1,11 @@
 import request from 'supertest';
 import app from '@/app';
 import { getProvider } from '@/util/network';
-import { userWalletPrivateKey2, DEPOSITOR_PK } from '@/util/jest/constants';
+import { userWalletPrivateKey2, DEPOSITOR_PK, adminAccessToken, dashboardAccessToken } from '@/util/jest/constants';
 import { isAddress, toChecksumAddress } from 'web3-utils';
 import { Account } from 'web3-core';
 import { Contract } from 'web3-eth-contract';
 import { createWallet } from '@/util/jest/network';
-import { getToken } from '@/util/jest/jwt';
 import { afterAllCallback, beforeAllCallback } from '@/util/jest/config';
 import AssetPoolService, { ADMIN_ROLE } from '@/services/AssetPoolService';
 import { PRIVATE_KEY } from '@/config/secrets';
@@ -16,9 +15,7 @@ import { getContract } from '@/config/contracts';
 const user = request.agent(app);
 
 describe('Transfer Pool Ownership', () => {
-    let adminAccessToken: string,
-        dashboardAccessToken: string,
-        poolAddress: string,
+    let poolAddress: string,
         testToken: Contract,
         userWallet: Account;
 
@@ -27,8 +24,6 @@ describe('Transfer Pool Ownership', () => {
 
         userWallet = createWallet(userWalletPrivateKey2);
         testToken = getContract(NetworkProvider.Main, 'LimitedSupplyToken');
-        adminAccessToken = getToken('openid admin');
-        dashboardAccessToken = getToken('openid dashboard');
     });
 
     afterAll(afterAllCallback);

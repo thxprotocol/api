@@ -3,6 +3,7 @@ import { WIDGETS_URL } from '@/config/secrets';
 import WidgetService from '@/services/WidgetService';
 import ClientService from '@/services/ClientService';
 import { body } from 'express-validator';
+import { openIdDashboardScopes } from '../scopes';
 
 const validation = [body('requestUris').exists(), body('postLogoutRedirectUris').exists(), body('metadata').exists()];
 
@@ -15,7 +16,7 @@ const controller = async (req: Request, res: Response) => {
         redirect_uris: [WIDGETS_URL],
         post_logout_redirect_uris: req.body.postLogoutRedirectUris,
         response_types: ['code'],
-        scope: 'openid user widget',
+        scope: openIdDashboardScopes,
     });
 
     const widget = await WidgetService.create(

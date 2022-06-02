@@ -7,12 +7,13 @@ import ReadMember from './get.controller';
 import UpdateMember from './patch.controller';
 import DeleteMember from './delete.controller';
 import ListMembers from './list.controller';
+import { adminScopes, userAdminScopes } from '../scopes';
 
 const router = express.Router();
 
 router.get(
     '/',
-    checkScopes(['admin']),
+    checkScopes(adminScopes),
     assertAssetPoolAccess,
     requireAssetPoolHeader,
     assertPlan([AccountPlanType.Basic, AccountPlanType.Premium]),
@@ -20,7 +21,7 @@ router.get(
 );
 router.post(
     '/',
-    checkScopes(['admin', 'members:write']),
+    checkScopes(adminScopes),
     assertAssetPoolAccess,
     assertRequestInput(CreateMember.validation),
     requireAssetPoolHeader,
@@ -29,7 +30,7 @@ router.post(
 );
 router.patch(
     '/:address',
-    checkScopes(['admin']),
+    checkScopes(adminScopes),
     assertAssetPoolAccess,
     assertRequestInput(UpdateMember.validation),
     requireAssetPoolHeader,
@@ -38,7 +39,7 @@ router.patch(
 );
 router.delete(
     '/:address',
-    checkScopes(['admin']),
+    checkScopes(adminScopes),
     assertAssetPoolAccess,
     assertRequestInput(DeleteMember.validation),
     requireAssetPoolHeader,
@@ -47,7 +48,7 @@ router.delete(
 );
 router.get(
     '/:address',
-    checkScopes(['admin', 'user']),
+    checkScopes(userAdminScopes),
     assertAssetPoolAccess,
     assertRequestInput(ReadMember.validation),
     requireAssetPoolHeader,

@@ -4,14 +4,16 @@ import { Account } from 'web3-core';
 import { ERC20Type, NetworkProvider } from '../../types/enums';
 import { createWallet, signMethod } from '@/util/jest/network';
 import {
+    adminAccessToken,
+    dashboardAccessToken,
     rewardWithdrawAmount,
     rewardWithdrawUnlockDate,
     tokenName,
     tokenSymbol,
+    userAccessToken,
     userWalletPrivateKey2,
 } from '@/util/jest/constants';
 import { isAddress } from 'web3-utils';
-import { getToken } from '@/util/jest/jwt';
 import { afterAllCallback, beforeAllCallback } from '@/util/jest/config';
 import { WithdrawalState } from '@/types/enums';
 
@@ -21,10 +23,7 @@ describe('Reward Claim', () => {
     const title = 'Welcome Package',
         slug = 'welcome-package';
 
-    let adminAccessToken: string,
-        userAccessToken: string,
-        dashboardAccessToken: string,
-        poolAddress: string,
+    let poolAddress: string,
         rewardID: string,
         withdrawalDocumentId: string,
         withdrawalId: string,
@@ -34,10 +33,6 @@ describe('Reward Claim', () => {
     beforeAll(async () => {
         await beforeAllCallback();
         userWallet = createWallet(userWalletPrivateKey2);
-
-        adminAccessToken = getToken('openid admin');
-        dashboardAccessToken = getToken('openid dashboard');
-        userAccessToken = getToken('openid user');
     });
 
     afterAll(afterAllCallback);

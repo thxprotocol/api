@@ -6,21 +6,22 @@ import CreateWidget from './post.controller';
 import ReadWidget from './get.controller';
 import DeleteWidget from './delete.controller';
 import ListWidgets from './list.controller';
+import { dashboardScopes } from '../scopes';
 
 const router = express.Router();
 
-router.get('/', checkScopes(['dashboard']), assertRequestInput(ListWidgets.validation), ListWidgets.controller);
+router.get('/', checkScopes(dashboardScopes), assertRequestInput(ListWidgets.validation), ListWidgets.controller);
 router.get(
     '/:clientId',
-    checkScopes(['dashboard']),
+    checkScopes(dashboardScopes),
     assertRequestInput(ReadWidget.validation),
     validateClientAccess,
     ReadWidget.controller,
 );
-router.post('/', checkScopes(['dashboard']), assertRequestInput(CreateWidget.validation), CreateWidget.controller);
+router.post('/', checkScopes(dashboardScopes), assertRequestInput(CreateWidget.validation), CreateWidget.controller);
 router.delete(
     '/:clientId',
-    checkScopes(['dashboard']),
+    checkScopes(dashboardScopes),
     assertRequestInput(DeleteWidget.validation),
     validateClientAccess,
     DeleteWidget.controller,

@@ -36,7 +36,7 @@ const controller = async (req: Request, res: Response) => {
         redirect_uris: [],
         post_logout_redirect_uris: [],
         response_types: [],
-        scope: 'openid admin',
+        scope: 'openid account:read account:write members:read members:write withdrawals:write'
     });
 
     pool.clientId = client.clientId;

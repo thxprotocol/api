@@ -1,9 +1,8 @@
 import request from 'supertest';
 import app from '@/app';
-import { account2, userEmail2, userPassword2 } from '@/util/jest/constants';
+import { account2, adminAccessToken, dashboardAccessToken, userEmail2, userPassword2, walletAccessToken } from '@/util/jest/constants';
 import { Contract } from 'web3-eth-contract';
 import { NetworkProvider } from '@/types/enums';
-import { getToken } from '@/util/jest/jwt';
 import { afterAllCallback, beforeAllCallback } from '@/util/jest/config';
 import { getContract } from '@/config/contracts';
 
@@ -11,10 +10,7 @@ const user = request.agent(app);
 
 describe('Account', () => {
     let poolAddress: any,
-        dashboardAccessToken: string,
         testToken: Contract,
-        adminAccessToken: string,
-        walletAccessToken: string,
         membershipID: string,
         userWalletAddress: string;
 
@@ -22,10 +18,6 @@ describe('Account', () => {
         await beforeAllCallback();
 
         testToken = getContract(NetworkProvider.Main, 'LimitedSupplyToken');
-
-        adminAccessToken = getToken('openid admin');
-        dashboardAccessToken = getToken('openid dashboard');
-        walletAccessToken = getToken('openid user');
     });
 
     afterAll(afterAllCallback);

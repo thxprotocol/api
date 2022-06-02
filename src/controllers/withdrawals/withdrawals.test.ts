@@ -1,19 +1,16 @@
 import request from 'supertest';
 import app from '@/app';
 import { ERC20Type, NetworkProvider } from '@/types/enums';
-import { rewardWithdrawAmount, sub2, tokenName, tokenSymbol, userWalletPrivateKey2 } from '@/util/jest/constants';
+import { adminAccessToken, dashboardAccessToken, rewardWithdrawAmount, sub2, tokenName, tokenSymbol, userWalletPrivateKey2 } from '@/util/jest/constants';
 import { isAddress } from 'web3-utils';
 import { Account } from 'web3-core';
-import { getToken } from '@/util/jest/jwt';
 import { createWallet } from '@/util/jest/network';
 import { afterAllCallback, beforeAllCallback } from '@/util/jest/config';
 
 const user = request.agent(app);
 
 describe('Propose Withdrawal', () => {
-    let adminAccessToken: string,
-        dashboardAccessToken: string,
-        poolAddress: string,
+    let poolAddress: string,
         withdrawalDocumentId: number,
         tokenAddress: string,
         userWallet: Account,
@@ -23,8 +20,6 @@ describe('Propose Withdrawal', () => {
         await beforeAllCallback();
 
         userWallet = createWallet(userWalletPrivateKey2);
-        adminAccessToken = getToken('openid admin');
-        dashboardAccessToken = getToken('openid dashboard');
     });
 
     afterAll(afterAllCallback);

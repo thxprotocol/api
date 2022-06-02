@@ -4,14 +4,15 @@ import { assertRequestInput } from '@/middlewares';
 import ReadMembership from './get.controller';
 import DeleteMembership from './delete.controller';
 import ListMemberships from './list.controller';
+import { userScopes } from '../scopes';
 
 const router = express.Router();
 
-router.get('/', checkScopes(['user']), ListMemberships.controller);
-router.get('/:id', checkScopes(['user']), assertRequestInput(ReadMembership.validation), ReadMembership.controller);
+router.get('/', checkScopes(userScopes), ListMemberships.controller);
+router.get('/:id', checkScopes(userScopes), assertRequestInput(ReadMembership.validation), ReadMembership.controller);
 router.delete(
     '/:id',
-    checkScopes(['user']),
+    checkScopes(userScopes),
     assertRequestInput(DeleteMembership.validation),
     DeleteMembership.controller,
 );

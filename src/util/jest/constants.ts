@@ -1,4 +1,6 @@
+import { adminScopes, dashboardScopes, openIdDashboardScopes, openIdUserScopes, opneIdAdminScopes, userScopes } from '@/controllers/scopes';
 import { AccountPlanType } from '@/types/enums';
+import { getToken } from './jwt';
 
 export const tokenName = 'Volunteers United';
 export const tokenSymbol = 'VUT';
@@ -59,3 +61,9 @@ export const exceedingFeeData = {
     blockTime: 3,
     blockNumber: 24539906,
 };
+
+
+export const adminAccessToken = getToken(opneIdAdminScopes);
+export const dashboardAccessToken = getToken(openIdDashboardScopes);
+export const walletAccessToken = getToken(openIdUserScopes);
+export const userAccessToken = walletAccessToken;

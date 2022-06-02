@@ -7,12 +7,13 @@ import CreateDepositAdmin from './admin/post.controller';
 import CreateDepositApprove from './approve/post.controller';
 import { assertRequestInput, assertAssetPoolAccess, requireAssetPoolHeader, assertPlan } from '@/middlewares';
 import { AccountPlanType } from '@/types/enums';
+import { dashboardScopes, userScopes } from '../scopes';
 
 const router = express.Router();
 
 router.get(
     '/',
-    assertScopes(['dashboard', 'deposits:read']),
+    assertScopes(dashboardScopes),
     assertAssetPoolAccess,
     requireAssetPoolHeader,
     assertPlan([AccountPlanType.Basic, AccountPlanType.Premium]),
@@ -20,7 +21,7 @@ router.get(
 );
 router.get(
     '/:id',
-    assertScopes(['dashboard', 'deposits:read']),
+    assertScopes(dashboardScopes),
     assertAssetPoolAccess,
     assertRequestInput(ReadDeposit.validation),
     requireAssetPoolHeader,
@@ -29,7 +30,7 @@ router.get(
 );
 router.post(
     '/',
-    assertScopes(['user', 'deposits:read', 'deposits:write']),
+    assertScopes(userScopes),
     assertAssetPoolAccess,
     requireAssetPoolHeader,
     assertRequestInput(CreateDeposit.validation),
@@ -38,7 +39,7 @@ router.post(
 );
 router.post(
     '/admin',
-    assertScopes(['dashboard', 'deposits:read', 'deposits:write']),
+    assertScopes(dashboardScopes),
     assertAssetPoolAccess,
     assertRequestInput(CreateDepositApprove.validation),
     requireAssetPoolHeader,
@@ -47,7 +48,7 @@ router.post(
 );
 router.post(
     '/approve',
-    assertScopes(['user', 'deposits:read', 'deposits:write']),
+    assertScopes(userScopes),
     assertAssetPoolAccess,
     assertRequestInput(CreateDepositApprove.validation),
     requireAssetPoolHeader,

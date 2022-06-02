@@ -7,14 +7,15 @@ import ReadPool from './get.controller';
 import DeletePool from './delete.controller';
 import ListPools from './list.controller';
 import ListPoolMembers from './members/list.controller';
+import { dashboardScopes } from '../scopes';
 
 const router = express.Router();
 
-router.post('/', assertScopes(['dashboard']), assertRequestInput(CreatePool.validation), CreatePool.controller);
-router.get('/', assertScopes(['dashboard']), ListPools.controller);
+router.post('/', assertScopes(dashboardScopes), assertRequestInput(CreatePool.validation), CreatePool.controller);
+router.get('/', assertScopes(dashboardScopes), ListPools.controller);
 router.get(
     '/:id/members',
-    assertScopes(['dashboard']),
+    assertScopes(dashboardScopes),
     assertRequestInput(ReadPool.validation),
     assertPoolOwner,
     assertPlan([AccountPlanType.Basic, AccountPlanType.Premium]),
@@ -22,7 +23,7 @@ router.get(
 );
 router.get(
     '/:id',
-    assertScopes(['dashboard']),
+    assertScopes(dashboardScopes),
     assertRequestInput(ReadPool.validation),
     assertPoolOwner,
     assertPlan([AccountPlanType.Basic, AccountPlanType.Premium]),
@@ -30,7 +31,7 @@ router.get(
 );
 router.delete(
     '/:id',
-    assertScopes(['dashboard']),
+    assertScopes(dashboardScopes),
     assertRequestInput(DeletePool.validation),
     assertPoolOwner,
     assertPlan([AccountPlanType.Basic, AccountPlanType.Premium]),
