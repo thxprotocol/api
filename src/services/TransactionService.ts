@@ -11,6 +11,7 @@ import InfuraService from './InfuraService';
 import { CustomEventLog, findEvent, hex2a, parseLogs } from '@/util/events';
 import { logger } from '@/util/logger';
 import { InternalServerError } from '@/util/errors';
+import { paginatedResults } from '@/util/pagination';
 
 function getById(id: string) {
     return Transaction.findById(id);
@@ -231,4 +232,8 @@ async function call(fn: any, npid: NetworkProvider) {
     });
 }
 
-export default { relay, getById, send, call, deploy, sendValue };
+async function findByQuery(query: { poolAddress: string }, page = 1, limit = 10) {
+    return paginatedResults(Transaction, page, limit, query);
+}
+
+export default { relay, getById, send, call, deploy, sendValue, findByQuery };
