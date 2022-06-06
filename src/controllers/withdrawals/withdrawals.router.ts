@@ -12,7 +12,7 @@ const router = express.Router();
 
 router.post(
     '/',
-    checkScopes(['admin']),
+    checkScopes(['withdrawals:write', 'withdrawals:read']),
     assertAssetPoolAccess,
     assertRequestInput(CreateWithdrawal.validation),
     requireAssetPoolHeader,
@@ -21,7 +21,7 @@ router.post(
 );
 router.get(
     '/',
-    checkScopes(['admin', 'user']),
+    checkScopes(['withdrawals:read']),
     assertAssetPoolAccess,
     assertRequestInput(ListWithdrawal.validation),
     requireAssetPoolHeader,
@@ -29,7 +29,7 @@ router.get(
 );
 router.get(
     '/:id',
-    checkScopes(['admin', 'user']),
+    checkScopes(['withdrawals:read']),
     assertAssetPoolAccess,
     assertRequestInput(ReadWithdrawal.validation),
     requireAssetPoolHeader,
@@ -37,7 +37,7 @@ router.get(
 );
 router.post(
     '/:id/withdraw',
-    checkScopes(['admin', 'user']),
+    checkScopes(['withdrawals:write', 'withdrawals:read']),
     assertAssetPoolAccess,
     assertRequestInput(CreateWithdrawalFinalize.validation),
     requireAssetPoolHeader,
@@ -46,7 +46,7 @@ router.post(
 );
 router.delete(
     '/:id',
-    checkScopes(['user']),
+    checkScopes(['withdrawals:write']),
     assertAssetPoolAccess,
     assertRequestInput(DeleteWithdrawal.validation),
     requireAssetPoolHeader,

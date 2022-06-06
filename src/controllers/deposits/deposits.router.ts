@@ -12,7 +12,7 @@ const router = express.Router();
 
 router.get(
     '/',
-    assertScopes(['dashboard', 'deposits:read']),
+    assertScopes(['deposits:read']),
     assertAssetPoolAccess,
     requireAssetPoolHeader,
     assertPlan([AccountPlanType.Basic, AccountPlanType.Premium]),
@@ -20,7 +20,7 @@ router.get(
 );
 router.get(
     '/:id',
-    assertScopes(['dashboard', 'deposits:read']),
+    assertScopes(['deposits:read']),
     assertAssetPoolAccess,
     assertRequestInput(ReadDeposit.validation),
     requireAssetPoolHeader,
@@ -29,7 +29,7 @@ router.get(
 );
 router.post(
     '/',
-    assertScopes(['user', 'deposits:read', 'deposits:write']),
+    assertScopes(['deposits:write', 'deposits:read']),
     assertAssetPoolAccess,
     requireAssetPoolHeader,
     assertRequestInput(CreateDeposit.validation),
@@ -38,7 +38,7 @@ router.post(
 );
 router.post(
     '/admin',
-    assertScopes(['dashboard', 'deposits:read', 'deposits:write']),
+    assertScopes(['deposits:write']),
     assertAssetPoolAccess,
     assertRequestInput(CreateDepositApprove.validation),
     requireAssetPoolHeader,
@@ -47,7 +47,7 @@ router.post(
 );
 router.post(
     '/approve',
-    assertScopes(['user', 'deposits:read', 'deposits:write']),
+    assertScopes(['deposits:write']),
     assertAssetPoolAccess,
     assertRequestInput(CreateDepositApprove.validation),
     requireAssetPoolHeader,

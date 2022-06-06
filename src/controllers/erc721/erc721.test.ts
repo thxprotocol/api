@@ -2,8 +2,9 @@ import request from 'supertest';
 import app from '@/app';
 import { NetworkProvider } from '@/types/enums';
 import { isAddress } from 'web3-utils';
-import { getToken } from '@/util/jest/jwt';
 import { afterAllCallback, beforeAllCallback } from '@/util/jest/config';
+import { dashboardAccessToken } from '@/util/jest/constants';
+
 
 const user = request.agent(app);
 
@@ -16,11 +17,10 @@ describe('ERC721', () => {
             { name: 'color', propType: 'string', description: 'lorem ipsum' },
             { name: 'size', propType: 'string', description: 'lorem ipsum dolor sit' },
         ];
-    let dashboardAccessToken: string, erc721ID: string, tokenId: number;
+    let erc721ID: string, tokenId: number;
 
     beforeAll(async () => {
         await beforeAllCallback();
-        dashboardAccessToken = getToken('openid dashboard');
     });
 
     afterAll(afterAllCallback);
