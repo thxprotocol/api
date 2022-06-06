@@ -9,29 +9,28 @@ import ReadAccountYoutube from './youtube/get.controller';
 import ReadAccountTwitter from './twitter/get.controller';
 import ReadAccountSpotify from './spotify/get.controller';
 import CreateAccountLogin from './login/post.controller';
-import { dashboardScopes, userDashboardScopes, adminScopes } from '../scopes';
 
 const router = express.Router();
 
-router.get('/', assertScopes(userDashboardScopes), ReadAccount.controller);
-router.patch('/', assertScopes(userDashboardScopes), UpdateAccount.controller);
-router.delete('/', assertScopes(userDashboardScopes), DeleteAccount.controller);
+router.get('/', assertScopes(['account:read']), ReadAccount.controller);
+router.patch('/', assertScopes(['account:read', 'account:write']), UpdateAccount.controller);
+router.delete('/', assertScopes(['account:write']), DeleteAccount.controller);
 router.post(
     '/',
-    assertScopes(adminScopes),
+    assertScopes(['account:write']),
     assertRequestInput(CreateAccount.validation),
     requireAssetPoolHeader,
     CreateAccount.controller,
 );
 
-router.get('/twitter', assertScopes(dashboardScopes), ReadAccountTwitter.controller);
-router.get('/youtube', assertScopes(dashboardScopes), ReadAccountYoutube.controller);
-router.get('/spotify', assertScopes(dashboardScopes), ReadAccountSpotify.controller);
+router.get('/twitter', assertScopes(['account:read']), ReadAccountTwitter.controller);
+router.get('/youtube', assertScopes(['account:read']), ReadAccountYoutube.controller);
+router.get('/spotify', assertScopes(['account:read']), ReadAccountSpotify.controller);
 
 router.post(
     '/login',
     assertRequestInput(CreateAccountLogin.validation),
-    assertScopes(adminScopes),
+    assertScopes(['account:write']),
     CreateAccountLogin.controller,
 );
 

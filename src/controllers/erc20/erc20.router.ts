@@ -5,13 +5,17 @@ import ReadERC20 from './get.controller';
 import ListERC20 from './list.controller';
 import CreateERC20 from './post.controller';
 import DeleteERC20 from './delete.controller';
-import { dashboardScopes, userDashboardScopes } from '../scopes';
 
 const router = express.Router();
 
-router.get('/', ListERC20.controller);
-router.get('/:id', checkScopes(userDashboardScopes), assertRequestInput(ReadERC20.validation), ReadERC20.controller);
-router.post('/', checkScopes(dashboardScopes), assertRequestInput(CreateERC20.validation), CreateERC20.controller);
-router.delete('/:id', checkScopes(dashboardScopes), assertRequestInput(DeleteERC20.validation), DeleteERC20.controller);
+router.get('/', checkScopes(['erc20:read']), ListERC20.controller);
+router.get('/:id', checkScopes(['erc20:read']), assertRequestInput(ReadERC20.validation), ReadERC20.controller);
+router.post(
+    '/',
+    checkScopes(['erc20:write', 'erc20:read']),
+    assertRequestInput(CreateERC20.validation),
+    CreateERC20.controller,
+);
+router.delete('/:id', checkScopes(['erc20:write']), assertRequestInput(DeleteERC20.validation), DeleteERC20.controller);
 
 export default router;

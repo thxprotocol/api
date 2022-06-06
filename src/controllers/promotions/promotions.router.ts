@@ -5,14 +5,13 @@ import CreatePromotion from './post.controller';
 import ReadPromotion from './get.controller';
 import ListPromotion from './list.controller';
 import DeletePromotion from './delete.controller';
-import { dashboardScopes, userDashboardScopes } from '../scopes';
 
 const router = express.Router();
 
 router.post(
     '/',
     assertAssetPoolAccess,
-    assertScopes(dashboardScopes),
+    assertScopes(['promotions:read', 'promotions:write']),
     assertRequestInput(CreatePromotion.validation),
     requireAssetPoolHeader,
     CreatePromotion.controller,
@@ -20,7 +19,7 @@ router.post(
 router.get(
     '/',
     assertAssetPoolAccess,
-    assertScopes(userDashboardScopes),
+    assertScopes(['promotions:read']),
     assertRequestInput(ListPromotion.validation),
     requireAssetPoolHeader,
     ListPromotion.controller,
@@ -28,7 +27,7 @@ router.get(
 router.get(
     '/:id',
     assertAssetPoolAccess,
-    assertScopes(dashboardScopes),
+    assertScopes(['promotions:read']),
     assertRequestInput(ReadPromotion.validation),
     requireAssetPoolHeader,
     ReadPromotion.controller,
@@ -36,7 +35,7 @@ router.get(
 router.delete(
     '/:id',
     assertAssetPoolAccess,
-    assertScopes(['dashboard', 'promotions:read', 'promotions:write']),
+    assertScopes(['promotions:write']),
     assertRequestInput(DeletePromotion.validation),
     requireAssetPoolHeader,
     DeletePromotion.controller,

@@ -9,13 +9,12 @@ import ListRewards from './list.controller';
 import CreateRewardClaim from './claim/post.controller';
 import CreateRewardGive from './give/post.controller';
 import { rateLimitRewardGive } from '@/util/ratelimiter';
-import { adminDashboardScopes, adminScopes, userAdminDashboardScopes, userScopes } from '../scopes';
 
 const router = express.Router();
 
 router.get(
     '/',
-    checkScopes(['admin', 'user', 'dashboard']),
+    checkScopes(['rewards:read']),
     assertAssetPoolAccess,
     requireAssetPoolHeader,
     assertPlan([AccountPlanType.Basic, AccountPlanType.Premium]),
@@ -23,7 +22,7 @@ router.get(
 );
 router.get(
     '/:id',
-    checkScopes(userAdminDashboardScopes),
+    checkScopes(['rewards:read']),
     assertAssetPoolAccess,
     assertRequestInput(ReadReward.validation),
     requireAssetPoolHeader,
@@ -32,7 +31,7 @@ router.get(
 );
 router.post(
     '/',
-    checkScopes(adminDashboardScopes),
+    checkScopes(['rewards:write', 'rewards:read']),
     assertAssetPoolAccess,
     assertRequestInput(CreateReward.validation),
     requireAssetPoolHeader,
@@ -41,7 +40,7 @@ router.post(
 );
 router.patch(
     '/:id',
-    checkScopes(adminDashboardScopes),
+    checkScopes(['rewards:write', 'rewards:read']),
     assertAssetPoolAccess,
     assertRequestInput(UpdateReward.validation),
     requireAssetPoolHeader,
@@ -50,7 +49,7 @@ router.patch(
 );
 router.post(
     '/:id/claim',
-    checkScopes(userScopes),
+    checkScopes(['withdrawals:write', 'rewards:read']),
     // rateLimitRewardClaim,
     assertRequestInput(CreateRewardClaim.validation),
     requireAssetPoolHeader,
@@ -59,7 +58,7 @@ router.post(
 );
 router.post(
     '/:id/give',
-    checkScopes(adminScopes),
+    checkScopes(['withdrawals:write', 'rewards:read']),
     rateLimitRewardGive,
     assertRequestInput(CreateRewardGive.validation),
     requireAssetPoolHeader,

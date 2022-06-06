@@ -4,13 +4,12 @@ import { assertAssetPoolAccess, assertPlan, assertRequestInput, requireAssetPool
 import { AccountPlanType } from '@/types/enums';
 import CreateRelay from './post.controller';
 import CreateRelayUpgradeAddress from './upgrade_address/post';
-import { userScopes } from '../scopes';
 
 const router = express.Router();
 
 router.post(
     '/call',
-    assertScopes(userScopes),
+    assertScopes(['relay:write']),
     assertAssetPoolAccess,
     assertRequestInput(CreateRelay.validation),
     requireAssetPoolHeader,
@@ -19,7 +18,7 @@ router.post(
 );
 router.post(
     '/upgrade_address',
-    assertScopes(userScopes),
+    assertScopes(['relay:write', 'account:write']),
     assertAssetPoolAccess,
     assertRequestInput(CreateRelayUpgradeAddress.validation),
     requireAssetPoolHeader,
