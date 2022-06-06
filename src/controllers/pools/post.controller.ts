@@ -1,16 +1,19 @@
-import newrelic from 'newrelic';
 import { Request, Response } from 'express';
-import { AssetPool } from '@/models/AssetPool';
+import { body } from 'express-validator';
+import { isAddress } from 'web3-utils';
 import AssetPoolService from '@/services/AssetPoolService';
 import ClientService from '@/services/ClientService';
-import { body } from 'express-validator';
 import { AccountPlanType } from '@/types/enums/AccountPlanType';
 import { NetworkProvider } from '@/types/enums';
 import AccountProxy from '@/proxies/AccountProxy';
-import { ITX_ACTIVE } from '@/config/secrets';
 
 const validation = [
-    body('token').isEthereumAddress(),
+    body('tokens').custom((tokens: string[]) => {
+        for (const tokenAddress of tokens) {
+            if (!isAddress(tokenAddress)) return false;
+        }
+        return true;
+    }),
     body('network').exists().isNumeric(),
     body('variant').optional().isString(),
 ];
@@ -23,12 +26,7 @@ const controller = async (req: Request, res: Response) => {
         await AccountProxy.update(account.id, { plan: AccountPlanType.Basic });
     }
 
-    const pool = await AssetPoolService.deploy(req.user.sub, req.body.network, req.body.variant, req.body.token);
-
-    if (!ITX_ACTIVE) {
-        await AssetPoolService.initialize(pool, req.body.token);
-    }
-
+    const pool = await AssetPoolService.deploy(req.user.sub, req.body.network, req.body.variant, req.body.tokens);
     const client = await ClientService.create(req.user.sub, {
         application_type: 'web',
         grant_types: ['client_credentials'],
@@ -41,8 +39,6 @@ const controller = async (req: Request, res: Response) => {
 
     pool.clientId = client.clientId;
     await pool.save();
-
-    AssetPool.countDocuments({}, (_err: any, count: number) => newrelic.recordMetric('/AssetPool/Count', count));
 
     res.status(201).json(pool);
 };

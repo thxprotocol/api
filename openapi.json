@@ -233,7 +233,7 @@
                 "variant": {
                   "example": "any"
                 },
-                "token": {
+                "tokens": {
                   "example": "any"
                 }
               }
@@ -377,6 +377,41 @@
         }
       }
     },
+    "/erc20/token": {
+      "get": {
+        "tags": [
+          "ERC20"
+        ],
+        "description": "",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/erc20/token/{id}": {
+      "get": {
+        "tags": [
+          "ERC20"
+        ],
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
     "/erc20/": {
       "get": {
         "tags": [
@@ -464,6 +499,41 @@
         "responses": {
           "204": {
             "description": "No Content"
+          }
+        }
+      }
+    },
+    "/erc721/token": {
+      "get": {
+        "tags": [
+          "ERC721"
+        ],
+        "description": "",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/erc721/token/{id}": {
+      "get": {
+        "tags": [
+          "ERC721"
+        ],
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
           }
         }
       }
@@ -787,12 +857,6 @@
             "schema": {
               "type": "object",
               "properties": {
-                "amount": {
-                  "example": "any"
-                },
-                "item": {
-                  "example": "any"
-                },
                 "call": {
                   "example": "any"
                 },
@@ -800,6 +864,9 @@
                   "example": "any"
                 },
                 "sig": {
+                  "example": "any"
+                },
+                "amount": {
                   "example": "any"
                 }
               }

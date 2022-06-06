@@ -29,7 +29,16 @@ async function handleEvents(tx: TransactionDocument, events: CustomEventLog[]) {
             const pool = await AssetPool.findOne({ transactions: String(tx._id) });
             pool.address = event.args.pool;
             await pool.save();
-            await AssetPoolService.initialize(pool, event.args.token);
+
+            if (pool.variant === 'defaultPool') {
+                await AssetPoolService.initializeDefaultPool(pool, event.args.token);
+            }
+            if (pool.variant === 'nftPool') {
+                await AssetPoolService.initializeNFTPool(pool, event.args.token);
+            }
+            // if (pool.variant === 'paymentPool') {
+            //     await AssetPoolService.initializePaymentPool(pool, event.args.token);
+            // }
         },
         ERC721Minted: async function (event?: CustomEventLog) {
             await ERC721Token.updateOne(

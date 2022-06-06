@@ -36,7 +36,7 @@ describe('Account', () => {
                 .set({ Authorization: dashboardAccessToken })
                 .send({
                     network: NetworkProvider.Main,
-                    token: testToken.options.address,
+                    tokens: [testToken.options.address],
                 })
                 .expect((res: request.Response) => {
                     poolAddress = res.body.address;

@@ -1,16 +1,18 @@
 import app from '@/app';
 import request, { Response } from 'supertest';
 import { Account } from 'web3-core';
-import { isAddress } from 'web3-utils';
+import { isAddress, toWei } from 'web3-utils';
 import { Contract } from 'web3-eth-contract';
 import { afterAllCallback, beforeAllCallback } from '@/util/jest/config';
 import { getToken } from '@/util/jest/jwt';
 import { ERC20Type, NetworkProvider } from '@/types/enums';
 import { createWallet, signMethod } from '@/util/jest/network';
-import { tokenName, tokenSymbol, userWalletPrivateKey2 } from '@/util/jest/constants';
-import { getContractFromName } from '@/config/contracts';
-
+import { tokenName, tokenSymbol, tokenTotalSupply, userWalletPrivateKey2 } from '@/util/jest/constants';
+import { getContract, getContractFromName } from '@/config/contracts';
 import { PaymentState } from '@/types/enums/PaymentState';
+import TransactionService from '@/services/TransactionService';
+import { assertEvent, parseLogs } from '@/util/events';
+import { currentVersion } from '@thxnetwork/artifacts';
 
 const http = request.agent(app);
 
@@ -19,10 +21,13 @@ describe('Payments', () => {
         userAccessToken: string,
         adminAccessToken: string,
         tokenAddress: string,
+        existingTokenAddress: string,
         poolAddress: string,
         paymentId: string,
         userWallet: Account,
-        testToken: Contract;
+        existingToken: Contract,
+        token: Contract;
+
     const returnUrl = 'https://example.com/checkout/confirm?id=123',
         amount = '1000';
 
@@ -32,11 +37,27 @@ describe('Payments', () => {
         await beforeAllCallback();
 
         userWallet = createWallet(userWalletPrivateKey2);
-        console.log(userWallet.address);
 
         dashboardAccessToken = getToken('openid dashboard');
         userAccessToken = getToken('openid user ');
         adminAccessToken = getToken('openid admin');
+    });
+
+    it('Existing token', async () => {
+        const tokenFactory = getContract(NetworkProvider.Main, 'TokenFactory', currentVersion);
+        const { receipt } = await TransactionService.send(
+            tokenFactory.options.address,
+            tokenFactory.methods.deployLimitedSupplyToken(
+                tokenName,
+                tokenSymbol,
+                userWallet.address,
+                toWei(String(tokenTotalSupply)),
+            ),
+            NetworkProvider.Main,
+        );
+        const event = assertEvent('TokenDeployed', parseLogs(tokenFactory.options.jsonInterface, receipt.logs));
+        existingTokenAddress = event.args.token;
+        existingToken = getContractFromName(NetworkProvider.Main, 'LimitedSupplyToken', existingTokenAddress);
     });
 
     it('Create token', (done) => {
@@ -52,7 +73,7 @@ describe('Payments', () => {
             .expect(({ body }: Response) => {
                 expect(isAddress(body.address)).toBe(true);
                 tokenAddress = body.address;
-                testToken = getContractFromName(NetworkProvider.Main, 'LimitedSupplyToken', tokenAddress);
+                token = getContractFromName(NetworkProvider.Main, 'UnlimitedSupplyToken', tokenAddress);
             })
             .expect(201, done);
     });
@@ -62,7 +83,7 @@ describe('Payments', () => {
             .set('Authorization', dashboardAccessToken)
             .send({
                 network: NetworkProvider.Main,
-                token: tokenAddress,
+                tokens: [tokenAddress],
             })
             .expect((res: Response) => {
                 expect(isAddress(res.body.address)).toBe(true);
@@ -83,7 +104,7 @@ describe('Payments', () => {
                 expect(body.redirectUrl).toBeDefined();
                 expect(body.chainId).toBe(31337);
                 expect(body.state).toBe(PaymentState.Pending);
-                expect(body.token).toBe(testToken.options.address);
+                expect(body.token).toBe(token.options.address);
                 expect(body.receiver).toBe(poolAddress);
                 expect(body.amount).toBe(amount);
 
@@ -105,7 +126,6 @@ describe('Payments', () => {
                 amount,
             })
             .expect(({ body }: Response) => {
-                console.log(body);
                 expect(body.state).toBe(PaymentState.Completed);
             })
             .expect(200);

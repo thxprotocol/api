@@ -75,7 +75,7 @@ describe('Default Pool', () => {
                 .set('Authorization', dashboardAccessToken)
                 .send({
                     network: NetworkProvider.Main,
-                    token: tokenAddress,
+                    tokens: [tokenAddress],
                 })
                 .expect((res: request.Response) => {
                     poolId = res.body._id;

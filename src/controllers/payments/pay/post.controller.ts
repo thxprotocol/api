@@ -29,7 +29,7 @@ const controller = async (req: Request, res: Response) => {
     const balance = await contract.methods.balanceOf(payment.sender).call();
     if (balance < Number(amount)) throw new InsufficientBalanceError();
 
-    // Check allowance for admin to ensure throughput
+    // Check allowance to ensure throughput
     const allowance = Number(await contract.methods.allowance(payment.sender, req.assetPool.address).call());
     if (allowance < Number(amount)) throw new AmountExceedsAllowanceError();
 

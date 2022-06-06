@@ -13,7 +13,7 @@ import { currentVersion } from '@thxnetwork/artifacts';
 
 const user = request.agent(app);
 
-describe('Happy Flow', () => {
+describe('Upgrades', () => {
     let poolAddress: string, testToken: Contract;
 
     beforeAll(async () => {
@@ -26,7 +26,8 @@ describe('Happy Flow', () => {
             .set('Authorization', getToken('openid dashboard'))
             .send({
                 network: NetworkProvider.Main,
-                token: testToken.options.address,
+                variant: 'defaultPool',
+                tokens: [testToken.options.address],
             })
             .expect((res: request.Response) => {
                 expect(isAddress(res.body.address)).toBe(true);

@@ -13,6 +13,7 @@ import { currentVersion } from '@thxnetwork/artifacts';
 import { ERC721Token, ERC721TokenDocument } from '@/models/ERC721Token';
 import { TAssetPool } from '@/types/TAssetPool';
 import { keccak256, toUtf8Bytes } from 'ethers/lib/utils';
+import { IAccount } from '@/models/Account';
 
 async function create(data: TERC721): Promise<ERC721Document> {
     const { admin } = getProvider(data.network);
@@ -59,9 +60,11 @@ export async function mint(
     assetPool: AssetPoolDocument,
     erc721: ERC721Document,
     metadata: ERC721MetadataDocument,
-    recipient: string,
+    account: IAccount,
 ): Promise<ERC721TokenDocument> {
     const erc721token = new ERC721Token({
+        sub: account.id,
+        recipient: account.address,
         state: ERC721TokenState.Pending,
         erc721Id: String(erc721._id),
         metadataId: String(metadata._id),
@@ -71,7 +74,7 @@ export async function mint(
         const tx = await InfuraService.create(
             assetPool.address,
             'mintFor',
-            [recipient, String(metadata._id)],
+            [account.address, String(metadata._id)],
             assetPool.network,
         );
         erc721token.transactions.push(String(tx._id));
@@ -81,7 +84,7 @@ export async function mint(
         try {
             const { tx, receipt } = await TransactionService.send(
                 assetPool.address,
-                assetPool.contract.methods.mintFor(recipient, erc721.baseURL + String(erc721token.metadataId)),
+                assetPool.contract.methods.mintFor(account.address, erc721.baseURL + String(erc721token.metadataId)),
                 assetPool.network,
             );
             const event = assertEvent(
@@ -124,6 +127,10 @@ async function addMinter(erc721: ERC721Document, address: string) {
 
 async function findTokenById(id: string): Promise<ERC721TokenDocument> {
     return await ERC721Token.findById(id);
+}
+
+async function findTokensBySub(sub: string) {
+    return await ERC721Token.find({ sub });
 }
 
 async function findMetadataById(id: string): Promise<ERC721MetadataDocument> {
@@ -172,6 +179,7 @@ export default {
     findBySub,
     findTokenById,
     findTokensByMetadata,
+    findTokensBySub,
     findMetadataById,
     findMetadataByNFT,
     findTokensByRecipient,
