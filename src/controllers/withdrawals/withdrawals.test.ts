@@ -9,6 +9,7 @@ import {
     tokenName,
     tokenSymbol,
     userWalletPrivateKey2,
+    walletAccessToken,
 } from '@/util/jest/constants';
 import { isAddress } from 'web3-utils';
 import { Account } from 'web3-core';
@@ -128,6 +129,14 @@ describe('Propose Withdrawal', () => {
                     expect(res.body.token.balance).toBe(1000);
                 })
                 .expect(200, done);
+        });
+    });
+
+    describe('DELETE /withdrawals/:id', () => {
+        it('HTTP 204', (done) => {
+            user.delete('/v1/withdrawals/' + withdrawalDocumentId)
+                .set({ 'X-PoolAddress': poolAddress, 'Authorization': walletAccessToken })
+                .expect(204, done);
         });
     });
 
