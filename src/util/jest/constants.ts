@@ -1,4 +1,5 @@
 import { AccountPlanType } from '@/types/enums';
+import { getToken } from './jwt';
 
 export const tokenName = 'Volunteers United';
 export const tokenSymbol = 'VUT';
@@ -59,3 +60,13 @@ export const exceedingFeeData = {
     blockTime: 3,
     blockNumber: 24539906,
 };
+
+export const adminScopes =
+    'openid account:read account:write members:read members:write withdrawals:read withdrawals:write';
+export const adminAccessToken = getToken(adminScopes);
+export const dashboardScopes =
+    'openid pools:read pools:write erc20:write erc20:read erc721:write erc721:read rewards:read rewards:write deposits:read deposits:write promotions:read promotions:write widgets:write widgets:read';
+export const dashboardAccessToken = getToken(dashboardScopes);
+export const walletScopes =
+    'openid rewards:read erc20:read erc721:read withdrawals:read withdrawals:write deposits:read deposits:write account:read account:write memberships:read memberships:write promotions:read relay:write';
+export const walletAccessToken = getToken(walletScopes);

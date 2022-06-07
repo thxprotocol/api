@@ -7,11 +7,12 @@ import { IPromoCodeResponse } from '@/types/interfaces/IPromoCodeResponse';
 import { afterAllCallback, beforeAllCallback } from '@/util/jest/config';
 import { NetworkProvider } from '@/types/enums';
 import { getContract } from '@/config/contracts';
+import { dashboardAccessToken } from '@/util/jest/constants';
 
 const http = request.agent(app);
 
 describe('PromoCodes', () => {
-    let dashboardAccessToken: string, promoCode: IPromoCodeResponse, testToken: Contract, poolAddress: string;
+    let promoCode: IPromoCodeResponse, testToken: Contract, poolAddress: string;
 
     const value = 'XX78WEJ1219WZ';
     const price = 10;
@@ -23,8 +24,6 @@ describe('PromoCodes', () => {
         await beforeAllCallback();
 
         testToken = getContract(NetworkProvider.Main, 'LimitedSupplyToken');
-
-        dashboardAccessToken = getToken('openid dashboard promotions:read promotions:write members:write');
     });
 
     afterAll(afterAllCallback);

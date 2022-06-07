@@ -9,7 +9,7 @@ const router = express.Router();
 
 router.post(
     '/call',
-    assertScopes(['user']),
+    assertScopes(['relay:write']),
     assertAssetPoolAccess,
     assertRequestInput(CreateRelay.validation),
     requireAssetPoolHeader,
@@ -18,7 +18,7 @@ router.post(
 );
 router.post(
     '/upgrade_address',
-    assertScopes(['user']),
+    assertScopes(['relay:write', 'account:write']),
     assertAssetPoolAccess,
     assertRequestInput(CreateRelayUpgradeAddress.validation),
     requireAssetPoolHeader,

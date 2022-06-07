@@ -15,7 +15,7 @@ const controller = async (req: Request, res: Response) => {
         redirect_uris: [WIDGETS_URL],
         post_logout_redirect_uris: req.body.postLogoutRedirectUris,
         response_types: ['code'],
-        scope: 'openid user widget',
+        scope: 'openid rewards:read withdrawals:write',
     });
 
     const widget = await WidgetService.create(

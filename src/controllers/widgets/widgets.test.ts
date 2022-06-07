@@ -9,9 +9,9 @@ import {
     requestUris,
     redirectUris,
     postLogoutRedirectUris,
+    dashboardAccessToken,
 } from '@/util/jest/constants';
 import { Contract } from 'web3-eth-contract';
-import { getToken } from '@/util/jest/jwt';
 import { afterAllCallback, beforeAllCallback } from '@/util/jest/config';
 import { getContract } from '@/config/contracts';
 
@@ -21,14 +21,12 @@ describe('Widgets', () => {
     const title = 'Welcome Package',
         slug = 'welcome-package';
 
-    let poolAddress: string, dashboardAccessToken: string, testToken: Contract, clientId: string;
+    let poolAddress: string, testToken: Contract, clientId: string;
 
     beforeAll(async () => {
         await beforeAllCallback();
 
         testToken = getContract(NetworkProvider.Main, 'LimitedSupplyToken');
-
-        dashboardAccessToken = getToken('openid dashboard');
     });
 
     afterAll(afterAllCallback);

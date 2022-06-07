@@ -1,0 +1,29 @@
+export const openId = 'openid';
+export const adminScopes = ['account:read', 'account:write', 'members:read', 'members:write', 'withdrawals:write'];
+export const dashboardScopes = [
+    'asset_pools:read',
+    'asset_pools:write',
+    'rewards:read',
+    'rewards:write',
+    'deposits:read',
+    'deposits:write',
+    'promotions:read',
+    'promotions:write',
+];
+export const userScopes = [
+    'asset_pools:read',
+    'asset_pools:write',
+    'rewards:read',
+    'withdrawals:read',
+    'deposits:read',
+    'deposits:write',
+];
+
+export const opneIdAdminScopes = `${openId} ${adminScopes.join(' ')}`;
+export const openIdDashboardScopes = `${openId} ${dashboardScopes.join(' ')}`;
+export const openIdUserScopes = `${openId} ${userScopes.join(' ')}`;
+
+export const adminDashboardScopes = Array.from(new Set([...adminScopes, ...dashboardScopes]));
+export const userDashboardScopes = Array.from(new Set([...userScopes, ...dashboardScopes]));
+export const userAdminScopes = Array.from(new Set([...adminScopes, ...userScopes]));
+export const userAdminDashboardScopes = Array.from(new Set([...adminScopes, ...userScopes, ...dashboardScopes]));

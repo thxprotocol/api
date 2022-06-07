@@ -5,11 +5,12 @@ import { ERC20Type, NetworkProvider } from '@/types/enums';
 import { afterAllCallback, beforeAllCallback } from '@/util/jest/config';
 import { getToken } from '@/util/jest/jwt';
 import { isAddress } from 'ethers/lib/utils';
+import { dashboardAccessToken} from '@/util/jest/constants';
 
 const http = request.agent(app);
 
 describe('ERC20', () => {
-    const ACCESS_TOKEN = getToken('openid dashboard');
+    const ACCESS_TOKEN = dashboardAccessToken;
     let tokenId: string;
 
     beforeAll(async () => {
