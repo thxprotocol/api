@@ -15,9 +15,7 @@ import { getContract } from '@/config/contracts';
 const user = request.agent(app);
 
 describe('Transfer Pool Ownership', () => {
-    let poolAddress: string,
-        testToken: Contract,
-        userWallet: Account;
+    let poolAddress: string, testToken: Contract, userWallet: Account;
 
     beforeAll(async () => {
         await beforeAllCallback();

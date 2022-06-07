@@ -8,7 +8,15 @@ import { ERC20Type, NetworkProvider, TransactionState } from '@/types/enums';
 import { IPromotionResponse } from '@/types/interfaces/IPromoCodeResponse';
 import { createWallet, signMethod } from '@/util/jest/network';
 import { findEvent, parseLogs } from '@/util/events';
-import { adminAccessToken, MaxUint256, tokenName, tokenSymbol, userWalletPrivateKey2 } from '@/util/jest/constants';
+import {
+    adminAccessToken,
+    dashboardAccessToken,
+    MaxUint256,
+    tokenName,
+    tokenSymbol,
+    userWalletPrivateKey2,
+    walletAccessToken,
+} from '@/util/jest/constants';
 import { AmountExceedsAllowanceError, InsufficientBalanceError } from '@/util/errors';
 import TransactionService from '@/services/TransactionService';
 import { getContractFromName } from '@/config/contracts';
@@ -19,9 +27,7 @@ import { fromWei } from 'web3-utils';
 const http = request.agent(app);
 
 describe('Deposits', () => {
-    let dashboardAccessToken: string,
-        userAccessToken: string,
-        poolAddress: string,
+    let poolAddress: string,
         promotion: IPromotionResponse,
         userWallet: Account,
         tokenAddress: string,
@@ -106,7 +112,7 @@ describe('Deposits', () => {
     describe('Create Deposit', () => {
         it('GET /promotions/:id', (done) => {
             http.get('/v1/promotions/' + promotion.id)
-                .set({ 'Authorization': userAccessToken, 'X-PoolAddress': poolAddress })
+                .set({ 'Authorization': walletAccessToken, 'X-PoolAddress': poolAddress })
                 .expect(({ body }: Response) => {
                     expect(body.id).toEqual(promotion.id);
                     expect(body.value).toEqual('');
@@ -127,7 +133,7 @@ describe('Deposits', () => {
             );
             await http
                 .post('/v1/deposits')
-                .set({ 'Authorization': userAccessToken, 'X-PoolAddress': poolAddress })
+                .set({ 'Authorization': walletAccessToken, 'X-PoolAddress': poolAddress })
                 .send({ call, nonce, sig, item: promotion.id })
                 .expect(({ body }: Response) => {
                     expect(body.error.message).toEqual(new InsufficientBalanceError().message);
@@ -156,7 +162,7 @@ describe('Deposits', () => {
             );
             await http
                 .post('/v1/deposits')
-                .set({ 'Authorization': userAccessToken, 'X-PoolAddress': poolAddress })
+                .set({ 'Authorization': walletAccessToken, 'X-PoolAddress': poolAddress })
                 .send({ call, nonce, sig, item: promotion.id })
                 .expect(({ body }: Response) => {
                     expect(body.error.message).toEqual(new AmountExceedsAllowanceError().message);
@@ -181,14 +187,14 @@ describe('Deposits', () => {
             );
             await http
                 .post('/v1/deposits')
-                .set({ 'Authorization': userAccessToken, 'X-PoolAddress': poolAddress })
+                .set({ 'Authorization': walletAccessToken, 'X-PoolAddress': poolAddress })
                 .send({ call, nonce, sig, item: promotion.id })
                 .expect(200);
         });
 
         it('GET /promotions/:id', (done) => {
             http.get('/v1/promotions/' + promotion.id)
-                .set({ 'Authorization': userAccessToken, 'X-PoolAddress': poolAddress })
+                .set({ 'Authorization': walletAccessToken, 'X-PoolAddress': poolAddress })
                 .expect(({ body }: Response) => {
                     expect(body.value).toEqual(value);
                 })

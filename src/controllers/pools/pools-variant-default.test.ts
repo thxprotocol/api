@@ -392,9 +392,6 @@ describe('Default Pool', () => {
         it('HTTP 204', (done) => {
             user.delete('/v1/pools/' + poolId)
                 .set({ 'X-PoolAddress': poolAddress, 'Authorization': dashboardAccessToken })
-                .expect((res: any) => {
-                    console.log(res.body);
-                })
                 .expect(204, done);
         });
     });
