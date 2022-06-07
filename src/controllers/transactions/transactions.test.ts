@@ -3,22 +3,17 @@ import app from '@/app';
 import { NetworkProvider } from '@/types/enums';
 import { Account } from 'web3-core';
 import { toWei } from 'web3-utils';
-import { timeTravel, signMethod, createWallet } from '@/util/jest/network';
+import { createWallet } from '@/util/jest/network';
 import {
-    rewardWithdrawAmount,
-    rewardWithdrawDuration,
-    rewardWithdrawUnlockDate,
     userWalletPrivateKey2,
-    sub2,
     tokenName,
     tokenSymbol,
     tokenTotalSupply,
-    MaxUint256,
+    dashboardAccessToken,
 } from '@/util/jest/constants';
 import { isAddress } from 'web3-utils';
-import { getToken } from '@/util/jest/jwt';
 import { afterAllCallback, beforeAllCallback } from '@/util/jest/config';
-import { getContract, getContractFromName } from '@/config/contracts';
+import { getContract } from '@/config/contracts';
 import { currentVersion } from '@thxnetwork/artifacts';
 import { assertEvent, parseLogs } from '@/util/events';
 import TransactionService from '@/services/TransactionService';
@@ -27,10 +22,7 @@ const user = request.agent(app);
 
 describe('Default Pool', () => {
 
-    let adminAccessToken: string,
-        userAccessToken: string,
-        dashboardAccessToken: string,
-        poolAddress: string,
+    let poolAddress: string,
         tokenAddress: string,
         userWallet: Account,
         poolId: string;
@@ -39,10 +31,6 @@ describe('Default Pool', () => {
         await beforeAllCallback();
 
         userWallet = createWallet(userWalletPrivateKey2);
-
-        adminAccessToken = getToken('openid admin');
-        dashboardAccessToken = getToken('openid dashboard');
-        userAccessToken = getToken('openid user deposits:read deposits:write');
     });
 
     afterAll(afterAllCallback);

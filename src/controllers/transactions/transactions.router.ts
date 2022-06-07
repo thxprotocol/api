@@ -7,7 +7,7 @@ const router = express.Router();
 router.get(
     '/',
     assertAssetPoolAccess,
-    assertScopes(['dashboard']),
+    assertScopes(['transactions:read']),
     assertRequestInput(ListTransactions.validation),
     requireAssetPoolHeader,
     ListTransactions.controller,
