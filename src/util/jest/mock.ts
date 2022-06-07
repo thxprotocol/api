@@ -38,6 +38,7 @@ export function mockStart() {
         client_id: clientId,
         registration_access_token: registrationAccessToken,
     });
+    mockAuthPath('delete', `/reg/${clientId}?access_token=${registrationAccessToken}`, 204, {});
     mockAuthPath('get', `/reg/${clientId}?access_token=${registrationAccessToken}`, 200, {
         client_id: clientId,
         client_secret: clientSecret,

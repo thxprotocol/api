@@ -3,9 +3,8 @@ import app from '@/app';
 import { getProvider } from '@/util/network';
 import { NetworkProvider } from '@/types/enums';
 import { createWallet, voter } from '@/util/jest/network';
-import { userWalletPrivateKey2 } from '@/util/jest/constants';
+import { adminAccessToken, dashboardAccessToken, userWalletPrivateKey2 } from '@/util/jest/constants';
 import { Contract } from 'web3-eth-contract';
-import { getToken } from '@/util/jest/jwt';
 import { Account } from 'web3-core';
 import { afterAllCallback, beforeAllCallback } from '@/util/jest/config';
 import { getContract } from '@/config/contracts';
@@ -14,9 +13,7 @@ const user = request.agent(app);
 
 describe('Roles', () => {
     let poolAddress: any,
-        dashboardAccessToken: string,
         testToken: Contract,
-        adminAccessToken: string,
         userWallet: Account;
 
     beforeAll(async () => {
@@ -24,9 +21,6 @@ describe('Roles', () => {
 
         testToken = getContract(NetworkProvider.Main, 'LimitedSupplyToken');
         userWallet = createWallet(userWalletPrivateKey2);
-
-        adminAccessToken = getToken('openid admin');
-        dashboardAccessToken = getToken('openid dashboard');
     });
 
     afterAll(afterAllCallback);

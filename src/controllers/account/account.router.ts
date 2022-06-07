@@ -12,23 +12,25 @@ import CreateAccountLogin from './login/post.controller';
 
 const router = express.Router();
 
-router.get('/', assertScopes(['user', 'dashboard']), ReadAccount.controller);
-router.patch('/', assertScopes(['user', 'dashboard']), UpdateAccount.controller);
-router.delete('/', assertScopes(['user', 'dashboard']), DeleteAccount.controller);
+router.get('/', assertScopes(['account:read']), ReadAccount.controller);
+router.patch('/', assertScopes(['account:read', 'account:write']), UpdateAccount.controller);
+router.delete('/', assertScopes(['account:write']), DeleteAccount.controller);
 router.post(
     '/',
-    assertScopes(['admin']),
+    assertScopes(['account:write']),
     assertRequestInput(CreateAccount.validation),
     requireAssetPoolHeader,
     CreateAccount.controller,
 );
-router.get('/twitter', assertScopes(['dashboard']), ReadAccountTwitter.controller);
-router.get('/youtube', assertScopes(['dashboard']), ReadAccountYoutube.controller);
-router.get('/spotify', assertScopes(['dashboard']), ReadAccountSpotify.controller);
+
+router.get('/twitter', assertScopes(['account:read']), ReadAccountTwitter.controller);
+router.get('/youtube', assertScopes(['account:read']), ReadAccountYoutube.controller);
+router.get('/spotify', assertScopes(['account:read']), ReadAccountSpotify.controller);
+
 router.post(
     '/login',
     assertRequestInput(CreateAccountLogin.validation),
-    assertScopes(['admin']),
+    assertScopes(['account:write']),
     CreateAccountLogin.controller,
 );
 

@@ -17,11 +17,16 @@ import CreatePoolTopup from './topup/post.controller';
 
 const router = express.Router();
 
-router.post('/', assertScopes(['dashboard']), assertRequestInput(CreatePool.validation), CreatePool.controller);
-router.get('/', assertScopes(['dashboard']), ListPools.controller);
+router.post(
+    '/',
+    assertScopes(['pools:read', 'pools:write']),
+    assertRequestInput(CreatePool.validation),
+    CreatePool.controller,
+);
+router.get('/', assertScopes(['pools:read']), ListPools.controller);
 router.get(
     '/:id/members',
-    assertScopes(['dashboard']),
+    assertScopes(['pools:read', 'members:read']),
     assertRequestInput(ReadPool.validation),
     assertPoolOwner,
     assertPlan([AccountPlanType.Basic, AccountPlanType.Premium]),
@@ -29,7 +34,7 @@ router.get(
 );
 router.get(
     '/:id',
-    assertScopes(['dashboard']),
+    assertScopes(['pools:read']),
     assertRequestInput(ReadPool.validation),
     assertPoolOwner,
     assertPlan([AccountPlanType.Basic, AccountPlanType.Premium]),
@@ -37,7 +42,7 @@ router.get(
 );
 router.delete(
     '/:id',
-    assertScopes(['dashboard']),
+    assertScopes(['pools:write']),
     assertRequestInput(DeletePool.validation),
     assertPoolOwner,
     assertPlan([AccountPlanType.Basic, AccountPlanType.Premium]),

@@ -2,14 +2,13 @@ import request from 'supertest';
 import app from '@/app';
 import { NetworkProvider } from '@/types/enums';
 import { isAddress } from 'web3-utils';
-import { getToken } from '@/util/jest/jwt';
 import { afterAllCallback, beforeAllCallback } from '@/util/jest/config';
-import { account2 } from '@/util/jest/constants';
+import { account2, dashboardAccessToken } from '@/util/jest/constants';
 
 const user = request.agent(app);
 
 describe('NFT Pool', () => {
-    let dashboardAccessToken: string, poolAddress: string, tokenAddress: string, erc721ID: string, metadataId: string;
+    let poolAddress: string, tokenAddress: string, erc721ID: string, metadataId: string;
     const network = NetworkProvider.Main,
         name = 'Planets of the Galaxy',
         symbol = 'GLXY',
@@ -21,7 +20,6 @@ describe('NFT Pool', () => {
 
     beforeAll(async () => {
         await beforeAllCallback();
-        dashboardAccessToken = getToken('openid dashboard');
     });
 
     afterAll(afterAllCallback);

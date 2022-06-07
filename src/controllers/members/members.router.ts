@@ -12,7 +12,7 @@ const router = express.Router();
 
 router.get(
     '/',
-    checkScopes(['admin']),
+    checkScopes(['members:read']),
     assertAssetPoolAccess,
     requireAssetPoolHeader,
     assertPlan([AccountPlanType.Basic, AccountPlanType.Premium]),
@@ -20,7 +20,7 @@ router.get(
 );
 router.post(
     '/',
-    checkScopes(['admin', 'members:write']),
+    checkScopes(['members:read']),
     assertAssetPoolAccess,
     assertRequestInput(CreateMember.validation),
     requireAssetPoolHeader,
@@ -29,7 +29,7 @@ router.post(
 );
 router.patch(
     '/:address',
-    checkScopes(['admin']),
+    checkScopes(['members:read', 'members:write']),
     assertAssetPoolAccess,
     assertRequestInput(UpdateMember.validation),
     requireAssetPoolHeader,
@@ -38,7 +38,7 @@ router.patch(
 );
 router.delete(
     '/:address',
-    checkScopes(['admin']),
+    checkScopes(['members:write']),
     assertAssetPoolAccess,
     assertRequestInput(DeleteMember.validation),
     requireAssetPoolHeader,
@@ -47,7 +47,7 @@ router.delete(
 );
 router.get(
     '/:address',
-    checkScopes(['admin', 'user']),
+    checkScopes(['members:read']),
     assertAssetPoolAccess,
     assertRequestInput(ReadMember.validation),
     requireAssetPoolHeader,

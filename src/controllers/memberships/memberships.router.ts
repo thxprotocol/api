@@ -7,11 +7,16 @@ import ListMemberships from './list.controller';
 
 const router = express.Router();
 
-router.get('/', checkScopes(['user']), ListMemberships.controller);
-router.get('/:id', checkScopes(['user']), assertRequestInput(ReadMembership.validation), ReadMembership.controller);
+router.get('/', checkScopes(['memberships:read']), ListMemberships.controller);
+router.get(
+    '/:id',
+    checkScopes(['memberships:read']),
+    assertRequestInput(ReadMembership.validation),
+    ReadMembership.controller,
+);
 router.delete(
     '/:id',
-    checkScopes(['user']),
+    checkScopes(['memberships:write']),
     assertRequestInput(DeleteMembership.validation),
     DeleteMembership.controller,
 );
