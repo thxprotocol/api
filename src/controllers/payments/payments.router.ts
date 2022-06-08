@@ -9,7 +9,7 @@ const router = express.Router();
 
 router.post(
     '/',
-    assertScopes(['admin']),
+    assertScopes(['payments:write']),
     assertAssetPoolAccess,
     assertRequestInput(PostPayment.validation),
     requireAssetPoolHeader,
@@ -17,7 +17,7 @@ router.post(
 );
 router.post(
     '/:id/pay',
-    assertScopes(['user']),
+    assertScopes(['payments:write']),
     assertRequestInput(PostPaymentPay.validation),
     requireAssetPoolHeader,
     PostPaymentPay.controller,
@@ -32,7 +32,7 @@ router.post(
 // );
 router.get(
     '/:id',
-    assertScopes(['admin']),
+    assertScopes(['payments:read']),
     assertAssetPoolAccess,
     assertRequestInput(ReadPayment.validation),
     requireAssetPoolHeader,

@@ -32,7 +32,7 @@ async function get(id: string) {
 async function pay(pool: TAssetPool, payment: PaymentDocument, callData: { call: string; nonce: number; sig: string }) {
     const callback = async (tx: TransactionDocument, events?: CustomEventLog[]): Promise<PaymentDocument> => {
         if (events) {
-            assertEvent('Depositted', events);
+            assertEvent('Topup', events);
             payment.state = PaymentState.Completed;
         }
 
@@ -51,7 +51,7 @@ async function pay(pool: TAssetPool, payment: PaymentDocument, callData: { call:
 }
 
 function getPaymentUrl(id: string) {
-    return `${WALLET_URL}/payments/${String(id)}`;
+    return `${WALLET_URL}/payment/${String(id)}`;
 }
 
 export default { create, pay, get, getPaymentUrl };

@@ -4,29 +4,28 @@ import { Account } from 'web3-core';
 import { isAddress, toWei } from 'web3-utils';
 import { Contract } from 'web3-eth-contract';
 import { afterAllCallback, beforeAllCallback } from '@/util/jest/config';
-import { getToken } from '@/util/jest/jwt';
-import { ERC20Type, NetworkProvider } from '@/types/enums';
+import { NetworkProvider } from '@/types/enums';
 import { createWallet, signMethod } from '@/util/jest/network';
-import { tokenName, tokenSymbol, tokenTotalSupply, userWalletPrivateKey2 } from '@/util/jest/constants';
+import {
+    adminAccessToken,
+    dashboardAccessToken,
+    tokenName,
+    tokenSymbol,
+    tokenTotalSupply,
+    userWalletPrivateKey2,
+    walletAccessToken,
+} from '@/util/jest/constants';
 import { getContract, getContractFromName } from '@/config/contracts';
 import { PaymentState } from '@/types/enums/PaymentState';
 import TransactionService from '@/services/TransactionService';
 import { assertEvent, parseLogs } from '@/util/events';
 import { currentVersion } from '@thxnetwork/artifacts';
+import { getProvider } from '@/util/network';
 
 const http = request.agent(app);
 
 describe('Payments', () => {
-    let dashboardAccessToken: string,
-        userAccessToken: string,
-        adminAccessToken: string,
-        tokenAddress: string,
-        existingTokenAddress: string,
-        poolAddress: string,
-        paymentId: string,
-        userWallet: Account,
-        existingToken: Contract,
-        token: Contract;
+    let poolAddress: string, paymentId: string, admin: Account, token: Contract;
 
     const returnUrl = 'https://example.com/checkout/confirm?id=123',
         amount = '1000';
@@ -35,47 +34,25 @@ describe('Payments', () => {
 
     beforeAll(async () => {
         await beforeAllCallback();
-
-        userWallet = createWallet(userWalletPrivateKey2);
-
-        dashboardAccessToken = getToken('openid dashboard');
-        userAccessToken = getToken('openid user ');
-        adminAccessToken = getToken('openid admin');
+        const provider = getProvider(NetworkProvider.Main);
+        admin = provider.admin;
+        // userWallet = createWallet(userWalletPrivateKey2);
     });
 
-    it('Existing token', async () => {
+    it('Deploy existing token', async () => {
         const tokenFactory = getContract(NetworkProvider.Main, 'TokenFactory', currentVersion);
         const { receipt } = await TransactionService.send(
             tokenFactory.options.address,
             tokenFactory.methods.deployLimitedSupplyToken(
                 tokenName,
                 tokenSymbol,
-                userWallet.address,
+                admin.address,
                 toWei(String(tokenTotalSupply)),
             ),
             NetworkProvider.Main,
         );
         const event = assertEvent('TokenDeployed', parseLogs(tokenFactory.options.jsonInterface, receipt.logs));
-        existingTokenAddress = event.args.token;
-        existingToken = getContractFromName(NetworkProvider.Main, 'LimitedSupplyToken', existingTokenAddress);
-    });
-
-    it('Create token', (done) => {
-        http.post('/v1/erc20')
-            .set('Authorization', dashboardAccessToken)
-            .send({
-                network: NetworkProvider.Main,
-                name: tokenName,
-                symbol: tokenSymbol,
-                type: ERC20Type.Unlimited,
-                totalSupply: 0,
-            })
-            .expect(({ body }: Response) => {
-                expect(isAddress(body.address)).toBe(true);
-                tokenAddress = body.address;
-                token = getContractFromName(NetworkProvider.Main, 'UnlimitedSupplyToken', tokenAddress);
-            })
-            .expect(201, done);
+        token = getContractFromName(NetworkProvider.Main, 'LimitedSupplyToken', event.args.token);
     });
 
     it('Create pool', (done) => {
@@ -83,7 +60,8 @@ describe('Payments', () => {
             .set('Authorization', dashboardAccessToken)
             .send({
                 network: NetworkProvider.Main,
-                tokens: [tokenAddress],
+                tokens: [token.options.address],
+                variant: 'defaultPool',
             })
             .expect((res: Response) => {
                 expect(isAddress(res.body.address)).toBe(true);
@@ -113,12 +91,18 @@ describe('Payments', () => {
             .expect(201, done);
     });
 
-    it('Redirect to wallet and pay', async () => {
-        const { call, nonce, sig } = await signMethod(poolAddress, 'deposit', [amount], userWallet);
+    it('Approve relayed transfer by pool', async () => {
+        const receipt = await token.methods.approve(poolAddress, amount).send({ from: admin.address });
+        expect(receipt.events['Approval']).toBeDefined();
+    });
+
+    it('Relay payment transfer', async () => {
+        // Call topup as admin (TODO remove modifier later)
+        const { call, nonce, sig } = await signMethod(poolAddress, 'topup', [amount], admin);
 
         await http
             .post(`/v1/payments/${paymentId}/pay`)
-            .set({ 'Authorization': userAccessToken, 'X-PoolAddress': poolAddress })
+            .set({ 'Authorization': walletAccessToken, 'X-PoolAddress': poolAddress })
             .send({
                 call,
                 nonce,
