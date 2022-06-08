@@ -6,10 +6,10 @@ import ListTransactions from './list.controller';
 const router = express.Router();
 router.get(
     '/',
+    requireAssetPoolHeader,
     assertAssetPoolAccess,
     assertScopes(['transactions:read']),
     assertRequestInput(ListTransactions.validation),
-    requireAssetPoolHeader,
     ListTransactions.controller,
 );
 export default router;

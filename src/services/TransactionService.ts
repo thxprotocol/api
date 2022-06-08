@@ -232,7 +232,19 @@ async function call(fn: any, npid: NetworkProvider) {
     });
 }
 
-async function findByQuery(query: { poolAddress: string }, page = 1, limit = 10) {
+async function findByQuery(poolAddress:string, page = 1, limit = 10, startDate?:Date, endDate?:Date) {
+    let query;
+    if(startDate && !endDate) {
+        query = {from: poolAddress, createdAt: {$gte: startDate}};
+    } 
+    else if(startDate && endDate) {
+        query = {from: poolAddress, createdAt: {$gte: startDate, $lt: endDate}};
+    }
+    else if(!startDate && endDate) {
+        query = {from: poolAddress, createdAt: {$lt: endDate}};
+    } else {
+        query = {from: poolAddress};
+    }
     return paginatedResults(Transaction, page, limit, query);
 }
 

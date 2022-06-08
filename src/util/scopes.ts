@@ -9,6 +9,7 @@ export const dashboardScopes = [
     'deposits:write',
     'promotions:read',
     'promotions:write',
+    'transactions:read'
 ];
 export const userScopes = [
     'asset_pools:read',
@@ -17,6 +18,8 @@ export const userScopes = [
     'withdrawals:read',
     'deposits:read',
     'deposits:write',
+    'transactions:read',
+    'transactions:write'
 ];
 
 export const opneIdAdminScopes = `${openId} ${adminScopes.join(' ')}`;
