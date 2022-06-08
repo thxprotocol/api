@@ -14,7 +14,7 @@ const router = express.Router();
 
 router.get(
     '/',
-    checkScopes(['admin', 'user', 'dashboard']),
+    checkScopes(['rewards:read']),
     assertAssetPoolAccess,
     requireAssetPoolHeader,
     assertPlan([AccountPlanType.Basic, AccountPlanType.Premium]),
@@ -22,7 +22,7 @@ router.get(
 );
 router.get(
     '/:id',
-    checkScopes(['admin', 'user', 'widget', 'dashboard']),
+    checkScopes(['rewards:read']),
     assertAssetPoolAccess,
     assertRequestInput(ReadReward.validation),
     requireAssetPoolHeader,
@@ -31,7 +31,7 @@ router.get(
 );
 router.post(
     '/',
-    checkScopes(['admin', 'dashboard']),
+    checkScopes(['rewards:write', 'rewards:read']),
     assertAssetPoolAccess,
     assertRequestInput(CreateReward.validation),
     requireAssetPoolHeader,
@@ -40,7 +40,7 @@ router.post(
 );
 router.patch(
     '/:id',
-    checkScopes(['admin', 'dashboard']),
+    checkScopes(['rewards:write', 'rewards:read']),
     assertAssetPoolAccess,
     assertRequestInput(UpdateReward.validation),
     requireAssetPoolHeader,
@@ -49,7 +49,7 @@ router.patch(
 );
 router.post(
     '/:id/claim',
-    checkScopes(['widget', 'user']),
+    checkScopes(['withdrawals:write', 'rewards:read']),
     // rateLimitRewardClaim,
     assertRequestInput(CreateRewardClaim.validation),
     requireAssetPoolHeader,
@@ -58,7 +58,7 @@ router.post(
 );
 router.post(
     '/:id/give',
-    checkScopes(['admin']),
+    checkScopes(['withdrawals:write', 'rewards:read']),
     rateLimitRewardGive,
     assertRequestInput(CreateRewardGive.validation),
     requireAssetPoolHeader,

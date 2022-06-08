@@ -10,6 +10,7 @@ import AssetPoolService from '@/services/AssetPoolService';
 import { updateDiamondContract } from '@/util/upgrades';
 import { getContract } from '@/config/contracts';
 import { currentVersion } from '@thxnetwork/artifacts';
+import { dashboardAccessToken } from './jest/constants';
 
 const user = request.agent(app);
 
@@ -23,7 +24,7 @@ describe('Happy Flow', () => {
 
         await user
             .post('/v1/pools')
-            .set('Authorization', getToken('openid dashboard'))
+            .set('Authorization', dashboardAccessToken)
             .send({
                 network: NetworkProvider.Main,
                 token: testToken.options.address,

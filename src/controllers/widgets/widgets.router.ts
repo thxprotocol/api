@@ -9,18 +9,23 @@ import ListWidgets from './list.controller';
 
 const router = express.Router();
 
-router.get('/', checkScopes(['dashboard']), assertRequestInput(ListWidgets.validation), ListWidgets.controller);
+router.get('/', checkScopes(['widgets:read']), assertRequestInput(ListWidgets.validation), ListWidgets.controller);
 router.get(
     '/:clientId',
-    checkScopes(['dashboard']),
+    checkScopes(['widgets:read']),
     assertRequestInput(ReadWidget.validation),
     validateClientAccess,
     ReadWidget.controller,
 );
-router.post('/', checkScopes(['dashboard']), assertRequestInput(CreateWidget.validation), CreateWidget.controller);
+router.post(
+    '/',
+    checkScopes(['widgets:write', 'widgets:read']),
+    assertRequestInput(CreateWidget.validation),
+    CreateWidget.controller,
+);
 router.delete(
     '/:clientId',
-    checkScopes(['dashboard']),
+    checkScopes(['widgets:write']),
     assertRequestInput(DeleteWidget.validation),
     validateClientAccess,
     DeleteWidget.controller,
