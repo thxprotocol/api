@@ -4,15 +4,15 @@ import PaymentService from '@/services/PaymentService';
 
 export type TPayment = {
     amount: string;
-    token: string; // TODO Shouldnt this be a ref to a pool?
+    token: string;
+    tokenAddress: string;
     poolId: string;
-    network: number;
     chainId: number;
     sender: string;
     receiver: string;
     transactions: string[];
     state: PaymentState;
-    redirectUrl: string;
+    paymentUrl: string;
     returnUrl: string;
     createdAt: Date;
     updatedAt?: Date;
@@ -24,8 +24,8 @@ const paymentSchema = new mongoose.Schema(
     {
         amount: String,
         token: String,
+        tokenAddress: String,
         chainId: Number,
-        network: Number,
         sender: String,
         receiver: String,
         transactions: [String],
@@ -36,8 +36,8 @@ const paymentSchema = new mongoose.Schema(
     { timestamps: true },
 );
 
-paymentSchema.virtual('redirectUrl').get(function () {
-    return PaymentService.getPaymentUrl(this._id);
+paymentSchema.virtual('paymentUrl').get(function () {
+    return PaymentService.getPaymentUrl(this._id, this.token);
 });
 
 export const Payment = mongoose.model<PaymentDocument>('Payment', paymentSchema, 'payments');

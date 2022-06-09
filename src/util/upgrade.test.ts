@@ -4,7 +4,6 @@ import { NetworkProvider } from '@/types/enums';
 
 import { isAddress } from 'web3-utils';
 import { Contract } from 'web3-eth-contract';
-import { getToken } from '@/util/jest/jwt';
 import { afterAllCallback, beforeAllCallback } from '@/util/jest/config';
 import AssetPoolService from '@/services/AssetPoolService';
 import { updateDiamondContract } from '@/util/upgrades';

@@ -21,11 +21,12 @@ import TransactionService from '@/services/TransactionService';
 import { assertEvent, parseLogs } from '@/util/events';
 import { currentVersion } from '@thxnetwork/artifacts';
 import { getProvider } from '@/util/network';
+import { WALLET_URL } from '@/config/secrets';
 
 const http = request.agent(app);
 
 describe('Payments', () => {
-    let poolAddress: string, paymentId: string, admin: Account, token: Contract;
+    let poolAddress: string, paymentId: string, admin: Account, token: Contract, basicAccessToken: string;
 
     const returnUrl = 'https://example.com/checkout/confirm?id=123',
         amount = '1000';
@@ -79,14 +80,34 @@ describe('Payments', () => {
                 chainId: 31337,
             })
             .expect(({ body }: Response) => {
-                expect(body.redirectUrl).toBeDefined();
+                paymentId = body._id;
+                basicAccessToken = body.token;
+
+                expect(body.paymentUrl).toBe(`${WALLET_URL}/payment/${String(paymentId)}?token=${basicAccessToken}`);
+                expect(body.returnUrl).toBe(returnUrl);
                 expect(body.chainId).toBe(31337);
                 expect(body.state).toBe(PaymentState.Pending);
-                expect(body.token).toBe(token.options.address);
+                expect(body.tokenAddress).toBe(token.options.address);
+                expect(body.token).toHaveLength(32);
                 expect(body.receiver).toBe(poolAddress);
                 expect(body.amount).toBe(amount);
+            })
+            .expect(201, done);
+    });
 
+    it('Get payment information', (done) => {
+        http.get('/v1/payments/' + paymentId)
+            .set({ 'X-PoolAddress': poolAddress })
+            .expect(({ body }: Response) => {
                 paymentId = body._id;
+
+                expect(body.returnUrl).toBe(returnUrl);
+                expect(body.chainId).toBe(31337);
+                expect(body.state).toBe(PaymentState.Pending);
+                expect(body.tokenAddress).toBe(token.options.address);
+                expect(body.token).toHaveLength(32);
+                expect(body.receiver).toBe(poolAddress);
+                expect(body.amount).toBe(amount);
             })
             .expect(201, done);
     });
