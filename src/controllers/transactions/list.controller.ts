@@ -3,8 +3,8 @@ import { query } from 'express-validator';
 import TransactionService from '@/services/TransactionService';
 
 const validation = [
-    query('limit').optional().isNumeric(), 
-    query('page').optional().isNumeric(),
+    query('limit').optional().isInt({ gt: 0 }), 
+    query('page').optional().isInt({ gt: 0 }),
     query('startDate').optional().isNumeric(),
     query('endDate').optional().isNumeric()
 ];

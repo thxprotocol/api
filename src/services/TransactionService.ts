@@ -150,7 +150,6 @@ async function send(to: string, fn: any, npid: NetworkProvider, gasLimit?: numbe
         tx.transactionHash = receipt.transactionHash;
         tx.state = TransactionState.Mined;
         tx = await tx.save();
-
         // Update lastTransactionAt value for the pool if the address is a pool
         if (await AssetPoolService.getByAddress(tx.to)) {
             await AssetPool.findOneAndUpdate({ address: tx.to }, { lastTransactionAt: Date.now() });
@@ -232,20 +231,19 @@ async function call(fn: any, npid: NetworkProvider) {
     });
 }
 
-async function findByQuery(poolAddress:string, page = 1, limit = 10, startDate?:Date, endDate?:Date) {
+async function findByQuery(poolAddress: string, page = 1, limit = 10, startDate?: Date, endDate?: Date) {
     let query;
-    if(startDate && !endDate) {
-        query = {from: poolAddress, createdAt: {$gte: startDate}};
-    } 
-    else if(startDate && endDate) {
-        query = {from: poolAddress, createdAt: {$gte: startDate, $lt: endDate}};
-    }
-    else if(!startDate && endDate) {
-        query = {from: poolAddress, createdAt: {$lt: endDate}};
+    if (startDate && !endDate) {
+        query = { to: poolAddress, createdAt: { $gte: startDate } };
+    } else if (startDate && endDate) {
+        query = { to: poolAddress, createdAt: { $gte: startDate, $lt: endDate } };
+    } else if (!startDate && endDate) {
+        query = { to: poolAddress, createdAt: { $lt: endDate } };
     } else {
-        query = {from: poolAddress};
+        query = { to: poolAddress };
     }
-    return paginatedResults(Transaction, page, limit, query);
+    const result = await paginatedResults(Transaction, page, limit, query);
+    return result;
 }
 
 export default { relay, getById, send, call, deploy, sendValue, findByQuery };
