@@ -27,6 +27,6 @@ export default {
     },
 
     getPublicUrl: (key: string) => {
-        return `https://${AWS_BUCKET_NAME}.${AWS_BUCKET_REGION}.amazonaws.com/${key}`;
+        return `https://${AWS_BUCKET_NAME}.s3.${AWS_BUCKET_REGION}.amazonaws.com/${key}`;
     },
 };
