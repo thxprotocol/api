@@ -64,7 +64,7 @@ async function deposit(
                 throw new InternalServerError(error);
             }
 
-            assertEvent('Depositted', events);
+            assertEvent('Deposited', events);
 
             deposit.transactions.push(String(tx._id));
             deposit.state = DepositState.Completed;

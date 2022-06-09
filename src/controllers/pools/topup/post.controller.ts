@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { body } from 'express-validator';
+import { body, param } from 'express-validator';
 import { BadRequestError, InsufficientBalanceError } from '@/util/errors';
 import { agenda, eventNameRequireTransactions } from '@/util/agenda';
 import { toWei } from 'web3-utils';
@@ -10,7 +10,7 @@ import ERC20Service from '@/services/ERC20Service';
 import TransactionService from '@/services/TransactionService';
 import AssetPoolService from '@/services/AssetPoolService';
 
-export const validation = [body('amount').isInt({ gt: 0 })];
+export const validation = [param('id').isMongoId(), body('amount').isInt({ gt: 0 })];
 
 const controller = async (req: Request, res: Response) => {
     // #swagger.tags = ['Pools']
@@ -22,7 +22,7 @@ const controller = async (req: Request, res: Response) => {
 
     // Check balance to ensure throughput
     const balance = await erc20.contract.methods.balanceOf(admin.address).call();
-    if (balance < amount) throw new InsufficientBalanceError();
+    if (Number(balance) < Number(amount)) throw new InsufficientBalanceError();
 
     // Check allowance for admin to ensure throughput
     const allowance = await erc20.contract.methods.allowance(admin.address, req.assetPool.address).call();

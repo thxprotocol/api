@@ -99,6 +99,11 @@
             "type": "string"
           },
           {
+            "name": "X-Payment-Token",
+            "in": "header",
+            "type": "string"
+          },
+          {
             "name": "body",
             "in": "body",
             "schema": {
@@ -111,9 +116,6 @@
                   "example": "any"
                 },
                 "sig": {
-                  "example": "any"
-                },
-                "amount": {
                   "example": "any"
                 }
               }
@@ -141,12 +143,6 @@
               "type": "object",
               "properties": {
                 "chainId": {
-                  "example": "any"
-                },
-                "amount": {
-                  "example": "any"
-                },
-                "returnUrl": {
                   "example": "any"
                 }
               }

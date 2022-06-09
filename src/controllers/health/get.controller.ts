@@ -1,10 +1,10 @@
 import { name, version, license } from '../../../package.json';
 import { Response, Request } from 'express';
 import { fromWei } from 'web3-utils';
-import { getProvider, getEstimatesFromOracle } from '@/util/network';
+import { getProvider } from '@/util/network';
 import { NetworkProvider } from '@/types/enums';
 import InfuraService from '@/services/InfuraService';
-import { diamondFacetAddresses, getContractConfig } from '@/config/contracts';
+import { diamondFacetAddresses, getContractConfig, getContractFromName } from '@/config/contracts';
 import { logger } from '@/util/logger';
 import newrelic from 'newrelic';
 import { currentVersion, diamondVariants } from '@thxnetwork/artifacts';
@@ -13,14 +13,6 @@ function handleError(error: Error) {
     newrelic.noticeError(error);
     logger.error(error);
     return { error: 'invalid response' };
-}
-
-async function getFeeData(npid: NetworkProvider) {
-    try {
-        return await getEstimatesFromOracle(npid);
-    } catch (error) {
-        return handleError(error);
-    }
 }
 
 async function getGasTankInfo(npid: NetworkProvider) {
@@ -57,7 +49,7 @@ async function getNetworkDetails(npid: NetworkProvider) {
                 address: InfuraService.getGasTank(npid),
                 balance: await getGasTankInfo(npid),
             },
-            feeData: await getFeeData(npid),
+            // feeData: await getFeeData(npid),
             facets: facetAdresses(npid),
         };
     } catch (error) {
@@ -65,24 +57,38 @@ async function getNetworkDetails(npid: NetworkProvider) {
     }
 }
 
+function poolRegistry(npid: NetworkProvider) {
+    const { address } = getContractConfig(npid, 'PoolRegistry');
+    return getContractFromName(npid, 'PoolRegistry', address);
+}
+
 export const getHealth = async (_req: Request, res: Response) => {
     // #swagger.tags = ['Health']
+    const [testnetDetails, mainnetDetails, testnetFeeCollector, mainnetFeeCollector] = await Promise.all([
+        await getNetworkDetails(NetworkProvider.Test),
+        await getNetworkDetails(NetworkProvider.Main),
+        await poolRegistry(NetworkProvider.Test).methods.feeCollector().call(),
+        await poolRegistry(NetworkProvider.Main).methods.feeCollector().call(),
+    ]);
+
     const jsonData = {
         name,
         version,
         license,
         artifacts: currentVersion,
         testnet: {
-            ...(await getNetworkDetails(NetworkProvider.Test)),
+            ...testnetDetails,
             poolRegistry: getContractConfig(NetworkProvider.Test, 'PoolRegistry').address,
             poolFactory: getContractConfig(NetworkProvider.Test, 'PoolFactory').address,
             tokenFactory: getContractConfig(NetworkProvider.Test, 'TokenFactory').address,
+            feeCollector: testnetFeeCollector,
         },
         mainnet: {
-            ...(await getNetworkDetails(NetworkProvider.Main)),
-            poolRegistry: getContractConfig(NetworkProvider.Main, 'PoolRegistry').address,
+            ...mainnetDetails,
+            poolRegistry: poolRegistry(NetworkProvider.Main).options.address,
             poolFactory: getContractConfig(NetworkProvider.Main, 'PoolFactory').address,
             tokenFactory: getContractConfig(NetworkProvider.Main, 'TokenFactory').address,
+            feeCollector: mainnetFeeCollector,
         },
     };
 

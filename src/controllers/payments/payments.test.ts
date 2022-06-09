@@ -26,10 +26,17 @@ import { WALLET_URL } from '@/config/secrets';
 const http = request.agent(app);
 
 describe('Payments', () => {
-    let poolAddress: string, paymentId: string, admin: Account, token: Contract, basicAccessToken: string;
-
+    let poolAddress: string,
+        paymentId: string,
+        admin: Account,
+        token: Contract,
+        basicAccessToken: string,
+        poolId: string;
     const returnUrl = 'https://example.com/checkout/confirm?id=123',
-        amount = '1000';
+        amount = '1000',
+        successUrl = 'https://exmaple.com/success',
+        failUrl = 'https://exmaple.com/fail',
+        cancelUrl = 'https://exmaple.com/cancel';
 
     afterAll(afterAllCallback);
 
@@ -76,15 +83,21 @@ describe('Payments', () => {
             .set({ 'Authorization': adminAccessToken, 'X-PoolAddress': poolAddress })
             .send({
                 amount,
-                returnUrl,
+                successUrl,
+                failUrl,
+                cancelUrl,
                 chainId: 31337,
             })
             .expect(({ body }: Response) => {
                 paymentId = body._id;
                 basicAccessToken = body.token;
 
-                expect(body.paymentUrl).toBe(`${WALLET_URL}/payment/${String(paymentId)}?token=${basicAccessToken}`);
-                expect(body.returnUrl).toBe(returnUrl);
+                expect(body.paymentUrl).toBe(
+                    `${WALLET_URL}/payment/${String(paymentId)}?accessToken=${basicAccessToken}`,
+                );
+                expect(body.successUrl).toBe(successUrl);
+                expect(body.failUrl).toBe(failUrl);
+                expect(body.cancelUrl).toBe(cancelUrl);
                 expect(body.chainId).toBe(31337);
                 expect(body.state).toBe(PaymentState.Pending);
                 expect(body.tokenAddress).toBe(token.options.address);
@@ -97,11 +110,11 @@ describe('Payments', () => {
 
     it('Get payment information', (done) => {
         http.get('/v1/payments/' + paymentId)
-            .set({ 'X-PoolAddress': poolAddress })
+            .set({ 'X-PoolAddress': poolAddress, 'X-Payment-Token': basicAccessToken })
             .expect(({ body }: Response) => {
-                paymentId = body._id;
-
-                expect(body.returnUrl).toBe(returnUrl);
+                expect(body.successUrl).toBe(successUrl);
+                expect(body.failUrl).toBe(failUrl);
+                expect(body.cancelUrl).toBe(cancelUrl);
                 expect(body.chainId).toBe(31337);
                 expect(body.state).toBe(PaymentState.Pending);
                 expect(body.tokenAddress).toBe(token.options.address);
@@ -109,7 +122,7 @@ describe('Payments', () => {
                 expect(body.receiver).toBe(poolAddress);
                 expect(body.amount).toBe(amount);
             })
-            .expect(201, done);
+            .expect(200, done);
     });
 
     it('Approve relayed transfer by pool', async () => {
@@ -118,17 +131,15 @@ describe('Payments', () => {
     });
 
     it('Relay payment transfer', async () => {
-        // Call topup as admin (TODO remove modifier later)
         const { call, nonce, sig } = await signMethod(poolAddress, 'topup', [amount], admin);
 
         await http
             .post(`/v1/payments/${paymentId}/pay`)
-            .set({ 'Authorization': walletAccessToken, 'X-PoolAddress': poolAddress })
+            .set({ 'X-PoolAddress': poolAddress, 'X-Payment-Token': basicAccessToken })
             .send({
                 call,
                 nonce,
                 sig,
-                amount,
             })
             .expect(({ body }: Response) => {
                 expect(body.state).toBe(PaymentState.Completed);

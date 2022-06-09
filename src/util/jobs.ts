@@ -16,7 +16,7 @@ type CustomEventHandler = (event?: CustomEventLog) => Promise<void>;
 
 async function handleEvents(tx: TransactionDocument, events: CustomEventLog[]) {
     const eventHandlers: { [eventName: string]: CustomEventHandler } = {
-        Depositted: async function () {
+        Deposited: async function () {
             await Deposit.updateOne({ transactions: String(tx._id) }, { state: DepositState.Completed });
             await Payment.updateOne({ transactions: String(tx._id) }, { state: PaymentState.Completed });
         },

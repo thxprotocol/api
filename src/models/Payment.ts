@@ -13,7 +13,9 @@ export type TPayment = {
     transactions: string[];
     state: PaymentState;
     paymentUrl: string;
-    returnUrl: string;
+    successUrl: string;
+    cancelUrl: string;
+    failUrl: string;
     createdAt: Date;
     updatedAt?: Date;
 };
@@ -31,7 +33,9 @@ const paymentSchema = new mongoose.Schema(
         transactions: [String],
         item: String,
         state: Number,
-        returnUrl: String,
+        successUrl: String,
+        cancelUrl: String,
+        failUrl: String,
     },
     { timestamps: true },
 );

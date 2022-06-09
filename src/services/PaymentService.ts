@@ -9,19 +9,31 @@ import { createRandomToken } from '@/util/token';
 import ERC20Service from '@/services/ERC20Service';
 import { AssetPoolDocument } from '@/models/AssetPool';
 
-async function create(pool: AssetPoolDocument, chainId: string, amount: string, returnUrl: string) {
+async function create(
+    pool: AssetPoolDocument,
+    chainId: string,
+    {
+        amount,
+        successUrl,
+        failUrl,
+        cancelUrl,
+    }: { amount: string; successUrl: string; failUrl: string; cancelUrl: string },
+) {
     const token = createRandomToken();
     const address = await pool.contract.methods.getERC20().call();
     const erc20 = await ERC20Service.findOrImport(pool, address);
 
     return await Payment.create({
-        tokenAddress: erc20.address,
-        token,
-        receiver: pool.address,
-        amount,
+        poolId: pool._id,
         chainId,
         state: PaymentState.Pending,
-        returnUrl,
+        token,
+        amount,
+        receiver: pool.address,
+        tokenAddress: erc20.address,
+        successUrl,
+        failUrl,
+        cancelUrl,
     });
 }
 
