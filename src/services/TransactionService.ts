@@ -11,6 +11,7 @@ import InfuraService from './InfuraService';
 import { CustomEventLog, findEvent, hex2a, parseLogs } from '@/util/events';
 import { logger } from '@/util/logger';
 import { InternalServerError } from '@/util/errors';
+import { paginatedResults } from '@/util/pagination';
 
 function getById(id: string) {
     return Transaction.findById(id);
@@ -149,7 +150,6 @@ async function send(to: string, fn: any, npid: NetworkProvider, gasLimit?: numbe
         tx.transactionHash = receipt.transactionHash;
         tx.state = TransactionState.Mined;
         tx = await tx.save();
-
         // Update lastTransactionAt value for the pool if the address is a pool
         if (await AssetPoolService.getByAddress(tx.to)) {
             await AssetPool.findOneAndUpdate({ address: tx.to }, { lastTransactionAt: Date.now() });
@@ -231,4 +231,19 @@ async function call(fn: any, npid: NetworkProvider) {
     });
 }
 
-export default { relay, getById, send, call, deploy, sendValue };
+async function findByQuery(poolAddress: string, page = 1, limit = 10, startDate?: Date, endDate?: Date) {
+    let query;
+    if (startDate && !endDate) {
+        query = { to: poolAddress, createdAt: { $gte: startDate } };
+    } else if (startDate && endDate) {
+        query = { to: poolAddress, createdAt: { $gte: startDate, $lt: endDate } };
+    } else if (!startDate && endDate) {
+        query = { to: poolAddress, createdAt: { $lt: endDate } };
+    } else {
+        query = { to: poolAddress };
+    }
+    const result = await paginatedResults(Transaction, page, limit, query);
+    return result;
+}
+
+export default { relay, getById, send, call, deploy, sendValue, findByQuery };
