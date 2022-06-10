@@ -1439,6 +1439,20 @@
         }
       }
     },
+    "/upload/": {
+      "put": {
+        "description": "",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "440": {
+            "description": ""
+          }
+        }
+      }
+    },
     "/transactions/": {
       "get": {
         "description": "",

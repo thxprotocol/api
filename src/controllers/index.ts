@@ -15,6 +15,7 @@ import promotionsRouter from './promotions/promotions.router';
 import depositsRouter from './deposits/deposits.router';
 import erc721Router from './erc721/erc721.router';
 import erc721MetadataRouter from './erc721/metadata/metadata.router';
+import uploadRouter from './upload/upload.router';
 import erc20Router from './erc20/erc20.router';
 import transactionsRouter from './transactions/transactions.router';
 import { checkJwt } from '@/middlewares';
@@ -40,6 +41,7 @@ router.use('/relay', relayHubRouter);
 router.use('/rewards', rewardsRouter);
 router.use('/widgets', widgetsRouter);
 router.use('/withdrawals', withdrawalsRouter);
-router.use('/transactions', transactionsRouter)
+router.use('/upload', uploadRouter);
+router.use('/transactions', transactionsRouter);
 
 export default router;
