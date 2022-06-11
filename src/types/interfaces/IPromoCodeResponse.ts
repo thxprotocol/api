@@ -1,4 +1,4 @@
-export interface IPromoCodeResponse {
+export interface IPromotionResponse {
     id: string;
     sub: string;
     value: string;

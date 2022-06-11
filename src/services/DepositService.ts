@@ -64,7 +64,7 @@ async function deposit(
                 throw new InternalServerError(error);
             }
 
-            assertEvent('Depositted', events);
+            assertEvent('Deposited', events);
 
             deposit.transactions.push(String(tx._id));
             deposit.state = DepositState.Completed;
@@ -78,31 +78,4 @@ async function deposit(
     }
 }
 
-async function depositForAdmin(assetPool: TAssetPool, account: IAccount, amount: string) {
-    const deposit = await Deposit.create({
-        sub: account.id,
-        sender: account.address,
-        receiver: assetPool.address,
-        amount,
-        state: DepositState.Pending,
-    });
-
-    return await TransactionService.relay(
-        assetPool.contract,
-        'topup',
-        [amount],
-        assetPool.network,
-        async (tx: TransactionDocument, events: CustomEventLog[]) => {
-            if (events) {
-                assertEvent('Topup', events);
-                deposit.state = DepositState.Completed;
-            }
-
-            deposit.transactions.push(String(tx._id));
-
-            return await deposit.save();
-        },
-    );
-}
-
-export default { get, getAll, deposit, depositForAdmin };
+export default { get, getAll, deposit };

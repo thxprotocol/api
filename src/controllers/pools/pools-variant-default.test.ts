@@ -70,7 +70,7 @@ describe('Default Pool', () => {
                 .set('Authorization', dashboardAccessToken)
                 .send({
                     network: NetworkProvider.Main,
-                    token: tokenAddress,
+                    tokens: [tokenAddress],
                 })
                 .expect((res: request.Response) => {
                     poolId = res.body._id;
@@ -392,9 +392,6 @@ describe('Default Pool', () => {
         it('HTTP 204', (done) => {
             user.delete('/v1/pools/' + poolId)
                 .set({ 'X-PoolAddress': poolAddress, 'Authorization': dashboardAccessToken })
-                .expect((res: any) => {
-                    console.log(res.body);
-                })
                 .expect(204, done);
         });
     });

@@ -5,7 +5,7 @@ import { isAddress, toWei } from 'web3-utils';
 import { Contract } from 'web3-eth-contract';
 import { afterAllCallback, beforeAllCallback } from '@/util/jest/config';
 import { ERC20Type, NetworkProvider, TransactionState } from '@/types/enums';
-import { IPromoCodeResponse } from '@/types/interfaces/IPromoCodeResponse';
+import { IPromotionResponse } from '@/types/interfaces/IPromoCodeResponse';
 import { createWallet, signMethod } from '@/util/jest/network';
 import { findEvent, parseLogs } from '@/util/events';
 import {
@@ -14,8 +14,8 @@ import {
     MaxUint256,
     tokenName,
     tokenSymbol,
-    walletAccessToken,
     userWalletPrivateKey2,
+    walletAccessToken,
 } from '@/util/jest/constants';
 import { AmountExceedsAllowanceError, InsufficientBalanceError } from '@/util/errors';
 import TransactionService from '@/services/TransactionService';
@@ -28,9 +28,10 @@ const http = request.agent(app);
 
 describe('Deposits', () => {
     let poolAddress: string,
-        promoCode: IPromoCodeResponse,
+        promotion: IPromotionResponse,
         userWallet: Account,
         tokenAddress: string,
+        poolId: string,
         testToken: Contract;
 
     const value = 'XX78WEJ1219WZ';
@@ -69,7 +70,7 @@ describe('Deposits', () => {
             .set('Authorization', dashboardAccessToken)
             .send({
                 network: NetworkProvider.Main,
-                token: tokenAddress,
+                tokens: [tokenAddress],
             })
             .expect((res: request.Response) => {
                 expect(isAddress(res.body.address)).toBe(true);
@@ -103,17 +104,17 @@ describe('Deposits', () => {
                 expect(body.title).toEqual(title);
                 expect(body.description).toEqual(description);
                 // expect(Date.parse(body.expiry)).toEqual(expiry);
-                promoCode = body;
+                promotion = body;
             })
             .expect(201, done);
     });
 
     describe('Create Deposit', () => {
         it('GET /promotions/:id', (done) => {
-            http.get('/v1/promotions/' + promoCode.id)
+            http.get('/v1/promotions/' + promotion.id)
                 .set({ 'Authorization': walletAccessToken, 'X-PoolAddress': poolAddress })
                 .expect(({ body }: Response) => {
-                    expect(body.id).toEqual(promoCode.id);
+                    expect(body.id).toEqual(promotion.id);
                     expect(body.value).toEqual('');
                     expect(body.price).toEqual(price);
                     expect(body.title).toEqual(title);
@@ -127,13 +128,13 @@ describe('Deposits', () => {
             const { call, nonce, sig } = await signMethod(
                 poolAddress,
                 'deposit',
-                [toWei(String(promoCode.price))],
+                [toWei(String(promotion.price))],
                 userWallet,
             );
             await http
                 .post('/v1/deposits')
                 .set({ 'Authorization': walletAccessToken, 'X-PoolAddress': poolAddress })
-                .send({ call, nonce, sig, item: promoCode.id })
+                .send({ call, nonce, sig, item: promotion.id })
                 .expect(({ body }: Response) => {
                     expect(body.error.message).toEqual(new InsufficientBalanceError().message);
                 })
@@ -156,13 +157,13 @@ describe('Deposits', () => {
             const { call, nonce, sig } = await signMethod(
                 poolAddress,
                 'deposit',
-                [toWei(String(promoCode.price))],
+                [toWei(String(promotion.price))],
                 userWallet,
             );
             await http
                 .post('/v1/deposits')
                 .set({ 'Authorization': walletAccessToken, 'X-PoolAddress': poolAddress })
-                .send({ call, nonce, sig, item: promoCode.id })
+                .send({ call, nonce, sig, item: promotion.id })
                 .expect(({ body }: Response) => {
                     expect(body.error.message).toEqual(new AmountExceedsAllowanceError().message);
                 })
@@ -181,19 +182,19 @@ describe('Deposits', () => {
             const { call, nonce, sig } = await signMethod(
                 poolAddress,
                 'deposit',
-                [toWei(String(promoCode.price))],
+                [toWei(String(promotion.price))],
                 userWallet,
             );
             await http
                 .post('/v1/deposits')
                 .set({ 'Authorization': walletAccessToken, 'X-PoolAddress': poolAddress })
-                .send({ call, nonce, sig, item: promoCode.id })
+                .send({ call, nonce, sig, item: promotion.id })
                 .expect(200);
         });
 
         it('GET /promotions/:id', (done) => {
-            http.get('/v1/promotions/' + promoCode.id)
-                .set({ 'Authorization': dashboardAccessToken, 'X-PoolAddress': poolAddress })
+            http.get('/v1/promotions/' + promotion.id)
+                .set({ 'Authorization': walletAccessToken, 'X-PoolAddress': poolAddress })
                 .expect(({ body }: Response) => {
                     expect(body.value).toEqual(value);
                 })
@@ -230,11 +231,12 @@ describe('Deposits', () => {
                 .set('Authorization', dashboardAccessToken)
                 .send({
                     network: NetworkProvider.Main,
-                    token: tokenAddress,
+                    tokens: [tokenAddress],
                 })
                 .expect(async (res: request.Response) => {
                     expect(isAddress(res.body.address)).toBe(true);
                     poolAddress = res.body.address;
+                    poolId = res.body._id;
                     const adminBalance: BigNumber = await testToken.methods.balanceOf(admin.address).call();
                     const poolBalance: BigNumber = await testToken.methods.balanceOf(poolAddress).call();
                     expect(String(poolBalance)).toBe('0');
@@ -245,7 +247,7 @@ describe('Deposits', () => {
 
         it('POST /deposits/admin/ 200 OK', (done) => {
             const amount = fromWei('100000000000000000000', 'ether'); // 100 eth
-            http.post('/v1/deposits/admin')
+            http.post(`/v1/pools/${poolId}/topup`)
                 .set({ 'Authorization': dashboardAccessToken, 'X-PoolAddress': poolAddress })
                 .send({ amount })
                 .expect(async () => {

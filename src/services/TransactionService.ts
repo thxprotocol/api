@@ -11,6 +11,7 @@ import InfuraService from './InfuraService';
 import { CustomEventLog, findEvent, hex2a, parseLogs } from '@/util/events';
 import { logger } from '@/util/logger';
 import { InternalServerError } from '@/util/errors';
+import { agenda, eventNameRequireTransactions } from '@/util/agenda';
 import { paginatedResults } from '@/util/pagination';
 
 function getById(id: string) {
@@ -83,7 +84,9 @@ async function relay(
 ): Promise<any> {
     // If ITX is active run the callback for the scheduled ITX transaction right away
     if (ITX_ACTIVE) {
-        return await callback(await InfuraService.create(contract.options.address, fn, args, npid));
+        const cb = await callback(await InfuraService.create(contract.options.address, fn, args, npid));
+        agenda.now(eventNameRequireTransactions, {});
+        return cb;
     }
 
     const { tx, receipt } = await send(contract.options.address, contract.methods[fn](...args), npid);

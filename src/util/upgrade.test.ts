@@ -4,7 +4,6 @@ import { NetworkProvider } from '@/types/enums';
 
 import { isAddress } from 'web3-utils';
 import { Contract } from 'web3-eth-contract';
-import { getToken } from '@/util/jest/jwt';
 import { afterAllCallback, beforeAllCallback } from '@/util/jest/config';
 import AssetPoolService from '@/services/AssetPoolService';
 import { updateDiamondContract } from '@/util/upgrades';
@@ -14,7 +13,7 @@ import { dashboardAccessToken } from './jest/constants';
 
 const user = request.agent(app);
 
-describe('Happy Flow', () => {
+describe('Upgrades', () => {
     let poolAddress: string, testToken: Contract;
 
     beforeAll(async () => {
@@ -27,7 +26,8 @@ describe('Happy Flow', () => {
             .set('Authorization', dashboardAccessToken)
             .send({
                 network: NetworkProvider.Main,
-                token: testToken.options.address,
+                variant: 'defaultPool',
+                tokens: [testToken.options.address],
             })
             .expect((res: request.Response) => {
                 expect(isAddress(res.body.address)).toBe(true);

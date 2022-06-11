@@ -9,16 +9,16 @@ import { CustomEventLog, findEvent } from './events';
 import { ERC721Token } from '@/models/ERC721Token';
 import { logger } from './logger';
 import { AssetPool } from '@/models/AssetPool';
+import { Payment } from '@/models/Payment';
+import { PaymentState } from '@/types/enums/PaymentState';
 
 type CustomEventHandler = (event?: CustomEventLog) => Promise<void>;
 
 async function handleEvents(tx: TransactionDocument, events: CustomEventLog[]) {
     const eventHandlers: { [eventName: string]: CustomEventHandler } = {
-        Depositted: async function () {
-            const deposit = await Deposit.findOne({ transactions: String(tx._id) });
-            deposit.transactions.push(String(tx._id));
-            deposit.state = DepositState.Completed;
-            await deposit.save();
+        Deposited: async function () {
+            await Deposit.updateOne({ transactions: String(tx._id) }, { state: DepositState.Completed });
+            await Payment.updateOne({ transactions: String(tx._id) }, { state: PaymentState.Completed });
         },
         Topup: async function () {
             const deposit = await Deposit.findOne({ transactions: String(tx._id) });
@@ -29,7 +29,16 @@ async function handleEvents(tx: TransactionDocument, events: CustomEventLog[]) {
             const pool = await AssetPool.findOne({ transactions: String(tx._id) });
             pool.address = event.args.pool;
             await pool.save();
-            await AssetPoolService.initialize(pool, event.args.token);
+
+            if (pool.variant === 'defaultPool') {
+                await AssetPoolService.initializeDefaultPool(pool, event.args.token);
+            }
+            if (pool.variant === 'nftPool') {
+                await AssetPoolService.initializeNFTPool(pool, event.args.token);
+            }
+            // if (pool.variant === 'paymentPool') {
+            //     await AssetPoolService.initializePaymentPool(pool, event.args.token);
+            // }
         },
         ERC721Minted: async function (event?: CustomEventLog) {
             await ERC721Token.updateOne(

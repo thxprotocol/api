@@ -1,23 +1,22 @@
 import ERC20, { ERC20Document } from '@/models/ERC20';
-import { toWei, fromWei } from 'web3-utils';
+import { toWei } from 'web3-utils';
 import { getProvider } from '@/util/network';
 import { ICreateERC20Params } from '@/types/interfaces';
 import TransactionService from './TransactionService';
 import { assertEvent, parseLogs } from '@/util/events';
-import { InternalServerError } from '@/util/errors';
 import { ERC20Type, NetworkProvider } from '@/types/enums';
 import { AssetPoolDocument } from '@/models/AssetPool';
-import { TERC20 } from '@/types/TERC20';
 import { currentVersion } from '@thxnetwork/artifacts';
 import { getContract, getContractFromName } from '@/config/contracts';
 import { keccak256, toUtf8Bytes } from 'ethers/lib/utils';
+import { ERC20Token } from '@/models/ERC20Token';
 
-export const create = async (params: ICreateERC20Params) => {
+export const deploy = async (params: ICreateERC20Params) => {
     const { admin } = getProvider(params.network);
     const tokenFactory = getContract(params.network, 'TokenFactory', currentVersion);
 
     let fn;
-    if (params.name && params.symbol && params.type === ERC20Type.Limited) {
+    if (params.type === ERC20Type.Limited) {
         fn = tokenFactory.methods.deployLimitedSupplyToken(
             params.name,
             params.symbol,
@@ -25,26 +24,22 @@ export const create = async (params: ICreateERC20Params) => {
             toWei(String(params.totalSupply)),
         );
     }
-    if (params.name && params.symbol && params.type === ERC20Type.Unlimited) {
+    if (params.type === ERC20Type.Unlimited) {
         fn = tokenFactory.methods.deployUnlimitedSupplyToken(params.name, params.symbol, admin.address);
     }
 
-    if (!fn) throw new InternalServerError('Could not determine fn to call');
-
     const { receipt } = await TransactionService.send(tokenFactory.options.address, fn, params.network);
     const event = assertEvent('TokenDeployed', parseLogs(tokenFactory.options.jsonInterface, receipt.logs));
-    const erc20 = await ERC20.create({
+    const { _id } = await ERC20.create({
         name: params.name,
         symbol: params.symbol,
         address: event.args.token,
         network: params.network,
         type: params.type,
-        blockNumber: receipt.blockNumber,
-        transactionHash: receipt.transactionHash,
         sub: params.sub,
     });
 
-    return erc20;
+    return await ERC20.findById(_id);
 };
 
 const addMinter = async (erc20: ERC20Document, address: string) => {
@@ -61,47 +56,48 @@ export const getAll = (sub: string) => {
     return ERC20.find({ sub });
 };
 
+export const getTokensForSub = (sub: string) => {
+    console.log(sub);
+    return ERC20Token.find({ sub });
+};
+
 export const getById = (id: string) => {
     return ERC20.findById(id);
 };
 
-export const findBy = (query: { address: string; network: NetworkProvider }) => {
+export const getTokenById = (id: string) => {
+    return ERC20Token.findById(id);
+};
+
+export const findBy = (query: { address: string; network: NetworkProvider; sub?: string }) => {
     return ERC20.findOne(query);
 };
 
-export const findByPool = async (assetPool: AssetPoolDocument): Promise<TERC20> => {
-    const address = await assetPool.contract.methods.getERC20().call();
-    const erc20 = await ERC20.findOne({ network: assetPool.network, address });
+export const findOrImport = async (pool: AssetPoolDocument, address: string) => {
+    const erc20 = await findBy({ network: pool.network, address, sub: pool.sub });
+    if (erc20) return erc20;
 
-    if (erc20) {
-        const { name, type, symbol, totalSupply, logoURI } = await erc20.getResponse();
-        return {
-            address,
-            name,
-            type,
-            symbol,
-            totalSupply,
-            logoURI,
-            poolBalance: Number(fromWei(await assetPool.contract.methods.getBalance().call())),
-        };
-    }
-
-    const contract = getContractFromName(assetPool.network, 'LimitedSupplyToken', address);
-    const [name, symbol, totalSupplyInWei] = await Promise.all([
+    const contract = getContractFromName(pool.network, 'LimitedSupplyToken', address);
+    const [name, symbol] = await Promise.all([
         contract.methods.name().call(),
         contract.methods.symbol().call(),
         contract.methods.totalSupply().call(),
     ]);
-
-    return {
-        address,
+    const { _id } = await ERC20.create({
         name,
         symbol,
+        address,
+        network: pool.network,
         type: ERC20Type.Unknown,
-        totalSupply: Number(fromWei(totalSupplyInWei)),
-        poolBalance: Number(fromWei(await assetPool.contract.methods.getBalance().call())),
-        logoURI: '',
-    };
+        sub: pool.sub,
+    });
+
+    return await ERC20.findById(_id);
+};
+
+export const findByPool = async (assetPool: AssetPoolDocument): Promise<ERC20Document> => {
+    const address = await assetPool.contract.methods.getERC20().call();
+    return await findOrImport(assetPool, address);
 };
 
 export const removeById = (id: string) => {
@@ -109,11 +105,14 @@ export const removeById = (id: string) => {
 };
 
 export default {
-    create,
+    deploy,
     getAll,
     findBy,
     findByPool,
     getById,
     removeById,
     addMinter,
+    findOrImport,
+    getTokensForSub,
+    getTokenById,
 };

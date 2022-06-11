@@ -15,9 +15,7 @@ import { getContract } from '@/config/contracts';
 const user = request.agent(app);
 
 describe('Transfer Pool Ownership', () => {
-    let poolAddress: string,
-        testToken: Contract,
-        userWallet: Account;
+    let poolAddress: string, testToken: Contract, userWallet: Account;
 
     beforeAll(async () => {
         await beforeAllCallback();
@@ -34,7 +32,7 @@ describe('Transfer Pool Ownership', () => {
                 .set('Authorization', dashboardAccessToken)
                 .send({
                     network: NetworkProvider.Main,
-                    token: testToken.options.address,
+                    tokens: [testToken.options.address],
                 })
                 .expect((res: request.Response) => {
                     expect(isAddress(res.body.address)).toBe(true);

@@ -9,6 +9,8 @@ import ERC20 from '@/models/ERC20';
 import ERC721Service from './ERC721Service';
 import { ERC721Type } from '@/types/enums/ERC721Type';
 import { ERC721 } from '@/models/ERC721';
+import { AssetPoolDocument } from '@/models/AssetPool';
+import { ERC20Token } from '@/models/ERC20Token';
 
 export default class MembershipService {
     static async get(sub: string) {
@@ -48,7 +50,7 @@ export default class MembershipService {
         };
     }
 
-    static async addERC20Membership(sub: string, assetPool: TAssetPool) {
+    static async addERC20Membership(sub: string, assetPool: AssetPoolDocument) {
         const membership = await Membership.findOne({
             sub,
             network: assetPool.network,
@@ -56,22 +58,16 @@ export default class MembershipService {
         });
 
         if (!membership) {
-            const address = await assetPool.contract.methods.getERC20().call();
-            let erc20 = await ERC20Service.findBy({ network: assetPool.network, address });
+            const erc20 = await ERC20Service.findByPool(assetPool);
+            let token = await ERC20Token.findOne({
+                sub,
+                erc20Id: String(erc20._id),
+            });
 
-            if (!erc20) {
-                const contract = getContractFromName(assetPool.network, 'LimitedSupplyToken', address);
-                const [name, symbol] = await Promise.all([
-                    contract.methods.name().call(),
-                    contract.methods.symbol().call(),
-                ]);
-
-                erc20 = await ERC20.create({
-                    name,
-                    symbol,
-                    address,
-                    type: ERC20Type.Unknown,
-                    network: assetPool.network,
+            if (!token) {
+                token = await ERC20Token.create({
+                    sub,
+                    erc20Id: String(erc20._id),
                 });
             }
 
@@ -79,7 +75,7 @@ export default class MembershipService {
                 sub,
                 network: assetPool.network,
                 poolAddress: assetPool.address,
-                erc20: String(erc20._id),
+                erc20: String(token._id),
             });
         }
     }

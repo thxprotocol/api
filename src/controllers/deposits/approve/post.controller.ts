@@ -9,6 +9,7 @@ import { getContractFromName } from '@/config/contracts';
 import { ForbiddenError } from '@/util/errors';
 import { MaxUint256 } from '@/util/jest/constants';
 import { SENDGRID_API_KEY } from '@/config/secrets';
+import { NetworkProvider } from '@/types/enums';
 
 const validation = [body('amount').optional().isNumeric()];
 
@@ -30,7 +31,9 @@ const controller = async (req: Request, res: Response) => {
             'peter@thx.network',
             `0.01 MATIC -> ${account.address}`,
             `${account.address} has requested a topup for 0.01 MATIC to redeem a promotion in pool ${req.assetPool.address}.`,
-            `https://polygonscan.com/tx/${receipt.transactionHash}`,
+            `https://${req.assetPool.network === NetworkProvider.Test ? 'mumbai.' : ''}polygonscan.com/tx/${
+                receipt.transactionHash
+            }`,
         );
     }
 

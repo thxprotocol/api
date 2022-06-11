@@ -2,8 +2,7 @@ import request, { Response } from 'supertest';
 import app from '@/app';
 import { isAddress } from 'web3-utils';
 import { Contract } from 'web3-eth-contract';
-import { getToken } from '@/util/jest/jwt';
-import { IPromoCodeResponse } from '@/types/interfaces/IPromoCodeResponse';
+import { IPromotionResponse } from '@/types/interfaces/IPromoCodeResponse';
 import { afterAllCallback, beforeAllCallback } from '@/util/jest/config';
 import { NetworkProvider } from '@/types/enums';
 import { getContract } from '@/config/contracts';
@@ -12,7 +11,7 @@ import { dashboardAccessToken } from '@/util/jest/constants';
 const http = request.agent(app);
 
 describe('PromoCodes', () => {
-    let promoCode: IPromoCodeResponse, testToken: Contract, poolAddress: string;
+    let promoCode: IPromotionResponse, testToken: Contract, poolAddress: string;
 
     const value = 'XX78WEJ1219WZ';
     const price = 10;
@@ -33,7 +32,7 @@ describe('PromoCodes', () => {
             .set('Authorization', dashboardAccessToken)
             .send({
                 network: NetworkProvider.Main,
-                token: testToken.options.address,
+                tokens: [testToken.options.address],
             })
             .expect((res: request.Response) => {
                 expect(isAddress(res.body.address)).toBe(true);

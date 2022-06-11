@@ -5,7 +5,6 @@ import { agenda, eventNameRequireTransactions } from '@/util/agenda';
 import { toWei } from 'web3-utils';
 import DepositService from '@/services/DepositService';
 import ERC20Service from '@/services/ERC20Service';
-import { getContractFromName } from '@/config/contracts';
 import PromotionService from '@/services/PromotionService';
 import AccountProxy from '@/proxies/AccountProxy';
 
@@ -31,14 +30,13 @@ const controller = async (req: Request, res: Response) => {
     const account = await AccountProxy.getById(req.user.sub);
     const amount = toWei(String(value));
     const erc20 = await ERC20Service.findByPool(req.assetPool);
-    const contract = getContractFromName(req.assetPool.network, 'LimitedSupplyToken', erc20.address);
 
     // Check balance to ensure throughput
-    const balance = await contract.methods.balanceOf(account.address).call();
+    const balance = await erc20.contract.methods.balanceOf(account.address).call();
     if (balance < Number(amount)) throw new InsufficientBalanceError();
 
     // Check allowance for admin to ensure throughput
-    const allowance = Number(await contract.methods.allowance(account.address, req.assetPool.address).call());
+    const allowance = Number(await erc20.contract.methods.allowance(account.address, req.assetPool.address).call());
     if (allowance < Number(amount)) throw new AmountExceedsAllowanceError();
 
     const { call, nonce, sig } = req.body;

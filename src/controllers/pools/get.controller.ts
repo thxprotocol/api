@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { param } from 'express-validator';
+import { fromWei } from 'web3-utils';
 import { ForbiddenError } from '@/util/errors';
 import ClientService from '@/services/ClientService';
 import WithdrawalService from '@/services/WithdrawalService';
@@ -24,7 +25,10 @@ export const controller = async (req: Request, res: Response) => {
     if (req.assetPool.variant === 'nftPool') {
         token = await ERC721Service.findByPool(req.assetPool);
     }
-
+    const [totalSupplyInWei, poolBalanceInWei] = await Promise.all([
+        token.contract.methods.totalSupply().call(),
+        token.contract.methods.balanceOf(req.assetPool.address).call(),
+    ]);
     const client = await ClientService.get(req.assetPool.clientId);
     const metrics = {
         withdrawals: await WithdrawalService.countByPoolAddress(req.assetPool),
@@ -32,9 +36,13 @@ export const controller = async (req: Request, res: Response) => {
     };
 
     res.json({
-        token,
-        metrics,
         ...req.assetPool.toJSON(),
+        metrics,
+        token: {
+            ...token.toJSON(),
+            totalSupply: Number(fromWei(totalSupplyInWei)),
+            poolBalance: Number(fromWei(poolBalanceInWei)),
+        },
         clientSecret: client.clientSecret,
     });
 };

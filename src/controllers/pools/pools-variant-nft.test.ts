@@ -51,7 +51,7 @@ describe('NFT Pool', () => {
                 .set('Authorization', dashboardAccessToken)
                 .send({
                     network: NetworkProvider.Main,
-                    token: tokenAddress,
+                    tokens: [tokenAddress],
                     variant: 'nftPool',
                 })
                 .expect(({ body }: request.Response) => {

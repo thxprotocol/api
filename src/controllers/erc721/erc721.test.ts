@@ -5,7 +5,6 @@ import { isAddress } from 'web3-utils';
 import { afterAllCallback, beforeAllCallback } from '@/util/jest/config';
 import { dashboardAccessToken } from '@/util/jest/constants';
 
-
 const user = request.agent(app);
 
 describe('ERC721', () => {

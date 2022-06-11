@@ -13,7 +13,7 @@ const http = request.agent(app);
 const user = request.agent(app);
 
 describe('Default Pool', () => {
-    let poolAddress: string, tokenAddress: string, testToken: Contract;
+    let poolAddress: string, tokenAddress: string, testToken: Contract, poolId: string;
 
     beforeAll(async () => {
         await beforeAllCallback();
@@ -51,11 +51,13 @@ describe('Default Pool', () => {
                 .set('Authorization', dashboardAccessToken)
                 .send({
                     network: NetworkProvider.Main,
-                    token: tokenAddress,
+                    tokens: [tokenAddress],
+                    variant: 'defaultPool',
                 })
                 .expect(async (res: request.Response) => {
                     expect(isAddress(res.body.address)).toBe(true);
                     poolAddress = res.body.address;
+                    poolId = res.body._id;
                     const adminBalance: BigNumber = await testToken.methods.balanceOf(admin.address).call();
                     const poolBalance: BigNumber = await testToken.methods.balanceOf(poolAddress).call();
                     expect(String(poolBalance)).toBe('0');
@@ -66,7 +68,7 @@ describe('Default Pool', () => {
 
         it('POST /deposits/admin/ 200 OK', (done) => {
             const amount = fromWei('100000000000000000000', 'ether'); // 100 eth
-            http.post('/v1/deposits/admin')
+            http.post(`/v1/pools/${poolId}/topup`)
                 .set({ 'Authorization': dashboardAccessToken, 'X-PoolAddress': poolAddress })
                 .send({ amount })
                 .expect(200, done);
@@ -74,7 +76,7 @@ describe('Default Pool', () => {
 
         it('POST /deposits/admin/ 200 OK', (done) => {
             const amount = fromWei('100000000000000000000', 'ether'); // 100 eth
-            http.post('/v1/deposits/admin')
+            http.post(`/v1/pools/${poolId}/topup`)
                 .set({ 'Authorization': dashboardAccessToken, 'X-PoolAddress': poolAddress })
                 .send({ amount })
                 .expect(200, done);
@@ -83,7 +85,7 @@ describe('Default Pool', () => {
 
     describe('GET /transactions', () => {
         it('HTTP 200 and returns 2 items', (done) => {
-            user.get(`/v1/transactions?page=1&limit=2`)
+            user.get('/v1/transactions?page=1&limit=2')
                 .set('Authorization', dashboardAccessToken)
                 .set({ 'X-PoolAddress': poolAddress })
                 .expect(async (res: request.Response) => {

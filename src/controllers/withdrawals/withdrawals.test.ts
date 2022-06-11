@@ -53,7 +53,7 @@ describe('Propose Withdrawal', () => {
                 .set('Authorization', dashboardAccessToken)
                 .send({
                     network: NetworkProvider.Main,
-                    token: tokenAddress,
+                    tokens: [tokenAddress],
                 })
                 .expect((res: request.Response) => {
                     expect(isAddress(res.body.address)).toBe(true);

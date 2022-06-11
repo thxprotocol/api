@@ -1,7 +1,8 @@
 import ERC721Service from '@/services/ERC721Service';
 import { Request, Response } from 'express';
 import { body, param } from 'express-validator';
-import { NotFoundError } from '@/util/errors';
+import { ForbiddenError, NotFoundError } from '@/util/errors';
+import AccountProxy from '@/proxies/AccountProxy';
 
 const validation = [
     param('id').isMongoId(),
@@ -27,7 +28,9 @@ const controller = async (req: Request, res: Response) => {
     const tokens = metadata.tokens || [];
 
     if (req.body.recipient) {
-        const token = await ERC721Service.mint(req.assetPool, erc721, metadata, req.body.recipient);
+        const account = await AccountProxy.getByAddress(req.body.recipient);
+        if (!account) throw new ForbiddenError('You can currently only mint to THX Web Wallet addresses');
+        const token = await ERC721Service.mint(req.assetPool, erc721, metadata, account);
         tokens.push(token);
     }
 
