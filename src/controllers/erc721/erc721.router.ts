@@ -22,6 +22,7 @@ router.post(
     assertRequestInput(CreateERC721.validation),
     CreateERC721.controller,
 );
+router.post('/', assertScopes(['erc721:write']), assertRequestInput(CreateERC721.validation), CreateERC721.controller);
 router.post(
     '/:id/metadata/:metadataId/mint',
     assertScopes(['erc721:write']),
