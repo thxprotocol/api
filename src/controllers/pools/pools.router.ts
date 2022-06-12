@@ -27,7 +27,7 @@ router.get('/', assertScopes(['pools:read']), ListPools.controller);
 router.get(
     '/:id/members',
     assertScopes(['pools:read', 'members:read']),
-    assertRequestInput(ReadPool.validation),
+    assertRequestInput(ListPoolMembers.validation),
     assertPoolOwner,
     assertPlan([AccountPlanType.Basic, AccountPlanType.Premium]),
     ListPoolMembers.controller,

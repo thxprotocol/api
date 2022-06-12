@@ -8,6 +8,12 @@ class THXError extends Error {
     }
 }
 
+class NoUserFound extends THXError {
+    constructor() {
+        super('Cannot found user based on this address');
+    }
+}
+
 class NotAMemberError extends THXError {
     constructor(address: string, assetPool: string) {
         super(`${address} is not a member of assetPool ${assetPool}`);
@@ -124,6 +130,7 @@ class GetPastWithdrawPollCreatedEventsError extends InternalServerError {
 
 export {
     THXError,
+    NoUserFound,
     THXHttpError,
     BadRequestError,
     UnauthorizedError,

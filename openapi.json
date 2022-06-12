@@ -1,7 +1,7 @@
 {
   "swagger": "2.0",
   "info": {
-    "version": "1.11.0",
+    "version": "1.12.0",
     "title": "THX API Specification",
     "description": "User guides are available at https://docs.thx.network."
   },
@@ -379,6 +379,11 @@
             "name": "id",
             "in": "path",
             "required": true,
+            "type": "string"
+          },
+          {
+            "name": "AssetPool",
+            "in": "header",
             "type": "string"
           },
           {
@@ -946,7 +951,11 @@
             }
           }
         ],
-        "responses": {}
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
       }
     },
     "/members/{address}": {
@@ -1627,20 +1636,6 @@
         }
       }
     },
-    "/upload/": {
-      "put": {
-        "description": "",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "OK"
-          },
-          "440": {
-            "description": ""
-          }
-        }
-      }
-    },
     "/transactions/": {
       "get": {
         "description": "",
@@ -1669,6 +1664,20 @@
         "responses": {
           "200": {
             "description": "OK"
+          }
+        }
+      }
+    },
+    "/upload/": {
+      "put": {
+        "description": "",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "440": {
+            "description": ""
           }
         }
       }
