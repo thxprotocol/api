@@ -60,12 +60,11 @@ describe('Account', () => {
     });
 
     describe('POST /members/:address', () => {
-        it('HTTP 302 if OK', (done) => {
+        it('HTTP 200 if OK', (done) => {
             user.post('/v1/members/')
                 .send({ address: userWalletAddress })
                 .set({ 'X-PoolAddress': poolAddress, 'Authorization': adminAccessToken })
-
-                .expect(302, done);
+                .expect(200, done);
         });
     });
 

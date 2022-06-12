@@ -90,26 +90,10 @@ describe('Default Pool', () => {
     });
 
     describe('POST /members/:address', () => {
-        let redirectURL = '';
-
-        it('HTTP 302 when member is added', (done) => {
+        it('HTTP 200 when member is added', (done) => {
             user.post('/v1/members/')
                 .send({ address: userWallet.address })
                 .set({ 'X-PoolAddress': poolAddress, 'Authorization': adminAccessToken })
-                .expect(async (res: request.Response) => {
-                    redirectURL = res.headers.location;
-                })
-                .expect(302, done);
-        });
-
-        it('HTTP 200 for the redirect', (done) => {
-            user.get(redirectURL)
-                .set({ 'X-PoolAddress': poolAddress, 'Authorization': adminAccessToken })
-                .expect(async (res: request.Response) => {
-                    expect(res.body.isMember).toEqual(true);
-                    expect(res.body.isManager).toEqual(false);
-                    expect(res.body.token.balance).toEqual(tokenTotalSupply);
-                })
                 .expect(200, done);
         });
     });
