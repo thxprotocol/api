@@ -85,7 +85,7 @@ describe('Deposits', () => {
             .send({
                 address: userWallet.address,
             })
-            .expect(302, done);
+            .expect(200, done);
     });
 
     it('Create promo code', (done) => {
