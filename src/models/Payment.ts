@@ -28,6 +28,7 @@ const paymentSchema = new mongoose.Schema(
         token: String,
         tokenAddress: String,
         chainId: Number,
+        poolId: String,
         sender: String,
         receiver: String,
         transactions: [String],
