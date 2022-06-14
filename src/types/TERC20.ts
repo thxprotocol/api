@@ -1,4 +1,4 @@
-import { ERC20Type } from './enums';
+import { ChainId, ERC20Type } from './enums';
 import { Contract } from 'web3-eth-contract';
 
 export type TERC20 = {
@@ -6,7 +6,7 @@ export type TERC20 = {
     name: string;
     symbol: string;
     address: string;
-    network?: number;
+    chainId?: ChainId;
     contract?: Contract;
     sub?: string;
     totalSupply: number;

@@ -8,16 +8,13 @@ const validation = [param('address').isEthereumAddress(), , body('isManager').ex
 
 const controller = async (req: Request, res: Response) => {
     // #swagger.tags = ['Members']
-    const isMember = await TransactionService.call(
-        req.assetPool.contract.methods.isMember(req.params.address),
-        req.assetPool.network,
-    );
+    const isMember = await req.assetPool.contract.methods.isMember(req.params.address).call();
     if (!isMember) throw new NotFoundError();
 
     await TransactionService.send(
         req.assetPool.address,
         req.assetPool.contract.methods[req.body.isManager ? 'addManager' : 'removeManager'](req.params.address),
-        req.assetPool.network,
+        req.assetPool.chainId,
     );
 
     res.redirect(`/${VERSION}/members/${req.params.address}`);

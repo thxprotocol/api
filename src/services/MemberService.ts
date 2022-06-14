@@ -9,10 +9,7 @@ export default class MemberService {
     static async getByAddress(assetPool: TAssetPool, address: string) {
         const isMember = await this.isMember(assetPool, address);
         const isManager = await this.isManager(assetPool, address);
-        const memberId = await TransactionService.call(
-            assetPool.contract.methods.getMemberByAddress(address),
-            assetPool.network,
-        );
+        const memberId = await assetPool.contract.methods.getMemberByAddress(address).call();
 
         return {
             id: memberId,
@@ -37,14 +34,14 @@ export default class MemberService {
     }
 
     static getMemberByAddress(assetPool: TAssetPool, address: string): Promise<number> {
-        return TransactionService.call(assetPool.contract.methods.getMemberByAddress(address), assetPool.network);
+        return assetPool.contract.methods.getMemberByAddress(address).call();
     }
 
     static async addMember(assetPool: TAssetPool, address: string) {
         const { receipt } = await TransactionService.send(
             assetPool.address,
             assetPool.contract.methods.addMember(address),
-            assetPool.network,
+            assetPool.chainId,
         );
 
         assertEvent('RoleGranted', parseLogs(assetPool.contract.options.jsonInterface, receipt.logs));
@@ -70,11 +67,11 @@ export default class MemberService {
     }
 
     static isMember(assetPool: TAssetPool, address: string) {
-        return TransactionService.call(assetPool.contract.methods.isMember(address), assetPool.network);
+        return assetPool.contract.methods.isMember(address).call();
     }
 
     static isManager(assetPool: TAssetPool, address: string) {
-        return TransactionService.call(assetPool.contract.methods.isManager(address), assetPool.network);
+        return assetPool.contract.methods.isManager(address).call();
     }
 
     static async findByQuery(query: { poolAddress: string }, page = 1, limit = 10) {
@@ -85,9 +82,9 @@ export default class MemberService {
         const { receipt } = await TransactionService.send(
             assetPool.address,
             assetPool.contract.methods.removeMember(address),
-            assetPool.network,
+            assetPool.chainId,
         );
-        assertEvent('RoleRevoked', parseLogs(getDiamondAbi(assetPool.network, 'defaultPool'), receipt.logs));
+        assertEvent('RoleRevoked', parseLogs(getDiamondAbi(assetPool.chainId, 'defaultPool'), receipt.logs));
 
         return await Member.deleteOne({ poolAddress: assetPool.address, address });
     }

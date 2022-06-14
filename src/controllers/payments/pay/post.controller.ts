@@ -36,7 +36,7 @@ const controller = async (req: Request, res: Response) => {
 
     const { call, nonce, sig } = req.body;
     const erc20 = await ERC20Service.findByPool(req.assetPool);
-    const contract = getContractFromName(req.assetPool.network, 'LimitedSupplyToken', erc20.address);
+    const contract = getContractFromName(req.assetPool.chainId, 'LimitedSupplyToken', erc20.address);
 
     payment.sender = recoverAddress(call, nonce, sig);
     await payment.save();

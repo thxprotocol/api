@@ -1,11 +1,11 @@
 import InfuraService from '@/services/InfuraService';
 import { parseUnits } from 'ethers/lib/utils';
-import { NetworkProvider } from '@/types/enums';
+import { ChainId } from '@/types/enums';
 
 async function main() {
     console.log('Start!');
-    await InfuraService.deposit(parseUnits('15', 'ether'), NetworkProvider.Test);
-    await InfuraService.deposit(parseUnits('15', 'ether'), NetworkProvider.Main);
+    await InfuraService.deposit(parseUnits('15', 'ether'), ChainId.PolygonMumbai);
+    await InfuraService.deposit(parseUnits('15', 'ether'), ChainId.Polygon);
     console.log('Done!');
 }
 

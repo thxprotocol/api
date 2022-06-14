@@ -4,7 +4,7 @@ import { Account } from 'web3-core';
 import { isAddress, toWei } from 'web3-utils';
 import { Contract } from 'web3-eth-contract';
 import { afterAllCallback, beforeAllCallback } from '@/util/jest/config';
-import { NetworkProvider } from '@/types/enums';
+import { ChainId } from '@/types/enums';
 import { createWallet, signMethod } from '@/util/jest/network';
 import {
     adminAccessToken,
@@ -42,13 +42,13 @@ describe('Payments', () => {
 
     beforeAll(async () => {
         await beforeAllCallback();
-        const provider = getProvider(NetworkProvider.Main);
+        const provider = getProvider(ChainId.Hardhat);
         admin = provider.admin;
         // userWallet = createWallet(userWalletPrivateKey2);
     });
 
     it('Deploy existing token', async () => {
-        const tokenFactory = getContract(NetworkProvider.Main, 'TokenFactory', currentVersion);
+        const tokenFactory = getContract(ChainId.Hardhat, 'TokenFactory', currentVersion);
         const { receipt } = await TransactionService.send(
             tokenFactory.options.address,
             tokenFactory.methods.deployLimitedSupplyToken(
@@ -57,17 +57,17 @@ describe('Payments', () => {
                 admin.address,
                 toWei(String(tokenTotalSupply)),
             ),
-            NetworkProvider.Main,
+            ChainId.Hardhat,
         );
         const event = assertEvent('TokenDeployed', parseLogs(tokenFactory.options.jsonInterface, receipt.logs));
-        token = getContractFromName(NetworkProvider.Main, 'LimitedSupplyToken', event.args.token);
+        token = getContractFromName(ChainId.Hardhat, 'LimitedSupplyToken', event.args.token);
     });
 
     it('Create pool', (done) => {
         http.post('/v1/pools')
             .set('Authorization', dashboardAccessToken)
             .send({
-                network: NetworkProvider.Main,
+                chainId: ChainId.Hardhat,
                 tokens: [token.options.address],
                 variant: 'defaultPool',
             })

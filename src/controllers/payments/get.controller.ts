@@ -12,7 +12,7 @@ const controller = async (req: Request, res: Response) => {
     if (!payment) throw new NotFoundError();
     if (payment.token !== req.header('X-Payment-Token')) throw new UnauthorizedError('Payment Token is incorrect');
 
-    const erc20 = await ERC20Service.findBy({ address: payment.tokenAddress, network: 1 });
+    const erc20 = await ERC20Service.findBy({ address: payment.tokenAddress, chainId: payment.chainId });
 
     res.json({ ...payment.toJSON(), tokenSymbol: erc20.symbol });
 };

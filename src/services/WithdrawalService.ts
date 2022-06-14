@@ -1,5 +1,5 @@
 import { toWei } from 'web3-utils';
-import { NetworkProvider } from '@/types/enums';
+import { ChainId } from '@/types/enums';
 import { WithdrawalState, WithdrawalType } from '@/types/enums';
 import { TAssetPool } from '@/types/TAssetPool';
 import { Withdrawal, WithdrawalDocument } from '@/models/Withdrawal';
@@ -83,7 +83,7 @@ export default class WithdrawalService {
                 assetPool.address,
                 'proposeWithdraw',
                 [amountInWei, account.address, unlockDateTmestamp],
-                assetPool.network,
+                assetPool.chainId,
             );
             withdrawal.transactions.push(String(tx._id));
             return await withdrawal.save();
@@ -92,10 +92,10 @@ export default class WithdrawalService {
                 const { tx, receipt } = await TransactionService.send(
                     assetPool.address,
                     assetPool.contract.methods.proposeWithdraw(amountInWei, account.address, unlockDateTmestamp),
-                    assetPool.network,
+                    assetPool.chainId,
                 );
 
-                const events = parseLogs(getDiamondAbi(assetPool.network, 'defaultPool'), receipt.logs);
+                const events = parseLogs(getDiamondAbi(assetPool.chainId, 'defaultPool'), receipt.logs);
                 const event = assertEvent('WithdrawPollCreated', events);
                 const roleGranted = findEvent('RoleGranted', events);
 
@@ -120,7 +120,7 @@ export default class WithdrawalService {
                 assetPool.address,
                 'withdrawPollFinalize',
                 [withdrawal.withdrawalId],
-                assetPool.network,
+                assetPool.chainId,
             );
 
             withdrawal.transactions.push(String(tx._id));
@@ -131,7 +131,7 @@ export default class WithdrawalService {
                 const { tx, receipt } = await TransactionService.send(
                     assetPool.address,
                     assetPool.contract.methods.withdrawPollFinalize(withdrawal.withdrawalId),
-                    assetPool.network,
+                    assetPool.chainId,
                 );
 
                 const events = parseLogs(assetPool.contract.options.jsonInterface, receipt.logs);
@@ -201,7 +201,7 @@ export default class WithdrawalService {
         return Withdrawal.find({ beneficiary });
     }
 
-    static countByNetwork(network: NetworkProvider) {
-        return Withdrawal.countDocuments({ network });
+    static countByNetwork(chainId: ChainId) {
+        return Withdrawal.countDocuments({ chainId });
     }
 }

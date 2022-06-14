@@ -2,7 +2,7 @@ import db from '@/util/database';
 import { MONGODB_URI } from '@/config/secrets';
 import { AssetPool } from '@/models/AssetPool';
 import { getContract } from '@/config/contracts';
-import { NetworkProvider } from '@/types/enums';
+import { ChainId } from '@/types/enums';
 import { BigNumber } from 'ethers';
 import TransactionService from '@/services/TransactionService';
 import { currentVersion } from '@thxnetwork/artifacts';
@@ -18,33 +18,33 @@ async function main() {
     const startTime = Date.now();
     console.log('Start!', startTime);
 
-    const registry = getContract(NetworkProvider.Main, 'PoolRegistry', currentVersion);
+    const registry = getContract(ChainId.Polygon, 'PoolRegistry', currentVersion);
 
     await TransactionService.send(
         registry.options.address,
         registry.methods.setFeeCollector(FEE_COLLECTOR),
-        NetworkProvider.Main,
+        ChainId.Polygon,
     );
     await TransactionService.send(
         registry.options.address,
         registry.methods.setFeePercentage(twoHalfPercent),
-        NetworkProvider.Main,
+        ChainId.Polygon,
     );
 
     for (const pool of await AssetPool.find()) {
         try {
             const currentRegistryAddress = await pool.contract.methods.getPoolRegistry().call();
-            const registry = getContract(pool.network, 'PoolRegistry', currentVersion);
+            const registry = getContract(pool.chainId, 'PoolRegistry', currentVersion);
 
             if (registry.options.address !== currentRegistryAddress) {
                 const { receipt } = await TransactionService.send(
                     pool.address,
                     pool.contract.methods.setPoolRegistry(registry.options.address),
-                    pool.network,
+                    pool.chainId,
                 );
 
                 console.log(
-                    pool.network,
+                    pool.chainId,
                     await pool.contract.methods.getPoolRegistry().call(),
                     receipt.transactionHash,
                 );

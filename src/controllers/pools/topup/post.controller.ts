@@ -14,7 +14,7 @@ export const validation = [param('id').isMongoId(), body('amount').isInt({ gt: 0
 
 const controller = async (req: Request, res: Response) => {
     // #swagger.tags = ['Pools']
-    const { admin } = getProvider(req.assetPool.network);
+    const { admin } = getProvider(req.assetPool.chainId);
     const amount = toWei(String(req.body.amount));
     const erc20 = await ERC20Service.findByPool(req.assetPool);
 
@@ -30,7 +30,7 @@ const controller = async (req: Request, res: Response) => {
         await TransactionService.send(
             erc20.contract.options.address,
             erc20.contract.methods.approve(req.assetPool.address, ethers.constants.MaxUint256),
-            req.assetPool.network,
+            req.assetPool.chainId,
         );
     }
 

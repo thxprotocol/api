@@ -8,8 +8,12 @@ const required = [
     'API_URL',
     'WALLET_URL',
     'DASHBOARD_URL',
-    'RPC',
-    'TESTNET_RPC',
+    'HARDHAT_RPC',
+    'HARDHAT_NAME',
+    'POLYGON_MUMBAI_RPC',
+    'POLYGON_MUMBAI_NAME',
+    'POLYGON_RPC',
+    'POLYGON_NAME',
     'MONGODB_URI',
     'PRIVATE_KEY',
     'PORT',
@@ -19,8 +23,6 @@ const required = [
     'RATE_LIMIT_REWARD_GIVE_WINDOW',
     'INITIAL_ACCESS_TOKEN',
     'MAX_FEE_PER_GAS',
-    'MAINNET_NETWORK_NAME',
-    'TESTNET_NETWORK_NAME',
     'AWS_BUCKET_NAME',
     'AWS_BUCKET_REGION',
     'AWS_ACCESS_KEY',
@@ -41,7 +43,6 @@ if (process.env.NODE_ENV === 'test') {
     if (process.env.PORT_TEST_OVERRIDE !== undefined) process.env.PORT = process.env.PORT_TEST_OVERRIDE;
     if (process.env.MONGODB_URI_TEST_OVERRIDE !== undefined)
         process.env.MONGODB_URI = process.env.MONGODB_URI_TEST_OVERRIDE;
-    if (process.env.RPC_TEST_OVERRIDE !== undefined) process.env.RPC = process.env.RPC_TEST_OVERRIDE;
 }
 
 export const VERSION = 'v1';
@@ -52,8 +53,12 @@ export const API_URL = process.env.API_URL;
 export const WALLET_URL = process.env.WALLET_URL;
 export const DASHBOARD_URL = process.env.DASHBOARD_URL;
 export const WIDGETS_URL = process.env.WIDGETS_URL;
-export const RPC = process.env.RPC;
-export const TESTNET_RPC = process.env.TESTNET_RPC;
+export const HARDHAT_RPC = process.env.HARDHAT_RPC;
+export const HARDHAT_NAME = process.env.HARDHAT_NAME;
+export const POLYGON_MUMBAI_RPC = process.env.POLYGON_MUMBAI_RPC;
+export const POLYGON_MUMBAI_NAME = process.env.POLYGON_MUMBAI_NAME;
+export const POLYGON_RPC = process.env.POLYGON_RPC;
+export const POLYGON_NAME = process.env.POLYGON_NAME;
 export const MONGODB_URI = process.env.MONGODB_URI;
 export const PRIVATE_KEY = process.env.PRIVATE_KEY;
 export const PORT = process.env.PORT;
@@ -67,8 +72,6 @@ export const INITIAL_ACCESS_TOKEN = process.env.INITIAL_ACCESS_TOKEN;
 export const CIRCULATING_SUPPLY = process.env.CIRCULATING_SUPPLY;
 export const MAX_FEE_PER_GAS = String(process.env.MAX_FEE_PER_GAS);
 export const INFURA_PROJECT_ID = process.env.INFURA_PROJECT_ID;
-export const MAINNET_NETWORK_NAME = process.env.MAINNET_NETWORK_NAME;
-export const TESTNET_NETWORK_NAME = process.env.TESTNET_NETWORK_NAME;
 export const MINIMUM_GAS_LIMIT = 54680;
 export const TESTNET_INFURA_GAS_TANK = process.env.TESTNET_INFURA_GAS_TANK;
 export const INFURA_GAS_TANK = process.env.INFURA_GAS_TANK;

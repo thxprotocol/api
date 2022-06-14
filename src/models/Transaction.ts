@@ -18,7 +18,7 @@ const transactionSchema = new mongoose.Schema(
         type: Number,
         state: Number,
         call: { fn: String, args: String },
-        network: Number,
+        chainId: Number,
         failReason: String,
     },
     { timestamps: true },

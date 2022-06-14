@@ -4,7 +4,7 @@ import { Account } from 'web3-core';
 import { isAddress, toWei } from 'web3-utils';
 import { Contract } from 'web3-eth-contract';
 import { afterAllCallback, beforeAllCallback } from '@/util/jest/config';
-import { ERC20Type, NetworkProvider, TransactionState } from '@/types/enums';
+import { ChainId, ERC20Type, TransactionState } from '@/types/enums';
 import { IPromotionResponse } from '@/types/interfaces/IPromoCodeResponse';
 import { createWallet, signMethod } from '@/util/jest/network';
 import { findEvent, parseLogs } from '@/util/events';
@@ -51,7 +51,7 @@ describe('Deposits', () => {
         http.post('/v1/erc20')
             .set('Authorization', dashboardAccessToken)
             .send({
-                network: NetworkProvider.Main,
+                chainId: ChainId.Hardhat,
                 name: tokenName,
                 symbol: tokenSymbol,
                 type: ERC20Type.Unlimited,
@@ -60,7 +60,7 @@ describe('Deposits', () => {
             .expect(({ body }: request.Response) => {
                 expect(isAddress(body.address)).toBe(true);
                 tokenAddress = body.address;
-                testToken = getContractFromName(NetworkProvider.Main, 'LimitedSupplyToken', tokenAddress);
+                testToken = getContractFromName(ChainId.Hardhat, 'LimitedSupplyToken', tokenAddress);
             })
             .expect(201, done);
     });
@@ -69,7 +69,7 @@ describe('Deposits', () => {
         http.post('/v1/pools')
             .set('Authorization', dashboardAccessToken)
             .send({
-                network: NetworkProvider.Main,
+                chainId: ChainId.Hardhat,
                 tokens: [tokenAddress],
             })
             .expect((res: request.Response) => {
@@ -145,7 +145,7 @@ describe('Deposits', () => {
             const { tx, receipt } = await TransactionService.send(
                 testToken.options.address,
                 testToken.methods.transfer(userWallet.address, toWei(String(price))),
-                NetworkProvider.Main,
+                ChainId.Hardhat,
             );
             const event = findEvent('Transfer', parseLogs(testToken.options.jsonInterface, receipt.logs));
 
@@ -203,14 +203,14 @@ describe('Deposits', () => {
     });
 
     describe('Create Asset Pool Deposit', () => {
-        const { admin } = getProvider(NetworkProvider.Main);
+        const { admin } = getProvider(ChainId.Hardhat);
         const totalSupply = fromWei('200000000000000000000', 'ether'); // 200 eth
 
         it('Create token', (done) => {
             http.post('/v1/erc20')
                 .set('Authorization', dashboardAccessToken)
                 .send({
-                    network: NetworkProvider.Main,
+                    chainId: ChainId.Hardhat,
                     name: 'LIMITED SUPPLY TOKEN',
                     symbol: 'LIM',
                     type: ERC20Type.Limited,
@@ -219,7 +219,7 @@ describe('Deposits', () => {
                 .expect(async ({ body }: request.Response) => {
                     expect(isAddress(body.address)).toBe(true);
                     tokenAddress = body.address;
-                    testToken = getContractFromName(NetworkProvider.Main, 'LimitedSupplyToken', tokenAddress);
+                    testToken = getContractFromName(ChainId.Hardhat, 'LimitedSupplyToken', tokenAddress);
                     const adminBalance: BigNumber = await testToken.methods.balanceOf(admin.address).call();
                     expect(fromWei(String(adminBalance), 'ether')).toBe(totalSupply);
                 })
@@ -230,7 +230,7 @@ describe('Deposits', () => {
             http.post('/v1/pools')
                 .set('Authorization', dashboardAccessToken)
                 .send({
-                    network: NetworkProvider.Main,
+                    chainId: ChainId.Hardhat,
                     tokens: [tokenAddress],
                 })
                 .expect(async (res: request.Response) => {

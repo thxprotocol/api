@@ -63,7 +63,7 @@ async function pay(pool: TAssetPool, payment: PaymentDocument, callData: { call:
         pool.contract,
         'call',
         [callData.call, callData.nonce, callData.sig],
-        pool.network,
+        pool.chainId,
         callback,
     );
 }

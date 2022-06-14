@@ -1,4 +1,5 @@
 import { Contract } from 'web3-eth-contract';
+import { ChainId } from './enums';
 
 export enum ERC721TokenState {
     Pending = 0,
@@ -33,7 +34,7 @@ export type TERC721Token = {
 export type TERC721 = {
     id?: string;
     sub: string;
-    network: number;
+    chainId: ChainId;
     name: string;
     symbol: string;
     properties: TERC721MetadataProp[];

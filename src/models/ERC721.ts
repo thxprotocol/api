@@ -6,7 +6,7 @@ export type ERC721Document = mongoose.Document & TERC721;
 
 const ERC721Schema = new mongoose.Schema(
     {
-        network: Number,
+        chainId: Number,
         sub: String,
         name: String,
         symbol: String,
@@ -19,7 +19,7 @@ const ERC721Schema = new mongoose.Schema(
 );
 
 ERC721Schema.virtual('contract').get(function () {
-    return getContractFromName(this.network, 'NonFungibleToken', this.address);
+    return getContractFromName(this.chainId, 'NonFungibleToken', this.address);
 });
 
 export const ERC721 = mongoose.model<ERC721Document>('ERC721', ERC721Schema, 'erc721');

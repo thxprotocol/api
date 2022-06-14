@@ -1,11 +1,9 @@
 import request from 'supertest';
-
 import app from '@/app';
-import { ERC20Type, NetworkProvider } from '@/types/enums';
+import { ChainId, ERC20Type } from '@/types/enums';
 import { afterAllCallback, beforeAllCallback } from '@/util/jest/config';
-import { getToken } from '@/util/jest/jwt';
 import { isAddress } from 'ethers/lib/utils';
-import { dashboardAccessToken} from '@/util/jest/constants';
+import { dashboardAccessToken } from '@/util/jest/constants';
 
 const http = request.agent(app);
 
@@ -30,7 +28,7 @@ describe('ERC20', () => {
                 .send({
                     name: 'Test Token',
                     symbol: 'TTK',
-                    network: NetworkProvider.Main,
+                    chainId: ChainId.Hardhat,
                     totalSupply: TOTAL_SUPPLY,
                     type: ERC20Type.Limited,
                 })
@@ -46,7 +44,7 @@ describe('ERC20', () => {
                 .send({
                     name: 'Test Token',
                     symbol: 'TTK',
-                    network: NetworkProvider.Main,
+                    chainId: ChainId.Hardhat,
                     totalSupply: 0,
                     type: ERC20Type.Unlimited,
                 })

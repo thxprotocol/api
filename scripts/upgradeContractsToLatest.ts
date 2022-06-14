@@ -3,7 +3,7 @@ import { MONGODB_URI } from '@/config/secrets';
 import { getContract } from '@/config/contracts';
 import { updateDiamondContract } from '@/util/upgrades';
 import { AssetPool } from '@/models/AssetPool';
-import { AccountPlanType, NetworkProvider } from '@/types/enums';
+import { AccountPlanType, ChainId } from '@/types/enums';
 import { ContractName, currentVersion, DiamondVariant } from '@thxnetwork/artifacts';
 import AssetPoolService from '@/services/AssetPoolService';
 import AccountProxy from '@/proxies/AccountProxy';
@@ -20,12 +20,12 @@ async function main() {
     };
 
     for (const [contractName, diamondVariant] of Object.entries(diamonds)) {
-        for (const npid of [NetworkProvider.Test, NetworkProvider.Main]) {
+        for (const chainId of [ChainId.PolygonMumbai, ChainId.Polygon]) {
             try {
-                const contract = getContract(npid, contractName as ContractName);
-                const changes = await updateDiamondContract(npid, contract, diamondVariant);
+                const contract = getContract(chainId, contractName as ContractName);
+                const changes = await updateDiamondContract(chainId, contract, diamondVariant);
                 console.log(
-                    `${changes ? 'Upgraded' : 'Skipped'} ${contractName} (${NetworkProvider[npid]}):`,
+                    `${changes ? 'Upgraded' : 'Skipped'} ${contractName} (${ChainId[chainId]}):`,
                     currentVersion,
                 );
             } catch (error) {

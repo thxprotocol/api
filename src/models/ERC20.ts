@@ -10,7 +10,7 @@ const erc20Schema = new mongoose.Schema(
         sub: String,
         type: Number,
         address: String,
-        network: Number,
+        chainId: Number,
         name: String,
         symbol: String,
     },
@@ -20,7 +20,7 @@ const erc20Schema = new mongoose.Schema(
 erc20Schema.virtual('contract').get(function () {
     if (!this.address) return;
     const contractName = this.type === ERC20Type.Unlimited ? 'UnlimitedSupplyToken' : 'LimitedSupplyToken';
-    return getContractFromName(this.network, contractName, this.address);
+    return getContractFromName(this.chainId, contractName, this.address);
 });
 
 export default mongoose.model<ERC20Document>('ERC20', erc20Schema);
