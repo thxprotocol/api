@@ -8,8 +8,6 @@ const required = [
     'API_URL',
     'WALLET_URL',
     'DASHBOARD_URL',
-    'HARDHAT_RPC',
-    'HARDHAT_NAME',
     'POLYGON_MUMBAI_RPC',
     'POLYGON_MUMBAI_NAME',
     'POLYGON_RPC',
