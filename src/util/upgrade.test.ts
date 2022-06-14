@@ -1,6 +1,6 @@
 import request from 'supertest';
 import app from '@/app';
-import { NetworkProvider } from '@/types/enums';
+import { ChainId } from '@/types/enums';
 
 import { isAddress } from 'web3-utils';
 import { Contract } from 'web3-eth-contract';
@@ -19,13 +19,13 @@ describe('Upgrades', () => {
     beforeAll(async () => {
         await beforeAllCallback();
 
-        testToken = getContract(NetworkProvider.Main, 'LimitedSupplyToken');
+        testToken = getContract(ChainId.Hardhat, 'LimitedSupplyToken');
 
         await user
             .post('/v1/pools')
             .set('Authorization', dashboardAccessToken)
             .send({
-                network: NetworkProvider.Main,
+                chainId: ChainId.Hardhat,
                 variant: 'defaultPool',
                 tokens: [testToken.options.address],
             })
@@ -47,7 +47,7 @@ describe('Upgrades', () => {
                 version: currentVersion,
             });
 
-            await updateDiamondContract(pool.network, pool.contract, 'poolRegistry');
+            await updateDiamondContract(pool.chainId, pool.contract, 'poolRegistry');
             expect((await AssetPoolService.contractVersionVariant(pool)).variant).toBe('poolRegistry');
 
             await AssetPoolService.updateAssetPool(pool);

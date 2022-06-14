@@ -1,4 +1,4 @@
-import { AccountPlanType, NetworkProvider } from '@/types/enums';
+import { AccountPlanType, ChainId } from '@/types/enums';
 export interface IAccount {
     id?: string;
     address: string;
@@ -11,7 +11,7 @@ export interface IAccount {
     plan: AccountPlanType;
 }
 export interface ERC20Token {
-    network: NetworkProvider;
+    chainId: ChainId;
     address: string;
 }
 

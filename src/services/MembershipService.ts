@@ -1,16 +1,15 @@
 import { TAssetPool } from '@/types/TAssetPool';
-import { ERC20Type, NetworkProvider } from '@/types/enums';
 import { Membership } from '@/models/Membership';
 import AssetPoolService from './AssetPoolService';
 import { getContractFromName } from '@/config/contracts';
 import { fromWei } from 'web3-utils';
 import ERC20Service from './ERC20Service';
-import ERC20 from '@/models/ERC20';
 import ERC721Service from './ERC721Service';
 import { ERC721Type } from '@/types/enums/ERC721Type';
 import { ERC721 } from '@/models/ERC721';
 import { AssetPoolDocument } from '@/models/AssetPool';
 import { ERC20Token } from '@/models/ERC20Token';
+import { ChainId } from '@/types/enums';
 
 export default class MembershipService {
     static async get(sub: string) {
@@ -21,7 +20,7 @@ export default class MembershipService {
     static async hasMembership(assetPool: TAssetPool, sub: string) {
         const membership = await Membership.findOne({
             sub,
-            network: assetPool.network,
+            chainId: assetPool.chainId,
             poolAddress: assetPool.address,
         });
 
@@ -46,14 +45,14 @@ export default class MembershipService {
             poolBalance,
             erc20: membership.erc20,
             erc721: membership.erc721,
-            network: membership.network,
+            chainId: membership.chainId,
         };
     }
 
     static async addERC20Membership(sub: string, assetPool: AssetPoolDocument) {
         const membership = await Membership.findOne({
             sub,
-            network: assetPool.network,
+            chainId: assetPool.chainId,
             poolAddress: assetPool.address,
         });
 
@@ -73,7 +72,7 @@ export default class MembershipService {
 
             await Membership.create({
                 sub,
-                network: assetPool.network,
+                chainId: assetPool.chainId,
                 poolAddress: assetPool.address,
                 erc20: String(token._id),
             });
@@ -83,16 +82,16 @@ export default class MembershipService {
     static async addERC721Membership(sub: string, assetPool: TAssetPool) {
         const membership = await Membership.findOne({
             sub,
-            network: assetPool.network,
+            chainId: assetPool.chainId,
             poolAddress: assetPool.address,
         });
 
         if (!membership) {
             const address = await assetPool.contract.methods.getERC721().call();
-            let erc721 = await ERC721Service.findByQuery({ network: assetPool.network, address });
+            let erc721 = await ERC721Service.findByQuery({ chainId: assetPool.chainId, address });
 
             if (!erc721) {
-                const contract = getContractFromName(assetPool.network, 'NonFungibleToken', address);
+                const contract = getContractFromName(assetPool.chainId, 'NonFungibleToken', address);
                 const [name, symbol] = await Promise.all([
                     contract.methods.name().call(),
                     contract.methods.symbol().call(),
@@ -103,13 +102,13 @@ export default class MembershipService {
                     symbol,
                     address,
                     type: ERC721Type.Unknown,
-                    network: assetPool.network,
+                    chainId: assetPool.chainId,
                 });
             }
 
             await Membership.create({
                 sub,
-                network: assetPool.network,
+                chainId: assetPool.chainId,
                 poolAddress: assetPool.address,
                 erc721: String(erc721._id),
             });
@@ -119,7 +118,7 @@ export default class MembershipService {
     static async removeMembership(sub: string, assetPool: TAssetPool) {
         const membership = await Membership.findOne({
             sub,
-            network: assetPool.network,
+            chainId: assetPool.chainId,
             poolAddress: assetPool.address,
         });
 
@@ -132,7 +131,7 @@ export default class MembershipService {
         await membership.remove();
     }
 
-    static countByNetwork(network: NetworkProvider) {
-        return Membership.countDocuments({ network });
+    static countByNetwork(chainId: ChainId) {
+        return Membership.countDocuments({ chainId });
     }
 }

@@ -1,4 +1,4 @@
-import { NetworkProvider, TransactionState, TransactionType } from './enums';
+import { ChainId, TransactionState, TransactionType } from './enums';
 
 export type TTransaction = {
     type: TransactionType;
@@ -7,7 +7,7 @@ export type TTransaction = {
     to: string;
     nonce: number;
     gas: string;
-    network: NetworkProvider;
+    chainId: ChainId;
     transactionHash: string;
     relayTransactionHash?: string;
     call?: { fn: string; args: string };

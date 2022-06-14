@@ -17,21 +17,21 @@ const validation = [
 
 const controller = async (req: Request, res: Response) => {
     // #swagger.tags = ['Relay Hub']
-    const { contract, network } = req.assetPool;
-    const isMember = await TransactionService.call(contract.methods.isMember(req.body.newAddress), network);
+    const { contract, chainId } = req.assetPool;
+    const isMember = await contract.methods.isMember(req.body.newAddress).call();
 
     if (!isMember) {
         await TransactionService.send(
             contract.options.address,
             contract.methods.addMember(req.body.newAddress),
-            network,
+            chainId,
         );
     }
 
     const { receipt } = await TransactionService.send(
         contract.options.address,
         contract.methods.call(req.body.call, req.body.nonce, req.body.sig),
-        network,
+        chainId,
         250000,
     );
     const events = parseLogs(contract.options.jsonInterface, receipt.logs);

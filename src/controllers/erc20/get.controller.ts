@@ -12,7 +12,7 @@ const controller = async (req: Request, res: Response) => {
     const erc20 = await ERC20Service.getById(req.params.id);
     if (!erc20) new NotFoundError('ERC20 not found');
 
-    const { admin } = getProvider(erc20.network);
+    const { admin } = getProvider(erc20.chainId);
     const [totalSupplyInWei, decimalsString, adminBalanceInWei] = await Promise.all([
         erc20.contract.methods.totalSupply().call(),
         erc20.contract.methods.decimals().call(),

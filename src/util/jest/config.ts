@@ -4,7 +4,7 @@ import { agenda } from '@/util/agenda';
 import { mockClear } from './mock';
 import { logger } from '@/util/logger';
 import { getProvider } from '@/util/network';
-import { NetworkProvider } from '@/types/enums';
+import { ChainId } from '@/types/enums';
 import { getContractConfig } from '@/config/contracts';
 import { poll } from '../polling';
 
@@ -12,8 +12,8 @@ export async function beforeAllCallback() {
     await db.truncate();
     mockStart();
 
-    const { web3 } = getProvider(NetworkProvider.Main);
-    const fn = () => web3.eth.getCode(getContractConfig(NetworkProvider.Main, 'OwnershipFacet').address);
+    const { web3 } = getProvider(ChainId.Hardhat);
+    const fn = () => web3.eth.getCode(getContractConfig(ChainId.Hardhat, 'OwnershipFacet').address);
     const fnCondition = (result: string) => result === '0x';
 
     await poll(fn, fnCondition, 500);

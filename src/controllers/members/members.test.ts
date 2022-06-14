@@ -1,25 +1,23 @@
 import request from 'supertest';
 import app from '@/app';
 import { getProvider } from '@/util/network';
-import { NetworkProvider } from '@/types/enums';
 import { createWallet, voter } from '@/util/jest/network';
 import { adminAccessToken, dashboardAccessToken, userWalletPrivateKey2 } from '@/util/jest/constants';
 import { Contract } from 'web3-eth-contract';
 import { Account } from 'web3-core';
 import { afterAllCallback, beforeAllCallback } from '@/util/jest/config';
 import { getContract } from '@/config/contracts';
+import { ChainId } from '@/types/enums';
 
 const user = request.agent(app);
 
 describe('Roles', () => {
-    let poolAddress: any,
-        testToken: Contract,
-        userWallet: Account;
+    let poolAddress: any, testToken: Contract, userWallet: Account;
 
     beforeAll(async () => {
         await beforeAllCallback();
 
-        testToken = getContract(NetworkProvider.Main, 'LimitedSupplyToken');
+        testToken = getContract(ChainId.Hardhat, 'LimitedSupplyToken');
         userWallet = createWallet(userWalletPrivateKey2);
     });
 
@@ -30,7 +28,7 @@ describe('Roles', () => {
             user.post('/v1/pools')
                 .set({ Authorization: dashboardAccessToken })
                 .send({
-                    network: NetworkProvider.Main,
+                    chainId: ChainId.Hardhat,
                     tokens: [testToken.options.address],
                 })
                 .expect((res: request.Response) => {
@@ -42,7 +40,7 @@ describe('Roles', () => {
 
     describe('GET /members/:address', () => {
         it('HTTP 200 if OK', (done) => {
-            const { admin } = getProvider(NetworkProvider.Main);
+            const { admin } = getProvider(ChainId.Hardhat);
             user.get('/v1/members/' + admin.address)
                 .set({ 'X-PoolAddress': poolAddress, 'Authorization': adminAccessToken })
                 .expect(200, done);

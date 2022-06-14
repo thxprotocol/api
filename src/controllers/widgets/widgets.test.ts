@@ -1,6 +1,6 @@
 import request from 'supertest';
 import app from '@/app';
-import { NetworkProvider } from '@/types/enums';
+import { ChainId } from '@/types/enums';
 import {
     rewardWithdrawAmount,
     rewardWithdrawDuration,
@@ -26,7 +26,7 @@ describe('Widgets', () => {
     beforeAll(async () => {
         await beforeAllCallback();
 
-        testToken = getContract(NetworkProvider.Main, 'LimitedSupplyToken');
+        testToken = getContract(ChainId.Hardhat, 'LimitedSupplyToken');
     });
 
     afterAll(afterAllCallback);
@@ -36,7 +36,7 @@ describe('Widgets', () => {
             user.post('/v1/pools')
                 .set({ Authorization: dashboardAccessToken })
                 .send({
-                    network: NetworkProvider.Main,
+                    chainId: ChainId.Hardhat,
                     tokens: [testToken.options.address],
                 })
                 .expect(({ body }: request.Response) => {

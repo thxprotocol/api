@@ -1,5 +1,5 @@
 import { assertEvent, CustomEventLog, findEvent } from '@/util/events';
-import { DepositState, ERC20Type, NetworkProvider } from '@/types/enums';
+import { ChainId, DepositState, ERC20Type } from '@/types/enums';
 import { AssetPool, AssetPoolDocument } from '@/models/AssetPool';
 import { getProvider } from '@/util/network';
 import { toChecksumAddress } from 'web3-utils';
@@ -49,16 +49,16 @@ export default class AssetPoolService {
 
     static async deploy(
         sub: string,
-        network: NetworkProvider,
+        chainId: ChainId,
         variant: DiamondVariant = 'defaultPool',
         tokens: string[],
     ): Promise<AssetPoolDocument> {
-        const poolFactory = getContract(network, 'PoolFactory', currentVersion);
-        const registry = getContract(network, 'PoolRegistry', currentVersion);
-        const poolFacetContracts = diamondContracts(network, variant);
+        const poolFactory = getContract(chainId, 'PoolFactory', currentVersion);
+        const registry = getContract(chainId, 'PoolRegistry', currentVersion);
+        const poolFacetContracts = diamondContracts(chainId, variant);
         const pool = new AssetPool({
             sub,
-            network: network,
+            chainId,
             variant,
             version: currentVersion,
         });
@@ -101,7 +101,7 @@ export default class AssetPoolService {
             poolFactory,
             'deployDefaultPool',
             [getDiamondCutForContractFacets(poolFacetContracts, []), registry.options.address, tokens[0]],
-            pool.network,
+            pool.chainId,
             callback,
         );
     }
@@ -129,7 +129,7 @@ export default class AssetPoolService {
             poolFactory,
             'deployNFTPool',
             [getDiamondCutForContractFacets(poolFacetContracts, []), tokens[0]],
-            pool.network,
+            pool.chainId,
             callback,
         );
     }
@@ -167,7 +167,7 @@ export default class AssetPoolService {
     // }
 
     static async topup(assetPool: TAssetPool, amount: string) {
-        const { admin } = getProvider(assetPool.network);
+        const { admin } = getProvider(assetPool.chainId);
         const deposit = await Deposit.create({
             amount,
             sender: admin.address,
@@ -179,7 +179,7 @@ export default class AssetPoolService {
             assetPool.contract,
             'topup',
             [amount],
-            assetPool.network,
+            assetPool.chainId,
             async (tx: TransactionDocument, events: CustomEventLog[]) => {
                 if (events) {
                     assertEvent('Topup', events);
@@ -194,7 +194,7 @@ export default class AssetPoolService {
     }
 
     static async initializeDefaultPool(pool: AssetPoolDocument, tokenAddress: string) {
-        const erc20 = await ERC20Service.findBy({ network: pool.network, address: tokenAddress, sub: pool.sub });
+        const erc20 = await ERC20Service.findBy({ chainId: pool.chainId, address: tokenAddress, sub: pool.sub });
         if (erc20 && erc20.type === ERC20Type.Unlimited) {
             await ERC20Service.addMinter(erc20, pool.address);
         }
@@ -202,7 +202,7 @@ export default class AssetPoolService {
     }
 
     static async initializeNFTPool(pool: AssetPoolDocument, tokenAddress: string) {
-        const erc721 = await ERC721Service.findByQuery({ address: tokenAddress, network: pool.network });
+        const erc721 = await ERC721Service.findByQuery({ address: tokenAddress, chainId: pool.chainId });
 
         await ERC721Service.addMinter(erc721, pool.address);
         await MembershipService.addERC721Membership(pool.sub, pool);
@@ -227,12 +227,12 @@ export default class AssetPoolService {
         });
     }
 
-    static async countByNetwork(network: NetworkProvider) {
-        return await AssetPool.countDocuments({ network });
+    static async countByNetwork(chainId: ChainId) {
+        return await AssetPool.countDocuments({ chainId });
     }
 
     static async contractVersionVariant(assetPool: AssetPoolDocument) {
-        const permutations = Object.values(poolFacetAdressesPermutations(assetPool.network));
+        const permutations = Object.values(poolFacetAdressesPermutations(assetPool.chainId));
         const facets = await assetPool.contract.methods.facets().call();
 
         const facetAddresses = facets
@@ -246,7 +246,7 @@ export default class AssetPoolService {
     }
 
     static async updateAssetPool(pool: AssetPoolDocument, version?: string) {
-        const tx = await updateDiamondContract(pool.network, pool.contract, pool.variant, version);
+        const tx = await updateDiamondContract(pool.chainId, pool.contract, pool.variant, version);
 
         pool.version = version;
 
@@ -256,7 +256,7 @@ export default class AssetPoolService {
     }
 
     static async transferOwnership(assetPool: AssetPoolDocument, currentPrivateKey: string, newPrivateKey: string) {
-        const { web3 } = getProvider(assetPool.network);
+        const { web3 } = getProvider(assetPool.chainId);
         const currentOwner = web3.eth.accounts.privateKeyToAccount(currentPrivateKey);
         const currentOwnerAddress = toChecksumAddress(currentOwner.address);
         const newOwner = web3.eth.accounts.privateKeyToAccount(newPrivateKey);
@@ -265,10 +265,10 @@ export default class AssetPoolService {
         const { methods, options } = assetPool.contract;
 
         const sendFromCurrentOwner = (fn: any) => {
-            return TransactionService.send(options.address, fn, assetPool.network, null, currentPrivateKey);
+            return TransactionService.send(options.address, fn, assetPool.chainId, null, currentPrivateKey);
         };
         const sendFromNewOwner = (fn: any) => {
-            return TransactionService.send(options.address, fn, assetPool.network, null, newPrivateKey);
+            return TransactionService.send(options.address, fn, assetPool.chainId, null, newPrivateKey);
         };
 
         // Add membership, manager and admin role to new owner.

@@ -2,7 +2,7 @@ import { getSelectors, ADDRESS_ZERO } from './network';
 import TransactionService from '@/services/TransactionService';
 import { Contract } from 'web3-eth-contract';
 import { uniq } from '.';
-import { NetworkProvider } from '@/types/enums';
+import { ChainId } from '@/types/enums';
 import { diamondContracts } from '@/config/contracts';
 import { DiamondVariant } from '@thxnetwork/artifacts';
 
@@ -80,20 +80,20 @@ export function getDiamondCutForContractFacets(newContracts: Contract[], facets:
 }
 
 export const updateDiamondContract = async (
-    npid: NetworkProvider,
+    chainId: ChainId,
     contract: Contract,
     variant: DiamondVariant,
     version?: string,
 ) => {
     const facets = await contract.methods.facets().call();
-    const newContracts = diamondContracts(npid, variant, version);
+    const newContracts = diamondContracts(chainId, variant, version);
     const diamondCuts = getDiamondCutForContractFacets(newContracts, facets);
 
     if (diamondCuts.length > 0) {
         return await TransactionService.send(
             contract.options.address,
             contract.methods.diamondCut(diamondCuts, ADDRESS_ZERO, '0x'),
-            npid,
+            chainId,
         );
     }
 

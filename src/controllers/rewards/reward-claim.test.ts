@@ -1,10 +1,9 @@
 import request from 'supertest';
 import app from '@/app';
 import { Account } from 'web3-core';
-import { ERC20Type, NetworkProvider } from '../../types/enums';
+import { ChainId, ERC20Type } from '../../types/enums';
 import { createWallet, signMethod } from '@/util/jest/network';
 import {
-    adminAccessToken,
     dashboardAccessToken,
     rewardWithdrawAmount,
     rewardWithdrawUnlockDate,
@@ -41,7 +40,7 @@ describe('Reward Claim', () => {
         user.post('/v1/erc20')
             .set('Authorization', dashboardAccessToken)
             .send({
-                network: NetworkProvider.Main,
+                chainId: ChainId.Hardhat,
                 name: tokenName,
                 symbol: tokenSymbol,
                 type: ERC20Type.Unlimited,
@@ -58,7 +57,7 @@ describe('Reward Claim', () => {
         user.post('/v1/pools')
             .set('Authorization', dashboardAccessToken)
             .send({
-                network: NetworkProvider.Main,
+                chainId: ChainId.Hardhat,
                 tokens: [tokenAddress],
             })
             .expect((res: request.Response) => {

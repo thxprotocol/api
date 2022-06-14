@@ -1,9 +1,9 @@
 import newrelic from 'newrelic';
-import { TESTNET_RPC, RPC } from '@/config/secrets';
+import { HARDHAT_RPC, POLYGON_MUMBAI_RPC, POLYGON_RPC } from '@/config/secrets';
 import Web3 from 'web3';
 import axios from 'axios';
 import { Contract } from 'web3-eth-contract';
-import { NetworkProvider } from '../types/enums';
+import { ChainId } from '../types/enums';
 import { THXError } from './errors';
 import { soliditySha3 } from 'web3-utils';
 import { arrayify, computeAddress, hashMessage, recoverPublicKey } from 'ethers/lib/utils';
@@ -17,11 +17,15 @@ export class NoFeeDataError extends THXError {
 
 export const ADDRESS_ZERO = '0x0000000000000000000000000000000000000000';
 
-const testnet = new Web3(TESTNET_RPC);
+const hardhat = new Web3(HARDHAT_RPC);
+const hardhatAdmin = hardhat.eth.accounts.privateKeyToAccount(process.env.PRIVATE_KEY);
+hardhat.eth.defaultAccount = hardhatAdmin.address;
+
+const testnet = new Web3(POLYGON_MUMBAI_RPC);
 const testnetAdmin = testnet.eth.accounts.privateKeyToAccount(process.env.PRIVATE_KEY);
 testnet.eth.defaultAccount = testnetAdmin.address;
 
-const mainnet = new Web3(RPC);
+const mainnet = new Web3(POLYGON_RPC);
 const mainnetAdmin = mainnet.eth.accounts.privateKeyToAccount(process.env.PRIVATE_KEY);
 mainnet.eth.defaultAccount = mainnetAdmin.address;
 
@@ -32,22 +36,24 @@ export const recoverAddress = (call: string, nonce: number, sig: string) => {
     return computeAddress(pubKey);
 };
 
-export const getProvider = (npid: NetworkProvider) => {
-    switch (npid) {
+export const getProvider = (chainId: ChainId) => {
+    switch (chainId) {
         default:
-        case NetworkProvider.Test:
+        case ChainId.Hardhat:
+            return { web3: hardhat, admin: hardhatAdmin };
+        case ChainId.PolygonMumbai:
             return { web3: testnet, admin: testnetAdmin };
-        case NetworkProvider.Main:
+        case ChainId.Polygon:
             return { web3: mainnet, admin: mainnetAdmin };
     }
 };
 
 // Type: safeLow, standard, fast
-export async function getEstimatesFromOracle(npid: NetworkProvider, type = 'fast') {
-    const url =
-        npid === NetworkProvider.Main
-            ? 'https://gasstation-mainnet.matic.network/v2'
-            : 'https://gasstation-mumbai.matic.today/v2';
+export async function getEstimatesFromOracle(chainId: ChainId, type = 'fast') {
+    let url = 'https://gasstation-mumbai.matic.today/v2';
+
+    if (chainId === ChainId.Polygon) url = 'https://gasstation-mainnet.matic.network/v2';
+
     const r = await axios.get(url);
 
     if (r.status !== 200) {

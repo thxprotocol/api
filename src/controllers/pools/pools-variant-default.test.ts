@@ -1,6 +1,6 @@
 import request from 'supertest';
 import app from '@/app';
-import { NetworkProvider } from '@/types/enums';
+import { ChainId } from '@/types/enums';
 import { Account } from 'web3-core';
 import { toWei } from 'web3-utils';
 import { timeTravel, signMethod, createWallet } from '@/util/jest/network';
@@ -48,7 +48,7 @@ describe('Default Pool', () => {
 
     describe('Existing ERC20 contract', () => {
         it('TokenDeployed event', async () => {
-            const tokenFactory = getContract(NetworkProvider.Main, 'TokenFactory', currentVersion);
+            const tokenFactory = getContract(ChainId.Hardhat, 'TokenFactory', currentVersion);
             const { receipt } = await TransactionService.send(
                 tokenFactory.options.address,
                 tokenFactory.methods.deployLimitedSupplyToken(
@@ -57,7 +57,7 @@ describe('Default Pool', () => {
                     userWallet.address,
                     toWei(String(tokenTotalSupply)),
                 ),
-                NetworkProvider.Main,
+                ChainId.Hardhat,
             );
             const event = assertEvent('TokenDeployed', parseLogs(tokenFactory.options.jsonInterface, receipt.logs));
             tokenAddress = event.args.token;
@@ -69,7 +69,7 @@ describe('Default Pool', () => {
             user.post('/v1/pools')
                 .set('Authorization', dashboardAccessToken)
                 .send({
-                    network: NetworkProvider.Main,
+                    chainId: ChainId.Hardhat,
                     tokens: [tokenAddress],
                 })
                 .expect((res: request.Response) => {
@@ -116,7 +116,7 @@ describe('Default Pool', () => {
 
     describe('Make deposit into pool', () => {
         it('Approve for infinite amount', async () => {
-            const testToken = getContractFromName(NetworkProvider.Main, 'LimitedSupplyToken', tokenAddress);
+            const testToken = getContractFromName(ChainId.Hardhat, 'LimitedSupplyToken', tokenAddress);
             const tx = await testToken.methods.approve(poolAddress, MaxUint256).send({ from: userWallet.address });
             const event: any = Object.values(tx.events).filter((e: any) => e.event === 'Approval')[0];
             expect(event.returnValues.owner).toEqual(userWallet.address);

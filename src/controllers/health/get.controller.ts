@@ -2,7 +2,7 @@ import { name, version, license } from '../../../package.json';
 import { Response, Request } from 'express';
 import { fromWei } from 'web3-utils';
 import { getProvider } from '@/util/network';
-import { NetworkProvider } from '@/types/enums';
+import { ChainId } from '@/types/enums';
 import InfuraService from '@/services/InfuraService';
 import { diamondFacetAddresses, getContractConfig, getContractFromName } from '@/config/contracts';
 import { logger } from '@/util/logger';
@@ -15,27 +15,27 @@ function handleError(error: Error) {
     return { error: 'invalid response' };
 }
 
-async function getGasTankInfo(npid: NetworkProvider) {
+async function getGasTankInfo(chainId: ChainId) {
     try {
-        return fromWei(await InfuraService.getAdminBalance(npid), 'ether');
+        return fromWei(await InfuraService.getAdminBalance(chainId), 'ether');
     } catch (error) {
         return handleError(error);
     }
 }
 
-function facetAdresses(npid: NetworkProvider) {
+function facetAdresses(chainId: ChainId) {
     const result: Record<string, unknown> = {};
 
     for (const variant of diamondVariants) {
-        result[variant] = diamondFacetAddresses(npid, variant);
+        result[variant] = diamondFacetAddresses(chainId, variant);
     }
 
     return result;
 }
 
-async function getNetworkDetails(npid: NetworkProvider) {
+async function getNetworkDetails(chainId: ChainId) {
     try {
-        const provider = getProvider(npid);
+        const provider = getProvider(chainId);
         const { admin, web3 } = provider;
         const balance = await web3.eth.getBalance(admin.address);
 
@@ -45,30 +45,30 @@ async function getNetworkDetails(npid: NetworkProvider) {
                 balance: fromWei(balance, 'ether'),
             },
             gasTank: {
-                queue: (await InfuraService.scheduled(npid)).length,
-                address: InfuraService.getGasTank(npid),
-                balance: await getGasTankInfo(npid),
+                queue: (await InfuraService.scheduled(chainId)).length,
+                address: InfuraService.getGasTank(chainId),
+                balance: await getGasTankInfo(chainId),
             },
             // feeData: await getFeeData(npid),
-            facets: facetAdresses(npid),
+            facets: facetAdresses(chainId),
         };
     } catch (error) {
         return handleError(error);
     }
 }
 
-function poolRegistry(npid: NetworkProvider) {
-    const { address } = getContractConfig(npid, 'PoolRegistry');
-    return getContractFromName(npid, 'PoolRegistry', address);
+function poolRegistry(chainId: ChainId) {
+    const { address } = getContractConfig(chainId, 'PoolRegistry');
+    return getContractFromName(chainId, 'PoolRegistry', address);
 }
 
 export const getHealth = async (_req: Request, res: Response) => {
     // #swagger.tags = ['Health']
     const [testnetDetails, mainnetDetails, testnetFeeCollector, mainnetFeeCollector] = await Promise.all([
-        await getNetworkDetails(NetworkProvider.Test),
-        await getNetworkDetails(NetworkProvider.Main),
-        await poolRegistry(NetworkProvider.Test).methods.feeCollector().call(),
-        await poolRegistry(NetworkProvider.Main).methods.feeCollector().call(),
+        await getNetworkDetails(ChainId.PolygonMumbai),
+        await getNetworkDetails(ChainId.Polygon),
+        await poolRegistry(ChainId.PolygonMumbai).methods.feeCollector().call(),
+        await poolRegistry(ChainId.Polygon).methods.feeCollector().call(),
     ]);
 
     const jsonData = {
@@ -78,16 +78,16 @@ export const getHealth = async (_req: Request, res: Response) => {
         artifacts: currentVersion,
         testnet: {
             ...testnetDetails,
-            poolRegistry: getContractConfig(NetworkProvider.Test, 'PoolRegistry').address,
-            poolFactory: getContractConfig(NetworkProvider.Test, 'PoolFactory').address,
-            tokenFactory: getContractConfig(NetworkProvider.Test, 'TokenFactory').address,
+            poolRegistry: getContractConfig(ChainId.PolygonMumbai, 'PoolRegistry').address,
+            poolFactory: getContractConfig(ChainId.PolygonMumbai, 'PoolFactory').address,
+            tokenFactory: getContractConfig(ChainId.PolygonMumbai, 'TokenFactory').address,
             feeCollector: testnetFeeCollector,
         },
         mainnet: {
             ...mainnetDetails,
-            poolRegistry: poolRegistry(NetworkProvider.Main).options.address,
-            poolFactory: getContractConfig(NetworkProvider.Main, 'PoolFactory').address,
-            tokenFactory: getContractConfig(NetworkProvider.Main, 'TokenFactory').address,
+            poolRegistry: poolRegistry(ChainId.Polygon).options.address,
+            poolFactory: getContractConfig(ChainId.Polygon, 'PoolFactory').address,
+            tokenFactory: getContractConfig(ChainId.Polygon, 'TokenFactory').address,
             feeCollector: mainnetFeeCollector,
         },
     };

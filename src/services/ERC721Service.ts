@@ -6,7 +6,7 @@ import { getProvider } from '@/util/network';
 import { API_URL, ITX_ACTIVE } from '@/config/secrets';
 import { assertEvent, parseLogs } from '@/util/events';
 import { AssetPoolDocument } from '@/models/AssetPool';
-import { NetworkProvider } from '@/types/enums';
+import { ChainId } from '@/types/enums';
 import InfuraService from './InfuraService';
 import { getContract } from '@/config/contracts';
 import { currentVersion } from '@thxnetwork/artifacts';
@@ -16,8 +16,8 @@ import { keccak256, toUtf8Bytes } from 'ethers/lib/utils';
 import { IAccount } from '@/models/Account';
 
 async function create(data: TERC721): Promise<ERC721Document> {
-    const { admin } = getProvider(data.network);
-    const tokenFactory = getContract(data.network, 'TokenFactory', currentVersion);
+    const { admin } = getProvider(data.chainId);
+    const tokenFactory = getContract(data.chainId, 'TokenFactory', currentVersion);
     const erc721 = new ERC721(data);
 
     erc721.baseURL = `${API_URL}/metadata/`;
@@ -25,7 +25,7 @@ async function create(data: TERC721): Promise<ERC721Document> {
     const { receipt } = await TransactionService.send(
         tokenFactory.options.address,
         tokenFactory.methods.deployNonFungibleToken(erc721.name, erc721.symbol, erc721.baseURL, admin.address),
-        erc721.network,
+        erc721.chainId,
     );
     const event = assertEvent('TokenDeployed', parseLogs(tokenFactory.options.jsonInterface, receipt.logs));
 
@@ -75,7 +75,7 @@ export async function mint(
             assetPool.address,
             'mintFor',
             [account.address, String(metadata._id)],
-            assetPool.network,
+            assetPool.chainId,
         );
         erc721token.transactions.push(String(tx._id));
 
@@ -85,7 +85,7 @@ export async function mint(
             const { tx, receipt } = await TransactionService.send(
                 assetPool.address,
                 assetPool.contract.methods.mintFor(account.address, erc721.baseURL + String(erc721token.metadataId)),
-                assetPool.network,
+                assetPool.chainId,
             );
             const event = assertEvent(
                 'ERC721Minted',
@@ -119,7 +119,7 @@ async function addMinter(erc721: ERC721Document, address: string) {
     const { receipt } = await TransactionService.send(
         erc721.address,
         erc721.contract.methods.grantRole(keccak256(toUtf8Bytes('MINTER_ROLE')), address),
-        erc721.network,
+        erc721.chainId,
     );
 
     assertEvent('RoleGranted', parseLogs(erc721.contract.options.jsonInterface, receipt.logs));
@@ -163,11 +163,11 @@ async function findByPool(assetPool: TAssetPool) {
     return ERC721.findOne({
         poolAddress: assetPool.address,
         address: await assetPool.contract.methods.getERC721().call(),
-        network: assetPool.network,
+        chainId: assetPool.chainId,
     });
 }
 
-async function findByQuery(query: { poolAddress?: string; address?: string; network?: NetworkProvider }) {
+async function findByQuery(query: { poolAddress?: string; address?: string; chainId?: ChainId }) {
     return await ERC721.findOne(query);
 }
 
