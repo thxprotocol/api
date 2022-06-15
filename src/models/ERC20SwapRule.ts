@@ -5,7 +5,7 @@ export type ERC20SwapRuleDocument = mongoose.Document & TERC20SwapRule;
 
 const ERC20SwapRuleSchema = new mongoose.Schema(
     {
-        //network: NetworkProvider;
+        chainId: Number,
         poolAddress: String,
         tokenInAddress: String,
         tokenMultiplier: Number,

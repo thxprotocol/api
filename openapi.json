@@ -1672,6 +1672,64 @@
           }
         }
       }
+    },
+    "/swaprules/": {
+      "get": {
+        "tags": [
+          "ERC20SwapRules"
+        ],
+        "description": "",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "ERC20SwapRules"
+        ],
+        "description": "",
+        "parameters": [
+          {
+            "name": "tokenInAddress",
+            "in": "query",
+            "type": "string"
+          },
+          {
+            "name": "tokenMultiplier",
+            "in": "query",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/swaprules/{id}": {
+      "get": {
+        "tags": [
+          "ERC20SwapRules"
+        ],
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
     }
   }
 }

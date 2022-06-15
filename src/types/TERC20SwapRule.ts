@@ -1,5 +1,7 @@
+import { ChainId } from './enums/ChainId';
+
 export type TERC20SwapRule = {
-    //network: NetworkProvider;
+    chainId: ChainId;
     poolAddress: string;
     tokenInAddress: string;
     tokenMultiplier: number;

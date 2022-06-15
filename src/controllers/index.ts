@@ -19,6 +19,7 @@ import erc721MetadataRouter from './erc721/metadata/metadata.router';
 import uploadRouter from './upload/upload.router';
 import erc20Router from './erc20/erc20.router';
 import transactionsRouter from './transactions/transactions.router';
+import erc20SwapRuleRouter from './swaps/ERC20SwapRule/erc20SwapRules.router';
 import { checkJwt } from '@/middlewares';
 
 const router = express.Router();
@@ -45,5 +46,6 @@ router.use('/widgets', widgetsRouter);
 router.use('/withdrawals', withdrawalsRouter);
 router.use('/upload', uploadRouter);
 router.use('/transactions', transactionsRouter);
+router.use('/swaprules', erc20SwapRuleRouter);
 
 export default router;
