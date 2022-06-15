@@ -99,7 +99,7 @@ describe('Payments', () => {
                 expect(body.failUrl).toBe(failUrl);
                 expect(body.cancelUrl).toBe(cancelUrl);
                 expect(body.chainId).toBe(31337);
-                expect(body.state).toBe(PaymentState.Pending);
+                expect(body.state).toBe(PaymentState.Requested);
                 expect(body.tokenAddress).toBe(token.options.address);
                 expect(body.token).toHaveLength(32);
                 expect(body.receiver).toBe(poolAddress);
@@ -116,7 +116,7 @@ describe('Payments', () => {
                 expect(body.failUrl).toBe(failUrl);
                 expect(body.cancelUrl).toBe(cancelUrl);
                 expect(body.chainId).toBe(31337);
-                expect(body.state).toBe(PaymentState.Pending);
+                expect(body.state).toBe(PaymentState.Requested);
                 expect(body.tokenAddress).toBe(token.options.address);
                 expect(body.token).toHaveLength(32);
                 expect(body.receiver).toBe(poolAddress);

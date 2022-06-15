@@ -26,7 +26,7 @@ async function create(
     return await Payment.create({
         poolId: pool._id,
         chainId,
-        state: PaymentState.Pending,
+        state: PaymentState.Requested,
         token,
         amount,
         receiver: pool.address,
@@ -53,11 +53,13 @@ async function pay(pool: TAssetPool, payment: PaymentDocument, callData: { call:
             assertEvent('Topup', events);
             payment.state = PaymentState.Completed;
         }
-
         payment.transactions.push(String(tx._id));
 
         return await payment.save();
     };
+
+    payment.state = PaymentState.Pending;
+    await payment.save();
 
     return await TransactionService.relay(
         pool.contract,

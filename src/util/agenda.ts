@@ -3,7 +3,7 @@ import { Agenda } from 'agenda';
 import { logger } from './logger';
 import { jobProcessTransactions } from '@/jobs/transactionProcessor';
 
-export const eventNameRequireTransactions = 'requireTransactions';
+export const EVENT_REQUIRE_TRANSACTIONS = 'requireTransactions';
 
 export const agenda = new Agenda({
     maxConcurrency: 1,
@@ -11,13 +11,13 @@ export const agenda = new Agenda({
     processEvery: '1 second',
 });
 
-agenda.define(eventNameRequireTransactions, jobProcessTransactions);
+agenda.define(EVENT_REQUIRE_TRANSACTIONS, jobProcessTransactions);
 
 db.connection.once('open', async () => {
     agenda.mongo(db.connection.getClient().db(), 'jobs');
     await agenda.start();
 
-    agenda.every('5 seconds', eventNameRequireTransactions);
+    agenda.every('5 seconds', EVENT_REQUIRE_TRANSACTIONS);
 
-    logger.info('Started agenda processing');
+    logger.info('AgendaJS successfully started job processor');
 });

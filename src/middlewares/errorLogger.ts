@@ -7,5 +7,7 @@ export const errorLogger = (error: Error, req: Request, res: Response, next: Nex
         logger.error('Error caught:', error);
     }
 
+    console.log(`%c ${error}`, 'color: #ff0000');
+
     next(error);
 };

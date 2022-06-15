@@ -39,8 +39,8 @@ router.post(
     '/approve',
     assertScopes(['deposits:write']),
     assertAssetPoolAccess,
-    assertRequestInput(CreateDepositApprove.validation),
     requireAssetPoolHeader,
+    assertRequestInput(CreateDepositApprove.validation),
     CreateDepositApprove.controller,
 );
 

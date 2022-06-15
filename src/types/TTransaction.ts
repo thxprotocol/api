@@ -14,4 +14,5 @@ export type TTransaction = {
     baseFee?: string;
     maxFeeForGas?: string;
     maxPriorityFeeForGas?: string;
+    failReason?: string;
 };

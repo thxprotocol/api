@@ -27,11 +27,14 @@ const controller = async (req: Request, res: Response) => {
     if (!payment) {
         throw new NotFoundError();
     }
-    if (payment.state === PaymentState.Completed) {
-        throw new ForbiddenError('Payment state is completed');
-    }
     if (payment.token !== req.header('X-Payment-Token')) {
         throw new UnauthorizedError('Payment access token is incorrect');
+    }
+    if (payment.state === PaymentState.Pending) {
+        throw new ForbiddenError('Payment state is pending');
+    }
+    if (payment.state === PaymentState.Completed) {
+        throw new ForbiddenError('Payment state is completed');
     }
 
     const { call, nonce, sig } = req.body;
