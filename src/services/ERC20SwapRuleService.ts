@@ -4,6 +4,10 @@ import TransactionService from './TransactionService';
 import { assertEvent, parseLogs } from '@/util/events';
 import { NotFoundError } from '@/util/errors';
 
+async function findByQuery(query: { poolAddress: string; tokenInAddress: string }) {
+    return await ERC20SwapRule.findOne(query);
+}
+
 async function get(id: string): Promise<ERC20SwapRuleDocument> {
     const erc20SwapRule = await ERC20SwapRule.findById(id);
     if (!erc20SwapRule) throw new NotFoundError('Could not find this Swap Rule');;
@@ -31,4 +35,4 @@ async function erc20SwapRule(assetPool: TAssetPool, tokenInAddress: string, toke
     });
 }
 
-export default { get, getAll, erc20SwapRule };
+export default { get, getAll, erc20SwapRule, findByQuery };

@@ -92,7 +92,7 @@ describe('ERC20SwapRules', () => {
             http.get('/v1/swaprules/' + '6208dfa33400429348c5e61b')
                 .set({ 'Authorization': dashboardAccessToken, 'X-PoolAddress': poolAddress })
                 .expect(({ body }: Response) => {
-                    expect(body.error.message).toEqual('ould not find this Swap Rule');
+                    expect(body.error.message).toEqual('Could not find this Swap Rule');
                 })
                 .expect(404, done);
         });
