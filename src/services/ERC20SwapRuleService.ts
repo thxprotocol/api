@@ -3,8 +3,15 @@ import { ERC20SwapRule, ERC20SwapRuleDocument } from '@/models/ERC20SwapRule';
 import TransactionService from './TransactionService';
 import { assertEvent, parseLogs } from '@/util/events';
 import { NotFoundError } from '@/util/errors';
+import { paginatedResults } from '@/util/pagination';
 
-async function findByQuery(query: { poolAddress: string; tokenInAddress: string }) {
+async function findByQuery(poolAddress: string, page = 1, limit = 10) {
+    let query = { to: poolAddress };
+    const result = await paginatedResults(ERC20SwapRule, page, limit, query);
+    return result;
+}
+
+async function findOneByQuery(query: { poolAddress: string; tokenInAddress: string }) {
     return await ERC20SwapRule.findOne(query);
 }
 
@@ -35,4 +42,4 @@ async function erc20SwapRule(assetPool: TAssetPool, tokenInAddress: string, toke
     });
 }
 
-export default { get, getAll, erc20SwapRule, findByQuery };
+export default { get, getAll, erc20SwapRule, findOneByQuery, findByQuery };

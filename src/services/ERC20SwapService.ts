@@ -34,7 +34,7 @@ async function erc20Swap(
         throw new NotFoundError('Could not find this Token');
     }
 
-    const swapRule = await ERC20SwapRuleService.findByQuery({
+    const swapRule = await ERC20SwapRuleService.findOneByQuery({
         poolAddress: assetPool.address,
         tokenInAddress: tokenAddress,
     });

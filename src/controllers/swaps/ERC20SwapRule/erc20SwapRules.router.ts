@@ -12,6 +12,7 @@ router.get(
     '/',
     assertScopes(['swapRule:read']),
     assertAssetPoolAccess,
+    assertRequestInput(ListERC20SwapRules.validation),
     requireAssetPoolHeader,
     assertPlan([AccountPlanType.Basic, AccountPlanType.Premium]),
     ListERC20SwapRules.controller,
