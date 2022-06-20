@@ -3,7 +3,7 @@ import { ERC721Metadata, ERC721MetadataDocument } from '@/models/ERC721Metadata'
 import { ERC721TokenState, TERC721, TERC721Metadata, TERC721Token } from '@/types/TERC721';
 import TransactionService from './TransactionService';
 import { getProvider } from '@/util/network';
-import { API_URL, ITX_ACTIVE } from '@/config/secrets';
+import { VERSION, API_URL, ITX_ACTIVE } from '@/config/secrets';
 import { assertEvent, parseLogs } from '@/util/events';
 import { AssetPoolDocument } from '@/models/AssetPool';
 import { ChainId } from '@/types/enums';
@@ -20,7 +20,7 @@ async function create(data: TERC721): Promise<ERC721Document> {
     const tokenFactory = getContract(data.chainId, 'TokenFactory', currentVersion);
     const erc721 = new ERC721(data);
 
-    erc721.baseURL = `${API_URL}/metadata/`;
+    erc721.baseURL = `${API_URL}/${VERSION}/metadata/`;
 
     const { receipt } = await TransactionService.send(
         tokenFactory.options.address,
