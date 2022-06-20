@@ -14,7 +14,7 @@ const controller = async (req: Request, res: Response) => {
     );
 
     for (const promoCode of page.results) {
-        results.push(await PromotionService.formatResult(req.user.sub, promoCode));
+        results.push(await PromotionService.formatResult(req.auth.sub, promoCode));
     }
 
     page.results = results;

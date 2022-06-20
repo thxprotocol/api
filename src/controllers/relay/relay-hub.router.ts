@@ -1,6 +1,6 @@
 import express from 'express';
-import assertScopes from 'express-jwt-authz';
-import { assertAssetPoolAccess, assertPlan, assertRequestInput, requireAssetPoolHeader } from '@/middlewares';
+
+import { assertAssetPoolAccess, assertPlan, assertRequestInput, requireAssetPoolHeader, guard } from '@/middlewares';
 import { AccountPlanType } from '@/types/enums';
 import CreateRelay from './post.controller';
 import CreateRelayUpgradeAddress from './upgrade_address/post';
@@ -9,7 +9,7 @@ const router = express.Router();
 
 router.post(
     '/call',
-    assertScopes(['relay:write']),
+    guard.check(['relay:write']),
     assertAssetPoolAccess,
     assertRequestInput(CreateRelay.validation),
     requireAssetPoolHeader,
@@ -18,7 +18,7 @@ router.post(
 );
 router.post(
     '/upgrade_address',
-    assertScopes(['relay:write', 'account:write']),
+    guard.check(['relay:write', 'account:write']),
     assertAssetPoolAccess,
     assertRequestInput(CreateRelayUpgradeAddress.validation),
     requireAssetPoolHeader,

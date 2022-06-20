@@ -27,7 +27,7 @@ const controller = async (req: Request, res: Response) => {
         value = promoCode.price;
     }
 
-    const account = await AccountProxy.getById(req.user.sub);
+    const account = await AccountProxy.getById(req.auth.sub);
     const amount = toWei(String(value));
     const erc20 = await ERC20Service.findByPool(req.assetPool);
 

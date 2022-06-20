@@ -15,7 +15,7 @@ const validation = [body('amount').optional().isNumeric()];
 
 const controller = async (req: Request, res: Response) => {
     // #swagger.tags = ['Deposits']
-    const account = await AccountProxy.getById(req.user.sub);
+    const account = await AccountProxy.getById(req.auth.sub);
     const amount = req.body.amount ? toWei(String(req.body.amount)) : MaxUint256;
     const erc20 = await ERC20Service.findByPool(req.assetPool);
     const contract = getContractFromName(req.assetPool.chainId, 'LimitedSupplyToken', erc20.address);

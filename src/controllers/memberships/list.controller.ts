@@ -4,7 +4,7 @@ import MembershipService from '@/services/MembershipService';
 
 const controller = async (req: Request, res: Response) => {
     // #swagger.tags = ['Memberships']
-    const memberships = await MembershipService.get(req.user.sub);
+    const memberships = await MembershipService.get(req.auth.sub);
 
     res.json(memberships);
 };
