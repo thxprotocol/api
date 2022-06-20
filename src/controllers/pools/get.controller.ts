@@ -12,7 +12,7 @@ export const validation = [param('id').isMongoId()];
 
 export const controller = async (req: Request, res: Response) => {
     // #swagger.tags = ['Pools']
-    if (req.assetPool.sub !== req.user.sub) throw new ForbiddenError('Only the pool owner can access this pool info');
+    if (req.assetPool.sub !== req.auth.sub) throw new ForbiddenError('Only the pool owner can access this pool info');
 
     if (!req.assetPool.address) {
         return res.json(req.assetPool.toJSON());

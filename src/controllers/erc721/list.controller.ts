@@ -4,7 +4,7 @@ import { ERC721Document } from '@/models/ERC721';
 
 const controller = async (req: Request, res: Response) => {
     // #swagger.tags = ['ERC721']
-    const result: ERC721Document[] = await ERC721Service.findBySub(req.user.sub);
+    const result: ERC721Document[] = await ERC721Service.findBySub(req.auth.sub);
     res.json(result.map((erc721: ERC721Document) => erc721._id));
 };
 

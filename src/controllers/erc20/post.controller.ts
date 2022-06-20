@@ -16,7 +16,7 @@ export const validation = [
 
 export const controller = async (req: Request, res: Response) => {
     // #swagger.tags = ['ERC20']
-    const account = await AccountProxy.getById(req.user.sub);
+    const account = await AccountProxy.getById(req.auth.sub);
 
     if (account.plan === AccountPlanType.Free && req.body.chainId === ChainId.Polygon) {
         await AccountProxy.update(account.id, { plan: AccountPlanType.Basic });
@@ -28,7 +28,7 @@ export const controller = async (req: Request, res: Response) => {
         chainId: req.body.chainId,
         totalSupply: req.body.totalSupply,
         type: req.body.type,
-        sub: req.user.sub,
+        sub: req.auth.sub,
     });
     const totalSupply = Number(fromWei(await erc20.contract.methods.totalSupply().call(), 'ether'));
     const decimals = Number(await erc20.contract.methods.decimals().call());

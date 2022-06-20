@@ -14,7 +14,7 @@ const controller = async (req: Request, res: Response) => {
     // #swagger.tags = ['ERC721']
 
     const erc721 = await ERC721Service.create({
-        sub: req.user.sub,
+        sub: req.auth.sub,
         chainId: req.body.chainId,
         name: req.body.name,
         symbol: req.body.symbol,

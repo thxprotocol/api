@@ -8,7 +8,7 @@ export async function assertPoolOwner(
     next: NextFunction,
 ) {
     const pool = await AssetPoolService.getById(req.params.id);
-    if (pool.sub !== req.user.sub) throw new SubjectUnauthorizedError();
+    if (pool.sub !== req.auth.sub) throw new SubjectUnauthorizedError();
     req.assetPool = pool;
     next();
 }

@@ -15,7 +15,7 @@ const controller = async (req: Request, res: Response) => {
     const erc20 = await ERC20Service.getById(token.erc20Id);
     if (!token) throw new NotFoundError('ERC20 not found');
 
-    const account = await AccountProxy.getById(req.user.sub);
+    const account = await AccountProxy.getById(req.auth.sub);
     const balanceInWei = await erc20.contract.methods.balanceOf(account.address).call();
     const balance = Number(fromWei(balanceInWei, 'ether'));
 
