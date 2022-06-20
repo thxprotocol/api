@@ -3,6 +3,7 @@ import { assertRequestInput, assertAssetPoolAccess, requireAssetPoolHeader, guar
 import ListTransactions from './list.controller';
 
 const router = express.Router();
+
 router.get(
     '/',
     guard.check(['transactions:read']),
@@ -11,4 +12,5 @@ router.get(
     assertRequestInput(ListTransactions.validation),
     ListTransactions.controller,
 );
+
 export default router;

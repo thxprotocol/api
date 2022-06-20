@@ -12,7 +12,7 @@ import { BigNumber } from 'ethers';
 const http = request.agent(app);
 const user = request.agent(app);
 
-describe('Default Pool', () => {
+describe('Transactions', () => {
     let poolAddress: string, tokenAddress: string, testToken: Contract, poolId: string;
 
     beforeAll(async () => {

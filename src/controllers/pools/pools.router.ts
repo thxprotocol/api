@@ -35,7 +35,6 @@ router.get(
 router.get(
     '/:id',
     guard.check(['pools:read']),
-    // guard.check(['pools:read']),
     assertRequestInput(ReadPool.validation),
     assertPoolOwner,
     assertPlan([AccountPlanType.Basic, AccountPlanType.Premium]),
@@ -51,7 +50,7 @@ router.delete(
 );
 router.post(
     '/:id/topup',
-    guard.check(['dashboard', 'deposits:read', 'deposits:write']),
+    guard.check(['deposits:read', 'deposits:write']),
     assertAssetPoolAccess,
     assertRequestInput(CreatePoolTopup.validation),
     requireAssetPoolHeader,

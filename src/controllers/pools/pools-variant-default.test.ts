@@ -66,7 +66,6 @@ describe('Default Pool', () => {
 
     describe('POST /pools', () => {
         it('HTTP 201 (success)', (done) => {
-            console.log(dashboardAccessToken);
             user.post('/v1/pools')
                 .set('Authorization', dashboardAccessToken)
                 .send({

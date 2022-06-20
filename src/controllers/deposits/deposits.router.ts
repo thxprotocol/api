@@ -1,5 +1,4 @@
 import express from 'express';
-
 import CreateDeposit from './post.controller';
 import ReadDeposit from './get.controller';
 import ListDeposits from './list.controller';
