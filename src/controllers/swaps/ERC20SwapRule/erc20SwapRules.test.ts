@@ -45,12 +45,12 @@ describe('ERC20SwapRules', () => {
                     tokenMultiplier,
                 })
                 .expect(({ body }: Response) => {
-                    expect(body.id).toBeDefined();
+                    expect(body._id).toBeDefined();
                     expect(body.tokenInAddress).toEqual(tokenInAddress);
                     expect(body.tokenMultiplier).toEqual(tokenMultiplier);
                     swaprule = body;
                 })
-                .expect(201, done);
+                .expect(200, done);
         });
 
         it('GET /swaprules 200 OK', (done) => {
@@ -59,7 +59,7 @@ describe('ERC20SwapRules', () => {
                 .expect(({ body }: Response) => {
                     expect(body.total).toEqual(1);
                     expect(body.results).toHaveLength(1);
-                    expect(body.results[0].id).toBeDefined();
+                    expect(body.results[0]._id).toBeDefined();
                     expect(body.results[0].tokenInAddress).toEqual(tokenInAddress);
                     expect(body.results[0].tokenMultiplier).toEqual(tokenMultiplier);
                 })
@@ -67,10 +67,10 @@ describe('ERC20SwapRules', () => {
         });
 
         it('GET /swaprules/:id', (done) => {
-            http.get('/v1/swaprules/' + swaprule.id)
+            http.get('/v1/swaprules/' + swaprule._id)
                 .set({ 'Authorization': dashboardAccessToken, 'X-PoolAddress': poolAddress })
                 .expect(({ body }: Response) => {
-                    expect(body.id).toEqual(swaprule.id);
+                    expect(body._id).toEqual(swaprule._id);
                     expect(body.tokenInAddress).toEqual(tokenInAddress);
                     expect(body.tokenMultiplier).toEqual(tokenMultiplier);
                 })

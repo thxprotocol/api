@@ -19,8 +19,8 @@ const controller = async (req: Request, res: Response) => {
     const erc20Swap = await ERC20SwapService.erc20Swap(
         req.assetPool,
         { call, nonce, sig },
-        Number(req.query.amountIn),
-        String(req.query.tokenAddress),
+        Number(req.body.amountIn),
+        String(req.body.tokenAddress),
     );
 
     agenda.now(eventNameRequireTransactions, {});

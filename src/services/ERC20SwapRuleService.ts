@@ -31,15 +31,16 @@ async function erc20SwapRule(assetPool: TAssetPool, tokenInAddress: string, toke
         assetPool.contract.methods.setSwapRule(tokenInAddress, tokenMultiplier),
         assetPool.chainId,
     );
-
     assertEvent('SwapRuleUpdated', parseLogs(assetPool.contract.options.jsonInterface, receipt.logs));
 
-    return await ERC20SwapRule.create({
+    const swapRule = await ERC20SwapRule.create({
         chainId: assetPool.chainId,
         poolAddress: assetPool.address,
         tokenInAddress,
         tokenMultiplier,
     });
+    await swapRule.save();
+    return swapRule;
 }
 
 export default { get, getAll, erc20SwapRule, findOneByQuery, findByQuery };

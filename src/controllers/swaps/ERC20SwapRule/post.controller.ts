@@ -9,8 +9,8 @@ const controller = async (req: Request, res: Response) => {
     // #swagger.tags = ['ERC20SwapRules']
     const erc20SwapRule = await ERC20SwapRuleService.erc20SwapRule(
         req.assetPool,
-        String(req.query.tokenInAddress),
-        Number(req.query.tokenMultiplier),
+        String(req.body.tokenInAddress),
+        Number(req.body.tokenMultiplier),
     );
 
     agenda.now(eventNameRequireTransactions, {});
