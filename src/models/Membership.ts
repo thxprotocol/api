@@ -1,9 +1,9 @@
 import mongoose from 'mongoose';
-import { NetworkProvider } from '@/types/enums';
+import { ChainId } from '@/types/enums';
 
 export type MembershipDocument = mongoose.Document & {
     sub: string;
-    network: NetworkProvider;
+    chainId: ChainId;
     poolAddress: string;
     poolBalance: number;
     erc20?: string;
@@ -13,7 +13,7 @@ export type MembershipDocument = mongoose.Document & {
 const membershipSchema = new mongoose.Schema(
     {
         sub: String,
-        network: Number,
+        chainId: Number,
         erc20: String,
         erc721: String,
         poolAddress: String,

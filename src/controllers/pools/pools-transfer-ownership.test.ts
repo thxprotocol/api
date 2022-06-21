@@ -9,7 +9,7 @@ import { createWallet } from '@/util/jest/network';
 import { afterAllCallback, beforeAllCallback } from '@/util/jest/config';
 import AssetPoolService, { ADMIN_ROLE } from '@/services/AssetPoolService';
 import { PRIVATE_KEY } from '@/config/secrets';
-import { NetworkProvider } from '@/types/enums';
+import { ChainId } from '@/types/enums';
 import { getContract } from '@/config/contracts';
 
 const user = request.agent(app);
@@ -21,7 +21,7 @@ describe('Transfer Pool Ownership', () => {
         await beforeAllCallback();
 
         userWallet = createWallet(userWalletPrivateKey2);
-        testToken = getContract(NetworkProvider.Main, 'LimitedSupplyToken');
+        testToken = getContract(ChainId.Hardhat, 'LimitedSupplyToken');
     });
 
     afterAll(afterAllCallback);
@@ -31,7 +31,7 @@ describe('Transfer Pool Ownership', () => {
             user.post('/v1/pools')
                 .set('Authorization', dashboardAccessToken)
                 .send({
-                    network: NetworkProvider.Main,
+                    chainId: ChainId.Hardhat,
                     tokens: [testToken.options.address],
                 })
                 .expect((res: request.Response) => {
@@ -61,7 +61,7 @@ describe('Transfer Pool Ownership', () => {
             const assetPool = await AssetPoolService.getByAddress(poolAddress);
             await AssetPoolService.transferOwnership(assetPool, PRIVATE_KEY, DEPOSITOR_PK);
 
-            const { web3 } = getProvider(assetPool.network);
+            const { web3 } = getProvider(assetPool.chainId);
             const { methods } = assetPool.contract;
             const newOwner = web3.eth.accounts.privateKeyToAccount(DEPOSITOR_PK);
             const newOwnerAddress = toChecksumAddress(newOwner.address);

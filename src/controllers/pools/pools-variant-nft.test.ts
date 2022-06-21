@@ -1,6 +1,6 @@
 import request from 'supertest';
 import app from '@/app';
-import { NetworkProvider } from '@/types/enums';
+import { ChainId } from '@/types/enums';
 import { isAddress } from 'web3-utils';
 import { afterAllCallback, beforeAllCallback } from '@/util/jest/config';
 import { account2, dashboardAccessToken } from '@/util/jest/constants';
@@ -9,7 +9,7 @@ const user = request.agent(app);
 
 describe('NFT Pool', () => {
     let poolAddress: string, tokenAddress: string, erc721ID: string, metadataId: string;
-    const network = NetworkProvider.Main,
+    const chainId = ChainId.Hardhat,
         name = 'Planets of the Galaxy',
         symbol = 'GLXY',
         description = 'Collection full of rarities.',
@@ -29,7 +29,7 @@ describe('NFT Pool', () => {
             user.post('/v1/erc721')
                 .set('Authorization', dashboardAccessToken)
                 .send({
-                    network,
+                    chainId,
                     name,
                     symbol,
                     description,
@@ -50,7 +50,7 @@ describe('NFT Pool', () => {
             user.post('/v1/pools')
                 .set('Authorization', dashboardAccessToken)
                 .send({
-                    network: NetworkProvider.Main,
+                    chainId: ChainId.Hardhat,
                     tokens: [tokenAddress],
                     variant: 'nftPool',
                 })

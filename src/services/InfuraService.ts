@@ -1,4 +1,4 @@
-import { NetworkProvider, TransactionState, TransactionType } from '@/types/enums';
+import { ChainId, TransactionState, TransactionType } from '@/types/enums';
 import { BigNumber, Contract, ethers, Signer } from 'ethers';
 import { parseUnits } from 'ethers/lib/utils';
 import { INFURA_GAS_TANK, INFURA_PROJECT_ID, PRIVATE_KEY, TESTNET_INFURA_GAS_TANK } from '@/config/secrets';
@@ -11,29 +11,29 @@ const mainnet = new ethers.providers.InfuraProvider('matic', INFURA_PROJECT_ID);
 const testnetAdmin = new ethers.Wallet(PRIVATE_KEY, testnet);
 const mainnetAdmin = new ethers.Wallet(PRIVATE_KEY, mainnet);
 
-function getProvider(npid: NetworkProvider) {
-    switch (npid) {
+function getProvider(chainId: ChainId) {
+    switch (chainId) {
         default:
-        case NetworkProvider.Test:
+        case ChainId.PolygonMumbai:
             return { provider: testnet, admin: testnetAdmin };
-        case NetworkProvider.Main:
+        case ChainId.Polygon:
             return { provider: mainnet, admin: mainnetAdmin };
     }
 }
 
-function getGasTank(npid: NetworkProvider) {
-    switch (npid) {
+function getGasTank(chainId: ChainId) {
+    switch (chainId) {
         default:
-        case NetworkProvider.Test:
+        case ChainId.PolygonMumbai:
             return TESTNET_INFURA_GAS_TANK;
-        case NetworkProvider.Main:
+        case ChainId.Polygon:
             return INFURA_GAS_TANK;
     }
 }
 
-async function deposit(value: BigNumber, npid: NetworkProvider) {
-    const { admin } = getProvider(npid);
-    const to = getGasTank(npid);
+async function deposit(value: BigNumber, chainId: ChainId) {
+    const { admin } = getProvider(chainId);
+    const to = getGasTank(chainId);
     const nonce = await admin.getTransactionCount('pending');
     const gasLimit = await admin.estimateGas({
         to,
@@ -52,8 +52,8 @@ async function deposit(value: BigNumber, npid: NetworkProvider) {
     return await tx.wait();
 }
 
-async function getAdminBalance(npid: NetworkProvider) {
-    const { provider, admin } = getProvider(npid);
+async function getAdminBalance(chainId: ChainId) {
+    const { provider, admin } = getProvider(chainId);
     const gasTank = await provider.send('relay_getBalance', [await admin.getAddress()]);
     return gasTank.balance;
 }
@@ -81,11 +81,11 @@ async function getCallData(contract: Contract, fn: string, args: any[], account:
     return { call, nonce, sig };
 }
 
-async function create(to: string, fn: string, args: any[], npid: NetworkProvider) {
+async function create(to: string, fn: string, args: any[], chainId: ChainId) {
     return await Transaction.create({
         state: TransactionState.Scheduled,
         type: TransactionType.ITX,
-        network: npid,
+        chainId,
         to,
         call: {
             fn,
@@ -95,10 +95,10 @@ async function create(to: string, fn: string, args: any[], npid: NetworkProvider
 }
 
 async function send(contract: Contract, tx: TransactionDocument) {
-    const { provider, admin } = getProvider(tx.network);
+    const { provider, admin } = getProvider(tx.chainId);
     // Get the relayed call data, nonce and signature for this contract call
     const { call, nonce, sig } = await getCallData(contract, tx.call.fn, JSON.parse(tx.call.args), admin);
-    const gas = await contract.estimateGas.call(call, nonce, sig);
+    // const gas = await contract.estimateGas.call(call, nonce, sig);
     const data = contract.interface.encodeFunctionData('call', [call, nonce, sig]);
     // Sign the req with the ITX gas tank admin
     const options = {
@@ -122,7 +122,7 @@ async function send(contract: Contract, tx: TransactionDocument) {
 }
 
 async function getTransactionStatus(tx: TransactionDocument) {
-    const { provider } = getProvider(tx.network);
+    const { provider } = getProvider(tx.chainId);
     const { broadcasts } = await provider.send('relay_getTransactionStatus', [tx.relayTransactionHash]);
     if (!broadcasts) return;
 
@@ -155,12 +155,12 @@ async function pollTransactionStatus(tx: TransactionDocument) {
     return await poll(fn, fnCondition, 500);
 }
 
-async function scheduled(npid: NetworkProvider) {
+async function scheduled(chainId: ChainId) {
     return Transaction.find({
         type: TransactionType.ITX,
         state: TransactionState.Scheduled,
         transactionHash: { $exists: false },
-        network: npid,
+        chainId: chainId,
     });
 }
 

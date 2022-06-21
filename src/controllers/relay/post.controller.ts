@@ -10,11 +10,11 @@ const validation = [body('call').exists(), body('nonce').exists(), body('sig').e
 
 const controller = async (req: Request, res: Response) => {
     // #swagger.tags = ['Relay Hub']
-    const { contract, network, address } = req.assetPool;
+    const { contract, chainId, address } = req.assetPool;
     const { tx, receipt } = await TransactionService.send(
         contract.options.address,
         contract.methods.call(req.body.call, req.body.nonce, req.body.sig),
-        network,
+        chainId,
         500000,
     );
     const events = parseLogs(contract.options.jsonInterface, receipt.logs);

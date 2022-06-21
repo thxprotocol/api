@@ -3,7 +3,7 @@ import { toWei } from 'web3-utils';
 import { Contract } from 'web3-eth-contract';
 import { Transaction, TransactionDocument } from '@/models/Transaction';
 import { getEstimatesFromOracle, getProvider, MaxFeePerGasExceededError } from '@/util/network';
-import { NetworkProvider, TransactionState, TransactionType } from '@/types/enums';
+import { ChainId, TransactionState, TransactionType } from '@/types/enums';
 import { ITX_ACTIVE, MAX_FEE_PER_GAS, MINIMUM_GAS_LIMIT, PRIVATE_KEY } from '@/config/secrets';
 import { AssetPool } from '@/models/AssetPool';
 import AssetPoolService from './AssetPoolService';
@@ -11,26 +11,27 @@ import InfuraService from './InfuraService';
 import { CustomEventLog, findEvent, hex2a, parseLogs } from '@/util/events';
 import { logger } from '@/util/logger';
 import { InternalServerError } from '@/util/errors';
-import { agenda, eventNameRequireTransactions } from '@/util/agenda';
+import { agenda, EVENT_REQUIRE_TRANSACTIONS } from '@/util/agenda';
 import { paginatedResults } from '@/util/pagination';
+import { TTransaction } from '@/types/TTransaction';
 
 function getById(id: string) {
     return Transaction.findById(id);
 }
 
-function parseFee(value: number, npid: NetworkProvider) {
-    return Number(toWei(String(Math.ceil(value + (npid === NetworkProvider.Test ? 30 : 0))), 'gwei'));
+function parseFee(value: number, chainId: ChainId) {
+    return Number(toWei(String(Math.ceil(value + (chainId === ChainId.PolygonMumbai ? 30 : 0))), 'gwei'));
 }
 
-async function sendValue(to: string, value: string, npid: NetworkProvider) {
-    const { web3, admin } = getProvider(npid);
+async function sendValue(to: string, value: string, chainId: ChainId) {
+    const { web3, admin } = getProvider(chainId);
     const from = admin.address;
     const gas = '21000';
     const nonce = await web3.eth.getTransactionCount(from, 'pending');
-    const feeData = await getEstimatesFromOracle(npid);
+    const feeData = await getEstimatesFromOracle(chainId);
     const baseFee = Number(feeData.baseFee);
-    const maxFeePerGas = parseFee(feeData.maxFeePerGas, npid);
-    const maxPriorityFeePerGas = parseFee(feeData.maxPriorityFeePerGas, npid);
+    const maxFeePerGas = parseFee(feeData.maxFeePerGas, chainId);
+    const maxPriorityFeePerGas = parseFee(feeData.maxPriorityFeePerGas, chainId);
     const maxFeePerGasLimit = Number(toWei(MAX_FEE_PER_GAS, 'gwei'));
 
     // This comparison is in gwei
@@ -54,7 +55,7 @@ async function sendValue(to: string, value: string, npid: NetworkProvider) {
     let tx = await Transaction.create({
         type: TransactionType.Default,
         state: TransactionState.Scheduled,
-        network: npid,
+        chainId,
         from,
         to,
         gas,
@@ -79,17 +80,17 @@ async function relay(
     contract: Contract,
     fn: string,
     args: any[],
-    npid: NetworkProvider,
+    chainId: ChainId,
     callback: (tx: TransactionDocument, events?: CustomEventLog[]) => Promise<Document>,
 ): Promise<any> {
     // If ITX is active run the callback for the scheduled ITX transaction right away
     if (ITX_ACTIVE) {
-        const cb = await callback(await InfuraService.create(contract.options.address, fn, args, npid));
-        agenda.now(eventNameRequireTransactions, {});
+        const cb = await callback(await InfuraService.create(contract.options.address, fn, args, chainId));
+        agenda.now(EVENT_REQUIRE_TRANSACTIONS, {});
         return cb;
     }
 
-    const { tx, receipt } = await send(contract.options.address, contract.methods[fn](...args), npid);
+    const { tx, receipt } = await send(contract.options.address, contract.methods[fn](...args), chainId);
     const events = parseLogs(contract.options.jsonInterface, receipt.logs);
     const result = findEvent('Result', events);
 
@@ -102,18 +103,18 @@ async function relay(
     return await callback(tx, events);
 }
 
-async function send(to: string, fn: any, npid: NetworkProvider, gasLimit?: number, fromPK?: string) {
-    const { web3, admin } = getProvider(npid);
+async function send(to: string, fn: any, chainId: ChainId, gasLimit?: number, fromPK?: string) {
+    const { web3, admin } = getProvider(chainId);
     const from = fromPK ? web3.eth.accounts.privateKeyToAccount(fromPK).address : admin.address;
     const data = fn.encodeABI();
     const estimate = await fn.estimateGas({ from });
     // MINIMUM_GAS_LIMIT is set for tx that have a lower estimate than allowed by the network
     const gas = gasLimit ? gasLimit : estimate < MINIMUM_GAS_LIMIT ? MINIMUM_GAS_LIMIT : estimate;
     const nonce = await web3.eth.getTransactionCount(from, 'pending');
-    const feeData = await getEstimatesFromOracle(npid);
+    const feeData = await getEstimatesFromOracle(chainId);
     const baseFee = Number(feeData.baseFee);
-    const maxFeePerGas = parseFee(feeData.maxFeePerGas, npid);
-    const maxPriorityFeePerGas = parseFee(feeData.maxPriorityFeePerGas, npid);
+    const maxFeePerGas = parseFee(feeData.maxFeePerGas, chainId);
+    const maxPriorityFeePerGas = parseFee(feeData.maxPriorityFeePerGas, chainId);
     const maxFeePerGasLimit = Number(toWei(MAX_FEE_PER_GAS, 'gwei'));
 
     // This comparison is in gwei
@@ -137,7 +138,7 @@ async function send(to: string, fn: any, npid: NetworkProvider, gasLimit?: numbe
     let tx = await Transaction.create({
         type: TransactionType.Default,
         state: TransactionState.Scheduled,
-        network: npid,
+        chainId,
         from,
         to,
         gas,
@@ -162,8 +163,8 @@ async function send(to: string, fn: any, npid: NetworkProvider, gasLimit?: numbe
     return { tx, receipt };
 }
 
-async function deploy(abi: any, bytecode: any, arg: any[], npid: NetworkProvider) {
-    const { web3, admin } = getProvider(npid);
+async function deploy(abi: any, bytecode: any, arg: any[], chainId: ChainId) {
+    const { web3, admin } = getProvider(chainId);
     const contract = new web3.eth.Contract(abi);
     const gas = await contract
         .deploy({
@@ -178,10 +179,10 @@ async function deploy(abi: any, bytecode: any, arg: any[], npid: NetworkProvider
         })
         .encodeABI();
     const nonce = await web3.eth.getTransactionCount(admin.address, 'pending');
-    const feeData = await getEstimatesFromOracle(npid);
+    const feeData = await getEstimatesFromOracle(chainId);
     const baseFee = Number(feeData.baseFee);
-    const maxFeePerGas = parseFee(feeData.maxFeePerGas, npid);
-    const maxPriorityFeePerGas = parseFee(feeData.maxPriorityFeePerGas, npid);
+    const maxFeePerGas = parseFee(feeData.maxFeePerGas, chainId);
+    const maxPriorityFeePerGas = parseFee(feeData.maxPriorityFeePerGas, chainId);
     const maxFeePerGasLimit = Number(toWei(MAX_FEE_PER_GAS, 'gwei'));
 
     // This comparison is in gwei
@@ -202,7 +203,7 @@ async function deploy(abi: any, bytecode: any, arg: any[], npid: NetworkProvider
     const tx = await Transaction.create({
         type: TransactionType.Default,
         state: TransactionState.Scheduled,
-        network: npid,
+        chainId,
         from: admin.address,
         gas,
         nonce,
@@ -226,12 +227,12 @@ async function deploy(abi: any, bytecode: any, arg: any[], npid: NetworkProvider
     return contract;
 }
 
-async function call(fn: any, npid: NetworkProvider) {
-    const { admin } = getProvider(npid);
+async function findFailReason(transactions: string[]): Promise<string | undefined> {
+    const list = await Promise.all(transactions.map((id: string) => getById(id)));
+    const tx = list.filter((tx: TTransaction) => tx.state === TransactionState.Failed);
+    if (!tx.length) return;
 
-    return await fn.call({
-        from: admin.address,
-    });
+    return tx[0].failReason;
 }
 
 async function findByQuery(poolAddress: string, page = 1, limit = 10, startDate?: Date, endDate?: Date) {
@@ -249,4 +250,4 @@ async function findByQuery(poolAddress: string, page = 1, limit = 10, startDate?
     return result;
 }
 
-export default { relay, getById, send, call, deploy, sendValue, findByQuery };
+export default { relay, getById, send, deploy, sendValue, findByQuery, findFailReason };

@@ -1,6 +1,5 @@
 import express from 'express';
-import checkScopes from 'express-jwt-authz';
-import { assertPlan, assertAssetPoolAccess, assertRequestInput, requireAssetPoolHeader } from '@/middlewares';
+import { guard, assertPlan, assertAssetPoolAccess, assertRequestInput, requireAssetPoolHeader } from '@/middlewares';
 import { AccountPlanType } from '@/types/enums';
 import CreateWithdrawalFinalize from './finalize/post.controller';
 import CreateWithdrawal from './post.controller';
@@ -12,7 +11,7 @@ const router = express.Router();
 
 router.post(
     '/',
-    checkScopes(['withdrawals:write', 'withdrawals:read']),
+    guard.check(['withdrawals:write', 'withdrawals:read']),
     assertAssetPoolAccess,
     assertRequestInput(CreateWithdrawal.validation),
     requireAssetPoolHeader,
@@ -21,7 +20,7 @@ router.post(
 );
 router.get(
     '/',
-    checkScopes(['withdrawals:read']),
+    guard.check(['withdrawals:read']),
     assertAssetPoolAccess,
     assertRequestInput(ListWithdrawal.validation),
     requireAssetPoolHeader,
@@ -29,7 +28,7 @@ router.get(
 );
 router.get(
     '/:id',
-    checkScopes(['withdrawals:read']),
+    guard.check(['withdrawals:read']),
     assertAssetPoolAccess,
     assertRequestInput(ReadWithdrawal.validation),
     requireAssetPoolHeader,
@@ -37,7 +36,7 @@ router.get(
 );
 router.post(
     '/:id/withdraw',
-    checkScopes(['withdrawals:write', 'withdrawals:read']),
+    guard.check(['withdrawals:write', 'withdrawals:read']),
     assertAssetPoolAccess,
     assertRequestInput(CreateWithdrawalFinalize.validation),
     requireAssetPoolHeader,
@@ -46,7 +45,7 @@ router.post(
 );
 router.delete(
     '/:id',
-    checkScopes(['withdrawals:write']),
+    guard.check(['withdrawals:write']),
     assertAssetPoolAccess,
     assertRequestInput(DeleteWithdrawal.validation),
     requireAssetPoolHeader,

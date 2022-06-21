@@ -4,7 +4,7 @@ import AccountProxy from '@/proxies/AccountProxy';
 
 const controller = async (req: Request, res: Response) => {
     // #swagger.tags = ['Account']
-    await AccountProxy.update(req.user.sub, {
+    await AccountProxy.update(req.auth.sub, {
         address: req.body.address,
         googleAccess: req.body.googleAccess,
         twitterAccess: req.body.twitterAccess,

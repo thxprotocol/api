@@ -4,7 +4,7 @@ import { getProvider } from '@/util/network';
 import { ICreateERC20Params } from '@/types/interfaces';
 import TransactionService from './TransactionService';
 import { assertEvent, parseLogs } from '@/util/events';
-import { ERC20Type, NetworkProvider } from '@/types/enums';
+import { ChainId, ERC20Type } from '@/types/enums';
 import { AssetPoolDocument } from '@/models/AssetPool';
 import { currentVersion } from '@thxnetwork/artifacts';
 import { getContract, getContractFromName } from '@/config/contracts';
@@ -12,8 +12,8 @@ import { keccak256, toUtf8Bytes } from 'ethers/lib/utils';
 import { ERC20Token } from '@/models/ERC20Token';
 
 export const deploy = async (params: ICreateERC20Params) => {
-    const { admin } = getProvider(params.network);
-    const tokenFactory = getContract(params.network, 'TokenFactory', currentVersion);
+    const { admin } = getProvider(params.chainId);
+    const tokenFactory = getContract(params.chainId, 'TokenFactory', currentVersion);
 
     let fn;
     if (params.type === ERC20Type.Limited) {
@@ -28,13 +28,13 @@ export const deploy = async (params: ICreateERC20Params) => {
         fn = tokenFactory.methods.deployUnlimitedSupplyToken(params.name, params.symbol, admin.address);
     }
 
-    const { receipt } = await TransactionService.send(tokenFactory.options.address, fn, params.network);
+    const { receipt } = await TransactionService.send(tokenFactory.options.address, fn, params.chainId);
     const event = assertEvent('TokenDeployed', parseLogs(tokenFactory.options.jsonInterface, receipt.logs));
     const { _id } = await ERC20.create({
         name: params.name,
         symbol: params.symbol,
         address: event.args.token,
-        network: params.network,
+        chainId: params.chainId,
         type: params.type,
         sub: params.sub,
     });
@@ -46,7 +46,7 @@ const addMinter = async (erc20: ERC20Document, address: string) => {
     const { receipt } = await TransactionService.send(
         erc20.address,
         erc20.contract.methods.grantRole(keccak256(toUtf8Bytes('MINTER_ROLE')), address),
-        erc20.network,
+        erc20.chainId,
     );
 
     assertEvent('RoleGranted', parseLogs(erc20.contract.options.jsonInterface, receipt.logs));
@@ -69,15 +69,15 @@ export const getTokenById = (id: string) => {
     return ERC20Token.findById(id);
 };
 
-export const findBy = (query: { address: string; network: NetworkProvider; sub?: string }) => {
+export const findBy = (query: { address: string; chainId: ChainId; sub?: string }) => {
     return ERC20.findOne(query);
 };
 
 export const findOrImport = async (pool: AssetPoolDocument, address: string) => {
-    const erc20 = await findBy({ network: pool.network, address, sub: pool.sub });
+    const erc20 = await findBy({ chainId: pool.chainId, address, sub: pool.sub });
     if (erc20) return erc20;
 
-    const contract = getContractFromName(pool.network, 'LimitedSupplyToken', address);
+    const contract = getContractFromName(pool.chainId, 'LimitedSupplyToken', address);
     const [name, symbol] = await Promise.all([
         contract.methods.name().call(),
         contract.methods.symbol().call(),
@@ -87,7 +87,7 @@ export const findOrImport = async (pool: AssetPoolDocument, address: string) => 
         name,
         symbol,
         address,
-        network: pool.network,
+        chainId: pool.chainId,
         type: ERC20Type.Unknown,
         sub: pool.sub,
     });

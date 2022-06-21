@@ -16,14 +16,8 @@ services:
             - mongo-data:/data/db
             - ./scripts/mongo-init.sh:/docker-entrypoint-initdb.d/mongo-init.sh
        
-    api_testnet:
-        container_name: thx_api_testnet
-        image: public.ecr.aws/o5j5y3t5/hardhat-thx-artifacts:3.1.19
-        ports:
-            - '8547:8545'
-
-    api_mainnet:
-        container_name: thx_api_mainnet
+    api_hardhat:
+        container_name: thx_api_hardhat
         image: public.ecr.aws/o5j5y3t5/hardhat-thx-artifacts:3.1.19
         ports:
             - '8546:8545'

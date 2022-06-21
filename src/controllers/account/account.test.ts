@@ -9,7 +9,7 @@ import {
     walletAccessToken,
 } from '@/util/jest/constants';
 import { Contract } from 'web3-eth-contract';
-import { NetworkProvider } from '@/types/enums';
+import { ChainId } from '@/types/enums';
 import { afterAllCallback, beforeAllCallback } from '@/util/jest/config';
 import { getContract } from '@/config/contracts';
 
@@ -21,7 +21,7 @@ describe('Account', () => {
     beforeAll(async () => {
         await beforeAllCallback();
 
-        testToken = getContract(NetworkProvider.Main, 'LimitedSupplyToken');
+        testToken = getContract(ChainId.Hardhat, 'LimitedSupplyToken');
     });
 
     afterAll(afterAllCallback);
@@ -31,7 +31,7 @@ describe('Account', () => {
             user.post('/v1/pools')
                 .set({ Authorization: dashboardAccessToken })
                 .send({
-                    network: NetworkProvider.Main,
+                    chainId: ChainId.Hardhat,
                     tokens: [testToken.options.address],
                 })
                 .expect((res: request.Response) => {
@@ -135,7 +135,7 @@ describe('Account', () => {
                 .expect((res: request.Response) => {
                     expect(res.body.id).toBe(membershipID);
                     expect(res.body.poolAddress).toBe(poolAddress);
-                    expect(res.body.network).toBe(NetworkProvider.Main);
+                    expect(res.body.chainId).toBe(ChainId.Hardhat);
                     expect(res.body.erc20).toBeDefined();
                 })
                 .expect(200, done);

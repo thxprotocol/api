@@ -1,6 +1,5 @@
 import express from 'express';
-import checkScopes from 'express-jwt-authz';
-import { assertPlan, assertRequestInput, assertAssetPoolAccess, requireAssetPoolHeader } from '@/middlewares';
+import { assertPlan, assertRequestInput, assertAssetPoolAccess, requireAssetPoolHeader, guard } from '@/middlewares';
 import { AccountPlanType } from '@/types/enums';
 import CreateMember from './post.controller';
 import ReadMember from './get.controller';
@@ -12,7 +11,7 @@ const router = express.Router();
 
 router.get(
     '/',
-    checkScopes(['members:read']),
+    guard.check(['members:read']),
     assertAssetPoolAccess,
     requireAssetPoolHeader,
     assertPlan([AccountPlanType.Basic, AccountPlanType.Premium]),
@@ -20,7 +19,7 @@ router.get(
 );
 router.post(
     '/',
-    checkScopes(['members:read']),
+    guard.check(['members:read']),
     assertAssetPoolAccess,
     assertRequestInput(CreateMember.validation),
     requireAssetPoolHeader,
@@ -29,7 +28,7 @@ router.post(
 );
 router.patch(
     '/:address',
-    checkScopes(['members:read', 'members:write']),
+    guard.check(['members:read', 'members:write']),
     assertAssetPoolAccess,
     assertRequestInput(UpdateMember.validation),
     requireAssetPoolHeader,
@@ -38,7 +37,7 @@ router.patch(
 );
 router.delete(
     '/:address',
-    checkScopes(['members:write']),
+    guard.check(['members:write']),
     assertAssetPoolAccess,
     assertRequestInput(DeleteMember.validation),
     requireAssetPoolHeader,
@@ -47,7 +46,7 @@ router.delete(
 );
 router.get(
     '/:address',
-    checkScopes(['members:read']),
+    guard.check(['members:read']),
     assertAssetPoolAccess,
     assertRequestInput(ReadMember.validation),
     requireAssetPoolHeader,

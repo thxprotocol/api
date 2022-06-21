@@ -4,7 +4,7 @@ import { isAddress } from 'web3-utils';
 import { Contract } from 'web3-eth-contract';
 import { IPromotionResponse } from '@/types/interfaces/IPromoCodeResponse';
 import { afterAllCallback, beforeAllCallback } from '@/util/jest/config';
-import { NetworkProvider } from '@/types/enums';
+import { ChainId } from '@/types/enums';
 import { getContract } from '@/config/contracts';
 import { dashboardAccessToken } from '@/util/jest/constants';
 
@@ -22,7 +22,7 @@ describe('PromoCodes', () => {
     beforeAll(async () => {
         await beforeAllCallback();
 
-        testToken = getContract(NetworkProvider.Main, 'LimitedSupplyToken');
+        testToken = getContract(ChainId.Hardhat, 'LimitedSupplyToken');
     });
 
     afterAll(afterAllCallback);
@@ -31,7 +31,7 @@ describe('PromoCodes', () => {
         http.post('/v1/pools')
             .set('Authorization', dashboardAccessToken)
             .send({
-                network: NetworkProvider.Main,
+                chainId: ChainId.Hardhat,
                 tokens: [testToken.options.address],
             })
             .expect((res: request.Response) => {

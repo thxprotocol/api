@@ -1,17 +1,16 @@
 import express from 'express';
-import assertScopes from 'express-jwt-authz';
 import CreateDeposit from './post.controller';
 import ReadDeposit from './get.controller';
 import ListDeposits from './list.controller';
 import CreateDepositApprove from './approve/post.controller';
-import { assertRequestInput, assertAssetPoolAccess, requireAssetPoolHeader, assertPlan } from '@/middlewares';
+import { assertRequestInput, assertAssetPoolAccess, requireAssetPoolHeader, guard, assertPlan } from '@/middlewares';
 import { AccountPlanType } from '@/types/enums';
 
 const router = express.Router();
 
 router.get(
     '/',
-    assertScopes(['deposits:read']),
+    guard.check(['deposits:read']),
     assertAssetPoolAccess,
     requireAssetPoolHeader,
     assertPlan([AccountPlanType.Basic, AccountPlanType.Premium]),
@@ -19,7 +18,7 @@ router.get(
 );
 router.get(
     '/:id',
-    assertScopes(['deposits:read']),
+    guard.check(['deposits:read']),
     assertAssetPoolAccess,
     assertRequestInput(ReadDeposit.validation),
     requireAssetPoolHeader,
@@ -28,7 +27,7 @@ router.get(
 );
 router.post(
     '/',
-    assertScopes(['deposits:write', 'deposits:read']),
+    guard.check(['deposits:write', 'deposits:read']),
     assertAssetPoolAccess,
     requireAssetPoolHeader,
     assertRequestInput(CreateDeposit.validation),
@@ -37,10 +36,10 @@ router.post(
 );
 router.post(
     '/approve',
-    assertScopes(['deposits:write']),
+    guard.check(['deposits:write']),
     assertAssetPoolAccess,
-    assertRequestInput(CreateDepositApprove.validation),
     requireAssetPoolHeader,
+    assertRequestInput(CreateDepositApprove.validation),
     CreateDepositApprove.controller,
 );
 

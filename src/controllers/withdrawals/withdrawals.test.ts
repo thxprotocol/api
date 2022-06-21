@@ -1,6 +1,6 @@
 import request from 'supertest';
 import app from '@/app';
-import { ERC20Type, NetworkProvider } from '@/types/enums';
+import { ERC20Type, ChainId } from '@/types/enums';
 import {
     adminAccessToken,
     dashboardAccessToken,
@@ -34,7 +34,7 @@ describe('Propose Withdrawal', () => {
             user.post('/v1/erc20')
                 .set('Authorization', dashboardAccessToken)
                 .send({
-                    network: NetworkProvider.Main,
+                    chainId: ChainId.Hardhat,
                     name: tokenName,
                     symbol: tokenSymbol,
                     type: ERC20Type.Unlimited,
@@ -52,7 +52,7 @@ describe('Propose Withdrawal', () => {
             user.post('/v1/pools')
                 .set('Authorization', dashboardAccessToken)
                 .send({
-                    network: NetworkProvider.Main,
+                    chainId: ChainId.Hardhat,
                     tokens: [tokenAddress],
                 })
                 .expect((res: request.Response) => {

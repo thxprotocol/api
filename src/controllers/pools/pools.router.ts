@@ -1,11 +1,11 @@
 import express from 'express';
-import assertScopes from 'express-jwt-authz';
 import {
     assertRequestInput,
     assertPlan,
     assertPoolOwner,
     assertAssetPoolAccess,
     requireAssetPoolHeader,
+    guard,
 } from '@/middlewares';
 import { AccountPlanType } from '@/types/enums';
 import CreatePool from './post.controller';
@@ -19,14 +19,14 @@ const router = express.Router();
 
 router.post(
     '/',
-    assertScopes(['pools:read', 'pools:write']),
+    guard.check(['pools:read', 'pools:write']),
     assertRequestInput(CreatePool.validation),
     CreatePool.controller,
 );
-router.get('/', assertScopes(['pools:read']), ListPools.controller);
+router.get('/', guard.check(['pools:read']), ListPools.controller);
 router.get(
     '/:id/members',
-    assertScopes(['pools:read', 'members:read']),
+    guard.check(['pools:read', 'members:read']),
     assertRequestInput(ListPoolMembers.validation),
     assertPoolOwner,
     assertPlan([AccountPlanType.Basic, AccountPlanType.Premium]),
@@ -34,7 +34,7 @@ router.get(
 );
 router.get(
     '/:id',
-    assertScopes(['pools:read']),
+    guard.check(['pools:read']),
     assertRequestInput(ReadPool.validation),
     assertPoolOwner,
     assertPlan([AccountPlanType.Basic, AccountPlanType.Premium]),
@@ -42,7 +42,7 @@ router.get(
 );
 router.delete(
     '/:id',
-    assertScopes(['pools:write']),
+    guard.check(['pools:write']),
     assertRequestInput(DeletePool.validation),
     assertPoolOwner,
     assertPlan([AccountPlanType.Basic, AccountPlanType.Premium]),
@@ -50,7 +50,7 @@ router.delete(
 );
 router.post(
     '/:id/topup',
-    assertScopes(['dashboard', 'deposits:read', 'deposits:write']),
+    guard.check(['deposits:read', 'deposits:write']),
     assertAssetPoolAccess,
     assertRequestInput(CreatePoolTopup.validation),
     requireAssetPoolHeader,

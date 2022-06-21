@@ -27,16 +27,19 @@ const controller = async (req: Request, res: Response) => {
     if (!payment) {
         throw new NotFoundError();
     }
-    if (payment.state === PaymentState.Completed) {
-        throw new ForbiddenError('Payment state is completed');
-    }
     if (payment.token !== req.header('X-Payment-Token')) {
         throw new UnauthorizedError('Payment access token is incorrect');
+    }
+    if (payment.state === PaymentState.Pending) {
+        throw new ForbiddenError('Payment state is pending');
+    }
+    if (payment.state === PaymentState.Completed) {
+        throw new ForbiddenError('Payment state is completed');
     }
 
     const { call, nonce, sig } = req.body;
     const erc20 = await ERC20Service.findByPool(req.assetPool);
-    const contract = getContractFromName(req.assetPool.network, 'LimitedSupplyToken', erc20.address);
+    const contract = getContractFromName(req.assetPool.chainId, 'LimitedSupplyToken', erc20.address);
 
     payment.sender = recoverAddress(call, nonce, sig);
     await payment.save();

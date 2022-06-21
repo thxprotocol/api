@@ -1,7 +1,7 @@
-import { NetworkProvider } from '../enums';
+import { ChainId } from '@/types/enums';
 
 export interface ITransferERC20MintedParams {
     id: string;
     to: string;
-    npid: NetworkProvider;
+    chainId: ChainId;
 }

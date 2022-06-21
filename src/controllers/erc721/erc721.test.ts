@@ -1,6 +1,6 @@
 import request from 'supertest';
 import app from '@/app';
-import { NetworkProvider } from '@/types/enums';
+import { ChainId } from '@/types/enums';
 import { isAddress } from 'web3-utils';
 import { afterAllCallback, beforeAllCallback } from '@/util/jest/config';
 import { dashboardAccessToken } from '@/util/jest/constants';
@@ -8,7 +8,7 @@ import { dashboardAccessToken } from '@/util/jest/constants';
 const user = request.agent(app);
 
 describe('ERC721', () => {
-    const network = NetworkProvider.Main,
+    const chainId = ChainId.Hardhat,
         name = 'Planets of the Galaxy',
         symbol = 'GLXY',
         description = 'Collection full of rarities.',
@@ -16,7 +16,7 @@ describe('ERC721', () => {
             { name: 'color', propType: 'string', description: 'lorem ipsum' },
             { name: 'size', propType: 'string', description: 'lorem ipsum dolor sit' },
         ];
-    let erc721ID: string, tokenId: number;
+    let erc721ID: string;
 
     beforeAll(async () => {
         await beforeAllCallback();
@@ -29,7 +29,7 @@ describe('ERC721', () => {
             user.post('/v1/erc721')
                 .set('Authorization', dashboardAccessToken)
                 .send({
-                    network,
+                    chainId,
                     name,
                     symbol,
                     description,
@@ -37,7 +37,7 @@ describe('ERC721', () => {
                 })
                 .expect(({ body }: request.Response) => {
                     expect(body._id).toBeDefined();
-                    expect(body.network).toBe(network);
+                    expect(body.chainId).toBe(chainId);
                     expect(body.name).toBe(name);
                     expect(body.symbol).toBe(symbol);
                     expect(body.description).toBe(description);
@@ -61,7 +61,7 @@ describe('ERC721', () => {
                 .set('Authorization', dashboardAccessToken)
                 .send()
                 .expect(({ body }: request.Response) => {
-                    expect(body.network).toBe(network);
+                    expect(body.chainId).toBe(chainId);
                     expect(body.name).toBe(name);
                     expect(body.symbol).toBe(symbol);
                     expect(body.description).toBe(description);

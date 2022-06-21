@@ -1,6 +1,6 @@
 import request from 'supertest';
 import app from '@/app';
-import { ERC20Type, NetworkProvider } from '@/types/enums';
+import { ERC20Type, ChainId } from '@/types/enums';
 import { dashboardAccessToken } from '@/util/jest/constants';
 import { Contract } from 'web3-eth-contract';
 import { isAddress, fromWei } from 'web3-utils';
@@ -12,7 +12,7 @@ import { BigNumber } from 'ethers';
 const http = request.agent(app);
 const user = request.agent(app);
 
-describe('Default Pool', () => {
+describe('Transactions', () => {
     let poolAddress: string, tokenAddress: string, testToken: Contract, poolId: string;
 
     beforeAll(async () => {
@@ -23,14 +23,14 @@ describe('Default Pool', () => {
 
     // PERFORM 2 DEPOSITS TO GENERATE TRANSACTIONS
     describe('Create Asset Pool Deposit', () => {
-        const { admin } = getProvider(NetworkProvider.Main);
+        const { admin } = getProvider(ChainId.Hardhat);
         const totalSupply = fromWei('200000000000000000000', 'ether'); // 200 eth
 
         it('Create token', (done) => {
             http.post('/v1/erc20')
                 .set('Authorization', dashboardAccessToken)
                 .send({
-                    network: NetworkProvider.Main,
+                    chainId: ChainId.Hardhat,
                     name: 'LIMITED SUPPLY TOKEN',
                     symbol: 'LIM',
                     type: ERC20Type.Limited,
@@ -39,7 +39,7 @@ describe('Default Pool', () => {
                 .expect(async ({ body }: request.Response) => {
                     expect(isAddress(body.address)).toBe(true);
                     tokenAddress = body.address;
-                    testToken = getContractFromName(NetworkProvider.Main, 'LimitedSupplyToken', tokenAddress);
+                    testToken = getContractFromName(ChainId.Hardhat, 'LimitedSupplyToken', tokenAddress);
                     const adminBalance: BigNumber = await testToken.methods.balanceOf(admin.address).call();
                     expect(fromWei(String(adminBalance), 'ether')).toBe(totalSupply);
                 })
@@ -50,7 +50,7 @@ describe('Default Pool', () => {
             http.post('/v1/pools')
                 .set('Authorization', dashboardAccessToken)
                 .send({
-                    network: NetworkProvider.Main,
+                    chainId: ChainId.Hardhat,
                     tokens: [tokenAddress],
                     variant: 'defaultPool',
                 })

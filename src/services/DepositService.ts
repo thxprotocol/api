@@ -5,10 +5,9 @@ import { DepositState } from '@/types/enums/DepositState';
 import TransactionService from './TransactionService';
 import InfuraService from './InfuraService';
 import { ITX_ACTIVE } from '@/config/secrets';
-import { assertEvent, CustomEventLog, findEvent, hex2a, parseLogs } from '@/util/events';
+import { assertEvent, findEvent, hex2a, parseLogs } from '@/util/events';
 import { InternalServerError } from '@/util/errors';
 import { logger } from '@/util/logger';
-import { TransactionDocument } from '@/models/Transaction';
 
 async function get(assetPool: TAssetPool, depositId: number): Promise<DepositDocument> {
     const deposit = await Deposit.findOne({ poolAddress: assetPool.address, id: depositId });
@@ -41,7 +40,7 @@ async function deposit(
             assetPool.address,
             'call',
             [callData.call, callData.nonce, callData.sig],
-            assetPool.network,
+            assetPool.chainId,
         );
         deposit.transactions.push(String(tx._id));
 
@@ -51,7 +50,7 @@ async function deposit(
             const { tx, receipt } = await TransactionService.send(
                 assetPool.address,
                 assetPool.contract.methods.call(callData.call, callData.nonce, callData.sig),
-                assetPool.network,
+                assetPool.chainId,
                 500000,
             );
 

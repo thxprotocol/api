@@ -1,6 +1,5 @@
 import express from 'express';
-import assertScopes from 'express-jwt-authz';
-import { assertAssetPoolAccess, assertRequestInput, requireAssetPoolHeader } from '@/middlewares';
+import { assertAssetPoolAccess, assertRequestInput, requireAssetPoolHeader, guard } from '@/middlewares';
 import CreatePromotion from './post.controller';
 import ReadPromotion from './get.controller';
 import ListPromotion from './list.controller';
@@ -11,7 +10,7 @@ const router = express.Router();
 router.post(
     '/',
     assertAssetPoolAccess,
-    assertScopes(['promotions:read', 'promotions:write']),
+    guard.check(['promotions:read', 'promotions:write']),
     assertRequestInput(CreatePromotion.validation),
     requireAssetPoolHeader,
     CreatePromotion.controller,
@@ -19,7 +18,7 @@ router.post(
 router.get(
     '/',
     assertAssetPoolAccess,
-    assertScopes(['promotions:read']),
+    guard.check(['promotions:read']),
     assertRequestInput(ListPromotion.validation),
     requireAssetPoolHeader,
     ListPromotion.controller,
@@ -27,7 +26,7 @@ router.get(
 router.get(
     '/:id',
     assertAssetPoolAccess,
-    assertScopes(['promotions:read']),
+    guard.check(['promotions:read']),
     assertRequestInput(ReadPromotion.validation),
     requireAssetPoolHeader,
     ReadPromotion.controller,
@@ -35,7 +34,7 @@ router.get(
 router.delete(
     '/:id',
     assertAssetPoolAccess,
-    assertScopes(['promotions:write']),
+    guard.check(['promotions:write']),
     assertRequestInput(DeletePromotion.validation),
     requireAssetPoolHeader,
     DeletePromotion.controller,

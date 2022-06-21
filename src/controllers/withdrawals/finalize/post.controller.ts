@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import { param } from 'express-validator';
 import { ForbiddenError, NotFoundError } from '@/util/errors';
-import { agenda, eventNameRequireTransactions } from '@/util/agenda';
+import { agenda, EVENT_REQUIRE_TRANSACTIONS } from '@/util/agenda';
 import { TWithdrawal } from '@/types/TWithdrawal';
 import WithdrawalService from '@/services/WithdrawalService';
 
@@ -20,7 +20,7 @@ const controller = async (req: Request, res: Response) => {
 
     const w = await WithdrawalService.withdraw(req.assetPool, withdrawal);
 
-    agenda.now(eventNameRequireTransactions, {});
+    agenda.now(EVENT_REQUIRE_TRANSACTIONS, {});
 
     const result: TWithdrawal = {
         id: String(w._id),

@@ -4,7 +4,7 @@ import SpotifyDataProxy from '@/proxies/SpotifyDataProxy';
 export const controller = async (req: Request, res: Response) => {
     // #swagger.tags = ['Account']
     async function getSpotifyData() {
-        const { isAuthorized, error, ...rest } = await SpotifyDataProxy.getSpotify(req.user.sub);
+        const { isAuthorized, error, ...rest } = await SpotifyDataProxy.getSpotify(req.auth.sub);
         if (error) throw new Error(error.message);
         return { isAuthorized, ...rest };
     }
