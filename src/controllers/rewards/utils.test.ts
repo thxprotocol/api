@@ -67,30 +67,28 @@ export function getRewardConfiguration(slug: RewardSlug) {
                 isMembershipRequired: false,
             };
         }
-        case 'expiration-date-is-today': {
+        case 'expiration-date-is-next-30-min': {
             return {
-                title: 'Expiration date is today',
-                slug: 'expiration-date-is-today',
+                title: 'Expiration date is next 30 min',
+                slug: 'expiration-date-is-next-30-min',
                 withdrawAmount: 1,
                 withdrawDuration: 0,
                 withdrawLimit: 0,
-                withdrawUnlockDate: new Date(),
                 isClaimOnce: false,
                 isMembershipRequired: false,
-                expiryDate: new Date(),
+                expiryDate: addMinutes(new Date(), 30),
             };
         }
-        case 'expiration-date-is-tomorrow': {
+        case 'expiration-date-is-previous-30-min': {
             return {
-                title: 'Expiration date is tomorrow',
-                slug: 'expiration-date-is-tomorrow',
+                title: 'Expiration date is previous 30 min',
+                slug: 'expiration-date-is-previous-30-min',
                 withdrawAmount: 1,
                 withdrawDuration: 0,
                 withdrawLimit: 0,
-                withdrawUnlockDate: new Date(),
                 isClaimOnce: false,
                 isMembershipRequired: false,
-                expiryDate: addMinutes(new Date(), 24 * 60),
+                expiryDate: minusMinutes(new Date(), 30),
             };
         }
         case 'membership-is-required': {
@@ -137,8 +135,8 @@ type RewardSlug =
     | 'one-limit-and-claim-one-disabled'
     | 'withdraw-date-is-tomorrow'
     | 'withdraw-date-is-today'
-    | 'expiration-date-is-today'
-    | 'expiration-date-is-tomorrow'
+    | 'expiration-date-is-next-30-min'
+    | 'expiration-date-is-previous-30-min'
     | 'membership-is-required'
     | 'claim-one-is-enabled'
     | 'claim-one-is-disabled';
