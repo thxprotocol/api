@@ -62,109 +62,61 @@ export default class AssetPoolService {
             variant,
             version: currentVersion,
         });
+        const { fn, args, callback } = await this.getDeployFnArgsCallback(registry, poolFacetContracts, tokens, pool);
 
-        if (variant === 'defaultPool') {
-            return this.deployDefaultPool(poolFactory, registry, poolFacetContracts, tokens, pool);
-        }
-
-        if (variant === 'nftPool') {
-            return this.deployNFTPool(poolFactory, registry, poolFacetContracts, tokens, pool);
-        }
-
-        // if (variant === 'paymentPool') {
-        //     return this.deployPaymentPool(poolFactory, registry, poolFacetContracts, tokens, pool);
-        // }
+        return await TransactionService.relay(poolFactory, fn, args, pool.chainId, callback);
     }
 
-    static async deployDefaultPool(
-        poolFactory: Contract,
+    static async getDeployFnArgsCallback(
         registry: Contract,
         poolFacetContracts: Contract[],
         tokens: string[],
         pool: AssetPoolDocument,
     ) {
-        const callback = async (tx: TransactionDocument, events?: CustomEventLog[]): Promise<AssetPoolDocument> => {
-            if (events) {
-                const event = findEvent('PoolDeployed', events);
-                pool.address = event.args.pool;
+        switch (pool.variant) {
+            case 'defaultPool': {
+                await ERC20Service.findOrImport(pool, tokens[0]);
+                return {
+                    fn: 'deployDefaultPool',
+                    args: [getDiamondCutForContractFacets(poolFacetContracts, []), registry.options.address, tokens[0]],
+                    callback: async (
+                        tx: TransactionDocument,
+                        events?: CustomEventLog[],
+                    ): Promise<AssetPoolDocument> => {
+                        if (events) {
+                            const event = findEvent('PoolDeployed', events);
+                            pool.address = event.args.pool;
 
-                await AssetPoolService.initializeDefaultPool(pool, tokens[0]);
+                            await AssetPoolService.initializeDefaultPool(pool, tokens[0]);
+                        }
+                        pool.transactions.push(String(tx._id));
+
+                        return await pool.save();
+                    },
+                };
             }
-            pool.transactions.push(String(tx._id));
+            case 'nftPool': {
+                return {
+                    fn: 'deployNFTPool',
+                    args: [getDiamondCutForContractFacets(poolFacetContracts, []), tokens[0]],
+                    callback: async (
+                        tx: TransactionDocument,
+                        events?: CustomEventLog[],
+                    ): Promise<AssetPoolDocument> => {
+                        if (events) {
+                            const event = findEvent('PoolDeployed', events);
+                            pool.address = event.args.pool;
 
-            return await pool.save();
-        };
+                            await AssetPoolService.initializeNFTPool(pool, tokens[0]);
+                        }
+                        pool.transactions.push(String(tx._id));
 
-        await ERC20Service.findOrImport(pool, tokens[0]);
-
-        return await TransactionService.relay(
-            poolFactory,
-            'deployDefaultPool',
-            [getDiamondCutForContractFacets(poolFacetContracts, []), registry.options.address, tokens[0]],
-            pool.chainId,
-            callback,
-        );
-    }
-
-    static async deployNFTPool(
-        poolFactory: Contract,
-        registry: Contract,
-        poolFacetContracts: Contract[],
-        tokens: string[],
-        pool: AssetPoolDocument,
-    ) {
-        const callback = async (tx: TransactionDocument, events?: CustomEventLog[]): Promise<AssetPoolDocument> => {
-            if (events) {
-                const event = findEvent('PoolDeployed', events);
-                pool.address = event.args.pool;
-
-                await AssetPoolService.initializeNFTPool(pool, tokens[0]);
+                        return await pool.save();
+                    },
+                };
             }
-            pool.transactions.push(String(tx._id));
-
-            return await pool.save();
-        };
-
-        return await TransactionService.relay(
-            poolFactory,
-            'deployNFTPool',
-            [getDiamondCutForContractFacets(poolFacetContracts, []), tokens[0]],
-            pool.chainId,
-            callback,
-        );
+        }
     }
-
-    // static async deployPaymentPool(
-    //     poolFactory: Contract,
-    //     registry: Contract,
-    //     poolFacetContracts: Contract[],
-    //     tokens: string[],
-    //     pool: AssetPoolDocument,
-    // ) {
-    //     for (const tokenAddress of tokens) {
-    //         await ERC20Service.findOrImport(pool, tokenAddress);
-    //     }
-
-    //     const callback = async (tx: TransactionDocument, events?: CustomEventLog[]): Promise<AssetPoolDocument> => {
-    //         if (events) {
-    //             const event = findEvent('PoolDeployed', events);
-    //             pool.address = event.args.pool;
-
-    //             await AssetPoolService.initializePaymentPool(pool, tokens);
-    //         }
-    //         pool.transactions.push(String(tx._id));
-
-    //         return await pool.save();
-    //     };
-
-    //     return await TransactionService.relay(
-    //         poolFactory,
-    //         'deployPaymentPool',
-    //         [getDiamondCutForContractFacets(poolFacetContracts, []), tokens],
-    //         pool.network,
-    //         callback,
-    //     );
-    // }
 
     static async topup(assetPool: TAssetPool, amount: string) {
         const { admin } = getProvider(assetPool.chainId);

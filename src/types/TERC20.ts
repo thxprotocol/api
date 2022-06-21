@@ -6,6 +6,7 @@ export type TERC20 = {
     name: string;
     symbol: string;
     address: string;
+    transactions: string[];
     chainId?: ChainId;
     contract?: Contract;
     sub?: string;
