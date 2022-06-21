@@ -10,7 +10,7 @@ class THXError extends Error {
 
 class NoUserFound extends THXError {
     constructor() {
-        super('Cannot found user based on this address');
+        super('Could not find a user for this address');
     }
 }
 

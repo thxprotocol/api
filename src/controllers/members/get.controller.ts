@@ -15,7 +15,6 @@ const controller = async (req: Request, res: Response) => {
     if (!isMember) throw new NotFoundError();
 
     const member = await MemberService.getByAddress(req.assetPool, req.params.address);
-    console.log(req.assetPool);
     const erc20 = await ERC20Service.findByPool(req.assetPool);
     const contract = getContractFromName(req.assetPool.chainId, 'LimitedSupplyToken', erc20.address);
     const balance = Number(fromWei(await contract.methods.balanceOf(member.address).call()));

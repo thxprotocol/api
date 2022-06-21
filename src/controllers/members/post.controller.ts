@@ -2,7 +2,6 @@ import MemberService from '@/services/MemberService';
 import MembershipService from '@/services/MembershipService';
 import AccountProxy from '@/proxies/AccountProxy';
 import { Request, Response } from 'express';
-import { VERSION } from '@/config/secrets';
 import { AlreadyAMemberError, NoUserFound } from '@/util/errors';
 import { body } from 'express-validator';
 
