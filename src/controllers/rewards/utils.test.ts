@@ -15,20 +15,20 @@ export function getRewardConfiguration(slug: RewardSlug): Partial<TReward> {
                 title: 'No limit and claim one disabled',
                 slug: 'no-limit-and-claim-one-disabled',
                 withdrawAmount: 1,
+                withdrawLimit: 0,
                 withdrawDuration: 0,
                 isClaimOnce: false,
                 isMembershipRequired: false,
             };
         }
-        case 'no-limit-and-claim-one-enabled': {
+        case 'one-limit-and-claim-one-disabled': {
             return {
-                title: 'No limit and claim one enabled',
-                slug: 'no-limit-and-claim-one-enabled',
+                title: '1 limit and claim one disabled',
+                slug: 'one-limit-and-claim-one-disabled',
                 withdrawAmount: 1,
                 withdrawDuration: 0,
-                withdrawLimit: 0,
-                withdrawUnlockDate: minusMinutes(new Date(), 1),
-                isClaimOnce: true,
+                withdrawLimit: 1,
+                isClaimOnce: false,
                 isMembershipRequired: false,
             };
         }
@@ -123,7 +123,7 @@ export function getRewardConfiguration(slug: RewardSlug): Partial<TReward> {
 
 type RewardSlug =
     | 'no-limit-and-claim-one-disabled'
-    | 'no-limit-and-claim-one-enabled'
+    | 'one-limit-and-claim-one-disabled'
     | 'withdraw-date-is-tomorrow'
     | 'withdraw-date-is-today'
     | 'expiration-date-is-today'
