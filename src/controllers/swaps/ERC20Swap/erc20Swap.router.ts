@@ -29,8 +29,8 @@ router.post(
     '/',
     assertScopes(['swap:write', 'swap:read']),
     assertAssetPoolAccess,
-    requireAssetPoolHeader,
     assertRequestInput(CreateERC20Swap.validation),
+    requireAssetPoolHeader,
     assertPlan([AccountPlanType.Basic, AccountPlanType.Premium]),
     CreateERC20Swap.controller,
 );

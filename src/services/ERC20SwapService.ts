@@ -1,17 +1,19 @@
 import { TAssetPool } from '@/types/TAssetPool';
 import { ERC20Swap, ERC20SwapDocument } from '@/models/ERC20Swap';
 import TransactionService from './TransactionService';
-import { assertEvent, findEvent, hex2a, parseLogs } from '@/util/events';
+import { assertEvent, CustomEventLog, findEvent, hex2a } from '@/util/events';
 import { InsufficientBalanceError, NotFoundError } from '@/util/errors';
 import ERC20SwapRuleService from './ERC20SwapRuleService';
-import { ITX_ACTIVE } from '@/config/secrets';
-import InfuraService from './InfuraService';
 import { SwapState } from '@/types/enums/SwapState';
 import { logger } from '@/util/logger';
 import { InternalServerError } from '@/util/errors';
-import { recoverAddress } from '@/util/network';
+import { getProvider, recoverAddress } from '@/util/network';
 import ERC20Service from './ERC20Service';
 import { ethers } from 'ethers';
+import { AssetPoolDocument } from '@/models/AssetPool';
+import { TransactionDocument } from '@/models/Transaction';
+import AssetPoolService from './AssetPoolService';
+import { toWei } from 'web3-utils';
 
 async function get(id: string): Promise<ERC20SwapDocument> {
     const erc20Swap = await ERC20Swap.findById(id);
@@ -28,15 +30,11 @@ async function erc20Swap(
     callData: { call: string; nonce: number; sig: string },
     amountIn: number,
     tokenAddress: string,
+    tokenInAddress: string,
 ) {
-    const tokenOut = await ERC20Service.findBy({ address: tokenAddress, chainId: assetPool.chainId });
-    if (!tokenOut) {
-        throw new NotFoundError('Could not find this Token');
-    }
-
     const swapRule = await ERC20SwapRuleService.findOneByQuery({
         poolAddress: assetPool.address,
-        tokenInAddress: tokenAddress,
+        tokenInAddress,
     });
 
     if (!swapRule) {
@@ -48,41 +46,50 @@ async function erc20Swap(
         amountIn: amountIn,
     });
 
+    // recover TokenIn contract
+    const assetPoolDocument: AssetPoolDocument = await AssetPoolService.getByAddress(assetPool.address);
+    const erc20TokenIn = await ERC20Service.findOrImport(assetPoolDocument, tokenInAddress);
+
+    if (!erc20TokenIn) {
+        throw new NotFoundError('Could not find this ERC20 Token');
+    }
+
     // Check user balance to ensure throughput
     const userWalletAddress = recoverAddress(callData.call, callData.nonce, callData.sig);
-    const balance = await tokenOut.contract.methods.balanceOf(userWalletAddress).call();
-    if (Number(balance) < Number(amountIn)) throw new InsufficientBalanceError();
+    const userBalance = await erc20TokenIn.contract.methods.balanceOf(userWalletAddress).call();
+
+    if (Number(userBalance) < amountIn) {
+        console.log('SONO QUI 2', userBalance.toString());
+        throw new InsufficientBalanceError();
+    }
 
     // Check allowance for user to ensure throughput
-    const allowance = await tokenOut.contract.methods.allowance(userWalletAddress, assetPool.address).call();
-    if (Number(allowance) < Number(amountIn)) {
+    const allowance = await erc20TokenIn.contract.methods.allowance(userWalletAddress, assetPool.address).call();
+    if (Number(allowance) < amountIn) {
         await TransactionService.send(
-            tokenOut.contract.options.address,
-            tokenOut.contract.methods.approve(assetPool.address, ethers.constants.MaxUint256),
+            erc20TokenIn.contract.options.address,
+            erc20TokenIn.contract.methods.approve(assetPool.address, ethers.constants.MaxUint256),
             assetPool.chainId,
         );
     }
 
-    if (ITX_ACTIVE) {
-        const tx = await InfuraService.create(
-            assetPool.address,
-            'call',
-            [callData.call, callData.nonce, callData.sig],
-            assetPool.chainId,
-        );
-        swap.transactions.push(String(tx._id));
+    // *** ONLY FOR DEBUG, THIS CAN BE REMOVED
+    // Check contract balance to ensure throughput
+    // recover Token contract
 
-        return await swap.save();
-    } else {
-        try {
-            const { tx, receipt } = await TransactionService.send(
-                assetPool.address,
-                assetPool.contract.methods.call(callData.call, callData.nonce, callData.sig),
-                assetPool.chainId,
-                500000,
-            );
+    const erc20Token = await ERC20Service.findOrImport(assetPoolDocument, tokenAddress);
 
-            const events = parseLogs(assetPool.contract.options.jsonInterface, receipt.logs);
+    const { admin } = getProvider(assetPool.chainId);
+    const adminBalance = await erc20Token.contract.methods.balanceOf(admin.address).call();
+
+    const amountOut = toWei((amountIn * swapRule.tokenMultiplier).toString());
+
+    if (Number(adminBalance) < Number(amountOut)) {
+        throw new InsufficientBalanceError();
+    }
+
+    const callback = async (tx: TransactionDocument, events?: CustomEventLog[]): Promise<ERC20SwapDocument> => {
+        if (events) {
             const result = findEvent('Result', events);
 
             if (!result.args.success) {
@@ -97,14 +104,19 @@ async function erc20Swap(
             swap.transactions.push(String(tx._id));
             swap.state = SwapState.Completed;
             swap.amountOut = swapEvent.args.amountOut;
-
-            return await swap.save();
-        } catch (error) {
-            logger.error(error);
-            //swap.failReason = error.message;
-            throw error;
         }
-    }
+        swap.transactions.push(String(tx._id));
+
+        return await swap.save();
+    };
+
+    return await await TransactionService.relay(
+        assetPool.contract,
+        'call',
+        [callData.call, callData.nonce, callData.sig],
+        assetPool.chainId,
+        callback,
+    );
 }
 
 export default { get, getAll, erc20Swap };

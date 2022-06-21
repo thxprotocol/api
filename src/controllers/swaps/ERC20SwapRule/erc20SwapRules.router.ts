@@ -10,7 +10,7 @@ const router = express.Router();
 
 router.get(
     '/',
-    assertScopes(['swapRule:read']),
+    assertScopes(['swaprule:read']),
     assertAssetPoolAccess,
     assertRequestInput(ListERC20SwapRules.validation),
     requireAssetPoolHeader,
@@ -19,7 +19,7 @@ router.get(
 );
 router.get(
     '/:id',
-    assertScopes(['swapRule:read']),
+    assertScopes(['swaprule:read']),
     assertAssetPoolAccess,
     assertRequestInput(ReadERC20SwapRule.validation),
     requireAssetPoolHeader,
@@ -28,7 +28,7 @@ router.get(
 );
 router.post(
     '/',
-    assertScopes(['swapRule:write', 'swapRule:read']),
+    assertScopes(['swaprule:write', 'swaprule:read']),
     assertAssetPoolAccess,
     requireAssetPoolHeader,
     assertRequestInput(CreateERC20SwapRule.validation),

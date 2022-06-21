@@ -21,6 +21,7 @@ const controller = async (req: Request, res: Response) => {
         { call, nonce, sig },
         Number(req.body.amountIn),
         String(req.body.tokenAddress),
+        String(req.body.tokenInAddress),
     );
 
     agenda.now(eventNameRequireTransactions, {});

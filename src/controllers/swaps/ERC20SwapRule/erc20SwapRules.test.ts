@@ -37,7 +37,7 @@ describe('ERC20SwapRules', () => {
     });
 
     describe('Management (Dashboard)', () => {
-        it('POST /', (done) => {
+        it('POST /swaprules', (done) => {
             http.post('/v1/swaprules')
                 .set({ 'Authorization': dashboardAccessToken, 'X-PoolAddress': poolAddress })
                 .send({

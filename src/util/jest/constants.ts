@@ -65,8 +65,8 @@ export const adminScopes =
     'openid account:read account:write members:read members:write withdrawals:read withdrawals:write payments:write payments:read';
 export const adminAccessToken = getToken(adminScopes);
 export const dashboardScopes =
-    'openid pools:read pools:write erc20:write erc20:read erc721:write erc721:read rewards:read rewards:write deposits:read deposits:write promotions:read promotions:write widgets:write widgets:read transactions:read swapRule:read swapRule:wite swap:read swap:wite';
+    'openid pools:read pools:write erc20:write erc20:read erc721:write erc721:read rewards:read rewards:write deposits:read deposits:write promotions:read promotions:write widgets:write widgets:read transactions:read swaprule:read swaprule:write';
 export const dashboardAccessToken = getToken(dashboardScopes);
 export const walletScopes =
-    'openid rewards:read erc20:read erc721:read withdrawals:read withdrawals:write deposits:read deposits:write account:read account:write memberships:read memberships:write promotions:read payments:write payments:read relay:write transactions:read transactions:write swap:read swap:wite';
+    'openid rewards:read erc20:read erc721:read withdrawals:read withdrawals:write deposits:read deposits:write account:read account:write memberships:read memberships:write promotions:read payments:write payments:read relay:write transactions:read transactions:write swap:read swap:write';
 export const walletAccessToken = getToken(walletScopes);
