@@ -217,7 +217,6 @@ describe('Reward Claim', () => {
                 .set({ 'X-PoolAddress': poolAddress, 'Authorization': dashboardAccessToken })
                 .send(getRewardConfiguration('withdraw-date-is-today'))
                 .expect((res: request.Response) => {
-                    console.log(res.body);
                     expect(res.body.id).toEqual(3);
 
                     rewardID = res.body.id;
@@ -276,6 +275,36 @@ describe('Reward Claim', () => {
                         expect(res.body.state).toEqual(WithdrawalState.Withdrawn);
                     })
                     .expect(200, done);
+            });
+        });
+    });
+
+    describe('A token reward with the unlock date of tomorrow', () => {
+        it('Create reward', (done) => {
+            user.post('/v1/rewards/')
+                .set({ 'X-PoolAddress': poolAddress, 'Authorization': dashboardAccessToken })
+                .send(getRewardConfiguration('withdraw-date-is-tomorrow'))
+                .expect((res: request.Response) => {
+                    console.log(getRewardConfiguration('withdraw-date-is-tomorrow'));
+                    console.log(res.body);
+                    expect(res.body.id).toEqual(4);
+
+                    rewardID = res.body.id;
+                })
+                .expect(201, done);
+        });
+
+        describe('POST /rewards/:id/claim', () => {
+            it('should return a 403 and withdrawal id', (done) => {
+                user.post(`/v1/rewards/${rewardID}/claim`)
+                    .set({ 'X-PoolAddress': poolAddress, 'Authorization': walletAccessToken })
+                    .expect((res: request.Response) => {
+                        expect(res.body.id).toBeDefined();
+                        expect(res.body.state).toEqual(WithdrawalState.Pending);
+
+                        withdrawalDocumentId = res.body.id;
+                    })
+                    .expect(403, done);
             });
         });
     });

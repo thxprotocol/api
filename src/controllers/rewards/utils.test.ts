@@ -62,7 +62,7 @@ export function getRewardConfiguration(slug: RewardSlug) {
                 withdrawAmount: 1,
                 withdrawDuration: 0,
                 withdrawLimit: 0,
-                withdrawUnlockDate: addMinutes(new Date(), 24 * 60),
+                withdrawUnlockDate: formatDate(addMinutes(new Date(), 24 * 60)),
                 isClaimOnce: false,
                 isMembershipRequired: false,
             };
