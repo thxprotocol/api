@@ -374,4 +374,27 @@ describe('Reward Claim', () => {
             });
         });
     });
+
+    describe('A token reward with an expiration date set to t minus 30 minute', () => {
+        it('Create reward', (done) => {
+            user.post('/v1/rewards/')
+                .set({ 'X-PoolAddress': poolAddress, 'Authorization': dashboardAccessToken })
+                .send(getRewardConfiguration('expiration-date-is-previous-30-min'))
+                .expect((res: request.Response) => {
+                    console.log(getRewardConfiguration('expiration-date-is-previous-30-min'));
+                    expect(res.body.id).toEqual(6);
+
+                    rewardID = res.body.id;
+                })
+                .expect(201, done);
+        });
+
+        describe('POST /rewards/:id/claim', () => {
+            it('should return a 403 and withdrawal id', (done) => {
+                user.post(`/v1/rewards/${rewardID}/claim`)
+                    .set({ 'X-PoolAddress': poolAddress, 'Authorization': walletAccessToken })
+                    .expect(403, done);
+            });
+        });
+    });
 });

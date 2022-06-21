@@ -88,7 +88,7 @@ export function getRewardConfiguration(slug: RewardSlug) {
                 withdrawLimit: 0,
                 isClaimOnce: false,
                 isMembershipRequired: false,
-                expiryDate: minusMinutes(new Date(), 30),
+                expiryDate: minusMinutes(new Date(), 24 * 60),
             };
         }
         case 'membership-is-required': {
