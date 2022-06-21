@@ -8,7 +8,18 @@ export function minusMinutes(date: Date, minutes: number) {
     return new Date(date.getTime() - minutes * 60000);
 }
 
-export function getRewardConfiguration(slug: RewardSlug): Partial<TReward> {
+export function formatDate(date: Date) {
+    const yyyy = date.getFullYear();
+    let mm: any = date.getMonth() + 1; // Months start at 0!
+    let dd: any = date.getDate();
+
+    if (dd < 10) dd = '0' + dd;
+    if (mm < 10) mm = '0' + mm;
+
+    return yyyy + '-' + mm + '-' + dd;
+}
+
+export function getRewardConfiguration(slug: RewardSlug) {
     switch (slug) {
         case 'no-limit-and-claim-one-disabled': {
             return {
@@ -39,7 +50,7 @@ export function getRewardConfiguration(slug: RewardSlug): Partial<TReward> {
                 withdrawAmount: 1,
                 withdrawDuration: 0,
                 withdrawLimit: 0,
-                withdrawUnlockDate: new Date(),
+                withdrawUnlockDate: formatDate(new Date()),
                 isClaimOnce: false,
                 isMembershipRequired: false,
             };
