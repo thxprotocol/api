@@ -108,8 +108,7 @@ export function getRewardConfiguration(slug: RewardSlug) {
                 slug: 'claim-one-is-enabled',
                 withdrawAmount: 1,
                 withdrawDuration: 0,
-                withdrawLimit: 0,
-                withdrawUnlockDate: new Date(),
+                withdrawLimit: 1000,
                 isClaimOnce: true,
                 isMembershipRequired: false,
             };
