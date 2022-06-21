@@ -8,6 +8,7 @@ import {
     tokenName,
     tokenSymbol,
     walletAccessToken,
+    walletAccessToken2,
     userWalletPrivateKey2,
 } from '@/util/jest/constants';
 import { isAddress } from 'web3-utils';
@@ -393,6 +394,28 @@ describe('Reward Claim', () => {
             it('should return a 403 and withdrawal id', (done) => {
                 user.post(`/v1/rewards/${rewardID}/claim`)
                     .set({ 'X-PoolAddress': poolAddress, 'Authorization': walletAccessToken })
+                    .expect(403, done);
+            });
+        });
+    });
+
+    describe('A token reward with "membership required"', () => {
+        it('Create reward', (done) => {
+            user.post('/v1/rewards/')
+                .set({ 'X-PoolAddress': poolAddress, 'Authorization': dashboardAccessToken })
+                .send(getRewardConfiguration('membership-is-required'))
+                .expect((res: request.Response) => {
+                    expect(res.body.id).toEqual(7);
+
+                    rewardID = res.body.id;
+                })
+                .expect(201, done);
+        });
+
+        describe('POST /rewards/:id/claim', () => {
+            it('should return a 403 and withdrawal id', (done) => {
+                user.post(`/v1/rewards/${rewardID}/claim`)
+                    .set({ 'X-PoolAddress': poolAddress, 'Authorization': walletAccessToken2 })
                     .expect(403, done);
             });
         });

@@ -69,4 +69,5 @@ export const dashboardScopes =
 export const dashboardAccessToken = getToken(dashboardScopes);
 export const walletScopes =
     'openid rewards:read erc20:read erc721:read withdrawals:read withdrawals:write deposits:read deposits:write account:read account:write memberships:read memberships:write promotions:read payments:write payments:read relay:write transactions:read transactions:write';
-export const walletAccessToken = getToken(walletScopes);
+export const walletAccessToken = getToken(walletScopes, sub);
+export const walletAccessToken2 = getToken(walletScopes, sub2);

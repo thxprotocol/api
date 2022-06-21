@@ -98,7 +98,6 @@ export function getRewardConfiguration(slug: RewardSlug) {
                 withdrawAmount: 1,
                 withdrawDuration: 0,
                 withdrawLimit: 0,
-                withdrawUnlockDate: new Date(),
                 isClaimOnce: false,
                 isMembershipRequired: true,
             };
