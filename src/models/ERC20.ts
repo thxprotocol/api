@@ -13,6 +13,7 @@ const erc20Schema = new mongoose.Schema(
         chainId: Number,
         name: String,
         symbol: String,
+        transactions: [String],
     },
     { timestamps: true },
 );
