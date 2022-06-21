@@ -5,6 +5,7 @@ import { body } from 'express-validator';
 import { InternalServerError } from '@/util/errors';
 import { WithdrawalState } from '@/types/enums';
 import { Withdrawal } from '@/models/Withdrawal';
+import { logger } from '@/util/logger';
 
 const validation = [body('call').exists(), body('nonce').exists(), body('sig').exists()];
 
@@ -23,7 +24,7 @@ const controller = async (req: Request, res: Response) => {
     if (!event) throw new InternalServerError();
     if (!event.args.success) {
         const error = hex2a(event.args.data.substr(10));
-        console.log(error);
+        logger.error(error);
         return res.status(500).json({
             error,
         });

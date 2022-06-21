@@ -72,7 +72,6 @@ export const getAll = (sub: string) => {
 };
 
 export const getTokensForSub = (sub: string) => {
-    console.log(sub);
     return ERC20Token.find({ sub });
 };
 

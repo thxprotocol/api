@@ -41,11 +41,11 @@ describe('Transfer Pool Ownership', () => {
                 .expect(201, done);
         });
 
-        it('HTTP 302 when member is added', (done) => {
+        it('HTTP 200 when member is added', (done) => {
             user.post('/v1/members/')
                 .send({ address: userWallet.address })
                 .set({ 'X-PoolAddress': poolAddress, 'Authorization': adminAccessToken })
-                .expect(302, done);
+                .expect(200, done);
         });
 
         it('HTTP 302 when member is promoted', (done) => {

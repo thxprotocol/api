@@ -53,26 +53,10 @@ describe('Roles', () => {
     });
 
     describe('POST /members/:address', () => {
-        let redirectURL = '';
-
-        it('HTTP 302 if OK', (done) => {
+        it('HTTP 200 if OK', (done) => {
             user.post('/v1/members/')
                 .send({ address: userWallet.address })
                 .set({ 'X-PoolAddress': poolAddress, 'Authorization': adminAccessToken })
-                .expect((res: request.Response) => {
-                    redirectURL = res.headers.location;
-                })
-                .expect(302, done);
-        });
-
-        it('HTTP 200 for redirect', (done) => {
-            user.get(redirectURL)
-                .set({ 'X-PoolAddress': poolAddress, 'Authorization': adminAccessToken })
-                .expect((res: request.Response) => {
-                    expect(res.body.isMember).toEqual(true);
-                    expect(res.body.isManager).toEqual(false);
-                    expect(res.body.token.balance).toEqual(0);
-                })
                 .expect(200, done);
         });
     });
