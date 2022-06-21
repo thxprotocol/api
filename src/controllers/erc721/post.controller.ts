@@ -12,8 +12,7 @@ const validation = [
 
 const controller = async (req: Request, res: Response) => {
     // #swagger.tags = ['ERC721']
-
-    const erc721 = await ERC721Service.create({
+    const erc721 = await ERC721Service.deploy({
         sub: req.auth.sub,
         chainId: req.body.chainId,
         name: req.body.name,
@@ -22,7 +21,7 @@ const controller = async (req: Request, res: Response) => {
         properties: req.body.schema,
     });
 
-    res.status(201).json(erc721.toJSON());
+    res.status(201).json(erc721);
 };
 
 export default { controller, validation };
