@@ -55,7 +55,7 @@ describe('ERC20Swaps', () => {
 
     afterAll(afterAllCallback);
 
-    it('Create token', (done) => {
+    it('Create TOKEN A ', (done) => {
         totalSupplyTokenA = fromWei('1000000000000000000000', 'ether'); // 1000 eth
         http.post('/v1/erc20')
             .set('Authorization', dashboardAccessToken)

@@ -4,7 +4,6 @@ import TransactionService from './TransactionService';
 import { assertEvent, parseLogs } from '@/util/events';
 import { NotFoundError } from '@/util/errors';
 import { paginatedResults } from '@/util/pagination';
-import { toWei } from 'web3-utils';
 
 async function findByQuery(poolAddress: string, page = 1, limit = 10) {
     let query = { to: poolAddress };

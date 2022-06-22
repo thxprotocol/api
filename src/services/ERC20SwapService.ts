@@ -91,7 +91,7 @@ async function erc20Swap(
         [callData.call, callData.nonce, callData.sig],
         assetPool.chainId,
         callback,
-        4000000,
+        200000,
     );
 }
 
