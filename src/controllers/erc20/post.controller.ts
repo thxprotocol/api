@@ -28,19 +28,7 @@ export const controller = async (req: Request, res: Response) => {
         type: req.body.type,
         sub: req.auth.sub,
     });
-    // const totalSupply = Number(fromWei(await erc20.contract.methods.totalSupply().call(), 'ether'));
-    // const decimals = Number(await erc20.contract.methods.decimals().call());
-    // const { admin } = getProvider(erc20.chainId);
-    // const adminBalance = Number(fromWei(await erc20.contract.methods.balanceOf(admin.address).call(), 'ether'));
 
-    res.status(201).json(
-        erc20,
-        // {
-        // ...erc20.toJSON(),
-        // totalSupply,
-        // decimals,
-        // adminBalance,
-        // }
-    );
+    res.status(201).json(erc20);
 };
 export default { controller, validation };

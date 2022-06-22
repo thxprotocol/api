@@ -1,7 +1,7 @@
 {
   "swagger": "2.0",
   "info": {
-    "version": "1.12.8",
+    "version": "1.12.10",
     "title": "THX API Specification",
     "description": "User guides are available at https://docs.thx.network."
   },
@@ -336,7 +336,7 @@
             "schema": {
               "type": "object",
               "properties": {
-                "network": {
+                "chainId": {
                   "example": "any"
                 },
                 "variant": {
@@ -551,7 +551,7 @@
             "schema": {
               "type": "object",
               "properties": {
-                "network": {
+                "chainId": {
                   "example": "any"
                 },
                 "name": {
@@ -677,7 +677,7 @@
             "schema": {
               "type": "object",
               "properties": {
-                "network": {
+                "chainId": {
                   "example": "any"
                 },
                 "name": {
