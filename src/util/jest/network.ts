@@ -3,7 +3,6 @@ import { soliditySha3 } from 'web3-utils';
 import { VOTER_PK, DEPOSITOR_PK } from './constants';
 import { getProvider } from '@/util/network';
 import { ChainId } from '@/types/enums';
-import TransactionService from '@/services/TransactionService';
 import { getContractFromAbi, getDiamondAbi } from '@/config/contracts';
 
 const { web3 } = getProvider(ChainId.Hardhat);

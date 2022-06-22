@@ -34,4 +34,4 @@ db.connection.once('open', async () => {
     logger.info('AgendaJS successfully started job processor');
 });
 
-export { agenda, EVENT_REQUIRE_TRANSACTIONS, EVENT_SEND_KPI };
+export { agenda, agendaAsync, EVENT_REQUIRE_TRANSACTIONS, EVENT_SEND_KPI };

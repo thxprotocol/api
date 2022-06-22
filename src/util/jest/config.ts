@@ -1,6 +1,6 @@
 import db from '@/util/database';
 import { mockStart } from './mock';
-import { agenda } from '@/util/agenda';
+import { agenda, agendaAsync } from '@/util/agenda';
 import { mockClear } from './mock';
 import { logger } from '@/util/logger';
 import { getProvider } from '@/util/network';
@@ -20,12 +20,16 @@ export async function beforeAllCallback() {
 }
 
 export async function afterAllCallback() {
-    await agenda.stop();
-    await agenda.purge(); // TODO Does not trunacte dangling jobs collection
-    await agenda.close();
-    logger.info('Closed agenda');
+    for (const a of [agenda, agendaAsync]) {
+        await a.stop();
+        await a.purge(); // TODO Does not trunacte dangling jobs collection
+        await a.close();
+        logger.info(`Closed agenda ${a.name}`);
+    }
+
     await db.disconnect();
     logger.info('Truncated and disconnected mongo');
+
     mockClear();
     logger.info('Cleared mocks');
 }
