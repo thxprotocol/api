@@ -1704,14 +1704,19 @@
         "description": "",
         "parameters": [
           {
-            "name": "tokenInAddress",
-            "in": "query",
-            "type": "string"
-          },
-          {
-            "name": "tokenMultiplier",
-            "in": "query",
-            "type": "string"
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "tokenInAddress": {
+                  "example": "any"
+                },
+                "tokenMultiplier": {
+                  "example": "any"
+                }
+              }
+            }
           }
         ],
         "responses": {
@@ -1725,6 +1730,81 @@
       "get": {
         "tags": [
           "ERC20SwapRules"
+        ],
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/swaps/": {
+      "get": {
+        "tags": [
+          "ERC20Swaps"
+        ],
+        "description": "",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "ERC20Swaps"
+        ],
+        "description": "",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "amountIn": {
+                  "example": "any"
+                },
+                "tokenAddress": {
+                  "example": "any"
+                },
+                "tokenInAddress": {
+                  "example": "any"
+                },
+                "call": {
+                  "example": "any"
+                },
+                "nonce": {
+                  "example": "any"
+                },
+                "sig": {
+                  "example": "any"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/swaps/{id}": {
+      "get": {
+        "tags": [
+          "ERC20Swaps"
         ],
         "description": "",
         "parameters": [

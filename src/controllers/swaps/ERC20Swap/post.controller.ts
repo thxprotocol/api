@@ -7,8 +7,7 @@ const validation = [
     body('call').exists(),
     body('nonce').exists(),
     body('sig').exists(),
-    body('tokenAddress').exists(),
-    body('amountIn').exists().isInt({ gt: 0 }),
+    body('amountIn').exists().isNumeric(),
 ];
 
 const controller = async (req: Request, res: Response) => {
@@ -20,7 +19,6 @@ const controller = async (req: Request, res: Response) => {
         req.assetPool,
         { call, nonce, sig },
         Number(req.body.amountIn),
-        String(req.body.tokenAddress),
         String(req.body.tokenInAddress),
     );
 

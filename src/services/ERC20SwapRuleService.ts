@@ -4,6 +4,7 @@ import TransactionService from './TransactionService';
 import { assertEvent, parseLogs } from '@/util/events';
 import { NotFoundError } from '@/util/errors';
 import { paginatedResults } from '@/util/pagination';
+import { toWei } from 'web3-utils';
 
 async function findByQuery(poolAddress: string, page = 1, limit = 10) {
     let query = { to: poolAddress };
@@ -17,7 +18,7 @@ async function findOneByQuery(query: { poolAddress: string; tokenInAddress: stri
 
 async function get(id: string): Promise<ERC20SwapRuleDocument> {
     const erc20SwapRule = await ERC20SwapRule.findById(id);
-    if (!erc20SwapRule) throw new NotFoundError('Could not find this Swap Rule');;
+    if (!erc20SwapRule) throw new NotFoundError('Could not find this Swap Rule');
     return erc20SwapRule;
 }
 
@@ -37,7 +38,7 @@ async function erc20SwapRule(assetPool: TAssetPool, tokenInAddress: string, toke
         chainId: assetPool.chainId,
         poolAddress: assetPool.address,
         tokenInAddress,
-        tokenMultiplier,
+        tokenMultiplier: tokenMultiplier,
     });
     await swapRule.save();
     return swapRule;

@@ -6,11 +6,17 @@ import { afterAllCallback, beforeAllCallback } from '@/util/jest/config';
 import { ChainId } from '@/types/enums';
 import { getContract } from '@/config/contracts';
 import { dashboardAccessToken } from '@/util/jest/constants';
+import { toWei } from 'web3-utils';
 
 const http = request.agent(app);
 
 describe('ERC20SwapRules', () => {
-    let swaprule: any, testToken: Contract, poolAddress: string, tokenInAddress: string, tokenMultiplier: number;
+    let swaprule: any,
+        testToken: Contract,
+        poolAddress: string,
+        tokenInAddress: string,
+        tokenMultiplier: number,
+        tokenMultiplierToWei: number;
 
     beforeAll(async () => {
         await beforeAllCallback();
@@ -18,6 +24,7 @@ describe('ERC20SwapRules', () => {
 
         tokenInAddress = testToken.options.address;
         tokenMultiplier = 10;
+        tokenMultiplierToWei = Number(toWei(tokenMultiplier.toString(), 'wei'));
     });
 
     afterAll(afterAllCallback);
@@ -47,7 +54,7 @@ describe('ERC20SwapRules', () => {
                 .expect(({ body }: Response) => {
                     expect(body._id).toBeDefined();
                     expect(body.tokenInAddress).toEqual(tokenInAddress);
-                    expect(body.tokenMultiplier).toEqual(tokenMultiplier);
+                    expect(body.tokenMultiplier).toEqual(tokenMultiplierToWei);
                     swaprule = body;
                 })
                 .expect(200, done);
@@ -61,7 +68,7 @@ describe('ERC20SwapRules', () => {
                     expect(body.results).toHaveLength(1);
                     expect(body.results[0]._id).toBeDefined();
                     expect(body.results[0].tokenInAddress).toEqual(tokenInAddress);
-                    expect(body.results[0].tokenMultiplier).toEqual(tokenMultiplier);
+                    expect(body.results[0].tokenMultiplier).toEqual(tokenMultiplierToWei);
                 })
                 .expect(200, done);
         });
@@ -72,7 +79,7 @@ describe('ERC20SwapRules', () => {
                 .expect(({ body }: Response) => {
                     expect(body._id).toEqual(swaprule._id);
                     expect(body.tokenInAddress).toEqual(tokenInAddress);
-                    expect(body.tokenMultiplier).toEqual(tokenMultiplier);
+                    expect(body.tokenMultiplier).toEqual(tokenMultiplierToWei);
                 })
                 .expect(200, done);
         });

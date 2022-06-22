@@ -3,7 +3,7 @@ import { body } from 'express-validator';
 import { agenda, eventNameRequireTransactions } from '@/util/agenda';
 import ERC20SwapRuleService from '@/services/ERC20SwapRuleService';
 
-const validation = [body('tokenInAddress').exists(), body('tokenMultiplier').exists().isInt({ gt: 0 })];
+const validation = [body('tokenInAddress').exists(), body('tokenMultiplier').exists().isNumeric()];
 
 const controller = async (req: Request, res: Response) => {
     // #swagger.tags = ['ERC20SwapRules']

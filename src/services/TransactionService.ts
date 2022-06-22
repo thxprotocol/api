@@ -81,6 +81,7 @@ async function relay(
     args: any[],
     chainId: ChainId,
     callback: (tx: TransactionDocument, events?: CustomEventLog[]) => Promise<Document>,
+    gasLimit?: number,
 ): Promise<any> {
     // If ITX is active run the callback for the scheduled ITX transaction right away
     if (ITX_ACTIVE) {
@@ -89,7 +90,7 @@ async function relay(
         return cb;
     }
 
-    const { tx, receipt } = await send(contract.options.address, contract.methods[fn](...args), chainId);
+    const { tx, receipt } = await send(contract.options.address, contract.methods[fn](...args), chainId, gasLimit);
     const events = parseLogs(contract.options.jsonInterface, receipt.logs);
     const result = findEvent('Result', events);
 
