@@ -31,7 +31,7 @@
         "@aws-sdk/s3-request-presigner": "^3.100.0",
         "@godaddy/terminus": "^4.9.0",
         "@sendgrid/mail": "^7.6.2",
-        "@thxnetwork/artifacts": "^3.1.19",
+        "@thxnetwork/artifacts": "^3.1.21",
         "agenda": "^4.2.1",
         "axios": "^0.21.3",
         "axios-better-stacktrace": "^2.1.2",
