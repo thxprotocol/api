@@ -294,7 +294,7 @@ describe('Reward Claim', () => {
         });
 
         describe('POST /rewards/:id/claim', () => {
-            it('should return a 403 and withdrawal id', (done) => {
+            it('should return a 200 and withdrawal id', (done) => {
                 user.post(`/v1/rewards/${rewardID}/claim`)
                     .set({ 'X-PoolAddress': poolAddress, 'Authorization': walletAccessToken })
                     .expect((res: request.Response) => {
@@ -303,7 +303,19 @@ describe('Reward Claim', () => {
 
                         withdrawalDocumentId = res.body.id;
                     })
-                    .expect(403, done);
+                    .expect(200, done);
+            });
+
+            it('should return Pending state', (done) => {
+                user.get(`/v1/withdrawals/${withdrawalDocumentId}`)
+                    .set({ 'X-PoolAddress': poolAddress, 'Authorization': walletAccessToken })
+                    .expect((res: request.Response) => {
+                        expect(res.body.state).toEqual(WithdrawalState.Pending);
+                        expect(res.body.withdrawalId).toBeDefined();
+
+                        withdrawalId = res.body.withdrawalId;
+                    })
+                    .expect(200, done);
             });
         });
     });
@@ -382,7 +394,6 @@ describe('Reward Claim', () => {
                 .set({ 'X-PoolAddress': poolAddress, 'Authorization': dashboardAccessToken })
                 .send(getRewardConfiguration('expiration-date-is-previous-30-min'))
                 .expect((res: request.Response) => {
-                    console.log(getRewardConfiguration('expiration-date-is-previous-30-min'));
                     expect(res.body.id).toEqual(6);
 
                     rewardID = res.body.id;
