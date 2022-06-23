@@ -119,7 +119,6 @@ describe('Deposits', () => {
                     expect(body.price).toEqual(price);
                     expect(body.title).toEqual(title);
                     expect(body.description).toEqual(description);
-                    // expect(Date.parse(body.expiry)).toEqual(expiry);
                 })
                 .expect(200, done);
         });
@@ -142,13 +141,14 @@ describe('Deposits', () => {
         });
 
         it('Increase user balance', async () => {
+            const amount = toWei(String(price));
             const { tx, receipt } = await TransactionService.send(
                 testToken.options.address,
-                testToken.methods.transfer(userWallet.address, toWei(String(price))),
+                testToken.methods.transfer(userWallet.address, amount),
                 ChainId.Hardhat,
             );
             const event = findEvent('Transfer', parseLogs(testToken.options.jsonInterface, receipt.logs));
-
+            expect(await testToken.methods.balanceOf(userWallet.address).call()).toBe(amount);
             expect(tx.state).toBe(TransactionState.Mined);
             expect(event).toBeDefined();
         });

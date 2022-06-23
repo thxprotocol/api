@@ -34,11 +34,9 @@ async function deposit(
     const callback = async (tx: TransactionDocument, events?: CustomEventLog[]) => {
         if (events) {
             assertEvent('Deposited', events);
-
             deposit.state = DepositState.Completed;
         }
         deposit.transactions.push(String(tx._id));
-
         return await deposit.save();
     };
 
@@ -48,6 +46,7 @@ async function deposit(
         [callData.call, callData.nonce, callData.sig],
         assetPool.chainId,
         callback,
+        200000,
     );
 }
 

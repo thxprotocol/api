@@ -82,6 +82,7 @@ async function relay(
     args: any[],
     chainId: ChainId,
     callback: (tx: TransactionDocument, events?: CustomEventLog[]) => Promise<Document>,
+    gasLimit?: number,
 ): Promise<any> {
     // Relay calls over ITX for the Polygon and PolygonMumbai chains
     if ([ChainId.Polygon, ChainId.PolygonMumbai].includes(chainId)) {
@@ -90,7 +91,7 @@ async function relay(
         return cb;
     }
 
-    const { tx, receipt } = await send(contract.options.address, contract.methods[fn](...args), chainId);
+    const { tx, receipt } = await send(contract.options.address, contract.methods[fn](...args), chainId, gasLimit);
     const events = parseLogs(contract.options.jsonInterface, receipt.logs);
     const result = findEvent('Result', events);
 
