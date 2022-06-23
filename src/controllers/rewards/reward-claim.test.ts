@@ -14,7 +14,7 @@ import {
 import { isAddress } from 'web3-utils';
 import { afterAllCallback, beforeAllCallback } from '@/util/jest/config';
 import { WithdrawalState } from '@/types/enums';
-import { getRewardConfiguration } from './utils.test';
+import { getRewardConfiguration } from './utils';
 
 const user = request.agent(app);
 
