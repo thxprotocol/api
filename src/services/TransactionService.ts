@@ -4,7 +4,7 @@ import { Contract } from 'web3-eth-contract';
 import { Transaction, TransactionDocument } from '@/models/Transaction';
 import { getEstimatesFromOracle, getProvider, MaxFeePerGasExceededError } from '@/util/network';
 import { ChainId, TransactionState, TransactionType } from '@/types/enums';
-import { ITX_ACTIVE, MAX_FEE_PER_GAS, MINIMUM_GAS_LIMIT, PRIVATE_KEY } from '@/config/secrets';
+import { MAX_FEE_PER_GAS, MINIMUM_GAS_LIMIT, PRIVATE_KEY } from '@/config/secrets';
 import { AssetPool } from '@/models/AssetPool';
 import AssetPoolService from './AssetPoolService';
 import InfuraService from './InfuraService';
@@ -82,15 +82,16 @@ async function relay(
     args: any[],
     chainId: ChainId,
     callback: (tx: TransactionDocument, events?: CustomEventLog[]) => Promise<Document>,
+    gasLimit?: number,
 ): Promise<any> {
-    // If ITX is active run the callback for the scheduled ITX transaction right away
-    if (ITX_ACTIVE) {
+    // Relay calls over ITX for the Polygon and PolygonMumbai chains
+    if ([ChainId.Polygon, ChainId.PolygonMumbai].includes(chainId)) {
         const cb = await callback(await InfuraService.create(contract.options.address, fn, args, chainId));
         agenda.now(EVENT_REQUIRE_TRANSACTIONS, {});
         return cb;
     }
 
-    const { tx, receipt } = await send(contract.options.address, contract.methods[fn](...args), chainId);
+    const { tx, receipt } = await send(contract.options.address, contract.methods[fn](...args), chainId, gasLimit);
     const events = parseLogs(contract.options.jsonInterface, receipt.logs);
     const result = findEvent('Result', events);
 

@@ -3,11 +3,10 @@ import { ERC721Metadata, ERC721MetadataDocument } from '@/models/ERC721Metadata'
 import { ERC721TokenState, TERC721, TERC721Metadata, TERC721Token } from '@/types/TERC721';
 import TransactionService from './TransactionService';
 import { getProvider } from '@/util/network';
-import { VERSION, API_URL, ITX_ACTIVE } from '@/config/secrets';
+import { VERSION, API_URL } from '@/config/secrets';
 import { assertEvent, CustomEventLog, parseLogs } from '@/util/events';
 import { AssetPoolDocument } from '@/models/AssetPool';
 import { ChainId } from '@/types/enums';
-import InfuraService from './InfuraService';
 import { getContract } from '@/config/contracts';
 import { currentVersion } from '@thxnetwork/artifacts';
 import { ERC721Token, ERC721TokenDocument } from '@/models/ERC721Token';
@@ -79,39 +78,24 @@ export async function mint(
         metadataId: String(metadata._id),
     });
 
-    if (ITX_ACTIVE) {
-        const tx = await InfuraService.create(
-            assetPool.address,
-            'mintFor',
-            [account.address, String(metadata._id)],
-            assetPool.chainId,
-        );
-        erc721token.transactions.push(String(tx._id));
-
-        return await erc721token.save();
-    } else {
-        try {
-            const { tx, receipt } = await TransactionService.send(
-                assetPool.address,
-                assetPool.contract.methods.mintFor(account.address, erc721.baseURL + String(erc721token.metadataId)),
-                assetPool.chainId,
-            );
-            const event = assertEvent(
-                'ERC721Minted',
-                parseLogs(assetPool.contract.options.jsonInterface, receipt.logs),
-            );
-
-            erc721token.transactions.push(String(tx._id));
+    const callback = async (tx: TransactionDocument, events?: CustomEventLog[]) => {
+        if (events) {
+            const event = assertEvent('ERC721Minted', events);
             erc721token.state = ERC721TokenState.Minted;
             erc721token.tokenId = Number(event.args.tokenId);
             erc721token.recipient = event.args.recipient;
-
-            return await erc721token.save();
-        } catch (error) {
-            erc721token.updateOne({ failReason: error.message });
-            throw error;
         }
-    }
+        erc721token.transactions.push(String(tx._id));
+        return await erc721token.save();
+    };
+
+    return await TransactionService.relay(
+        assetPool.contract,
+        'mintFor',
+        [account.address, String(metadata._id)],
+        assetPool.chainId,
+        callback,
+    );
 }
 
 export async function parseAttributes(entry: ERC721MetadataDocument) {
