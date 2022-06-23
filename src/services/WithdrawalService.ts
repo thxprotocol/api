@@ -4,14 +4,12 @@ import { WithdrawalState, WithdrawalType } from '@/types/enums';
 import { TAssetPool } from '@/types/TAssetPool';
 import { Withdrawal, WithdrawalDocument } from '@/models/Withdrawal';
 import { IAccount } from '@/models/Account';
-import { parseLogs, assertEvent, findEvent } from '@/util/events';
+import { assertEvent, findEvent, CustomEventLog } from '@/util/events';
 import { paginatedResults } from '@/util/pagination';
+import { TransactionDocument } from '@/models/Transaction';
 import TransactionService from './TransactionService';
-import { ITX_ACTIVE } from '@/config/secrets';
-import InfuraService from './InfuraService';
 import AccountProxy from '@/proxies/AccountProxy';
 import MemberService from './MemberService';
-import { getDiamondAbi } from '@/config/contracts';
 
 export default class WithdrawalService {
     static getById(id: string) {
@@ -77,77 +75,50 @@ export default class WithdrawalService {
         const unlockDateTmestamp = Math.floor(
             (withdrawal.unlockDate ? withdrawal.unlockDate.getTime() : Date.now()) / 1000,
         );
-
-        if (ITX_ACTIVE) {
-            const tx = await InfuraService.create(
-                assetPool.address,
-                'proposeWithdraw',
-                [amountInWei, account.address, unlockDateTmestamp],
-                assetPool.chainId,
-            );
-            withdrawal.transactions.push(String(tx._id));
-            return await withdrawal.save();
-        } else {
-            try {
-                const { tx, receipt } = await TransactionService.send(
-                    assetPool.address,
-                    assetPool.contract.methods.proposeWithdraw(amountInWei, account.address, unlockDateTmestamp),
-                    assetPool.chainId,
-                );
-
-                const events = parseLogs(getDiamondAbi(assetPool.chainId, 'defaultPool'), receipt.logs);
-                const event = assertEvent('WithdrawPollCreated', events);
+        const callback = async (tx: TransactionDocument, events?: CustomEventLog[]) => {
+            if (events) {
                 const roleGranted = findEvent('RoleGranted', events);
+                const event = findEvent('WithdrawPollCreated', events);
 
                 if (roleGranted) {
                     await MemberService.addExistingMember(assetPool, roleGranted.args.account);
                 }
 
                 withdrawal.withdrawalId = event.args.id;
-                withdrawal.transactions.push(String(tx._id));
-
-                return await withdrawal.save();
-            } catch (error) {
-                withdrawal.updateOne({ failReason: error.message });
-                throw error;
             }
-        }
-    }
-
-    static async withdraw(assetPool: TAssetPool, withdrawal: WithdrawalDocument) {
-        if (ITX_ACTIVE) {
-            const tx = await InfuraService.create(
-                assetPool.address,
-                'withdrawPollFinalize',
-                [withdrawal.withdrawalId],
-                assetPool.chainId,
-            );
 
             withdrawal.transactions.push(String(tx._id));
 
             return await withdrawal.save();
-        } else {
-            try {
-                const { tx, receipt } = await TransactionService.send(
-                    assetPool.address,
-                    assetPool.contract.methods.withdrawPollFinalize(withdrawal.withdrawalId),
-                    assetPool.chainId,
-                );
+        };
 
-                const events = parseLogs(assetPool.contract.options.jsonInterface, receipt.logs);
+        return await TransactionService.relay(
+            assetPool.contract,
+            'proposeWithdraw',
+            [amountInWei, account.address, unlockDateTmestamp],
+            assetPool.chainId,
+            callback,
+        );
+    }
 
+    static async withdraw(assetPool: TAssetPool, withdrawal: WithdrawalDocument) {
+        const callback = async (tx: TransactionDocument, events?: CustomEventLog[]) => {
+            if (events) {
                 assertEvent('WithdrawPollFinalized', events);
                 assertEvent('Withdrawn', events);
-
-                withdrawal.transactions.push(String(tx._id));
                 withdrawal.state = WithdrawalState.Withdrawn;
-
-                return await withdrawal.save();
-            } catch (error) {
-                withdrawal.failReason = error.message;
-                throw error;
             }
-        }
+            withdrawal.transactions.push(String(tx._id));
+            return await withdrawal.save();
+        };
+
+        return await TransactionService.relay(
+            assetPool.contract,
+            'withdrawPollFinalize',
+            [withdrawal.withdrawalId],
+            assetPool.chainId,
+            callback,
+        );
     }
 
     static async countByPoolAddress(assetPool: TAssetPool) {

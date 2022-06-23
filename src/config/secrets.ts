@@ -74,7 +74,6 @@ export const MINIMUM_GAS_LIMIT = 54680;
 export const TESTNET_INFURA_GAS_TANK = process.env.TESTNET_INFURA_GAS_TANK;
 export const INFURA_GAS_TANK = process.env.INFURA_GAS_TANK;
 export const SENDGRID_API_KEY = process.env.SENDGRID_API_KEY;
-export const ITX_ACTIVE = process.env.ITX_ACTIVE === 'true' || process.env.ITX_ACTIVE === '1';
 export const AWS_ARN_KEY = process.env.AWS_ARN_KEY;
 export const AWS_ACCESS_KEY = process.env.AWS_ACCESS_KEY;
 export const AWS_SECRET_KEY = process.env.AWS_SECRET_KEY;
