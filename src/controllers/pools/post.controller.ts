@@ -1,10 +1,9 @@
 import { Request, Response } from 'express';
 import { body } from 'express-validator';
 import { isAddress } from 'web3-utils';
+import { checkAndUpgradeToBasicPlan } from '@/util/plans';
 import AssetPoolService from '@/services/AssetPoolService';
 import ClientService from '@/services/ClientService';
-import { AccountPlanType } from '@/types/enums/AccountPlanType';
-import { ChainId } from '@/types/enums';
 import AccountProxy from '@/proxies/AccountProxy';
 
 const validation = [
@@ -20,14 +19,12 @@ const validation = [
 
 const controller = async (req: Request, res: Response) => {
     // #swagger.tags = ['Pools']
-    const account = await AccountProxy.getById(req.user.sub);
+    const account = await AccountProxy.getById(req.auth.sub);
 
-    if (account.plan === AccountPlanType.Free && req.body.chainId === ChainId.Polygon) {
-        await AccountProxy.update(account.id, { plan: AccountPlanType.Basic });
-    }
+    await checkAndUpgradeToBasicPlan(account, req.body.chainId);
 
-    const pool = await AssetPoolService.deploy(req.user.sub, req.body.chainId, req.body.variant, req.body.tokens);
-    const client = await ClientService.create(req.user.sub, {
+    const pool = await AssetPoolService.deploy(req.auth.sub, req.body.chainId, req.body.variant, req.body.tokens);
+    const client = await ClientService.create(req.auth.sub, {
         application_type: 'web',
         grant_types: ['client_credentials'],
         request_uris: [],

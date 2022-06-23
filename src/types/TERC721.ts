@@ -38,6 +38,7 @@ export type TERC721 = {
     name: string;
     symbol: string;
     properties: TERC721MetadataProp[];
+    transactions?: string[];
     baseURL?: string;
     description?: string;
     contract?: Contract;

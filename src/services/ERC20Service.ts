@@ -3,43 +3,58 @@ import { toWei } from 'web3-utils';
 import { getProvider } from '@/util/network';
 import { ICreateERC20Params } from '@/types/interfaces';
 import TransactionService from './TransactionService';
-import { assertEvent, parseLogs } from '@/util/events';
+import { assertEvent, CustomEventLog, findEvent, parseLogs } from '@/util/events';
 import { ChainId, ERC20Type } from '@/types/enums';
 import { AssetPoolDocument } from '@/models/AssetPool';
 import { currentVersion } from '@thxnetwork/artifacts';
 import { getContract, getContractFromName } from '@/config/contracts';
 import { keccak256, toUtf8Bytes } from 'ethers/lib/utils';
 import { ERC20Token } from '@/models/ERC20Token';
+import { TransactionDocument } from '@/models/Transaction';
+
+function getDeployFnArgsCallback(erc20: ERC20Document, totalSupply: string) {
+    const { admin } = getProvider(erc20.chainId);
+    const callback = async (tx: TransactionDocument, events?: CustomEventLog[]): Promise<ERC20Document> => {
+        if (events) {
+            const event = findEvent('TokenDeployed', events);
+            erc20.address = event.args.token;
+        }
+
+        erc20.transactions.push(String(tx._id));
+
+        return await erc20.save();
+    };
+
+    switch (erc20.type) {
+        case ERC20Type.Limited: {
+            return {
+                fn: 'deployLimitedSupplyToken',
+                args: [erc20.name, erc20.symbol, admin.address, toWei(String(totalSupply))],
+                callback,
+            };
+        }
+        case ERC20Type.Unlimited: {
+            return {
+                fn: 'deployUnlimitedSupplyToken',
+                args: [erc20.name, erc20.symbol, admin.address],
+                callback,
+            };
+        }
+    }
+}
 
 export const deploy = async (params: ICreateERC20Params) => {
-    const { admin } = getProvider(params.chainId);
     const tokenFactory = getContract(params.chainId, 'TokenFactory', currentVersion);
-
-    let fn;
-    if (params.type === ERC20Type.Limited) {
-        fn = tokenFactory.methods.deployLimitedSupplyToken(
-            params.name,
-            params.symbol,
-            admin.address,
-            toWei(String(params.totalSupply)),
-        );
-    }
-    if (params.type === ERC20Type.Unlimited) {
-        fn = tokenFactory.methods.deployUnlimitedSupplyToken(params.name, params.symbol, admin.address);
-    }
-
-    const { receipt } = await TransactionService.send(tokenFactory.options.address, fn, params.chainId);
-    const event = assertEvent('TokenDeployed', parseLogs(tokenFactory.options.jsonInterface, receipt.logs));
-    const { _id } = await ERC20.create({
+    const erc20 = await ERC20.create({
         name: params.name,
         symbol: params.symbol,
-        address: event.args.token,
         chainId: params.chainId,
         type: params.type,
         sub: params.sub,
     });
+    const { fn, args, callback } = getDeployFnArgsCallback(erc20, params.totalSupply);
 
-    return await ERC20.findById(_id);
+    return await TransactionService.relay(tokenFactory, fn, args, erc20.chainId, callback);
 };
 
 const addMinter = async (erc20: ERC20Document, address: string) => {
@@ -57,7 +72,6 @@ export const getAll = (sub: string) => {
 };
 
 export const getTokensForSub = (sub: string) => {
-    console.log(sub);
     return ERC20Token.find({ sub });
 };
 

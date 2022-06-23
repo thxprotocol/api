@@ -21,10 +21,9 @@ import TransactionService from '@/services/TransactionService';
 import { toWei } from 'web3-utils';
 import { assertEvent, parseLogs } from '@/util/events';
 import { currentVersion } from '@thxnetwork/artifacts';
-import { parseUnits } from 'ethers/lib/utils';
 import { toChecksumAddress } from 'web3-utils';
 import { SwapState } from '@/types/enums/SwapState';
-import { AmountExceedsAllowanceError, InsufficientBalanceError } from '@/util/errors';
+import { InsufficientBalanceError } from '@/util/errors';
 
 const http = request.agent(app);
 
@@ -119,7 +118,7 @@ describe('ERC20Swaps', () => {
             .send({
                 address: userWallet.address,
             })
-            .expect(302, done);
+            .expect(200, done);
     });
 
     it('Approve for infinite amount: ALLOW TRANSFER TOKEN A FROM ADMIN TO POOL', async () => {

@@ -62,7 +62,7 @@ export const exceedingFeeData = {
 };
 
 export const adminScopes =
-    'openid account:read account:write members:read members:write withdrawals:read withdrawals:write payments:write payments:read';
+    'openid account:read account:write members:read members:write withdrawals:read withdrawals:write payments:write payments:read rewards:read';
 export const adminAccessToken = getToken(adminScopes);
 export const dashboardScopes =
     'openid pools:read pools:write erc20:write erc20:read erc721:write erc721:read rewards:read rewards:write deposits:read deposits:write promotions:read promotions:write widgets:write widgets:read transactions:read swaprule:read swaprule:write';

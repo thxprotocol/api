@@ -2,8 +2,7 @@ import MemberService from '@/services/MemberService';
 import MembershipService from '@/services/MembershipService';
 import AccountProxy from '@/proxies/AccountProxy';
 import { Request, Response } from 'express';
-import { VERSION } from '@/config/secrets';
-import { AlreadyAMemberError } from '@/util/errors';
+import { AlreadyAMemberError, NoUserFound } from '@/util/errors';
 import { body } from 'express-validator';
 
 const validation = [body('address').isEthereumAddress()];
@@ -11,6 +10,7 @@ const validation = [body('address').isEthereumAddress()];
 const controller = async (req: Request, res: Response) => {
     // #swagger.tags = ['Members']
     const account = await AccountProxy.getByAddress(req.body.address);
+    if (!account) throw new NoUserFound();
     const isMember = await MemberService.isMember(req.assetPool, account.address);
     if (isMember) throw new AlreadyAMemberError(account.address, req.assetPool.address);
 
@@ -24,7 +24,7 @@ const controller = async (req: Request, res: Response) => {
         await MembershipService.addERC721Membership(account.id, req.assetPool);
     }
 
-    res.redirect(`/${VERSION}/members/${account.address}`);
+    res.status(200).send();
 };
 
 export default { controller, validation };

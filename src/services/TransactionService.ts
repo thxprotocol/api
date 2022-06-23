@@ -11,8 +11,9 @@ import InfuraService from './InfuraService';
 import { CustomEventLog, findEvent, hex2a, parseLogs } from '@/util/events';
 import { logger } from '@/util/logger';
 import { InternalServerError } from '@/util/errors';
-import { agenda, eventNameRequireTransactions } from '@/util/agenda';
+import { agenda, EVENT_REQUIRE_TRANSACTIONS } from '@/util/agenda';
 import { paginatedResults } from '@/util/pagination';
+import { TTransaction } from '@/types/TTransaction';
 
 function getById(id: string) {
     return Transaction.findById(id);
@@ -86,7 +87,7 @@ async function relay(
     // If ITX is active run the callback for the scheduled ITX transaction right away
     if (ITX_ACTIVE) {
         const cb = await callback(await InfuraService.create(contract.options.address, fn, args, chainId));
-        agenda.now(eventNameRequireTransactions, {});
+        agenda.now(EVENT_REQUIRE_TRANSACTIONS, {});
         return cb;
     }
 
@@ -227,6 +228,14 @@ async function deploy(abi: any, bytecode: any, arg: any[], chainId: ChainId) {
     return contract;
 }
 
+async function findFailReason(transactions: string[]): Promise<string | undefined> {
+    const list = await Promise.all(transactions.map((id: string) => getById(id)));
+    const tx = list.filter((tx: TTransaction) => tx.state === TransactionState.Failed);
+    if (!tx.length) return;
+
+    return tx[0].failReason;
+}
+
 async function findByQuery(poolAddress: string, page = 1, limit = 10, startDate?: Date, endDate?: Date) {
     let query;
     if (startDate && !endDate) {
@@ -242,4 +251,4 @@ async function findByQuery(poolAddress: string, page = 1, limit = 10, startDate?
     return result;
 }
 
-export default { relay, getById, send, deploy, sendValue, findByQuery };
+export default { relay, getById, send, deploy, sendValue, findByQuery, findFailReason };

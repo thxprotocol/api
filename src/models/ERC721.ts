@@ -11,6 +11,7 @@ const ERC721Schema = new mongoose.Schema(
         name: String,
         symbol: String,
         description: String,
+        transactions: [String],
         address: String,
         baseURL: String,
         properties: [{ name: String, propType: String, description: String }],

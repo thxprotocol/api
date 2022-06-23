@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { body } from 'express-validator';
-import { agenda, eventNameRequireTransactions } from '@/util/agenda';
+import { agenda, EVENT_REQUIRE_TRANSACTIONS } from '@/util/agenda';
 import ERC20SwapService from '@/services/ERC20SwapService';
 
 const validation = [
@@ -22,7 +22,7 @@ const controller = async (req: Request, res: Response) => {
         String(req.body.tokenInAddress),
     );
 
-    agenda.now(eventNameRequireTransactions, {});
+    agenda.now(EVENT_REQUIRE_TRANSACTIONS, {});
 
     res.json(erc20Swap);
 };

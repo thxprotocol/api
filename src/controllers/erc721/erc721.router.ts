@@ -1,6 +1,5 @@
 import express from 'express';
-import assertScopes from 'express-jwt-authz';
-import { assertRequestInput, requireAssetPoolHeader } from '@/middlewares';
+import { assertRequestInput, requireAssetPoolHeader, guard } from '@/middlewares';
 import ReadERC721 from './get.controller';
 import ListERC721 from './list.controller';
 import ListERC721Metadata from './metadata/list.controller';
@@ -12,28 +11,28 @@ import MintERC721Metadata from './metadata/mint/post.controller';
 
 const router = express.Router();
 
-router.get('/token', assertScopes(['erc721:read']), ListERC721Token.controller);
-router.get('/token/:id', assertScopes(['erc721:read']), ReadERC721Token.controller);
-router.get('/', assertScopes(['erc721:read']), ListERC721.controller);
-router.get('/:id', assertScopes(['erc721:read']), assertRequestInput(ReadERC721.validation), ReadERC721.controller);
+router.get('/token', guard.check(['erc721:read']), ListERC721Token.controller);
+router.get('/token/:id', guard.check(['erc721:read']), ReadERC721Token.controller);
+router.get('/', guard.check(['erc721:read']), ListERC721.controller);
+router.get('/:id', guard.check(['erc721:read']), assertRequestInput(ReadERC721.validation), ReadERC721.controller);
 router.post(
     '/',
-    assertScopes(['erc721:read', 'erc721:write']),
+    guard.check(['erc721:read', 'erc721:write']),
     assertRequestInput(CreateERC721.validation),
     CreateERC721.controller,
 );
-router.post('/', assertScopes(['erc721:write']), assertRequestInput(CreateERC721.validation), CreateERC721.controller);
+router.post('/', guard.check(['erc721:write']), assertRequestInput(CreateERC721.validation), CreateERC721.controller);
 router.post(
     '/:id/metadata/:metadataId/mint',
-    assertScopes(['erc721:write']),
+    guard.check(['erc721:write']),
     requireAssetPoolHeader,
     assertRequestInput(MintERC721Metadata.validation),
     MintERC721Metadata.controller,
 );
-router.get('/:id/metadata', assertScopes(['erc721:read']), ListERC721Metadata.controller);
+router.get('/:id/metadata', guard.check(['erc721:read']), ListERC721Metadata.controller);
 router.post(
     '/:id/metadata',
-    assertScopes(['erc721:write']),
+    guard.check(['erc721:write']),
     requireAssetPoolHeader,
     assertRequestInput(CreateERC721Metadata.validation),
     CreateERC721Metadata.controller,

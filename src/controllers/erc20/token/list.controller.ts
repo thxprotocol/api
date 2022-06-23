@@ -4,7 +4,7 @@ import { Request, Response } from 'express';
 
 export const controller = async (req: Request, res: Response) => {
     // #swagger.tags = ['ERC20']
-    const tokens = await ERC20Service.getTokensForSub(req.user.sub);
+    const tokens = await ERC20Service.getTokensForSub(req.auth.sub);
     res.json(tokens.map(({ _id }: ERC20TokenDocument) => _id));
 };
 

@@ -1,5 +1,12 @@
 export const openId = 'openid';
-export const adminScopes = ['account:read', 'account:write', 'members:read', 'members:write', 'withdrawals:write'];
+export const adminScopes = [
+    'account:read',
+    'account:write',
+    'members:read',
+    'members:write',
+    'withdrawals:write',
+    'rewards:read',
+];
 export const dashboardScopes = [
     'asset_pools:read',
     'asset_pools:write',

@@ -18,10 +18,7 @@ describe('ERC721', () => {
         ];
     let erc721ID: string;
 
-    beforeAll(async () => {
-        await beforeAllCallback();
-    });
-
+    beforeAll(beforeAllCallback);
     afterAll(afterAllCallback);
 
     describe('POST /erc721', () => {

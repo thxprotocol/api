@@ -11,6 +11,8 @@ import { logger } from './logger';
 import { AssetPool } from '@/models/AssetPool';
 import { Payment } from '@/models/Payment';
 import { PaymentState } from '@/types/enums/PaymentState';
+import ERC20 from '@/models/ERC20';
+import { ERC721 } from '@/models/ERC721';
 
 type CustomEventHandler = (event?: CustomEventLog) => Promise<void>;
 
@@ -21,9 +23,12 @@ async function handleEvents(tx: TransactionDocument, events: CustomEventLog[]) {
             await Payment.updateOne({ transactions: String(tx._id) }, { state: PaymentState.Completed });
         },
         Topup: async function () {
-            const deposit = await Deposit.findOne({ transactions: String(tx._id) });
-            deposit.state = DepositState.Completed;
-            await deposit.save();
+            await Deposit.updateOne({ transactions: String(tx._id) }, { state: DepositState.Completed });
+            await Payment.updateOne({ transactions: String(tx._id) }, { state: PaymentState.Completed });
+        },
+        TokenDeployed: async function (event?: CustomEventLog) {
+            await ERC20.updateOne({ transactions: String(tx._id) }, { address: event.args.token });
+            await ERC721.updateOne({ transactions: String(tx._id) }, { address: event.args.token });
         },
         PoolDeployed: async function (event?: CustomEventLog) {
             const pool = await AssetPool.findOne({ transactions: String(tx._id) });

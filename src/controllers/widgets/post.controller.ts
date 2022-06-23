@@ -8,7 +8,7 @@ const validation = [body('requestUris').exists(), body('postLogoutRedirectUris')
 
 const controller = async (req: Request, res: Response) => {
     // #swagger.tags = ['Widgets']
-    const client = await ClientService.create(req.user.sub, {
+    const client = await ClientService.create(req.auth.sub, {
         application_type: 'web',
         grant_types: ['authorization_code'],
         request_uris: req.body.requestUris,
@@ -19,7 +19,7 @@ const controller = async (req: Request, res: Response) => {
     });
 
     const widget = await WidgetService.create(
-        req.user.sub,
+        req.auth.sub,
         client.clientId,
         req.body.metadata.rewardId,
         req.body.metadata.poolAddress,

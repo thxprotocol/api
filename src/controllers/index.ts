@@ -45,9 +45,9 @@ router.use('/relay', relayHubRouter);
 router.use('/rewards', rewardsRouter);
 router.use('/widgets', widgetsRouter);
 router.use('/withdrawals', withdrawalsRouter);
-router.use('/upload', uploadRouter);
 router.use('/transactions', transactionsRouter);
 router.use('/swaprules', erc20SwapRuleRouter);
 router.use('/swaps', erc20SwapRouter);
+router.use('/upload', uploadRouter);
 
 export default router;

@@ -1,16 +1,15 @@
 import express from 'express';
-import assertScopes from 'express-jwt-authz';
 import CreateERC20Swap from './post.controller';
 import ReadERC20Swap from './get.controller';
 import ListERC20Swaps from './list.controller';
-import { assertRequestInput, assertAssetPoolAccess, requireAssetPoolHeader, assertPlan } from '@/middlewares';
+import { assertRequestInput, assertAssetPoolAccess, requireAssetPoolHeader, assertPlan, guard } from '@/middlewares';
 import { AccountPlanType } from '@/types/enums';
 
 const router = express.Router();
 
 router.get(
     '/',
-    assertScopes(['swap:read']),
+    guard.check(['swap:read']),
     assertAssetPoolAccess,
     requireAssetPoolHeader,
     assertPlan([AccountPlanType.Basic, AccountPlanType.Premium]),
@@ -18,7 +17,7 @@ router.get(
 );
 router.get(
     '/:id',
-    assertScopes(['swap:read']),
+    guard.check(['swap:read']),
     assertAssetPoolAccess,
     assertRequestInput(ReadERC20Swap.validation),
     requireAssetPoolHeader,
@@ -27,7 +26,7 @@ router.get(
 );
 router.post(
     '/',
-    assertScopes(['swap:write', 'swap:read']),
+    guard.check(['swap:write', 'swap:read']),
     assertAssetPoolAccess,
     assertRequestInput(CreateERC20Swap.validation),
     requireAssetPoolHeader,

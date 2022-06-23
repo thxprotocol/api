@@ -21,11 +21,13 @@ export async function beforeAllCallback() {
 
 export async function afterAllCallback() {
     await agenda.stop();
-    await agenda.purge(); // TODO Does not trunacte dangling jobs collection
+    await agenda.purge();
     await agenda.close();
-    logger.info('Closed agenda');
+    logger.info(`Closed agenda ${agenda.name}`);
+
     await db.disconnect();
     logger.info('Truncated and disconnected mongo');
+
     mockClear();
     logger.info('Cleared mocks');
 }

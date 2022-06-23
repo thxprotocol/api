@@ -20,20 +20,24 @@ describe('ERC20', () => {
     });
 
     describe('POST /erc20', () => {
-        const TOTAL_SUPPLY = 1000;
-
+        const TOTAL_SUPPLY = 1000,
+            name = 'Test Token',
+            symbol = 'TTK';
         it('Able to create limited token and return address', (done) => {
             http.post('/v1/erc20')
                 .set('Authorization', ACCESS_TOKEN)
                 .send({
-                    name: 'Test Token',
-                    symbol: 'TTK',
+                    name,
+                    symbol,
                     chainId: ChainId.Hardhat,
                     totalSupply: TOTAL_SUPPLY,
                     type: ERC20Type.Limited,
                 })
                 .expect(({ body }: request.Response) => {
-                    expect(body.totalSupply).toEqual(TOTAL_SUPPLY);
+                    expect(isAddress(body._id)).toBeDefined();
+                    expect(isAddress(body.address)).toBe(true);
+                    expect(body.transactions).toHaveLength(1);
+                    tokenId = body._id;
                 })
                 .expect(201, done);
         });
@@ -49,9 +53,9 @@ describe('ERC20', () => {
                     type: ERC20Type.Unlimited,
                 })
                 .expect(({ body }: request.Response) => {
-                    expect(isAddress(body.address)).toBe(true);
                     expect(isAddress(body._id)).toBeDefined();
-                    tokenId = body._id;
+                    expect(isAddress(body.address)).toBe(true);
+                    expect(body.transactions).toHaveLength(1);
                 })
                 .expect(201, done);
         });
@@ -70,6 +74,13 @@ describe('ERC20', () => {
                 .set('Authorization', ACCESS_TOKEN)
                 .expect(({ body }: request.Response) => {
                     expect(body).toBeDefined();
+                    expect(isAddress(body.address)).toBe(true);
+                    expect(body.type).toBe(ERC20Type.Limited);
+                    expect(body.totalSupply).toBe(TOTAL_SUPPLY);
+                    expect(body.name).toBe(name);
+                    expect(body.symbol).toBe(symbol);
+                    expect(body.decimals).toBe(18);
+                    expect(body.adminBalance).toBe(1000);
                 })
                 .expect(200, done);
         });

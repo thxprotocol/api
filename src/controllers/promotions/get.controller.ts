@@ -7,7 +7,7 @@ const validation = [param('id').isMongoId()];
 const controller = async (req: Request, res: Response) => {
     // #swagger.tags = ['Promotions']
     const promoCode = await PromotionService.findById(req.params.id);
-    const result = await PromotionService.formatResult(req.user.sub, promoCode);
+    const result = await PromotionService.formatResult(req.auth.sub, promoCode);
 
     res.json(result);
 };

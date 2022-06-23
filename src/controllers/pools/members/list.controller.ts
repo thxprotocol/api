@@ -1,10 +1,14 @@
 import { Request, Response } from 'express';
+import { query } from 'express-validator';
+
 import MemberService from '@/services/MemberService';
+
+export const validation = [query('limit').isNumeric(), query('page').isNumeric()];
 
 const controller = async (req: Request, res: Response) => {
     // #swagger.tags = ['Pools']
     const response = await MemberService.findByQuery(
-        { poolAddress: req.params.address },
+        { poolAddress: req.header('AssetPool') },
         Number(req.query.page),
         Number(req.query.limit),
     );
@@ -12,4 +16,4 @@ const controller = async (req: Request, res: Response) => {
     res.send(response);
 };
 
-export default { controller };
+export default { controller, validation };

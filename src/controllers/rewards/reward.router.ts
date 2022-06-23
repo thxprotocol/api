@@ -1,6 +1,5 @@
 import express from 'express';
-import checkScopes from 'express-jwt-authz';
-import { assertAssetPoolAccess, assertRequestInput, requireAssetPoolHeader, assertPlan } from '@/middlewares';
+import { assertAssetPoolAccess, assertRequestInput, requireAssetPoolHeader, guard, assertPlan } from '@/middlewares';
 import { AccountPlanType } from '@/types/enums';
 import CreateReward from './post.controller';
 import ReadReward from './get.controller';
@@ -14,7 +13,7 @@ const router = express.Router();
 
 router.get(
     '/',
-    checkScopes(['rewards:read']),
+    guard.check(['rewards:read']),
     assertAssetPoolAccess,
     requireAssetPoolHeader,
     assertPlan([AccountPlanType.Basic, AccountPlanType.Premium]),
@@ -22,7 +21,7 @@ router.get(
 );
 router.get(
     '/:id',
-    checkScopes(['rewards:read']),
+    guard.check(['rewards:read']),
     assertAssetPoolAccess,
     assertRequestInput(ReadReward.validation),
     requireAssetPoolHeader,
@@ -31,7 +30,7 @@ router.get(
 );
 router.post(
     '/',
-    checkScopes(['rewards:write', 'rewards:read']),
+    guard.check(['rewards:write', 'rewards:read']),
     assertAssetPoolAccess,
     assertRequestInput(CreateReward.validation),
     requireAssetPoolHeader,
@@ -40,7 +39,7 @@ router.post(
 );
 router.patch(
     '/:id',
-    checkScopes(['rewards:write', 'rewards:read']),
+    guard.check(['rewards:write', 'rewards:read']),
     assertAssetPoolAccess,
     assertRequestInput(UpdateReward.validation),
     requireAssetPoolHeader,
@@ -49,7 +48,7 @@ router.patch(
 );
 router.post(
     '/:id/claim',
-    checkScopes(['withdrawals:write', 'rewards:read']),
+    guard.check(['withdrawals:write', 'rewards:read']),
     // rateLimitRewardClaim,
     assertRequestInput(CreateRewardClaim.validation),
     requireAssetPoolHeader,
@@ -58,7 +57,7 @@ router.post(
 );
 router.post(
     '/:id/give',
-    checkScopes(['withdrawals:write', 'rewards:read']),
+    guard.check(['withdrawals:write', 'rewards:read']),
     rateLimitRewardGive,
     assertRequestInput(CreateRewardGive.validation),
     requireAssetPoolHeader,

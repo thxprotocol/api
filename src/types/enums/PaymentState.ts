@@ -1,4 +1,6 @@
 export enum PaymentState {
-    Pending = 0,
-    Completed = 1,
+    Requested = 0,
+    Pending = 1,
+    Completed = 2,
+    Failed = 3,
 }

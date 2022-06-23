@@ -6,7 +6,7 @@ const validation = [param('id').isMongoId()];
 
 const controller = async (req: Request, res: Response) => {
     // #swagger.tags = ['Promotions']
-    await PromotionService.deleteById(req.params.id, req.user.sub);
+    await PromotionService.deleteById(req.params.id, req.auth.sub);
 
     res.status(204).end();
 };

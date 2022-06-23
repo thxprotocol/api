@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { body } from 'express-validator';
-import { agenda, eventNameRequireTransactions } from '@/util/agenda';
+import { agenda, EVENT_REQUIRE_TRANSACTIONS } from '@/util/agenda';
 import ERC20SwapRuleService from '@/services/ERC20SwapRuleService';
 
 const validation = [body('tokenInAddress').exists(), body('tokenMultiplier').exists().isNumeric()];
@@ -13,7 +13,7 @@ const controller = async (req: Request, res: Response) => {
         Number(req.body.tokenMultiplier),
     );
 
-    agenda.now(eventNameRequireTransactions, {});
+    agenda.now(EVENT_REQUIRE_TRANSACTIONS, {});
 
     res.json(erc20SwapRule);
 };
