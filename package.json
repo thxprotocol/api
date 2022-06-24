@@ -140,6 +140,7 @@
         ]
     },
     "jest": {
+        "slowTestThreshold": 30,
         "globals": {
             "ts-jest": {
                 "tsconfig": "tsconfig.json"

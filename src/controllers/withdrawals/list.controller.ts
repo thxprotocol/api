@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { query } from 'express-validator';
 import WithdrawalService from '@/services/WithdrawalService';
+import TransactionService from '@/services/TransactionService';
 
 const validation = [
     query('page').exists().isNumeric(),
@@ -23,7 +24,13 @@ const controller = async (req: Request, res: Response) => {
     );
 
     for (const w of result.results) {
+        const transactions = await Promise.all(
+            w.transactions.map(async (id: string) => {
+                return await TransactionService.getById(id);
+            }),
+        );
         withdrawals.push({
+            _id: String(w._id),
             id: String(w._id),
             type: w.type,
             withdrawalId: w.withdrawalId,
@@ -34,7 +41,7 @@ const controller = async (req: Request, res: Response) => {
             unlockDate: w.unlockDate,
             state: w.state,
             poll: w.poll,
-            transactions: w.transactions,
+            transactions,
             createdAt: w.createdAt,
             updatedAt: w.updatedAt,
         });

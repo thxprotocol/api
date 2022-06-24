@@ -1,8 +1,8 @@
 import { Request, Response } from 'express';
 import WithdrawalService from '@/services/WithdrawalService';
 import { NotFoundError } from '@/util/errors';
-import { TWithdrawal } from '@/types/TWithdrawal';
 import { param } from 'express-validator';
+import TransactionService from '@/services/TransactionService';
 
 const validation = [param('id').isMongoId()];
 
@@ -11,22 +11,13 @@ const controller = async (req: Request, res: Response) => {
     const withdrawal = await WithdrawalService.getById(req.params.id);
     if (!withdrawal) throw new NotFoundError();
 
-    const result: TWithdrawal = {
-        id: String(withdrawal._id),
-        type: withdrawal.type,
-        sub: withdrawal.sub,
-        beneficiary: withdrawal.beneficiary,
-        unlockDate: withdrawal.unlockDate,
-        poolAddress: req.assetPool.address,
-        withdrawalId: withdrawal.withdrawalId,
-        state: withdrawal.state,
-        failReason: withdrawal.failReason,
-        amount: withdrawal.amount,
-        transactions: withdrawal.transactions,
-        createdAt: withdrawal.createdAt,
-    };
+    const transactions = await Promise.all(
+        withdrawal.transactions.map(async (id) => {
+            return await TransactionService.getById(id);
+        }),
+    );
 
-    res.json(result);
+    res.json({ ...withdrawal.toJSON(), poolAddress: req.assetPool.address, transactions, id: String(withdrawal._id) });
 };
 
 export default { controller, validation };
