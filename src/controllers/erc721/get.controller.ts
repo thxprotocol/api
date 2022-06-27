@@ -9,6 +9,7 @@ const controller = async (req: Request, res: Response) => {
     // #swagger.tags = ['ERC721']
     const erc721 = await ERC721Service.findById(req.params.id);
     if (!erc721) throw new NotFoundError();
+    if (!erc721.address) return res.send(erc721);
 
     const totalSupply = await erc721.contract.methods.totalSupply().call();
     const owner = await erc721.contract.methods.owner().call();
