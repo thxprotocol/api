@@ -29,6 +29,7 @@ export const userScopes = [
     'deposits:write',
     'transactions:read',
     'transactions:write',
+    'swaprule:read',
     'swap:read',
     'swap:write'
 ];

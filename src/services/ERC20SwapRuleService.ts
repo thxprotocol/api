@@ -4,6 +4,9 @@ import TransactionService from './TransactionService';
 import { assertEvent, parseLogs } from '@/util/events';
 import { NotFoundError } from '@/util/errors';
 import { paginatedResults } from '@/util/pagination';
+import ERC20Service from './ERC20Service';
+import { AssetPoolDocument } from '@/models/AssetPool';
+import AssetPoolService from './AssetPoolService';
 
 async function findByQuery(poolAddress: string, page = 1, limit = 10) {
     let query = { to: poolAddress };
@@ -33,9 +36,14 @@ async function erc20SwapRule(assetPool: TAssetPool, tokenInAddress: string, toke
     );
     assertEvent('SwapRuleUpdated', parseLogs(assetPool.contract.options.jsonInterface, receipt.logs));
 
+    // retrieve the tokenId
+    const assetPoolDocument: AssetPoolDocument = await AssetPoolService.getByAddress(assetPool.address);
+    const erc20TokenIn = await ERC20Service.findOrImport(assetPoolDocument, tokenInAddress);
+
     const swapRule = await ERC20SwapRule.create({
         chainId: assetPool.chainId,
         poolAddress: assetPool.address,
+        tokenInId: erc20TokenIn._id,
         tokenInAddress,
         tokenMultiplier: tokenMultiplier,
     });

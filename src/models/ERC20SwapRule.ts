@@ -7,6 +7,7 @@ const ERC20SwapRuleSchema = new mongoose.Schema(
     {
         chainId: Number,
         poolAddress: String,
+        tokenInId: String,
         tokenInAddress: String,
         tokenMultiplier: Number,
     },

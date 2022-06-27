@@ -46,6 +46,7 @@ describe('ERC20SwapRules', () => {
                 })
                 .expect(({ body }: Response) => {
                     expect(body._id).toBeDefined();
+                    expect(body.tokenInId).toBeDefined();
                     expect(body.tokenInAddress).toEqual(tokenInAddress);
                     expect(body.tokenMultiplier).toEqual(tokenMultiplier);
                     swaprule = body;
@@ -60,6 +61,7 @@ describe('ERC20SwapRules', () => {
                     expect(body.total).toEqual(1);
                     expect(body.results).toHaveLength(1);
                     expect(body.results[0]._id).toBeDefined();
+                    expect(body.results[0].tokenInId).toBeDefined();
                     expect(body.results[0].tokenInAddress).toEqual(tokenInAddress);
                     expect(body.results[0].tokenMultiplier).toEqual(tokenMultiplier);
                 })
@@ -71,6 +73,7 @@ describe('ERC20SwapRules', () => {
                 .set({ 'Authorization': dashboardAccessToken, 'X-PoolAddress': poolAddress })
                 .expect(({ body }: Response) => {
                     expect(body._id).toEqual(swaprule._id);
+                    expect(body.tokenInId).toBeDefined();
                     expect(body.tokenInAddress).toEqual(tokenInAddress);
                     expect(body.tokenMultiplier).toEqual(tokenMultiplier);
                 })
