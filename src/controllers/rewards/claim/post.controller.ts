@@ -2,7 +2,6 @@ import { Request, Response } from 'express';
 import { param } from 'express-validator';
 import { BadRequestError, ForbiddenError } from '@/util/errors';
 import { WithdrawalState, WithdrawalType } from '@/types/enums';
-import { TWithdrawal } from '@/types/TWithdrawal';
 import { WithdrawalDocument } from '@/models/Withdrawal';
 import { agenda, EVENT_REQUIRE_TRANSACTIONS } from '@/util/agenda';
 import AccountProxy from '@/proxies/AccountProxy';
@@ -23,8 +22,7 @@ const controller = async (req: Request, res: Response) => {
     if (!reward) throw new BadRequestError('The reward for this ID does not exist.');
 
     const account = await AccountProxy.getById(req.auth.sub);
-    if (!account.address)
-        throw new BadRequestError('The authenticated account has not wallet address. Sign in the Web Wallet once.');
+    if (!account.address) throw new BadRequestError('The authenticated account has not accessed its wallet.');
 
     const { result, error } = await RewardService.canClaim(req.assetPool, reward, account);
     if (!result && error) throw new ForbiddenError(error);
@@ -37,7 +35,6 @@ const controller = async (req: Request, res: Response) => {
     }
 
     const hasMembership = await MembershipService.hasMembership(req.assetPool, account.id);
-
     if (!hasMembership && !reward.isMembershipRequired) {
         if (req.assetPool.variant === 'defaultPool') {
             await MembershipService.addERC20Membership(account.id, req.assetPool);
@@ -62,21 +59,7 @@ const controller = async (req: Request, res: Response) => {
 
         agenda.now(EVENT_REQUIRE_TRANSACTIONS, {});
 
-        const response: TWithdrawal = {
-            id: String(w._id),
-            sub: w.sub,
-            poolAddress: req.assetPool.address,
-            type: w.type,
-            amount: w.amount,
-            beneficiary: w.beneficiary,
-            unlockDate: w.unlockDate,
-            state: w.state,
-            rewardId: w.rewardId,
-            transactions: w.transactions,
-            createdAt: w.createdAt,
-        };
-
-        return res.json(response);
+        return res.json({ ...w.toJSON() });
     }
 
     if (req.assetPool.variant === 'nftPool') {

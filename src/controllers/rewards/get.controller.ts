@@ -13,7 +13,7 @@ const controller = async (req: Request, res: Response) => {
     if (!reward) throw new NotFoundError();
 
     const withdrawals = await WithdrawalService.findByQuery({
-        poolAddress: req.assetPool.address,
+        poolId: String(req.assetPool._id),
         rewardId: reward.id,
     });
 

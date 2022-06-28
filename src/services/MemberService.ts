@@ -23,7 +23,7 @@ export default class MemberService {
         return Member.findOne({ address });
     }
 
-    static async countByPoolAddress(assetPool: TAssetPool) {
+    static async countByPool(assetPool: TAssetPool) {
         return (await Member.find({ poolAddress: assetPool.address })).length;
     }
 

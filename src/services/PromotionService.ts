@@ -1,12 +1,12 @@
-import { PromoCode, PromoCodeDocument } from '@/models/PromoCode';
+import { Promotion, PromotionDocument } from '@/models/Promotion';
 import { paginatedResults } from '@/util/pagination';
 import { Deposit } from '@/models/Deposit';
 import { ForbiddenError, PromoCodeNotFoundError } from '@/util/errors';
 import { DepositState } from '@/types/enums/DepositState';
-import { TPromoCode } from '@/types/TPromoCode';
+import { TPromotion } from '@/types/TPromotion';
 
-async function create(data: TPromoCode) {
-    return await PromoCode.create(data);
+async function create(data: TPromotion) {
+    return await Promotion.create(data);
 }
 
 async function deleteById(id: string, sub: string) {
@@ -19,37 +19,30 @@ async function deleteById(id: string, sub: string) {
     return await promoCode.remove();
 }
 
-async function findById(id: string) {
-    const promoCode = await PromoCode.findById(id);
-
-    if (!promoCode) {
-        throw new PromoCodeNotFoundError();
-    }
-
-    return promoCode;
+function findById(id: string) {
+    return Promotion.findById(id);
 }
 
-async function formatResult(sub: string, promoCode: PromoCodeDocument) {
+async function formatResult(sub: string, promotion: PromotionDocument) {
     // Check if user is owner
-    const isOwner = promoCode.sub === sub;
+    const isOwner = promotion.sub === sub;
     // Check if user made a deposit
-    const deposit = await Deposit.findOne({ sub, item: promoCode.id, state: DepositState.Completed });
-
-    const id = String(promoCode._id);
-    const value = isOwner || deposit ? promoCode.value : '';
+    const deposit = await Deposit.findOne({ sub, item: promotion.id, state: DepositState.Completed });
+    const id = String(promotion._id);
+    const value = isOwner || deposit ? promotion.value : '';
 
     return {
         id,
-        title: promoCode.title,
-        description: promoCode.description,
-        price: promoCode.price,
+        title: promotion.title,
+        description: promotion.description,
+        price: promotion.price,
         value,
     };
 }
 
 // page 1 and limit 10 are the default pagination start settings
-function findByQuery(query: { poolAddress: string }, page = 1, limit = 10) {
-    return paginatedResults(PromoCode, page, limit, query);
+function findByQuery(query: { poolId: string }, page = 1, limit = 10) {
+    return paginatedResults(Promotion, page, limit, query);
 }
 
 export default { create, deleteById, findById, findByQuery, formatResult };

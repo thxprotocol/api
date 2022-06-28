@@ -15,7 +15,7 @@ import { getContract } from '@/config/contracts';
 const user = request.agent(app);
 
 describe('Transfer Pool Ownership', () => {
-    let poolAddress: string, testToken: Contract, userWallet: Account;
+    let poolId: string, testToken: Contract, userWallet: Account;
 
     beforeAll(async () => {
         await beforeAllCallback();
@@ -36,7 +36,7 @@ describe('Transfer Pool Ownership', () => {
                 })
                 .expect((res: request.Response) => {
                     expect(isAddress(res.body.address)).toBe(true);
-                    poolAddress = res.body.address;
+                    poolId = res.body._id;
                 })
                 .expect(201, done);
         });
@@ -44,21 +44,21 @@ describe('Transfer Pool Ownership', () => {
         it('HTTP 200 when member is added', (done) => {
             user.post('/v1/members/')
                 .send({ address: userWallet.address })
-                .set({ 'X-PoolAddress': poolAddress, 'Authorization': adminAccessToken })
+                .set({ 'X-PoolId': poolId, 'Authorization': adminAccessToken })
                 .expect(200, done);
         });
 
         it('HTTP 302 when member is promoted', (done) => {
             user.patch(`/v1/members/${userWallet.address}`)
                 .send({ isManager: true })
-                .set({ 'X-PoolAddress': poolAddress, 'Authorization': adminAccessToken })
+                .set({ 'X-PoolId': poolId, 'Authorization': adminAccessToken })
                 .expect(302, done);
         });
     });
 
     describe('Ownership transfer', () => {
         it('Transfers correctly', async () => {
-            const assetPool = await AssetPoolService.getByAddress(poolAddress);
+            const assetPool = await AssetPoolService.getById(poolId);
             await AssetPoolService.transferOwnership(assetPool, PRIVATE_KEY, DEPOSITOR_PK);
 
             const { web3 } = getProvider(assetPool.chainId);

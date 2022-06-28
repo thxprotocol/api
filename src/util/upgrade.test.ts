@@ -14,7 +14,7 @@ import { dashboardAccessToken } from './jest/constants';
 const user = request.agent(app);
 
 describe('Upgrades', () => {
-    let poolAddress: string, testToken: Contract;
+    let poolId: string, testToken: Contract;
 
     beforeAll(async () => {
         await beforeAllCallback();
@@ -31,7 +31,7 @@ describe('Upgrades', () => {
             })
             .expect((res: request.Response) => {
                 expect(isAddress(res.body.address)).toBe(true);
-                poolAddress = res.body.address;
+                poolId = res.body._id;
             })
             .expect(201);
     });
@@ -40,7 +40,7 @@ describe('Upgrades', () => {
 
     describe('Test pool upgrades', () => {
         it('Switch between different diamond facet configurations', async () => {
-            const pool = await AssetPoolService.getByAddress(poolAddress);
+            const pool = await AssetPoolService.getById(poolId);
 
             expect(await AssetPoolService.contractVersionVariant(pool)).toEqual({
                 variant: 'defaultPool',

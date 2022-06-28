@@ -1,8 +1,9 @@
-export type TPromoCode = {
+export type TPromotion = {
     sub: string;
     title: string;
     description: string;
     value: string;
     price: number;
-    poolAddress: string;
+    poolId: string;
+    poolAddress?: string;
 };

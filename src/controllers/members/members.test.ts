@@ -11,8 +11,8 @@ import { ChainId } from '@/types/enums';
 
 const user = request.agent(app);
 
-describe('Roles', () => {
-    let poolAddress: any, testToken: Contract, userWallet: Account;
+describe('Members', () => {
+    let poolId: string, testToken: Contract, userWallet: Account;
 
     beforeAll(async () => {
         await beforeAllCallback();
@@ -32,7 +32,7 @@ describe('Roles', () => {
                     tokens: [testToken.options.address],
                 })
                 .expect((res: request.Response) => {
-                    poolAddress = res.body.address;
+                    poolId = res.body._id;
                 })
                 .expect(201, done);
         });
@@ -42,12 +42,12 @@ describe('Roles', () => {
         it('HTTP 200 if OK', (done) => {
             const { admin } = getProvider(ChainId.Hardhat);
             user.get('/v1/members/' + admin.address)
-                .set({ 'X-PoolAddress': poolAddress, 'Authorization': adminAccessToken })
+                .set({ 'X-PoolId': poolId, 'Authorization': adminAccessToken })
                 .expect(200, done);
         });
         it('HTTP 404 if not found', (done) => {
             user.get('/v1/members/' + voter.address)
-                .set({ 'X-PoolAddress': poolAddress, 'Authorization': adminAccessToken })
+                .set({ 'X-PoolId': poolId, 'Authorization': adminAccessToken })
                 .expect(404, done);
         });
     });
@@ -56,7 +56,7 @@ describe('Roles', () => {
         it('HTTP 200 if OK', (done) => {
             user.post('/v1/members/')
                 .send({ address: userWallet.address })
-                .set({ 'X-PoolAddress': poolAddress, 'Authorization': adminAccessToken })
+                .set({ 'X-PoolId': poolId, 'Authorization': adminAccessToken })
                 .expect(200, done);
         });
     });
@@ -67,7 +67,7 @@ describe('Roles', () => {
         it('HTTP 302 if OK', (done) => {
             user.patch('/v1/members/' + userWallet.address)
                 .send({ isManager: true })
-                .set({ 'X-PoolAddress': poolAddress, 'Authorization': adminAccessToken })
+                .set({ 'X-PoolId': poolId, 'Authorization': adminAccessToken })
                 .expect((res: request.Response) => {
                     redirectURL = res.headers.location;
                 })
@@ -76,7 +76,7 @@ describe('Roles', () => {
 
         it('HTTP 200 and isManager true', (done) => {
             user.get(redirectURL)
-                .set({ 'X-PoolAddress': poolAddress, 'Authorization': adminAccessToken })
+                .set({ 'X-PoolId': poolId, 'Authorization': adminAccessToken })
                 .expect((res: request.Response) => {
                     expect(res.body.isMember).toEqual(true);
                     expect(res.body.isManager).toEqual(true);
@@ -92,7 +92,7 @@ describe('Roles', () => {
         it('HTTP 302 if OK', (done) => {
             user.patch('/v1/members/' + userWallet.address)
                 .send({ isManager: false })
-                .set({ 'X-PoolAddress': poolAddress, 'Authorization': adminAccessToken })
+                .set({ 'X-PoolId': poolId, 'Authorization': adminAccessToken })
                 .expect((res: request.Response) => {
                     redirectURL = res.headers.location;
                 })
@@ -101,7 +101,7 @@ describe('Roles', () => {
 
         it('HTTP 200 and isManager: false', (done) => {
             user.get(redirectURL)
-                .set({ 'X-PoolAddress': poolAddress, 'Authorization': adminAccessToken })
+                .set({ 'X-PoolId': poolId, 'Authorization': adminAccessToken })
                 .expect((res: request.Response) => {
                     expect(res.body.isMember).toEqual(true);
                     expect(res.body.isManager).toEqual(false);
@@ -114,7 +114,7 @@ describe('Roles', () => {
     describe('GET /members', () => {
         it('HTTP 200 if OK', (done) => {
             user.get('/v1/members')
-                .set({ 'X-PoolAddress': poolAddress, 'Authorization': adminAccessToken })
+                .set({ 'X-PoolId': poolId, 'Authorization': adminAccessToken })
                 .expect((res: request.Response) => {
                     expect(res.body.length).toEqual(1);
                     expect(res.body[0]).toBe(userWallet.address);
@@ -126,7 +126,7 @@ describe('Roles', () => {
     describe('DELETE /members/:address', () => {
         it('HTTP 200 if OK', (done) => {
             user.delete('/v1/members/' + userWallet.address)
-                .set({ 'X-PoolAddress': poolAddress, 'Authorization': adminAccessToken })
+                .set({ 'X-PoolId': poolId, 'Authorization': adminAccessToken })
                 .expect(204, done);
         });
     });
@@ -134,7 +134,7 @@ describe('Roles', () => {
     describe('GET /members/:address (after DELETE)', () => {
         it('HTTP 404 if not found', (done) => {
             user.get('/v1/members/' + userWallet.address)
-                .set({ 'X-PoolAddress': poolAddress, 'Authorization': adminAccessToken })
+                .set({ 'X-PoolId': poolId, 'Authorization': adminAccessToken })
                 .expect(404, done);
         });
     });
@@ -142,7 +142,7 @@ describe('Roles', () => {
     describe('GET /members (after DELETE)', () => {
         it('HTTP 200 if OK', (done) => {
             user.get('/v1/members')
-                .set({ 'X-PoolAddress': poolAddress, 'Authorization': adminAccessToken })
+                .set({ 'X-PoolId': poolId, 'Authorization': adminAccessToken })
                 .expect((res: request.Response) => {
                     expect(res.body.length).toEqual(0);
                 })

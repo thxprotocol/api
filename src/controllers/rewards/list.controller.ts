@@ -6,11 +6,11 @@ import WithdrawalService from '@/services/WithdrawalService';
 const controller = async (req: Request, res: Response) => {
     // #swagger.tags = ['Rewards']
     const result: TReward[] = [];
-    const rewards = await RewardService.findByPoolAddress(req.assetPool);
+    const rewards = await RewardService.findByPool(req.assetPool);
 
     for (const r of rewards) {
         const rewardId = Number(r.id);
-        const withdrawals = await WithdrawalService.findByQuery({ poolAddress: req.assetPool.address, rewardId });
+        const withdrawals = await WithdrawalService.findByQuery({ poolId: String(req.assetPool._id), rewardId });
 
         result.push({
             _id: String(r._id),

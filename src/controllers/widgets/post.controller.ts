@@ -22,7 +22,7 @@ const controller = async (req: Request, res: Response) => {
         req.auth.sub,
         client.clientId,
         req.body.metadata.rewardId,
-        req.body.metadata.poolAddress,
+        req.body.metadata.poolId,
     );
 
     res.status(201).json(widget);

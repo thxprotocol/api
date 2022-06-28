@@ -25,7 +25,7 @@ const controller = async (req: Request, res: Response) => {
         registrationAccessToken: req.params.rat,
         metadata: {
             rewardId: widget.metadata.rewardId,
-            poolAddress: widget.metadata.poolAddress,
+            poolId: widget.metadata.poolId,
         },
     });
 };
