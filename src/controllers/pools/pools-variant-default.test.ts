@@ -204,7 +204,6 @@ describe('Default Pool', () => {
                 .expect((res: request.Response) => {
                     const index = res.body.results.length - 1;
                     const withdrawal = res.body.results[index];
-                    console.log(res.body);
                     expect(withdrawal.state).toEqual(0);
                     expect(withdrawal.amount).toEqual(rewardWithdrawAmount);
                     expect(withdrawal.unlockDate).not.toBe(undefined);
