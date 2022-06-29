@@ -43,7 +43,7 @@ export const jwksResponse = {
     ],
 };
 
-export const getToken = (scope: string) => {
+export const getToken = (scope: string, outerSub?: string) => {
     const payload: any = {
         scope,
     };
@@ -54,6 +54,10 @@ export const getToken = (scope: string) => {
         payload.sub = sub;
     } else if (scope === walletScopes) {
         payload.sub = sub2;
+    }
+
+    if (outerSub) {
+        payload.sub = outerSub;
     }
 
     const options = {

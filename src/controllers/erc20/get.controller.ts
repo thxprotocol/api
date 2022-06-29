@@ -11,6 +11,7 @@ const controller = async (req: Request, res: Response) => {
     // #swagger.tags = ['ERC20']
     const erc20 = await ERC20Service.getById(req.params.id);
     if (!erc20) new NotFoundError('ERC20 not found');
+    if (!erc20.address) return res.send(erc20);
 
     const { admin } = getProvider(erc20.chainId);
     const [totalSupplyInWei, decimalsString, adminBalanceInWei] = await Promise.all([

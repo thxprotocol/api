@@ -8,43 +8,43 @@ import {
     RewardState,
     TReward,
 } from '@/models/Reward';
-import { TAssetPool } from '@/types/TAssetPool';
 import TwitterDataProxy from '@/proxies/TwitterDataProxy';
 import YouTubeDataProxy from '@/proxies/YoutubeDataProxy';
 import SpotifyDataProxy from '@/proxies/SpotifyDataProxy';
 import WithdrawalService from './WithdrawalService';
 import ERC721Service from './ERC721Service';
+import { AssetPoolDocument } from '@/models/AssetPool';
 
 export default class RewardService {
-    static async get(assetPool: TAssetPool, rewardId: number): Promise<RewardDocument> {
-        const reward = await Reward.findOne({ poolAddress: assetPool.address, id: rewardId });
+    static async get(assetPool: AssetPoolDocument, rewardId: number): Promise<RewardDocument> {
+        const reward = await Reward.findOne({ poolId: String(assetPool._id), id: rewardId });
         if (!reward) return null;
         return reward;
     }
 
-    static async findByPoolAddress(assetPool: TAssetPool): Promise<RewardDocument[]> {
+    static async findByPool(assetPool: AssetPoolDocument): Promise<RewardDocument[]> {
         const rewards = [];
-        for (const r of await Reward.find({ poolAddress: assetPool.address })) {
+        for (const r of await Reward.find({ poolId: String(assetPool._id) })) {
             rewards.push(await this.get(assetPool, r.id));
         }
         return rewards;
     }
 
     static async canClaim(
-        assetPool: TAssetPool,
+        assetPool: AssetPoolDocument,
         reward: TReward,
         account: IAccount,
     ): Promise<{ result?: boolean; error?: string }> {
         // Can not claim if the reward is disabled
         if (reward.state === RewardState.Disabled) {
-            return { error: 'This reward already disabled by it owner' };
+            return { error: 'This reward has been disabled' };
         }
 
         // Can not claim if reward already extends the claim limit
         // (included pending withdrawars)
         if (reward.withdrawLimit > 0) {
             const withdrawals = await WithdrawalService.findByQuery({
-                poolAddress: assetPool.address,
+                poolId: String(assetPool._id),
                 rewardId: reward.id,
             });
             if (withdrawals.length >= reward.withdrawLimit) {
@@ -57,7 +57,7 @@ export default class RewardService {
             if (Date.now() > expiryTimestamp) return { error: 'This reward URL has expired' };
         }
 
-        const withdrawal = await WithdrawalService.hasClaimedOnce(assetPool.address, account.id, reward.id);
+        const withdrawal = await WithdrawalService.hasClaimedOnce(String(assetPool._id), account.id, reward.id);
 
         // Can only claim this reward once and a withdrawal already exists
         if (reward.isClaimOnce && withdrawal) {
@@ -88,30 +88,32 @@ export default class RewardService {
         );
     }
 
-    static async removeAllForAddress(address: string) {
-        const rewards = await Reward.find({ poolAddress: address });
+    static async removeAllForPool(pool: AssetPoolDocument) {
+        const rewards = await Reward.find({ poolId: String(pool._id) });
         for (const r of rewards) {
             await r.remove();
         }
     }
 
-    static async create(data: {
-        assetPool: TAssetPool;
-        title: string;
-        slug: string;
-        withdrawLimit: number;
-        withdrawAmount: number;
-        withdrawDuration: number;
-        isMembershipRequired: boolean;
-        isClaimOnce: boolean;
-        withdrawUnlockDate: Date;
-        withdrawCondition?: IRewardCondition;
-        expiryDate?: Date;
-        erc721metadataId?: string;
-    }) {
+    static async create(
+        assetPool: AssetPoolDocument,
+        data: {
+            title: string;
+            slug: string;
+            withdrawLimit: number;
+            withdrawAmount: number;
+            withdrawDuration: number;
+            isMembershipRequired: boolean;
+            isClaimOnce: boolean;
+            withdrawUnlockDate: Date;
+            withdrawCondition?: IRewardCondition;
+            expiryDate?: Date;
+            erc721metadataId?: string;
+        },
+    ) {
         // Calculates an incrementing id as was done in Solidity before.
         // TODO Add migration to remove id and start using default collection _id.
-        const id = (await this.findByPoolAddress(data.assetPool)).length + 1;
+        const id = (await this.findByPool(assetPool)).length + 1;
         const expiryDateObj = data.expiryDate && new Date(data.expiryDate);
 
         return await Reward.create({
@@ -119,7 +121,7 @@ export default class RewardService {
             title: data.title,
             slug: data.slug,
             expiryDate: expiryDateObj,
-            poolAddress: data.assetPool.address,
+            poolId: String(assetPool._id),
             withdrawAmount: String(data.withdrawAmount),
             erc721metadataId: data.erc721metadataId,
             withdrawLimit: data.withdrawLimit,

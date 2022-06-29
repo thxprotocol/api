@@ -3,7 +3,7 @@ import { toWei } from 'web3-utils';
 import { getProvider } from '@/util/network';
 import { ICreateERC20Params } from '@/types/interfaces';
 import TransactionService from './TransactionService';
-import { assertEvent, CustomEventLog, findEvent, parseLogs } from '@/util/events';
+import { assertEvent, CustomEventLog, parseLogs } from '@/util/events';
 import { ChainId, ERC20Type } from '@/types/enums';
 import { AssetPoolDocument } from '@/models/AssetPool';
 import { currentVersion } from '@thxnetwork/artifacts';
@@ -16,7 +16,7 @@ function getDeployFnArgsCallback(erc20: ERC20Document, totalSupply: string) {
     const { admin } = getProvider(erc20.chainId);
     const callback = async (tx: TransactionDocument, events?: CustomEventLog[]): Promise<ERC20Document> => {
         if (events) {
-            const event = findEvent('TokenDeployed', events);
+            const event = assertEvent('TokenDeployed', events);
             erc20.address = event.args.token;
         }
 

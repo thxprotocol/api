@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { query } from 'express-validator';
 import WithdrawalService from '@/services/WithdrawalService';
+import TransactionService from '@/services/TransactionService';
 
 const validation = [
     query('page').exists().isNumeric(),
@@ -14,7 +15,7 @@ const controller = async (req: Request, res: Response) => {
     // #swagger.tags = ['Withdrawals']
     const withdrawals = [];
     const result = await WithdrawalService.getAll(
-        req.assetPool.address,
+        String(req.assetPool._id),
         Number(req.query.page),
         Number(req.query.limit),
         req.query.member && req.query.member.length > 0 ? String(req.query.member) : undefined,
@@ -23,21 +24,12 @@ const controller = async (req: Request, res: Response) => {
     );
 
     for (const w of result.results) {
-        withdrawals.push({
-            id: String(w._id),
-            type: w.type,
-            withdrawalId: w.withdrawalId,
-            failReason: w.failReason,
-            rewardId: w.rewardId,
-            beneficiary: w.beneficiary,
-            amount: w.amount,
-            unlockDate: w.unlockDate,
-            state: w.state,
-            poll: w.poll,
-            transactions: w.transactions,
-            createdAt: w.createdAt,
-            updatedAt: w.updatedAt,
-        });
+        const transactions = await Promise.all(
+            w.transactions.map(async (id: string) => {
+                return await TransactionService.getById(id);
+            }),
+        );
+        withdrawals.push({ ...w.toJSON(), transactions });
     }
     result.results = withdrawals;
     res.json(result);

@@ -40,21 +40,12 @@ const controller = async (req: Request, res: Response) => {
 
     agenda.now(EVENT_REQUIRE_TRANSACTIONS, {});
 
-    const result: TWithdrawal = {
+    res.json({
+        ...w.toJSON(),
         id: String(w._id),
         sub: account.id,
         poolAddress: req.assetPool.address,
-        type: w.type,
-        withdrawalId: w.withdrawalId,
-        beneficiary: w.beneficiary,
-        amount: w.amount,
-        unlockDate: w.unlockDate,
-        state: w.state,
-        transactions: w.transactions,
-        createdAt: w.createdAt,
-    };
-
-    res.json(result);
+    });
 };
 
 export default { controller, validation };

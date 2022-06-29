@@ -2,7 +2,6 @@ import { Request, Response } from 'express';
 import { param } from 'express-validator';
 import { ForbiddenError, NotFoundError } from '@/util/errors';
 import { agenda, EVENT_REQUIRE_TRANSACTIONS } from '@/util/agenda';
-import { TWithdrawal } from '@/types/TWithdrawal';
 import WithdrawalService from '@/services/WithdrawalService';
 
 const validation = [param('id').isMongoId()];
@@ -22,24 +21,11 @@ const controller = async (req: Request, res: Response) => {
 
     agenda.now(EVENT_REQUIRE_TRANSACTIONS, {});
 
-    const result: TWithdrawal = {
-        id: String(w._id),
+    res.json({
+        ...w.toJSON(),
         sub: w.sub,
         poolAddress: req.assetPool.address,
-        type: w.type,
-        withdrawalId: w.withdrawalId,
-        failReason: w.failReason,
-        rewardId: w.rewardId,
-        beneficiary: w.beneficiary,
-        amount: w.amount,
-        unlockDate: w.unlockDate,
-        state: w.state,
-        transactions: w.transactions,
-        createdAt: w.createdAt,
-        updatedAt: w.updatedAt,
-    };
-
-    res.json(result);
+    });
 };
 
 export default { controller, validation };

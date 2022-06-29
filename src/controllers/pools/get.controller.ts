@@ -14,9 +14,7 @@ export const controller = async (req: Request, res: Response) => {
     // #swagger.tags = ['Pools']
     if (req.assetPool.sub !== req.auth.sub) throw new ForbiddenError('Only the pool owner can access this pool info');
 
-    if (!req.assetPool.address) {
-        return res.json(req.assetPool.toJSON());
-    }
+    if (!req.assetPool.address) return res.json(req.assetPool.toJSON());
 
     let token;
     if (req.assetPool.variant === 'defaultPool') {
@@ -31,8 +29,8 @@ export const controller = async (req: Request, res: Response) => {
     ]);
     const client = await ClientService.get(req.assetPool.clientId);
     const metrics = {
-        withdrawals: await WithdrawalService.countByPoolAddress(req.assetPool),
-        members: await MemberService.countByPoolAddress(req.assetPool),
+        withdrawals: await WithdrawalService.countByPool(req.assetPool),
+        members: await MemberService.countByPool(req.assetPool),
     };
 
     res.json({

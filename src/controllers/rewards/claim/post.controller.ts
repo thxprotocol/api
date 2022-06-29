@@ -1,8 +1,7 @@
 import { Request, Response } from 'express';
-import { param } from 'express-validator';
+import { body, param } from 'express-validator';
 import { BadRequestError, ForbiddenError } from '@/util/errors';
 import { WithdrawalState, WithdrawalType } from '@/types/enums';
-import { TWithdrawal } from '@/types/TWithdrawal';
 import { WithdrawalDocument } from '@/models/Withdrawal';
 import { agenda, EVENT_REQUIRE_TRANSACTIONS } from '@/util/agenda';
 import AccountProxy from '@/proxies/AccountProxy';
@@ -11,45 +10,44 @@ import MemberService from '@/services/MemberService';
 import WithdrawalService from '@/services/WithdrawalService';
 import MembershipService from '@/services/MembershipService';
 import ERC721Service from '@/services/ERC721Service';
+import AssetPoolService from '@/services/AssetPoolService';
 
-const validation = [param('id').exists().isNumeric()];
+const validation = [param('id').exists().isNumeric(), body('hash').exists().isBase64()];
 
 const controller = async (req: Request, res: Response) => {
     // #swagger.tags = ['Rewards']
+    // Only used to get the poolAddress and should be removed (as of param) when claim URLs are improved and contain poolId
+    const data: any = JSON.parse(Buffer.from(req.body.hash, 'base64').toString());
     if (!req.auth.sub) throw new BadRequestError('No subscription is found for this type of access token.');
 
-    const rewardId = Number(req.params.id);
-    const reward = await RewardService.get(req.assetPool, rewardId);
+    const pool = await AssetPoolService.getByAddress(data.poolAddress);
+    if (!pool) throw new BadRequestError('The pool for this rewards has been removed.');
+
+    const reward = await RewardService.get(pool, Number(req.params.id));
     if (!reward) throw new BadRequestError('The reward for this ID does not exist.');
 
     const account = await AccountProxy.getById(req.auth.sub);
-    if (!account.address)
-        throw new BadRequestError('The authenticated account has not wallet address. Sign in the Web Wallet once.');
+    if (!account.address) throw new BadRequestError('The authenticated account has not accessed its wallet.');
 
-    const { result, error } = await RewardService.canClaim(req.assetPool, reward, account);
+    const { result, error } = await RewardService.canClaim(pool, reward, account);
     if (!result && error) throw new ForbiddenError(error);
 
-    // TODO add MemberAccess facets to NFTPools and remove this check
-    if (req.assetPool.variant === 'defaultPool') {
-        const isMember = await MemberService.isMember(req.assetPool, account.address);
-        if (!isMember && reward.isMembershipRequired)
-            throw new ForbiddenError('Could not claim this reward since you are not a member of the pool.');
-    }
+    const isMember = await MemberService.isMember(pool, account.address);
+    if (!isMember && reward.isMembershipRequired) throw new ForbiddenError('You are not a member of this pool.');
 
-    const hasMembership = await MembershipService.hasMembership(req.assetPool, account.id);
-
+    const hasMembership = await MembershipService.hasMembership(pool, account.id);
     if (!hasMembership && !reward.isMembershipRequired) {
-        if (req.assetPool.variant === 'defaultPool') {
-            await MembershipService.addERC20Membership(account.id, req.assetPool);
+        if (pool.variant === 'defaultPool') {
+            await MembershipService.addERC20Membership(account.id, pool);
         }
-        if (req.assetPool.variant === 'nftPool') {
-            await MembershipService.addERC721Membership(account.id, req.assetPool);
+        if (pool.variant === 'nftPool') {
+            await MembershipService.addERC721Membership(account.id, pool);
         }
     }
 
-    if (req.assetPool.variant === 'defaultPool') {
+    if (pool.variant === 'defaultPool') {
         const w: WithdrawalDocument = await WithdrawalService.schedule(
-            req.assetPool,
+            pool,
             WithdrawalType.ClaimReward,
             req.auth.sub,
             reward.withdrawAmount,
@@ -58,31 +56,17 @@ const controller = async (req: Request, res: Response) => {
             reward.id,
         );
 
-        await WithdrawalService.proposeWithdraw(req.assetPool, w, account);
+        await WithdrawalService.proposeWithdraw(pool, w, account);
 
         agenda.now(EVENT_REQUIRE_TRANSACTIONS, {});
 
-        const response: TWithdrawal = {
-            id: String(w._id),
-            sub: w.sub,
-            poolAddress: req.assetPool.address,
-            type: w.type,
-            amount: w.amount,
-            beneficiary: w.beneficiary,
-            unlockDate: w.unlockDate,
-            state: w.state,
-            rewardId: w.rewardId,
-            transactions: w.transactions,
-            createdAt: w.createdAt,
-        };
-
-        return res.json(response);
+        return res.json({ ...w.toJSON() });
     }
 
-    if (req.assetPool.variant === 'nftPool') {
+    if (pool.variant === 'nftPool') {
         const metadata = await ERC721Service.findMetadataById(reward.erc721metadataId);
         const erc721 = await ERC721Service.findById(metadata.erc721);
-        const token = await ERC721Service.mint(req.assetPool, erc721, metadata, account);
+        const token = await ERC721Service.mint(pool, erc721, metadata, account);
 
         agenda.now(EVENT_REQUIRE_TRANSACTIONS, {});
 

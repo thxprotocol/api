@@ -5,29 +5,28 @@ import { ChainId, ERC20Type } from '../../types/enums';
 import { createWallet, signMethod } from '@/util/jest/network';
 import {
     dashboardAccessToken,
-    rewardWithdrawAmount,
-    rewardWithdrawUnlockDate,
     tokenName,
     tokenSymbol,
     walletAccessToken,
+    walletAccessToken2,
     userWalletPrivateKey2,
 } from '@/util/jest/constants';
 import { isAddress } from 'web3-utils';
 import { afterAllCallback, beforeAllCallback } from '@/util/jest/config';
 import { WithdrawalState } from '@/types/enums';
+import { getRewardConfiguration } from './utils';
 
 const user = request.agent(app);
 
 describe('Reward Claim', () => {
-    const title = 'Welcome Package',
-        slug = 'welcome-package';
-
-    let poolAddress: string,
+    let poolId: string,
+        poolAddress: string,
         rewardID: string,
         withdrawalDocumentId: string,
         withdrawalId: string,
         userWallet: Account,
-        tokenAddress: string;
+        tokenAddress: string,
+        hash: string;
 
     beforeAll(async () => {
         await beforeAllCallback();
@@ -62,88 +61,539 @@ describe('Reward Claim', () => {
             })
             .expect((res: request.Response) => {
                 expect(isAddress(res.body.address)).toBe(true);
+                poolId = res.body._id;
                 poolAddress = res.body.address;
+                hash = Buffer.from(JSON.stringify({ poolAddress })).toString('base64');
             })
             .expect(201, done);
     });
 
-    it('Create reward', (done) => {
-        user.post('/v1/rewards/')
-            .set({ 'X-PoolAddress': poolAddress, 'Authorization': dashboardAccessToken })
-            .send({
-                title,
-                slug,
-                withdrawAmount: rewardWithdrawAmount,
-                withdrawDuration: 0,
-                withdrawUnlockDate: rewardWithdrawUnlockDate,
-                isClaimOnce: true,
-                isMembershipRequired: false,
-            })
-            .expect((res: request.Response) => {
-                expect(res.body.id).toEqual(1);
+    describe('A reward with limit is 0 (unlimited) and claim_one disabled', () => {
+        it('Create reward', (done) => {
+            user.post('/v1/rewards/')
+                .set({ 'X-PoolId': poolId, 'Authorization': dashboardAccessToken })
+                .send(getRewardConfiguration('no-limit-and-claim-one-disabled'))
+                .expect((res: request.Response) => {
+                    expect(res.body.id).toEqual(1);
 
-                rewardID = res.body.id;
-            })
-            .expect(201, done);
+                    rewardID = res.body.id;
+                })
+                .expect(201, done);
+        });
+
+        describe('POST /rewards/:id/claim', () => {
+            it('should return a 200 and withdrawal id', (done) => {
+                user.post(`/v1/rewards/${rewardID}/claim`)
+                    .set({ 'X-PoolId': poolId, 'Authorization': walletAccessToken })
+                    .send({ hash })
+                    .expect((res: request.Response) => {
+                        expect(res.body._id).toBeDefined();
+                        expect(res.body.state).toEqual(WithdrawalState.Pending);
+
+                        withdrawalDocumentId = res.body._id;
+                    })
+                    .expect(200, done);
+            });
+
+            it('should return Pending state', (done) => {
+                user.get(`/v1/withdrawals/${withdrawalDocumentId}`)
+                    .set({ 'X-PoolId': poolId, 'Authorization': walletAccessToken })
+                    .expect((res: request.Response) => {
+                        expect(res.body.state).toEqual(WithdrawalState.Pending);
+                        expect(res.body.withdrawalId).toBeDefined();
+
+                        withdrawalId = res.body.withdrawalId;
+                    })
+                    .expect(200, done);
+            });
+
+            it('should finalize the withdraw poll', async () => {
+                const { call, nonce, sig } = await signMethod(
+                    poolAddress,
+                    'withdrawPollFinalize',
+                    [withdrawalId],
+                    userWallet,
+                );
+
+                await user
+                    .post('/v1/relay/call')
+                    .set({ 'X-PoolId': poolId, 'Authorization': walletAccessToken })
+                    .send({
+                        call,
+                        nonce,
+                        sig,
+                    })
+                    .expect(200);
+            });
+
+            it('should return Withdrawn state', (done) => {
+                user.get(`/v1/withdrawals/${withdrawalDocumentId}`)
+                    .set({ 'X-PoolId': poolId, 'Authorization': walletAccessToken })
+                    .expect((res: request.Response) => {
+                        expect(res.body.state).toEqual(WithdrawalState.Withdrawn);
+                    })
+                    .expect(200, done);
+            });
+
+            it('should return a 200 for this second claim', (done) => {
+                user.post(`/v1/rewards/${rewardID}/claim`)
+                    .send({ hash })
+                    .set({ 'X-PoolId': poolId, 'Authorization': walletAccessToken })
+                    .expect(200, done);
+            });
+        });
     });
 
-    describe('POST /rewards/:id/claim', () => {
-        it('should return a 200 and withdrawal id', (done) => {
-            user.post(`/v1/rewards/${rewardID}/claim`)
-                .set({ 'X-PoolAddress': poolAddress, 'Authorization': walletAccessToken })
+    describe('A reward with limit is 1 and claim_once disabled', () => {
+        it('Create reward', (done) => {
+            user.post('/v1/rewards/')
+                .set({ 'X-PoolId': poolId, 'Authorization': dashboardAccessToken })
+                .send(getRewardConfiguration('one-limit-and-claim-one-disabled'))
                 .expect((res: request.Response) => {
-                    expect(res.body.id).toBeDefined();
-                    expect(res.body.state).toEqual(WithdrawalState.Pending);
+                    expect(res.body.id).toEqual(2);
 
-                    withdrawalDocumentId = res.body.id;
+                    rewardID = res.body.id;
                 })
-                .expect(200, done);
+                .expect(201, done);
         });
 
-        it('should return Pending state', (done) => {
-            user.get(`/v1/withdrawals/${withdrawalDocumentId}`)
-                .set({ 'X-PoolAddress': poolAddress, 'Authorization': walletAccessToken })
+        describe('POST /rewards/:id/claim', () => {
+            it('should return a 200 and withdrawal id', (done) => {
+                user.post(`/v1/rewards/${rewardID}/claim`)
+                    .send({ hash })
+                    .set({ 'X-PoolId': poolId, 'Authorization': walletAccessToken })
+                    .expect((res: request.Response) => {
+                        expect(res.body._id).toBeDefined();
+                        expect(res.body.state).toEqual(WithdrawalState.Pending);
+
+                        withdrawalDocumentId = res.body._id;
+                    })
+                    .expect(200, done);
+            });
+
+            it('should return Pending state', (done) => {
+                user.get(`/v1/withdrawals/${withdrawalDocumentId}`)
+                    .set({ 'X-PoolId': poolId, 'Authorization': walletAccessToken })
+                    .expect((res: request.Response) => {
+                        expect(res.body.state).toEqual(WithdrawalState.Pending);
+                        expect(res.body.withdrawalId).toBeDefined();
+
+                        withdrawalId = res.body.withdrawalId;
+                    })
+                    .expect(200, done);
+            });
+
+            it('should finalize the withdraw poll', async () => {
+                const { call, nonce, sig } = await signMethod(
+                    poolAddress,
+                    'withdrawPollFinalize',
+                    [withdrawalId],
+                    userWallet,
+                );
+
+                await user
+                    .post('/v1/relay/call')
+                    .set({ 'X-PoolId': poolId, 'Authorization': walletAccessToken })
+                    .send({
+                        call,
+                        nonce,
+                        sig,
+                    })
+                    .expect(200);
+            });
+
+            it('should return Withdrawn state', (done) => {
+                user.get(`/v1/withdrawals/${withdrawalDocumentId}`)
+                    .set({ 'X-PoolId': poolId, 'Authorization': walletAccessToken })
+                    .expect((res: request.Response) => {
+                        expect(res.body.state).toEqual(WithdrawalState.Withdrawn);
+                    })
+                    .expect(200, done);
+            });
+
+            it('should return a 403 for this second claim', (done) => {
+                user.post(`/v1/rewards/${rewardID}/claim`)
+                    .send({ hash })
+                    .set({ 'X-PoolId': poolId, 'Authorization': walletAccessToken })
+                    .expect(403, done);
+            });
+        });
+    });
+
+    describe('A token reward with the unlock date of today', () => {
+        it('Create reward', (done) => {
+            user.post('/v1/rewards/')
+                .set({ 'X-PoolId': poolId, 'Authorization': dashboardAccessToken })
+                .send(getRewardConfiguration('withdraw-date-is-today'))
                 .expect((res: request.Response) => {
-                    expect(res.body.state).toEqual(WithdrawalState.Pending);
-                    expect(res.body.withdrawalId).toBeDefined();
+                    expect(res.body.id).toEqual(3);
 
-                    withdrawalId = res.body.withdrawalId;
+                    rewardID = res.body.id;
                 })
-                .expect(200, done);
+                .expect(201, done);
         });
 
-        it('should finalize the withdraw poll', async () => {
-            const { call, nonce, sig } = await signMethod(
-                poolAddress,
-                'withdrawPollFinalize',
-                [withdrawalId],
-                userWallet,
-            );
+        describe('POST /rewards/:id/claim', () => {
+            it('should return a 200 and withdrawal id', (done) => {
+                user.post(`/v1/rewards/${rewardID}/claim`)
+                    .set({ 'X-PoolId': poolId, 'Authorization': walletAccessToken })
+                    .send({ hash })
+                    .expect((res: request.Response) => {
+                        expect(res.body._id).toBeDefined();
+                        expect(res.body.state).toEqual(WithdrawalState.Pending);
 
-            await user
-                .post('/v1/relay/call')
-                .set({ 'X-PoolAddress': poolAddress, 'Authorization': walletAccessToken })
-                .send({
-                    call,
-                    nonce,
-                    sig,
-                })
-                .expect(200);
+                        withdrawalDocumentId = res.body._id;
+                    })
+                    .expect(200, done);
+            });
+
+            it('should return Pending state', (done) => {
+                user.get(`/v1/withdrawals/${withdrawalDocumentId}`)
+                    .set({ 'X-PoolId': poolId, 'Authorization': walletAccessToken })
+                    .expect((res: request.Response) => {
+                        expect(res.body.state).toEqual(WithdrawalState.Pending);
+                        expect(res.body.withdrawalId).toBeDefined();
+
+                        withdrawalId = res.body.withdrawalId;
+                    })
+                    .expect(200, done);
+            });
+
+            it('should finalize the withdraw poll', async () => {
+                const { call, nonce, sig } = await signMethod(
+                    poolAddress,
+                    'withdrawPollFinalize',
+                    [withdrawalId],
+                    userWallet,
+                );
+
+                await user
+                    .post('/v1/relay/call')
+                    .set({ 'X-PoolId': poolId, 'Authorization': walletAccessToken })
+                    .send({
+                        call,
+                        nonce,
+                        sig,
+                    })
+                    .expect(200);
+            });
+
+            it('should return Withdrawn state', (done) => {
+                user.get(`/v1/withdrawals/${withdrawalDocumentId}`)
+                    .set({ 'X-PoolId': poolId, 'Authorization': walletAccessToken })
+                    .expect((res: request.Response) => {
+                        expect(res.body.state).toEqual(WithdrawalState.Withdrawn);
+                    })
+                    .expect(200, done);
+            });
         });
+    });
 
-        it('should return Withdrawn state', (done) => {
-            user.get(`/v1/withdrawals/${withdrawalDocumentId}`)
-                .set({ 'X-PoolAddress': poolAddress, 'Authorization': walletAccessToken })
+    describe('A token reward with the unlock date of tomorrow', () => {
+        it('Create reward', (done) => {
+            user.post('/v1/rewards/')
+                .set({ 'X-PoolId': poolId, 'Authorization': dashboardAccessToken })
+                .send(getRewardConfiguration('withdraw-date-is-tomorrow'))
                 .expect((res: request.Response) => {
-                    expect(res.body.state).toEqual(WithdrawalState.Withdrawn);
+                    expect(res.body.id).toEqual(4);
+
+                    rewardID = res.body.id;
                 })
-                .expect(200, done);
+                .expect(201, done);
         });
 
-        it('should return a 403 for this second claim', (done) => {
-            user.post(`/v1/rewards/${rewardID}/claim`)
-                .set({ 'X-PoolAddress': poolAddress, 'Authorization': walletAccessToken })
-                .expect(403, done);
+        describe('POST /rewards/:id/claim', () => {
+            it('should return a 200 and withdrawal id', (done) => {
+                user.post(`/v1/rewards/${rewardID}/claim`)
+                    .set({ 'X-PoolId': poolId, 'Authorization': walletAccessToken })
+                    .send({ hash })
+                    .expect((res: request.Response) => {
+                        expect(res.body._id).toBeDefined();
+                        expect(res.body.state).toEqual(WithdrawalState.Pending);
+
+                        withdrawalDocumentId = res.body._id;
+                    })
+                    .expect(200, done);
+            });
+
+            it('should return Pending state', (done) => {
+                user.get(`/v1/withdrawals/${withdrawalDocumentId}`)
+                    .set({ 'X-PoolId': poolId, 'Authorization': walletAccessToken })
+                    .expect((res: request.Response) => {
+                        expect(res.body.state).toEqual(WithdrawalState.Pending);
+                        expect(res.body.withdrawalId).toBeDefined();
+
+                        withdrawalId = res.body.withdrawalId;
+                    })
+                    .expect(200, done);
+            });
+        });
+    });
+
+    describe('A token reward with an expiration date set to t plus 30 minute', () => {
+        it('Create reward', (done) => {
+            user.post('/v1/rewards/')
+                .set({ 'X-PoolId': poolId, 'Authorization': dashboardAccessToken })
+                .send(getRewardConfiguration('expiration-date-is-next-30-min'))
+                .expect((res: request.Response) => {
+                    expect(res.body.id).toEqual(5);
+
+                    rewardID = res.body.id;
+                })
+                .expect(201, done);
+        });
+
+        describe('POST /rewards/:id/claim', () => {
+            it('should return a 200 and withdrawal id', (done) => {
+                user.post(`/v1/rewards/${rewardID}/claim`)
+                    .set({ 'X-PoolId': poolId, 'Authorization': walletAccessToken })
+                    .send({ hash })
+                    .expect((res: request.Response) => {
+                        expect(res.body._id).toBeDefined();
+                        expect(res.body.state).toEqual(WithdrawalState.Pending);
+
+                        withdrawalDocumentId = res.body._id;
+                    })
+                    .expect(200, done);
+            });
+
+            it('should return Pending state', (done) => {
+                user.get(`/v1/withdrawals/${withdrawalDocumentId}`)
+                    .set({ 'X-PoolId': poolId, 'Authorization': walletAccessToken })
+                    .expect((res: request.Response) => {
+                        expect(res.body.state).toEqual(WithdrawalState.Pending);
+                        expect(res.body.withdrawalId).toBeDefined();
+
+                        withdrawalId = res.body.withdrawalId;
+                    })
+                    .expect(200, done);
+            });
+
+            it('should finalize the withdraw poll', async () => {
+                const { call, nonce, sig } = await signMethod(
+                    poolAddress,
+                    'withdrawPollFinalize',
+                    [withdrawalId],
+                    userWallet,
+                );
+
+                await user
+                    .post('/v1/relay/call')
+                    .set({ 'X-PoolId': poolId, 'Authorization': walletAccessToken })
+                    .send({
+                        call,
+                        nonce,
+                        sig,
+                    })
+                    .expect(200);
+            });
+
+            it('should return Withdrawn state', (done) => {
+                user.get(`/v1/withdrawals/${withdrawalDocumentId}`)
+                    .set({ 'X-PoolId': poolId, 'Authorization': walletAccessToken })
+                    .expect((res: request.Response) => {
+                        expect(res.body.state).toEqual(WithdrawalState.Withdrawn);
+                    })
+                    .expect(200, done);
+            });
+        });
+    });
+
+    describe('A token reward with an expiration date set to t minus 30 minute', () => {
+        it('Create reward', (done) => {
+            user.post('/v1/rewards/')
+                .set({ 'X-PoolId': poolId, 'Authorization': dashboardAccessToken })
+                .send(getRewardConfiguration('expiration-date-is-previous-30-min'))
+                .expect((res: request.Response) => {
+                    expect(res.body.id).toEqual(6);
+
+                    rewardID = res.body.id;
+                })
+                .expect(201, done);
+        });
+
+        describe('POST /rewards/:id/claim', () => {
+            it('should return a 403 and withdrawal id', (done) => {
+                user.post(`/v1/rewards/${rewardID}/claim`)
+                    .set({ 'X-PoolId': poolId, 'Authorization': walletAccessToken })
+                    .send({ hash })
+                    .expect(403, done);
+            });
+        });
+    });
+
+    describe('A token reward with "membership required"', () => {
+        it('Create reward', (done) => {
+            user.post('/v1/rewards/')
+                .set({ 'X-PoolId': poolId, 'Authorization': dashboardAccessToken })
+                .send(getRewardConfiguration('membership-is-required'))
+                .expect((res: request.Response) => {
+                    expect(res.body.id).toEqual(7);
+
+                    rewardID = res.body.id;
+                })
+                .expect(201, done);
+        });
+
+        describe('POST /rewards/:id/claim', () => {
+            it('should return a 403 and withdrawal id', (done) => {
+                user.post(`/v1/rewards/${rewardID}/claim`)
+                    .set({ 'X-PoolId': poolId, 'Authorization': walletAccessToken2 })
+                    .send({ hash })
+                    .expect(403, done);
+            });
+        });
+    });
+
+    describe('A token reward with claim once enabled', () => {
+        it('Create reward', (done) => {
+            user.post('/v1/rewards/')
+                .set({ 'X-PoolId': poolId, 'Authorization': dashboardAccessToken })
+                .send(getRewardConfiguration('claim-one-is-enabled'))
+                .expect((res: request.Response) => {
+                    expect(res.body.id).toEqual(8);
+
+                    rewardID = res.body.id;
+                })
+                .expect(201, done);
+        });
+
+        describe('POST /rewards/:id/claim', () => {
+            it('should return a 200 and withdrawal id', (done) => {
+                user.post(`/v1/rewards/${rewardID}/claim`)
+                    .set({ 'X-PoolId': poolId, 'Authorization': walletAccessToken })
+                    .send({ hash })
+                    .expect((res: request.Response) => {
+                        expect(res.body._id).toBeDefined();
+                        expect(res.body.state).toEqual(WithdrawalState.Pending);
+
+                        withdrawalDocumentId = res.body._id;
+                    })
+                    .expect(200, done);
+            });
+
+            it('should return Pending state', (done) => {
+                user.get(`/v1/withdrawals/${withdrawalDocumentId}`)
+                    .set({ 'X-PoolId': poolId, 'Authorization': walletAccessToken })
+                    .expect((res: request.Response) => {
+                        expect(res.body.state).toEqual(WithdrawalState.Pending);
+                        expect(res.body.withdrawalId).toBeDefined();
+
+                        withdrawalId = res.body.withdrawalId;
+                    })
+                    .expect(200, done);
+            });
+
+            it('should finalize the withdraw poll', async () => {
+                const { call, nonce, sig } = await signMethod(
+                    poolAddress,
+                    'withdrawPollFinalize',
+                    [withdrawalId],
+                    userWallet,
+                );
+
+                await user
+                    .post('/v1/relay/call')
+                    .set({ 'X-PoolId': poolId, 'Authorization': walletAccessToken })
+                    .send({
+                        call,
+                        nonce,
+                        sig,
+                    })
+                    .expect(200);
+            });
+
+            it('should return Withdrawn state', (done) => {
+                user.get(`/v1/withdrawals/${withdrawalDocumentId}`)
+                    .set({ 'X-PoolId': poolId, 'Authorization': walletAccessToken })
+                    .expect((res: request.Response) => {
+                        expect(res.body.state).toEqual(WithdrawalState.Withdrawn);
+                    })
+                    .expect(200, done);
+            });
+
+            it('should return a 403 for this second claim', (done) => {
+                user.post(`/v1/rewards/${rewardID}/claim`)
+                    .set({ 'X-PoolId': poolId, 'Authorization': walletAccessToken })
+                    .send({ hash })
+                    .expect(403, done);
+            });
+        });
+    });
+
+    describe('A token reward with claim once disabled', () => {
+        it('Create reward', (done) => {
+            user.post('/v1/rewards/')
+                .set({ 'X-PoolId': poolId, 'Authorization': dashboardAccessToken })
+                .send(getRewardConfiguration('claim-one-is-disabled'))
+                .expect((res: request.Response) => {
+                    expect(res.body.id).toEqual(9);
+
+                    rewardID = res.body.id;
+                })
+                .expect(201, done);
+        });
+
+        describe('POST /rewards/:id/claim', () => {
+            it('should return a 200 and withdrawal id', (done) => {
+                user.post(`/v1/rewards/${rewardID}/claim`)
+                    .set({ 'X-PoolId': poolId, 'Authorization': walletAccessToken })
+                    .send({ hash })
+                    .expect((res: request.Response) => {
+                        expect(res.body._id).toBeDefined();
+                        expect(res.body.state).toEqual(WithdrawalState.Pending);
+
+                        withdrawalDocumentId = res.body._id;
+                    })
+                    .expect(200, done);
+            });
+
+            it('should return Pending state', (done) => {
+                user.get(`/v1/withdrawals/${withdrawalDocumentId}`)
+                    .set({ 'X-PoolId': poolId, 'Authorization': walletAccessToken })
+                    .expect((res: request.Response) => {
+                        expect(res.body.state).toEqual(WithdrawalState.Pending);
+                        expect(res.body.withdrawalId).toBeDefined();
+
+                        withdrawalId = res.body.withdrawalId;
+                    })
+                    .expect(200, done);
+            });
+
+            it('should finalize the withdraw poll', async () => {
+                const { call, nonce, sig } = await signMethod(
+                    poolAddress,
+                    'withdrawPollFinalize',
+                    [withdrawalId],
+                    userWallet,
+                );
+
+                await user
+                    .post('/v1/relay/call')
+                    .set({ 'X-PoolId': poolId, 'Authorization': walletAccessToken })
+                    .send({
+                        call,
+                        nonce,
+                        sig,
+                    })
+                    .expect(200);
+            });
+
+            it('should return Withdrawn state', (done) => {
+                user.get(`/v1/withdrawals/${withdrawalDocumentId}`)
+                    .set({ 'X-PoolId': poolId, 'Authorization': walletAccessToken })
+                    .expect((res: request.Response) => {
+                        expect(res.body.state).toEqual(WithdrawalState.Withdrawn);
+                    })
+                    .expect(200, done);
+            });
+
+            it('should return a 200 for this second claim', (done) => {
+                user.post(`/v1/rewards/${rewardID}/claim`)
+                    .set({ 'X-PoolId': poolId, 'Authorization': walletAccessToken })
+                    .send({ hash })
+                    .expect(200, done);
+            });
         });
     });
 });

@@ -47,12 +47,10 @@ router.patch(
     UpdateReward.controller,
 );
 router.post(
-    '/:id/claim',
+    '/:id/claim/',
     guard.check(['withdrawals:write', 'rewards:read']),
-    // rateLimitRewardClaim,
     assertRequestInput(CreateRewardClaim.validation),
-    requireAssetPoolHeader,
-    assertPlan([AccountPlanType.Basic, AccountPlanType.Premium]),
+    // requireAssetPoolHeader,
     CreateRewardClaim.controller,
 );
 router.post(

@@ -21,21 +21,21 @@ import { Contract } from 'web3-eth-contract';
 export const ADMIN_ROLE = '0x0000000000000000000000000000000000000000000000000000000000000000';
 
 export default class AssetPoolService {
-    static isPoolClient(clientId: string, address: string) {
-        return AssetPool.exists({ clientId, address });
+    static isPoolClient(clientId: string, poolId: string) {
+        return AssetPool.exists({ _id: poolId, clientId });
     }
 
-    static isPoolMember(sub: string, poolAddress: string) {
+    static isPoolMember(sub: string, poolId: string) {
         return Membership.exists({
             sub,
-            poolAddress,
+            poolId,
         });
     }
 
-    static isPoolOwner(sub: string, address: string) {
+    static isPoolOwner(sub: string, poolId: string) {
         return AssetPool.exists({
+            _id: poolId,
             sub,
-            address,
         });
     }
 
@@ -168,9 +168,8 @@ export default class AssetPoolService {
         return AssetPool.find({});
     }
 
-    static async removeByAddress(address: string) {
-        const assetPool = await AssetPool.findOne({ address: address });
-        await assetPool.remove();
+    static remove(pool: AssetPoolDocument) {
+        return AssetPool.deleteOne({ _id: String(pool._id) });
     }
 
     static findByAddress(address: string) {
