@@ -5,6 +5,7 @@ import { INFURA_GAS_TANK, INFURA_PROJECT_ID, PRIVATE_KEY, TESTNET_INFURA_GAS_TAN
 import { soliditySha3 } from 'web3-utils';
 import { Transaction, TransactionDocument } from '@/models/Transaction';
 import { poll } from '@/util/polling';
+import { AssetPool } from '@/models/AssetPool';
 
 const testnet = new ethers.providers.InfuraProvider('maticmum', INFURA_PROJECT_ID);
 const mainnet = new ethers.providers.InfuraProvider('matic', INFURA_PROJECT_ID);
@@ -118,6 +119,10 @@ async function send(contract: Contract, tx: TransactionDocument) {
     await provider.send('relay_sendTransaction', [options, signedMessage]);
 
     tx.state = TransactionState.Sent;
+
+    // Update lastTransactionAt value for the pool if the address is a pool
+    await AssetPool.updateOne({ address: tx.to, chainId: tx.chainId }, { lastTransactionAt: Date.now() });
+
     return await tx.save();
 }
 

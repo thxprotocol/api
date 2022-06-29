@@ -155,10 +155,9 @@ async function send(to: string, fn: any, chainId: ChainId, gasLimit?: number, fr
         tx.transactionHash = receipt.transactionHash;
         tx.state = TransactionState.Mined;
         tx = await tx.save();
+
         // Update lastTransactionAt value for the pool if the address is a pool
-        if (await AssetPoolService.getByAddress(tx.to)) {
-            await AssetPool.findOneAndUpdate({ address: tx.to }, { lastTransactionAt: Date.now() });
-        }
+        await AssetPool.updateOne({ address: tx.to, chainId: tx.chainId }, { lastTransactionAt: Date.now() });
     }
 
     return { tx, receipt };
