@@ -18,17 +18,17 @@ const controller = async (req: Request, res: Response) => {
     const account = await AccountProxy.getById(req.auth.sub);
     if (!account) throw new NotFoundError('No Account');
 
-    const assetPool = await AssetPoolService.getById(membership.poolId);
+    const pool = await AssetPoolService.getById(membership.poolId);
 
     let poolBalance;
-    if (assetPool && assetPool.variant === 'defaultPool') {
-        const balanceInWei = await assetPool.contract.methods.getBalance().call();
+    if (pool && pool.variant === 'defaultPool') {
+        const balanceInWei = await pool.contract.methods.getBalance().call();
         poolBalance = Number(fromWei(balanceInWei));
     }
 
     let pendingBalance;
     if (membership.erc20) {
-        pendingBalance = await WithdrawalService.getPendingBalance(account, membership.poolAddress);
+        pendingBalance = await WithdrawalService.getPendingBalance(account, pool.address);
     }
 
     let tokens;
@@ -39,6 +39,8 @@ const controller = async (req: Request, res: Response) => {
     return res.json({
         id: String(membership._id),
         ...membership.toJSON(),
+        chainId: pool.chainId,
+        poolAddress: pool.address,
         poolBalance,
         pendingBalance,
         tokens,

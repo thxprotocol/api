@@ -90,8 +90,6 @@ export default class MembershipService {
                 sub,
                 chainId: assetPool.chainId,
                 poolId: String(assetPool._id),
-                // poolAddress: assetPool.address,
-                // erc721: String(erc721._id),
                 erc721Id: String(erc721._id),
             });
         }

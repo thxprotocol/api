@@ -1334,7 +1334,7 @@
         }
       }
     },
-    "/rewards/{id}/claim": {
+    "/rewards/{id}/claim/": {
       "post": {
         "tags": [
           "Rewards"
@@ -1346,6 +1346,18 @@
             "in": "path",
             "required": true,
             "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "hash": {
+                  "example": "any"
+                }
+              }
+            }
           }
         ],
         "responses": {
