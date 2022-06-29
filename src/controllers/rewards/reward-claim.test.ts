@@ -25,7 +25,8 @@ describe('Reward Claim', () => {
         withdrawalDocumentId: string,
         withdrawalId: string,
         userWallet: Account,
-        tokenAddress: string;
+        tokenAddress: string,
+        hash: string;
 
     beforeAll(async () => {
         await beforeAllCallback();
@@ -62,6 +63,7 @@ describe('Reward Claim', () => {
                 expect(isAddress(res.body.address)).toBe(true);
                 poolId = res.body._id;
                 poolAddress = res.body.address;
+                hash = Buffer.from(JSON.stringify({ poolAddress })).toString('base64');
             })
             .expect(201, done);
     });
@@ -83,6 +85,7 @@ describe('Reward Claim', () => {
             it('should return a 200 and withdrawal id', (done) => {
                 user.post(`/v1/rewards/${rewardID}/claim`)
                     .set({ 'X-PoolId': poolId, 'Authorization': walletAccessToken })
+                    .send({ hash })
                     .expect((res: request.Response) => {
                         expect(res.body._id).toBeDefined();
                         expect(res.body.state).toEqual(WithdrawalState.Pending);
@@ -134,6 +137,7 @@ describe('Reward Claim', () => {
 
             it('should return a 200 for this second claim', (done) => {
                 user.post(`/v1/rewards/${rewardID}/claim`)
+                    .send({ hash })
                     .set({ 'X-PoolId': poolId, 'Authorization': walletAccessToken })
                     .expect(200, done);
             });
@@ -156,6 +160,7 @@ describe('Reward Claim', () => {
         describe('POST /rewards/:id/claim', () => {
             it('should return a 200 and withdrawal id', (done) => {
                 user.post(`/v1/rewards/${rewardID}/claim`)
+                    .send({ hash })
                     .set({ 'X-PoolId': poolId, 'Authorization': walletAccessToken })
                     .expect((res: request.Response) => {
                         expect(res.body._id).toBeDefined();
@@ -208,6 +213,7 @@ describe('Reward Claim', () => {
 
             it('should return a 403 for this second claim', (done) => {
                 user.post(`/v1/rewards/${rewardID}/claim`)
+                    .send({ hash })
                     .set({ 'X-PoolId': poolId, 'Authorization': walletAccessToken })
                     .expect(403, done);
             });
@@ -231,6 +237,7 @@ describe('Reward Claim', () => {
             it('should return a 200 and withdrawal id', (done) => {
                 user.post(`/v1/rewards/${rewardID}/claim`)
                     .set({ 'X-PoolId': poolId, 'Authorization': walletAccessToken })
+                    .send({ hash })
                     .expect((res: request.Response) => {
                         expect(res.body._id).toBeDefined();
                         expect(res.body.state).toEqual(WithdrawalState.Pending);
@@ -299,6 +306,7 @@ describe('Reward Claim', () => {
             it('should return a 200 and withdrawal id', (done) => {
                 user.post(`/v1/rewards/${rewardID}/claim`)
                     .set({ 'X-PoolId': poolId, 'Authorization': walletAccessToken })
+                    .send({ hash })
                     .expect((res: request.Response) => {
                         expect(res.body._id).toBeDefined();
                         expect(res.body.state).toEqual(WithdrawalState.Pending);
@@ -339,6 +347,7 @@ describe('Reward Claim', () => {
             it('should return a 200 and withdrawal id', (done) => {
                 user.post(`/v1/rewards/${rewardID}/claim`)
                     .set({ 'X-PoolId': poolId, 'Authorization': walletAccessToken })
+                    .send({ hash })
                     .expect((res: request.Response) => {
                         expect(res.body._id).toBeDefined();
                         expect(res.body.state).toEqual(WithdrawalState.Pending);
@@ -407,6 +416,7 @@ describe('Reward Claim', () => {
             it('should return a 403 and withdrawal id', (done) => {
                 user.post(`/v1/rewards/${rewardID}/claim`)
                     .set({ 'X-PoolId': poolId, 'Authorization': walletAccessToken })
+                    .send({ hash })
                     .expect(403, done);
             });
         });
@@ -429,6 +439,7 @@ describe('Reward Claim', () => {
             it('should return a 403 and withdrawal id', (done) => {
                 user.post(`/v1/rewards/${rewardID}/claim`)
                     .set({ 'X-PoolId': poolId, 'Authorization': walletAccessToken2 })
+                    .send({ hash })
                     .expect(403, done);
             });
         });
@@ -451,6 +462,7 @@ describe('Reward Claim', () => {
             it('should return a 200 and withdrawal id', (done) => {
                 user.post(`/v1/rewards/${rewardID}/claim`)
                     .set({ 'X-PoolId': poolId, 'Authorization': walletAccessToken })
+                    .send({ hash })
                     .expect((res: request.Response) => {
                         expect(res.body._id).toBeDefined();
                         expect(res.body.state).toEqual(WithdrawalState.Pending);
@@ -503,6 +515,7 @@ describe('Reward Claim', () => {
             it('should return a 403 for this second claim', (done) => {
                 user.post(`/v1/rewards/${rewardID}/claim`)
                     .set({ 'X-PoolId': poolId, 'Authorization': walletAccessToken })
+                    .send({ hash })
                     .expect(403, done);
             });
         });
@@ -525,6 +538,7 @@ describe('Reward Claim', () => {
             it('should return a 200 and withdrawal id', (done) => {
                 user.post(`/v1/rewards/${rewardID}/claim`)
                     .set({ 'X-PoolId': poolId, 'Authorization': walletAccessToken })
+                    .send({ hash })
                     .expect((res: request.Response) => {
                         expect(res.body._id).toBeDefined();
                         expect(res.body.state).toEqual(WithdrawalState.Pending);
@@ -577,6 +591,7 @@ describe('Reward Claim', () => {
             it('should return a 200 for this second claim', (done) => {
                 user.post(`/v1/rewards/${rewardID}/claim`)
                     .set({ 'X-PoolId': poolId, 'Authorization': walletAccessToken })
+                    .send({ hash })
                     .expect(200, done);
             });
         });

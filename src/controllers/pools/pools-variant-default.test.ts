@@ -191,10 +191,11 @@ describe('Default Pool', () => {
 
     describe('POST /rewards/:id/claim', () => {
         it('HTTP 302 when tx is handled', async () => {
+            const hash = Buffer.from(JSON.stringify({ poolAddress })).toString('base64');
             await user
                 .post('/v1/rewards/1/claim')
                 .set({ 'X-PoolId': poolId, 'Authorization': walletAccessToken })
-                .send()
+                .send({ hash })
                 .expect(200);
         });
 
