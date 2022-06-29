@@ -8,6 +8,7 @@ const validation = [
     body('nonce').exists(),
     body('sig').exists(),
     body('amountIn').exists().isNumeric(),
+    body('tokenInAddress').exists(),
 ];
 
 const controller = async (req: Request, res: Response) => {
