@@ -1,13 +1,11 @@
 import { Request, Response } from 'express';
 import RewardService from '@/services/RewardService';
-import { TReward } from '@/models/Reward';
 import WithdrawalService from '@/services/WithdrawalService';
 
 const controller = async (req: Request, res: Response) => {
     // #swagger.tags = ['Rewards']
-    const result: TReward[] = [];
     const rewards = await RewardService.findByPool(req.assetPool);
-
+    const result = [];
     for (const r of rewards) {
         const rewardId = Number(r.id);
         const withdrawals = await WithdrawalService.findByQuery({ poolId: String(req.assetPool._id), rewardId });
@@ -19,6 +17,7 @@ const controller = async (req: Request, res: Response) => {
             slug: r.slug,
             erc721metadataId: r.erc721metadataId,
             expiryDate: r.expiryDate,
+            poolId: req.assetPool._id,
             poolAddress: req.assetPool.address,
             withdrawLimit: r.withdrawLimit,
             withdrawAmount: r.withdrawAmount,

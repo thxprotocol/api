@@ -12,7 +12,6 @@ import CreatePool from './post.controller';
 import ReadPool from './get.controller';
 import DeletePool from './delete.controller';
 import ListPools from './list.controller';
-import ListPoolMembers from './members/list.controller';
 import CreatePoolTopup from './topup/post.controller';
 
 const router = express.Router();
@@ -24,14 +23,6 @@ router.post(
     CreatePool.controller,
 );
 router.get('/', guard.check(['pools:read']), ListPools.controller);
-router.get(
-    '/:id/members',
-    guard.check(['pools:read', 'members:read']),
-    assertRequestInput(ListPoolMembers.validation),
-    assertPoolOwner,
-    assertPlan([AccountPlanType.Basic, AccountPlanType.Premium]),
-    ListPoolMembers.controller,
-);
 router.get(
     '/:id',
     guard.check(['pools:read']),

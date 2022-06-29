@@ -113,11 +113,11 @@ describe('Members', () => {
 
     describe('GET /members', () => {
         it('HTTP 200 if OK', (done) => {
-            user.get('/v1/members')
+            user.get('/v1/members?page=1&limit=10')
                 .set({ 'X-PoolId': poolId, 'Authorization': adminAccessToken })
                 .expect((res: request.Response) => {
-                    expect(res.body.length).toEqual(1);
-                    expect(res.body[0]).toBe(userWallet.address);
+                    expect(res.body.results.length).toEqual(1);
+                    expect(res.body.results[0].address).toBe(userWallet.address);
                 })
                 .expect(200, done);
         });
@@ -141,10 +141,10 @@ describe('Members', () => {
 
     describe('GET /members (after DELETE)', () => {
         it('HTTP 200 if OK', (done) => {
-            user.get('/v1/members')
+            user.get('/v1/members?page=1&limit=10')
                 .set({ 'X-PoolId': poolId, 'Authorization': adminAccessToken })
                 .expect((res: request.Response) => {
-                    expect(res.body.length).toEqual(0);
+                    expect(res.body.results.length).toEqual(0);
                 })
                 .expect(200, done);
         });
