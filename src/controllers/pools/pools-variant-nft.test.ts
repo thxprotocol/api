@@ -8,7 +8,7 @@ import { account2, dashboardAccessToken } from '@/util/jest/constants';
 const user = request.agent(app);
 
 describe('NFT Pool', () => {
-    let poolAddress: string, tokenAddress: string, erc721ID: string, metadataId: string;
+    let poolId: string, tokenAddress: string, erc721ID: string, metadataId: string;
     const chainId = ChainId.Hardhat,
         name = 'Planets of the Galaxy',
         symbol = 'GLXY',
@@ -56,7 +56,7 @@ describe('NFT Pool', () => {
                 })
                 .expect(({ body }: request.Response) => {
                     expect(isAddress(body.address)).toBe(true);
-                    poolAddress = body.address;
+                    poolId = body._id;
                 })
                 .expect(201, done);
         });
@@ -72,7 +72,7 @@ describe('NFT Pool', () => {
         it('should return tokenId when token is minted', (done) => {
             user.post('/v1/erc721/' + erc721ID + '/metadata')
                 .set('Authorization', dashboardAccessToken)
-                .set('X-PoolAddress', poolAddress)
+                .set('X-PoolId', poolId)
                 .send({
                     title,
                     description,
@@ -104,7 +104,7 @@ describe('NFT Pool', () => {
 
             user.post('/v1/erc721/' + erc721ID + '/metadata')
                 .set('Authorization', dashboardAccessToken)
-                .set('X-PoolAddress', poolAddress)
+                .set('X-PoolId', poolId)
                 .send({
                     title,
                     description,
@@ -133,7 +133,7 @@ describe('NFT Pool', () => {
 
             user.post('/v1/erc721/' + erc721ID + '/metadata/' + metadataId + '/mint')
                 .set('Authorization', dashboardAccessToken)
-                .set('X-PoolAddress', poolAddress)
+                .set('X-PoolId', poolId)
                 .send({
                     recipient,
                 })

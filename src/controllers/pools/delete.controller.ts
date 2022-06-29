@@ -9,10 +9,10 @@ const validation = [param('id').isMongoId()];
 
 const controller = async (req: Request, res: Response) => {
     // #swagger.tags = ['Pools']
-    await RewardService.removeAllForAddress(req.assetPool.address);
-    await WithdrawalService.removeAllForAddress(req.assetPool.address);
+    await RewardService.removeAllForPool(req.assetPool);
+    await WithdrawalService.removeAllForPool(req.assetPool);
     await ClientService.remove(req.assetPool.clientId);
-    await AssetPoolService.removeByAddress(req.assetPool.address);
+    await AssetPoolService.remove(req.assetPool);
 
     res.status(204).end();
 };

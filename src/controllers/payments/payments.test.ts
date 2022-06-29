@@ -5,15 +5,13 @@ import { isAddress, toWei } from 'web3-utils';
 import { Contract } from 'web3-eth-contract';
 import { afterAllCallback, beforeAllCallback } from '@/util/jest/config';
 import { ChainId } from '@/types/enums';
-import { createWallet, signMethod } from '@/util/jest/network';
+import { signMethod } from '@/util/jest/network';
 import {
     adminAccessToken,
     dashboardAccessToken,
     tokenName,
     tokenSymbol,
     tokenTotalSupply,
-    userWalletPrivateKey2,
-    walletAccessToken,
 } from '@/util/jest/constants';
 import { getContract, getContractFromName } from '@/config/contracts';
 import { PaymentState } from '@/types/enums/PaymentState';
@@ -26,14 +24,14 @@ import { WALLET_URL } from '@/config/secrets';
 const http = request.agent(app);
 
 describe('Payments', () => {
-    let poolAddress: string,
+    let poolId: string,
+        poolAddress: string,
         paymentId: string,
         admin: Account,
         token: Contract,
-        basicAccessToken: string,
-        poolId: string;
-    const returnUrl = 'https://example.com/checkout/confirm?id=123',
-        amount = '1000',
+        basicAccessToken: string;
+
+    const amount = '1000',
         successUrl = 'https://exmaple.com/success',
         failUrl = 'https://exmaple.com/fail',
         cancelUrl = 'https://exmaple.com/cancel';
@@ -44,7 +42,6 @@ describe('Payments', () => {
         await beforeAllCallback();
         const provider = getProvider(ChainId.Hardhat);
         admin = provider.admin;
-        // userWallet = createWallet(userWalletPrivateKey2);
     });
 
     it('Deploy existing token', async () => {
@@ -73,6 +70,7 @@ describe('Payments', () => {
             })
             .expect((res: Response) => {
                 expect(isAddress(res.body.address)).toBe(true);
+                poolId = res.body._id;
                 poolAddress = res.body.address;
             })
             .expect(201, done);
@@ -80,13 +78,13 @@ describe('Payments', () => {
 
     it('Request a payment', (done) => {
         http.post('/v1/payments')
-            .set({ 'Authorization': adminAccessToken, 'X-PoolAddress': poolAddress })
+            .set({ 'Authorization': adminAccessToken, 'X-PoolId': poolId })
             .send({
                 amount,
                 successUrl,
                 failUrl,
                 cancelUrl,
-                chainId: 31337,
+                chainId: ChainId.Hardhat,
             })
             .expect(({ body }: Response) => {
                 paymentId = body._id;
@@ -110,7 +108,7 @@ describe('Payments', () => {
 
     it('Get payment information', (done) => {
         http.get('/v1/payments/' + paymentId)
-            .set({ 'X-PoolAddress': poolAddress, 'X-Payment-Token': basicAccessToken })
+            .set({ 'X-PoolId': poolId, 'X-Payment-Token': basicAccessToken })
             .expect(({ body }: Response) => {
                 expect(body.successUrl).toBe(successUrl);
                 expect(body.failUrl).toBe(failUrl);
@@ -135,7 +133,7 @@ describe('Payments', () => {
 
         await http
             .post(`/v1/payments/${paymentId}/pay`)
-            .set({ 'X-PoolAddress': poolAddress, 'X-Payment-Token': basicAccessToken })
+            .set({ 'X-PoolId': poolId, 'X-Payment-Token': basicAccessToken })
             .send({
                 call,
                 nonce,

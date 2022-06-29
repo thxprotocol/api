@@ -16,7 +16,7 @@ import { getContract } from '@/config/contracts';
 const user = request.agent(app);
 
 describe('Account', () => {
-    let poolAddress: any, testToken: Contract, membershipID: string, userWalletAddress: string;
+    let poolId: string, testToken: Contract, membershipID: string, userWalletAddress: string;
 
     beforeAll(async () => {
         await beforeAllCallback();
@@ -35,7 +35,7 @@ describe('Account', () => {
                     tokens: [testToken.options.address],
                 })
                 .expect((res: request.Response) => {
-                    poolAddress = res.body.address;
+                    poolId = res.body._id;
                 })
                 .expect(201, done);
         });
@@ -44,7 +44,7 @@ describe('Account', () => {
     describe('POST /account', () => {
         it('HTTP 201', (done) => {
             user.post('/v1/account')
-                .set({ 'X-PoolAddress': poolAddress, 'Authorization': adminAccessToken })
+                .set({ 'X-PoolId': poolId, 'Authorization': adminAccessToken })
                 .send({
                     email: userEmail2,
                     password: userPassword2,
@@ -63,7 +63,7 @@ describe('Account', () => {
         it('HTTP 200 if OK', (done) => {
             user.post('/v1/members/')
                 .send({ address: userWalletAddress })
-                .set({ 'X-PoolAddress': poolAddress, 'Authorization': adminAccessToken })
+                .set({ 'X-PoolId': poolId, 'Authorization': adminAccessToken })
                 .expect(200, done);
         });
     });
@@ -71,7 +71,7 @@ describe('Account', () => {
     describe('GET /members/:address', () => {
         it('HTTP 200 if OK', (done) => {
             user.get('/v1/members/' + userWalletAddress)
-                .set({ 'X-PoolAddress': poolAddress, 'Authorization': adminAccessToken })
+                .set({ 'X-PoolId': poolId, 'Authorization': adminAccessToken })
                 .expect((res: request.Response) => {
                     expect(res.body.isMember).toBe(true);
                 })
@@ -86,7 +86,7 @@ describe('Account', () => {
     //             sig = '';
 
     //         user.post('/v1/gas_station/upgrade_address')
-    //             .set({ 'X-PoolAddress': poolAddress, Authorization: walletAccessToken })
+    //             .set({ 'X-PoolId': poolId, Authorization: walletAccessToken })
     //             .send({
     //                 newAddress: '',
     //                 nonce,
@@ -100,7 +100,7 @@ describe('Account', () => {
     describe('GET /account/', () => {
         it('HTTP 200 if OK', (done) => {
             user.get('/v1/account/')
-                .set({ 'X-PoolAddress': poolAddress, 'Authorization': walletAccessToken })
+                .set({ 'X-PoolId': poolId, 'Authorization': walletAccessToken })
                 .expect((res: request.Response) => {
                     expect(res.body.address).toBe(account2.address);
                 })
@@ -111,7 +111,7 @@ describe('Account', () => {
     describe('PATCH /account/', () => {
         it('HTTP 200 if OK', (done) => {
             user.patch('/v1/account/')
-                .set({ 'X-PoolAddress': poolAddress, 'Authorization': walletAccessToken })
+                .set({ 'X-PoolId': poolId, 'Authorization': walletAccessToken })
                 .send({ address: account2.address })
                 .expect(303, done);
         });
@@ -120,7 +120,7 @@ describe('Account', () => {
     describe('GET /memberships/', () => {
         it('HTTP 200 if OK', (done) => {
             user.get('/v1/memberships/')
-                .set({ 'X-PoolAddress': poolAddress, 'Authorization': walletAccessToken })
+                .set({ 'X-PoolId': poolId, 'Authorization': walletAccessToken })
                 .expect((res: request.Response) => {
                     membershipID = res.body[0];
                 })
@@ -131,12 +131,12 @@ describe('Account', () => {
     describe('GET /memberships/:id', () => {
         it('HTTP 200 if OK', (done) => {
             user.get('/v1/memberships/' + membershipID)
-                .set({ 'X-PoolAddress': poolAddress, 'Authorization': walletAccessToken })
+                .set({ 'X-PoolId': poolId, 'Authorization': walletAccessToken })
                 .expect((res: request.Response) => {
                     expect(res.body.id).toBe(membershipID);
-                    expect(res.body.poolAddress).toBe(poolAddress);
+                    expect(res.body.poolId).toBe(poolId);
                     expect(res.body.chainId).toBe(ChainId.Hardhat);
-                    expect(res.body.erc20).toBeDefined();
+                    expect(res.body.erc20Id).toBeDefined();
                 })
                 .expect(200, done);
         });

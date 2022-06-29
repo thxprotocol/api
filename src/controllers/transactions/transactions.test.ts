@@ -69,7 +69,7 @@ describe('Transactions', () => {
         it('POST /deposits/admin/ 200 OK', (done) => {
             const amount = fromWei('100000000000000000000', 'ether'); // 100 eth
             http.post(`/v1/pools/${poolId}/topup`)
-                .set({ 'Authorization': dashboardAccessToken, 'X-PoolAddress': poolAddress })
+                .set({ 'Authorization': dashboardAccessToken, 'X-PoolId': poolId })
                 .send({ amount })
                 .expect(200, done);
         });
@@ -77,7 +77,7 @@ describe('Transactions', () => {
         it('POST /deposits/admin/ 200 OK', (done) => {
             const amount = fromWei('100000000000000000000', 'ether'); // 100 eth
             http.post(`/v1/pools/${poolId}/topup`)
-                .set({ 'Authorization': dashboardAccessToken, 'X-PoolAddress': poolAddress })
+                .set({ 'Authorization': dashboardAccessToken, 'X-PoolId': poolId })
                 .send({ amount })
                 .expect(200, done);
         });
@@ -87,7 +87,7 @@ describe('Transactions', () => {
         it('HTTP 200 and returns 2 items', (done) => {
             user.get('/v1/transactions?page=1&limit=2')
                 .set('Authorization', dashboardAccessToken)
-                .set({ 'X-PoolAddress': poolAddress })
+                .set({ 'X-PoolId': poolId })
                 .expect(async (res: request.Response) => {
                     const result = res.body.results;
                     expect(result.length).toBe(2);

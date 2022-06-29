@@ -19,7 +19,7 @@ import { afterAllCallback, beforeAllCallback } from '@/util/jest/config';
 const user = request.agent(app);
 
 describe('Propose Withdrawal', () => {
-    let poolAddress: string, withdrawalDocumentId: number, tokenAddress: string, userWallet: Account, poolId: string;
+    let withdrawalDocumentId: number, tokenAddress: string, userWallet: Account, poolId: string;
 
     beforeAll(async () => {
         await beforeAllCallback();
@@ -58,14 +58,13 @@ describe('Propose Withdrawal', () => {
                 .expect((res: request.Response) => {
                     expect(isAddress(res.body.address)).toBe(true);
                     poolId = res.body._id;
-                    poolAddress = res.body.address;
                 })
                 .expect(201, done);
         });
 
         it('HTTP 200 (success)', (done) => {
             user.get('/v1/pools/' + poolId)
-                .set({ 'X-PoolAddress': poolAddress, 'Authorization': dashboardAccessToken })
+                .set({ 'X-PoolId': poolId, 'Authorization': dashboardAccessToken })
                 .send()
                 .expect((res: request.Response) => {
                     expect(isAddress(res.body.token.address)).toBe(true);
@@ -76,7 +75,7 @@ describe('Propose Withdrawal', () => {
         it('HTTP 200 when member is added', (done) => {
             user.post('/v1/members/')
                 .send({ address: userWallet.address })
-                .set({ 'X-PoolAddress': poolAddress, 'Authorization': adminAccessToken })
+                .set({ 'X-PoolId': poolId, 'Authorization': adminAccessToken })
                 .expect(200, done);
         });
     });
@@ -88,10 +87,9 @@ describe('Propose Withdrawal', () => {
                     member: userWallet.address,
                     amount: rewardWithdrawAmount,
                 })
-
-                .set({ 'X-PoolAddress': poolAddress, 'Authorization': adminAccessToken })
+                .set({ 'X-PoolId': poolId, 'Authorization': adminAccessToken })
                 .expect(({ body }: request.Response) => {
-                    expect(body.id).toBeDefined();
+                    expect(body._id).toBeDefined();
                     expect(body.sub).toEqual(sub2);
                     expect(body.amount).toEqual(rewardWithdrawAmount);
                     expect(body.state).toEqual(0);
@@ -99,7 +97,7 @@ describe('Propose Withdrawal', () => {
                     expect(body.withdrawalId).toEqual(1);
                     expect(body.unlockDate).not.toBe(undefined);
 
-                    withdrawalDocumentId = body.id;
+                    withdrawalDocumentId = body._id;
                 })
                 .expect(201, done);
         });
@@ -108,7 +106,7 @@ describe('Propose Withdrawal', () => {
     describe('POST /withdrawals/:id/withdraw', () => {
         it('HTTP 200 and 0 balance', (done) => {
             user.get('/v1/members/' + userWallet.address)
-                .set({ 'X-PoolAddress': poolAddress, 'Authorization': adminAccessToken })
+                .set({ 'X-PoolId': poolId, 'Authorization': adminAccessToken })
                 .expect((res: request.Response) => {
                     expect(res.body.token.balance).toBe(0);
                 })
@@ -118,13 +116,13 @@ describe('Propose Withdrawal', () => {
         it('HTTP 200 OK', (done) => {
             user.post(`/v1/withdrawals/${withdrawalDocumentId}/withdraw`)
                 .send()
-                .set({ 'X-PoolAddress': poolAddress, 'Authorization': adminAccessToken })
+                .set({ 'X-PoolId': poolId, 'Authorization': adminAccessToken })
                 .expect(200, done);
         });
 
         it('HTTP 200 and 1000 balance', (done) => {
             user.get('/v1/members/' + userWallet.address)
-                .set({ 'X-PoolAddress': poolAddress, 'Authorization': adminAccessToken })
+                .set({ 'X-PoolId': poolId, 'Authorization': adminAccessToken })
                 .expect((res: request.Response) => {
                     expect(res.body.token.balance).toBe(1000);
                 })
@@ -135,15 +133,15 @@ describe('Propose Withdrawal', () => {
     describe('DELETE /withdrawals/:id', () => {
         it('HTTP 204', (done) => {
             user.delete('/v1/withdrawals/' + withdrawalDocumentId)
-                .set({ 'X-PoolAddress': poolAddress, 'Authorization': walletAccessToken })
+                .set({ 'X-PoolId': poolId, 'Authorization': walletAccessToken })
                 .expect(204, done);
         });
     });
 
-    describe('GET /pools/:address (totalSupply)', () => {
+    describe('GET /pools/:id (totalSupply)', () => {
         it('HTTP 200 state OK', (done) => {
             user.get('/v1/pools/' + poolId)
-                .set({ 'X-PoolAddress': poolAddress, 'Authorization': dashboardAccessToken })
+                .set({ 'X-PoolId': poolId, 'Authorization': dashboardAccessToken })
                 .expect((res: request.Response) => {
                     expect(res.body.token.poolBalance).toBe(0);
                     expect(res.body.token.name).toBe(tokenName);

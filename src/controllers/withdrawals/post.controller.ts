@@ -43,21 +43,10 @@ const controller = async (req: Request, res: Response) => {
         newrelic.recordMetric('/Withdrawal/DeferredCount', count),
     );
 
-    const result: TWithdrawal = {
-        id: withdrawal.id,
+    res.status(201).json({
+        ...withdrawal.toJSON(),
         sub: account.id,
         poolAddress: req.assetPool.address,
-        type: withdrawal.type,
-        withdrawalId: withdrawal.withdrawalId,
-        rewardId: withdrawal.rewardId,
-        beneficiary: withdrawal.beneficiary,
-        amount: withdrawal.amount,
-        unlockDate: withdrawal.unlockDate,
-        state: withdrawal.state,
-        transactions: withdrawal.transactions,
-        createdAt: withdrawal.createdAt,
-    };
-
-    res.status(201).json(result);
+    });
 };
 export default { controller, validation };

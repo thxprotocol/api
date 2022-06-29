@@ -5,26 +5,23 @@ export default class WidgetService {
         return Widget.findOne({ clientId });
     }
 
-    static async getForUserByPool(sub: string, poolAddress: string) {
-        const widgets = await Widget.find({ sub, 'metadata.poolAddress': poolAddress });
+    static async getForUserByPool(sub: string, poolId: string) {
+        const widgets = await Widget.find({ sub, 'metadata.poolId': poolId });
         return widgets.map((widget) => widget.clientId);
     }
 
-    static async create(sub: string, clientId: string, rewardId: number, poolAddress: string) {
-        const widget = new Widget({
+    static async create(sub: string, clientId: string, rewardId: number, poolId: string) {
+        return await Widget.create({
             sub,
             clientId,
             metadata: {
                 rewardId,
-                poolAddress,
+                poolId,
             },
         });
-        await widget.save();
-        return widget;
     }
 
     static async remove(clientId: string) {
-        const widget = await Widget.findOne({ clientId });
-        await widget.remove();
+        await Widget.deleteOne({ clientId });
     }
 }

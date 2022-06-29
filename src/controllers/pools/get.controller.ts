@@ -29,8 +29,8 @@ export const controller = async (req: Request, res: Response) => {
     ]);
     const client = await ClientService.get(req.assetPool.clientId);
     const metrics = {
-        withdrawals: await WithdrawalService.countByPoolAddress(req.assetPool),
-        members: await MemberService.countByPoolAddress(req.assetPool),
+        withdrawals: await WithdrawalService.countByPool(req.assetPool),
+        members: await MemberService.countByPool(req.assetPool),
     };
 
     res.json({

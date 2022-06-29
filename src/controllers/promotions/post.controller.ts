@@ -11,22 +11,16 @@ export const validation = [
 
 const controller = async (req: Request, res: Response) => {
     // #swagger.tags = ['Promotions']
-    const { _id, title, description, value, price } = await PromotionService.create({
+    const promotion = await PromotionService.create({
         sub: req.auth.sub,
         title: req.body.title,
         description: req.body.description,
         value: req.body.value,
         price: req.body.price,
-        poolAddress: req.assetPool.address,
+        poolId: String(req.assetPool._id),
     });
 
-    res.status(201).json({
-        id: String(_id),
-        title,
-        description,
-        value,
-        price,
-    });
+    res.status(201).json(promotion);
 };
 
 export default { controller, validation };

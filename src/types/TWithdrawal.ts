@@ -4,7 +4,7 @@ export type TWithdrawal = {
     id: string;
     type: WithdrawalType;
     state: WithdrawalState;
-    poolAddress: string;
+    poolId: string;
     sub: string;
     beneficiary: string; // TODO Should be deprecated after sub was added
     transactions: string[];

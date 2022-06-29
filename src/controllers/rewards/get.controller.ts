@@ -1,7 +1,6 @@
 import { Request, Response } from 'express';
 import RewardService from '@/services/RewardService';
 import { NotFoundError } from '@/util/errors';
-import { TReward } from '@/models/Reward';
 import { param } from 'express-validator';
 import WithdrawalService from '@/services/WithdrawalService';
 
@@ -13,30 +12,11 @@ const controller = async (req: Request, res: Response) => {
     if (!reward) throw new NotFoundError();
 
     const withdrawals = await WithdrawalService.findByQuery({
-        poolAddress: req.assetPool.address,
+        poolId: String(req.assetPool._id),
         rewardId: reward.id,
     });
 
-    const result: TReward = {
-        _id: String(reward._id),
-        id: reward.id,
-        title: reward.title,
-        slug: reward.slug,
-        erc721metadataId: reward.erc721metadataId,
-        expiryDate: reward.expiryDate,
-        withdrawLimit: reward.withdrawLimit,
-        withdrawAmount: reward.withdrawAmount,
-        withdrawDuration: reward.withdrawDuration,
-        withdrawCondition: reward.withdrawCondition,
-        withdrawUnlockDate: reward.withdrawUnlockDate,
-        isClaimOnce: reward.isClaimOnce,
-        isMembershipRequired: reward.isMembershipRequired,
-        poolAddress: req.assetPool.address,
-        progress: withdrawals.length,
-        state: reward.state,
-    };
-
-    res.json(result);
+    res.json({ ...reward.toJSON(), poolAddress: req.assetPool.address, progress: withdrawals.length });
 };
 
 export default { controller, validation };

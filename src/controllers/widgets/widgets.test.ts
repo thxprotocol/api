@@ -21,7 +21,7 @@ describe('Widgets', () => {
     const title = 'Welcome Package',
         slug = 'welcome-package';
 
-    let poolAddress: string, testToken: Contract, clientId: string;
+    let poolId: string, testToken: Contract, clientId: string;
 
     beforeAll(async () => {
         await beforeAllCallback();
@@ -40,7 +40,7 @@ describe('Widgets', () => {
                     tokens: [testToken.options.address],
                 })
                 .expect(({ body }: request.Response) => {
-                    poolAddress = body.address;
+                    poolId = body._id;
                 })
                 .expect(201, done);
         });
@@ -50,7 +50,7 @@ describe('Widgets', () => {
         it('HTTP 200', async () => {
             await user
                 .post('/v1/rewards/')
-                .set({ 'X-PoolAddress': poolAddress, 'Authorization': dashboardAccessToken })
+                .set({ 'X-PoolId': poolId, 'Authorization': dashboardAccessToken })
                 .send({
                     title,
                     slug,
@@ -65,11 +65,11 @@ describe('Widgets', () => {
     describe('POST /widgets/', () => {
         it('HTTP 200', (done) => {
             user.post('/v1/widgets/')
-                .set({ 'X-PoolAddress': poolAddress, 'Authorization': dashboardAccessToken })
+                .set({ 'X-PoolId': poolId, 'Authorization': dashboardAccessToken })
                 .send({
                     metadata: {
                         rewardId,
-                        poolAddress,
+                        poolId,
                     },
                     requestUris,
                     redirectUris,
@@ -81,8 +81,8 @@ describe('Widgets', () => {
 
     describe('GET /widgets', () => {
         it('HTTP 200', (done) => {
-            user.get('/v1/widgets?asset_pool=' + poolAddress)
-                .set({ 'X-PoolAddress': poolAddress, 'Authorization': dashboardAccessToken })
+            user.get('/v1/widgets?poolId=' + poolId)
+                .set({ 'X-PoolId': poolId, 'Authorization': dashboardAccessToken })
                 .expect((res: request.Response) => {
                     expect(res.body.length).toBe(1);
                     clientId = res.body[0];
@@ -94,13 +94,13 @@ describe('Widgets', () => {
     describe('GET /widgets/:clientId', () => {
         it('HTTP 200', (done) => {
             user.get('/v1/widgets/' + clientId)
-                .set({ 'X-PoolAddress': poolAddress, 'Authorization': dashboardAccessToken })
+                .set({ 'X-PoolId': poolId, 'Authorization': dashboardAccessToken })
                 .expect((res: request.Response) => {
                     expect(res.body.requestUris[0]).toBe(requestUris[0]);
                     expect(res.body.clientId).toBeDefined();
                     expect(res.body.clientSecret).toBeDefined();
                     expect(res.body.metadata.rewardId).toBe(rewardId);
-                    expect(res.body.metadata.poolAddress).toBe(poolAddress);
+                    expect(res.body.metadata.poolId).toBe(poolId);
                 })
                 .expect(200, done);
         });

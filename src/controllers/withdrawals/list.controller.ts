@@ -15,7 +15,7 @@ const controller = async (req: Request, res: Response) => {
     // #swagger.tags = ['Withdrawals']
     const withdrawals = [];
     const result = await WithdrawalService.getAll(
-        req.assetPool.address,
+        String(req.assetPool._id),
         Number(req.query.page),
         Number(req.query.limit),
         req.query.member && req.query.member.length > 0 ? String(req.query.member) : undefined,
@@ -29,22 +29,7 @@ const controller = async (req: Request, res: Response) => {
                 return await TransactionService.getById(id);
             }),
         );
-        withdrawals.push({
-            _id: String(w._id),
-            id: String(w._id),
-            type: w.type,
-            withdrawalId: w.withdrawalId,
-            failReason: w.failReason,
-            rewardId: w.rewardId,
-            beneficiary: w.beneficiary,
-            amount: w.amount,
-            unlockDate: w.unlockDate,
-            state: w.state,
-            poll: w.poll,
-            transactions,
-            createdAt: w.createdAt,
-            updatedAt: w.updatedAt,
-        });
+        withdrawals.push({ ...w.toJSON(), transactions });
     }
     result.results = withdrawals;
     res.json(result);

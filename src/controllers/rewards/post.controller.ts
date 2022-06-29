@@ -25,8 +25,7 @@ const controller = async (req: Request, res: Response) => {
         withdrawUnlockDate = `${now.getFullYear()}/${now.getMonth() + 1}/${now.getDate()}`;
     }
 
-    const reward = await RewardService.create({
-        assetPool: req.assetPool,
+    const reward = await RewardService.create(req.assetPool, {
         title: req.body.title,
         slug: req.body.slug,
         withdrawLimit: req.body.withdrawLimit || 0,
