@@ -19,6 +19,7 @@ const controller = async (req: Request, res: Response) => {
     if (!account) throw new NotFoundError('No Account');
 
     const pool = await AssetPoolService.getById(membership.poolId);
+    if (!pool) return res.send(membership);
 
     let poolBalance;
     if (pool && pool.variant === 'defaultPool') {
@@ -37,7 +38,7 @@ const controller = async (req: Request, res: Response) => {
     }
 
     return res.json({
-        id: String(membership._id),
+        // id: String(membership._id),
         ...membership.toJSON(),
         chainId: pool.chainId,
         poolAddress: pool.address,
