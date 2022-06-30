@@ -2,7 +2,7 @@ import { TAssetPool } from '@/types/TAssetPool';
 import { ERC20SwapRule, ERC20SwapRuleDocument } from '@/models/ERC20SwapRule';
 import TransactionService from './TransactionService';
 import { assertEvent, parseLogs } from '@/util/events';
-import { NotFoundError } from '@/util/errors';
+import { InternalServerError, NotFoundError } from '@/util/errors';
 import { paginatedResults } from '@/util/pagination';
 import ERC20Service from './ERC20Service';
 import { AssetPoolDocument } from '@/models/AssetPool';
@@ -26,10 +26,15 @@ async function get(id: string): Promise<ERC20SwapRuleDocument> {
 }
 
 async function getAll(assetPool: TAssetPool): Promise<ERC20SwapRuleDocument[]> {
-    return await ERC20SwapRule.find({ poolAddress: assetPool.address });
+    return await ERC20SwapRule.findOne({ poolAddress: assetPool.address });
 }
 
 async function erc20SwapRule(assetPool: TAssetPool, tokenInAddress: string, tokenMultiplier: number) {
+    const exists = ERC20SwapRule.find({ poolAddress: assetPool.address, tokenInAddress });
+    if (exists) {
+        throw new InternalServerError('A Swap Rule for this Token is already set.');
+    }
+
     const { receipt } = await TransactionService.send(
         assetPool.address,
         assetPool.contract.methods.setSwapRule(tokenInAddress, tokenMultiplier),

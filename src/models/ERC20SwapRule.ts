@@ -14,6 +14,8 @@ const ERC20SwapRuleSchema = new mongoose.Schema(
     { timestamps: true },
 );
 
+ERC20SwapRuleSchema.index({ poolAddress: 1, tokenInAddress: 1 }, { unique: true });
+
 export const ERC20SwapRule = mongoose.model<ERC20SwapRuleDocument>(
     'ERC20SwapRule',
     ERC20SwapRuleSchema,
