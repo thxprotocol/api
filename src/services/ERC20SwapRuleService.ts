@@ -10,7 +10,7 @@ import AssetPoolService from './AssetPoolService';
 import { ERC20Token } from '@/models/ERC20Token';
 
 async function findByQuery(poolAddress: string, page = 1, limit = 10) {
-    let query = { to: poolAddress };
+    let query = { poolAddress };
     const result = await paginatedResults(ERC20SwapRule, page, limit, query);
     return result;
 }
@@ -41,10 +41,17 @@ async function erc20SwapRule(assetPool: TAssetPool, tokenInAddress: string, toke
     const assetPoolDocument: AssetPoolDocument = await AssetPoolService.getByAddress(assetPool.address);
     const erc20 = await ERC20Service.findOrImport(assetPoolDocument, tokenInAddress);
 
-    const erc20Token = await ERC20Token.findOne({
+    let erc20Token = await ERC20Token.findOne({
         sub: erc20.sub,
         erc20Id: String(erc20._id),
     });
+
+    if (!erc20Token) {
+        erc20Token = await ERC20Token.create({
+            sub: erc20.sub,
+            erc20Id: String(erc20._id),
+        });
+    }
 
     const swapRule = await ERC20SwapRule.create({
         chainId: assetPool.chainId,

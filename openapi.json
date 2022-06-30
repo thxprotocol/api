@@ -1,7 +1,7 @@
 {
   "swagger": "2.0",
   "info": {
-    "version": "1.15.5",
+    "version": "1.15.6",
     "title": "THX API Specification",
     "description": "User guides are available at https://docs.thx.network."
   },
@@ -1623,30 +1623,54 @@
         }
       }
     },
-    "/brand/{pool_address}": {
+    "/transactions/": {
       "get": {
         "description": "",
         "parameters": [
           {
-            "name": "pool_address",
-            "in": "path",
-            "required": true,
+            "name": "page",
+            "in": "query",
+            "type": "string"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "type": "string"
+          },
+          {
+            "name": "startDate",
+            "in": "query",
+            "type": "string"
+          },
+          {
+            "name": "endDate",
+            "in": "query",
             "type": "string"
           }
         ],
-        "responses": {}
-      },
-      "put": {
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/transactions/{id}": {
+      "get": {
         "description": "",
         "parameters": [
           {
-            "name": "pool_address",
+            "name": "id",
             "in": "path",
             "required": true,
             "type": "string"
           }
         ],
-        "responses": {}
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
       }
     },
     "/swaprules/": {
@@ -1795,6 +1819,32 @@
         }
       }
     },
+    "/brand/{pool_address}": {
+      "get": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "pool_address",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {}
+      },
+      "put": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "pool_address",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {}
+      }
+    },
     "/upload/": {
       "put": {
         "description": "",
@@ -1805,56 +1855,6 @@
           },
           "440": {
             "description": ""
-          }
-        }
-      }
-    },
-    "/transactions/": {
-      "get": {
-        "description": "",
-        "parameters": [
-          {
-            "name": "page",
-            "in": "query",
-            "type": "string"
-          },
-          {
-            "name": "limit",
-            "in": "query",
-            "type": "string"
-          },
-          {
-            "name": "startDate",
-            "in": "query",
-            "type": "string"
-          },
-          {
-            "name": "endDate",
-            "in": "query",
-            "type": "string"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        }
-      }
-    },
-    "/transactions/{id}": {
-      "get": {
-        "description": "",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK"
           }
         }
       }

@@ -10,7 +10,12 @@ import { dashboardAccessToken } from '@/util/jest/constants';
 const http = request.agent(app);
 
 describe('ERC20SwapRules', () => {
-    let swaprule: any, testToken: Contract, poolAddress: string, tokenInAddress: string, tokenMultiplier: number;
+    let swaprule: any,
+        testToken: Contract,
+        poolId: string,
+        poolAddress: string,
+        tokenInAddress: string,
+        tokenMultiplier: number;
 
     beforeAll(async () => {
         await beforeAllCallback();
@@ -32,6 +37,7 @@ describe('ERC20SwapRules', () => {
             .expect((res: request.Response) => {
                 expect(isAddress(res.body.address)).toBe(true);
                 poolAddress = res.body.address;
+                poolId = res.body._id;
             })
             .expect(201, done);
     });
@@ -39,7 +45,7 @@ describe('ERC20SwapRules', () => {
     describe('Management (Dashboard)', () => {
         it('POST /swaprules', (done) => {
             http.post('/v1/swaprules')
-                .set({ 'Authorization': dashboardAccessToken, 'X-PoolAddress': poolAddress })
+                .set({ 'Authorization': dashboardAccessToken, 'X-PoolId': poolId })
                 .send({
                     tokenInAddress,
                     tokenMultiplier,
@@ -56,7 +62,7 @@ describe('ERC20SwapRules', () => {
 
         it('GET /swaprules 200 OK', (done) => {
             http.get('/v1/swaprules')
-                .set({ 'Authorization': dashboardAccessToken, 'X-PoolAddress': poolAddress })
+                .set({ 'Authorization': dashboardAccessToken, 'X-PoolId': poolId })
                 .expect(({ body }: Response) => {
                     expect(body.total).toEqual(1);
                     expect(body.results).toHaveLength(1);
@@ -70,7 +76,7 @@ describe('ERC20SwapRules', () => {
 
         it('GET /swaprules/:id', (done) => {
             http.get('/v1/swaprules/' + swaprule._id)
-                .set({ 'Authorization': dashboardAccessToken, 'X-PoolAddress': poolAddress })
+                .set({ 'Authorization': dashboardAccessToken, 'X-PoolId': poolId })
                 .expect(({ body }: Response) => {
                     expect(body._id).toEqual(swaprule._id);
                     expect(body.tokenInId).toBeDefined();
@@ -82,7 +88,7 @@ describe('ERC20SwapRules', () => {
 
         it('GET /swaprules/:id 400 Bad Input', (done) => {
             http.get('/v1/swaprules/' + 'invalid_id')
-                .set({ 'Authorization': dashboardAccessToken, 'X-PoolAddress': poolAddress })
+                .set({ 'Authorization': dashboardAccessToken, 'X-PoolId': poolId })
                 .expect(({ body }: Response) => {
                     expect(body.errors).toHaveLength(1);
                     expect(body.errors[0].param).toEqual('id');
@@ -93,7 +99,7 @@ describe('ERC20SwapRules', () => {
 
         it('GET /swaprules/:id 404 Not Found', (done) => {
             http.get('/v1/swaprules/' + '6208dfa33400429348c5e61b')
-                .set({ 'Authorization': dashboardAccessToken, 'X-PoolAddress': poolAddress })
+                .set({ 'Authorization': dashboardAccessToken, 'X-PoolId': poolId })
                 .expect(({ body }: Response) => {
                     expect(body.error.message).toEqual('Could not find this Swap Rule');
                 })

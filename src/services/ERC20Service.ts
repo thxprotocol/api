@@ -90,7 +90,6 @@ export const findBy = (query: { address: string; chainId: ChainId; sub?: string 
 export const findOrImport = async (pool: AssetPoolDocument, address: string) => {
     const erc20 = await findBy({ chainId: pool.chainId, address, sub: pool.sub });
     if (erc20) return erc20;
-
     const contract = getContractFromName(pool.chainId, 'LimitedSupplyToken', address);
     const [name, symbol] = await Promise.all([
         contract.methods.name().call(),

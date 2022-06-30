@@ -114,7 +114,7 @@ describe('ERC20Swaps', () => {
 
     it('Add member', (done) => {
         http.post('/v1/members')
-            .set({ 'Authorization': adminAccessToken, 'X-PoolAddress': poolAddress })
+            .set({ 'Authorization': adminAccessToken, 'X-PoolId': poolId })
             .send({
                 address: userWallet.address,
             })
@@ -132,7 +132,7 @@ describe('ERC20Swaps', () => {
     it('POST /deposits/admin/ 200 OK', (done) => {
         const amount = fromWei('500000000000000000000', 'ether'); // 500 eth
         http.post(`/v1/pools/${poolId}/topup`)
-            .set({ 'Authorization': dashboardAccessToken, 'X-PoolAddress': poolAddress })
+            .set({ 'Authorization': dashboardAccessToken, 'X-PoolId': poolId })
             .send({ amount })
             .expect(async () => {
                 const adminBalance: BigNumber = await testTokenA.methods.balanceOf(admin.address).call();
@@ -145,15 +145,16 @@ describe('ERC20Swaps', () => {
 
     it('POST /swaprules', (done) => {
         http.post('/v1/swaprules')
-            .set({ 'Authorization': dashboardAccessToken, 'X-PoolAddress': poolAddress })
+            .set({ 'Authorization': dashboardAccessToken, 'X-PoolId': poolId })
             .send({
                 tokenInAddress,
                 tokenMultiplier,
             })
             .expect(({ body }: Response) => {
                 expect(body._id).toBeDefined();
+                expect(body.tokenInId).toBeDefined();
                 expect(body.tokenInAddress).toEqual(tokenInAddress);
-                expect(body.tokenMultiplier).toEqual(Number(toWei(tokenMultiplier.toString(), 'wei')));
+                expect(body.tokenMultiplier).toEqual(tokenMultiplier);
                 swaprule = body;
             })
             .expect(200, done);
@@ -173,7 +174,7 @@ describe('ERC20Swaps', () => {
         const { call, nonce, sig } = await signMethod(poolAddress, 'swap', [amountIn, tokenInAddress], userWallet);
         await http
             .post('/v1/swaps')
-            .set({ 'Authorization': walletAccessToken, 'X-PoolAddress': poolAddress })
+            .set({ 'Authorization': walletAccessToken, 'X-PoolId': poolId })
             .send({ call, nonce, sig, amountIn, tokenInAddress })
             .expect(({ body }: Response) => {
                 expect(body._id).toBeDefined();
@@ -191,7 +192,7 @@ describe('ERC20Swaps', () => {
         const { call, nonce, sig } = await signMethod(poolAddress, 'swap', [wrongAmountIn, tokenInAddress], userWallet);
         await http
             .post('/v1/swaps')
-            .set({ 'Authorization': walletAccessToken, 'X-PoolAddress': poolAddress })
+            .set({ 'Authorization': walletAccessToken, 'X-PoolId': poolId })
             .send({ call, nonce, sig, amountIn: wrongAmountIn, tokenInAddress })
             .expect(({ body }: Response) => {
                 expect(body.error.message).toEqual(new InsufficientBalanceError().message);
@@ -201,7 +202,7 @@ describe('ERC20Swaps', () => {
 
     it('GET /swaps 200 OK', (done) => {
         http.get('/v1/swaps')
-            .set({ 'Authorization': walletAccessToken, 'X-PoolAddress': poolAddress })
+            .set({ 'Authorization': walletAccessToken, 'X-PoolId': poolId })
             .expect(({ body }: Response) => {
                 expect(body[0]._id).toEqual(swap._id);
                 expect(body[0].amountIn).toEqual(swap.amountIn);
@@ -214,7 +215,7 @@ describe('ERC20Swaps', () => {
 
     it('GET /swaps/:id', (done) => {
         http.get('/v1/swaps/' + swap._id)
-            .set({ 'Authorization': walletAccessToken, 'X-PoolAddress': poolAddress })
+            .set({ 'Authorization': walletAccessToken, 'X-PoolId': poolId })
             .expect(({ body }: Response) => {
                 expect(body._id).toEqual(swap._id);
                 expect(body.amountIn).toEqual(swap.amountIn);
@@ -227,7 +228,7 @@ describe('ERC20Swaps', () => {
 
     it('GET /swaps/:id 400 (Bad Input)', (done) => {
         http.get('/v1/swaps/' + 'invalid_id')
-            .set({ 'Authorization': walletAccessToken, 'X-PoolAddress': poolAddress })
+            .set({ 'Authorization': walletAccessToken, 'X-PoolId': poolId })
             .expect(({ body }: Response) => {
                 expect(body.errors).toHaveLength(1);
                 expect(body.errors[0].param).toEqual('id');
@@ -238,7 +239,7 @@ describe('ERC20Swaps', () => {
 
     it('GET /swaps/:id 404 Not Found', (done) => {
         http.get('/v1/swaps/' + '6208dfa33400429348c5e61b')
-            .set({ 'Authorization': walletAccessToken, 'X-PoolAddress': poolAddress })
+            .set({ 'Authorization': walletAccessToken, 'X-PoolId': poolId })
             .expect(({ body }: Response) => {
                 expect(body.error.message).toEqual('Could not find this Swap');
             })
