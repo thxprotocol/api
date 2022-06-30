@@ -15,7 +15,7 @@ import arweave from '@/util/arweave';
 
 axiosBetterStacktrace(axios);
 
-arweave.blocks.getCurrent().then(console.log);
+arweave.wallets.generate()
 
 const app = express();
 
