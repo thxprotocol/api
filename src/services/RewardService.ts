@@ -14,6 +14,8 @@ import SpotifyDataProxy from '@/proxies/SpotifyDataProxy';
 import WithdrawalService from './WithdrawalService';
 import ERC721Service from './ERC721Service';
 import { AssetPoolDocument } from '@/models/AssetPool';
+import { Claim } from '@/models/Claim';
+import ERC20Service from './ERC20Service';
 
 export default class RewardService {
     static async get(assetPool: AssetPoolDocument, rewardId: number): Promise<RewardDocument> {
@@ -116,7 +118,7 @@ export default class RewardService {
         const id = (await this.findByPool(assetPool)).length + 1;
         const expiryDateObj = data.expiryDate && new Date(data.expiryDate);
 
-        return await Reward.create({
+        const reward = await Reward.create({
             id,
             title: data.title,
             slug: data.slug,
@@ -132,6 +134,17 @@ export default class RewardService {
             isMembershipRequired: data.isMembershipRequired,
             isClaimOnce: data.isClaimOnce,
         });
+
+        const erc20Token = await ERC20Service.findByPool(assetPool);
+
+        await Claim.create({
+            poolId: assetPool._id,
+            erc20Id: erc20Token.id,
+            erc721Id: reward.erc721metadataId,
+            rewardId: reward._id,
+        });
+
+        return reward;
     }
 
     static update(reward: RewardDocument, updates: IRewardUpdates) {

@@ -1,7 +1,16 @@
-export type Claim = {
-    _id: string;
-    poolId: string;
-    erc20Id: string;
-    erc721Id: string;
-    rewardId: string;
-};
+import { TClaim } from '@/types/TClaim';
+import mongoose from 'mongoose';
+
+export type ClaimDocument = mongoose.Document & TClaim;
+
+const claimSchema = new mongoose.Schema(
+    {
+        poolId: String,
+        erc20Id: String,
+        erc721Id: String,
+        rewardId: String,
+    },
+    { timestamps: true },
+);
+
+export const Claim = mongoose.model<ClaimDocument>('Claim', claimSchema);
