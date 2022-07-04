@@ -17,6 +17,7 @@ export const dashboardScopes = [
     'promotions:read',
     'promotions:write',
     'transactions:read',
+    'claims:read',
 ];
 export const userScopes = [
     'asset_pools:read',

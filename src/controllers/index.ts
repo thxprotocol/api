@@ -20,6 +20,7 @@ import uploadRouter from './upload/upload.router';
 import erc20Router from './erc20/erc20.router';
 import transactionsRouter from './transactions/transactions.router';
 import brandRouter from './brand/brand.router';
+import claimsRouter from './claims/claims.router';
 import { checkJwt } from '@/middlewares';
 
 const router = express.Router();
@@ -47,5 +48,6 @@ router.use('/withdrawals', withdrawalsRouter);
 router.use('/brand', brandRouter);
 router.use('/upload', uploadRouter);
 router.use('/transactions', transactionsRouter);
+router.use('/claims', claimsRouter);
 
 export default router;

@@ -135,13 +135,20 @@ export default class RewardService {
             isClaimOnce: data.isClaimOnce,
         });
 
-        const erc20Token = await ERC20Service.findByPool(assetPool);
+        const erc20 = await ERC20Service.findByPool(assetPool);
+        let erc721;
 
-        await Claim.create({
+        if (reward.erc721metadataId) {
+            const metadata = await ERC721Service.findMetadataById(reward.erc721metadataId);
+
+            erc721 = metadata ? await ERC721Service.findById(metadata.erc721) : null;
+        }
+
+        const claim = await Claim.create({
             poolId: assetPool._id,
-            erc20Id: erc20Token.id,
-            erc721Id: reward.erc721metadataId,
-            rewardId: reward._id,
+            erc20Id: erc20 ? erc20.id : null,
+            erc721Id: erc721 ? erc721.id : null,
+            rewardId: reward.id,
         });
 
         return reward;
