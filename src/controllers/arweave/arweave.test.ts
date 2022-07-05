@@ -27,9 +27,6 @@ describe('Arweave', () => {
     it('GET /v1/arweave', (done) => {
         http.get('/v1/arweave/' + TEST_URL.split('/')[TEST_URL.split('/').length - 1])
             .set('Authorization', dashboardAccessToken)
-            .expect((res) => {
-                console.log(res.body);
-            })
             .expect(200, done);
     });
 });
