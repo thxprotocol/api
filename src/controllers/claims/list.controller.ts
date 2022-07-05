@@ -1,25 +1,22 @@
-import { AssetPoolDocument } from '@/models/AssetPool';
-import { ClaimDocument, Claim } from '@/models/Claim';
+import { Request, Response } from 'express';
+import { param } from 'express-validator';
+import { Claim } from '@/models/Claim';
+import ERC20Service from '@/services/ERC20Service';
+import ERC721Service from '@/services/ERC721Service';
+import RewardService from '@/services/RewardService';
 import { TClaimURLData } from '@/types/TClaimURLData';
-import { NotFoundError } from '@/util/errors';
-import ERC20Service from './ERC20Service';
-import ERC721Service from './ERC721Service';
-import RewardService from './RewardService';
 
-export default class ClaimService {
-    static async get(assetPool: AssetPoolDocument, claimId: number): Promise<ClaimDocument> {
-        const claim = await Claim.findOne({ poolId: String(assetPool._id), id: claimId });
-        if (!claim) return null;
-        return claim;
-    }
+const validation = [param('id').isNumeric().exists()];
 
-    static async getClaimURLData(assetPool: AssetPoolDocument, rewardId: number): Promise<TClaimURLData> {
-        const claim = await Claim.findOne({ poolId: String(assetPool._id), rewardId });
+const controller = async (req: Request, res: Response) => {
+    // #swagger.tags = ['Claims']
+    const assetPool = req.assetPool;
+    const rewardId = req.params.id;
+    const claims = await Claim.find({ poolId: String(assetPool._id), rewardId });
 
-        if (!claim) {
-            throw new NotFoundError('Could not find Claim');
-        }
-
+    const results = [];
+    for (let i = 0; i < claims.length; i++) {
+        const claim = claims[i];
         const reward = await RewardService.get(assetPool, Number(claim.rewardId));
 
         let tokenSymbol;
@@ -43,7 +40,10 @@ export default class ClaimService {
             poolAddress: assetPool.address,
             tokenSymbol,
         } as TClaimURLData;
-
-        return result;
+        results.push(result);
     }
-}
+
+    res.json(results);
+};
+
+export default { controller, validation };

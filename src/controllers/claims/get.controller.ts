@@ -1,16 +1,16 @@
 import { Request, Response } from 'express';
 import { NotFoundError } from '@/util/errors';
 import { param } from 'express-validator';
-import ClaimService from '@/services/ClaimService';
+import { Claim } from '@/models/Claim';
 
-const validation = [param('rewardId').isNumeric().exists()];
+const validation = [param('id').isNumeric().exists()];
 
 const controller = async (req: Request, res: Response) => {
     // #swagger.tags = ['Claims']
-    const claimURLData = await ClaimService.getClaimURLData(req.assetPool, Number(req.params.rewardId));
-    if (!claimURLData) throw new NotFoundError();
+    const claim = await Claim.findById(req.params.id);
+    if (!claim) throw new NotFoundError('Coudl not find Claim');
 
-    res.json(claimURLData);
+    res.json(claim);
 };
 
 export default { controller, validation };

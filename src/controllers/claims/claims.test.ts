@@ -150,17 +150,16 @@ describe('Claims', () => {
             });
 
             it('should return ClaimURLData', (done) => {
-                user.get(`/v1/claims/${rewardID}`)
+                user.get(`/v1/claims/reward/${rewardID}`)
                     .set({ 'X-PoolId': poolId, 'Authorization': dashboardAccessToken })
                     .expect((res: request.Response) => {
-                        expect(res.body.rewardId.toString()).toEqual(rewardID.toString());
-                        expect(res.body.poolAddress).toEqual(poolAddress);
-                        expect(res.body.tokenSymbol).toEqual(tokenSymbol);
-                        expect(res.body.withdrawAmount).toEqual(reward.withdrawAmount);
-                        //expect(res.body.withdrawCondition).toEqual(reward.withdrawCondition);
-                        expect(res.body.chainId).toEqual(pool.chainId);
-                        expect(res.body.clientId).toEqual(pool.clientId);
-                        withdrawalId = res.body.withdrawalId;
+                        expect(res.body[0].rewardId.toString()).toEqual(rewardID.toString());
+                        expect(res.body[0].poolAddress).toEqual(poolAddress);
+                        expect(res.body[0].tokenSymbol).toEqual(tokenSymbol);
+                        expect(res.body[0].withdrawAmount).toEqual(reward.withdrawAmount);
+                        //expect(res.body[0].withdrawCondition).toEqual(reward.withdrawCondition);
+                        expect(res.body[0].chainId).toEqual(pool.chainId);
+                        expect(res.body[0].clientId).toEqual(pool.clientId);
                     })
                     .expect(200, done);
             });
