@@ -151,6 +151,8 @@ export default class RewardService {
             rewardId: reward.id,
         });
 
+        reward.claimId = claim._id;
+        await reward.save();
         return reward;
     }
 

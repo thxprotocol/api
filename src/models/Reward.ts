@@ -53,6 +53,7 @@ export type TReward = {
     withdrawCondition: IRewardCondition;
     withdrawUnlockDate: Date;
     progress?: number;
+    claimId?: string;
 };
 
 export type RewardDocument = mongoose.Document & TReward;
@@ -91,6 +92,7 @@ const rewardSchema = new mongoose.Schema(
         },
         withdrawUnlockDate: Date,
         pollId: Number,
+        claimId: String,
     },
     { timestamps: true },
 );

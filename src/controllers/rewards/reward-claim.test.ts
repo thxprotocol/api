@@ -75,7 +75,7 @@ describe('Reward Claim', () => {
                 .send(getRewardConfiguration('no-limit-and-claim-one-disabled'))
                 .expect((res: request.Response) => {
                     expect(res.body.id).toEqual(1);
-
+                    expect(res.body.claimId).toBeDefined();
                     rewardID = res.body.id;
                 })
                 .expect(201, done);
@@ -151,7 +151,7 @@ describe('Reward Claim', () => {
                 .send(getRewardConfiguration('one-limit-and-claim-one-disabled'))
                 .expect((res: request.Response) => {
                     expect(res.body.id).toEqual(2);
-
+                    expect(res.body.claimId).toBeDefined();
                     rewardID = res.body.id;
                 })
                 .expect(201, done);
@@ -227,7 +227,7 @@ describe('Reward Claim', () => {
                 .send(getRewardConfiguration('withdraw-date-is-today'))
                 .expect((res: request.Response) => {
                     expect(res.body.id).toEqual(3);
-
+                    expect(res.body.claimId).toBeDefined();
                     rewardID = res.body.id;
                 })
                 .expect(201, done);
@@ -296,7 +296,7 @@ describe('Reward Claim', () => {
                 .send(getRewardConfiguration('withdraw-date-is-tomorrow'))
                 .expect((res: request.Response) => {
                     expect(res.body.id).toEqual(4);
-
+                    expect(res.body.claimId).toBeDefined();
                     rewardID = res.body.id;
                 })
                 .expect(201, done);
@@ -337,7 +337,7 @@ describe('Reward Claim', () => {
                 .send(getRewardConfiguration('expiration-date-is-next-30-min'))
                 .expect((res: request.Response) => {
                     expect(res.body.id).toEqual(5);
-
+                    expect(res.body.claimId).toBeDefined();
                     rewardID = res.body.id;
                 })
                 .expect(201, done);
@@ -406,7 +406,7 @@ describe('Reward Claim', () => {
                 .send(getRewardConfiguration('expiration-date-is-previous-30-min'))
                 .expect((res: request.Response) => {
                     expect(res.body.id).toEqual(6);
-
+                    expect(res.body.claimId).toBeDefined();
                     rewardID = res.body.id;
                 })
                 .expect(201, done);
@@ -429,7 +429,7 @@ describe('Reward Claim', () => {
                 .send(getRewardConfiguration('membership-is-required'))
                 .expect((res: request.Response) => {
                     expect(res.body.id).toEqual(7);
-
+                    expect(res.body.claimId).toBeDefined();
                     rewardID = res.body.id;
                 })
                 .expect(201, done);
@@ -452,7 +452,7 @@ describe('Reward Claim', () => {
                 .send(getRewardConfiguration('claim-one-is-enabled'))
                 .expect((res: request.Response) => {
                     expect(res.body.id).toEqual(8);
-
+                    expect(res.body.claimId).toBeDefined();
                     rewardID = res.body.id;
                 })
                 .expect(201, done);
@@ -528,7 +528,7 @@ describe('Reward Claim', () => {
                 .send(getRewardConfiguration('claim-one-is-disabled'))
                 .expect((res: request.Response) => {
                     expect(res.body.id).toEqual(9);
-
+                    expect(res.body.claimId).toBeDefined();
                     rewardID = res.body.id;
                 })
                 .expect(201, done);
