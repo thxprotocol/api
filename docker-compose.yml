@@ -19,8 +19,27 @@ services:
     api_hardhat:
         container_name: thx_api_hardhat
         image: public.ecr.aws/o5j5y3t5/hardhat-thx-artifacts:3.1.21
-        ports:
-            - '8546:8545'
+        domainname: hardhat.thx.local
+        volumes:
+            - /var/run/docker.sock:/var/run/docker.sock:ro
+        expose: 
+            - 8545
+        environment:
+            - VIRTUAL_HOST=hardhat.thx.local
+            - VIRTUAL_PORT=8545
 
+    api_nginx:
+        image: nginx:1.17.10
+        container_name: thx_api_nginx
+        depends_on:
+            - api_hardhat
+        volumes:
+            - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+            - ./certs/nginx.key:/etc/nginx/certs/nginx.key
+            - ./certs/nginx.pem:/etc/nginx/certs/nginx.pem
+        ports:
+            - 80:80
+            - 8546:443
+                
 volumes:
     mongo-data:
