@@ -38,7 +38,6 @@ const controller = async (req: Request, res: Response) => {
     }
 
     return res.json({
-        // id: String(membership._id),
         ...membership.toJSON(),
         chainId: pool.chainId,
         poolAddress: pool.address,
