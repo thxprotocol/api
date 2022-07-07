@@ -28,6 +28,7 @@ const controller = async (req: Request, res: Response) => {
             isMembershipRequired: r.isMembershipRequired,
             progress: withdrawals.length,
             state: r.state,
+            claimId: r.claimId,
         });
     }
 

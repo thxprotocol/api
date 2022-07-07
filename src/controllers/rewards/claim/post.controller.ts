@@ -11,16 +11,20 @@ import WithdrawalService from '@/services/WithdrawalService';
 import MembershipService from '@/services/MembershipService';
 import ERC721Service from '@/services/ERC721Service';
 import AssetPoolService from '@/services/AssetPoolService';
+import { Claim } from '@/models/Claim';
 
-const validation = [param('id').exists().isNumeric(), body('hash').exists().isBase64()];
+const validation = [param('id').exists().isNumeric(), body('claimId').exists()];
 
 const controller = async (req: Request, res: Response) => {
     // #swagger.tags = ['Rewards']
     // Only used to get the poolAddress and should be removed (as of param) when claim URLs are improved and contain poolId
-    const data: any = JSON.parse(Buffer.from(req.body.hash, 'base64').toString());
+    //const data: any = JSON.parse(Buffer.from(req.body.hash, 'base64').toString());
     if (!req.auth.sub) throw new BadRequestError('No subscription is found for this type of access token.');
 
-    const pool = await AssetPoolService.getByAddress(data.poolAddress);
+    const claim = await Claim.findById(req.body.claimId);
+    if (!claim) throw new BadRequestError('The claim for this claimId does not exist.');
+
+    const pool = await AssetPoolService.getById(claim.poolId);
     if (!pool) throw new BadRequestError('The pool for this rewards has been removed.');
 
     const reward = await RewardService.get(pool, Number(req.params.id));

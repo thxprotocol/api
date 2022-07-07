@@ -10,7 +10,6 @@ const controller = async (req: Request, res: Response) => {
     // #swagger.tags = ['Rewards']
     const reward = await RewardService.get(req.assetPool, Number(req.params.id));
     if (!reward) throw new NotFoundError();
-
     const withdrawals = await WithdrawalService.findByQuery({
         poolId: String(req.assetPool._id),
         rewardId: reward.id,

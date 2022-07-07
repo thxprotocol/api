@@ -41,3 +41,4 @@ dist
 scripts/local
 cache
 .backup
+.certs

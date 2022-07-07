@@ -1353,7 +1353,7 @@
             "schema": {
               "type": "object",
               "properties": {
-                "hash": {
+                "claimId": {
                   "example": "any"
                 }
               }
