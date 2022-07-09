@@ -1,6 +1,6 @@
 {
     "name": "@thxnetwork/api",
-    "version": "1.15.6",
+    "version": "1.15.8",
     "repository": {
         "type": "git",
         "url": "https://github.com/thxprotocol/api"
@@ -13,7 +13,7 @@
         "dev": "docker-compose up -d && npm run watch:node",
         "exec": "ts-node-dev -r tsconfig-paths/register ",
         "build": "tsc",
-        "start": "npm run watch:node",
+        "start": "export NODE_TLS_REJECT_UNAUTHORIZED='0'; npm run watch:node",
         "watch:node": "ts-node-dev --ignore-watch openapi.json -r tsconfig-paths/register src/server.ts",
         "watch:node-debug": "ts-node-dev --ignore-watch openapi.json -r tsconfig-paths/register --inspect=7000 src/server.ts",
         "test": "npx jest --runInBand",
