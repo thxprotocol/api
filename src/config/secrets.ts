@@ -41,6 +41,7 @@ if (process.env.NODE_ENV === 'test') {
     if (process.env.PORT_TEST_OVERRIDE !== undefined) process.env.PORT = process.env.PORT_TEST_OVERRIDE;
     if (process.env.MONGODB_URI_TEST_OVERRIDE !== undefined)
         process.env.MONGODB_URI = process.env.MONGODB_URI_TEST_OVERRIDE;
+    if (process.env.HARDHAT_RPC_TEST_OVERRIDE) process.env.HARDHAT_RPC = process.env.HARDHAT_RPC_TEST_OVERRIDE;
 }
 
 export const VERSION = 'v1';

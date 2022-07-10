@@ -88,7 +88,7 @@ export const findBy = (query: { address: string; chainId: ChainId; sub?: string 
 };
 
 export const findOrImport = async (pool: AssetPoolDocument, address: string) => {
-    const erc20 = await findBy({ chainId: pool.chainId, address, sub: pool.sub });
+    let erc20 = await findBy({ chainId: pool.chainId, address, sub: pool.sub });
     if (erc20) return erc20;
 
     const contract = getContractFromName(pool.chainId, 'LimitedSupplyToken', address);
@@ -97,7 +97,8 @@ export const findOrImport = async (pool: AssetPoolDocument, address: string) => 
         contract.methods.symbol().call(),
         contract.methods.totalSupply().call(),
     ]);
-    const { _id } = await ERC20.create({
+
+    erc20 = await ERC20.create({
         name,
         symbol,
         address,
@@ -106,7 +107,20 @@ export const findOrImport = async (pool: AssetPoolDocument, address: string) => 
         sub: pool.sub,
     });
 
-    return await ERC20.findById(_id);
+    // Create an ERC20Token object for the sub if it does not exist
+    if (
+        !(await ERC20Token.exists({
+            sub: erc20.sub,
+            erc20Id: String(erc20._id),
+        }))
+    ) {
+        await ERC20Token.create({
+            sub: erc20.sub,
+            erc20Id: String(erc20._id),
+        });
+    }
+
+    return erc20;
 };
 
 export const findByPool = async (assetPool: AssetPoolDocument): Promise<ERC20Document> => {

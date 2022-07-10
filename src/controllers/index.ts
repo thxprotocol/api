@@ -19,6 +19,8 @@ import erc721MetadataRouter from './erc721/metadata/metadata.router';
 import uploadRouter from './upload/upload.router';
 import erc20Router from './erc20/erc20.router';
 import transactionsRouter from './transactions/transactions.router';
+import erc20SwapRuleRouter from './swaprules/swaprules.router';
+import erc20SwapRouter from './swaps/swaps.router';
 import brandRouter from './brand/brand.router';
 import { checkJwt } from '@/middlewares';
 
@@ -44,6 +46,9 @@ router.use('/relay', relayHubRouter);
 router.use('/rewards', rewardsRouter);
 router.use('/widgets', widgetsRouter);
 router.use('/withdrawals', withdrawalsRouter);
+router.use('/transactions', transactionsRouter);
+router.use('/swaprules', erc20SwapRuleRouter);
+router.use('/swaps', erc20SwapRouter);
 router.use('/brand', brandRouter);
 router.use('/upload', uploadRouter);
 router.use('/transactions', transactionsRouter);
