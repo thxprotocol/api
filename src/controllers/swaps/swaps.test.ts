@@ -1,7 +1,8 @@
 import request, { Response } from 'supertest';
 import app from '@/app';
-import { isAddress } from 'web3-utils';
+import { Account } from 'web3-core';
 import { Contract } from 'web3-eth-contract';
+import { isAddress, fromWei, toWei, toChecksumAddress } from 'web3-utils';
 import { afterAllCallback, beforeAllCallback } from '@/util/jest/config';
 import { ChainId, ERC20Type } from '@/types/enums';
 import { getContract, getContractFromName } from '@/config/contracts';
@@ -13,21 +14,16 @@ import {
     walletAccessToken,
 } from '@/util/jest/constants';
 import { createWallet, signMethod } from '@/util/jest/network';
-import { Account } from 'web3-core';
-import { fromWei } from 'web3-utils';
 import { getProvider } from '@/util/network';
-import { BigNumber } from 'ethers';
 import TransactionService from '@/services/TransactionService';
-import { toWei } from 'web3-utils';
 import { assertEvent, parseLogs } from '@/util/events';
 import { currentVersion } from '@thxnetwork/artifacts';
-import { toChecksumAddress } from 'web3-utils';
 import { SwapState } from '@/types/enums/SwapState';
 import { InsufficientBalanceError } from '@/util/errors';
 
 const http = request.agent(app);
 
-describe('ERC20Swaps', () => {
+describe('Swaps', () => {
     let userWallet: Account,
         admin: Account,
         swaprule: any,
@@ -69,7 +65,7 @@ describe('ERC20Swaps', () => {
                 expect(isAddress(body.address)).toBe(true);
                 tokenAddress = body.address;
                 testTokenA = getContractFromName(ChainId.Hardhat, 'LimitedSupplyToken', tokenAddress);
-                const adminBalance: BigNumber = await testTokenA.methods.balanceOf(admin.address).call();
+                const adminBalance = await testTokenA.methods.balanceOf(admin.address).call();
                 expect(fromWei(String(adminBalance), 'ether')).toBe(totalSupplyTokenA);
             })
             .expect(201, done);
@@ -104,8 +100,8 @@ describe('ERC20Swaps', () => {
                 expect(isAddress(res.body.address)).toBe(true);
                 poolAddress = res.body.address;
                 poolId = res.body._id;
-                const adminBalance: BigNumber = await testTokenA.methods.balanceOf(admin.address).call();
-                const poolBalance: BigNumber = await testTokenA.methods.balanceOf(poolAddress).call();
+                const adminBalance = await testTokenA.methods.balanceOf(admin.address).call();
+                const poolBalance = await testTokenA.methods.balanceOf(poolAddress).call();
                 expect(String(poolBalance)).toBe('0');
                 expect(fromWei(String(adminBalance), 'ether')).toBe(totalSupplyTokenA);
             })
@@ -135,8 +131,8 @@ describe('ERC20Swaps', () => {
             .set({ 'Authorization': dashboardAccessToken, 'X-PoolId': poolId })
             .send({ amount })
             .expect(async () => {
-                const adminBalance: BigNumber = await testTokenA.methods.balanceOf(admin.address).call();
-                const poolBalance: BigNumber = await testTokenA.methods.balanceOf(poolAddress).call();
+                const adminBalance = await testTokenA.methods.balanceOf(admin.address).call();
+                const poolBalance = await testTokenA.methods.balanceOf(poolAddress).call();
                 expect(String(poolBalance)).toBe('500000000000000000000'); // 500 eth
                 expect(String(adminBalance)).toBe('500000000000000000000'); // 500 eth
             })
@@ -153,7 +149,6 @@ describe('ERC20Swaps', () => {
             .expect(({ body }: Response) => {
                 expect(body._id).toBeDefined();
                 expect(body.tokenInId).toBeDefined();
-                expect(body.tokenInAddress).toEqual(tokenInAddress);
                 expect(body.tokenMultiplier).toEqual(tokenMultiplier);
                 swaprule = body;
             })

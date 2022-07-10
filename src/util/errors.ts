@@ -69,6 +69,13 @@ class NotFoundError extends THXHttpError {
     }
 }
 
+class ConflictError extends THXHttpError {
+    status = 409;
+    constructor(message?: string) {
+        super(message || 'Conflict');
+    }
+}
+
 class InternalServerError extends THXHttpError {
     status = 500;
     constructor(message?: string) {
@@ -136,6 +143,7 @@ export {
     UnauthorizedError,
     ForbiddenError,
     NotFoundError,
+    ConflictError,
     NotImplementedError,
     BadGatewayError,
     InternalServerError,

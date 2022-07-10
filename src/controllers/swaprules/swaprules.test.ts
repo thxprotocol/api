@@ -9,13 +9,8 @@ import { dashboardAccessToken } from '@/util/jest/constants';
 
 const http = request.agent(app);
 
-describe('ERC20SwapRules', () => {
-    let swaprule: any,
-        testToken: Contract,
-        poolId: string,
-        poolAddress: string,
-        tokenInAddress: string,
-        tokenMultiplier: number;
+describe('Swap Rules', () => {
+    let swaprule: any, testToken: Contract, poolId: string, tokenInAddress: string, tokenMultiplier: number;
 
     beforeAll(async () => {
         await beforeAllCallback();
@@ -36,7 +31,6 @@ describe('ERC20SwapRules', () => {
             })
             .expect((res: request.Response) => {
                 expect(isAddress(res.body.address)).toBe(true);
-                poolAddress = res.body.address;
                 poolId = res.body._id;
             })
             .expect(201, done);
@@ -53,7 +47,6 @@ describe('ERC20SwapRules', () => {
                 .expect(({ body }: Response) => {
                     expect(body._id).toBeDefined();
                     expect(body.tokenInId).toBeDefined();
-                    expect(body.tokenInAddress).toEqual(tokenInAddress);
                     expect(body.tokenMultiplier).toEqual(tokenMultiplier);
                     swaprule = body;
                 })
@@ -68,7 +61,6 @@ describe('ERC20SwapRules', () => {
                     expect(body.results).toHaveLength(1);
                     expect(body.results[0]._id).toBeDefined();
                     expect(body.results[0].tokenInId).toBeDefined();
-                    expect(body.results[0].tokenInAddress).toEqual(tokenInAddress);
                     expect(body.results[0].tokenMultiplier).toEqual(tokenMultiplier);
                 })
                 .expect(200, done);
@@ -80,7 +72,6 @@ describe('ERC20SwapRules', () => {
                 .expect(({ body }: Response) => {
                     expect(body._id).toEqual(swaprule._id);
                     expect(body.tokenInId).toBeDefined();
-                    expect(body.tokenInAddress).toEqual(tokenInAddress);
                     expect(body.tokenMultiplier).toEqual(tokenMultiplier);
                 })
                 .expect(200, done);

@@ -2,11 +2,10 @@ import { TAssetPool } from '@/types/TAssetPool';
 import { ERC20SwapRule, ERC20SwapRuleDocument } from '@/models/ERC20SwapRule';
 import TransactionService from './TransactionService';
 import { assertEvent, parseLogs } from '@/util/events';
-import { InternalServerError, NotFoundError } from '@/util/errors';
+import { NotFoundError } from '@/util/errors';
 import { paginatedResults } from '@/util/pagination';
 import ERC20Service from './ERC20Service';
 import { AssetPoolDocument } from '@/models/AssetPool';
-import AssetPoolService from './AssetPoolService';
 import { ERC20Token } from '@/models/ERC20Token';
 
 async function findByQuery(poolAddress: string, page = 1, limit = 10) {
@@ -29,12 +28,11 @@ async function getAll(assetPool: TAssetPool): Promise<ERC20SwapRuleDocument[]> {
     return await ERC20SwapRule.findOne({ poolAddress: assetPool.address });
 }
 
-async function erc20SwapRule(assetPool: TAssetPool, tokenInAddress: string, tokenMultiplier: number) {
-    const exists = ERC20SwapRule.find({ poolAddress: assetPool.address, tokenInAddress });
-    if (exists) {
-        throw new InternalServerError('A Swap Rule for this Token is already set.');
-    }
+async function exists(assetPool: TAssetPool, tokenInAddress: string, tokenMultiplier?: number) {
+    return ERC20SwapRule.exists({ poolAddress: assetPool.address, tokenInAddress, tokenMultiplier });
+}
 
+async function create(assetPool: AssetPoolDocument, tokenInAddress: string, tokenMultiplier: number) {
     const { receipt } = await TransactionService.send(
         assetPool.address,
         assetPool.contract.methods.setSwapRule(tokenInAddress, tokenMultiplier),
@@ -42,31 +40,13 @@ async function erc20SwapRule(assetPool: TAssetPool, tokenInAddress: string, toke
     );
     assertEvent('SwapRuleUpdated', parseLogs(assetPool.contract.options.jsonInterface, receipt.logs));
 
-    // retrieve the tokenId
-    const assetPoolDocument: AssetPoolDocument = await AssetPoolService.getByAddress(assetPool.address);
-    const erc20 = await ERC20Service.findOrImport(assetPoolDocument, tokenInAddress);
+    const tokenIn = await ERC20Service.findOrImport(assetPool, tokenInAddress);
 
-    let erc20Token = await ERC20Token.findOne({
-        sub: erc20.sub,
-        erc20Id: String(erc20._id),
-    });
-
-    if (!erc20Token) {
-        erc20Token = await ERC20Token.create({
-            sub: erc20.sub,
-            erc20Id: String(erc20._id),
-        });
-    }
-
-    const swapRule = await ERC20SwapRule.create({
-        chainId: assetPool.chainId,
-        poolAddress: assetPool.address,
-        tokenInId: erc20Token._id,
-        tokenInAddress,
+    return await ERC20SwapRule.create({
+        poolId: String(assetPool._id),
+        tokenInId: String(tokenIn._id),
         tokenMultiplier: tokenMultiplier,
     });
-    await swapRule.save();
-    return swapRule;
 }
 
-export default { get, getAll, erc20SwapRule, findOneByQuery, findByQuery };
+export default { get, getAll, create, findOneByQuery, findByQuery, exists };

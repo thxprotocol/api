@@ -19,8 +19,8 @@ import erc721MetadataRouter from './erc721/metadata/metadata.router';
 import uploadRouter from './upload/upload.router';
 import erc20Router from './erc20/erc20.router';
 import transactionsRouter from './transactions/transactions.router';
-import erc20SwapRuleRouter from './swaps/ERC20SwapRule/erc20SwapRules.router';
-import erc20SwapRouter from './swaps/ERC20Swap/erc20Swap.router';
+import erc20SwapRuleRouter from './swaprules/swaprules.router';
+import erc20SwapRouter from './swaps/swaps.router';
 import brandRouter from './brand/brand.router';
 import { checkJwt } from '@/middlewares';
 

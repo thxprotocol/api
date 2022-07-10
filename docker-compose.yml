@@ -22,6 +22,8 @@ services:
         domainname: hardhat.thx.local
         volumes:
             - /var/run/docker.sock:/var/run/docker.sock:ro
+        ports:
+            - 8547:8545
         expose: 
             - 8545
         environment:
@@ -38,7 +40,6 @@ services:
             - ./certs/nginx.key:/etc/nginx/certs/nginx.key
             - ./certs/nginx.pem:/etc/nginx/certs/nginx.pem
         ports:
-            - 80:80
             - 8546:443
                 
 volumes:
