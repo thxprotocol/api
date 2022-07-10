@@ -28,6 +28,7 @@ export const userScopes = [
     'deposits:write',
     'transactions:read',
     'transactions:write',
+    'claims:read',
 ];
 
 export const opneIdAdminScopes = `${openId} ${adminScopes.join(' ')}`;

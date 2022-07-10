@@ -5,6 +5,7 @@ import { Claim } from '@/models/Claim';
 import RewardService from '@/services/RewardService';
 import ERC20Service from '@/services/ERC20Service';
 import ERC721Service from '@/services/ERC721Service';
+import AssetPoolService from '@/services/AssetPoolService';
 
 const validation = [param('id').exists()];
 
@@ -14,7 +15,11 @@ const controller = async (req: Request, res: Response) => {
     const claim = await Claim.findById(req.params.id);
 
     if (!claim) throw new NotFoundError('Coudl not find Claim');
-    const assetPool = req.assetPool;
+    let assetPool = req.assetPool;
+
+    if (!assetPool) {
+        assetPool = await AssetPoolService.getById(claim.poolId);
+    }
 
     const reward = await RewardService.get(assetPool, Number(claim.rewardId));
 
