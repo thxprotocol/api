@@ -28,13 +28,13 @@ const controller = async (req: Request, res: Response) => {
     }
 
     let pendingBalance;
-    if (membership.erc20) {
+    if (membership.erc20Id) {
         pendingBalance = await WithdrawalService.getPendingBalance(account, pool.address);
     }
 
     let tokens;
-    if (membership.erc721) {
-        tokens = await ERC721Service.findTokensByRecipient(account.address, membership.erc721);
+    if (membership.erc721Id) {
+        tokens = await ERC721Service.findTokensByRecipient(account.address, membership.erc721Id);
     }
 
     return res.json({
