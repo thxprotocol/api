@@ -3,9 +3,8 @@ import ERC20SwapService from '@/services/ERC20SwapService';
 
 const controller = async (req: Request, res: Response) => {
     // #swagger.tags = ['ERC20Swaps']
-    const members = await ERC20SwapService.getAll(req.assetPool);
-
-    res.json(members);
+    const swaps = await ERC20SwapService.getAll(req.assetPool);
+    res.json(swaps);
 };
 
 export default { controller };

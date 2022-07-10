@@ -1772,10 +1772,10 @@
             "schema": {
               "type": "object",
               "properties": {
-                "amountIn": {
+                "swapRuleId": {
                   "example": "any"
                 },
-                "swapRuleId": {
+                "amountIn": {
                   "example": "any"
                 },
                 "call": {

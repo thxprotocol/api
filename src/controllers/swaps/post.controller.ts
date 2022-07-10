@@ -19,7 +19,6 @@ const validation = [
 const controller = async (req: Request, res: Response) => {
     // #swagger.tags = ['ERC20Swaps']
     const { call, nonce, sig } = req.body;
-    const amountInInWei = toWei(String(req.body.amountIn), 'ether');
     const swapRule = await SwapRuleService.get(req.body.swapRuleId);
     if (!swapRule) throw new NotFoundError('Could not find this Swap Rule');
 
@@ -28,14 +27,14 @@ const controller = async (req: Request, res: Response) => {
 
     const userWalletAddress = recoverAddress(call, nonce, sig);
     const userBalance = await erc20TokenIn.contract.methods.balanceOf(userWalletAddress).call();
-    if (Number(userBalance) < Number(amountInInWei)) throw new InsufficientBalanceError();
+    if (Number(userBalance) < Number(req.body.amountIn)) throw new InsufficientBalanceError();
 
     const erc20Swap = await SwapService.create(
         req.assetPool,
         req.auth.sub,
         { call, nonce, sig },
         swapRule,
-        amountInInWei,
+        req.body.amountIn,
     );
 
     agenda.now(EVENT_REQUIRE_TRANSACTIONS, {});
