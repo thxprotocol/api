@@ -1775,7 +1775,7 @@
                 "amountIn": {
                   "example": "any"
                 },
-                "tokenInAddress": {
+                "swapRuleId": {
                   "example": "any"
                 },
                 "call": {

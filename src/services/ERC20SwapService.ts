@@ -13,6 +13,7 @@ import { AssetPoolDocument } from '@/models/AssetPool';
 import { TransactionDocument } from '@/models/Transaction';
 import AssetPoolService from './AssetPoolService';
 import { toWei } from 'web3-utils';
+import { ERC20SwapRuleDocument } from '@/models/ERC20SwapRule';
 
 async function get(id: string): Promise<ERC20SwapDocument> {
     const erc20Swap = await ERC20Swap.findById(id);
@@ -24,43 +25,17 @@ async function getAll(assetPool: TAssetPool): Promise<ERC20SwapDocument[]> {
     return await ERC20Swap.find({ poolAddress: assetPool.address });
 }
 
-async function erc20Swap(
-    assetPool: TAssetPool,
+async function create(
+    assetPool: AssetPoolDocument,
+    sub: string,
     callData: { call: string; nonce: number; sig: string },
-    amountIn: number,
-    tokenInAddress: string,
+    swapRule: ERC20SwapRuleDocument,
+    amountInInWei: string,
 ) {
-    const amountInToWei = Number(toWei(amountIn.toString(), 'ether'));
-    const swapRule = await ERC20SwapRuleService.findOneByQuery({
-        poolAddress: assetPool.address,
-        tokenInAddress,
-    });
-
-    if (!swapRule) {
-        throw new NotFoundError('Could not find this Swap Rule');
-    }
-
     const swap = await ERC20Swap.create({
-        swapRuleId: swapRule.id,
-        amountIn: amountInToWei,
+        swapRuleId: swapRule._id,
+        amountIn: amountInInWei,
     });
-
-    // recover TokenIn contract
-    const assetPoolDocument: AssetPoolDocument = await AssetPoolService.getByAddress(assetPool.address);
-    const erc20TokenIn = await ERC20Service.findOrImport(assetPoolDocument, tokenInAddress);
-
-    if (!erc20TokenIn) {
-        throw new NotFoundError('Could not find this ERC20 Token');
-    }
-
-    // Check user balance to ensure throughput
-    const userWalletAddress = recoverAddress(callData.call, callData.nonce, callData.sig);
-    const userBalance = await erc20TokenIn.contract.methods.balanceOf(userWalletAddress).call();
-
-    if (Number(userBalance) < amountInToWei) {
-        console.log('userBalance < amountInToWei', { userBalance, amountInToWei });
-        throw new InsufficientBalanceError();
-    }
 
     const callback = async (tx: TransactionDocument, events?: CustomEventLog[]): Promise<ERC20SwapDocument> => {
         if (events) {
@@ -94,4 +69,4 @@ async function erc20Swap(
     );
 }
 
-export default { get, getAll, erc20Swap };
+export default { get, getAll, create };

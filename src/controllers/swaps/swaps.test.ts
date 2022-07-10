@@ -170,7 +170,7 @@ describe('Swaps', () => {
         await http
             .post('/v1/swaps')
             .set({ 'Authorization': walletAccessToken, 'X-PoolId': poolId })
-            .send({ call, nonce, sig, amountIn, tokenInAddress })
+            .send({ call, nonce, sig, amountIn, swapRuleId: swaprule._id })
             .expect(({ body }: Response) => {
                 expect(body._id).toBeDefined();
                 expect(body.amountIn).toEqual(toWei(amountIn.toString(), 'ether'));
@@ -188,7 +188,7 @@ describe('Swaps', () => {
         await http
             .post('/v1/swaps')
             .set({ 'Authorization': walletAccessToken, 'X-PoolId': poolId })
-            .send({ call, nonce, sig, amountIn: wrongAmountIn, tokenInAddress })
+            .send({ call, nonce, sig, amountIn: wrongAmountIn, swapRuleId: swaprule._id })
             .expect(({ body }: Response) => {
                 expect(body.error.message).toEqual(new InsufficientBalanceError().message);
             })
