@@ -91,9 +91,6 @@ describe('Swap Rules', () => {
         it('GET /swaprules/:id 404 Not Found', (done) => {
             http.get('/v1/swaprules/' + '6208dfa33400429348c5e61b')
                 .set({ 'Authorization': dashboardAccessToken, 'X-PoolId': poolId })
-                .expect(({ body }: Response) => {
-                    expect(body.error.message).toEqual('Could not find this Swap Rule');
-                })
                 .expect(404, done);
         });
     });

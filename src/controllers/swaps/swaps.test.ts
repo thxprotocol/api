@@ -173,9 +173,9 @@ describe('Swaps', () => {
             .send({ call, nonce, sig, amountIn, swapRuleId: swaprule._id })
             .expect(({ body }: Response) => {
                 expect(body._id).toBeDefined();
-                expect(body.amountIn).toEqual(toWei(amountIn.toString(), 'ether'));
+                expect(body.amountIn).toEqual(String(amountIn));
                 expect(body.swapRuleId).toEqual(swaprule._id);
-                expect(body.amountOut).toEqual((amountIn * tokenMultiplier).toString());
+                expect(body.amountOut).toEqual(String(amountIn * tokenMultiplier));
                 expect(body.state).toEqual(SwapState.Completed);
                 swap = body;
             })
@@ -183,7 +183,7 @@ describe('Swaps', () => {
     });
 
     it('POST /swaps 400 Bad Request (InsufficientBalanceError)', async () => {
-        const wrongAmountIn = 1000;
+        const wrongAmountIn = toWei('1000', 'ether');
         const { call, nonce, sig } = await signMethod(poolAddress, 'swap', [wrongAmountIn, tokenInAddress], userWallet);
         await http
             .post('/v1/swaps')
