@@ -19,12 +19,9 @@ import erc721MetadataRouter from './erc721/metadata/metadata.router';
 import uploadRouter from './upload/upload.router';
 import erc20Router from './erc20/erc20.router';
 import transactionsRouter from './transactions/transactions.router';
-<<<<<<< HEAD
 import erc20SwapRuleRouter from './swaprules/swaprules.router';
 import erc20SwapRouter from './swaps/swaps.router';
-=======
 import arweaveRouter from './arweave/arweave.router';
->>>>>>> 3ebe5f3b (feat: add tests for arweave)
 import brandRouter from './brand/brand.router';
 import { checkJwt } from '@/middlewares';
 
