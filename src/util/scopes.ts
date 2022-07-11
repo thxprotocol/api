@@ -18,6 +18,8 @@ export const dashboardScopes = [
     'promotions:write',
     'transactions:read',
     'claims:read',
+    'swaprule:read',
+    'swaprule:write',
 ];
 export const userScopes = [
     'asset_pools:read',
@@ -29,6 +31,9 @@ export const userScopes = [
     'transactions:read',
     'transactions:write',
     'claims:read',
+    'swaprule:read',
+    'swap:read',
+    'swap:write',
 ];
 
 export const opneIdAdminScopes = `${openId} ${adminScopes.join(' ')}`;

@@ -1,7 +1,7 @@
 {
   "swagger": "2.0",
   "info": {
-    "version": "1.15.8",
+    "version": "1.16.0",
     "title": "THX API Specification",
     "description": "User guides are available at https://docs.thx.network."
   },
@@ -1623,46 +1623,6 @@
         }
       }
     },
-    "/brand/{pool_address}": {
-      "get": {
-        "description": "",
-        "parameters": [
-          {
-            "name": "pool_address",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          }
-        ],
-        "responses": {}
-      },
-      "put": {
-        "description": "",
-        "parameters": [
-          {
-            "name": "pool_address",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          }
-        ],
-        "responses": {}
-      }
-    },
-    "/upload/": {
-      "put": {
-        "description": "",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "OK"
-          },
-          "440": {
-            "description": ""
-          }
-        }
-      }
-    },
     "/transactions/": {
       "get": {
         "description": "",
@@ -1713,10 +1673,63 @@
         }
       }
     },
-    "/claims/{id}": {
+    "/swaprules/": {
       "get": {
         "tags": [
-          "Claims"
+          "ERC20SwapRules"
+        ],
+        "description": "",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "type": "string"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "ERC20SwapRules"
+        ],
+        "description": "",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "tokenInAddress": {
+                  "example": "any"
+                },
+                "tokenMultiplier": {
+                  "example": "any"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/swaprules/{id}": {
+      "get": {
+        "tags": [
+          "ERC20SwapRules"
         ],
         "description": "",
         "parameters": [
@@ -1730,6 +1743,118 @@
         "responses": {
           "200": {
             "description": "OK"
+          }
+        }
+      }
+    },
+    "/swaps/": {
+      "get": {
+        "tags": [
+          "ERC20Swaps"
+        ],
+        "description": "",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "ERC20Swaps"
+        ],
+        "description": "",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "swapRuleId": {
+                  "example": "any"
+                },
+                "amountIn": {
+                  "example": "any"
+                },
+                "call": {
+                  "example": "any"
+                },
+                "nonce": {
+                  "example": "any"
+                },
+                "sig": {
+                  "example": "any"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/swaps/{id}": {
+      "get": {
+        "tags": [
+          "ERC20Swaps"
+        ],
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/brand/{pool_address}": {
+      "get": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "pool_address",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {}
+      },
+      "put": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "pool_address",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {}
+      }
+    },
+    "/upload/": {
+      "put": {
+        "description": "",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "440": {
+            "description": ""
           }
         }
       }
