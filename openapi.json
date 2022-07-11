@@ -1,7 +1,7 @@
 {
   "swagger": "2.0",
   "info": {
-    "version": "1.16.0",
+    "version": "1.16.1",
     "title": "THX API Specification",
     "description": "User guides are available at https://docs.thx.network."
   },
@@ -1855,6 +1855,27 @@
           },
           "440": {
             "description": ""
+          }
+        }
+      }
+    },
+    "/claims/{id}": {
+      "get": {
+        "tags": [
+          "Claims"
+        ],
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
           }
         }
       }
