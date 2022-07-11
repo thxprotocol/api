@@ -11,11 +11,8 @@ import db from '@/util/database';
 import { requestLogger } from '@/util/logger';
 import { errorOutput, notFoundHandler, errorLogger, errorNormalizer, corsHandler } from '@/middlewares';
 import { PORT, VERSION, MONGODB_URI } from '@/config/secrets';
-import arweave from '@/util/arweave';
 
 axiosBetterStacktrace(axios);
-
-arweave.wallets.generate()
 
 const app = express();
 
