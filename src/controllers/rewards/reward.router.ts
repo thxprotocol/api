@@ -48,9 +48,8 @@ router.patch(
 );
 router.post(
     '/:id/claim/',
-    guard.check(['withdrawals:write', 'rewards:read']),
+    guard.check(['withdrawals:write', 'rewards:read', 'claims:read']),
     assertRequestInput(CreateRewardClaim.validation),
-    // requireAssetPoolHeader,
     CreateRewardClaim.controller,
 );
 router.post(

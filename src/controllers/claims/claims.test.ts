@@ -93,7 +93,7 @@ describe('Claims', () => {
             it('should return a 200 and withdrawal id', (done) => {
                 user.post(`/v1/rewards/${rewardID}/claim`)
                     .set({ 'X-PoolId': poolId, 'Authorization': walletAccessToken })
-                    .send({ hash })
+                    .send({ claimId: reward.claimId })
                     .expect((res: request.Response) => {
                         expect(res.body._id).toBeDefined();
                         expect(res.body.state).toEqual(WithdrawalState.Pending);
@@ -145,7 +145,7 @@ describe('Claims', () => {
 
             it('should return a 200 for this second claim', (done) => {
                 user.post(`/v1/rewards/${rewardID}/claim`)
-                    .send({ hash })
+                    .send({ claimId: reward.claimId })
                     .set({ 'X-PoolId': poolId, 'Authorization': walletAccessToken })
                     .expect(200, done);
             });

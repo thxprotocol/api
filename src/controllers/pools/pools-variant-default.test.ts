@@ -24,6 +24,7 @@ import { getContract, getContractFromName } from '@/config/contracts';
 import { currentVersion } from '@thxnetwork/artifacts';
 import { assertEvent, parseLogs } from '@/util/events';
 import TransactionService from '@/services/TransactionService';
+import { RewardDocument } from '@/models/Reward';
 
 const user = request.agent(app);
 
@@ -36,7 +37,8 @@ describe('Default Pool', () => {
         withdrawPollID: string,
         tokenAddress: string,
         userWallet: Account,
-        poolId: string;
+        poolId: string,
+        reward: RewardDocument;
 
     beforeAll(async () => {
         await beforeAllCallback();
@@ -184,6 +186,7 @@ describe('Default Pool', () => {
                     expect(res.body.title).toEqual(title);
                     expect(res.body.slug).toEqual(slug);
                     expect(res.body.withdrawAmount).toEqual(rewardWithdrawAmount);
+                    reward = res.body;
                 })
                 .expect(200, done);
         });
@@ -195,7 +198,7 @@ describe('Default Pool', () => {
             await user
                 .post('/v1/rewards/1/claim')
                 .set({ 'X-PoolId': poolId, 'Authorization': walletAccessToken })
-                .send({ hash })
+                .send({ claimId: reward.claimId })
                 .expect(200);
         });
 
