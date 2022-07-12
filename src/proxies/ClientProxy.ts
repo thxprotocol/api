@@ -24,7 +24,7 @@ export default class ClientProxy {
     }
 
     static async findByPool(poolId: string) {
-        const clients = await Client.find({ poolId });
+        const clients = (await Client.find({ poolId })) || [];
         return clients.map((client) => client.toJSON());
     }
 
