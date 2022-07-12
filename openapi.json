@@ -1422,6 +1422,11 @@
         "description": "",
         "parameters": [
           {
+            "name": "X-PoolId",
+            "in": "header",
+            "type": "string"
+          },
+          {
             "name": "body",
             "in": "body",
             "schema": {

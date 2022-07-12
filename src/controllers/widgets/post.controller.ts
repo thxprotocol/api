@@ -1,14 +1,15 @@
 import { Request, Response } from 'express';
-import { WIDGETS_URL } from '@/config/secrets';
-import WidgetService from '@/services/WidgetService';
-import ClientService from '@/services/ClientService';
 import { body } from 'express-validator';
+
+import { WIDGETS_URL } from '@/config/secrets';
+import ClientProxy from '@/proxies/ClientProxy';
+import WidgetService from '@/services/WidgetService';
 
 const validation = [body('requestUris').exists(), body('postLogoutRedirectUris').exists(), body('metadata').exists()];
 
 const controller = async (req: Request, res: Response) => {
     // #swagger.tags = ['Widgets']
-    const client = await ClientService.create(req.auth.sub, {
+    const client = await ClientProxy.create(req.auth.sub, req.headers['X-PoolId'] as string, {
         application_type: 'web',
         grant_types: ['authorization_code'],
         request_uris: req.body.requestUris,

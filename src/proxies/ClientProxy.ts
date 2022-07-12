@@ -3,9 +3,9 @@ import { Client } from '@/models/Client';
 import { INITIAL_ACCESS_TOKEN } from '@/config/secrets';
 import { THXError } from '@/util/errors';
 
-class ClientServiceError extends THXError {}
+class ClientProxyError extends THXError {}
 
-export default class ClientService {
+export default class ClientProxy {
     static async get(clientId: string) {
         const client = await Client.findOne({ clientId });
         const r = await authClient({
@@ -14,7 +14,7 @@ export default class ClientService {
         });
 
         if (r.status !== 200) {
-            throw new ClientServiceError(r.data);
+            throw new ClientProxyError(r.data);
         }
 
         client.clientSecret = r.data['client_secret'];
@@ -23,7 +23,12 @@ export default class ClientService {
         return client;
     }
 
-    static async create(sub: string, data: any) {
+    static async findByPool(poolId: string) {
+        const clients = await Client.find({ poolId });
+        return clients.map((client) => client.toJSON());
+    }
+
+    static async create(sub: string, poolId: string, data: any) {
         const r = await authClient({
             method: 'POST',
             url: '/reg',
@@ -35,6 +40,7 @@ export default class ClientService {
 
         const client = new Client({
             sub,
+            poolId,
             clientId: r.data.client_id,
             registrationAccessToken: r.data.registration_access_token,
         });
@@ -54,7 +60,7 @@ export default class ClientService {
         });
 
         if (r.status !== 204) {
-            throw new ClientServiceError();
+            throw new ClientProxyError();
         }
     }
 }
