@@ -28,6 +28,7 @@ export function getRewardConfiguration(slug: RewardSlug) {
                 withdrawDuration: 0,
                 isClaimOnce: false,
                 isMembershipRequired: false,
+                amount: 1,
             };
         }
         case 'one-limit-and-claim-one-disabled': {
@@ -39,6 +40,7 @@ export function getRewardConfiguration(slug: RewardSlug) {
                 withdrawLimit: 1,
                 isClaimOnce: false,
                 isMembershipRequired: false,
+                amount: 1,
             };
         }
         case 'withdraw-date-is-today': {
@@ -51,6 +53,7 @@ export function getRewardConfiguration(slug: RewardSlug) {
                 withdrawUnlockDate: formatDate(new Date()),
                 isClaimOnce: false,
                 isMembershipRequired: false,
+                amount: 1,
             };
         }
         case 'withdraw-date-is-tomorrow': {
@@ -63,6 +66,7 @@ export function getRewardConfiguration(slug: RewardSlug) {
                 withdrawUnlockDate: formatDate(addMinutes(new Date(), 24 * 60)),
                 isClaimOnce: false,
                 isMembershipRequired: false,
+                amount: 1,
             };
         }
         case 'expiration-date-is-next-30-min': {
@@ -75,6 +79,7 @@ export function getRewardConfiguration(slug: RewardSlug) {
                 isClaimOnce: false,
                 isMembershipRequired: false,
                 expiryDate: addMinutes(new Date(), 30),
+                amount: 1,
             };
         }
         case 'expiration-date-is-previous-30-min': {
@@ -87,6 +92,7 @@ export function getRewardConfiguration(slug: RewardSlug) {
                 isClaimOnce: false,
                 isMembershipRequired: false,
                 expiryDate: minusMinutes(new Date(), 24 * 60),
+                amount: 1,
             };
         }
         case 'membership-is-required': {
@@ -98,6 +104,7 @@ export function getRewardConfiguration(slug: RewardSlug) {
                 withdrawLimit: 0,
                 isClaimOnce: false,
                 isMembershipRequired: true,
+                amount: 1,
             };
         }
         case 'claim-one-is-enabled': {
@@ -109,6 +116,19 @@ export function getRewardConfiguration(slug: RewardSlug) {
                 withdrawLimit: 0,
                 isClaimOnce: true,
                 isMembershipRequired: false,
+                amount: 1,
+            };
+        }
+        case 'claim-one-is-enabled-and-amount-is-greather-than-1': {
+            return {
+                title: 'Claim one is enabled and amount is greather than 1',
+                slug: 'claim-one-is-enabled-and-amount-is-greather-than-1',
+                withdrawAmount: 1,
+                withdrawDuration: 0,
+                withdrawLimit: 0,
+                isClaimOnce: true,
+                isMembershipRequired: false,
+                amount: 3,
             };
         }
         case 'claim-one-is-disabled': {
@@ -120,6 +140,7 @@ export function getRewardConfiguration(slug: RewardSlug) {
                 withdrawLimit: 0,
                 isClaimOnce: false,
                 isMembershipRequired: false,
+                amount: 1,
             };
         }
     }
@@ -134,4 +155,5 @@ type RewardSlug =
     | 'expiration-date-is-previous-30-min'
     | 'membership-is-required'
     | 'claim-one-is-enabled'
+    | 'claim-one-is-enabled-and-amount-is-greather-than-1'
     | 'claim-one-is-disabled';

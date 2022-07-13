@@ -37,6 +37,7 @@ const controller = async (req: Request, res: Response) => {
         withdrawCondition: req.body.withdrawCondition,
         expiryDate: req.body.expiryDate,
         erc721metadataId: req.body.erc721metadataId,
+        amount: req.body.amount,
     });
 
     res.status(201).json(reward);

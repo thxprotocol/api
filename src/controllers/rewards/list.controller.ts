@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import RewardService from '@/services/RewardService';
 import WithdrawalService from '@/services/WithdrawalService';
+import { Claim } from '@/models/Claim';
 
 const controller = async (req: Request, res: Response) => {
     // #swagger.tags = ['Rewards']
@@ -9,7 +10,10 @@ const controller = async (req: Request, res: Response) => {
     for (const r of rewards) {
         const rewardId = Number(r.id);
         const withdrawals = await WithdrawalService.findByQuery({ poolId: String(req.assetPool._id), rewardId });
-
+        let claims;
+        if (r.amount > 1) {
+            claims = await Claim.find({ rewardId: r._id });
+        }
         result.push({
             _id: String(r._id),
             id: rewardId,
@@ -29,6 +33,7 @@ const controller = async (req: Request, res: Response) => {
             progress: withdrawals.length,
             state: r.state,
             claimId: r.claimId,
+            claimIds: claims ? claims.map((x) => String(x._id)) : [r.claimId],
         });
     }
 

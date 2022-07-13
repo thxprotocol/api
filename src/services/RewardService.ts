@@ -111,6 +111,7 @@ export default class RewardService {
             withdrawCondition?: IRewardCondition;
             expiryDate?: Date;
             erc721metadataId?: string;
+            amount?: number;
         },
     ) {
         // Calculates an incrementing id as was done in Solidity before.
@@ -133,6 +134,7 @@ export default class RewardService {
             state: RewardState.Enabled,
             isMembershipRequired: data.isMembershipRequired,
             isClaimOnce: data.isClaimOnce,
+            amount: data.amount || 1,
         });
 
         const erc20 = await ERC20Service.findByPool(assetPool);
@@ -144,15 +146,15 @@ export default class RewardService {
             erc721 = metadata ? await ERC721Service.findById(metadata.erc721) : null;
         }
 
-        const claim = await Claim.create({
-            poolId: assetPool._id,
-            erc20Id: erc20 ? erc20.id : null,
-            erc721Id: erc721 ? erc721.id : null,
-            rewardId: reward.id,
-        });
+        for (let i = 0; i < reward.amount; i++) {
+            await Claim.create({
+                poolId: assetPool._id,
+                erc20Id: erc20 ? erc20.id : null,
+                erc721Id: erc721 ? erc721.id : null,
+                rewardId: reward.id,
+            });
+        }
 
-        reward.claimId = claim._id;
-        await reward.save();
         return reward;
     }
 

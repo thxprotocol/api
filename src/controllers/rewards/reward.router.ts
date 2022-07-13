@@ -6,6 +6,7 @@ import ReadReward from './get.controller';
 import UpdateReward from './patch.controller';
 import ListRewards from './list.controller';
 import CreateRewardClaim from './claim/post.controller';
+import ListQRcode from './claim/list.qrcode.controller';
 import CreateRewardGive from './give/post.controller';
 import { rateLimitRewardGive } from '@/util/ratelimiter';
 
@@ -27,6 +28,15 @@ router.get(
     requireAssetPoolHeader,
     assertPlan([AccountPlanType.Basic, AccountPlanType.Premium]),
     ReadReward.controller,
+);
+router.get(
+    '/:id/claims/qrcode',
+    guard.check(['rewards:read', 'claims:read']),
+    assertAssetPoolAccess,
+    assertRequestInput(ListQRcode.validation),
+    requireAssetPoolHeader,
+    assertPlan([AccountPlanType.Basic, AccountPlanType.Premium]),
+    ListQRcode.controller,
 );
 router.post(
     '/',
