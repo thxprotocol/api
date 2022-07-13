@@ -21,7 +21,11 @@ const PROD_CONFIG = {
 
 export const IS_TESTING = !!process.env.JEST_WORKER_ID || process.env.NODE_ENV === 'development';
 
-const arweave = Arweave.init(IS_TESTING ? TEST_CONFIG : PROD_CONFIG);
+const CONFIG = IS_TESTING ? TEST_CONFIG : PROD_CONFIG;
+
+export const ARWEAVE_URL = CONFIG.protocol + '://' + CONFIG.host + (CONFIG.port !== 443 ? `:${CONFIG.port}` : '');
+
+const arweave = Arweave.init(CONFIG);
 
 export const getArweaveKey = async () => {
     if (IS_TESTING) {

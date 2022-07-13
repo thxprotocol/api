@@ -1,5 +1,4 @@
-import { API_URL } from '@/config/secrets';
-import arweave, { getArweaveKey, IS_TESTING, TEST_WAVE } from '@/util/arweave';
+import arweave, { getArweaveKey, IS_TESTING, TEST_WAVE, ARWEAVE_URL } from '@/util/arweave';
 
 export default {
     upload: async (file: Express.Multer.File) => {
@@ -10,10 +9,13 @@ export default {
         transaction.addTag('Content-Type', 'image/' + file.originalname.split('.')[1]);
 
         await arweave.transactions.sign(transaction, key);
+
         const status = await arweave.transactions.post(transaction);
+
         if (IS_TESTING) await TEST_WAVE.mine();
 
         if (status.status !== 200) throw new Error('Failed to upload to Arweave');
+
         return transaction;
     },
 
@@ -24,6 +26,6 @@ export default {
     },
 
     generateUrl: (id: string) => {
-        return API_URL + '/arweave/' + id;
+        return ARWEAVE_URL + '/' + id;
     },
 };

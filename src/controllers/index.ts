@@ -34,6 +34,7 @@ router.use('/docs', docsRouter);
 router.use('/metadata', erc721MetadataRouter);
 router.use('/payments', paymentsRouter);
 router.use(checkJwt);
+router.use('/arweave', arweaveRouter);
 router.use('/account', accountRouter);
 router.use('/pools', poolsRouter);
 router.use('/metrics', metricsRouter);
@@ -52,7 +53,6 @@ router.use('/swaprules', erc20SwapRuleRouter);
 router.use('/swaps', erc20SwapRouter);
 router.use('/brand', brandRouter);
 router.use('/upload', uploadRouter);
-router.use('/arweave', arweaveRouter);
 router.use('/transactions', transactionsRouter);
 
 export default router;

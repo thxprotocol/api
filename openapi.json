@@ -168,6 +168,20 @@
         }
       }
     },
+    "/arweave/": {
+      "put": {
+        "description": "",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "440": {
+            "description": ""
+          }
+        }
+      }
+    },
     "/account/": {
       "get": {
         "tags": [
@@ -1849,41 +1863,6 @@
       "put": {
         "description": "",
         "parameters": [],
-        "responses": {
-          "200": {
-            "description": "OK"
-          },
-          "440": {
-            "description": ""
-          }
-        }
-      }
-    },
-    "/arweave/": {
-      "put": {
-        "description": "",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "OK"
-          },
-          "440": {
-            "description": ""
-          }
-        }
-      }
-    },
-    "/arweave/{id}": {
-      "get": {
-        "description": "",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          }
-        ],
         "responses": {
           "200": {
             "description": "OK"
