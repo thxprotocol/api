@@ -14,6 +14,8 @@ import {
 import { Contract } from 'web3-eth-contract';
 import { afterAllCallback, beforeAllCallback } from '@/util/jest/config';
 import { getContract } from '@/config/contracts';
+import { AssetPoolDocument } from '@/models/AssetPool';
+import { RewardDocument } from '@/models/Reward';
 
 const user = request.agent(app);
 
@@ -21,7 +23,7 @@ describe('Widgets', () => {
     const title = 'Welcome Package',
         slug = 'welcome-package';
 
-    let poolId: string, testToken: Contract, clientId: string;
+    let pool: AssetPoolDocument, testToken: Contract, clientId: string, reward: RewardDocument;
 
     beforeAll(async () => {
         await beforeAllCallback();
@@ -40,7 +42,7 @@ describe('Widgets', () => {
                     tokens: [testToken.options.address],
                 })
                 .expect(({ body }: request.Response) => {
-                    poolId = body._id;
+                    pool = body;
                 })
                 .expect(201, done);
         });
@@ -50,13 +52,16 @@ describe('Widgets', () => {
         it('HTTP 200', async () => {
             await user
                 .post('/v1/rewards/')
-                .set({ 'X-PoolId': poolId, 'Authorization': dashboardAccessToken })
+                .set({ 'X-PoolId': pool._id, 'Authorization': dashboardAccessToken })
                 .send({
                     title,
                     slug,
                     withdrawAmount: rewardWithdrawAmount,
                     withdrawDuration: rewardWithdrawDuration,
                     withdrawUnlockDate: rewardWithdrawUnlockDate,
+                })
+                .expect(({ body }: request.Response) => {
+                    reward = body;
                 })
                 .expect(201);
         });
@@ -65,11 +70,11 @@ describe('Widgets', () => {
     describe('POST /widgets/', () => {
         it('HTTP 200', (done) => {
             user.post('/v1/widgets/')
-                .set({ 'X-PoolId': poolId, 'Authorization': dashboardAccessToken })
+                .set({ 'X-PoolId': pool._id, 'Authorization': dashboardAccessToken })
                 .send({
                     metadata: {
-                        rewardId,
-                        poolId,
+                        rewardId: reward.id,
+                        poolId: pool._id,
                     },
                     requestUris,
                     redirectUris,
@@ -81,8 +86,8 @@ describe('Widgets', () => {
 
     describe('GET /widgets', () => {
         it('HTTP 200', (done) => {
-            user.get('/v1/widgets?poolId=' + poolId)
-                .set({ 'X-PoolId': poolId, 'Authorization': dashboardAccessToken })
+            user.get('/v1/widgets?poolId=' + pool._id)
+                .set({ 'X-PoolId': pool._id, 'Authorization': dashboardAccessToken })
                 .expect((res: request.Response) => {
                     expect(res.body.length).toBe(1);
                     clientId = res.body[0];
@@ -94,13 +99,13 @@ describe('Widgets', () => {
     describe('GET /widgets/:clientId', () => {
         it('HTTP 200', (done) => {
             user.get('/v1/widgets/' + clientId)
-                .set({ 'X-PoolId': poolId, 'Authorization': dashboardAccessToken })
+                .set({ 'X-PoolId': pool._id, 'Authorization': dashboardAccessToken })
                 .expect((res: request.Response) => {
                     expect(res.body.requestUris[0]).toBe(requestUris[0]);
                     expect(res.body.clientId).toBeDefined();
                     expect(res.body.clientSecret).toBeDefined();
-                    expect(res.body.metadata.rewardId).toBe(rewardId);
-                    expect(res.body.metadata.poolId).toBe(poolId);
+                    expect(res.body.metadata.rewardId).toBe(reward.id);
+                    expect(res.body.metadata.poolId).toBe(pool._id);
                 })
                 .expect(200, done);
         });

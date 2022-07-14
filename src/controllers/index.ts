@@ -22,6 +22,7 @@ import transactionsRouter from './transactions/transactions.router';
 import erc20SwapRuleRouter from './swaprules/swaprules.router';
 import erc20SwapRouter from './swaps/swaps.router';
 import brandRouter from './brand/brand.router';
+import claimsRouter from './claims/claims.router';
 import { checkJwt } from '@/middlewares';
 
 const router = express.Router();
@@ -52,5 +53,6 @@ router.use('/swaps', erc20SwapRouter);
 router.use('/brand', brandRouter);
 router.use('/upload', uploadRouter);
 router.use('/transactions', transactionsRouter);
+router.use('/claims', claimsRouter);
 
 export default router;

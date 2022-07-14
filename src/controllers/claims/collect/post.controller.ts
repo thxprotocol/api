@@ -11,19 +11,22 @@ import WithdrawalService from '@/services/WithdrawalService';
 import MembershipService from '@/services/MembershipService';
 import ERC721Service from '@/services/ERC721Service';
 import AssetPoolService from '@/services/AssetPoolService';
+import { Claim } from '@/models/Claim';
+import ERC20Service from '@/services/ERC20Service';
 
-const validation = [param('id').exists().isNumeric(), body('hash').exists().isBase64()];
+const validation = [param('id').isMongoId()];
 
 const controller = async (req: Request, res: Response) => {
     // #swagger.tags = ['Rewards']
-    // Only used to get the poolAddress and should be removed (as of param) when claim URLs are improved and contain poolId
-    const data: any = JSON.parse(Buffer.from(req.body.hash, 'base64').toString());
     if (!req.auth.sub) throw new BadRequestError('No subscription is found for this type of access token.');
 
-    const pool = await AssetPoolService.getByAddress(data.poolAddress);
+    const claim = await Claim.findById(req.params.id);
+    if (!claim) throw new BadRequestError('The claim for this claimId does not exist.');
+
+    const pool = await AssetPoolService.getById(claim.poolId);
     if (!pool) throw new BadRequestError('The pool for this rewards has been removed.');
 
-    const reward = await RewardService.get(pool, Number(req.params.id));
+    const reward = await RewardService.get(pool, claim.rewardId);
     if (!reward) throw new BadRequestError('The reward for this ID does not exist.');
 
     const account = await AccountProxy.getById(req.auth.sub);
@@ -55,12 +58,13 @@ const controller = async (req: Request, res: Response) => {
             reward.withdrawUnlockDate,
             reward.id,
         );
+        const erc20 = await ERC20Service.getById(claim.erc20Id);
 
         await WithdrawalService.proposeWithdraw(pool, w, account);
 
         agenda.now(EVENT_REQUIRE_TRANSACTIONS, {});
 
-        return res.json({ ...w.toJSON() });
+        return res.json({ ...w.toJSON(), tokenSymbol: erc20.symbol });
     }
 
     if (pool.variant === 'nftPool') {

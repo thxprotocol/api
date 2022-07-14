@@ -47,7 +47,7 @@ export default class WithdrawalService {
         amount: number,
         state = WithdrawalState.Pending,
         unlockDate?: Date,
-        rewardId?: number,
+        rewardId?: string,
     ) {
         return Withdrawal.create({
             type,
@@ -124,7 +124,7 @@ export default class WithdrawalService {
         return Withdrawal.find({ poolId: String(assetPool._id) }).count();
     }
 
-    static findByQuery(query: { poolId: string; rewardId: number }) {
+    static findByQuery(query: { poolId: string; rewardId: string }) {
         return Withdrawal.find(query);
     }
 
@@ -133,17 +133,14 @@ export default class WithdrawalService {
         page: number,
         limit: number,
         beneficiary?: string,
-        rewardId?: number,
+        rewardId?: string,
         state?: number,
     ) {
-        let account;
-        if (beneficiary) {
-            account = await AccountProxy.getByAddress(beneficiary);
-        }
+        const account = beneficiary ? await AccountProxy.getByAddress(beneficiary) : undefined;
         const query = {
             ...(poolId ? { poolId } : {}),
             ...(account ? { sub: account.id } : {}),
-            ...(rewardId || rewardId === 0 ? { rewardId } : {}),
+            ...(rewardId ? { rewardId } : {}),
             ...(state === 0 || state === 1 ? { state } : {}),
         };
         return await paginatedResults(Withdrawal, page, limit, query);
@@ -157,7 +154,7 @@ export default class WithdrawalService {
         }
     }
 
-    static async hasClaimedOnce(poolId: string, sub: string, rewardId: number) {
+    static async hasClaimedOnce(poolId: string, sub: string, rewardId: string) {
         const withdrawal = await Withdrawal.findOne({
             sub,
             rewardId,

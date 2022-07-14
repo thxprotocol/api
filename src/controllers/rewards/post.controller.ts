@@ -1,6 +1,9 @@
-import { Request, Response } from 'express';
 import { body } from 'express-validator';
+import { Request, Response } from 'express';
 import RewardService from '@/services/RewardService';
+import ERC20Service from '@/services/ERC20Service';
+import ClaimService from '@/services/ClaimService';
+import ERC721Service from '@/services/ERC721Service';
 
 const validation = [
     body('title').exists().isString(),
@@ -17,7 +20,6 @@ const validation = [
 
 const controller = async (req: Request, res: Response) => {
     // #swagger.tags = ['Rewards']
-
     let withdrawUnlockDate = req.body.withdrawUnlockDate;
 
     if (!withdrawUnlockDate) {
@@ -39,7 +41,23 @@ const controller = async (req: Request, res: Response) => {
         erc721metadataId: req.body.erc721metadataId,
     });
 
-    res.status(201).json(reward);
+    let erc20Id, erc721Id;
+    if (reward.erc721metadataId) {
+        const metadata = await ERC721Service.findMetadataById(reward.erc721metadataId);
+        erc721Id = metadata.erc721;
+    } else {
+        const erc20 = await ERC20Service.findByPool(req.assetPool);
+        erc20Id = erc20._id;
+    }
+
+    const claim = await ClaimService.create({
+        poolId: req.assetPool._id,
+        erc20Id,
+        erc721Id,
+        rewardId: String(reward._id),
+    });
+
+    res.status(201).json({ ...reward.toJSON(), claims: [claim] });
 };
 
 export default { controller, validation };

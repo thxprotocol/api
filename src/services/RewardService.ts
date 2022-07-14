@@ -16,7 +16,7 @@ import ERC721Service from './ERC721Service';
 import { AssetPoolDocument } from '@/models/AssetPool';
 
 export default class RewardService {
-    static async get(assetPool: AssetPoolDocument, rewardId: number): Promise<RewardDocument> {
+    static async get(assetPool: AssetPoolDocument, rewardId: string): Promise<RewardDocument> {
         const reward = await Reward.findOne({ poolId: String(assetPool._id), id: rewardId });
         if (!reward) return null;
         return reward;
@@ -111,13 +111,8 @@ export default class RewardService {
             erc721metadataId?: string;
         },
     ) {
-        // Calculates an incrementing id as was done in Solidity before.
-        // TODO Add migration to remove id and start using default collection _id.
-        const id = (await this.findByPool(assetPool)).length + 1;
         const expiryDateObj = data.expiryDate && new Date(data.expiryDate);
-
-        return await Reward.create({
-            id,
+        const reward = await Reward.create({
             title: data.title,
             slug: data.slug,
             expiryDate: expiryDateObj,
@@ -132,6 +127,10 @@ export default class RewardService {
             isMembershipRequired: data.isMembershipRequired,
             isClaimOnce: data.isClaimOnce,
         });
+
+        // Store in id to minimize regresion. Remove when old style QR's are no longer going around.
+        reward.id = String(reward._id);
+        return await reward.save();
     }
 
     static update(reward: RewardDocument, updates: IRewardUpdates) {

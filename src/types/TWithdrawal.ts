@@ -10,7 +10,7 @@ export type TWithdrawal = {
     transactions: string[];
     amount: number;
     unlockDate: Date;
-    rewardId?: number;
+    rewardId?: string;
     withdrawalId?: number;
     tokenId?: number;
     failReason?: string;
