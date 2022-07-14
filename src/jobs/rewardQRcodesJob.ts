@@ -1,5 +1,4 @@
 import RewardService from '@/services/RewardService';
-import { Claim } from '@/models/Claim';
 import { DASHBOARD_URL, WALLET_URL } from '@/config/secrets';
 import QRCode from 'qrcode';
 import { createCanvas, loadImage } from 'canvas';
@@ -10,6 +9,7 @@ import MailService from '@/services/MailService';
 import AccountProxy from '@/proxies/AccountProxy';
 import { Job } from 'agenda';
 import AssetPoolService from '@/services/AssetPoolService';
+import ClaimService from '@/services/ClaimService';
 
 const generateRewardQRCodesJob = async (job: Job) => {
     if (!job.attrs.data) return;
@@ -21,9 +21,7 @@ const generateRewardQRCodesJob = async (job: Job) => {
     if (!reward) {
         throw new Error('Reward not found');
     }
-    const claims = await Claim.find({
-        rewardId: reward.id,
-    });
+    const claims = await ClaimService.findByReward(reward);
 
     if (claims.length == 0) {
         logger.info('There are 0 claims for this Reward');

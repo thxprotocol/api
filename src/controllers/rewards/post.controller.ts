@@ -16,6 +16,7 @@ const validation = [
     body('withdrawCondition.channelType').optional().isNumeric(),
     body('withdrawCondition.channelAction').optional().isNumeric(),
     body('withdrawCondition.channelItem').optional().isString(),
+    body('amount').isInt({ gt: 0 }),
 ];
 
 const controller = async (req: Request, res: Response) => {
@@ -42,7 +43,7 @@ const controller = async (req: Request, res: Response) => {
         amount: req.body.amount,
     });
 
-    let erc20Id, erc721Id;
+    let erc20Id: string, erc721Id: string;
     if (reward.erc721metadataId) {
         const metadata = await ERC721Service.findMetadataById(reward.erc721metadataId);
         erc721Id = metadata.erc721;
@@ -50,15 +51,28 @@ const controller = async (req: Request, res: Response) => {
         const erc20 = await ERC20Service.findByPool(req.assetPool);
         erc20Id = erc20._id;
     }
+    const promises = [];
+    for (let i = 0; i < reward.amount; i++) {
+        const promise = new Promise(async (resolve, reject) => {
+            try {
+                const claim = await ClaimService.create({
+                    poolId: req.assetPool._id,
+                    erc20Id,
+                    erc721Id,
+                    rewardId: String(reward._id),
+                });
+                resolve(claim);
+            } catch (err) {
+                reject(err);
+            }
+        });
+        promises.push(promise);
+    }
 
-    const claim = await ClaimService.create({
-        poolId: req.assetPool._id,
-        erc20Id,
-        erc721Id,
-        rewardId: String(reward._id),
-    });
+    await Promise.all(promises);
+    const claims = await ClaimService.findByReward(reward);
 
-    res.status(201).json({ ...reward.toJSON(), claims: [claim] });
+    res.status(201).json({ ...reward.toJSON(), claims });
 };
 
 export default { controller, validation };

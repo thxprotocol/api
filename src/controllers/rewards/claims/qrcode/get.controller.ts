@@ -19,17 +19,13 @@ const controller = async (req: Request, res: Response) => {
     if (!reward) throw new NotFoundError();
 
     // CHECK IF THE ZIP FILE IS ALREADY GENERATED
-    const zipPath = path.resolve(`download/rewards-qrcodes/${String(reward.id)}.zip`);
+    const zipPath = path.resolve(`download/rewards-qrcodes/${String(reward._id)}.zip`);
     try {
         await fs.promises.access(zipPath, constants.F_OK);
         // RETURN THE FILE
         console.log('RETURNS THE FILE-----------------------------');
-        const reader = fs.createReadStream(zipPath);
-        reader.on('data', function (chunk) {
-            res.sendStatus(200);
-            res.setHeader('Content-Disposition', 'attachment');
-            res.send(chunk);
-        });
+        res.setHeader('Content-type', 'application/zip');
+        res.sendFile(zipPath);
     } catch (err) {
         // SCHEDULE THE JOB
         console.log('SCHEDULE THE JOB-----------------------------');

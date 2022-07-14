@@ -1343,6 +1343,9 @@
           "Rewards"
         ],
         "description": "",
+        "produces": [
+          "application/zip"
+        ],
         "parameters": [
           {
             "name": "id",
