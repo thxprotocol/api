@@ -36,8 +36,7 @@ export interface IRewardCondition {
 }
 
 export type TReward = {
-    _id?: string;
-    id: number;
+    id: string;
     title: string;
     slug: string;
     poolId: string;
@@ -53,29 +52,16 @@ export type TReward = {
     withdrawCondition: IRewardCondition;
     withdrawUnlockDate: Date;
     progress?: number;
-    claimId?: string;
 };
 
 export type RewardDocument = mongoose.Document & TReward;
 
-export type TRewardPoll = {
-    id: number;
-    withdrawAmount: number;
-    withdrawDuration: number;
-    withdrawUnlockDate: Date;
-    startTime: number;
-    endTime: number;
-    yesCounter: number;
-    noCounter: number;
-    totalVoted: number;
-};
-
 const rewardSchema = new mongoose.Schema(
     {
-        id: Number,
+        id: String,
         title: String,
         slug: String,
-        expiryDate: Date,
+        expiryDate: Date, // Rename to expiresAt
         poolId: String,
         poolAddress: String,
         state: Number,
@@ -91,8 +77,6 @@ const rewardSchema = new mongoose.Schema(
             channelItem: String,
         },
         withdrawUnlockDate: Date,
-        pollId: Number,
-        claimId: String,
     },
     { timestamps: true },
 );

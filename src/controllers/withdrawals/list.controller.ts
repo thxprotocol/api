@@ -7,7 +7,7 @@ const validation = [
     query('page').exists().isNumeric(),
     query('limit').exists().isNumeric(),
     query('member').optional().isEthereumAddress(),
-    query('rewardId').optional().isNumeric(),
+    query('rewardId').optional(),
     query('state').optional().isNumeric(),
 ];
 
@@ -19,7 +19,7 @@ const controller = async (req: Request, res: Response) => {
         Number(req.query.page),
         Number(req.query.limit),
         req.query.member && req.query.member.length > 0 ? String(req.query.member) : undefined,
-        !isNaN(Number(req.query.rewardId)) ? Number(req.query.rewardId) : undefined,
+        req.query.rewardId ? String(req.query.rewardId) : undefined,
         !isNaN(Number(req.query.state)) ? Number(req.query.state) : undefined,
     );
 

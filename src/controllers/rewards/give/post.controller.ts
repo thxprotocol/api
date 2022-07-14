@@ -1,7 +1,6 @@
 import { Request, Response } from 'express';
 import { WithdrawalState, WithdrawalType } from '@/types/enums';
 import { BadRequestError, ForbiddenError, NotFoundError } from '@/util/errors';
-import { TWithdrawal } from '@/types/TWithdrawal';
 import AccountProxy from '@/proxies/AccountProxy';
 import RewardService from '@/services/RewardService';
 import WithdrawalService from '@/services/WithdrawalService';
@@ -14,8 +13,7 @@ const validation = [param('id').exists(), body('member').exists()];
 
 const controller = async (req: Request, res: Response) => {
     // #swagger.tags = ['Rewards']
-    const rewardId = Number(req.params.id);
-    const reward = await RewardService.get(req.assetPool, rewardId);
+    const reward = await RewardService.get(req.assetPool, req.params.id);
     if (!reward) throw new BadRequestError('Could not find a reward for this id');
 
     const isMember = await MemberService.isMember(req.assetPool, req.body.member);
@@ -33,7 +31,7 @@ const controller = async (req: Request, res: Response) => {
         // they have logged into their wallet to update their account with a new wallet address.
         account.privateKey ? WithdrawalState.Deferred : WithdrawalState.Pending,
         reward.withdrawUnlockDate,
-        rewardId,
+        req.params.id,
     );
 
     w = await WithdrawalService.proposeWithdraw(req.assetPool, w, account);

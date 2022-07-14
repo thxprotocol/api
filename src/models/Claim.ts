@@ -1,9 +1,7 @@
-import { TClaim } from '@/types/TClaim';
+import { ClaimDocument } from '@/types/TClaim';
 import mongoose from 'mongoose';
 
-export type ClaimDocument = mongoose.Document & TClaim;
-
-const claimSchema = new mongoose.Schema(
+const schema = new mongoose.Schema(
     {
         poolId: String,
         erc20Id: String,
@@ -13,4 +11,4 @@ const claimSchema = new mongoose.Schema(
     { timestamps: true },
 );
 
-export const Claim = mongoose.model<ClaimDocument>('Claim', claimSchema);
+export const Claim = mongoose.model<ClaimDocument>('Claim', schema, 'claims');

@@ -30,11 +30,7 @@ export default class MembershipService {
     }
 
     static async addERC20Membership(sub: string, assetPool: AssetPoolDocument) {
-        const membership = await Membership.findOne({
-            sub,
-            chainId: assetPool.chainId,
-            poolId: String(assetPool._id),
-        });
+        const membership = await Membership.findOne({ sub, poolId: String(assetPool._id) });
 
         if (!membership) {
             const erc20 = await ERC20Service.findByPool(assetPool);

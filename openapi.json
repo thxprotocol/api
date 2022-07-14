@@ -1334,39 +1334,6 @@
         }
       }
     },
-    "/rewards/{id}/claim/": {
-      "post": {
-        "tags": [
-          "Rewards"
-        ],
-        "description": "",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "body",
-            "in": "body",
-            "schema": {
-              "type": "object",
-              "properties": {
-                "claimId": {
-                  "example": "any"
-                }
-              }
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        }
-      }
-    },
     "/rewards/{id}/give": {
       "post": {
         "tags": [
@@ -1859,6 +1826,27 @@
         }
       }
     },
+    "/claims/{id}/collect": {
+      "post": {
+        "tags": [
+          "Rewards"
+        ],
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
     "/claims/{id}": {
       "get": {
         "tags": [
@@ -1868,6 +1856,27 @@
         "parameters": [
           {
             "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/claims/hash/{hash}": {
+      "get": {
+        "tags": [
+          "Claims"
+        ],
+        "description": "",
+        "parameters": [
+          {
+            "name": "hash",
             "in": "path",
             "required": true,
             "type": "string"

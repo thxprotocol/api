@@ -7,11 +7,11 @@ import ERC721Service from '@/services/ERC721Service';
 import AssetPoolService from '@/services/AssetPoolService';
 import ClaimService from '@/services/ClaimService';
 
-const validation = [param('id').isMongoId()];
+const validation = [param('hash').isString()];
 
 const controller = async (req: Request, res: Response) => {
     // #swagger.tags = ['Claims']
-    const claim = await ClaimService.findById(req.params.id);
+    const claim = await ClaimService.findByHash(req.params.hash);
     if (!claim) throw new NotFoundError('Could not find this claim');
 
     const pool = await AssetPoolService.getById(claim.poolId);

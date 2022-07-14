@@ -14,11 +14,9 @@ import SpotifyDataProxy from '@/proxies/SpotifyDataProxy';
 import WithdrawalService from './WithdrawalService';
 import ERC721Service from './ERC721Service';
 import { AssetPoolDocument } from '@/models/AssetPool';
-import { Claim } from '@/models/Claim';
-import ERC20Service from './ERC20Service';
 
 export default class RewardService {
-    static async get(assetPool: AssetPoolDocument, rewardId: number): Promise<RewardDocument> {
+    static async get(assetPool: AssetPoolDocument, rewardId: string): Promise<RewardDocument> {
         const reward = await Reward.findOne({ poolId: String(assetPool._id), id: rewardId });
         if (!reward) return null;
         return reward;
@@ -113,13 +111,8 @@ export default class RewardService {
             erc721metadataId?: string;
         },
     ) {
-        // Calculates an incrementing id as was done in Solidity before.
-        // TODO Add migration to remove id and start using default collection _id.
-        const id = (await this.findByPool(assetPool)).length + 1;
         const expiryDateObj = data.expiryDate && new Date(data.expiryDate);
-
         const reward = await Reward.create({
-            id,
             title: data.title,
             slug: data.slug,
             expiryDate: expiryDateObj,
@@ -135,25 +128,9 @@ export default class RewardService {
             isClaimOnce: data.isClaimOnce,
         });
 
-        const erc20 = await ERC20Service.findByPool(assetPool);
-        let erc721;
-
-        if (reward.erc721metadataId) {
-            const metadata = await ERC721Service.findMetadataById(reward.erc721metadataId);
-
-            erc721 = metadata ? await ERC721Service.findById(metadata.erc721) : null;
-        }
-
-        const claim = await Claim.create({
-            poolId: assetPool._id,
-            erc20Id: erc20 ? erc20.id : null,
-            erc721Id: erc721 ? erc721.id : null,
-            rewardId: reward.id,
-        });
-
-        reward.claimId = claim._id;
-        await reward.save();
-        return reward;
+        // Store in id to minimize regresion. Remove when old style QR's are no longer going around.
+        reward.id = String(reward._id);
+        return await reward.save();
     }
 
     static update(reward: RewardDocument, updates: IRewardUpdates) {

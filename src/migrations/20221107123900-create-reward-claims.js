@@ -2,7 +2,7 @@ const TokenFacetArtifact = require('@thxnetwork/artifacts/dist/exports/abis/ERC2
 const Web3 = require('web3');
 const { ObjectId } = require('mongodb');
 
-const hardhat = new Web3(process.env.HARDHAT_RPC);
+const hardhat = new Web3(process.env.HARDHAT_RPC_TEST_OVERRIDE);
 const hardhatAdmin = hardhat.eth.accounts.privateKeyToAccount(process.env.PRIVATE_KEY);
 hardhat.eth.defaultAccount = hardhatAdmin.address;
 
@@ -22,7 +22,6 @@ const ChainId = {
 
 const getProvider = (chainId) => {
     switch (chainId) {
-        default:
         case ChainId.Hardhat:
             return { web3: hardhat, admin: hardhatAdmin };
         case ChainId.PolygonMumbai:
@@ -31,65 +30,37 @@ const getProvider = (chainId) => {
             return { web3: mainnet, admin: mainnetAdmin };
     }
 };
+
 module.exports = {
     async up(db) {
         const rewardsColl = db.collection('rewards');
-        const erc20tokenColl = db.collection('erc20token');
+        const erc20Coll = db.collection('erc20');
         const claimsColl = db.collection('claims');
         const assetPoolColl = db.collection('assetpools');
+        const erc721Coll = db.collection('erc721');
+        const erc721MetadataColl = db.collection('erc721metadata');
 
-        const rewards = await rewardsColl.find({ claimId: { $eq: null } }).toArray();
-
-        if (rewards.length == 0) {
-            return;
-        }
-        const promises = rewards.map(async (reward) => {
+        const promises = (await rewardsColl.find().toArray()).map(async (reward) => {
             try {
-                const assetPool = await assetPoolColl.findOne({ _id: new ObjectId(reward.poolId) });
-
-                const { web3, admin } = getProvider(assetPool.chainId);
-
-                const poolContract = new web3.eth.Contract(TokenFacetArtifact, assetPool.address);
-
+                const pool = await assetPoolColl.findOne({ _id: new ObjectId(reward.poolId) });
+                const { web3 } = getProvider(pool.chainId);
+                const poolContract = new web3.eth.Contract(TokenFacetArtifact, pool.address);
                 const tokenAddress = await poolContract.methods.getERC20().call();
 
-                const erc20 = await erc20tokenColl.findOne({ address: tokenAddress, chainId: assetPool.chainId });
-                let erc721;
+                let erc721, erc20;
                 if (reward.erc721metadataId) {
-                    const metadata = db.collection('erc721metadata').findById(reward.erc721metadataId);
-                    erc721 = metadata ? db.collection('erc721').findById(metadata.erc721) : null;
+                    const metadata = await erc721MetadataColl.findById(reward.erc721metadataId);
+                    erc721 = await erc721Coll.findById(metadata.erc721);
+                } else {
+                    erc20 = await erc20Coll.findOne({ address: tokenAddress, chainId: pool.chainId });
                 }
 
-                // CLAIM CREATION
-                const claim = await claimsColl.insertOne({
-                    poolId: assetPool._id,
-                    erc20Id: erc20 ? erc20.id : null,
-                    erc721Id: erc721 ? erc721.id : null,
-                    rewardId: reward.id,
+                await claimsColl.insertOne({
+                    poolId: String(pool._id),
+                    erc20Id: erc20 ? String(erc20._id) : undefined,
+                    erc721Id: erc721 ? String(erc721._id) : undefined,
+                    rewardId: String(reward.id),
                 });
-
-                // HASH CREATION
-                const hashInfo = {
-                    chainId: assetPool.chainId,
-                    poolAddress: assetPool.address,
-                    tokenSymbol: erc20 ? erc20.symbol : erc721.symbol,
-                    rewardId: reward.id,
-                    rewardAmount: reward.withdrawAmount,
-                    rewardCondition: reward.withdrawCondition,
-                    clientId: assetPool.clientId,
-                };
-                const hash = btoa(btoa(JSON.stringify(hashInfo)));
-
-                // UPDATE REWARD
-                await rewardsColl.updateOne(
-                    { _id: reward._id },
-                    {
-                        $set: {
-                            claimId: String(claim._id),
-                            hash,
-                        },
-                    },
-                );
             } catch (error) {
                 console.log(error);
             }

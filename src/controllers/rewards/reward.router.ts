@@ -5,7 +5,6 @@ import CreateReward from './post.controller';
 import ReadReward from './get.controller';
 import UpdateReward from './patch.controller';
 import ListRewards from './list.controller';
-import CreateRewardClaim from './claim/post.controller';
 import CreateRewardGive from './give/post.controller';
 import { rateLimitRewardGive } from '@/util/ratelimiter';
 
@@ -45,12 +44,6 @@ router.patch(
     requireAssetPoolHeader,
     assertPlan([AccountPlanType.Basic, AccountPlanType.Premium]),
     UpdateReward.controller,
-);
-router.post(
-    '/:id/claim/',
-    guard.check(['withdrawals:write', 'rewards:read', 'claims:read']),
-    assertRequestInput(CreateRewardClaim.validation),
-    CreateRewardClaim.controller,
 );
 router.post(
     '/:id/give',

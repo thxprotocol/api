@@ -1,7 +1,9 @@
+import mongoose from 'mongoose';
+
 export type TClaim = {
-    _id: string;
     poolId: string;
+    rewardId: string;
     erc20Id?: string;
     erc721Id?: string;
-    rewardId: number;
 };
+export type ClaimDocument = mongoose.Document & TClaim;
