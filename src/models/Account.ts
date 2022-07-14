@@ -9,6 +9,7 @@ export interface IAccount {
     twitter?: any;
     spotify?: any;
     plan: AccountPlanType;
+    email: string;
 }
 export interface ERC20Token {
     chainId: ChainId;

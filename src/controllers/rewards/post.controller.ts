@@ -39,6 +39,7 @@ const controller = async (req: Request, res: Response) => {
         withdrawCondition: req.body.withdrawCondition,
         expiryDate: req.body.expiryDate,
         erc721metadataId: req.body.erc721metadataId,
+        amount: req.body.amount,
     });
 
     let erc20Id, erc721Id;
