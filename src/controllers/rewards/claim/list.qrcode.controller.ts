@@ -1,79 +1,46 @@
 import { Request, Response } from 'express';
 import RewardService from '@/services/RewardService';
-import { Claim } from '@/models/Claim';
 import { param } from 'express-validator';
-import { NotFoundError } from '@/util/errors';
-import { WALLET_URL } from '@/config/secrets';
-import QRCode from 'qrcode';
-import { createCanvas, loadImage } from 'canvas';
-import fs from 'fs';
-import JSZip from 'jszip';
+import { NotFoundError, SubjectUnauthorizedError } from '@/util/errors';
+import fs, { constants } from 'fs';
+import path from 'path';
+import { agenda, EVENT_SEND_DOWNLOAD_QR_EMAIL } from '@/util/agenda';
 
 const validation = [param('id').exists().isNumeric()];
 
 const controller = async (req: Request, res: Response) => {
     // #swagger.tags = ['Rewards']
+
+    // CHECK SUB
+    if (req.auth.sub !== req.assetPool.sub) {
+        throw new SubjectUnauthorizedError();
+    }
     const reward = await RewardService.get(req.assetPool, Number(req.params.id));
     if (!reward) throw new NotFoundError();
-    const claims = await Claim.find({
-        rewardId: reward.id,
-    });
 
-    if (claims.length == 0) {
-        return;
-    }
-
-    var zip = new JSZip();
-    const imgFolder = zip.folder('images');
-
-    const promises = [];
-
-    for (let i = 0; i < claims.length; i++) {
-        const promise = new Promise(async (resolve, reject) => {
-            try {
-                const claimId = String(claims[i]._id);
-                const claimURL = `${WALLET_URL}/claims/${claimId}`;
-                const qrCode = await generateQRCode(claimURL);
-                const base64Data = qrCode.replace(/^data:image\/png;base64,/, '');
-                // write the image file
-                //await fs.writeFile(path.resolve(`images/${claimId}.png`), base64Data, 'base64');
-                imgFolder.file(`${i + 1}.png`, base64Data, { base64: true });
-                console.log(claimId);
-                resolve(true);
-            } catch (err) {
-                reject(err);
-            }
+    // CHECK IF THE ZIP FILE IS ALREADY GENERATED
+    const zipPath = path.resolve(`download/rewards-qrcodes/${String(reward._id)}.zip`);
+    try {
+        await fs.promises.access(zipPath, constants.F_OK);
+        // RETURN THE FILE
+        console.log('RETURNS THE FILE-----------------------------');
+        const reader = fs.createReadStream(zipPath);
+        reader.on('data', function (chunk) {
+            res.sendStatus(200);
+            res.setHeader('Content-Disposition', 'attachment');
+            res.send(chunk);
         });
-        promises.push(promise);
-    }
-    await Promise.all(promises);
-    zip.generateNodeStream({ type: 'nodebuffer', streamFiles: true })
-        .pipe(fs.createWriteStream('qrcodes.zip'))
-        .on('finish', function () {
-            console.log('out.zip written.');
+    } catch (err) {
+        // SCHEDULE THE JOB
+        console.log('SCHEDULE THE JOB-----------------------------');
+        await agenda.now(EVENT_SEND_DOWNLOAD_QR_EMAIL, {
+            poolId: String(req.assetPool._id),
+            rewardId: reward.id,
+            sub: req.assetPool.sub,
+            zipPath,
         });
-    res.status(200).json({});
+        res.status(200).json({});
+    }
 };
-
-async function generateQRCode(url: string) {
-    const logoPath = './assets/qr-logo.jpg';
-    const width = 55;
-    const center = 58;
-    const canvas = createCanvas(width, width);
-
-    QRCode.toCanvas(canvas, url, {
-        errorCorrectionLevel: 'H',
-        margin: 1,
-        color: {
-            dark: '#000000',
-            light: '#ffffff',
-        },
-    });
-
-    const ctx = canvas.getContext('2d');
-    const img = await loadImage(logoPath);
-    ctx.drawImage(img, center, center, width, width);
-    return canvas.toDataURL('image/png');
-}
 
 export default { controller, validation };

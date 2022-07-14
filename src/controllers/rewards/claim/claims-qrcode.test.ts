@@ -2,20 +2,14 @@ import request from 'supertest';
 import app from '@/app';
 import { Account } from 'web3-core';
 import { ChainId, ERC20Type } from '../../../types/enums';
-import { createWallet, signMethod } from '@/util/jest/network';
-import {
-    dashboardAccessToken,
-    tokenName,
-    tokenSymbol,
-    walletAccessToken,
-    userWalletPrivateKey2,
-} from '@/util/jest/constants';
+import { createWallet } from '@/util/jest/network';
+import { dashboardAccessToken, tokenName, tokenSymbol, userWalletPrivateKey2 } from '@/util/jest/constants';
 import { isAddress } from 'web3-utils';
 import { afterAllCallback, beforeAllCallback } from '@/util/jest/config';
-import { WithdrawalState } from '@/types/enums';
 import { getRewardConfiguration } from '../../rewards/utils';
 import { AssetPoolDocument } from '@/models/AssetPool';
 import { RewardDocument } from '@/models/Reward';
+import { agenda, EVENT_SEND_DOWNLOAD_QR_EMAIL } from '@/util/agenda';
 
 const user = request.agent(app);
 
@@ -25,8 +19,6 @@ describe('Claims', () => {
         poolAddress: string,
         reward: RewardDocument,
         rewardID: string,
-        withdrawalDocumentId: string,
-        withdrawalId: string,
         userWallet: Account,
         tokenAddress: string,
         hash: string;
@@ -79,7 +71,7 @@ describe('Claims', () => {
                 .send(getRewardConfiguration('claim-one-is-enabled-and-amount-is-greather-than-1'))
                 .expect((res: request.Response) => {
                     expect(res.body.id).toEqual(1);
-                    expect(res.body.amount).toEqual(3);
+                    expect(res.body.amount).toEqual(10);
                     rewardID = res.body.id;
                     reward = res.body;
                 })
@@ -90,8 +82,16 @@ describe('Claims', () => {
         it('should genrate multiple qurcode images', (done) => {
             user.get(`/v1/rewards/${rewardID}/claims/qrcode`)
                 .set({ 'X-PoolId': poolId, 'Authorization': dashboardAccessToken })
-                .expect((res: request.Response) => {})
+                .expect(() => {})
                 .expect(200, done);
+        });
+
+        it('should cast a success event for sendDownloadQrEmail event', (done) => {
+            const callback = async () => {
+                agenda.off(`success:${EVENT_SEND_DOWNLOAD_QR_EMAIL}`, callback);
+                done();
+            };
+            agenda.on(`success:${EVENT_SEND_DOWNLOAD_QR_EMAIL}`, callback);
         });
     });
 });

@@ -128,7 +128,7 @@ export function getRewardConfiguration(slug: RewardSlug) {
                 withdrawLimit: 0,
                 isClaimOnce: true,
                 isMembershipRequired: false,
-                amount: 3,
+                amount: 10,
             };
         }
         case 'claim-one-is-disabled': {
