@@ -55,11 +55,14 @@ module.exports = {
                     erc20 = await erc20Coll.findOne({ address: tokenAddress, chainId: pool.chainId });
                 }
 
+                const createdAt = new Date();
                 await claimsColl.insertOne({
                     poolId: String(pool._id),
                     erc20Id: erc20 ? String(erc20._id) : undefined,
                     erc721Id: erc721 ? String(erc721._id) : undefined,
                     rewardId: String(reward.id),
+                    createdAt,
+                    updatedAt: createdAt,
                 });
             } catch (error) {
                 console.log(error);
