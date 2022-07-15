@@ -123,8 +123,9 @@ export const findOrImport = async (pool: AssetPoolDocument, address: string) => 
     return erc20;
 };
 
-export const importERC20Token = async (pool: AssetPoolDocument, address: string) => {
-    const contract = getContractFromName(pool.chainId, 'LimitedSupplyToken', address);
+export const importERC20Token = async (chainId: number, address: string) => {
+    const contract = getContractFromName(chainId, 'LimitedSupplyToken', address);
+
     const [name, symbol] = await Promise.all([
         contract.methods.name().call(),
         contract.methods.symbol().call(),
@@ -135,9 +136,8 @@ export const importERC20Token = async (pool: AssetPoolDocument, address: string)
         name,
         symbol,
         address,
-        chainId: pool.chainId,
+        chainId,
         type: ERC20Type.Unknown,
-        sub: pool.sub,
     });
 
     // Create an ERC20Token object for the sub if it does not exist
@@ -174,6 +174,7 @@ export default {
     removeById,
     addMinter,
     findOrImport,
+    importERC20Token,
     getTokensForSub,
     getTokenById,
 };
