@@ -94,7 +94,7 @@ async function sendNotificationEmail(accountEmail: string, dashBoardLink: string
     await MailService.send(
         accountEmail,
         `Your QR codes are ready!`,
-        `Click on the <a href="https://${dashBoardLink}">Link</a> to download the zip file.`,
+        `Click on the <a href="${dashBoardLink}">Link ${dashBoardLink}</a> to download the zip file.`,
     );
 }
 export { generateRewardQRCodesJob };
