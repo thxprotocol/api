@@ -64,7 +64,7 @@ const generateRewardQRCodesJob = async (job: Job) => {
     }
 
     // SEND THE NOTIFICATION EMAIL TO THE CUSTOMER
-    await sendNotificationEmail(account.email, `${DASHBOARD_URL}/rewards/${reward.id}/claims/qrcode`);
+    await sendNotificationEmail(account.email, `${DASHBOARD_URL}/pool/${reward.poolId}/rewards#${String(reward._id)}`);
     return zipPath;
 };
 
@@ -90,7 +90,7 @@ async function generateQRCode(url: string) {
 }
 
 async function sendNotificationEmail(accountEmail: string, dashBoardLink: string) {
-    console.log('SENDING THE EMAIL TO:', accountEmail);
+    console.log('SENDING THE EMAIL TO:', accountEmail, dashBoardLink);
     await MailService.send(
         accountEmail,
         `Your QR codes are ready!`,
