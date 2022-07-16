@@ -10,8 +10,9 @@ export async function assertAssetPoolAccess(
     const poolId = req.header('X-PoolId');
     // If there is a sub check the account for user membership
     if (req.auth.sub) {
+        const isOwner = await AssetPoolService.isPoolOwner(req.auth.sub, poolId);
         const hasMembership = await AssetPoolService.isPoolMember(req.auth.sub, poolId);
-        if (!hasMembership) throw new SubjectUnauthorizedError();
+        if (!hasMembership && !isOwner) throw new SubjectUnauthorizedError();
         return next();
     }
     // If there is no sub check if client aud is equal to requested asset pool clientId
