@@ -23,11 +23,8 @@ async function main() {
         for (const chainId of [ChainId.PolygonMumbai, ChainId.Polygon]) {
             try {
                 const contract = getContract(chainId, contractName as ContractName);
-                const changes = await updateDiamondContract(chainId, contract, diamondVariant);
-                console.log(
-                    `${changes ? 'Upgraded' : 'Skipped'} ${contractName} (${ChainId[chainId]}):`,
-                    currentVersion,
-                );
+                const tx = await updateDiamondContract(chainId, contract, diamondVariant);
+                if (tx) console.log(`Upgraded: ${contractName} (${ChainId[chainId]}):`, currentVersion);
             } catch (error) {
                 console.error(error);
             }
@@ -41,8 +38,6 @@ async function main() {
             if (account.plan !== AccountPlanType.Free) {
                 console.log('Upgrade:', pool.address, `${pool.variant} ${pool.version} -> ${currentVersion}`);
                 await AssetPoolService.updateAssetPool(pool, currentVersion);
-            } else {
-                console.log('Skipped:', pool.address, `${pool.variant} ${pool.version} -> Account #${account.id}`);
             }
         } catch (error) {
             console.error(pool.address, error);

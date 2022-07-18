@@ -14,6 +14,7 @@ import { TAssetPool } from '@/types/TAssetPool';
 import { keccak256, toUtf8Bytes } from 'ethers/lib/utils';
 import { IAccount } from '@/models/Account';
 import { TransactionDocument } from '@/models/Transaction';
+import AccountProxy from '@/proxies/AccountProxy';
 
 function getDeployFnArgsCallback(erc721: ERC721Document) {
     const { admin } = getProvider(erc721.chainId);
@@ -122,8 +123,9 @@ async function findTokenById(id: string): Promise<ERC721TokenDocument> {
     return await ERC721Token.findById(id);
 }
 
-async function findTokensBySub(sub: string) {
-    return await ERC721Token.find({ sub });
+async function findTokensBySub(sub: string): Promise<ERC721TokenDocument[]> {
+    const { address } = await AccountProxy.getById(sub);
+    return await ERC721Token.find({ recipient: address });
 }
 
 async function findMetadataById(id: string): Promise<ERC721MetadataDocument> {
