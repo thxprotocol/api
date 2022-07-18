@@ -1,22 +1,34 @@
 module.exports = {
-    async up(db, client) {
+    async up(db) {
         const withdrawalsColl = db.collection('withdrawals');
         const widgetsColl = db.collection('widgets');
         const rewardsColl = db.collection('rewards');
 
-        rewardsColl.find({ id: { $type: 1 } }).forEach(function (r) {
-            r.id = String(r.id);
-            await rewardsColl.save(r);
-        });
+        const rewards = await rewardsColl.find({ id: { $type: 'number' } }).toArray();
+        await Promise.all(
+            rewards.map(async (r) => {
+                await rewardsColl.updateOne({ _id: r._id }, { $set: { id: String(r.id) } });
+            }),
+        );
 
-        withdrawalsColl.find({ rewardId: { $type: 1 } }).forEach(function (w) {
-            w.rewardId = String(w.rewardId);
-            await withdrawalsColl.save(w);
-        });
+        const withdrawals = await withdrawalsColl.find({ rewardId: { $type: 'number' } }).toArray();
+        await Promise.all(
+            withdrawals.map(async (w) => {
+                await withdrawalsColl.updateOne({ _id: w._id }, { $set: { rewardId: String(w.rewardId) } });
+            }),
+        );
 
-        widgetsColl.find({ 'metadata.rewardId': { $type: 1 } }).forEach(function (w) {
-            w.metadata.rewardId = String(w.rewardId);
-            await widgetsColl.save(w);
-        });
+        const widgets = await widgetsColl.find({ 'metadata.rewardId': { $type: 'number' } }).toArray();
+        await Promise.all(
+            widgets.map(async (w) => {
+                await widgetsColl.updateOne(
+                    { _id: w._id },
+                    { $set: { 'metadata.rewardId': String(w.metadata.rewardId) } },
+                );
+            }),
+        );
+    },
+    async down() {
+        //
     },
 };
