@@ -1,8 +1,7 @@
 import RewardService from '@/services/RewardService';
-import { DASHBOARD_URL, WALLET_URL } from '@/config/secrets';
+import { AWS_BUCKET_NAME, DASHBOARD_URL, WALLET_URL } from '@/config/secrets';
 import QRCode from 'qrcode';
 import { createCanvas, loadImage } from 'canvas';
-import fs from 'fs';
 import JSZip from 'jszip';
 import { logger } from '../util/logger';
 import MailService from '@/services/MailService';
@@ -10,17 +9,30 @@ import AccountProxy from '@/proxies/AccountProxy';
 import { Job } from 'agenda';
 import AssetPoolService from '@/services/AssetPoolService';
 import ClaimService from '@/services/ClaimService';
+import stream from 'stream';
+import { s3Client } from '@/util/s3';
+import { Upload } from '@aws-sdk/lib-storage';
 
 const generateRewardQRCodesJob = async (job: Job) => {
     if (!job.attrs.data) return;
 
-    const { poolId, rewardId, sub, zipPath } = job.attrs.data;
+    const { poolId, rewardId, sub, fileKey } = job.attrs.data;
     const assetPool = await AssetPoolService.getById(poolId);
     const reward = await RewardService.get(assetPool, rewardId);
 
     if (!reward) {
         throw new Error('Reward not found');
     }
+
+    const account = await AccountProxy.getById(sub);
+    if (!account) {
+        throw new Error('Account not found');
+    }
+
+    if (!account.email) {
+        throw new Error('Account Email not found');
+    }
+
     const claims = await ClaimService.findByReward(reward);
 
     if (claims.length == 0) {
@@ -29,12 +41,14 @@ const generateRewardQRCodesJob = async (job: Job) => {
     }
 
     // CREATES THE ZIP FOLDER
+
     const zip = new JSZip();
     const imgFolder = zip.folder('qrcodes');
 
     const promises = [];
 
     // GENERATE THE QRCODES
+
     for (let i = 0; i < claims.length; i++) {
         const promise = new Promise(async (resolve, reject) => {
             try {
@@ -52,20 +66,31 @@ const generateRewardQRCodesJob = async (job: Job) => {
         promises.push(promise);
     }
     await Promise.all(promises);
+    console.log('ZIP CREATED. ----------------------------');
 
-    zip.generateNodeStream({ type: 'nodebuffer', streamFiles: true }).pipe(fs.createWriteStream(zipPath));
-    const account = await AccountProxy.getById(sub);
-    if (!account) {
-        throw new Error('Account not found');
-    }
+    const uploadStream = new stream.PassThrough();
+    zip.generateNodeStream({ type: 'nodebuffer', streamFiles: true }).pipe(uploadStream);
+    console.log('PIPE ZIP ----------------------------');
+    // UPLOAD FILE TO S3 BUCKET
+    const uploadParams = {
+        Key: fileKey,
+        Bucket: AWS_BUCKET_NAME,
+        ACL: 'public-read',
+        Body: uploadStream,
+    };
 
-    if (!account.email) {
-        throw new Error('Account Email not found');
-    }
+    const multipartUpload = new Upload({
+        client: s3Client,
+        params: uploadParams,
+    });
+    const filePath = `s3://${uploadParams.Bucket}/${uploadParams.Key}`;
+    console.log('START TO UPLOAD TO S3 ----------------------------');
+    await multipartUpload.done();
 
+    console.log('Uploaded file to S3!', filePath);
     // SEND THE NOTIFICATION EMAIL TO THE CUSTOMER
     await sendNotificationEmail(account.email, `${DASHBOARD_URL}/pool/${reward.poolId}/rewards#${String(reward._id)}`);
-    return zipPath;
+    return filePath;
 };
 
 async function generateQRCode(url: string) {
