@@ -126,11 +126,7 @@ export const findOrImport = async (pool: AssetPoolDocument, address: string) => 
 export const importERC20Token = async (chainId: number, address: string) => {
     const contract = getContractFromName(chainId, 'LimitedSupplyToken', address);
 
-    const [name, symbol] = await Promise.all([
-        contract.methods.name().call(),
-        contract.methods.symbol().call(),
-        contract.methods.totalSupply().call(),
-    ]);
+    const [name, symbol] = await Promise.all([contract.methods.name().call(), contract.methods.symbol().call()]);
 
     const erc20 = await ERC20.create({
         name,
