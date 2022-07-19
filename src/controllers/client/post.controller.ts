@@ -4,7 +4,7 @@ import ClientProxy from '@/proxies/ClientProxy';
 import { BadRequestError } from '@/util/errors';
 
 const addClientToPool = async (req: Request, res: Response) => {
-    const poolId = req.headers['X-PoolId'] as string;
+    const poolId = req.headers['x-poolid'] as string;
     if (!poolId) throw new BadRequestError('Cannot found Pool ID in this request');
     const client = await ClientProxy.create(req.auth.sub, poolId, {
         application_type: 'web',

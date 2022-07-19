@@ -1,7 +1,8 @@
-import { authClient } from '@/util/auth';
-import { Client } from '@/models/Client';
 import { INITIAL_ACCESS_TOKEN } from '@/config/secrets';
+import { Client } from '@/models/Client';
+import { authClient } from '@/util/auth';
 import { THXError } from '@/util/errors';
+import { paginatedResults } from '@/util/pagination';
 
 class ClientProxyError extends THXError {}
 
@@ -26,6 +27,10 @@ export default class ClientProxy {
     static async findByPool(poolId: string) {
         const clients = (await Client.find({ poolId })) || [];
         return clients.map((client) => client.toJSON());
+    }
+
+    static async findByQuery(query: { poolId: string }, page = 1, limit = 10) {
+        return paginatedResults(Client, page, limit, query);
     }
 
     static async create(sub: string, poolId: string, data: any) {
