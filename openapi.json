@@ -467,6 +467,11 @@
             "description": "OK"
           }
         }
+      },
+      "post": {
+        "description": "",
+        "parameters": [],
+        "responses": {}
       }
     },
     "/erc20/token/{id}": {
@@ -579,13 +584,6 @@
             "description": "No Content"
           }
         }
-      }
-    },
-    "/erc20/import": {
-      "post": {
-        "description": "",
-        "parameters": [],
-        "responses": {}
       }
     },
     "/erc721/token": {
