@@ -6,7 +6,7 @@ export const validation = [body('address').exists().isString(), body('chainId').
 
 export const controller = async (req: Request, res: Response) => {
     // #swagger.tags = ['ERC20']
-    const erc20 = await ERC20Service.importERC20Token(Number(req.body.chainId), req.body.address);
+    const erc20 = await ERC20Service.importERC20Token(Number(req.body.chainId), req.body.address, req.auth.sub);
 
     res.status(201).json(erc20);
 };
