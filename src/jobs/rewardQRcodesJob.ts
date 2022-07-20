@@ -1,5 +1,5 @@
 import RewardService from '@/services/RewardService';
-import { AWS_BUCKET_NAME, DASHBOARD_URL, WALLET_URL } from '@/config/secrets';
+import { AWS_S3_PRIVATE_BUCKET_NAME, DASHBOARD_URL, WALLET_URL } from '@/config/secrets';
 import QRCode from 'qrcode';
 import { createCanvas, loadImage } from 'canvas';
 import JSZip from 'jszip';
@@ -10,7 +10,7 @@ import { Job } from 'agenda';
 import AssetPoolService from '@/services/AssetPoolService';
 import ClaimService from '@/services/ClaimService';
 import stream from 'stream';
-import { s3Client } from '@/util/s3';
+import { s3PrivateClient } from '@/util/s3';
 import { Upload } from '@aws-sdk/lib-storage';
 
 const generateRewardQRCodesJob = async (job: Job) => {
@@ -74,20 +74,31 @@ const generateRewardQRCodesJob = async (job: Job) => {
     // UPLOAD FILE TO S3 BUCKET
     const uploadParams = {
         Key: fileKey,
-        Bucket: AWS_BUCKET_NAME,
+        Bucket: AWS_S3_PRIVATE_BUCKET_NAME,
         ACL: 'public-read',
         Body: uploadStream,
+        Endpoint: 'local-thx-private-storage-bucket.s3.eu-west-2.amazonaws.com',
     };
-
-    const multipartUpload = new Upload({
-        client: s3Client,
-        params: uploadParams,
-    });
+    console.log('uploadParams ----------------------------------', uploadParams);
     const filePath = `s3://${uploadParams.Bucket}/${uploadParams.Key}`;
-    console.log('START TO UPLOAD TO S3 ----------------------------');
-    await multipartUpload.done();
+    try {
+        const multipartUpload = new Upload({
+            client: s3PrivateClient,
+            params: uploadParams,
+        });
 
-    console.log('Uploaded file to S3!', filePath);
+        console.log('START TO UPLOAD TO S3 ----------------------------');
+        multipartUpload.on('httpUploadProgress', (progress) => {
+            console.log(progress);
+        });
+        await multipartUpload.done();
+
+        console.log('Uploaded file to S3!', filePath);
+    } catch (err) {
+        console.log('ERROR ON UPLOAD TO AWS', err);
+        throw err;
+    }
+
     // SEND THE NOTIFICATION EMAIL TO THE CUSTOMER
     await sendNotificationEmail(account.email, `${DASHBOARD_URL}/pool/${reward.poolId}/rewards#${String(reward._id)}`);
     return filePath;

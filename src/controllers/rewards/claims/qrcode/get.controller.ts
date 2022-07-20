@@ -3,8 +3,8 @@ import RewardService from '@/services/RewardService';
 import { param } from 'express-validator';
 import { NotFoundError, SubjectUnauthorizedError } from '@/util/errors';
 import { agenda, EVENT_SEND_DOWNLOAD_QR_EMAIL } from '@/util/agenda';
-import { AWS_BUCKET_NAME } from '@/config/secrets';
-import { s3Client } from '@/util/s3';
+import { AWS_S3_PRIVATE_BUCKET_NAME } from '@/config/secrets';
+import { s3PrivateClient } from '@/util/s3';
 import { GetObjectCommand } from '@aws-sdk/client-s3';
 import { Readable } from 'stream';
 
@@ -23,10 +23,10 @@ const controller = async (req: Request, res: Response) => {
     // CHECK IF THE ZIP FILE IS ALREADY GENERATED
     try {
         const command = new GetObjectCommand({
-            Bucket: AWS_BUCKET_NAME,
+            Bucket: AWS_S3_PRIVATE_BUCKET_NAME,
             Key: fileKey,
         });
-        const response = await s3Client.send(command);
+        const response = await s3PrivateClient.send(command);
         const body = response.Body as Readable;
         res.attachment(fileKey);
         res.setHeader('Content-type', 'application/zip');
