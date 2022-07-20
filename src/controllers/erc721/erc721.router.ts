@@ -14,7 +14,7 @@ const router = express.Router();
 
 router.get('/token', guard.check(['erc721:read']), ListERC721Token.controller);
 router.get('/token/:id', guard.check(['erc721:read']), ReadERC721Token.controller);
-router.get('/', guard.check(['erc721:read']), ListERC721.controller);
+router.get('/', guard.check(['erc721:read']), assertRequestInput(ListERC721.validation), ListERC721.controller);
 router.get('/:id', guard.check(['erc721:read']), assertRequestInput(ReadERC721.validation), ReadERC721.controller);
 router.post(
     '/',

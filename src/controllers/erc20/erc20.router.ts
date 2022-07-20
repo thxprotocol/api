@@ -13,7 +13,7 @@ const router = express.Router();
 
 router.get('/token', guard.check(['erc20:read']), ListERC20Token.controller);
 router.get('/token/:id', guard.check(['erc20:read']), ReadERC20Token.controller);
-router.get('/', guard.check(['erc20:read']), ListERC20.controller);
+router.get('/', guard.check(['erc20:read']), assertRequestInput(ListERC20.validation), ListERC20.controller);
 router.get('/:id', guard.check(['erc20:read']), assertRequestInput(ReadERC20.validation), ReadERC20.controller);
 router.post(
     '/',

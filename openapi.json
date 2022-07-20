@@ -360,7 +360,13 @@
           "Pools"
         ],
         "description": "",
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "archived",
+            "in": "query",
+            "type": "string"
+          }
+        ],
         "responses": {
           "200": {
             "description": "OK"
@@ -532,7 +538,13 @@
           "ERC20"
         ],
         "description": "",
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "archived",
+            "in": "query",
+            "type": "string"
+          }
+        ],
         "responses": {
           "200": {
             "description": "OK"
@@ -677,7 +689,13 @@
           "ERC721"
         ],
         "description": "",
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "archived",
+            "in": "query",
+            "type": "string"
+          }
+        ],
         "responses": {
           "200": {
             "description": "OK"

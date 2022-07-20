@@ -23,7 +23,7 @@ router.post(
     assertRequestInput(CreatePool.validation),
     CreatePool.controller,
 );
-router.get('/', guard.check(['pools:read']), ListPools.controller);
+router.get('/', guard.check(['pools:read']), assertRequestInput(ListPools.validation), ListPools.controller);
 router.get(
     '/:id',
     guard.check(['pools:read']),
