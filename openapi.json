@@ -1922,6 +1922,13 @@
           }
         }
       }
+    },
+    "/clients/info": {
+      "post": {
+        "description": "",
+        "parameters": [],
+        "responses": {}
+      }
     }
   }
 }

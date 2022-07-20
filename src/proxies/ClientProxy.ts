@@ -24,6 +24,23 @@ export default class ClientProxy {
         return client;
     }
 
+    static async info(clientId: string, registrationAccessToken: string) {
+        const r = await authClient({
+            method: 'GET',
+            url: `/reg/${clientId}?access_token=${registrationAccessToken}`,
+        });
+
+        if (r.status !== 200) {
+            throw new ClientProxyError(r.data);
+        }
+
+        return {
+            clientId,
+            clientSecret: r.data['client_secret'],
+            requestUris: r.data['request_uris'],
+        };
+    }
+
     static async findByPool(poolId: string) {
         const clients = (await Client.find({ poolId })) || [];
         return clients.map((client) => client.toJSON());

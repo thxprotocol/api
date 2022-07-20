@@ -10,10 +10,10 @@ const getClientByPool = async (req: Request, res: Response) => {
     const response = await ClientProxy.findByQuery({ poolId }, Number(req.query.page), Number(req.query.limit));
 
     response.results = response.results.map((client) => ({
-        id: client._id,
+        clientId: client.clientId,
         poolId: client.poolId,
-        clientSecret: client.clientSecret,
-        requestUris: client.requestUris,
+        registrationAccessToken: client.registrationAccessToken,
+        sub: client.sub,
     }));
 
     res.status(200).send(response);
