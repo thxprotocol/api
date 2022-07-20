@@ -1,7 +1,7 @@
 {
   "swagger": "2.0",
   "info": {
-    "version": "1.16.5",
+    "version": "1.16.6",
     "title": "THX API Specification",
     "description": "User guides are available at https://docs.thx.network."
   },
@@ -548,6 +548,25 @@
     },
     "/erc20/{id}": {
       "get": {
+        "tags": [
+          "ERC20"
+        ],
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      },
+      "patch": {
         "tags": [
           "ERC20"
         ],

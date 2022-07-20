@@ -7,6 +7,7 @@ import ReadERC20Token from './token/get.controller';
 import CreateERC20 from './post.controller';
 import ImportERC20 from './token/post.controller';
 import DeleteERC20 from './delete.controller';
+import UpdateERC20 from './patch.controller';
 
 const router = express.Router();
 
@@ -25,6 +26,12 @@ router.post(
     guard.check(['erc20:write', 'erc20:read']),
     assertRequestInput(ImportERC20.validation),
     ImportERC20.controller,
+);
+router.patch(
+    '/:id',
+    guard.check(['erc20:write', 'erc20:read']),
+    assertRequestInput(UpdateERC20.validation),
+    UpdateERC20.controller,
 );
 router.delete('/:id', guard.check(['erc20:write']), assertRequestInput(DeleteERC20.validation), DeleteERC20.controller);
 

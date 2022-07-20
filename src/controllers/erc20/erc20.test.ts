@@ -84,5 +84,18 @@ describe('ERC20', () => {
                 })
                 .expect(200, done);
         });
+
+        it('Able to update a created token', (done) => {
+            http.patch('/v1/erc20/' + tokenId)
+                .set('Authorization', ACCESS_TOKEN)
+                .send({
+                    archived: true,
+                })
+                .expect(({ body }: request.Response) => {
+                    expect(body).toBeDefined();
+                    expect(body.archived).toBe(true);
+                })
+                .expect(200, done);
+        });
     });
 });
