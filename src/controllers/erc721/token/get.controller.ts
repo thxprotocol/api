@@ -13,7 +13,7 @@ const controller = async (req: Request, res: Response) => {
     if (!token) throw new NotFoundError('ERC721Token not found');
 
     const erc721 = await ERC721Service.findById(token.erc721Id);
-    if (!erc721) throw new NotFoundError('ERC721Token not found');
+    if (!erc721) throw new NotFoundError('ERC721 not found');
 
     const metadata = await ERC721Service.findMetadataById(token.metadataId);
     if (!metadata) throw new NotFoundError('ERC721Metadata not found');
