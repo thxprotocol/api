@@ -2,6 +2,8 @@ FROM node:16-alpine as develop
 
 WORKDIR /usr/src/app
 RUN apk add g++ make py3-pip
+# install canvas dependencies
+RUN apk add build-essential libcairo2-dev libpango1.0-dev libjpeg-dev libgif-dev librsvg2-dev
 COPY package*.json ./
 RUN npm ci
 COPY . .
