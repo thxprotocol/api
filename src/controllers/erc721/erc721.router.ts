@@ -8,6 +8,7 @@ import ReadERC721Token from './token/get.controller';
 import CreateERC721 from './post.controller';
 import CreateERC721Metadata from './metadata/post.controller';
 import MintERC721Metadata from './metadata/mint/post.controller';
+import UpdateERC721 from './patch.controller';
 
 const router = express.Router();
 
@@ -36,6 +37,12 @@ router.post(
     requireAssetPoolHeader,
     assertRequestInput(CreateERC721Metadata.validation),
     CreateERC721Metadata.controller,
+);
+router.patch(
+    '/:id',
+    guard.check(['erc721:write', 'erc721:read']),
+    assertRequestInput(UpdateERC721.validation),
+    UpdateERC721.controller,
 );
 
 export default router;

@@ -13,6 +13,7 @@ import ReadPool from './get.controller';
 import DeletePool from './delete.controller';
 import ListPools from './list.controller';
 import CreatePoolTopup from './topup/post.controller';
+import UpdatePool from './patch.controller';
 
 const router = express.Router();
 
@@ -47,5 +48,11 @@ router.post(
     requireAssetPoolHeader,
     assertPlan([AccountPlanType.Basic, AccountPlanType.Premium]),
     CreatePoolTopup.controller,
+);
+router.patch(
+    '/:id',
+    guard.check(['pools:read', 'pools:write']),
+    assertRequestInput(UpdatePool.validation),
+    UpdatePool.controller,
 );
 export default router;

@@ -12,4 +12,5 @@ export type TAssetPool = {
     lastTransactionAt?: number;
     version?: string;
     variant?: DiamondVariant;
+    archived?: boolean;
 };

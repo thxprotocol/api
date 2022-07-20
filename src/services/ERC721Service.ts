@@ -1,4 +1,4 @@
-import { ERC721, ERC721Document } from '@/models/ERC721';
+import { ERC721, ERC721Document, IERC721Updates } from '@/models/ERC721';
 import { ERC721Metadata, ERC721MetadataDocument } from '@/models/ERC721Metadata';
 import { ERC721TokenState, TERC721, TERC721Metadata, TERC721Token } from '@/types/TERC721';
 import TransactionService from './TransactionService';
@@ -164,6 +164,10 @@ async function findByQuery(query: { poolAddress?: string; address?: string; chai
     return await ERC721.findOne(query);
 }
 
+export const update = (erc721: ERC721Document, updates: IERC721Updates) => {
+    return ERC721.findByIdAndUpdate(erc721._id, updates, { new: true });
+};
+
 export default {
     deploy,
     findById,
@@ -180,4 +184,5 @@ export default {
     findByQuery,
     addMinter,
     parseAttributes,
+    update,
 };

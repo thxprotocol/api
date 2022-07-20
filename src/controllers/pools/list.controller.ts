@@ -5,7 +5,7 @@ import AssetPoolService from '@/services/AssetPoolService';
 const controller = async (req: Request, res: Response) => {
     // #swagger.tags = ['Pools']
     const pools = await AssetPoolService.getAllBySub(req.auth.sub);
-    const list = pools.map((pool: AssetPoolDocument) => pool._id);
+    const list = pools.filter((x) => !x.archived).map((pool: AssetPoolDocument) => pool._id);
 
     res.json(list);
 };

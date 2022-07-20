@@ -65,7 +65,6 @@ describe('ERC20', () => {
                 .set('Authorization', ACCESS_TOKEN)
                 .expect(({ body }: request.Response) => {
                     expect(body.length).toEqual(2);
-                    console.log('body', body);
                 })
                 .expect(200, done);
         });
@@ -86,8 +85,9 @@ describe('ERC20', () => {
                 })
                 .expect(200, done);
         });
-
-        it('Able to update a created token', (done) => {
+    });
+    describe('PATCH /erc20', () => {
+        it('should to update a created token', (done) => {
             http.patch('/v1/erc20/' + tokenId)
                 .set('Authorization', ACCESS_TOKEN)
                 .send({
