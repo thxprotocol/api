@@ -2,8 +2,9 @@ FROM node:16-alpine as develop
 
 WORKDIR /usr/src/app
 RUN apk add g++ make py3-pip
-# install canvas dependencies
-RUN apk add build-essential libcairo2-dev libpango1.0-dev libjpeg-dev libgif-dev librsvg2-dev
+# install node-canvas dependencies
+RUN apk add build-base g++ cairo-dev jpeg-dev pango pango-dev giflib-dev imagemagick freetype fontconfig
+
 COPY package*.json ./
 RUN npm ci
 COPY . .
