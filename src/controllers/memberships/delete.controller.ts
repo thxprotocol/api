@@ -7,7 +7,6 @@ const validation = [param('id').isMongoId()];
 const controller = async (req: Request, res: Response) => {
     // #swagger.tags = ['Memberships']
     await MembershipService.remove(req.params.id);
-
     res.status(204).end();
 };
 
