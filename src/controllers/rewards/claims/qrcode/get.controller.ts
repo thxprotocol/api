@@ -12,15 +12,12 @@ const validation = [param('id').exists()];
 
 const controller = async (req: Request, res: Response) => {
     // #swagger.tags = ['Rewards']
+    if (req.auth.sub !== req.assetPool.sub) throw new SubjectUnauthorizedError();
 
-    // CHECK SUB
-    if (req.auth.sub !== req.assetPool.sub) {
-        throw new SubjectUnauthorizedError();
-    }
     const reward = await RewardService.get(req.assetPool, req.params.id);
     if (!reward) throw new NotFoundError();
+
     const fileKey = `${reward._id}.zip`;
-    // CHECK IF THE ZIP FILE IS ALREADY GENERATED
     try {
         const command = new GetObjectCommand({
             Bucket: AWS_S3_PRIVATE_BUCKET_NAME,
@@ -28,22 +25,19 @@ const controller = async (req: Request, res: Response) => {
         });
         const response = await s3PrivateClient.send(command);
         const body = response.Body as Readable;
-        res.attachment(fileKey);
-        res.setHeader('Content-type', 'application/zip');
+
+        res.attachment(fileKey).setHeader('Content-type', 'application/zip');
+
         body.pipe(res);
-        // RETURN THE FILE
-        console.log('RETURNS THE FILE-----------------------------');
     } catch (err) {
         if (err.$metadata && err.$metadata.httpStatusCode == 404) {
-            // SCHEDULE THE JOB
-            console.log('SCHEDULE THE JOB-----------------------------');
             await agenda.now(EVENT_SEND_DOWNLOAD_QR_EMAIL, {
                 poolId: String(req.assetPool._id),
                 rewardId: reward.id,
                 sub: req.assetPool.sub,
                 fileKey,
             });
-            res.status(200).json({});
+            res.status(201).json({});
         } else {
             throw err;
         }

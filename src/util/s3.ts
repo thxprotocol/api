@@ -8,6 +8,14 @@ import {
     AWS_SECRET_KEY,
 } from '@/config/secrets';
 
+const s3Client = new S3Client({
+    region: AWS_BUCKET_REGION,
+    credentials: {
+        accessKeyId: AWS_ACCESS_KEY,
+        secretAccessKey: AWS_SECRET_KEY,
+    },
+});
+
 const s3PrivateClient = new S3Client({
     region: AWS_S3_PRIVATE_BUCKET_REGION,
     credentials: {
@@ -15,13 +23,5 @@ const s3PrivateClient = new S3Client({
         secretAccessKey: AWS_S3_PRIVATE_SECRET_KEY,
     },
 });
-
-const s3Client = s3PrivateClient; //new S3Client({
-//     region: AWS_BUCKET_REGION,
-//     credentials: {
-//         accessKeyId: AWS_ACCESS_KEY,
-//         secretAccessKey: AWS_SECRET_KEY,
-//     },
-// });
 
 export { s3Client, s3PrivateClient };

@@ -1343,9 +1343,6 @@
           "Rewards"
         ],
         "description": "",
-        "produces": [
-          "application/zip"
-        ],
         "parameters": [
           {
             "name": "id",
@@ -1355,8 +1352,8 @@
           }
         ],
         "responses": {
-          "200": {
-            "description": "OK"
+          "201": {
+            "description": "Created"
           }
         }
       }
