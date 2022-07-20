@@ -65,6 +65,7 @@ describe('ERC20', () => {
                 .set('Authorization', ACCESS_TOKEN)
                 .expect(({ body }: request.Response) => {
                     expect(body.length).toEqual(2);
+                    console.log('body', body);
                 })
                 .expect(200, done);
         });
@@ -81,6 +82,7 @@ describe('ERC20', () => {
                     expect(body.symbol).toBe(symbol);
                     expect(body.decimals).toBe(18);
                     expect(body.adminBalance).toBe(1000);
+                    expect(body.archived).toBe(false);
                 })
                 .expect(200, done);
         });

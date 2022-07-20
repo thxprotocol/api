@@ -51,6 +51,7 @@ export const deploy = async (params: ICreateERC20Params) => {
         chainId: params.chainId,
         type: params.type,
         sub: params.sub,
+        archived: false,
     });
     const { fn, args, callback } = getDeployFnArgsCallback(erc20, params.totalSupply);
 
