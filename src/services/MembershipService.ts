@@ -1,6 +1,6 @@
 import { Membership } from '@/models/Membership';
 import { getContractFromName } from '@/config/contracts';
-import { ERC721Type } from '@/types/enums/ERC721Type';
+import { ERC721Variant } from '@/types/enums/ERC721Variant';
 import { ERC721 } from '@/models/ERC721';
 import { AssetPoolDocument } from '@/models/AssetPool';
 import { ERC20Token } from '@/models/ERC20Token';
@@ -77,7 +77,7 @@ export default class MembershipService {
                     name,
                     symbol,
                     address,
-                    type: ERC721Type.Unknown,
+                    type: ERC721Variant.Unknown,
                     chainId: assetPool.chainId,
                 });
             }

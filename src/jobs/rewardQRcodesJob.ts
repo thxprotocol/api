@@ -1,100 +1,66 @@
 import RewardService from '@/services/RewardService';
-import { DASHBOARD_URL, WALLET_URL } from '@/config/secrets';
-import QRCode from 'qrcode';
-import { createCanvas, loadImage } from 'canvas';
-import fs from 'fs';
-import JSZip from 'jszip';
-import { logger } from '../util/logger';
+import { Job } from 'agenda';
+import { AWS_S3_PRIVATE_BUCKET_NAME, DASHBOARD_URL, WALLET_URL } from '@/config/secrets';
 import MailService from '@/services/MailService';
 import AccountProxy from '@/proxies/AccountProxy';
-import { Job } from 'agenda';
 import AssetPoolService from '@/services/AssetPoolService';
 import ClaimService from '@/services/ClaimService';
+import stream from 'stream';
+import ImageService from '@/services/ImageService';
+import { s3PrivateClient } from '@/util/s3';
+import { Upload } from '@aws-sdk/lib-storage';
+import { ClaimDocument } from '@/types/TClaim';
+import { zip, zipFolder } from '@/util/zip';
+import { logger } from '@/util/logger';
 
-const generateRewardQRCodesJob = async (job: Job) => {
-    if (!job.attrs.data) return;
+export const generateRewardQRCodesJob = async ({ attrs }: Job) => {
+    if (!attrs.data) return;
 
-    const { poolId, rewardId, sub, zipPath } = job.attrs.data;
-    const assetPool = await AssetPoolService.getById(poolId);
-    const reward = await RewardService.get(assetPool, rewardId);
+    try {
+        const { poolId, rewardId, sub, fileKey } = attrs.data;
+        const assetPool = await AssetPoolService.getById(poolId);
+        const reward = await RewardService.get(assetPool, rewardId);
+        if (!reward) throw new Error('Reward not found');
 
-    if (!reward) {
-        throw new Error('Reward not found');
-    }
-    const claims = await ClaimService.findByReward(reward);
+        const account = await AccountProxy.getById(sub);
+        if (!account) throw new Error('Account not found');
+        if (!account.email) throw new Error('Account Email not found');
 
-    if (claims.length == 0) {
-        logger.info('There are 0 claims for this Reward');
-        return;
-    }
+        const claims = await ClaimService.findByReward(reward);
+        await Promise.all(
+            claims.map(async ({ _id }: ClaimDocument) => {
+                const id = String(_id);
+                const base64Data: string = await ImageService.createQRCode(`${WALLET_URL}/claims/${id}`);
+                return zipFolder.file(`${id}.png`, base64Data, { base64: true });
+            }),
+        );
 
-    // CREATES THE ZIP FOLDER
-    const zip = new JSZip();
-    const imgFolder = zip.folder('qrcodes');
+        const uploadStream = new stream.PassThrough();
+        zip.generateNodeStream({ type: 'nodebuffer', streamFiles: true }).pipe(uploadStream);
 
-    const promises = [];
-
-    // GENERATE THE QRCODES
-    for (let i = 0; i < claims.length; i++) {
-        const promise = new Promise(async (resolve, reject) => {
-            try {
-                const claimId = String(claims[i]._id);
-                const claimURL = `${WALLET_URL}/claims/${claimId}`;
-                const qrCode = await generateQRCode(claimURL);
-                const base64Data = qrCode.replace(/^data:image\/png;base64,/, '');
-                // ADD FILE TO THE FOLDER
-                imgFolder.file(`${i + 1}.png`, base64Data, { base64: true });
-                resolve(true);
-            } catch (err) {
-                reject(err);
-            }
+        const multipartUpload = new Upload({
+            client: s3PrivateClient,
+            params: {
+                Key: fileKey,
+                Bucket: AWS_S3_PRIVATE_BUCKET_NAME,
+                Body: uploadStream,
+            },
         });
-        promises.push(promise);
-    }
-    await Promise.all(promises);
 
-    zip.generateNodeStream({ type: 'nodebuffer', streamFiles: true }).pipe(fs.createWriteStream(zipPath));
-    const account = await AccountProxy.getById(sub);
-    if (!account) {
-        throw new Error('Account not found');
-    }
+        multipartUpload.on('httpUploadProgress', (progress) => {
+            console.log(progress);
+        });
 
-    if (!account.email) {
-        throw new Error('Account Email not found');
-    }
+        await multipartUpload.done();
 
-    // SEND THE NOTIFICATION EMAIL TO THE CUSTOMER
-    await sendNotificationEmail(account.email, `${DASHBOARD_URL}/pool/${reward.poolId}/rewards#${String(reward._id)}`);
-    return zipPath;
+        const dashboardURL = `${DASHBOARD_URL}/pool/${reward.poolId}/rewards#${String(reward._id)}`;
+
+        await MailService.send(
+            account.email,
+            'Your QR codes are ready!',
+            `<a href="${dashboardURL}">Download the zip file.</a> or visit this URL in your browser<br/><small>${dashboardURL}.</small>`,
+        );
+    } catch (error) {
+        logger.error(error);
+    }
 };
-
-async function generateQRCode(url: string) {
-    const logoPath = './assets/qr-logo.jpg';
-    const width = 55;
-    const center = 58;
-    const canvas = createCanvas(width, width);
-
-    await QRCode.toCanvas(canvas, url, {
-        errorCorrectionLevel: 'H',
-        margin: 1,
-        color: {
-            dark: '#000000',
-            light: '#ffffff',
-        },
-    });
-
-    const ctx = canvas.getContext('2d');
-    const img = await loadImage(logoPath);
-    ctx.drawImage(img, center, center, width, width);
-    return canvas.toDataURL('image/png');
-}
-
-async function sendNotificationEmail(accountEmail: string, dashBoardLink: string) {
-    console.log('SENDING THE EMAIL TO:', accountEmail, dashBoardLink);
-    await MailService.send(
-        accountEmail,
-        `Your QR codes are ready!`,
-        `Click on the <a href="${dashBoardLink}">Link ${dashBoardLink}</a> to download the zip file.`,
-    );
-}
-export { generateRewardQRCodesJob };

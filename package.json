@@ -1,6 +1,6 @@
 {
     "name": "@thxnetwork/api",
-    "version": "1.16.1",
+    "version": "1.16.4",
     "repository": {
         "type": "git",
         "url": "https://github.com/thxprotocol/api"
@@ -28,6 +28,7 @@
     },
     "dependencies": {
         "@aws-sdk/client-s3": "^3.100.0",
+        "@aws-sdk/lib-storage": "^3.131.0",
         "@aws-sdk/s3-request-presigner": "^3.100.0",
         "@godaddy/terminus": "^4.9.0",
         "@sendgrid/mail": "^7.6.2",

@@ -67,7 +67,7 @@ describe('Claims', () => {
         it('should genrate multiple qurcode images', (done) => {
             user.get(`/v1/rewards/${reward.id}/claims/qrcode`)
                 .set({ 'X-PoolId': pool._id, 'Authorization': dashboardAccessToken })
-                .expect(200, done);
+                .expect(201, done);
         });
 
         it('should cast a success event for sendDownloadQrEmail event', (done) => {
