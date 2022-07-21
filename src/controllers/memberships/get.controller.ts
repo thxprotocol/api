@@ -5,7 +5,6 @@ import { NotFoundError } from '@/util/errors';
 import MembershipService from '@/services/MembershipService';
 import WithdrawalService from '@/services/WithdrawalService';
 import AccountProxy from '@/proxies/AccountProxy';
-import ERC721Service from '@/services/ERC721Service';
 import AssetPoolService from '@/services/AssetPoolService';
 
 const validation = [param('id').isMongoId()];
@@ -32,18 +31,12 @@ const controller = async (req: Request, res: Response) => {
         pendingBalance = await WithdrawalService.getPendingBalance(account, pool.address);
     }
 
-    let tokens;
-    if (membership.erc721Id) {
-        tokens = await ERC721Service.findTokensByRecipient(account.address, membership.erc721Id);
-    }
-
     return res.json({
         ...membership.toJSON(),
         chainId: pool.chainId,
         poolAddress: pool.address,
         poolBalance,
         pendingBalance,
-        tokens,
     });
 };
 
