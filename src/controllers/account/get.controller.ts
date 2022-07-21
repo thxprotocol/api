@@ -7,7 +7,6 @@ const validation = [param('id').isMongoId()];
 const controller = async (req: Request, res: Response) => {
     // #swagger.tags = ['Account']
     const account = await AccountProxy.getById(req.auth.sub);
-
     res.send({
         id: account.id,
         address: account.address,
@@ -16,6 +15,7 @@ const controller = async (req: Request, res: Response) => {
         company: account.company,
         plan: account.plan,
         privateKey: account.privateKey,
+        email: account.email,
     });
 };
 export default { controller, validation };
