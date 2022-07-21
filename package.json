@@ -1,6 +1,6 @@
 {
     "name": "@thxnetwork/api",
-    "version": "1.16.4",
+    "version": "1.16.11",
     "repository": {
         "type": "git",
         "url": "https://github.com/thxprotocol/api"
@@ -38,6 +38,7 @@
         "axios-better-stacktrace": "^2.1.2",
         "bluebird": "^3.5.5",
         "canvas": "^2.9.3",
+        "change-case": "^4.1.2",
         "compression": "^1.7.4",
         "cors": "^2.8.5",
         "dotenv": "^16.0.0",

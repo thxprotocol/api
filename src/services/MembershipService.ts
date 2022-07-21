@@ -24,9 +24,8 @@ export default class MembershipService {
         return !!membership;
     }
 
-    static async getById(id: string) {
-        return await Membership.findById(id);
-        // if (!membership) return null;
+    static getById(id: string) {
+        return Membership.findById(id);
     }
 
     static async addERC20Membership(sub: string, assetPool: AssetPoolDocument) {
@@ -34,13 +33,13 @@ export default class MembershipService {
 
         if (!membership) {
             const erc20 = await ERC20Service.findByPool(assetPool);
-            let token = await ERC20Token.findOne({
+            const erc20TokenExists = await ERC20Token.exists({
                 sub,
                 erc20Id: String(erc20._id),
             });
 
-            if (!token) {
-                token = await ERC20Token.create({
+            if (!erc20TokenExists) {
+                await ERC20Token.create({
                     sub,
                     erc20Id: String(erc20._id),
                 });
@@ -50,7 +49,7 @@ export default class MembershipService {
                 sub,
                 chainId: assetPool.chainId,
                 poolId: String(assetPool._id),
-                erc20Id: String(token._id),
+                erc20Id: String(erc20._id),
             });
         }
     }
@@ -94,15 +93,12 @@ export default class MembershipService {
     static async removeMembership(sub: string, assetPool: AssetPoolDocument) {
         await Membership.deleteOne({
             sub,
-            chainId: assetPool.chainId,
             poolId: String(assetPool._id),
         });
     }
 
-    static async remove(id: string): Promise<void> {
-        const membership = await Membership.findById(id);
-
-        await membership.remove();
+    static remove(id: string) {
+        return Membership.deleteOne({ _id: id });
     }
 
     static countByNetwork(chainId: ChainId) {
