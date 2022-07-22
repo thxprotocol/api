@@ -166,6 +166,8 @@ describe('NFT Pool', () => {
         const title = 'NFT 1';
         const description = 'description';
         const propName = 'image';
+
+        // zip file contains 3 .jpg images and one .txt file
         const zipFile = path.resolve('download/test/nft-images-test.zip');
 
         it('should upload multiple metadata images and create metadata', (done) => {
@@ -180,7 +182,7 @@ describe('NFT Pool', () => {
                     propName,
                 })
                 .expect(({ body }: request.Response) => {
-                    expect(body.urls.length).toBe(3);
+                    expect(body.metadatas.length).toBe(3);
                 })
                 .expect(201, done);
         });

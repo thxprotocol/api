@@ -1,10 +1,14 @@
 import { AWS_S3_PUBLIC_BUCKET_NAME } from '@/config/secrets';
+import { ERC721MetadataDocument } from '@/models/ERC721Metadata';
 import ERC721Service from '@/services/ERC721Service';
 import ImageService from '@/services/ImageService';
 import { NotFoundError } from '@/util/errors';
+import { logger } from '@/util/logger';
 import { s3Client } from '@/util/s3';
 import { zip } from '@/util/zip';
 import { PutObjectCommand } from '@aws-sdk/client-s3';
+import { fromBuffer } from 'file-type';
+
 import { Request, Response } from 'express';
 import { body, check, param } from 'express-validator';
 import short from 'short-uuid';
@@ -16,8 +20,6 @@ const validation = [
     body('propName').exists().isString(),
     check('compressedFile').custom((value, { req }) => {
         switch (req.file.mimetype) {
-            case 'application/x-rar-compressed':
-            case 'application/octet-stream':
             case 'application/zip':
             case 'application/rar':
                 return true;
@@ -33,55 +35,91 @@ const controller = async (req: Request, res: Response) => {
     if (!erc721) throw new NotFoundError('Could not find this NFT in the database');
 
     // UNZIP THE FILE
-    const urls: string[] = [];
+    const metadatas: ERC721MetadataDocument[] = [];
+    // LOAD ZIP IN MEMORY
     const contents = await zip.loadAsync(req.file.buffer);
 
-    // LOAD ZIP IN MEMORY
-    console.log('Object.keys(contents.files)', Object.keys(contents.files));
+    // ITERATE THE CONTENT BY OBJECT KEYS
     const objectKeys = Object.keys(contents.files);
+    const promises = [];
 
     for (let i = 0; i < objectKeys.length; i++) {
         const file = objectKeys[i];
-        const [originalFileName, extension] = file.split('.');
 
+        const [originalFileName, extension] = file.split('.');
+        // FILE VALIDATION
         if (!isValidExtension(extension)) {
+            logger.info('INVALID EXTENSION, FILE SKIPPED', file);
             continue;
         }
-        // FORMAT FILENAME
-        const filename =
-            originalFileName.toLowerCase().split(' ').join('-').split('.') + '-' + short.generate() + `.${extension}`;
 
-        // CREATE THE FILE STTREAM
-        const stream = await zip.file(file).async('nodebuffer');
+        // CREATE THE FILE BUFFER
+        const buffer = await zip.file(file).async('nodebuffer');
 
-        // PREPARE UPLOAD PARAMS FOR UPLOAD TO S3 BUCKET
-        const uploadParams = {
-            Key: filename,
-            Bucket: AWS_S3_PUBLIC_BUCKET_NAME,
-            ACL: 'public-read',
-            Body: stream,
-        };
-        console.log('uploadParams', uploadParams);
+        if (!(await isValidFileType(buffer))) {
+            logger.info('INVALID FILE TYPE, FILE SKIPPED', file);
+            continue;
+        }
 
-        // UPLOAD THE FILE
-        await s3Client.send(new PutObjectCommand(uploadParams));
+        const promise = new Promise(async (resolve, reject) => {
+            try {
+                // FORMAT FILENAME
+                const filename =
+                    originalFileName.toLowerCase().split(' ').join('-').split('.') +
+                    '-' +
+                    short.generate() +
+                    `.${extension}`;
 
-        // COLLECT THE URLS
-        const url = ImageService.getPublicUrl(filename);
+                // PREPARE PARAMS FOR UPLOAD TO S3 BUCKET
+                const uploadParams = {
+                    Key: filename,
+                    Bucket: AWS_S3_PUBLIC_BUCKET_NAME,
+                    ACL: 'public-read',
+                    Body: buffer,
+                };
 
-        // CREATE THE METADATA
-        await ERC721Service.createMetadata(erc721, req.body.title, req.body.description, [
-            { key: req.body.propName, value: url },
-        ]);
+                // UPLOAD THE FILE TO S3
+                await s3Client.send(new PutObjectCommand(uploadParams));
 
-        urls.push(url);
+                // COLLECT THE URL
+                const url = ImageService.getPublicUrl(filename);
+
+                // CREATE THE METADATA
+                const metadata = await ERC721Service.createMetadata(erc721, req.body.title, req.body.description, [
+                    { key: req.body.propName, value: url },
+                ]);
+
+                metadatas.push(metadata);
+                resolve(metadata);
+            } catch (err) {
+                logger.error(err);
+                reject(err);
+            }
+        });
+
+        promises.push(promise);
     }
-
-    console.log('URLS', urls);
-    res.status(201).json({ urls });
+    await Promise.all(promises);
+    console.log(
+        'METADATA ATTRIBUTES',
+        metadatas.map((x) => x.attributes),
+    );
+    res.status(201).json({ metadatas });
 };
+
 function isValidExtension(extension: string) {
     const allowedExtensions = ['jpg', 'jpeg', 'gif', 'png'];
     return allowedExtensions.includes(extension);
+}
+
+async function isValidFileType(buffer: Buffer) {
+    const { mime } = await fromBuffer(buffer);
+    const allowedMimeTypes = ['image/jpeg', 'image/png', 'image/gif'];
+
+    if (!allowedMimeTypes.includes(mime)) {
+        return false;
+    }
+
+    return true;
 }
 export default { controller, validation };
