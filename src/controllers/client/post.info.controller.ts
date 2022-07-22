@@ -7,8 +7,6 @@ const getClientInfo = async (req: Request, res: Response) => {
     const registrationAccessToken = req.body['registrationAccessToken'] as string;
     const info = await ClientProxy.info(clientId, registrationAccessToken);
 
-    console.log(info);
-
     res.status(200).send(info);
 };
 
