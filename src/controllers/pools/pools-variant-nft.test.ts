@@ -4,6 +4,7 @@ import { ChainId } from '@/types/enums';
 import { isAddress } from 'web3-utils';
 import { afterAllCallback, beforeAllCallback } from '@/util/jest/config';
 import { account2, dashboardAccessToken } from '@/util/jest/constants';
+import path from 'path';
 
 const user = request.agent(app);
 
@@ -158,6 +159,19 @@ describe('NFT Pool', () => {
                     expect(body[schema[1].name]).toBe(value2);
                 })
                 .expect(200, done);
+        });
+    });
+
+    describe('POST /erc721/metadata/multiple', () => {
+        const zipFile = path.resolve('download/rewards-qrcodes/qrcodes_reward_BULK REWARD 5000.zip');
+        console.log('zipfile ---------------------------', zipFile);
+        it('should upload multiple metadata images', (done) => {
+            user.post('/v1/metadata/multiple')
+                .set('Authorization', dashboardAccessToken)
+                .set('X-PoolId', poolId)
+                .set('content-type', 'application/zip')
+                .attach('compressedFile', zipFile)
+                .expect(201, done);
         });
     });
 });
