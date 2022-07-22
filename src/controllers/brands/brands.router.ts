@@ -1,15 +1,16 @@
 import express from 'express';
-import { assertRequestInput, guard } from '@/middlewares';
+import { assertRequestInput, guard, requireAssetPoolHeader } from '@/middlewares';
 
 import GetBrand from './get.controller';
 import PutBrand from './put.controller';
 
 const router = express.Router();
-router.get('/:pool_address', guard.check(['brands:read']), GetBrand.controller);
+router.get('/', guard.check(['brands:read']), requireAssetPoolHeader, GetBrand.controller);
 router.put(
-    '/:pool_address',
+    '/',
     guard.check(['brands:write']),
     assertRequestInput(PutBrand.validation),
+    requireAssetPoolHeader,
     PutBrand.controller,
 );
 

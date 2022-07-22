@@ -1815,30 +1815,24 @@
         }
       }
     },
-    "/brand/{pool_address}": {
+    "/brands/": {
       "get": {
         "description": "",
-        "parameters": [
-          {
-            "name": "pool_address",
-            "in": "path",
-            "required": true,
-            "type": "string"
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK"
           }
-        ],
-        "responses": {}
+        }
       },
       "put": {
         "description": "",
-        "parameters": [
-          {
-            "name": "pool_address",
-            "in": "path",
-            "required": true,
-            "type": "string"
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK"
           }
-        ],
-        "responses": {}
+        }
       }
     },
     "/upload/": {

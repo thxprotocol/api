@@ -1,12 +1,11 @@
 import BrandModel, { TBrand, TBrandUpdate } from '@/models/Brand';
 
-type FindOptions = Partial<Pick<TBrand, 'poolAddress'>>;
+type FindOptions = Partial<Pick<TBrand, 'poolId'>>;
 
 export default {
-    get: async (poolAddress: string) => {
-        return await BrandModel.findOne({ poolAddress });
+    get: async (poolId: string) => {
+        return await BrandModel.findOne({ poolId });
     },
-
     update: async (options: FindOptions, updates: TBrandUpdate) => {
         return await BrandModel.findOneAndUpdate(options, updates, { upsert: true, new: true });
     },
