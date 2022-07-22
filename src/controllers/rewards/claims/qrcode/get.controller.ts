@@ -7,8 +7,9 @@ import { AWS_S3_PRIVATE_BUCKET_NAME } from '@/config/secrets';
 import { s3PrivateClient } from '@/util/s3';
 import { GetObjectCommand } from '@aws-sdk/client-s3';
 import { Readable } from 'stream';
+import { logger } from '@/util/logger';
 
-const validation = [param('id').exists()];
+const validation = [param('id').isMongoId()];
 
 const controller = async (req: Request, res: Response) => {
     // #swagger.tags = ['Rewards']
@@ -31,14 +32,15 @@ const controller = async (req: Request, res: Response) => {
         body.pipe(res);
     } catch (err) {
         if (err.$metadata && err.$metadata.httpStatusCode == 404) {
-            await agenda.now(EVENT_SEND_DOWNLOAD_QR_EMAIL, {
+            agenda.now(EVENT_SEND_DOWNLOAD_QR_EMAIL, {
                 poolId: String(req.assetPool._id),
                 rewardId: reward.id,
                 sub: req.assetPool.sub,
                 fileKey,
             });
-            res.status(201).json({});
+            res.status(201).end();
         } else {
+            logger.error(err);
             throw err;
         }
     }
