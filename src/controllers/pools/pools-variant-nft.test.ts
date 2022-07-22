@@ -162,15 +162,26 @@ describe('NFT Pool', () => {
         });
     });
 
-    describe('POST /erc721/metadata/multiple', () => {
-        const zipFile = path.resolve('download/rewards-qrcodes/qrcodes_reward_BULK REWARD 5000.zip');
-        console.log('zipfile ---------------------------', zipFile);
-        it('should upload multiple metadata images', (done) => {
-            user.post('/v1/metadata/multiple')
+    describe('POST /erc721/:id/metadata/multiple', () => {
+        const title = 'NFT 1';
+        const description = 'description';
+        const propName = 'image';
+        const zipFile = path.resolve('download/test/nft-images-test.zip');
+
+        it('should upload multiple metadata images and create metadata', (done) => {
+            user.post('/v1/erc721/' + erc721ID + '/metadata/multiple')
                 .set('Authorization', dashboardAccessToken)
                 .set('X-PoolId', poolId)
                 .set('content-type', 'application/zip')
                 .attach('compressedFile', zipFile)
+                .field({
+                    title,
+                    description,
+                    propName,
+                })
+                .expect(({ body }: request.Response) => {
+                    expect(body.urls.length).toBe(3);
+                })
                 .expect(201, done);
         });
     });

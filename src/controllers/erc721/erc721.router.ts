@@ -8,6 +8,8 @@ import ReadERC721Token from './token/get.controller';
 import CreateERC721 from './post.controller';
 import CreateERC721Metadata from './metadata/post.controller';
 import MintERC721Metadata from './metadata/mint/post.controller';
+import CreateMultipleERC721Metadata from './metadata/multiple/post.controller';
+import { upload } from '@/util/multer';
 
 const router = express.Router();
 
@@ -37,5 +39,12 @@ router.post(
     assertRequestInput(CreateERC721Metadata.validation),
     CreateERC721Metadata.controller,
 );
-
+router.post(
+    '/:id/metadata/multiple',
+    upload.single('compressedFile'),
+    //guard.check(['erc721:write']),
+    requireAssetPoolHeader,
+    assertRequestInput(CreateMultipleERC721Metadata.validation),
+    CreateMultipleERC721Metadata.controller,
+);
 export default router;
