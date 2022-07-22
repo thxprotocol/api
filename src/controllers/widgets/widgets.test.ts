@@ -5,7 +5,6 @@ import {
     rewardWithdrawAmount,
     rewardWithdrawDuration,
     rewardWithdrawUnlockDate,
-    rewardId,
     requestUris,
     redirectUris,
     postLogoutRedirectUris,
@@ -59,6 +58,7 @@ describe('Widgets', () => {
                     withdrawAmount: rewardWithdrawAmount,
                     withdrawDuration: rewardWithdrawDuration,
                     withdrawUnlockDate: rewardWithdrawUnlockDate,
+                    amount: 1,
                 })
                 .expect(({ body }: request.Response) => {
                     reward = body;

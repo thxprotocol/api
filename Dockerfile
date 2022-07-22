@@ -2,6 +2,9 @@ FROM node:16-alpine as develop
 
 WORKDIR /usr/src/app
 RUN apk add g++ make py3-pip
+# install node-canvas dependencies
+RUN apk add build-base g++ cairo-dev jpeg-dev pango pango-dev giflib-dev imagemagick freetype fontconfig
+
 COPY package*.json ./
 RUN npm ci
 COPY . .
@@ -24,6 +27,8 @@ WORKDIR /usr/src/app
 COPY package* ./
 RUN npm config set update-notifier false
 RUN apk add --virtual .build g++ make py3-pip && \
+    # install node-canvas dependencies
+    apk add build-base g++ cairo-dev jpeg-dev pango pango-dev giflib-dev imagemagick freetype fontconfig && \
     npm ci --production && \
     apk del .build
 COPY --from=build ./usr/src/app/dist ./

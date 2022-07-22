@@ -109,6 +109,7 @@ export default class RewardService {
             withdrawCondition?: IRewardCondition;
             expiryDate?: Date;
             erc721metadataId?: string;
+            amount?: number;
         },
     ) {
         const expiryDateObj = data.expiryDate && new Date(data.expiryDate);
@@ -126,6 +127,7 @@ export default class RewardService {
             state: RewardState.Enabled,
             isMembershipRequired: data.isMembershipRequired,
             isClaimOnce: data.isClaimOnce,
+            amount: data.amount || 1,
         });
 
         // Store in id to minimize regresion. Remove when old style QR's are no longer going around.

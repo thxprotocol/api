@@ -52,6 +52,7 @@ export type TReward = {
     withdrawCondition: IRewardCondition;
     withdrawUnlockDate: Date;
     progress?: number;
+    amount?: number;
 };
 
 export type RewardDocument = mongoose.Document & TReward;
@@ -77,6 +78,7 @@ const rewardSchema = new mongoose.Schema(
             channelItem: String,
         },
         withdrawUnlockDate: Date,
+        amount: Number,
     },
     { timestamps: true },
 );

@@ -1,4 +1,3 @@
-import { AWS_BUCKET_NAME } from '@/config/secrets';
 import { s3Client } from '@/util/s3';
 import { Request, Response } from 'express';
 import { check } from 'express-validator';
