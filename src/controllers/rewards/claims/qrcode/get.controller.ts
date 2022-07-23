@@ -18,25 +18,22 @@ const controller = async (req: Request, res: Response) => {
     const reward = await RewardService.get(req.assetPool, req.params.id);
     if (!reward) throw new NotFoundError();
 
-    const fileKey = `${reward._id}.zip`;
+    const fileName = `${reward._id}.zip`;
     try {
-        const command = new GetObjectCommand({
-            Bucket: AWS_S3_PRIVATE_BUCKET_NAME,
-            Key: fileKey,
-        });
-        const response = await s3PrivateClient.send(command);
-        const body = response.Body as Readable;
-
-        res.attachment(fileKey).setHeader('Content-type', 'application/zip');
-
-        body.pipe(res);
+        const response = await s3PrivateClient.send(
+            new GetObjectCommand({
+                Bucket: AWS_S3_PRIVATE_BUCKET_NAME,
+                Key: fileName,
+            }),
+        );
+        (response.Body as Readable).pipe(res).attachment(fileName);
     } catch (err) {
         if (err.$metadata && err.$metadata.httpStatusCode == 404) {
             agenda.now(EVENT_SEND_DOWNLOAD_QR_EMAIL, {
                 poolId: String(req.assetPool._id),
                 rewardId: reward.id,
                 sub: req.assetPool.sub,
-                fileKey,
+                fileName,
             });
             res.status(201).end();
         } else {

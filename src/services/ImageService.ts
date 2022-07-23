@@ -31,7 +31,7 @@ export default {
         return `https://${AWS_S3_PUBLIC_BUCKET_NAME}.s3.${AWS_S3_PUBLIC_BUCKET_REGION}.amazonaws.com/${key}`;
     },
     createQRCode: async (url: string) => {
-        const logoPath = path.resolve(__dirname, '../assets/qr-logo.jpg');
+        const logoPath = path.resolve(__dirname, '../public/qr-logo.jpg');
         const width = 55;
         const center = 58;
         const canvas = createCanvas(width, width);
