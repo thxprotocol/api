@@ -32,6 +32,7 @@ export const generateRewardQRCodesJob = async ({ attrs }: Job) => {
         const claims = await ClaimService.findByReward(reward);
         if (!claims.length) throw new Error('Claims not found');
 
+        // Create an instance of jsZip and build an archive
         const { jsZip, archive } = createArchiver();
 
         // Create QR code for every claim

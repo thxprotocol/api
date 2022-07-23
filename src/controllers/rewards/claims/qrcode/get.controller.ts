@@ -16,7 +16,7 @@ const controller = async (req: Request, res: Response) => {
     if (req.auth.sub !== req.assetPool.sub) throw new SubjectUnauthorizedError();
 
     const reward = await RewardService.get(req.assetPool, req.params.id);
-    if (!reward) throw new NotFoundError();
+    if (!reward) throw new NotFoundError('Reward not found');
 
     const fileName = `${reward._id}.zip`;
     try {
@@ -29,12 +29,22 @@ const controller = async (req: Request, res: Response) => {
         (response.Body as Readable).pipe(res).attachment(fileName);
     } catch (err) {
         if (err.$metadata && err.$metadata.httpStatusCode == 404) {
-            agenda.now(EVENT_SEND_DOWNLOAD_QR_EMAIL, {
-                poolId: String(req.assetPool._id),
-                rewardId: reward.id,
-                sub: req.assetPool.sub,
-                fileName,
+            const rewardId = reward.id;
+            const poolId = String(req.assetPool._id);
+            const sub = req.assetPool.sub;
+            const equalJobs = await agenda.jobs({
+                name: EVENT_SEND_DOWNLOAD_QR_EMAIL,
+                data: { poolId, rewardId, sub, fileName },
             });
+
+            if (!equalJobs.length) {
+                agenda.now(EVENT_SEND_DOWNLOAD_QR_EMAIL, {
+                    poolId,
+                    rewardId,
+                    sub,
+                    fileName,
+                });
+            }
             res.status(201).end();
         } else {
             logger.error(err);
