@@ -8,7 +8,7 @@ const router = express.Router();
 router.get('/', guard.check(['brands:read']), requireAssetPoolHeader, GetBrand.controller);
 router.put(
     '/',
-    guard.check(['brands:write']),
+    guard.check(['brands:write', 'brands:read']),
     assertRequestInput(PutBrand.validation),
     requireAssetPoolHeader,
     PutBrand.controller,

@@ -47,18 +47,13 @@ export const generateRewardQRCodesJob = async ({ attrs }: Job) => {
             },
         });
 
-        multipartUpload.on('httpUploadProgress', (progress) => {
-            console.log(progress);
-        });
-
         await multipartUpload.done();
-
-        const dashboardURL = `${DASHBOARD_URL}/pool/${reward.poolId}/rewards#${String(reward._id)}`;
 
         await MailService.send(
             account.email,
             'Your QR codes are ready!',
-            `<a href="${dashboardURL}">Download the zip file.</a> or visit this URL in your browser<br/><small>${dashboardURL}.</small>`,
+            `Visit THX Dashboard to download your your QR codes archive. Visit this URL in your browser:
+            <br/>${`${DASHBOARD_URL}/pool/${reward.poolId}/rewards`}`,
         );
     } catch (error) {
         logger.error(error);

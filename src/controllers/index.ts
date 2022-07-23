@@ -21,8 +21,8 @@ import erc20Router from './erc20/erc20.router';
 import transactionsRouter from './transactions/transactions.router';
 import erc20SwapRuleRouter from './swaprules/swaprules.router';
 import erc20SwapRouter from './swaps/swaps.router';
-import brandsRouter from './brands/brands.router';
 import claimsRouter from './claims/claims.router';
+import brandsRouter from './brands/brands.router';
 import { checkJwt } from '@/middlewares';
 
 const router = express.Router();
