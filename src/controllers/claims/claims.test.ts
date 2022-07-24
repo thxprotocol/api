@@ -2,15 +2,13 @@ import request from 'supertest';
 import app from '@/app';
 import { Account } from 'web3-core';
 import { ChainId, ERC20Type } from '../../types/enums';
-import { createWallet, signMethod } from '@/util/jest/network';
+import { createWallet } from '@/util/jest/network';
 import {
     dashboardAccessToken,
     tokenName,
     tokenSymbol,
     walletAccessToken,
-    walletAccessToken2,
     userWalletPrivateKey2,
-    rewardWithdrawAmount,
 } from '@/util/jest/constants';
 import { isAddress } from 'web3-utils';
 import { afterAllCallback, beforeAllCallback } from '@/util/jest/config';
@@ -28,17 +26,9 @@ describe('Claims', () => {
         poolAddress: string,
         reward: RewardDocument,
         claim: ClaimDocument,
-        rewardID: string,
-        withdrawalDocumentId: string,
-        withdrawalId: string,
-        userWallet: Account,
         tokenAddress: string;
 
-    beforeAll(async () => {
-        await beforeAllCallback();
-        userWallet = createWallet(userWalletPrivateKey2);
-    });
-
+    beforeAll(beforeAllCallback);
     afterAll(afterAllCallback);
 
     it('Create ERC20', (done) => {
@@ -97,7 +87,6 @@ describe('Claims', () => {
                     expect(res.body.withdrawAmount).toEqual(reward.withdrawAmount);
                     expect(res.body.rewardId).toEqual(reward.id);
                     expect(res.body.chainId).toEqual(pool.chainId);
-                    expect(res.body.clientId).toEqual(pool.clientId);
                 })
                 .expect(200, done);
         });
@@ -116,7 +105,6 @@ describe('Claims', () => {
                     expect(res.body.tokenSymbol).toEqual(tokenSymbol);
                     expect(res.body.withdrawAmount).toEqual(reward.withdrawAmount);
                     expect(res.body.chainId).toEqual(pool.chainId);
-                    expect(res.body.clientId).toEqual(pool.clientId);
                 })
                 .expect(200, done);
         });
