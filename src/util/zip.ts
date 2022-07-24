@@ -1,4 +1,9 @@
 import JSZip from 'jszip';
 
-export const zip = new JSZip();
-export const zipFolder = zip.folder('qrcodes');
+export const createArchiver = () => {
+    const jsZip = new JSZip();
+    return {
+        jsZip,
+        archive: jsZip.folder('qrcodes'),
+    };
+};

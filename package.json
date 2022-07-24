@@ -1,6 +1,6 @@
 {
     "name": "@thxnetwork/api",
-    "version": "1.16.14",
+    "version": "1.16.19",
     "repository": {
         "type": "git",
         "url": "https://github.com/thxprotocol/api"
@@ -12,14 +12,16 @@
         "lint:fix": "tsc && eslint \"./src/**/*.ts\" --fix",
         "dev": "docker-compose up -d && npm run watch:node",
         "exec": "ts-node-dev -r tsconfig-paths/register ",
-        "build": "tsc",
-        "start": "export NODE_TLS_REJECT_UNAUTHORIZED='0'; npm run watch:node",
+        "build": "tsc && npm run build:assets",
+        "build:assets": "mkdir -p dist/src/public && cp -R src/public/* dist/src/public/.",
+        "build:ssl": "sh scripts/ssl.sh",
+        "start": "export NODE_TLS_REJECT_UNAUTHORIZED='0' && npm run watch:node",
         "watch:node": "ts-node-dev --ignore-watch openapi.json -r tsconfig-paths/register src/server.ts",
         "watch:node-debug": "ts-node-dev --ignore-watch openapi.json -r tsconfig-paths/register --inspect=7000 src/server.ts",
-        "test": "npx jest --runInBand",
+        "test": "npm run build:assets && npx jest --runInBand",
         "test:coverage": "npx jest --coverage --runInBand",
         "test:debug": "npx jest --coverage --runInBand --detectOpenHandles",
-        "migrate": "npm run migrate:db; npm run migrate:contracts",
+        "migrate": "npm run migrate:db && npm run migrate:contracts",
         "migrate:contracts": "node -r tsconfig-paths/register ./scripts/upgradeContractsToLatest.js",
         "migrate:db": "migrate-mongo up -f src/migrate-mongo-config.js",
         "migrate:create": "sh -c 'migrate-mongo create -f src/migrate-mongo-config.js $0'",

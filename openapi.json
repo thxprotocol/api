@@ -1,7 +1,7 @@
 {
   "swagger": "2.0",
   "info": {
-    "version": "1.16.11",
+    "version": "1.16.18",
     "title": "THX API Specification",
     "description": "User guides are available at https://docs.thx.network."
   },
@@ -1820,30 +1820,24 @@
         }
       }
     },
-    "/brand/{pool_address}": {
+    "/brands/": {
       "get": {
         "description": "",
-        "parameters": [
-          {
-            "name": "pool_address",
-            "in": "path",
-            "required": true,
-            "type": "string"
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK"
           }
-        ],
-        "responses": {}
+        }
       },
       "put": {
         "description": "",
-        "parameters": [
-          {
-            "name": "pool_address",
-            "in": "path",
-            "required": true,
-            "type": "string"
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK"
           }
-        ],
-        "responses": {}
+        }
       }
     },
     "/upload/": {
