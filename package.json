@@ -14,6 +14,7 @@
         "exec": "ts-node-dev -r tsconfig-paths/register ",
         "build": "tsc && npm run build:assets",
         "build:assets": "mkdir -p dist/src/public && cp -R src/public/* dist/src/public/.",
+        "build:ssl": "sh scripts/ssl.sh",
         "start": "export NODE_TLS_REJECT_UNAUTHORIZED='0'; npm run watch:node",
         "watch:node": "ts-node-dev --ignore-watch openapi.json -r tsconfig-paths/register src/server.ts",
         "watch:node-debug": "ts-node-dev --ignore-watch openapi.json -r tsconfig-paths/register --inspect=7000 src/server.ts",
