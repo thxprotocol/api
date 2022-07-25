@@ -4,7 +4,7 @@ import { NotFoundError } from '@/util/errors';
 
 export default {
     controller: async (req: Request, res: Response) => {
-        const brand = await BrandService.get(req.params.poolId);
+        const brand = await BrandService.get(req.assetPool._id);
         if (!brand) throw new NotFoundError('Brand not found');
         res.json(brand);
     },
