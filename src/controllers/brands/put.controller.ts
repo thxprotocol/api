@@ -4,9 +4,9 @@ import { body } from 'express-validator';
 import BrandService from '../../services/BrandService';
 
 export default {
-    validation: [body('logoImgUrl').exists().isURL(), body('backgroundImgUrl').exists().isURL()],
+    validation: [body('logoImgUrl').optional().isURL(), body('backgroundImgUrl').optional().isURL()],
     controller: async (req: Request, res: Response) => {
-        const brand = await BrandService.update({ poolId: req.params.poolId }, req.body);
+        const brand = await BrandService.update({ poolId: req.assetPool._id }, req.body);
         res.json(brand);
     },
 };
