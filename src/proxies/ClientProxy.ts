@@ -1,39 +1,30 @@
 import { INITIAL_ACCESS_TOKEN } from '@/config/secrets';
-import { Client } from '@/models/Client';
+import { Client, TClientPayload } from '@/models/Client';
 import { authClient } from '@/util/auth';
 import { paginatedResults } from '@/util/pagination';
 
 export default class ClientProxy {
-    static async get(clientId: string) {
-        const client = await Client.findOne({ clientId });
-        const r = await authClient({
+    static async get(id: string) {
+        const client = await Client.findById(id);
+        const { data } = await authClient({
             method: 'GET',
-            url: `/reg/${clientId}?access_token=${client.registrationAccessToken}`,
+            url: `/reg/${client.clientId}?access_token=${client.registrationAccessToken}`,
         });
-
-        client.clientSecret = r.data['client_secret'];
-        client.requestUris = r.data['request_uris'];
-
-        return client;
-    }
-
-    static async findByPool(poolId: string) {
-        const clients = (await Client.find({ poolId })) || [];
-        return clients.map((client) => client.toJSON());
+        return { ...client.toJSON(), clientSecret: data['client_secret'], requestUris: data['request_uris'] };
     }
 
     static async findByQuery(query: { poolId: string }, page = 1, limit = 10) {
         return paginatedResults(Client, page, limit, query);
     }
 
-    static async create(sub: string, poolId: string, client: any, name?: string) {
+    static async create(sub: string, poolId: string, payload: TClientPayload, name?: string) {
         const { data } = await authClient({
             method: 'POST',
             url: '/reg',
             headers: {
                 Authorization: `Bearer ${INITIAL_ACCESS_TOKEN}`,
             },
-            data: client,
+            data: payload,
         });
 
         return await Client.create({
@@ -41,17 +32,19 @@ export default class ClientProxy {
             name,
             poolId,
             clientId: data.client_id,
+            grantType: payload.grant_types[0],
             registrationAccessToken: data.registration_access_token,
         });
     }
 
     static async remove(clientId: string) {
         const client = await Client.findOne({ clientId });
-        await client.remove();
 
-        return await authClient({
+        await authClient({
             method: 'DELETE',
             url: `/reg/${client.clientId}?access_token=${client.registrationAccessToken}`,
         });
+
+        return await client.remove();
     }
 }

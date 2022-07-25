@@ -1,12 +1,7 @@
 import { Request, Response } from 'express';
-
-import ClientProxy from '@/proxies/ClientProxy';
 import { BadRequestError } from '@/util/errors';
-
-enum GrantType {
-    AuthorizationCode = 'authorization_code',
-    ClientCredentials = 'client_credentials',
-}
+import { GrantType } from '@/types/enums/GrantType';
+import ClientProxy from '@/proxies/ClientProxy';
 
 export default {
     controller: async (req: Request, res: Response) => {
@@ -14,13 +9,13 @@ export default {
         if (!poolId) throw new BadRequestError('Cannot found Pool ID in this request');
 
         const { grantType, redirectUri, requestUri, name } = req.body;
-
         let payload;
         switch (grantType) {
             case GrantType.AuthorizationCode:
                 payload = {
                     application_type: 'web',
                     grant_types: [grantType],
+                    request_uris: [requestUri],
                     redirect_uris: [redirectUri],
                     post_logout_redirect_uris: [requestUri],
                     response_types: ['code'],
@@ -39,6 +34,7 @@ export default {
         }
 
         const client = await ClientProxy.create(req.auth.sub, poolId, payload, name);
+
         res.json(client);
     },
 };
