@@ -15,11 +15,12 @@ import short from 'short-uuid';
 
 const validation = [
     param('id').isMongoId(),
-    body('title').isString().isLength({ min: 0, max: 100 }),
-    body('description').isString().isLength({ min: 0, max: 400 }),
+    body('title').optional().isString().isLength({ min: 0, max: 100 }),
+    body('description').optional().isString().isLength({ min: 0, max: 400 }),
     body('propName').exists().isString(),
     check('compressedFile').custom((value, { req }) => {
         switch (req.file.mimetype) {
+            case 'application/octet-stream':
             case 'application/zip':
             case 'application/rar':
                 return true;
@@ -45,19 +46,21 @@ const controller = async (req: Request, res: Response) => {
 
     for (let i = 0; i < objectKeys.length; i++) {
         const file = objectKeys[i];
-
         const [originalFileName, extension] = file.split('.');
-        // FILE VALIDATION
-        if (!isValidExtension(extension)) {
-            logger.info('INVALID EXTENSION, FILE SKIPPED', file);
+
+        if (!extension) {
             continue;
         }
-
+        // FILE VALIDATION
+        if (!isValidExtension(extension)) {
+            logger.info(`INVALID EXTENSION, FILE SKIPPED: ${file}`);
+            continue;
+        }
         // CREATE THE FILE BUFFER
         const buffer = await zip.file(file).async('nodebuffer');
 
         if (!(await isValidFileType(buffer))) {
-            logger.info('INVALID FILE TYPE, FILE SKIPPED', file);
+            logger.info(`INVALID FILE TYPE, FILE SKIPPED: ${file}`);
             continue;
         }
 

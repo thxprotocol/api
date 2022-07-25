@@ -1,7 +1,7 @@
 {
   "swagger": "2.0",
   "info": {
-    "version": "1.16.11",
+    "version": "1.16.14",
     "title": "THX API Specification",
     "description": "User guides are available at https://docs.thx.network."
   },
@@ -57,17 +57,6 @@
           }
         ],
         "responses": {}
-      }
-    },
-    "/metadata/multiple": {
-      "post": {
-        "description": "",
-        "parameters": [],
-        "responses": {
-          "201": {
-            "description": "Created"
-          }
-        }
       }
     },
     "/payments/{id}": {
@@ -791,6 +780,45 @@
                   "example": "any"
                 },
                 "recipient": {
+                  "example": "any"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created"
+          }
+        }
+      }
+    },
+    "/erc721/{id}/metadata/multiple": {
+      "post": {
+        "tags": [
+          "ERC721"
+        ],
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "title": {
+                  "example": "any"
+                },
+                "description": {
+                  "example": "any"
+                },
+                "propName": {
                   "example": "any"
                 }
               }
