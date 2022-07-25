@@ -1,7 +1,7 @@
 {
   "swagger": "2.0",
   "info": {
-    "version": "1.16.18",
+    "version": "1.16.20",
     "title": "THX API Specification",
     "description": "User guides are available at https://docs.thx.network."
   },
@@ -33,6 +33,16 @@
       }
     },
     "/token/cs": {
+      "get": {
+        "tags": [
+          "THX Token"
+        ],
+        "description": "",
+        "parameters": [],
+        "responses": {}
+      }
+    },
+    "/token/ts": {
       "get": {
         "tags": [
           "THX Token"
