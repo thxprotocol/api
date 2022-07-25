@@ -2,6 +2,8 @@ import mongoose from 'mongoose';
 
 export type ClientDocument = mongoose.Document & {
     sub: string;
+    name: string;
+    poolId: string;
     clientId: string;
     clientSecret: string;
     requestUris: string[];
@@ -11,6 +13,8 @@ export type ClientDocument = mongoose.Document & {
 const clientSchema = new mongoose.Schema(
     {
         sub: String,
+        name: String,
+        poolId: String,
         clientId: String,
         registrationAccessToken: String,
     },

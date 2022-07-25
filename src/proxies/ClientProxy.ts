@@ -1,11 +1,9 @@
-import { authClient } from '@/util/auth';
-import { Client } from '@/models/Client';
 import { INITIAL_ACCESS_TOKEN } from '@/config/secrets';
-import { THXError } from '@/util/errors';
+import { Client } from '@/models/Client';
+import { authClient } from '@/util/auth';
+import { paginatedResults } from '@/util/pagination';
 
-class ClientServiceError extends THXError {}
-
-export default class ClientService {
+export default class ClientProxy {
     static async get(clientId: string) {
         const client = await Client.findOne({ clientId });
         const r = await authClient({
@@ -13,48 +11,47 @@ export default class ClientService {
             url: `/reg/${clientId}?access_token=${client.registrationAccessToken}`,
         });
 
-        if (r.status !== 200) {
-            throw new ClientServiceError(r.data);
-        }
-
         client.clientSecret = r.data['client_secret'];
         client.requestUris = r.data['request_uris'];
 
         return client;
     }
 
-    static async create(sub: string, data: any) {
-        const r = await authClient({
+    static async findByPool(poolId: string) {
+        const clients = (await Client.find({ poolId })) || [];
+        return clients.map((client) => client.toJSON());
+    }
+
+    static async findByQuery(query: { poolId: string }, page = 1, limit = 10) {
+        return paginatedResults(Client, page, limit, query);
+    }
+
+    static async create(sub: string, poolId: string, client: any, name?: string) {
+        const { data } = await authClient({
             method: 'POST',
             url: '/reg',
             headers: {
                 Authorization: `Bearer ${INITIAL_ACCESS_TOKEN}`,
             },
-            data,
+            data: client,
         });
 
-        const client = new Client({
+        return await Client.create({
             sub,
-            clientId: r.data.client_id,
-            registrationAccessToken: r.data.registration_access_token,
+            name,
+            poolId,
+            clientId: data.client_id,
+            registrationAccessToken: data.registration_access_token,
         });
-
-        await client.save();
-
-        return client;
     }
 
     static async remove(clientId: string) {
         const client = await Client.findOne({ clientId });
         await client.remove();
 
-        const r = await authClient({
+        return await authClient({
             method: 'DELETE',
             url: `/reg/${client.clientId}?access_token=${client.registrationAccessToken}`,
         });
-
-        if (r.status !== 204) {
-            throw new ClientServiceError();
-        }
     }
 }
