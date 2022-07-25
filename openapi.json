@@ -1,7 +1,7 @@
 {
   "swagger": "2.0",
   "info": {
-    "version": "1.16.18",
+    "version": "1.16.20",
     "title": "THX API Specification",
     "description": "User guides are available at https://docs.thx.network."
   },
@@ -1854,6 +1854,63 @@
         }
       }
     },
+    "/clients/": {
+      "get": {
+        "description": "",
+        "parameters": [],
+        "responses": {}
+      },
+      "post": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "x-poolid",
+            "in": "header",
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "grantType": {
+                  "example": "any"
+                },
+                "redirectUri": {
+                  "example": "any"
+                },
+                "requestUri": {
+                  "example": "any"
+                },
+                "name": {
+                  "example": "any"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/clients/{id}": {
+      "get": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {}
+      }
+    },
     "/claims/{id}/collect": {
       "post": {
         "tags": [
@@ -1915,13 +1972,6 @@
             "description": "OK"
           }
         }
-      }
-    },
-    "/clients/info": {
-      "post": {
-        "description": "",
-        "parameters": [],
-        "responses": {}
       }
     }
   }
