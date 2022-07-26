@@ -179,11 +179,7 @@ describe('NFT Pool', () => {
             zipFolder.file('image2.jpg', image2, { binary: true });
             zipFolder.file('image3.jpg', image3, { binary: true });
 
-            const testDirPath = path.resolve('download/test');
-            if (!fs.existsSync(testDirPath)) {
-                fs.mkdirSync(testDirPath);
-            }
-            const zipPath = path.resolve(`${testDirPath}/nft-images-test.zip`);
+            const zipPath = path.resolve('download/nft-images-test.zip');
 
             const zipFile = await zip.generateAsync({ type: 'nodebuffer', compression: 'DEFLATE' });
             await fs.promises.writeFile(zipPath, zipFile, { flag: 'wx' });
@@ -205,7 +201,7 @@ describe('NFT Pool', () => {
                 })
                 .expect(201);
 
-            await fs.promises.rmdir(testDirPath, { recursive: true });
+            await fs.promises.unlink(zipPath);
         });
     });
 });
