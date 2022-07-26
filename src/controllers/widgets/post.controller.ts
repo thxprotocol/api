@@ -23,7 +23,7 @@ const controller = async (req: Request, res: Response) => {
 
     const widget = await WidgetService.create(
         req.auth.sub,
-        client.clientId,
+        client._id,
         req.body.metadata.rewardId,
         req.body.metadata.poolId,
     );
