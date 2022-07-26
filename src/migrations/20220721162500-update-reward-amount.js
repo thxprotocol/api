@@ -26,5 +26,7 @@ module.exports = {
         await Promise.all(promises);
     },
 
-    async down(db) {},
+    async down() {
+        //
+    },
 };

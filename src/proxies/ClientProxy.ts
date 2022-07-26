@@ -26,15 +26,16 @@ export default class ClientProxy {
             },
             data: payload,
         });
-
-        return await Client.create({
+        const client = await Client.create({
             sub,
             name,
             poolId,
-            clientId: data.client_id,
             grantType: payload.grant_types[0],
+            clientId: data.client_id,
             registrationAccessToken: data.registration_access_token,
         });
+
+        return { ...client.toJSON(), clientSecret: data['client_secret'], requestUris: data['request_uris'] };
     }
 
     static async remove(clientId: string) {
