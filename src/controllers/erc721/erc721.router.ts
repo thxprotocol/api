@@ -9,6 +9,7 @@ import CreateERC721 from './post.controller';
 import CreateERC721Metadata from './metadata/post.controller';
 import MintERC721Metadata from './metadata/mint/post.controller';
 import CreateMultipleERC721Metadata from './metadata/multiple/post.controller';
+import DownloadERC721MetadataCSV from './metadata/csv/get.controller';
 import { upload } from '@/util/multer';
 
 const router = express.Router();
@@ -46,5 +47,12 @@ router.post(
     requireAssetPoolHeader,
     assertRequestInput(CreateMultipleERC721Metadata.validation),
     CreateMultipleERC721Metadata.controller,
+);
+router.get(
+    '/:id/metadata/csv',
+    guard.check(['erc721:read']),
+    requireAssetPoolHeader,
+    assertRequestInput(DownloadERC721MetadataCSV.validation),
+    DownloadERC721MetadataCSV.controller,
 );
 export default router;
