@@ -183,8 +183,6 @@ describe('NFT Pool', () => {
                 .post('/v1/erc721/' + erc721ID + '/metadata/multiple')
                 .set('Authorization', dashboardAccessToken)
                 .set('X-PoolId', poolId)
-                .set('Content-Type', 'application/octet-stream')
-                .set('Content-disposition', 'attachment; filename="pippo.zip"')
                 .attach('compressedFile', zipFile, { filename: 'images.zip', contentType: 'application/zip' })
                 .field({
                     title,
