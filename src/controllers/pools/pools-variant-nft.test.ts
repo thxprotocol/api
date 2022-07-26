@@ -179,7 +179,7 @@ describe('NFT Pool', () => {
             zipFolder.file('image2.jpg', image2, { binary: true });
             zipFolder.file('image3.jpg', image3, { binary: true });
 
-            const zipPath = path.resolve('download/nft-images-test.zip');
+            const zipPath = path.resolve('./download/nft-images-test.zip');
 
             const zipFile = await zip.generateAsync({ type: 'nodebuffer', compression: 'DEFLATE' });
             await fs.promises.writeFile(zipPath, zipFile, { flag: 'wx' });
