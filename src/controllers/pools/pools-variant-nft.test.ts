@@ -179,10 +179,7 @@ describe('NFT Pool', () => {
             zipFolder.file('image2.jpg', image2, { binary: true });
             zipFolder.file('image3.jpg', image3, { binary: true });
 
-            const zipPath = path.resolve('./download/nft-images-test.zip');
-
             const zipFile = await zip.generateAsync({ type: 'nodebuffer', compression: 'DEFLATE' });
-            await fs.promises.writeFile(zipPath, zipFile, { flag: 'wx' });
 
             await user
                 .post('/v1/erc721/' + erc721ID + '/metadata/multiple')
@@ -190,7 +187,7 @@ describe('NFT Pool', () => {
                 .set('X-PoolId', poolId)
                 .set('Content-Type', 'application/octet-stream')
                 .set('Content-disposition', 'attachment; filename="pippo.zip"')
-                .attach('compressedFile', zipPath)
+                .attach('compressedFile', zipFile, { filename: 'images.zip', contentType: 'application/zip' })
                 .field({
                     title,
                     description,
@@ -200,8 +197,6 @@ describe('NFT Pool', () => {
                     expect(body.metadatas.length).toBe(3);
                 })
                 .expect(201);
-
-            await fs.promises.unlink(zipPath);
         });
     });
 });
