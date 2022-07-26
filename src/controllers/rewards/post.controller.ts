@@ -51,25 +51,18 @@ const controller = async (req: Request, res: Response) => {
         const erc20 = await ERC20Service.findByPool(req.assetPool);
         erc20Id = erc20._id;
     }
-    const promises = [];
-    for (let i = 0; i < reward.amount; i++) {
-        const promise = new Promise(async (resolve, reject) => {
-            try {
-                const claim = await ClaimService.create({
-                    poolId: req.assetPool._id,
-                    erc20Id,
-                    erc721Id,
-                    rewardId: String(reward._id),
-                });
-                resolve(claim);
-            } catch (err) {
-                reject(err);
-            }
-        });
-        promises.push(promise);
-    }
 
-    await Promise.all(promises);
+    await Promise.all(
+        Array.from({ length: reward.amount }).map(() =>
+            ClaimService.create({
+                poolId: req.assetPool._id,
+                erc20Id,
+                erc721Id,
+                rewardId: String(reward._id),
+            }),
+        ),
+    );
+
     const claims = await ClaimService.findByReward(reward);
 
     res.status(201).json({ ...reward.toJSON(), claims });

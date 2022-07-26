@@ -1,10 +1,11 @@
 import { Request, Response } from 'express';
 import { body } from 'express-validator';
 import { isAddress } from 'web3-utils';
-import { checkAndUpgradeToBasicPlan } from '@/util/plans';
-import AssetPoolService from '@/services/AssetPoolService';
-import ClientService from '@/services/ClientService';
+
 import AccountProxy from '@/proxies/AccountProxy';
+import AssetPoolService from '@/services/AssetPoolService';
+import { checkAndUpgradeToBasicPlan } from '@/util/plans';
+import ClientProxy from '@/proxies/ClientProxy';
 
 const validation = [
     body('tokens').custom((tokens: string[]) => {
@@ -24,7 +25,8 @@ const controller = async (req: Request, res: Response) => {
     await checkAndUpgradeToBasicPlan(account, req.body.chainId);
 
     const pool = await AssetPoolService.deploy(req.auth.sub, req.body.chainId, req.body.variant, req.body.tokens);
-    const client = await ClientService.create(req.auth.sub, {
+
+    const client = await ClientProxy.create(req.auth.sub, String(pool._id), {
         application_type: 'web',
         grant_types: ['client_credentials'],
         request_uris: [],
@@ -34,8 +36,9 @@ const controller = async (req: Request, res: Response) => {
         scope: 'openid account:read account:write members:read members:write withdrawals:write',
     });
 
-    pool.clientId = client.clientId;
-    await pool.save();
+    await pool.updateOne({
+        clientId: client.clientId,
+    });
 
     res.status(201).json(pool);
 };

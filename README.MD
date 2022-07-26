@@ -2,26 +2,33 @@
 
 # THX API
 
-This repository holds the code for the THX API project. A REST API that can be used to interact the the THX Smart Contract layer and which main purpose is to make it easier for developers to utilize blockchain technology in their applications.
+This repository holds the REST API consumed by THX client and third party apps. It exposes data stored in EVM compatible blockchain networks and a MongoDB database.
 
-## Index
-
-1. Prerequisites
-2. Installing
-3. Usage
-4. Testing
-5. Register clients
-6. Interface
-7. Database Schema Migration
+-   [API Health](https://localhost:3000/v1/health/)
+-   [Local API Specs](https://localhost:3000/v1/docs/)
+-   [Staging API Specs](https://dev.api.thx.network/v1/docs/)
+-   [Production API Specs](https://api.thx.network/v1/docs/)
+-   [Developer Documentation](http://docs.thx.network)
 
 ## 1. Prerequisites
 
--   Docker
--   [NVM](https://github.com/nvm-sh/nvm)
+### Docker
+https://www.docker.com/products/docker-desktop/
 
-We use docker to run our dependencies like mongo and ganache in. We run the development server locally, managing a common node version using Node Version Manager.
-You can also manually install the correct node version but usage of NVM is recommended.
+### OpenSSL 
+```
+# Install latest openssl 
+brew update
+brew install openssl
 
+# Create openssl alias (optionally replace .zshrc with .bash_profile)
+echo "export PATH="/opt/homebrew/opt/openssl@1.1/bin:$PATH" >> ~/.zshrc 
+source ~/.zshrc
+```
+### NVM
+```
+brew install nvm # mind the optional install instructions
+```
 ## 2. Installing
 
 ```
@@ -31,81 +38,50 @@ nvm use
 # 2. Provide environment variables
 cp .env.example .env
 
-# 3. Create certificates
-openssl req -x509 -nodes -new -sha256 -days 1024 -newkey rsa:2048 -keyout ./src/certificates/api.key -out ./src/certificates/api.pem -subj "/C=US/CN=Api-Root-CA"
+# 3 Install certificates
+npm run build:ssl localhost
 
-# 3. Checkout SCSS submodule
-git submodule init
-git submodule update
+# 4. Install node-canvas binaries for your OS
+# MacOS
+brew install pkg-config cairo pango libpng jpeg giflib librsvg
 
-# 4. Install packages
-npm install --ci
+# Ubuntu
+sudo apt-get install build-essential libcairo2-dev libpango1.0-dev libjpeg-dev libgif-dev librsvg2-dev
 
-# 5. Start working (docker compose up -d && npm run watch:debug)
-npm run dev
+# Alpine
+apk add build-base g++ cairo-dev jpeg-dev pango pango-dev giflib-dev imagemagick freetype fontconfig
 
-# 6. shut down dependencies
-docker compose down
+# 5. Install packages
+npm ci
 ```
 
 ## 3. Usage
+A thx_hardhat container with prefilled wallets and all required contracts will be deployed automatically.
 
-The thx_mainnet and thx_testnet containers will start with prefilled wallets and all required contracts will be deployed automatically.
+```
+# 1. Start containers
+docker compose up
+
+# 2. Start app
+npm start
+```
 
 ## 4. Testing
 
 ```
-# Run e2e tests
-npm run test
+#Runs all suites
+npm test 
+
+#Runs a specific test by file name
+npm test <file_name_part>
 ```
 
-## 5. Register clients
+## 5. Database Schema Migration
 
-### 5.1 client_credentials example
-
-```
-POST http://localhost:3000/reg
-{
-    "application_type": "web",
-    "client_name": "Your App",
-    "grant_types": ["client_credentials"],
-    "redirect_uris": [],
-    "response_types": [],
-    "scope": "openid admin"
-}
-```
-
-### 5.2 authorization_code example
+### 5.1 Add migrations
 
 ```
-POST http://localhost:3000/reg
-{
-    "application_type": "web",
-    "client_name": "THX Wallet",
-    "grant_types": ["authorization_code"],
-    "redirect_uris": ["https://dev.wallet.thx.network/signin-oidc"],
-    "post_logout_redirect_uris": ["https://dev.wallet.thx.network"],
-    "response_types": ["code"],
-    "scope": "openid user email offline_access"
-}
-```
-
-## 6. Interface
-
-Swagger Documentation is provided in the controllers of the routes and lives at the following endpoints:
-
--   [API Health](https://localhost:3000/v1/health/)
--   [Local API Specs](https://localhost:3000/v1/docs/)
--   [Staging API Specs](https://dev.api.thx.network/v1/docs/)
--   [Production API Specs](https://api.thx.network/v1/docs/)
--   [Developer Documentation](http://docs.thx.network)
-
-## 7. Database Schema Migration
-
-### 7.1 To add a new migration script, use the following CLI command
-
-```
-npm run migrate:create name-of-my-script
+npm run migrate:create name-of-my-migration
 ```
 
 A new file will be created inside migrations folder with a corresponding timestamp.
@@ -115,38 +91,15 @@ A new file will be created inside migrations folder with a corresponding timesta
    |- 20210108114324-name-of-my-script.js
 ```
 
-### 7.2 To add a new property to the existing collection
-
-Considering we want to add a quantity property to the products collection, the migration could be as follows:
+### 5.3 Run migrations
 
 ```
-export = {
-    async up(db: Db) {
-        return db.collection('products').updateMany({}, { $set: { quantity: 10 } });
-    },
-
-    async down(db: Db) {
-        return db.collection('products').updateMany({}, { $unset: { quantity: null } });
-    },
-};
-```
-
-### 7.3 Running migrations
-
-To get the migration status
-
-```
+# To get the migration status
 npm run migrate:status
-```
 
-To run your migrations, simply run the command
+# To run your migrations, simply run the command
+npm run migrate
 
-```
-npm run migrate:db
-```
-
-To rollback a migration use the down command
-
-```
+# To rollback a migration use the down command
 npm run migrate:undo-last
 ```

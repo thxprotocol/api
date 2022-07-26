@@ -43,5 +43,3 @@ cache
 .backup
 
 certs/*
-download/**/*
-

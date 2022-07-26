@@ -12,7 +12,6 @@ const agenda = new Agenda({
 });
 
 const EVENT_REQUIRE_TRANSACTIONS = 'requireTransactions';
-const EVENT_SEND_KPI = 'sendKPI';
 const EVENT_SEND_DOWNLOAD_QR_EMAIL = 'sendDownloadQrEmail';
 
 agenda.define(EVENT_REQUIRE_TRANSACTIONS, jobProcessTransactions);
@@ -24,10 +23,9 @@ db.connection.once('open', async () => {
     await agenda.start();
 
     agenda.every('5 seconds', EVENT_REQUIRE_TRANSACTIONS);
-
     agenda.every('5 seconds', EVENT_SEND_DOWNLOAD_QR_EMAIL);
 
     logger.info('AgendaJS successfully started job processor');
 });
 
-export { agenda, EVENT_REQUIRE_TRANSACTIONS, EVENT_SEND_KPI, EVENT_SEND_DOWNLOAD_QR_EMAIL };
+export { agenda, EVENT_REQUIRE_TRANSACTIONS, EVENT_SEND_DOWNLOAD_QR_EMAIL };

@@ -34,8 +34,8 @@ export const paginatedResults = async (
 
     const results = await model
         .find(query)
-        .limit(limit)
         .sort([['createdAt', -1]])
+        .limit(limit)
         .skip(startIndex)
         .exec();
 

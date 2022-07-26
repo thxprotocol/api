@@ -1,12 +1,12 @@
 import { Request, Response } from 'express';
 import { param } from 'express-validator';
 import { fromWei } from 'web3-utils';
-import { ForbiddenError } from '@/util/errors';
-import ClientService from '@/services/ClientService';
-import WithdrawalService from '@/services/WithdrawalService';
-import MemberService from '@/services/MemberService';
+
 import ERC20Service from '@/services/ERC20Service';
 import ERC721Service from '@/services/ERC721Service';
+import MemberService from '@/services/MemberService';
+import WithdrawalService from '@/services/WithdrawalService';
+import { ForbiddenError } from '@/util/errors';
 
 export const validation = [param('id').isMongoId()];
 
@@ -27,7 +27,6 @@ export const controller = async (req: Request, res: Response) => {
         token.contract.methods.totalSupply().call(),
         token.contract.methods.balanceOf(req.assetPool.address).call(),
     ]);
-    const client = await ClientService.get(req.assetPool.clientId);
     const metrics = {
         withdrawals: await WithdrawalService.countByPool(req.assetPool),
         members: await MemberService.countByPool(req.assetPool),
@@ -41,7 +40,6 @@ export const controller = async (req: Request, res: Response) => {
             totalSupply: Number(fromWei(totalSupplyInWei)),
             poolBalance: Number(fromWei(poolBalanceInWei)),
         },
-        clientSecret: client.clientSecret,
     });
 };
 

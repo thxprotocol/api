@@ -1,7 +1,7 @@
 {
   "swagger": "2.0",
   "info": {
-    "version": "1.16.14",
+    "version": "1.18.1",
     "title": "THX API Specification",
     "description": "User guides are available at https://docs.thx.network."
   },
@@ -33,6 +33,16 @@
       }
     },
     "/token/cs": {
+      "get": {
+        "tags": [
+          "THX Token"
+        ],
+        "description": "",
+        "parameters": [],
+        "responses": {}
+      }
+    },
+    "/token/ts": {
       "get": {
         "tags": [
           "THX Token"
@@ -1461,6 +1471,11 @@
         "description": "",
         "parameters": [
           {
+            "name": "X-PoolId",
+            "in": "header",
+            "type": "string"
+          },
+          {
             "name": "body",
             "in": "body",
             "schema": {
@@ -1854,30 +1869,24 @@
         }
       }
     },
-    "/brand/{pool_address}": {
+    "/brands/": {
       "get": {
         "description": "",
-        "parameters": [
-          {
-            "name": "pool_address",
-            "in": "path",
-            "required": true,
-            "type": "string"
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK"
           }
-        ],
-        "responses": {}
+        }
       },
       "put": {
         "description": "",
-        "parameters": [
-          {
-            "name": "pool_address",
-            "in": "path",
-            "required": true,
-            "type": "string"
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK"
           }
-        ],
-        "responses": {}
+        }
       }
     },
     "/upload/": {
@@ -1890,6 +1899,87 @@
           },
           "440": {
             "description": ""
+          }
+        }
+      }
+    },
+    "/clients/": {
+      "get": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "X-PoolId",
+            "in": "header",
+            "type": "string"
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "type": "string"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      },
+      "post": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "x-poolid",
+            "in": "header",
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "grantType": {
+                  "example": "any"
+                },
+                "redirectUri": {
+                  "example": "any"
+                },
+                "requestUri": {
+                  "example": "any"
+                },
+                "name": {
+                  "example": "any"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/clients/{id}": {
+      "get": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
           }
         }
       }

@@ -37,7 +37,7 @@ export default class TwitterDataProxy {
     }
 
     static async validateRetweet(account: IAccount, channelItem: string) {
-        const r = await authClient({
+        const { data } = await authClient({
             method: 'GET',
             url: `/account/${account.id}/twitter/retweet/${channelItem}`,
             headers: {
@@ -45,13 +45,13 @@ export default class TwitterDataProxy {
             },
         });
 
-        if (!r.data) throw new NoTwitterDataError();
+        if (!data) throw new NoTwitterDataError();
 
-        return r.data.result;
+        return data.result;
     }
 
     static async validateFollow(account: IAccount, channelItem: string) {
-        const r = await authClient({
+        const { data } = await authClient({
             method: 'GET',
             url: `/account/${account.id}/twitter/follow/${channelItem}`,
             headers: {
@@ -59,8 +59,8 @@ export default class TwitterDataProxy {
             },
         });
 
-        if (!r.data) throw new NoTwitterDataError();
+        if (!data) throw new NoTwitterDataError();
 
-        return r.data.result;
+        return data.result;
     }
 }

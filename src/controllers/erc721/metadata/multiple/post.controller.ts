@@ -5,7 +5,7 @@ import ImageService from '@/services/ImageService';
 import { NotFoundError } from '@/util/errors';
 import { logger } from '@/util/logger';
 import { s3Client } from '@/util/s3';
-import { zip } from '@/util/zip';
+import { createArchiver } from '@/util/zip';
 import { PutObjectCommand } from '@aws-sdk/client-s3';
 import { fromBuffer } from 'file-type';
 
@@ -31,6 +31,7 @@ const validation = [
 ];
 
 const controller = async (req: Request, res: Response) => {
+    const zip = createArchiver().jsZip;
     // #swagger.tags = ['ERC721']
     const erc721 = await ERC721Service.findById(req.params.id);
     if (!erc721) throw new NotFoundError('Could not find this NFT in the database');
@@ -104,10 +105,6 @@ const controller = async (req: Request, res: Response) => {
         promises.push(promise);
     }
     await Promise.all(promises);
-    console.log(
-        'METADATA ATTRIBUTES',
-        metadatas.map((x) => x.attributes),
-    );
     res.status(201).json({ metadatas });
 };
 

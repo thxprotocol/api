@@ -5,9 +5,7 @@ import { isAddress } from 'web3-utils';
 import { afterAllCallback, beforeAllCallback } from '@/util/jest/config';
 import { account2, dashboardAccessToken } from '@/util/jest/constants';
 import { createImage } from '@/util/jest/images';
-import { zip } from '@/util/zip';
-import path from 'path';
-import fs from 'fs';
+import { createArchiver } from '@/util/zip';
 const user = request.agent(app);
 
 describe('NFT Pool', () => {
@@ -173,7 +171,7 @@ describe('NFT Pool', () => {
             const image1 = await createImage('image1');
             const image2 = await createImage('image3');
             const image3 = await createImage('image3');
-
+            const zip = createArchiver().jsZip;
             const zipFolder = zip.folder('testImages');
             zipFolder.file('image1.jpg', image1, { binary: true });
             zipFolder.file('image2.jpg', image2, { binary: true });
