@@ -4,8 +4,10 @@ import { ChainId } from '@/types/enums';
 import { isAddress } from 'web3-utils';
 import { afterAllCallback, beforeAllCallback } from '@/util/jest/config';
 import { account2, dashboardAccessToken } from '@/util/jest/constants';
+import { createImage } from '@/util/jest/images';
+import { zip } from '@/util/zip';
 import path from 'path';
-
+import fs from 'fs';
 const user = request.agent(app);
 
 describe('NFT Pool', () => {
@@ -167,15 +169,32 @@ describe('NFT Pool', () => {
         const description = 'description';
         const propName = 'image';
 
-        // zip file contains 3 .jpg images and one .txt file
-        const zipFile = path.resolve('download/test/nft-images-test.zip');
+        it('should upload multiple metadata images and create metadata', async () => {
+            const image1 = await createImage('image1');
+            const image2 = await createImage('image3');
+            const image3 = await createImage('image3');
 
-        it('should upload multiple metadata images and create metadata', (done) => {
-            user.post('/v1/erc721/' + erc721ID + '/metadata/multiple')
+            const zipFolder = zip.folder('testImages');
+            zipFolder.file('image1.jpg', image1, { binary: true });
+            zipFolder.file('image2.jpg', image2, { binary: true });
+            zipFolder.file('image3.jpg', image3, { binary: true });
+
+            const testDirPath = path.resolve('download/test');
+            if (!fs.existsSync(testDirPath)) {
+                fs.mkdirSync(testDirPath);
+            }
+            const zipPath = path.resolve(`${testDirPath}/nft-images-test.zip`);
+
+            const zipFile = await zip.generateAsync({ type: 'nodebuffer', compression: 'DEFLATE' });
+            await fs.promises.writeFile(zipPath, zipFile, { flag: 'wx' });
+
+            await user
+                .post('/v1/erc721/' + erc721ID + '/metadata/multiple')
                 .set('Authorization', dashboardAccessToken)
                 .set('X-PoolId', poolId)
-                .set('content-type', 'application/zip')
-                .attach('compressedFile', zipFile)
+                .set('Content-Type', 'application/octet-stream')
+                .set('Content-disposition', 'attachment; filename="pippo.zip"')
+                .attach('compressedFile', zipPath)
                 .field({
                     title,
                     description,
@@ -184,7 +203,9 @@ describe('NFT Pool', () => {
                 .expect(({ body }: request.Response) => {
                     expect(body.metadatas.length).toBe(3);
                 })
-                .expect(201, done);
+                .expect(201);
+
+            await fs.promises.rmdir(testDirPath, { recursive: true });
         });
     });
 });

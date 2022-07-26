@@ -37,6 +37,7 @@ const controller = async (req: Request, res: Response) => {
 
     // UNZIP THE FILE
     const metadatas: ERC721MetadataDocument[] = [];
+
     // LOAD ZIP IN MEMORY
     const contents = await zip.loadAsync(req.file.buffer);
 

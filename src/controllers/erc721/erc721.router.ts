@@ -42,7 +42,7 @@ router.post(
 router.post(
     '/:id/metadata/multiple',
     upload.single('compressedFile'),
-    //guard.check(['erc721:write']),
+    guard.check(['erc721:write']),
     requireAssetPoolHeader,
     assertRequestInput(CreateMultipleERC721Metadata.validation),
     CreateMultipleERC721Metadata.controller,
