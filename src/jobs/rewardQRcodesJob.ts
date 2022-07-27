@@ -1,22 +1,27 @@
-import RewardService from '@/services/RewardService';
 import { Job } from 'agenda';
+import stream from 'stream';
+import fs from 'fs';
+
 import { AWS_S3_PRIVATE_BUCKET_NAME, DASHBOARD_URL, WALLET_URL } from '@/config/secrets';
-import MailService from '@/services/MailService';
 import AccountProxy from '@/proxies/AccountProxy';
 import AssetPoolService from '@/services/AssetPoolService';
+import BrandService from '@/services/BrandService';
 import ClaimService from '@/services/ClaimService';
-import stream from 'stream';
 import ImageService from '@/services/ImageService';
-import { s3PrivateClient } from '@/util/s3';
-import { Upload } from '@aws-sdk/lib-storage';
+import MailService from '@/services/MailService';
+import RewardService from '@/services/RewardService';
 import { ClaimDocument } from '@/types/TClaim';
-import { createArchiver } from '@/util/zip';
 import { logger } from '@/util/logger';
+import { s3PrivateClient } from '@/util/s3';
+import { createArchiver } from '@/util/zip';
+import { Upload } from '@aws-sdk/lib-storage';
+import axios from 'axios';
 
 export const generateRewardQRCodesJob = async ({ attrs }: Job) => {
     if (!attrs.data) return;
 
     try {
+        let buffer: Buffer | undefined;
         const { poolId, rewardId, sub, fileName } = attrs.data;
 
         const pool = await AssetPoolService.getById(poolId);
@@ -32,6 +37,18 @@ export const generateRewardQRCodesJob = async ({ attrs }: Job) => {
         const claims = await ClaimService.findByReward(reward);
         if (!claims.length) throw new Error('Claims not found');
 
+        const brand = await BrandService.get(poolId);
+
+        if (brand.logoImgUrl) {
+            try {
+                const response = await axios.get(brand.logoImgUrl, { responseType: 'arraybuffer' });
+                const imageBuffer = Buffer.from(response.data, 'utf-8');
+                buffer = imageBuffer;
+            } catch {
+                /* NO-OP */
+            }
+        }
+
         // Create an instance of jsZip and build an archive
         const { jsZip, archive } = createArchiver();
 
@@ -39,7 +56,7 @@ export const generateRewardQRCodesJob = async ({ attrs }: Job) => {
         await Promise.all(
             claims.map(async ({ _id }: ClaimDocument) => {
                 const id = String(_id);
-                const base64Data: string = await ImageService.createQRCode(`${WALLET_URL}/claims/${id}`);
+                const base64Data: string = await ImageService.createQRCode(`${WALLET_URL}/claims/${id}`, buffer);
                 // Adds file to the qrcode archive
                 return archive.file(`${id}.png`, base64Data, { base64: true });
             }),
