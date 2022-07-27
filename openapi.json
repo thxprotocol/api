@@ -370,7 +370,13 @@
           "Pools"
         ],
         "description": "",
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "archived",
+            "in": "query",
+            "type": "string"
+          }
+        ],
         "responses": {
           "200": {
             "description": "OK"
@@ -414,6 +420,37 @@
         "responses": {
           "204": {
             "description": "No Content"
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "Pools"
+        ],
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "archived": {
+                  "example": "any"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
           }
         }
       }
@@ -511,7 +548,13 @@
           "ERC20"
         ],
         "description": "",
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "archived",
+            "in": "query",
+            "type": "string"
+          }
+        ],
         "responses": {
           "200": {
             "description": "OK"
@@ -558,6 +601,25 @@
     },
     "/erc20/{id}": {
       "get": {
+        "tags": [
+          "ERC20"
+        ],
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      },
+      "patch": {
         "tags": [
           "ERC20"
         ],
@@ -637,7 +699,13 @@
           "ERC721"
         ],
         "description": "",
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "archived",
+            "in": "query",
+            "type": "string"
+          }
+        ],
         "responses": {
           "200": {
             "description": "OK"
@@ -684,6 +752,25 @@
     },
     "/erc721/{id}": {
       "get": {
+        "tags": [
+          "ERC721"
+        ],
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      },
+      "patch": {
         "tags": [
           "ERC721"
         ],

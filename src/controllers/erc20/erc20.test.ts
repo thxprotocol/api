@@ -81,6 +81,21 @@ describe('ERC20', () => {
                     expect(body.symbol).toBe(symbol);
                     expect(body.decimals).toBe(18);
                     expect(body.adminBalance).toBe(1000);
+                    expect(body.archived).toBe(false);
+                })
+                .expect(200, done);
+        });
+    });
+    describe('PATCH /erc20', () => {
+        it('should to update a created token', (done) => {
+            http.patch('/v1/erc20/' + tokenId)
+                .set('Authorization', ACCESS_TOKEN)
+                .send({
+                    archived: true,
+                })
+                .expect(({ body }: request.Response) => {
+                    expect(body).toBeDefined();
+                    expect(body.archived).toBe(true);
                 })
                 .expect(200, done);
         });

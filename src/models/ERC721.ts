@@ -15,6 +15,7 @@ const ERC721Schema = new mongoose.Schema(
         address: String,
         baseURL: String,
         properties: [{ name: String, propType: String, description: String }],
+        archived: Boolean,
     },
     { timestamps: true },
 );
@@ -22,5 +23,9 @@ const ERC721Schema = new mongoose.Schema(
 ERC721Schema.virtual('contract').get(function () {
     return getContractFromName(this.chainId, 'NonFungibleToken', this.address);
 });
+
+export interface IERC721Updates {
+    archived?: boolean;
+}
 
 export const ERC721 = mongoose.model<ERC721Document>('ERC721', ERC721Schema, 'erc721');
