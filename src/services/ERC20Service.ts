@@ -1,4 +1,4 @@
-import ERC20, { ERC20Document } from '@/models/ERC20';
+import ERC20, { ERC20Document, IERC20Updates } from '@/models/ERC20';
 import { toWei } from 'web3-utils';
 import { getProvider } from '@/util/network';
 import { ICreateERC20Params } from '@/types/interfaces';
@@ -51,6 +51,7 @@ export const deploy = async (params: ICreateERC20Params) => {
         chainId: params.chainId,
         type: params.type,
         sub: params.sub,
+        archived: false,
     });
     const { fn, args, callback } = getDeployFnArgsCallback(erc20, params.totalSupply);
 
@@ -162,6 +163,10 @@ export const removeById = (id: string) => {
     return ERC20.deleteOne({ _id: id });
 };
 
+export const update = (erc20: ERC20Document, updates: IERC20Updates) => {
+    return ERC20.findByIdAndUpdate(erc20._id, updates, { new: true });
+};
+
 export default {
     deploy,
     getAll,
@@ -174,4 +179,5 @@ export default {
     importERC20Token,
     getTokensForSub,
     getTokenById,
+    update,
 };

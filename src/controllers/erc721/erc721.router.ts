@@ -11,12 +11,13 @@ import MintERC721Metadata from './metadata/mint/post.controller';
 import CreateMultipleERC721Metadata from './metadata/multiple/post.controller';
 import DownloadERC721MetadataCSV from './metadata/csv/get.controller';
 import { upload } from '@/util/multer';
+import UpdateERC721 from './patch.controller';
 
 const router = express.Router();
 
 router.get('/token', guard.check(['erc721:read']), ListERC721Token.controller);
 router.get('/token/:id', guard.check(['erc721:read']), ReadERC721Token.controller);
-router.get('/', guard.check(['erc721:read']), ListERC721.controller);
+router.get('/', guard.check(['erc721:read']), assertRequestInput(ListERC721.validation), ListERC721.controller);
 router.get('/:id', guard.check(['erc721:read']), assertRequestInput(ReadERC721.validation), ReadERC721.controller);
 router.post(
     '/',
@@ -55,4 +56,11 @@ router.get(
     assertRequestInput(DownloadERC721MetadataCSV.validation),
     DownloadERC721MetadataCSV.controller,
 );
+router.patch(
+    '/:id',
+    guard.check(['erc721:write', 'erc721:read']),
+    assertRequestInput(UpdateERC721.validation),
+    UpdateERC721.controller,
+);
+
 export default router;

@@ -45,6 +45,7 @@ export type TERC721 = {
     address?: string;
     createdAt?: Date;
     updatedAt?: Date;
+    archived?: boolean;
 };
 
 export type TERC721Metadata = {

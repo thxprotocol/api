@@ -14,6 +14,7 @@ export type TERC20 = {
     decimals?: number;
     adminBalance?: number;
     poolBalance?: number; // TODO Should move to TAssetPool
+    archived: boolean;
 };
 
 export type TERC20Token = {
