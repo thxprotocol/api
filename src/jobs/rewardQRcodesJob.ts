@@ -1,7 +1,7 @@
 import { Job } from 'agenda';
 import axios from 'axios';
 import stream from 'stream';
-
+import path from 'path';
 import { AWS_S3_PRIVATE_BUCKET_NAME, DASHBOARD_URL, WALLET_URL } from '@/config/secrets';
 import AccountProxy from '@/proxies/AccountProxy';
 import AssetPoolService from '@/services/AssetPoolService';
@@ -20,7 +20,6 @@ export const generateRewardQRCodesJob = async ({ attrs }: Job) => {
     if (!attrs.data) return;
 
     try {
-        let buffer: Buffer | undefined;
         const { poolId, rewardId, sub, fileName } = attrs.data;
 
         const pool = await AssetPoolService.getById(poolId);
@@ -37,14 +36,13 @@ export const generateRewardQRCodesJob = async ({ attrs }: Job) => {
         if (!claims.length) throw new Error('Claims not found');
 
         const brand = await BrandService.get(poolId);
-
-        if (brand.logoImgUrl) {
+        let logo = path.resolve(__dirname, '../public/qr-logo.jpg');
+        if (brand && brand.logoImgUrl) {
             try {
                 const response = await axios.get(brand.logoImgUrl, { responseType: 'arraybuffer' });
-                const imageBuffer = Buffer.from(response.data, 'utf-8');
-                buffer = imageBuffer;
+                logo = Buffer.from(response.data, 'utf-8').toString();
             } catch {
-                /* NO-OP */
+                // Fail silently and fallback to default logo img
             }
         }
 
@@ -55,7 +53,7 @@ export const generateRewardQRCodesJob = async ({ attrs }: Job) => {
         await Promise.all(
             claims.map(async ({ _id }: ClaimDocument) => {
                 const id = String(_id);
-                const base64Data: string = await ImageService.createQRCode(`${WALLET_URL}/claims/${id}`, buffer);
+                const base64Data: string = await ImageService.createQRCode(`${WALLET_URL}/claims/${id}`, logo);
                 // Adds file to the qrcode archive
                 return archive.file(`${id}.png`, base64Data, { base64: true });
             }),
