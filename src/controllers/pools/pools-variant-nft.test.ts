@@ -17,6 +17,7 @@ describe('NFT Pool', () => {
         schema = [
             { name: 'color', propType: 'string', description: 'lorem ipsum' },
             { name: 'size', propType: 'string', description: 'lorem ipsum dolor sit' },
+            { name: 'img', propType: 'image', description: 'image description' },
         ];
 
     beforeAll(async () => {
@@ -68,7 +69,8 @@ describe('NFT Pool', () => {
             title = 'NFT title',
             description = 'NFT description',
             value1 = 'red',
-            value2 = 'large';
+            value2 = 'large',
+            value3 = 'http://imageURL';
 
         it('should return tokenId when token is minted', (done) => {
             user.post('/v1/erc721/' + erc721ID + '/metadata')
@@ -80,6 +82,7 @@ describe('NFT Pool', () => {
                     attributes: [
                         { key: schema[0].name, value: value1 },
                         { key: schema[1].name, value: value2 },
+                        { key: schema[2].name, value: value3 },
                     ],
                     recipient,
                 })
@@ -93,6 +96,8 @@ describe('NFT Pool', () => {
                     expect(body.attributes[0].value).toBe(value1);
                     expect(body.attributes[1].key).toBe(schema[1].name);
                     expect(body.attributes[1].value).toBe(value2);
+                    expect(body.attributes[2].key).toBe(schema[2].name);
+                    expect(body.attributes[2].value).toBe(value3);
                 })
                 .expect(201, done);
         });
@@ -101,7 +106,8 @@ describe('NFT Pool', () => {
             const title = 'NFT title 2',
                 description = 'NFT description 2',
                 value1 = 'blue',
-                value2 = 'small';
+                value2 = 'small',
+                value3 = 'http://imageURL2';
 
             user.post('/v1/erc721/' + erc721ID + '/metadata')
                 .set('Authorization', dashboardAccessToken)
@@ -112,6 +118,7 @@ describe('NFT Pool', () => {
                     attributes: [
                         { key: schema[0].name, value: value1 },
                         { key: schema[1].name, value: value2 },
+                        { key: schema[2].name, value: value3 },
                     ],
                 })
                 .expect(({ body }: request.Response) => {
@@ -122,6 +129,8 @@ describe('NFT Pool', () => {
                     expect(body.attributes[0].value).toBe(value1);
                     expect(body.attributes[1].key).toBe(schema[1].name);
                     expect(body.attributes[1].value).toBe(value2);
+                    expect(body.attributes[2].key).toBe(schema[2].name);
+                    expect(body.attributes[2].value).toBe(value3);
                     metadataId = body._id;
                 })
                 .expect(201, done);
@@ -148,7 +157,8 @@ describe('NFT Pool', () => {
 
     describe('GET /metadata/:metadataId', () => {
         const value1 = 'blue',
-            value2 = 'small';
+            value2 = 'small',
+            value3 = 'http://imageURL2';
 
         it('should return metadata for metadataId', (done) => {
             user.get('/v1/metadata/' + metadataId)
@@ -157,17 +167,8 @@ describe('NFT Pool', () => {
                 .expect(({ body }: request.Response) => {
                     expect(body[schema[0].name]).toBe(value1);
                     expect(body[schema[1].name]).toBe(value2);
+                    expect(body[schema[2].name]).toBe(value3);
                 })
-                .expect(200, done);
-        });
-    });
-
-    describe('GET /erc721/:id/metadata/csv', () => {
-        it('should ceate and download the metadata csv for the erc721', (done) => {
-            user.get('/v1/erc721/' + erc721ID + '/metadata/csv')
-                .set('Authorization', dashboardAccessToken)
-                .set('X-PoolId', poolId)
-                .send()
                 .expect(200, done);
         });
     });
@@ -175,7 +176,7 @@ describe('NFT Pool', () => {
     describe('POST /erc721/:id/metadata/multiple', () => {
         const title = 'NFT 1';
         const description = 'description';
-        const propName = 'image';
+        const propName = 'img';
 
         it('should upload multiple metadata images and create metadata', async () => {
             const image1 = await createImage('image1');
@@ -203,6 +204,16 @@ describe('NFT Pool', () => {
                     expect(body.metadatas.length).toBe(3);
                 })
                 .expect(201);
+        });
+    });
+
+    describe('GET /erc721/:id/metadata/csv', () => {
+        it('should ceate and download the metadata csv for the erc721', (done) => {
+            user.get('/v1/erc721/' + erc721ID + '/metadata/csv')
+                .set('Authorization', dashboardAccessToken)
+                .set('X-PoolId', poolId)
+                .send()
+                .expect(200, done);
         });
     });
 });
