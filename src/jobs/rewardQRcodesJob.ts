@@ -1,6 +1,6 @@
 import { Job } from 'agenda';
+import axios from 'axios';
 import stream from 'stream';
-import fs from 'fs';
 
 import { AWS_S3_PRIVATE_BUCKET_NAME, DASHBOARD_URL, WALLET_URL } from '@/config/secrets';
 import AccountProxy from '@/proxies/AccountProxy';
@@ -15,7 +15,6 @@ import { logger } from '@/util/logger';
 import { s3PrivateClient } from '@/util/s3';
 import { createArchiver } from '@/util/zip';
 import { Upload } from '@aws-sdk/lib-storage';
-import axios from 'axios';
 
 export const generateRewardQRCodesJob = async ({ attrs }: Job) => {
     if (!attrs.data) return;
