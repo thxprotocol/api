@@ -78,6 +78,7 @@ describe('Default Pool', () => {
                 })
                 .expect((res: request.Response) => {
                     poolId = res.body._id;
+                    expect(res.body.archived).toBe(false);
                 })
                 .expect(201, done);
         });
@@ -368,6 +369,21 @@ describe('Default Pool', () => {
                 .expect(async (res: request.Response) => {
                     expect(res.body.results.length).toBe(2);
                     expect(res.body.previous).toBeUndefined();
+                })
+                .expect(200, done);
+        });
+    });
+
+    describe('PATCH /pools/:id', () => {
+        it('HTTP 200', (done) => {
+            user.patch('/v1/pools/' + poolId)
+                .set({ Authorization: dashboardAccessToken })
+                .send({
+                    archived: true,
+                })
+                .expect(({ body }: request.Response) => {
+                    expect(body).toBeDefined();
+                    expect(body.archived).toBe(true);
                 })
                 .expect(200, done);
         });

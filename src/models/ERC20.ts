@@ -14,6 +14,7 @@ const erc20Schema = new mongoose.Schema(
         name: String,
         symbol: String,
         transactions: [String],
+        archived: Boolean,
     },
     { timestamps: true },
 );
@@ -23,5 +24,9 @@ erc20Schema.virtual('contract').get(function () {
     const contractName = this.type === ERC20Type.Unlimited ? 'UnlimitedSupplyToken' : 'LimitedSupplyToken';
     return getContractFromName(this.chainId, contractName, this.address);
 });
+
+export interface IERC20Updates {
+    archived?: boolean;
+}
 
 export default mongoose.model<ERC20Document>('ERC20', erc20Schema);

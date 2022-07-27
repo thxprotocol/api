@@ -61,6 +61,7 @@ export default class AssetPoolService {
             chainId,
             variant,
             version: currentVersion,
+            archived: false,
         });
         const { fn, args, callback } = await this.getDeployFnArgsCallback(registry, poolFacetContracts, tokens, pool);
 
