@@ -69,7 +69,6 @@ const controller = async (req: Request, res: Response) => {
         );
         // COLLECT THE URL
         const url = ImageService.getPublicUrl(csvFileName);
-        console.log('CSV BUCKET URL', url);
 
         // RETURN THE FILE TO THE RESPONSE
         (response.Body as Readable).pipe(res).attachment(csvFileName);

@@ -225,10 +225,29 @@ describe('NFT Pool', () => {
     });
 
     describe('POST /erc721/:id/metadata/csv', () => {
+        it('should NOT upload and parse the metadata csv for the erc721 if the schema is not valid', (done) => {
+            // PUT SOME WRONG VALUES INTO THE CSV
+            const wrongCsvFile = `column1,column2,column3
+            text1,value2,http://www`;
+
+            const buffer = Buffer.from(wrongCsvFile, 'utf-8');
+
+            user.post('/v1/erc721/' + erc721ID + '/metadata/csv')
+                .set('Authorization', dashboardAccessToken)
+                .set('X-PoolId', poolId)
+                .attach('csvFile', buffer, {
+                    filename: 'updatedCSV.csv',
+                    contentType: 'text/csv; charset=utf-8',
+                })
+                .expect(400, done);
+        });
+
         it('should upload and parse the metadata csv for the erc721', (done) => {
             // ADD SOME NEW VALUES TO THE CSV
             csvFile = csvFile + 'pink,medium,http://imageURL3';
+
             const buffer = Buffer.from(csvFile, 'utf-8');
+
             user.post('/v1/erc721/' + erc721ID + '/metadata/csv')
                 .set('Authorization', dashboardAccessToken)
                 .set('X-PoolId', poolId)
@@ -237,6 +256,23 @@ describe('NFT Pool', () => {
                     contentType: 'text/csv; charset=utf-8',
                 })
                 .expect(201, done);
+        });
+
+        it('should returns the new created Metadata from the CSV', (done) => {
+            user.get('/v1/erc721/' + erc721ID + '/metadata')
+                .set('Authorization', dashboardAccessToken)
+                .set('X-PoolId', poolId)
+                .expect(({ body }: request.Response) => {
+                    expect(body[5].title).toBe('');
+                    expect(body[5].description).toBe('');
+                    expect(body[5].attributes[0].key).toBe(schema[0].name);
+                    expect(body[5].attributes[0].value).toBe('pink');
+                    expect(body[5].attributes[1].key).toBe(schema[1].name);
+                    expect(body[5].attributes[1].value).toBe('medium');
+                    expect(body[5].attributes[2].key).toBe(schema[2].name);
+                    expect(body[5].attributes[2].value).toBe('http://imageURL3');
+                })
+                .expect(200, done);
         });
     });
 });
