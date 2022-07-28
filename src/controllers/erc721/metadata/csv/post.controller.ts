@@ -34,65 +34,47 @@ const controller = async (req: Request, res: Response) => {
         // RETRIEVE THE METADATA LIST TO VALIDATE THE SCHEMA
         const metadataList = await ERC721Service.findMetadataByNFT(erc721._id);
 
+        // GET THE ERC721 PROPERTIES FOR HEADER VALIDATION
+        const properties = erc721.properties.map((x) => x.name);
+        properties.push('MetadataID');
+        console.log('PROPERTIES', properties);
         const readeableStream = Readable.from(req.file.buffer.toString());
-        let rows: any[] = [];
-        readeableStream.pipe(new CsvReadableStream()).on('data', function (row) {
-            rows.push(row);
-        });
-        console.log('ROWS', rows);
-        // // CREATE THE CSV HEADER BASED ON THE ERC721 PROPERTIES
-        // const header = erc721.properties.map((x) => {
-        //     return { id: x.name, title: x.name.toUpperCase() };
-        // });
-        // header.push({ id: 'id', title: 'MetadataID' });
 
-        // // CREATE THE CSV RECORDS
-        // const records: any = [];
+        readeableStream
+            .pipe(new CsvReadableStream({ skipHeader: true, asObject: true }))
+            .on('header', (header) => {
+                // HEADER VALIDATION
+                if (header.length != properties.length) {
+                    throw new Error('Invalid CSV schema: length');
+                }
+                for (let i = 0; i < header.length; i++) {
+                    if (properties[i] != header[i]) {
+                        throw new Error(`Invalid CSV schema: property: ${header[i]}`);
+                    }
+                }
+            })
+            .on('data', async (row: any) => {
+                // MAP THE RECORDS TO ATTRIBUTES
+                const attributes: { key: string; value: any }[] = [];
+                for (const [key, value] of Object.entries(row)) {
+                    if (key != 'MetadataID') {
+                        attributes.push({ key, value });
+                    }
+                }
+                console.log('attributes', attributes);
 
-        // metadataList.forEach((x) => {
-        //     const obj: any = {};
-        //     x.attributes.forEach((a) => {
-        //         obj[a.key] = a.value;
-        //     });
-        //     obj.id = x._id;
-        //     records.push(obj);
-        // });
+                // CHECK IF THE METADATA IS PRESENT IN THE DB
+                const metadata = await ERC721Service.findMetadataById(row.MetadataID);
 
-        // // CREATE THE CSV CONTENT
-        // const csvStringifier = csvWriter.createObjectCsvStringifier({
-        //     header,
-        // });
-        // const csvContent = `${csvStringifier.getHeaderString()}${csvStringifier.stringifyRecords(records)}`;
-        // console.log('csvContent', csvContent);
-
-        // // CREATE BUFFER FROM STRING
-        // const buffer = Buffer.from(csvContent, 'utf-8');
-
-        // // PREPARE PARAMS FOR UPLOAD TO S3 BUCKET
-        // const csvFileName = `metadata_${erc721._id}.csv`;
-        // const uploadParams = {
-        //     Key: csvFileName,
-        //     Bucket: AWS_S3_PUBLIC_BUCKET_NAME,
-        //     ACL: 'public-read',
-        //     Body: buffer,
-        // };
-
-        // // UPLOAD THE FILE TO S3
-        // await s3Client.send(new PutObjectCommand(uploadParams));
-
-        // // GET THE FILE
-        // const response = await s3Client.send(
-        //     new GetObjectCommand({
-        //         Bucket: AWS_S3_PUBLIC_BUCKET_NAME,
-        //         Key: csvFileName,
-        //     }),
-        // );
-        // // COLLECT THE URL
-        // const url = ImageService.getPublicUrl(csvFileName);
-        // console.log('CSV BUCKET URL', url);
-
-        // // RETURN THE FILE TO THE RESPONSE
-        // (response.Body as Readable).pipe(res).attachment(csvFileName);
+                // IF PRESENT, UPDATE THE DOCUMENT
+                if (metadata) {
+                    metadata.attributes = attributes;
+                    await metadata.save();
+                } else {
+                    // CREATE NEW METADATA
+                    await ERC721Service.createMetadata(erc721, '', '', attributes);
+                }
+            });
         res.status(201).json({});
     } catch (err) {
         logger.error(err);

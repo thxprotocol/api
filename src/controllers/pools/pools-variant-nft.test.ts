@@ -226,6 +226,8 @@ describe('NFT Pool', () => {
 
     describe('POST /erc721/:id/metadata/csv', () => {
         it('should upload and parse the metadata csv for the erc721', (done) => {
+            // ADD SOME NEW VALUES TO THE CSV
+            csvFile = csvFile + 'pink,medium,http://imageURL3';
             const buffer = Buffer.from(csvFile, 'utf-8');
             user.post('/v1/erc721/' + erc721ID + '/metadata/csv')
                 .set('Authorization', dashboardAccessToken)
