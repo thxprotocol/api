@@ -23,7 +23,7 @@ const controller = async (req: Request, res: Response) => {
 
         // CREATE THE CSV HEADER BASED ON THE ERC721 PROPERTIES
         const header = erc721.properties.map((x) => {
-            return { id: x.name, title: x.name.toUpperCase() };
+            return { id: x.name, title: x.name };
         });
         header.push({ id: 'id', title: 'MetadataID' });
 
