@@ -10,6 +10,7 @@ import CreateERC721Metadata from './metadata/post.controller';
 import MintERC721Metadata from './metadata/mint/post.controller';
 import CreateMultipleERC721Metadata from './metadata/multiple/post.controller';
 import DownloadERC721MetadataCSV from './metadata/csv/get.controller';
+import UploadERC721MetadataCSV from './metadata/csv/post.controller';
 import { upload } from '@/util/multer';
 import UpdateERC721 from './patch.controller';
 
@@ -55,6 +56,14 @@ router.get(
     requireAssetPoolHeader,
     assertRequestInput(DownloadERC721MetadataCSV.validation),
     DownloadERC721MetadataCSV.controller,
+);
+router.post(
+    '/:id/metadata/csv',
+    upload.single('csvFile'),
+    guard.check(['erc721:read', 'erc721:write']),
+    requireAssetPoolHeader,
+    assertRequestInput(UploadERC721MetadataCSV.validation),
+    UploadERC721MetadataCSV.controller,
 );
 router.patch(
     '/:id',

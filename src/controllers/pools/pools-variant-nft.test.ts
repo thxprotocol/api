@@ -9,7 +9,7 @@ import { createArchiver } from '@/util/zip';
 const user = request.agent(app);
 
 describe('NFT Pool', () => {
-    let poolId: string, tokenAddress: string, erc721ID: string, metadataId: string;
+    let poolId: string, tokenAddress: string, erc721ID: string, metadataId: string, csvFile: string;
     const chainId = ChainId.Hardhat,
         name = 'Planets of the Galaxy',
         symbol = 'GLXY',
@@ -208,12 +208,33 @@ describe('NFT Pool', () => {
     });
 
     describe('GET /erc721/:id/metadata/csv', () => {
-        it('should ceate and download the metadata csv for the erc721', (done) => {
+        it('should create and download the metadata csv for the erc721', (done) => {
             user.get('/v1/erc721/' + erc721ID + '/metadata/csv')
                 .set('Authorization', dashboardAccessToken)
                 .set('X-PoolId', poolId)
                 .send()
+                .expect((res) => {
+                    expect(res.header['content-type']).toBe('text/csv; charset=utf-8');
+                    expect(res.header['content-disposition']).toBe(`attachment; filename="metadata_${erc721ID}.csv"`);
+                    expect(res.text.length).toBeGreaterThan(0);
+                    expect(res.text.split('\n').length).toBe(7);
+                    csvFile = res.text;
+                })
                 .expect(200, done);
+        });
+    });
+
+    describe('POST /erc721/:id/metadata/csv', () => {
+        it('should upload and parse the metadata csv for the erc721', (done) => {
+            const buffer = Buffer.from(csvFile, 'utf-8');
+            user.post('/v1/erc721/' + erc721ID + '/metadata/csv')
+                .set('Authorization', dashboardAccessToken)
+                .set('X-PoolId', poolId)
+                .attach('csvFile', buffer, {
+                    filename: 'updatedCSV.csv',
+                    contentType: 'text/csv; charset=utf-8',
+                })
+                .expect(201, done);
         });
     });
 });

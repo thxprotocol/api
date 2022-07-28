@@ -44,7 +44,6 @@ const controller = async (req: Request, res: Response) => {
             header,
         });
         const csvContent = `${csvStringifier.getHeaderString()}${csvStringifier.stringifyRecords(records)}`;
-        console.log('csvContent', csvContent);
 
         // CREATE BUFFER FROM STRING
         const buffer = Buffer.from(csvContent, 'utf-8');
