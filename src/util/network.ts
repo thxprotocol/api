@@ -29,6 +29,10 @@ const mainnet = new Web3(POLYGON_RPC);
 const mainnetAdmin = mainnet.eth.accounts.privateKeyToAccount(process.env.PRIVATE_KEY);
 mainnet.eth.defaultAccount = mainnetAdmin.address;
 
+export const recoverSigner = (message: string, sig: string) => {
+    return computeAddress(recoverPublicKey(arrayify(hashMessage(message)), sig));
+};
+
 export const recoverAddress = (call: string, nonce: number, sig: string) => {
     const hash = soliditySha3(call, nonce);
     const pubKey = recoverPublicKey(arrayify(hashMessage(arrayify(hash))), sig);
