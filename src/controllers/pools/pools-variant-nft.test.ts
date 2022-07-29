@@ -64,7 +64,7 @@ describe('NFT Pool', () => {
         });
     });
 
-    describe('POST /erc721/:id/metadata', () => {
+    describe('POST /erc721/:id/metadata/single', () => {
         const recipient = account2.address,
             title = 'NFT title',
             description = 'NFT description',
@@ -173,7 +173,7 @@ describe('NFT Pool', () => {
         });
     });
 
-    describe('POST /erc721/:id/metadata/multiple', () => {
+    describe('POST /erc721/:id/metadata/images', () => {
         const title = 'NFT 1';
         const description = 'description';
         const propName = 'img';
@@ -191,10 +191,10 @@ describe('NFT Pool', () => {
             const zipFile = await zip.generateAsync({ type: 'nodebuffer', compression: 'DEFLATE' });
 
             await user
-                .post('/v1/erc721/' + erc721ID + '/metadata/multiple')
+                .post('/v1/erc721/' + erc721ID + '/metadata')
                 .set('Authorization', dashboardAccessToken)
                 .set('X-PoolId', poolId)
-                .attach('compressedFile', zipFile, { filename: 'images.zip', contentType: 'application/zip' })
+                .attach('file', zipFile, { filename: 'images.zip', contentType: 'application/zip' })
                 .field({
                     title,
                     description,
@@ -232,10 +232,10 @@ describe('NFT Pool', () => {
 
             const buffer = Buffer.from(wrongCsvFile, 'utf-8');
 
-            user.post('/v1/erc721/' + erc721ID + '/metadata/csv')
+            user.post('/v1/erc721/' + erc721ID + '/metadata')
                 .set('Authorization', dashboardAccessToken)
                 .set('X-PoolId', poolId)
-                .attach('csvFile', buffer, {
+                .attach('file', buffer, {
                     filename: 'updatedCSV.csv',
                     contentType: 'text/csv; charset=utf-8',
                 })
@@ -248,10 +248,10 @@ describe('NFT Pool', () => {
 
             const buffer = Buffer.from(csvFile, 'utf-8');
 
-            user.post('/v1/erc721/' + erc721ID + '/metadata/csv')
+            user.post('/v1/erc721/' + erc721ID + '/metadata')
                 .set('Authorization', dashboardAccessToken)
                 .set('X-PoolId', poolId)
-                .attach('csvFile', buffer, {
+                .attach('file', buffer, {
                     filename: 'updatedCSV.csv',
                     contentType: 'text/csv; charset=utf-8',
                 })

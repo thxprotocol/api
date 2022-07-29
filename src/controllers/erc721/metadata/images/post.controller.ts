@@ -31,12 +31,12 @@ const validation = [
 ];
 
 const controller = async (req: Request, res: Response) => {
-    const zip = createArchiver().jsZip;
     // #swagger.tags = ['ERC721']
     const erc721 = await ERC721Service.findById(req.params.id);
     if (!erc721) throw new NotFoundError('Could not find this NFT in the database');
 
     // UNZIP THE FILE
+    const zip = createArchiver().jsZip;
     const metadatas: ERC721MetadataDocument[] = [];
 
     // LOAD ZIP IN MEMORY
