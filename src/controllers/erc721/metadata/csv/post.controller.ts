@@ -58,7 +58,10 @@ const controller = async (req: Request, res: Response) => {
                         }
 
                         // CHECK IF THE METADATA IS PRESENT IN THE DB
-                        const metadata = await ERC721Service.findMetadataById(row.MetadataID);
+                        let metadata;
+                        if (row.MetadataID && row.MetadataID.length > 0) {
+                            metadata = await ERC721Service.findMetadataById(row.MetadataID);
+                        }
 
                         // IF PRESENT, UPDATE THE DOCUMENT
                         if (metadata) {
