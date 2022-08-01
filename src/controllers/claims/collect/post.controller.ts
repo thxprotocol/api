@@ -74,7 +74,7 @@ const controller = async (req: Request, res: Response) => {
 
         agenda.now(EVENT_REQUIRE_TRANSACTIONS, {});
 
-        return res.json({ ...token.toJSON(), metadata: metadata.toJSON() });
+        return res.json({ ...token.toJSON(), erc721: erc721.toJSON(), metadata: metadata.toJSON() });
     }
 };
 
