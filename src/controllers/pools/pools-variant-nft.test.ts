@@ -64,7 +64,7 @@ describe('NFT Pool', () => {
         });
     });
 
-    describe('POST /erc721/:id/metadata/single', () => {
+    describe('POST /erc721/:id/metadata', () => {
         const recipient = account2.address,
             title = 'NFT title',
             description = 'NFT description',
@@ -173,7 +173,7 @@ describe('NFT Pool', () => {
         });
     });
 
-    describe('POST /erc721/:id/metadata/images', () => {
+    describe('POST /erc721/:id/metadata/zip', () => {
         const title = 'NFT 1';
         const description = 'description';
         const propName = 'img';
@@ -191,7 +191,7 @@ describe('NFT Pool', () => {
             const zipFile = await zip.generateAsync({ type: 'nodebuffer', compression: 'DEFLATE' });
 
             await user
-                .post('/v1/erc721/' + erc721ID + '/metadata')
+                .post('/v1/erc721/' + erc721ID + '/metadata/zip')
                 .set('Authorization', dashboardAccessToken)
                 .set('X-PoolId', poolId)
                 .attach('file', zipFile, { filename: 'images.zip', contentType: 'application/zip' })
@@ -232,7 +232,7 @@ describe('NFT Pool', () => {
 
             const buffer = Buffer.from(wrongCsvFile, 'utf-8');
 
-            user.post('/v1/erc721/' + erc721ID + '/metadata')
+            user.post('/v1/erc721/' + erc721ID + '/metadata/csv')
                 .set('Authorization', dashboardAccessToken)
                 .set('X-PoolId', poolId)
                 .attach('file', buffer, {
@@ -248,7 +248,7 @@ describe('NFT Pool', () => {
 
             const buffer = Buffer.from(csvFile, 'utf-8');
 
-            user.post('/v1/erc721/' + erc721ID + '/metadata')
+            user.post('/v1/erc721/' + erc721ID + '/metadata/csv')
                 .set('Authorization', dashboardAccessToken)
                 .set('X-PoolId', poolId)
                 .attach('file', buffer, {

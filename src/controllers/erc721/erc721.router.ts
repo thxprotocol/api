@@ -30,29 +30,6 @@ router.post(
 router.post('/', guard.check(['erc721:write']), assertRequestInput(CreateERC721.validation), CreateERC721.controller);
 
 router.post(
-    '/:id/metadata',
-    guard.check(['erc721:read', 'erc721:write']),
-    requireAssetPoolHeader,
-    upload.single('file'),
-    async (req: any, res: any, next: any) => {
-        let controller;
-
-        if (req.file) {
-            switch (req.file.mimetype) {
-                case 'application/zip':
-                    controller = CreateMultipleERC721Metadata;
-                    break;
-                case 'text/csv':
-                    controller = UploadERC721MetadataCSV;
-            }
-        } else {
-            controller = CreateERC721Metadata;
-        }
-        return await callController(controller, req, res);
-    },
-);
-
-router.post(
     '/:id/metadata/:metadataId/mint',
     guard.check(['erc721:write']),
     requireAssetPoolHeader,
@@ -61,14 +38,14 @@ router.post(
 );
 router.get('/:id/metadata', guard.check(['erc721:read']), ListERC721Metadata.controller);
 router.post(
-    '/:id/metadata/single',
+    '/:id/metadata/',
     guard.check(['erc721:write']),
     requireAssetPoolHeader,
     assertRequestInput(CreateERC721Metadata.validation),
     CreateERC721Metadata.controller,
 );
 router.post(
-    '/:id/metadata/multiple',
+    '/:id/metadata/zip',
     upload.single('file'),
     guard.check(['erc721:write']),
     requireAssetPoolHeader,
@@ -96,14 +73,5 @@ router.patch(
     assertRequestInput(UpdateERC721.validation),
     UpdateERC721.controller,
 );
-
-async function callController(constroller: any, req: Request, res: Response) {
-    await Promise.all(constroller.validation.map((chain: any) => chain.run(req)));
-    const errors = validationResult(req);
-    if (errors.isEmpty()) {
-        return await constroller.controller(req, res);
-    }
-    res.status(400).json({ errors: errors.array() });
-}
 
 export default router;

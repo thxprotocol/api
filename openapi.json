@@ -790,39 +790,6 @@
         }
       }
     },
-    "/erc721/{id}/metadata": {
-      "post": {
-        "description": "",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          }
-        ],
-        "responses": {}
-      },
-      "get": {
-        "tags": [
-          "ERC721"
-        ],
-        "description": "",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        }
-      }
-    },
     "/erc721/{id}/metadata/{metadataId}/mint": {
       "post": {
         "tags": [
@@ -862,7 +829,28 @@
         }
       }
     },
-    "/erc721/{id}/metadata/single": {
+    "/erc721/{id}/metadata": {
+      "get": {
+        "tags": [
+          "ERC721"
+        ],
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/erc721/{id}/metadata/": {
       "post": {
         "tags": [
           "ERC721"
@@ -904,7 +892,7 @@
         }
       }
     },
-    "/erc721/{id}/metadata/multiple": {
+    "/erc721/{id}/metadata/zip": {
       "post": {
         "tags": [
           "ERC721"
