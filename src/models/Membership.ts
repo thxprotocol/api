@@ -1,13 +1,17 @@
+import { ChainId } from '@/types/enums';
 import mongoose from 'mongoose';
 
-export type MembershipDocument = mongoose.Document & {
+export type TMembership = {
     sub: string;
+    isRemoved?: boolean;
+    chainId?: ChainId;
     poolId: string;
+    erc20Id: string;
+    erc721Id: string;
     erc20?: string;
-    erc20Id?: string;
     erc721?: string;
-    erc721Id?: string;
 };
+export type MembershipDocument = mongoose.Document & TMembership;
 
 const membershipSchema = new mongoose.Schema(
     {

@@ -1,12 +1,28 @@
 import { Request, Response } from 'express';
-
+import { TMembership } from '@/models/Membership';
 import MembershipService from '@/services/MembershipService';
+import AssetPoolService from '@/services/AssetPoolService';
 
 const controller = async (req: Request, res: Response) => {
     // #swagger.tags = ['Memberships']
-    const memberships = await MembershipService.findForSub(req.auth.sub);
+    const membershipDocs = await MembershipService.findForSub(req.auth.sub);
+    const memberships = membershipDocs.map(async (membership) => {
+        const m = membership.toJSON();
+        const pool = await AssetPoolService.getById(membership.poolId);
+        if (!pool) {
+            m.isRemoved = true;
+        } else {
+            m.chainId = pool.chainId;
+        }
+        return m;
+    });
+    let result = await Promise.all(memberships);
 
-    res.json(memberships);
+    if (req.query.chainId) {
+        result = result.filter((membership: TMembership) => Number(req.query.chainId) === membership.chainId);
+    }
+
+    res.json(result);
 };
 
 export default { controller };

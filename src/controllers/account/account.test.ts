@@ -122,7 +122,7 @@ describe('Account', () => {
             user.get('/v1/memberships/')
                 .set({ 'X-PoolId': poolId, 'Authorization': walletAccessToken })
                 .expect((res: request.Response) => {
-                    membershipID = res.body[0];
+                    membershipID = res.body[0]._id;
                 })
                 .expect(200, done);
         });

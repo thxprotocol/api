@@ -1,11 +1,24 @@
 import ERC20Service from '@/services/ERC20Service';
 import { ERC20TokenDocument } from '@/models/ERC20Token';
 import { Request, Response } from 'express';
+import { TERC20, TERC20Token } from '@/types/TERC20';
 
 export const controller = async (req: Request, res: Response) => {
     // #swagger.tags = ['ERC20']
     const tokens = await ERC20Service.getTokensForSub(req.auth.sub);
-    res.json(tokens.map(({ _id }: ERC20TokenDocument) => _id));
+    const result = await Promise.all(
+        tokens.map(async (token: ERC20TokenDocument) => {
+            const erc20 = await ERC20Service.getById(token.erc20Id);
+            return { ...token.toJSON(), erc20 };
+        }),
+    );
+
+    res.json(
+        result.filter((token: TERC20Token & { erc20: TERC20 }) => {
+            if (!req.query.chainId) return true;
+            return Number(req.query.chainId) === token.erc20.chainId;
+        }),
+    );
 };
 
 export default { controller };
