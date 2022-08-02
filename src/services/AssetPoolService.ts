@@ -161,8 +161,9 @@ export default class AssetPoolService {
         await MembershipService.addERC721Membership(pool.sub, pool);
     }
 
-    static async getAllBySub(sub: string) {
-        return await AssetPool.find({ sub });
+    static async getAllBySub(sub: string, archived = false) {
+        if (archived) return await AssetPool.find({ sub });
+        return await AssetPool.find({ sub, archived });
     }
 
     static getAll() {

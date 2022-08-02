@@ -50,7 +50,7 @@ const controller = async (req: Request, res: Response) => {
                     try {
                         // MAP THE RECORDS TO ATTRIBUTES
                         let attributes: { key: string; value: any }[] = Object.entries(row)
-                            .filter((x) => x[0].toLocaleLowerCase() != 'MetadataID')
+                            .filter((x) => x[0].toLocaleLowerCase() != 'metadataid')
                             .map((e) => {
                                 return {
                                     key: e[0],

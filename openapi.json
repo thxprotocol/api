@@ -1,7 +1,7 @@
 {
   "swagger": "2.0",
   "info": {
-    "version": "1.18.5",
+    "version": "1.19.3",
     "title": "THX API Specification",
     "description": "User guides are available at https://docs.thx.network."
   },
@@ -203,16 +203,10 @@
             "schema": {
               "type": "object",
               "properties": {
-                "address": {
+                "authRequestMessage": {
                   "example": "any"
                 },
-                "googleAccess": {
-                  "example": "any"
-                },
-                "twitterAccess": {
-                  "example": "any"
-                },
-                "spotifyAccess": {
+                "authRequestSignature": {
                   "example": "any"
                 }
               }
@@ -508,7 +502,13 @@
           "ERC20"
         ],
         "description": "",
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "chainId",
+            "in": "query",
+            "type": "string"
+          }
+        ],
         "responses": {
           "200": {
             "description": "OK"
@@ -664,7 +664,13 @@
           "ERC721"
         ],
         "description": "",
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "chainId",
+            "in": "query",
+            "type": "string"
+          }
+        ],
         "responses": {
           "200": {
             "description": "OK"
@@ -1195,7 +1201,13 @@
           "Memberships"
         ],
         "description": "",
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "chainId",
+            "in": "query",
+            "type": "string"
+          }
+        ],
         "responses": {
           "200": {
             "description": "OK"

@@ -9,9 +9,8 @@ import ERC20Service from './ERC20Service';
 import ERC721Service from './ERC721Service';
 
 export default class MembershipService {
-    static async findForSub(sub: string) {
-        const memberships = await Membership.find({ sub });
-        return memberships.map((m) => String(m._id));
+    static findForSub(sub: string) {
+        return Membership.find({ sub });
     }
 
     static async hasMembership(assetPool: AssetPoolDocument, sub: string) {

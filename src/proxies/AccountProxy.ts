@@ -28,35 +28,27 @@ export default class AccountProxy {
     }
 
     static async getByEmail(email: string) {
-        const r = await authClient({
+        const { data } = await authClient({
             method: 'GET',
             url: `/account/email/${email}`,
             headers: {
                 Authorization: await getAuthAccessToken(),
             },
         });
-
-        if (!r.data) {
-            throw new NoAccountError();
-        }
-
-        return r.data;
+        if (!data) throw new NoAccountError();
+        return data;
     }
 
     static async getByAddress(address: string): Promise<IAccount> {
-        const r = await authClient({
+        const { data } = await authClient({
             method: 'GET',
             url: `/account/address/${address}`,
             headers: {
                 Authorization: await getAuthAccessToken(),
             },
         });
-
-        if (!r.data) {
-            throw new NoAccountError();
-        }
-
-        return r.data;
+        if (!data) throw new NoAccountError();
+        return data;
     }
 
     static async isEmailDuplicate(email: string) {
@@ -78,48 +70,18 @@ export default class AccountProxy {
         }
     }
 
-    static async update(
-        sub: string,
-        {
-            address,
-            privateKey,
-            acceptTermsPrivacy,
-            acceptUpdates,
-            authenticationToken,
-            authenticationTokenExpires,
-            googleAccess,
-            twitterAccess,
-            spotifyAccess,
-            plan,
-        }: IAccountUpdates,
-    ) {
-        const r = await authClient({
+    static async update(sub: string, updates: IAccountUpdates) {
+        const { status } = await authClient({
             method: 'PATCH',
             url: `/account/${sub}`,
-            data: {
-                address,
-                privateKey,
-                acceptTermsPrivacy,
-                acceptUpdates,
-                authenticationToken,
-                authenticationTokenExpires,
-                googleAccess,
-                twitterAccess,
-                spotifyAccess,
-                plan,
-            },
+            data: updates,
             headers: {
                 Authorization: await getAuthAccessToken(),
             },
         });
 
-        if (r.status === 422) {
-            throw new AccountApiError('A user for this e-mail already exists.');
-        }
-
-        if (r.status !== 204) {
-            throw new AccountApiError('Could not update');
-        }
+        if (status === 422) throw new AccountApiError('A user for this e-mail already exists.');
+        if (status !== 204) throw new AccountApiError('Could not update the account');
     }
 
     static async remove(sub: string) {

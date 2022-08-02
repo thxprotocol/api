@@ -1,6 +1,5 @@
 import { Request, Response } from 'express';
 import { body } from 'express-validator';
-import { toWei } from 'web3-utils';
 import { agenda, EVENT_REQUIRE_TRANSACTIONS } from '@/util/agenda';
 import SwapService from '@/services/ERC20SwapService';
 import SwapRuleService from '@/services/ERC20SwapRuleService';
