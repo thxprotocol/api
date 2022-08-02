@@ -15,6 +15,7 @@ import { keccak256, toUtf8Bytes } from 'ethers/lib/utils';
 import { IAccount } from '@/models/Account';
 import { TransactionDocument } from '@/models/Transaction';
 import AccountProxy from '@/proxies/AccountProxy';
+import { paginatedResults } from '@/util/pagination';
 
 function getDeployFnArgsCallback(erc721: ERC721Document) {
     const { admin } = getProvider(erc721.chainId);
@@ -145,13 +146,16 @@ async function findTokensByMetadata(metadata: ERC721MetadataDocument): Promise<T
     return ERC721Token.find({ metadataId: String(metadata._id) });
 }
 
-async function findMetadataByNFT(erc721: string): Promise<TERC721Metadata[]> {
-    const result: TERC721Metadata[] = [];
-    for await (const metadata of ERC721Metadata.find({ erc721 })) {
+async function findMetadataByNFT(erc721: string, page = 1, limit = 10) {
+    const paginatedResult = await paginatedResults(ERC721Metadata, page, limit, { erc721 });
+
+    const results: TERC721Metadata[] = [];
+    for (const metadata of paginatedResult.results) {
         const tokens = (await this.findTokensByMetadata(metadata)).map((m: ERC721MetadataDocument) => m.toJSON());
-        result.push({ ...metadata.toJSON(), tokens });
+        results.push({ ...metadata.toJSON(), tokens });
     }
-    return result;
+    paginatedResult.results = results;
+    return paginatedResult;
 }
 
 async function findByPool(assetPool: TAssetPool) {

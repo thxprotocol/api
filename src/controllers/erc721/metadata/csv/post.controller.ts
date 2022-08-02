@@ -45,17 +45,18 @@ const controller = async (req: Request, res: Response) => {
                     }
                 }
             })
-
             .on('data', async (row: any) => {
                 const promise = new Promise(async (resolve, reject) => {
                     try {
                         // MAP THE RECORDS TO ATTRIBUTES
-                        const attributes: { key: string; value: any }[] = [];
-                        for (const [key, value] of Object.entries(row)) {
-                            if (key != 'MetadataID') {
-                                attributes.push({ key, value });
-                            }
-                        }
+                        let attributes: { key: string; value: any }[] = Object.entries(row)
+                            .filter((x) => x[0].toLocaleLowerCase() != 'MetadataID')
+                            .map((e) => {
+                                return {
+                                    key: e[0],
+                                    value: e[1],
+                                };
+                            });
 
                         // CHECK IF THE METADATA IS PRESENT IN THE DB
                         let metadata;

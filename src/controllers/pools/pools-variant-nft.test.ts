@@ -263,14 +263,14 @@ describe('NFT Pool', () => {
                 .set('Authorization', dashboardAccessToken)
                 .set('X-PoolId', poolId)
                 .expect(({ body }: request.Response) => {
-                    expect(body[5].title).toBe('');
-                    expect(body[5].description).toBe('');
-                    expect(body[5].attributes[0].key).toBe(schema[0].name);
-                    expect(body[5].attributes[0].value).toBe('pink');
-                    expect(body[5].attributes[1].key).toBe(schema[1].name);
-                    expect(body[5].attributes[1].value).toBe('medium');
-                    expect(body[5].attributes[2].key).toBe(schema[2].name);
-                    expect(body[5].attributes[2].value).toBe('http://imageURL3');
+                    expect(body.results[0].title).toBe('');
+                    expect(body.results[0].description).toBe('');
+                    expect(body.results[0].attributes[0].key).toBe(schema[0].name);
+                    expect(body.results[0].attributes[0].value).toBe('pink');
+                    expect(body.results[0].attributes[1].key).toBe(schema[1].name);
+                    expect(body.results[0].attributes[1].value).toBe('medium');
+                    expect(body.results[0].attributes[2].key).toBe(schema[2].name);
+                    expect(body.results[0].attributes[2].value).toBe('http://imageURL3');
                 })
                 .expect(200, done);
         });
