@@ -33,9 +33,11 @@ export const recoverSigner = (message: string, sig: string) => {
     return computeAddress(recoverPublicKey(arrayify(hashMessage(message)), sig));
 };
 
-export const recoverAddress = (call: string, nonce: number, sig: string) => {
+export const recoverAddress = (call: string, nonce: number, sig: string, isMetamaskAccount = false) => {
     const hash = soliditySha3(call, nonce);
-    const pubKey = recoverPublicKey(arrayify(hashMessage(arrayify(hash))), sig);
+    const pubKey = isMetamaskAccount
+        ? recoverPublicKey(arrayify(hash), sig)
+        : recoverPublicKey(arrayify(hashMessage(arrayify(hash))), sig);
 
     return computeAddress(pubKey);
 };

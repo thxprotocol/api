@@ -18,6 +18,7 @@ const validation = [
     body('call').isString().exists(),
     body('nonce').isNumeric().exists(),
     body('sig').isString().exists(),
+    body('isMetamaskAccount').isBoolean().optional(),
 ];
 
 const controller = async (req: Request, res: Response) => {
@@ -41,7 +42,7 @@ const controller = async (req: Request, res: Response) => {
     const erc20 = await ERC20Service.findByPool(req.assetPool);
     const contract = getContractFromName(req.assetPool.chainId, 'LimitedSupplyToken', erc20.address);
 
-    payment.sender = recoverAddress(call, nonce, sig);
+    payment.sender = recoverAddress(call, nonce, sig, req.body.isMetamaskAccount);
     await payment.save();
 
     // Check balance to ensure throughput

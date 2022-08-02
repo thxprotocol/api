@@ -2,17 +2,12 @@ import { TAssetPool } from '@/types/TAssetPool';
 import { ERC20Swap, ERC20SwapDocument } from '@/models/ERC20Swap';
 import TransactionService from './TransactionService';
 import { assertEvent, CustomEventLog, findEvent, hex2a } from '@/util/events';
-import { InsufficientBalanceError, NotFoundError } from '@/util/errors';
-import ERC20SwapRuleService from './ERC20SwapRuleService';
+import { NotFoundError } from '@/util/errors';
 import { SwapState } from '@/types/enums/SwapState';
 import { logger } from '@/util/logger';
 import { InternalServerError } from '@/util/errors';
-import { recoverAddress } from '@/util/network';
-import ERC20Service from './ERC20Service';
 import { AssetPoolDocument } from '@/models/AssetPool';
 import { TransactionDocument } from '@/models/Transaction';
-import AssetPoolService from './AssetPoolService';
-import { toWei } from 'web3-utils';
 import { ERC20SwapRuleDocument } from '@/models/ERC20SwapRule';
 
 async function get(id: string): Promise<ERC20SwapDocument> {
