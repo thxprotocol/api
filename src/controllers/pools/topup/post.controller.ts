@@ -1,7 +1,6 @@
 import { Request, Response } from 'express';
 import { body, param } from 'express-validator';
 import { BadRequestError, InsufficientBalanceError } from '@/util/errors';
-import { agenda, EVENT_REQUIRE_TRANSACTIONS } from '@/util/agenda';
 import { toWei } from 'web3-utils';
 import { getProvider } from '@/util/network';
 import { ethers } from 'ethers';
@@ -35,8 +34,6 @@ const controller = async (req: Request, res: Response) => {
     }
 
     const topup = await AssetPoolService.topup(req.assetPool, amount);
-
-    agenda.now(EVENT_REQUIRE_TRANSACTIONS, {});
 
     res.json(topup);
 };

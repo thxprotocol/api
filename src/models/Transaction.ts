@@ -11,6 +11,7 @@ const transactionSchema = new mongoose.Schema(
         nonce: Number,
         transactionHash: String,
         relayTransactionHash: String,
+        relayTransactionId: String,
         gas: String,
         baseFee: String,
         maxFeePerGas: String,

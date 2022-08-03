@@ -10,6 +10,7 @@ export type TTransaction = {
     chainId: ChainId;
     transactionHash: string;
     relayTransactionHash?: string;
+    relayTransactionId?: string;
     call?: { fn: string; args: string };
     baseFee?: string;
     maxFeeForGas?: string;

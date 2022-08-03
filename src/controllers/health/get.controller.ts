@@ -3,7 +3,6 @@ import { Response, Request } from 'express';
 import { fromWei } from 'web3-utils';
 import { getProvider } from '@/util/network';
 import { ChainId } from '@/types/enums';
-import InfuraService from '@/services/InfuraService';
 import { diamondFacetAddresses, getContractConfig, getContractFromName } from '@/config/contracts';
 import { logger } from '@/util/logger';
 import newrelic from 'newrelic';
@@ -13,14 +12,6 @@ function handleError(error: Error) {
     newrelic.noticeError(error);
     logger.error(error);
     return { error: 'invalid response' };
-}
-
-async function getGasTankInfo(chainId: ChainId) {
-    try {
-        return fromWei(await InfuraService.getAdminBalance(chainId), 'ether');
-    } catch (error) {
-        return handleError(error);
-    }
 }
 
 function facetAdresses(chainId: ChainId) {
@@ -35,21 +26,20 @@ function facetAdresses(chainId: ChainId) {
 
 async function getNetworkDetails(chainId: ChainId) {
     try {
-        const provider = getProvider(chainId);
-        const { admin, web3 } = provider;
+        const { admin, relayer, web3 } = getProvider(chainId);
         const balance = await web3.eth.getBalance(admin.address);
-
         return {
             admin: {
                 address: admin.address,
                 balance: fromWei(balance, 'ether'),
             },
-            gasTank: {
-                queue: (await InfuraService.scheduled(chainId)).length,
-                address: InfuraService.getGasTank(chainId),
-                balance: await getGasTankInfo(chainId),
-            },
-            // feeData: await getFeeData(npid),
+            relayer: relayer
+                ? {
+                      pending: (await relayer.list({ status: 'pending' })).length,
+                      failed: (await relayer.list({ status: 'failed' })).length,
+                      mined: (await relayer.list({ status: 'mined' })).length,
+                  }
+                : undefined,
             facets: facetAdresses(chainId),
         };
     } catch (error) {

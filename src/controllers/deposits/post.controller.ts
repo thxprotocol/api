@@ -1,7 +1,6 @@
 import { Request, Response } from 'express';
 import { body } from 'express-validator';
 import { AmountExceedsAllowanceError, InsufficientBalanceError, NotFoundError } from '@/util/errors';
-import { agenda, EVENT_REQUIRE_TRANSACTIONS } from '@/util/agenda';
 import { toWei } from 'web3-utils';
 import DepositService from '@/services/DepositService';
 import ERC20Service from '@/services/ERC20Service';
@@ -41,8 +40,6 @@ const controller = async (req: Request, res: Response) => {
 
     const { call, nonce, sig } = req.body;
     const deposit = await DepositService.deposit(req.assetPool, account, value, { call, nonce, sig }, req.body.item);
-
-    agenda.now(EVENT_REQUIRE_TRANSACTIONS, {});
 
     res.json(deposit);
 };

@@ -1,7 +1,6 @@
 import { Request, Response } from 'express';
 import { param } from 'express-validator';
 import { ForbiddenError, NotFoundError } from '@/util/errors';
-import { agenda, EVENT_REQUIRE_TRANSACTIONS } from '@/util/agenda';
 import WithdrawalService from '@/services/WithdrawalService';
 
 const validation = [param('id').isMongoId()];
@@ -18,8 +17,6 @@ const controller = async (req: Request, res: Response) => {
     }
 
     const w = await WithdrawalService.withdraw(req.assetPool, withdrawal);
-
-    agenda.now(EVENT_REQUIRE_TRANSACTIONS, {});
 
     res.json({
         ...w.toJSON(),

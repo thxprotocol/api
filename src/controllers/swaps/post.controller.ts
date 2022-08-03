@@ -1,6 +1,5 @@
 import { Request, Response } from 'express';
 import { body } from 'express-validator';
-import { agenda, EVENT_REQUIRE_TRANSACTIONS } from '@/util/agenda';
 import SwapService from '@/services/ERC20SwapService';
 import SwapRuleService from '@/services/ERC20SwapRuleService';
 import { recoverAddress } from '@/util/network';
@@ -35,8 +34,6 @@ const controller = async (req: Request, res: Response) => {
         swapRule,
         req.body.amountIn,
     );
-
-    agenda.now(EVENT_REQUIRE_TRANSACTIONS, {});
 
     res.json(erc20Swap);
 };
