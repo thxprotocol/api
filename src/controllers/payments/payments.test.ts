@@ -65,7 +65,7 @@ describe('Payments', () => {
             .set('Authorization', dashboardAccessToken)
             .send({
                 chainId: ChainId.Hardhat,
-                tokens: [token.options.address],
+                erc20tokens: [token.options.address],
                 variant: 'defaultPool',
             })
             .expect((res: Response) => {

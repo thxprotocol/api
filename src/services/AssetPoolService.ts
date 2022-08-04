@@ -1,7 +1,7 @@
 import { assertEvent, CustomEventLog, findEvent } from '@/util/events';
 import { ChainId, DepositState, ERC20Type } from '@/types/enums';
 import { AssetPool, AssetPoolDocument } from '@/models/AssetPool';
-import { getProvider } from '@/util/network';
+import { ADDRESS_ZERO, getProvider } from '@/util/network';
 import { toChecksumAddress } from 'web3-utils';
 import { Membership } from '@/models/Membership';
 import TransactionService from './TransactionService';
@@ -17,7 +17,6 @@ import ERC721Service from './ERC721Service';
 import { Deposit } from '@/models/Deposit';
 import { TAssetPool } from '@/types/TAssetPool';
 import { Contract } from 'web3-eth-contract';
-import { UnicodeNormalizationForm } from 'ethers/lib/utils';
 
 export const ADMIN_ROLE = '0x0000000000000000000000000000000000000000000000000000000000000000';
 
@@ -53,7 +52,7 @@ export default class AssetPoolService {
         chainId: ChainId,
         variant: DiamondVariant = 'defaultPool',
         erc20tokens: string[],
-        erc721tokens: string[],
+        erc721tokens: string[] = [],
     ): Promise<AssetPoolDocument> {
         const poolFactory = getContract(chainId, 'PoolFactory', currentVersion);
         const registry = getContract(chainId, 'PoolRegistry', currentVersion);
@@ -80,13 +79,13 @@ export default class AssetPoolService {
         registry: Contract,
         poolFacetContracts: Contract[],
         erc20tokens: string[],
-        erc721tokens: string[],
+        erc721tokens: string[] = [],
         pool: AssetPoolDocument,
     ) {
         switch (pool.variant) {
             case 'defaultPool': {
                 await ERC20Service.findOrImport(pool, erc20tokens[0]);
-                const erc721TokenAddress = erc721tokens.length > 0 ? erc721tokens[0] : undefined;
+                const erc721TokenAddress = erc721tokens.length > 0 ? erc721tokens[0] : ADDRESS_ZERO;
                 return {
                     fn: 'deployDefaultPool',
                     args: [
@@ -114,7 +113,7 @@ export default class AssetPoolService {
             case 'nftPool': {
                 return {
                     fn: 'deployNFTPool',
-                    args: [getDiamondCutForContractFacets(poolFacetContracts, []), tokens[0]],
+                    args: [getDiamondCutForContractFacets(poolFacetContracts, []), erc721tokens[0]],
                     callback: async (
                         tx: TransactionDocument,
                         events?: CustomEventLog[],
@@ -123,7 +122,7 @@ export default class AssetPoolService {
                             const event = findEvent('PoolDeployed', events);
                             pool.address = event.args.pool;
 
-                            await AssetPoolService.initializeNFTPool(pool, tokens[0]);
+                            await AssetPoolService.initializeNFTPool(pool, erc721tokens[0]);
                         }
                         pool.transactions.push(String(tx._id));
 

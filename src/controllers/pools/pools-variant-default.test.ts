@@ -74,7 +74,7 @@ describe('Default Pool', () => {
                 .set('Authorization', dashboardAccessToken)
                 .send({
                     chainId: ChainId.Hardhat,
-                    tokens: [tokenAddress],
+                    erc20tokens: [tokenAddress],
                 })
                 .expect((res: request.Response) => {
                     poolId = res.body._id;

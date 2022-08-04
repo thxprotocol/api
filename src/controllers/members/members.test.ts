@@ -29,7 +29,7 @@ describe('Members', () => {
                 .set({ Authorization: dashboardAccessToken })
                 .send({
                     chainId: ChainId.Hardhat,
-                    tokens: [testToken.options.address],
+                    erc20tokens: [testToken.options.address],
                 })
                 .expect((res: request.Response) => {
                     poolId = res.body._id;

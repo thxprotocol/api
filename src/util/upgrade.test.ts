@@ -27,7 +27,7 @@ describe('Upgrades', () => {
             .send({
                 chainId: ChainId.Hardhat,
                 variant: 'defaultPool',
-                tokens: [testToken.options.address],
+                erc20tokens: [testToken.options.address],
             })
             .expect((res: request.Response) => {
                 expect(isAddress(res.body.address)).toBe(true);
