@@ -120,10 +120,10 @@ export default class AssetPoolService {
     }
 
     static async topup(assetPool: TAssetPool, amount: string) {
-        const { admin } = getProvider(assetPool.chainId);
+        const { defaultAccount } = getProvider(assetPool.chainId);
         const deposit = await Deposit.create({
             amount,
-            sender: admin.address,
+            sender: defaultAccount,
             receiver: assetPool.address,
             state: DepositState.Pending,
         });
@@ -206,57 +206,5 @@ export default class AssetPoolService {
         await pool.save();
 
         return tx;
-    }
-
-    static async transferOwnership(assetPool: AssetPoolDocument, currentPrivateKey: string, newPrivateKey: string) {
-        const { web3 } = getProvider(assetPool.chainId);
-        const currentOwner = web3.eth.accounts.privateKeyToAccount(currentPrivateKey);
-        const currentOwnerAddress = toChecksumAddress(currentOwner.address);
-        const newOwner = web3.eth.accounts.privateKeyToAccount(newPrivateKey);
-        const newOwnerAddress = toChecksumAddress(newOwner.address);
-
-        const { methods, options } = assetPool.contract;
-
-        const sendFromCurrentOwner = (fn: any) => {
-            return TransactionService.send(options.address, fn, assetPool.chainId, null, currentPrivateKey);
-        };
-        const sendFromNewOwner = (fn: any) => {
-            return TransactionService.send(options.address, fn, assetPool.chainId, null, newPrivateKey);
-        };
-
-        // Add membership, manager and admin role to new owner.
-        if (!(await methods.isMember(newOwnerAddress).call())) {
-            logger.debug('Adding new owner to members');
-            await sendFromCurrentOwner(methods.addMember(newOwnerAddress));
-        }
-        if (!(await methods.isManager(newOwnerAddress).call())) {
-            logger.debug('Adding new owner to managers');
-            await sendFromCurrentOwner(methods.addManager(newOwnerAddress));
-        }
-        if (!(await methods.hasRole(ADMIN_ROLE, newOwner.address).call())) {
-            logger.debug('Granting new owner admin role');
-            await sendFromCurrentOwner(methods.grantRole(ADMIN_ROLE, newOwner.address));
-        }
-
-        // Transfer ownership.
-        if (toChecksumAddress(await methods.owner().call()) !== newOwnerAddress) {
-            // Transfer ownership
-            const { receipt } = await sendFromCurrentOwner(methods.transferOwnership(newOwner.address));
-            logger.debug('TransferOwnership:', assetPool.address, receipt.transactionHash);
-        }
-
-        // Remove admin role, manager and membership from former owner.
-        if (await methods.hasRole(ADMIN_ROLE, currentOwnerAddress).call()) {
-            logger.debug('Remove former owners admin role');
-            await sendFromNewOwner(methods.revokeRole(ADMIN_ROLE, currentOwner.address));
-        }
-        if (await methods.isManager(currentOwnerAddress).call()) {
-            logger.debug('Removing former owner from managers');
-            await sendFromNewOwner(methods.removeManager(currentOwnerAddress));
-        }
-        if (await methods.isMember(currentOwnerAddress).call()) {
-            logger.debug('Remove former owner from members');
-            await sendFromNewOwner(methods.removeMember(currentOwnerAddress));
-        }
     }
 }

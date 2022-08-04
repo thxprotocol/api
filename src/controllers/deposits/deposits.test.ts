@@ -204,7 +204,7 @@ describe('Deposits', () => {
     });
 
     describe('Create Asset Pool Deposit', () => {
-        const { admin } = getProvider(ChainId.Hardhat);
+        const { defaultAccount } = getProvider(ChainId.Hardhat);
         const totalSupply = fromWei('200000000000000000000', 'ether'); // 200 eth
 
         it('Create token', (done) => {
@@ -221,7 +221,7 @@ describe('Deposits', () => {
                     expect(isAddress(body.address)).toBe(true);
                     tokenAddress = body.address;
                     testToken = getContractFromName(ChainId.Hardhat, 'LimitedSupplyToken', tokenAddress);
-                    const adminBalance: BigNumber = await testToken.methods.balanceOf(admin.address).call();
+                    const adminBalance: BigNumber = await testToken.methods.balanceOf(defaultAccount).call();
                     expect(fromWei(String(adminBalance), 'ether')).toBe(totalSupply);
                 })
                 .expect(201, done);
@@ -238,7 +238,7 @@ describe('Deposits', () => {
                     expect(isAddress(res.body.address)).toBe(true);
                     poolAddress = res.body.address;
                     poolId = res.body._id;
-                    const adminBalance: BigNumber = await testToken.methods.balanceOf(admin.address).call();
+                    const adminBalance: BigNumber = await testToken.methods.balanceOf(defaultAccount).call();
                     const poolBalance: BigNumber = await testToken.methods.balanceOf(poolAddress).call();
                     expect(String(poolBalance)).toBe('0');
                     expect(fromWei(String(adminBalance), 'ether')).toBe(totalSupply);
@@ -252,7 +252,7 @@ describe('Deposits', () => {
                 .set({ 'Authorization': dashboardAccessToken, 'X-PoolId': poolId })
                 .send({ amount })
                 .expect(async () => {
-                    const adminBalance: BigNumber = await testToken.methods.balanceOf(admin.address).call();
+                    const adminBalance: BigNumber = await testToken.methods.balanceOf(defaultAccount).call();
                     const poolBalance: BigNumber = await testToken.methods.balanceOf(poolAddress).call();
                     expect(String(poolBalance)).toBe('100000000000000000000'); // 100 eth - protocol fee = 97.5 eth
                     expect(String(adminBalance)).toBe('100000000000000000000'); // 100 eth

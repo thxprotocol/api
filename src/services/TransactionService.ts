@@ -16,8 +16,8 @@ function getById(id: string) {
 }
 
 async function sendValue(to: string, value: string, chainId: ChainId) {
-    const { web3, admin } = getProvider(chainId);
-    const from = admin.address;
+    const { web3, defaultAccount } = getProvider(chainId);
+    const from = defaultAccount;
     const gas = '21000';
 
     // Prepare the Transaction and store in database so it could be retried if it fails
@@ -68,8 +68,8 @@ async function relay(
 }
 
 async function send(to: string, fn: any, chainId: ChainId, gasLimit?: number, fromPK?: string) {
-    const { web3, admin } = getProvider(chainId);
-    const from = fromPK ? web3.eth.accounts.privateKeyToAccount(fromPK).address : admin.address;
+    const { web3, defaultAccount } = getProvider(chainId);
+    const from = fromPK ? web3.eth.accounts.privateKeyToAccount(fromPK).address : defaultAccount;
     const data = fn.encodeABI();
     const estimate = await fn.estimateGas({ from });
     const gas = gasLimit ? gasLimit : estimate < MINIMUM_GAS_LIMIT ? MINIMUM_GAS_LIMIT : estimate;
@@ -87,7 +87,7 @@ async function send(to: string, fn: any, chainId: ChainId, gasLimit?: number, fr
     });
 
     const receipt = await web3.eth.sendTransaction({
-        from: admin.address,
+        from: defaultAccount,
         to,
         data,
         gas,
@@ -106,7 +106,7 @@ async function send(to: string, fn: any, chainId: ChainId, gasLimit?: number, fr
 }
 
 async function deploy(abi: any, bytecode: any, arg: any[], chainId: ChainId) {
-    const { web3, admin } = getProvider(chainId);
+    const { web3, defaultAccount } = getProvider(chainId);
     const contract = new web3.eth.Contract(abi);
     const gas = await contract
         .deploy({
@@ -125,12 +125,12 @@ async function deploy(abi: any, bytecode: any, arg: any[], chainId: ChainId) {
         type: TransactionType.Default,
         state: TransactionState.Scheduled,
         chainId,
-        from: admin.address,
+        from: defaultAccount,
         gas,
     });
 
     const receipt = await web3.eth.sendTransaction({
-        from: admin.address,
+        from: defaultAccount,
         data,
         gas,
     });

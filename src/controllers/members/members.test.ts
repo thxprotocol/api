@@ -40,8 +40,8 @@ describe('Members', () => {
 
     describe('GET /members/:address', () => {
         it('HTTP 200 if OK', (done) => {
-            const { admin } = getProvider(ChainId.Hardhat);
-            user.get('/v1/members/' + admin.address)
+            const { defaultAccount } = getProvider(ChainId.Hardhat);
+            user.get('/v1/members/' + defaultAccount)
                 .set({ 'X-PoolId': poolId, 'Authorization': adminAccessToken })
                 .expect(200, done);
         });

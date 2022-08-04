@@ -20,6 +20,7 @@ import { assertEvent, parseLogs } from '@/util/events';
 import { currentVersion } from '@thxnetwork/artifacts';
 import { SwapState } from '@/types/enums/SwapState';
 import { InsufficientBalanceError } from '@/util/errors';
+import { PRIVATE_KEY } from '@/config/secrets';
 
 const http = request.agent(app);
 
@@ -45,7 +46,8 @@ describe('Swaps', () => {
         amountIn = 10;
         tokenMultiplier = 10;
         userWallet = createWallet(userWalletPrivateKey2);
-        admin = getProvider(ChainId.Hardhat).admin;
+        const { defaultAccount } = getProvider(ChainId.Hardhat);
+        admin = { privateKey: PRIVATE_KEY, address: defaultAccount } as Account;
     });
 
     afterAll(afterAllCallback);

@@ -17,10 +17,10 @@ import { TransactionDocument } from '@/models/Transaction';
 import AccountProxy from '@/proxies/AccountProxy';
 
 function getDeployFnArgsCallback(erc721: ERC721Document) {
-    const { admin } = getProvider(erc721.chainId);
+    const { defaultAccount } = getProvider(erc721.chainId);
     return {
         fn: 'deployNonFungibleToken',
-        args: [erc721.name, erc721.symbol, erc721.baseURL, admin.address],
+        args: [erc721.name, erc721.symbol, erc721.baseURL, defaultAccount],
         callback: async (tx: TransactionDocument, events?: CustomEventLog[]): Promise<ERC721Document> => {
             if (events) {
                 const event = assertEvent('TokenDeployed', events);

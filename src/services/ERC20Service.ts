@@ -13,7 +13,7 @@ import { ERC20Token } from '@/models/ERC20Token';
 import { TransactionDocument } from '@/models/Transaction';
 
 function getDeployFnArgsCallback(erc20: ERC20Document, totalSupply: string) {
-    const { admin } = getProvider(erc20.chainId);
+    const { defaultAccount } = getProvider(erc20.chainId);
     const callback = async (tx: TransactionDocument, events?: CustomEventLog[]): Promise<ERC20Document> => {
         if (events) {
             const event = assertEvent('TokenDeployed', events);
@@ -29,14 +29,14 @@ function getDeployFnArgsCallback(erc20: ERC20Document, totalSupply: string) {
         case ERC20Type.Limited: {
             return {
                 fn: 'deployLimitedSupplyToken',
-                args: [erc20.name, erc20.symbol, admin.address, toWei(String(totalSupply))],
+                args: [erc20.name, erc20.symbol, defaultAccount, toWei(String(totalSupply))],
                 callback,
             };
         }
         case ERC20Type.Unlimited: {
             return {
                 fn: 'deployUnlimitedSupplyToken',
-                args: [erc20.name, erc20.symbol, admin.address],
+                args: [erc20.name, erc20.symbol, defaultAccount],
                 callback,
             };
         }

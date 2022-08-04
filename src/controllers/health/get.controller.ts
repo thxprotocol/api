@@ -26,11 +26,11 @@ function facetAdresses(chainId: ChainId) {
 
 async function getNetworkDetails(chainId: ChainId) {
     try {
-        const { admin, relayer, web3 } = getProvider(chainId);
-        const balance = await web3.eth.getBalance(admin.address);
+        const { defaultAccount, relayer, web3 } = getProvider(chainId);
+        const balance = await web3.eth.getBalance(defaultAccount);
         return {
             admin: {
-                address: admin.address,
+                address: defaultAccount,
                 balance: fromWei(balance, 'ether'),
             },
             relayer: relayer

@@ -19,7 +19,7 @@ import TransactionService from '@/services/TransactionService';
 import { assertEvent, parseLogs } from '@/util/events';
 import { currentVersion } from '@thxnetwork/artifacts';
 import { getProvider } from '@/util/network';
-import { WALLET_URL } from '@/config/secrets';
+import { PRIVATE_KEY, WALLET_URL } from '@/config/secrets';
 
 const http = request.agent(app);
 
@@ -40,8 +40,8 @@ describe('Payments', () => {
 
     beforeAll(async () => {
         await beforeAllCallback();
-        const provider = getProvider(ChainId.Hardhat);
-        admin = provider.admin;
+        const { defaultAccount } = getProvider(ChainId.Hardhat);
+        admin = { address: defaultAccount, privateKey: PRIVATE_KEY } as Account;
     });
 
     it('Deploy existing token', async () => {
