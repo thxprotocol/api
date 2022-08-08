@@ -28,7 +28,7 @@ const controller = async (req: Request, res: Response) => {
         );
     }
 
-    const { receipt } = await TransactionService.send(
+    const receipt = await TransactionService.send(
         contract.options.address,
         contract.methods.call(req.body.call, req.body.nonce, req.body.sig),
         chainId,

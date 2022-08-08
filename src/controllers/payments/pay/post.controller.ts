@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { body, param } from 'express-validator';
+import { param } from 'express-validator';
 import {
     AmountExceedsAllowanceError,
     ForbiddenError,
@@ -10,16 +10,11 @@ import {
 import { getContractFromName } from '@/config/contracts';
 import ERC20Service from '@/services/ERC20Service';
 import PaymentService from '@/services/PaymentService';
-import { recoverAddress } from '@/util/network';
 import { PaymentState } from '@/types/enums/PaymentState';
+import AccountProxy from '@/proxies/AccountProxy';
+import { getProvider } from '@/util/network';
 
-const validation = [
-    param('id').isMongoId(),
-    body('call').isString().exists(),
-    body('nonce').isNumeric().exists(),
-    body('sig').isString().exists(),
-    body('isMetamaskAccount').isBoolean().optional(),
-];
+const validation = [param('id').isMongoId()];
 
 const controller = async (req: Request, res: Response) => {
     // #swagger.tags = ['Payments']
@@ -38,24 +33,27 @@ const controller = async (req: Request, res: Response) => {
         throw new ForbiddenError('Payment state is completed');
     }
 
-    const { call, nonce, sig } = req.body;
+    // const { call, nonce, sig } = req.body;
+    const { defaultAccount } = getProvider(payment.chainId);
     const erc20 = await ERC20Service.findByPool(req.assetPool);
     const contract = getContractFromName(req.assetPool.chainId, 'LimitedSupplyToken', erc20.address);
 
-    payment.sender = recoverAddress(call, nonce, sig, req.body.isMetamaskAccount);
-    await payment.save();
+    // Recover signer from message
+    const account = await AccountProxy.getById(req.auth.sub);
+    console.log(req.auth.sub, account.address, payment.receiver, defaultAccount);
+    payment.sender = account.address;
 
     // Check balance to ensure throughput
     const balance = await contract.methods.balanceOf(payment.sender).call();
     if (Number(balance) < Number(payment.amount)) throw new InsufficientBalanceError();
 
     // Check allowance to ensure throughput
-    const allowance = Number(await contract.methods.allowance(payment.sender, req.assetPool.address).call());
+    const allowance = Number(await contract.methods.allowance(payment.sender, defaultAccount).call());
     if (Number(allowance) < Number(payment.amount)) throw new AmountExceedsAllowanceError();
 
-    payment = await PaymentService.pay(req.assetPool, payment, { call, nonce, sig });
+    payment = await PaymentService.pay(contract, payment);
 
-    res.json(payment);
+    res.json(await payment.save());
 };
 
 export default {

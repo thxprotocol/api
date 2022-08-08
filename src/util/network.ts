@@ -15,7 +15,7 @@ import { Contract } from 'web3-eth-contract';
 import { arrayify, computeAddress, hashMessage, recoverPublicKey } from 'ethers/lib/utils';
 import { ChainId } from '../types/enums';
 import { DefenderRelayProvider } from 'defender-relay-client/lib/web3';
-import { RelayClient, Relayer } from 'defender-relay-client';
+import { Relayer } from 'defender-relay-client';
 
 const web3 = new Web3();
 const networks: { [chainId: number]: { web3: Web3; defaultAccount: string; relayer?: Relayer } } = {};

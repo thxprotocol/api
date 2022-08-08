@@ -12,7 +12,13 @@ const validation = [body('call').exists(), body('nonce').exists(), body('sig').e
 const controller = async (req: Request, res: Response) => {
     // #swagger.tags = ['Relay Hub']
     const { contract, chainId, address } = req.assetPool;
-    const { tx, receipt } = await TransactionService.send(
+    const tx = await TransactionService.queue(
+        contract.options.address,
+        'call',
+        [req.body.call, req.body.nonce, req.body.sig],
+        chainId,
+    );
+    const receipt = await TransactionService.send(
         contract.options.address,
         contract.methods.call(req.body.call, req.body.nonce, req.body.sig),
         chainId,

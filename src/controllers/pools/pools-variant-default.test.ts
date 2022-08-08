@@ -53,7 +53,7 @@ describe('Default Pool', () => {
     describe('Existing ERC20 contract', () => {
         it('TokenDeployed event', async () => {
             const tokenFactory = getContract(ChainId.Hardhat, 'TokenFactory', currentVersion);
-            const { receipt } = await TransactionService.send(
+            const receipt = await TransactionService.send(
                 tokenFactory.options.address,
                 tokenFactory.methods.deployLimitedSupplyToken(
                     tokenName,

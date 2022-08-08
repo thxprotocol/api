@@ -68,16 +68,14 @@ export const getHealth = async (_req: Request, res: Response) => {
         artifacts: currentVersion,
         testnet: {
             ...testnetDetails,
-            poolRegistry: getContractConfig(ChainId.PolygonMumbai, 'PoolRegistry').address,
-            poolFactory: getContractConfig(ChainId.PolygonMumbai, 'PoolFactory').address,
-            tokenFactory: getContractConfig(ChainId.PolygonMumbai, 'TokenFactory').address,
+            registry: getContractConfig(ChainId.PolygonMumbai, 'Registry').address,
+            factory: getContractConfig(ChainId.PolygonMumbai, 'Factory').address,
             feeCollector: testnetFeeCollector,
         },
         mainnet: {
             ...mainnetDetails,
-            poolRegistry: poolRegistry(ChainId.Polygon).options.address,
-            poolFactory: getContractConfig(ChainId.Polygon, 'PoolFactory').address,
-            tokenFactory: getContractConfig(ChainId.Polygon, 'TokenFactory').address,
+            registry: getContractConfig(ChainId.Polygon, 'Registry').address,
+            factory: getContractConfig(ChainId.Polygon, 'Factory').address,
             feeCollector: mainnetFeeCollector,
         },
     };

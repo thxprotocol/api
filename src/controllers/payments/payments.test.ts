@@ -5,21 +5,23 @@ import { isAddress, toWei } from 'web3-utils';
 import { Contract } from 'web3-eth-contract';
 import { afterAllCallback, beforeAllCallback } from '@/util/jest/config';
 import { ChainId } from '@/types/enums';
-import { signMethod } from '@/util/jest/network';
 import {
+    account2,
     adminAccessToken,
     dashboardAccessToken,
     tokenName,
     tokenSymbol,
     tokenTotalSupply,
+    userWalletPrivateKey2,
+    walletAccessToken,
 } from '@/util/jest/constants';
-import { getContract, getContractFromName } from '@/config/contracts';
+import { getByteCodeForContractName, getContract, getContractFromName } from '@/config/contracts';
 import { PaymentState } from '@/types/enums/PaymentState';
 import TransactionService from '@/services/TransactionService';
-import { assertEvent, parseLogs } from '@/util/events';
 import { currentVersion } from '@thxnetwork/artifacts';
 import { getProvider } from '@/util/network';
-import { PRIVATE_KEY, WALLET_URL } from '@/config/secrets';
+import { HARDHAT_RPC, PRIVATE_KEY, WALLET_URL } from '@/config/secrets';
+import Web3 from 'web3';
 
 const http = request.agent(app);
 
@@ -45,19 +47,14 @@ describe('Payments', () => {
     });
 
     it('Deploy existing token', async () => {
-        const tokenFactory = getContract(ChainId.Hardhat, 'TokenFactory', currentVersion);
-        const { receipt } = await TransactionService.send(
-            tokenFactory.options.address,
-            tokenFactory.methods.deployLimitedSupplyToken(
-                tokenName,
-                tokenSymbol,
-                admin.address,
-                toWei(String(tokenTotalSupply)),
-            ),
+        const { options } = getContract(ChainId.Hardhat, 'LimitedSupplyToken', currentVersion);
+        token = await TransactionService.deploy(
+            options.jsonInterface,
+            getByteCodeForContractName('LimitedSupplyToken'),
+            [tokenName, tokenSymbol, admin.address, toWei(String(tokenTotalSupply))],
             ChainId.Hardhat,
         );
-        const event = assertEvent('TokenDeployed', parseLogs(tokenFactory.options.jsonInterface, receipt.logs));
-        token = getContractFromName(ChainId.Hardhat, 'LimitedSupplyToken', event.args.token);
+        await token.methods.transfer(account2.address, amount).send({ from: admin.address });
     });
 
     it('Create pool', (done) => {
@@ -65,8 +62,7 @@ describe('Payments', () => {
             .set('Authorization', dashboardAccessToken)
             .send({
                 chainId: ChainId.Hardhat,
-                tokens: [token.options.address],
-                variant: 'defaultPool',
+                erc20: [token.options.address],
             })
             .expect((res: Response) => {
                 expect(isAddress(res.body.address)).toBe(true);
@@ -124,22 +120,21 @@ describe('Payments', () => {
     });
 
     it('Approve relayed transfer by pool', async () => {
-        const receipt = await token.methods.approve(poolAddress, amount).send({ from: admin.address });
+        const web3 = new Web3(HARDHAT_RPC);
+        const wallet = web3.eth.accounts.privateKeyToAccount(userWalletPrivateKey2);
+        const { methods } = new web3.eth.Contract(token.options.jsonInterface, token.options.address, {
+            from: wallet.address,
+        });
+        const receipt = await methods.approve(admin.address, amount).send({ from: wallet.address });
         expect(receipt.events['Approval']).toBeDefined();
     });
 
     it('Relay payment transfer', async () => {
-        const { call, nonce, sig } = await signMethod(poolAddress, 'topup', [amount], admin);
-
         await http
             .post(`/v1/payments/${paymentId}/pay`)
-            .set({ 'X-PoolId': poolId, 'X-Payment-Token': basicAccessToken })
-            .send({
-                call,
-                nonce,
-                sig,
-            })
+            .set({ 'Authorization': walletAccessToken, 'X-PoolId': poolId, 'X-Payment-Token': basicAccessToken })
             .expect(({ body }: Response) => {
+                console.log(body);
                 expect(body.state).toBe(PaymentState.Completed);
             })
             .expect(200);

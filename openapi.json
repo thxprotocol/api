@@ -112,27 +112,6 @@
             "name": "X-Payment-Token",
             "in": "header",
             "type": "string"
-          },
-          {
-            "name": "body",
-            "in": "body",
-            "schema": {
-              "type": "object",
-              "properties": {
-                "isMetamaskAccount": {
-                  "example": "any"
-                },
-                "call": {
-                  "example": "any"
-                },
-                "nonce": {
-                  "example": "any"
-                },
-                "sig": {
-                  "example": "any"
-                }
-              }
-            }
           }
         ],
         "responses": {
@@ -579,6 +558,9 @@
                 "chainId": {
                   "example": "any"
                 },
+                "type": {
+                  "example": "any"
+                },
                 "name": {
                   "example": "any"
                 },
@@ -586,9 +568,6 @@
                   "example": "any"
                 },
                 "totalSupply": {
-                  "example": "any"
-                },
-                "type": {
                   "example": "any"
                 }
               }

@@ -110,7 +110,7 @@ export async function parseAttributes(entry: ERC721MetadataDocument) {
 }
 
 async function addMinter(erc721: ERC721Document, address: string) {
-    const { receipt } = await TransactionService.send(
+    const receipt = await TransactionService.send(
         erc721.address,
         erc721.contract.methods.grantRole(keccak256(toUtf8Bytes('MINTER_ROLE')), address),
         erc721.chainId,

@@ -2,11 +2,9 @@ import { assertEvent, CustomEventLog, findEvent } from '@/util/events';
 import { ChainId, DepositState, ERC20Type } from '@/types/enums';
 import { AssetPool, AssetPoolDocument } from '@/models/AssetPool';
 import { getProvider } from '@/util/network';
-import { toChecksumAddress } from 'web3-utils';
 import { Membership } from '@/models/Membership';
 import TransactionService from './TransactionService';
-import { diamondContracts, getContract, poolFacetAdressesPermutations } from '@/config/contracts';
-import { logger } from '@/util/logger';
+import { diamondContracts, getContract, getContractConfig, poolFacetAdressesPermutations } from '@/config/contracts';
 import { pick } from '@/util';
 import { diamondSelectors, getDiamondCutForContractFacets, updateDiamondContract } from '@/util/upgrades';
 import { currentVersion, DiamondVariant } from '@thxnetwork/artifacts';
@@ -17,6 +15,7 @@ import ERC721Service from './ERC721Service';
 import { Deposit } from '@/models/Deposit';
 import { TAssetPool } from '@/types/TAssetPool';
 import { Contract } from 'web3-eth-contract';
+import { ADDRESS_ZERO } from '@/config/secrets';
 
 export const ADMIN_ROLE = '0x0000000000000000000000000000000000000000000000000000000000000000';
 
@@ -50,73 +49,42 @@ export default class AssetPoolService {
     static async deploy(
         sub: string,
         chainId: ChainId,
-        variant: DiamondVariant = 'defaultPool',
-        tokens: string[],
+        erc20 = ADDRESS_ZERO,
+        erc721 = ADDRESS_ZERO,
     ): Promise<AssetPoolDocument> {
-        const poolFactory = getContract(chainId, 'PoolFactory', currentVersion);
-        const registry = getContract(chainId, 'PoolRegistry', currentVersion);
-        const poolFacetContracts = diamondContracts(chainId, variant);
+        const poolFactory = getContract(chainId, 'Factory', currentVersion);
+        const registry = getContract(chainId, 'Registry', currentVersion);
+        const poolFacetContracts = diamondContracts(chainId, 'defaultDiamond');
         const pool = new AssetPool({
             sub,
             chainId,
-            variant,
+            variant: 'defaultDiamond',
             version: currentVersion,
             archived: false,
         });
-        const { fn, args, callback } = await this.getDeployFnArgsCallback(registry, poolFacetContracts, tokens, pool);
+
+        const { fn, args, callback } = {
+            fn: 'deploy',
+            args: [getDiamondCutForContractFacets(poolFacetContracts, []), registry.options.address, erc20, erc721],
+            callback: async (tx: TransactionDocument, events?: CustomEventLog[]): Promise<AssetPoolDocument> => {
+                if (events) {
+                    const event = findEvent('DiamondDeployed', events);
+                    pool.address = event.args.diamond;
+
+                    if (erc20.length) {
+                        await AssetPoolService.initializeERC20(pool, erc20); // TODO Should move to ERC20Service
+                    }
+                    if (erc721.length) {
+                        await AssetPoolService.initializeERC721(pool, erc721); // TODO Should move to ERC721Service
+                    }
+                }
+                pool.transactions.push(String(tx._id));
+
+                return await pool.save();
+            },
+        };
 
         return await TransactionService.relay(poolFactory, fn, args, pool.chainId, callback);
-    }
-
-    static async getDeployFnArgsCallback(
-        registry: Contract,
-        poolFacetContracts: Contract[],
-        tokens: string[],
-        pool: AssetPoolDocument,
-    ) {
-        switch (pool.variant) {
-            case 'defaultPool': {
-                await ERC20Service.findOrImport(pool, tokens[0]);
-                return {
-                    fn: 'deployDefaultPool',
-                    args: [getDiamondCutForContractFacets(poolFacetContracts, []), registry.options.address, tokens[0]],
-                    callback: async (
-                        tx: TransactionDocument,
-                        events?: CustomEventLog[],
-                    ): Promise<AssetPoolDocument> => {
-                        if (events) {
-                            const event = findEvent('PoolDeployed', events);
-                            pool.address = event.args.pool;
-
-                            await AssetPoolService.initializeDefaultPool(pool, tokens[0]);
-                        }
-                        pool.transactions.push(String(tx._id));
-
-                        return await pool.save();
-                    },
-                };
-            }
-            case 'nftPool': {
-                return {
-                    fn: 'deployNFTPool',
-                    args: [getDiamondCutForContractFacets(poolFacetContracts, []), tokens[0]],
-                    callback: async (
-                        tx: TransactionDocument,
-                        events?: CustomEventLog[],
-                    ): Promise<AssetPoolDocument> => {
-                        if (events) {
-                            const event = findEvent('PoolDeployed', events);
-                            pool.address = event.args.pool;
-
-                            await AssetPoolService.initializeNFTPool(pool, tokens[0]);
-                        }
-                        pool.transactions.push(String(tx._id));
-
-                        return await pool.save();
-                    },
-                };
-            }
-        }
     }
 
     static async topup(assetPool: TAssetPool, amount: string) {
@@ -130,12 +98,12 @@ export default class AssetPoolService {
 
         return await TransactionService.relay(
             assetPool.contract,
-            'topup',
-            [amount],
+            'transferFrom',
+            [defaultAccount, assetPool.address, amount],
             assetPool.chainId,
             async (tx: TransactionDocument, events: CustomEventLog[]) => {
                 if (events) {
-                    assertEvent('Topup', events);
+                    assertEvent('ERC20TransferFrom', events);
                     deposit.state = DepositState.Completed;
                 }
 
@@ -146,7 +114,7 @@ export default class AssetPoolService {
         );
     }
 
-    static async initializeDefaultPool(pool: AssetPoolDocument, tokenAddress: string) {
+    static async initializeERC20(pool: AssetPoolDocument, tokenAddress: string) {
         const erc20 = await ERC20Service.findBy({ chainId: pool.chainId, address: tokenAddress, sub: pool.sub });
         if (erc20 && erc20.type === ERC20Type.Unlimited) {
             await ERC20Service.addMinter(erc20, pool.address);
@@ -154,7 +122,7 @@ export default class AssetPoolService {
         await MembershipService.addERC20Membership(pool.sub, pool);
     }
 
-    static async initializeNFTPool(pool: AssetPoolDocument, tokenAddress: string) {
+    static async initializeERC721(pool: AssetPoolDocument, tokenAddress: string) {
         const erc721 = await ERC721Service.findByQuery({ address: tokenAddress, chainId: pool.chainId });
 
         await ERC721Service.addMinter(erc721, pool.address);

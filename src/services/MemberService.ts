@@ -1,7 +1,4 @@
-import { assertEvent, parseLogs } from '@/util/events';
 import { IMember, Member } from '@/models/Member';
-import TransactionService from './TransactionService';
-import { getDiamondAbi } from '@/config/contracts';
 import { paginatedResults } from '@/util/pagination';
 import { AssetPoolDocument } from '@/models/AssetPool';
 
@@ -32,35 +29,16 @@ export default class MemberService {
         return members.map((member: IMember) => member.address);
     }
 
-    static getMemberByAddress(assetPool: AssetPoolDocument, address: string): Promise<number> {
-        return assetPool.contract.methods.getMemberByAddress(address).call();
-    }
-
     static async addMember(assetPool: AssetPoolDocument, address: string) {
-        const { receipt } = await TransactionService.send(
-            assetPool.address,
-            assetPool.contract.methods.addMember(address),
-            assetPool.chainId,
-        );
-
-        assertEvent('RoleGranted', parseLogs(assetPool.contract.options.jsonInterface, receipt.logs));
-
-        const memberId = await this.getMemberByAddress(assetPool, address);
-
         return await Member.create({
             poolAddress: assetPool.address,
-            memberId: Number(memberId),
             address,
         });
     }
 
     static async addExistingMember(assetPool: AssetPoolDocument, address: string) {
-        const memberId = await MemberService.getMemberByAddress(assetPool, address);
-        // Not using MemberService.addMember here since member is already added in the
-        // solidity storage
         return await Member.create({
             poolAddress: assetPool.address,
-            memberId: Number(memberId),
             address,
         });
     }
@@ -78,13 +56,6 @@ export default class MemberService {
     }
 
     static async removeMember(assetPool: AssetPoolDocument, address: string) {
-        const { receipt } = await TransactionService.send(
-            assetPool.address,
-            assetPool.contract.methods.removeMember(address),
-            assetPool.chainId,
-        );
-        assertEvent('RoleRevoked', parseLogs(getDiamondAbi(assetPool.chainId, 'defaultPool'), receipt.logs));
-
         return await Member.deleteOne({ poolAddress: assetPool.address, address });
     }
 

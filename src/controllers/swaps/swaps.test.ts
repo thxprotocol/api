@@ -76,7 +76,7 @@ describe('Swaps', () => {
     it('DEPLOY TOKEN B (TOKEN IN)', async () => {
         totalSupplyTokenB = fromWei('400000000000000000000', 'ether'); // 400 eth
         const tokenFactory = getContract(ChainId.Hardhat, 'TokenFactory', currentVersion);
-        const { receipt } = await TransactionService.send(
+        const receipt = await TransactionService.send(
             tokenFactory.options.address,
             tokenFactory.methods.deployLimitedSupplyToken(
                 'TOKEN B',

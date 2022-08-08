@@ -14,9 +14,8 @@ async function main() {
     const startTime = Date.now();
     console.log('Start!', startTime);
     const diamonds: Partial<Record<ContractName, DiamondVariant>> = {
-        PoolRegistry: 'poolRegistry',
-        PoolFactory: 'poolFactory',
-        TokenFactory: 'tokenFactory',
+        Registry: 'registry',
+        Factory: 'factory',
     };
 
     for (const [contractName, diamondVariant] of Object.entries(diamonds)) {

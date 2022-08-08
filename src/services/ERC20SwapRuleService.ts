@@ -18,7 +18,7 @@ function findOne(query: { poolId: string; tokenInId: string; tokenMultiplier: nu
 }
 
 async function create(assetPool: AssetPoolDocument, tokenInAddress: string, tokenMultiplier: number) {
-    const { receipt } = await TransactionService.send(
+    const receipt = await TransactionService.send(
         assetPool.address,
         assetPool.contract.methods.setSwapRule(tokenInAddress, String(tokenMultiplier)),
         assetPool.chainId,

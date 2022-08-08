@@ -10,14 +10,14 @@ const router = express.Router();
 
 // These 2 routes are public and authentication is handled with payment.token
 router.get('/:id', assertRequestInput(ReadPayment.validation), ReadPayment.controller);
+
+router.use(checkJwt);
 router.post(
     '/:id/pay',
     assertRequestInput(PostPaymentPay.validation),
     requireAssetPoolHeader,
     PostPaymentPay.controller,
 );
-
-router.use(checkJwt);
 router.post(
     '/',
     guard.check(['payments:write']),

@@ -6,9 +6,11 @@ export type AssetPoolDocument = mongoose.Document & TAssetPool;
 
 const assetPoolSchema = new mongoose.Schema(
     {
+        sub: String,
         address: String,
         chainId: Number,
-        sub: String,
+        erc20Id: String,
+        erc721Id: String,
         clientId: String,
         transactions: [String],
         lastTransactionAt: Date,
