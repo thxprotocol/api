@@ -6,6 +6,7 @@ import AccountProxy from '@/proxies/AccountProxy';
 import AssetPoolService from '@/services/AssetPoolService';
 import { checkAndUpgradeToBasicPlan } from '@/util/plans';
 import ClientProxy from '@/proxies/ClientProxy';
+import { ADDRESS_ZERO } from '@/config/secrets';
 
 const validation = [
     body('erc20tokens').custom((tokens: string[]) => {
@@ -35,8 +36,8 @@ const controller = async (req: Request, res: Response) => {
     const pool = await AssetPoolService.deploy(
         req.auth.sub,
         req.body.chainId,
-        req.body.erc20tokens,
-        req.body.erc721tokens,
+        req.body.erc20tokens ? req.body.erc20tokens[0] : ADDRESS_ZERO,
+        req.body.erc721tokens ? req.body.erc721tokens[0] : ADDRESS_ZERO,
     );
 
     const client = await ClientProxy.create(req.auth.sub, String(pool._id), {

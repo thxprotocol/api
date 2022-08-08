@@ -134,7 +134,6 @@ describe('Payments', () => {
             .post(`/v1/payments/${paymentId}/pay`)
             .set({ 'Authorization': walletAccessToken, 'X-PoolId': poolId, 'X-Payment-Token': basicAccessToken })
             .expect(({ body }: Response) => {
-                console.log(body);
                 expect(body.state).toBe(PaymentState.Completed);
             })
             .expect(200);
