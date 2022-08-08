@@ -62,7 +62,7 @@ describe('Payments', () => {
             .set('Authorization', dashboardAccessToken)
             .send({
                 chainId: ChainId.Hardhat,
-                erc20: [token.options.address],
+                erc20tokens: [token.options.address],
             })
             .expect((res: Response) => {
                 expect(isAddress(res.body.address)).toBe(true);

@@ -4,18 +4,16 @@ import { AssetPool, AssetPoolDocument } from '@/models/AssetPool';
 import { getProvider } from '@/util/network';
 import { Membership } from '@/models/Membership';
 import TransactionService from './TransactionService';
-import { diamondContracts, getContract, getContractConfig, poolFacetAdressesPermutations } from '@/config/contracts';
+import { diamondContracts, getContract, poolFacetAdressesPermutations } from '@/config/contracts';
 import { pick } from '@/util';
 import { diamondSelectors, getDiamondCutForContractFacets, updateDiamondContract } from '@/util/upgrades';
-import { currentVersion, DiamondVariant } from '@thxnetwork/artifacts';
+import { currentVersion } from '@thxnetwork/artifacts';
 import { TransactionDocument } from '@/models/Transaction';
 import MembershipService from './MembershipService';
 import ERC20Service from './ERC20Service';
 import ERC721Service from './ERC721Service';
 import { Deposit } from '@/models/Deposit';
 import { TAssetPool } from '@/types/TAssetPool';
-import { Contract } from 'web3-eth-contract';
-import { ADDRESS_ZERO } from '@/config/secrets';
 
 export const ADMIN_ROLE = '0x0000000000000000000000000000000000000000000000000000000000000000';
 
@@ -49,8 +47,8 @@ export default class AssetPoolService {
     static async deploy(
         sub: string,
         chainId: ChainId,
-        erc20 = ADDRESS_ZERO,
-        erc721 = ADDRESS_ZERO,
+        erc20: string[],
+        erc721: string[] = [],
     ): Promise<AssetPoolDocument> {
         const poolFactory = getContract(chainId, 'Factory', currentVersion);
         const registry = getContract(chainId, 'Registry', currentVersion);
@@ -72,10 +70,10 @@ export default class AssetPoolService {
                     pool.address = event.args.diamond;
 
                     if (erc20.length) {
-                        await AssetPoolService.initializeERC20(pool, erc20); // TODO Should move to ERC20Service
+                        await AssetPoolService.initializeERC20(pool, erc20[0]); // TODO Should move to ERC20Service
                     }
                     if (erc721.length) {
-                        await AssetPoolService.initializeERC721(pool, erc721); // TODO Should move to ERC721Service
+                        await AssetPoolService.initializeERC721(pool, erc721[0]); // TODO Should move to ERC721Service
                     }
                 }
                 pool.transactions.push(String(tx._id));

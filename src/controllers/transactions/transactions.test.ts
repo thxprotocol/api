@@ -51,7 +51,7 @@ describe('Transactions', () => {
                 .set('Authorization', dashboardAccessToken)
                 .send({
                     chainId: ChainId.Hardhat,
-                    tokens: [tokenAddress],
+                    erc20tokens: [tokenAddress],
                     variant: 'defaultPool',
                 })
                 .expect(async (res: request.Response) => {

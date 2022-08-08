@@ -103,3 +103,11 @@ npm run migrate
 # To rollback a migration use the down command
 npm run migrate:undo-last
 ```
+
+### 5.4 Upgrading contracts
+```
+# To get the contracts artifacts upgraded:
+1. npm i @thxnetwork/artifacts@x.x.x --save
+2. Update hardhat-thx-artifacts version in docker-compose.yml
+3. docker compose pull
+3. docker compose up

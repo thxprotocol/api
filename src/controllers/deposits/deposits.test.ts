@@ -70,7 +70,7 @@ describe('Deposits', () => {
             .set('Authorization', dashboardAccessToken)
             .send({
                 chainId: ChainId.Hardhat,
-                tokens: [tokenAddress],
+                erc20tokens: [tokenAddress],
             })
             .expect((res: request.Response) => {
                 expect(isAddress(res.body.address)).toBe(true);
@@ -232,7 +232,7 @@ describe('Deposits', () => {
                 .set('Authorization', dashboardAccessToken)
                 .send({
                     chainId: ChainId.Hardhat,
-                    tokens: [tokenAddress],
+                    erc20tokens: [tokenAddress],
                 })
                 .expect(async (res: request.Response) => {
                     expect(isAddress(res.body.address)).toBe(true);
