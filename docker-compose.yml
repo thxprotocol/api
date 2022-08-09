@@ -18,7 +18,7 @@ services:
        
     api_hardhat:
         container_name: thx_api_hardhat
-        image: public.ecr.aws/o5j5y3t5/hardhat-thx-artifacts:4.0.3
+        image: public.ecr.aws/o5j5y3t5/hardhat-thx-artifacts:4.0.4
         domainname: hardhat.thx.local
         volumes:
             - /var/run/docker.sock:/var/run/docker.sock:ro

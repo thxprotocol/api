@@ -3,6 +3,8 @@ import { param } from 'express-validator';
 import ERC20Service from '@/services/ERC20Service';
 import ERC721Service from '@/services/ERC721Service';
 import { ForbiddenError } from '@/util/errors';
+import WithdrawalService from '@/services/WithdrawalService';
+import MemberService from '@/services/MemberService';
 
 export const validation = [param('id').isMongoId()];
 
@@ -15,7 +17,13 @@ export const controller = async (req: Request, res: Response) => {
 
     const erc20 = await ERC20Service.getById(erc20Id);
     const erc721 = await ERC721Service.findById(erc721Id);
-    const result: any = req.assetPool.toJSON();
+    const result: any = {
+        ...req.assetPool.toJSON(),
+        metrics: {
+            withdrawals: await WithdrawalService.countByPool(req.assetPool),
+            members: await MemberService.countByPool(req.assetPool),
+        },
+    };
 
     if (erc20) {
         const [totalSupplyInWei, poolBalanceInWei] = await Promise.all([

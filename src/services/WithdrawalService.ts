@@ -68,7 +68,7 @@ export default class WithdrawalService {
         return withdrawals.map((item) => item.amount).reduce((prev, curr) => prev + curr, 0);
     }
 
-    static async withdrawFor(assetPool: AssetPoolDocument, withdrawal: WithdrawalDocument, account: IAccount) {
+    static async withdrawFor(pool: AssetPoolDocument, withdrawal: WithdrawalDocument, account: IAccount) {
         const amountInWei = toWei(String(withdrawal.amount));
         const callback = async (tx: TransactionDocument, events?: CustomEventLog[]) => {
             if (events) {
@@ -78,12 +78,11 @@ export default class WithdrawalService {
             withdrawal.transactions.push(String(tx._id));
             return await withdrawal.save();
         };
-
         return await TransactionService.relay(
-            assetPool.contract,
+            pool.contract,
             'withdrawFor',
             [account.address, amountInWei],
-            assetPool.chainId,
+            pool.chainId,
             callback,
         );
     }

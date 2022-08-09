@@ -39,15 +39,15 @@ const controller = async (req: Request, res: Response) => {
 
     const hasMembership = await MembershipService.hasMembership(pool, account.id);
     if (!hasMembership && !reward.isMembershipRequired) {
-        if (pool.erc20Id) {
+        if (claim.erc20Id) {
             await MembershipService.addERC20Membership(account.id, pool);
         }
-        if (pool.erc721Id) {
+        if (claim.erc721Id) {
             await MembershipService.addERC721Membership(account.id, pool);
         }
     }
 
-    if (pool.erc20Id) {
+    if (claim.erc20Id) {
         let w: WithdrawalDocument = await WithdrawalService.schedule(
             pool,
             WithdrawalType.ClaimReward,
@@ -64,7 +64,7 @@ const controller = async (req: Request, res: Response) => {
         return res.json({ ...w.toJSON(), erc20 });
     }
 
-    if (pool.erc721Id) {
+    if (claim.erc721Id) {
         const metadata = await ERC721Service.findMetadataById(reward.erc721metadataId);
         const erc721 = await ERC721Service.findById(metadata.erc721);
         const token = await ERC721Service.mint(pool, erc721, metadata, account);
