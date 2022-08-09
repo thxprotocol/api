@@ -108,7 +108,7 @@ export default class AssetPoolService {
             assetPool.chainId,
             async (tx: TransactionDocument, events: CustomEventLog[]) => {
                 if (events) {
-                    assertEvent('ERC20TransferFrom', events);
+                    assertEvent('ERC20ProxyTransferFrom', events);
                     deposit.state = DepositState.Completed;
                 }
 

@@ -5,7 +5,12 @@ import { Contract } from 'web3-eth-contract';
 import { isAddress, fromWei, toWei, toChecksumAddress } from 'web3-utils';
 import { afterAllCallback, beforeAllCallback } from '@/util/jest/config';
 import { ChainId, ERC20Type } from '@/types/enums';
-import { getContract, getContractFromName } from '@/config/contracts';
+import {
+    getAbiForContractName,
+    getByteCodeForContractName,
+    getContract,
+    getContractFromName,
+} from '@/config/contracts';
 import {
     adminAccessToken,
     dashboardAccessToken,
@@ -13,7 +18,7 @@ import {
     userWalletPrivateKey2,
     walletAccessToken,
 } from '@/util/jest/constants';
-import { createWallet, signMethod } from '@/util/jest/network';
+import { createWallet } from '@/util/jest/network';
 import { getProvider } from '@/util/network';
 import TransactionService from '@/services/TransactionService';
 import { assertEvent, parseLogs } from '@/util/events';
@@ -75,20 +80,15 @@ describe('Swaps', () => {
 
     it('DEPLOY TOKEN B (TOKEN IN)', async () => {
         totalSupplyTokenB = fromWei('400000000000000000000', 'ether'); // 400 eth
-        const tokenFactory = getContract(ChainId.Hardhat, 'TokenFactory', currentVersion);
-        const receipt = await TransactionService.send(
-            tokenFactory.options.address,
-            tokenFactory.methods.deployLimitedSupplyToken(
-                'TOKEN B',
-                'TKNB',
-                userWallet.address,
-                toWei(String(totalSupplyTokenB)),
-            ),
+
+        testTokenB = await TransactionService.deploy(
+            getAbiForContractName('LimitedSupplyToken'),
+            getByteCodeForContractName('LimitedSupplyToken'),
+            ['TOKEN B', 'TKNB', userWallet.address, toWei(String(totalSupplyTokenB))],
             ChainId.Hardhat,
         );
-        const event = assertEvent('TokenDeployed', parseLogs(tokenFactory.options.jsonInterface, receipt.logs));
-        tokenInAddress = event.args.token;
-        testTokenB = getContractFromName(ChainId.Hardhat, 'LimitedSupplyToken', tokenInAddress);
+
+        tokenInAddress = testTokenB.options.address;
     });
 
     it('Create pool for TOKEN A', (done) => {
@@ -127,7 +127,7 @@ describe('Swaps', () => {
         expect(event.returnValues.value).toEqual(String(MaxUint256));
     });
 
-    it('POST /deposits/admin/ 200 OK', (done) => {
+    it('POST /pools/:id/topup/ 200 OK', (done) => {
         const amount = fromWei('500000000000000000000', 'ether'); // 500 eth
         http.post(`/v1/pools/${poolId}/topup`)
             .set({ 'Authorization': dashboardAccessToken, 'X-PoolId': poolId })
@@ -168,11 +168,10 @@ describe('Swaps', () => {
     });
 
     it('POST /swaps 200 OK', async () => {
-        const { call, nonce, sig } = await signMethod(poolAddress, 'swap', [amountIn, tokenInAddress], userWallet);
         await http
             .post('/v1/swaps')
             .set({ 'Authorization': walletAccessToken, 'X-PoolId': poolId })
-            .send({ call, nonce, sig, amountIn, swapRuleId: swaprule._id })
+            .send({ amountIn, swapRuleId: swaprule._id })
             .expect(({ body }: Response) => {
                 expect(body._id).toBeDefined();
                 expect(body.amountIn).toEqual(String(amountIn));
@@ -186,11 +185,10 @@ describe('Swaps', () => {
 
     it('POST /swaps 400 Bad Request (InsufficientBalanceError)', async () => {
         const wrongAmountIn = toWei('1000', 'ether');
-        const { call, nonce, sig } = await signMethod(poolAddress, 'swap', [wrongAmountIn, tokenInAddress], userWallet);
         await http
             .post('/v1/swaps')
             .set({ 'Authorization': walletAccessToken, 'X-PoolId': poolId })
-            .send({ call, nonce, sig, amountIn: wrongAmountIn, swapRuleId: swaprule._id })
+            .send({ amountIn: wrongAmountIn, swapRuleId: swaprule._id })
             .expect(({ body }: Response) => {
                 expect(body.error.message).toEqual(new InsufficientBalanceError().message);
             })

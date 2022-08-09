@@ -5,8 +5,8 @@ import TransactionService from './TransactionService';
 import { assertEvent, parseLogs } from '@/util/events';
 import { ChainId, ERC20Type } from '@/types/enums';
 import { AssetPoolDocument } from '@/models/AssetPool';
-import { currentVersion, TokenContractName } from '@thxnetwork/artifacts';
-import { getByteCodeForContractName, getContract, getContractFromName } from '@/config/contracts';
+import { TokenContractName } from '@thxnetwork/artifacts';
+import { getAbiForContractName, getByteCodeForContractName, getContractFromName } from '@/config/contracts';
 import { keccak256, toUtf8Bytes } from 'ethers/lib/utils';
 import { ERC20Token } from '@/models/ERC20Token';
 import { getProvider } from '@/util/network';
@@ -25,7 +25,6 @@ function getDeployArgs(erc20: ERC20Document, totalSupply?: string) {
 }
 
 export const deploy = async (contractName: TokenContractName, params: ICreateERC20Params) => {
-    const { options } = getContract(params.chainId, contractName, currentVersion);
     const erc20 = await ERC20.create({
         name: params.name,
         symbol: params.symbol,
@@ -34,8 +33,9 @@ export const deploy = async (contractName: TokenContractName, params: ICreateERC
         sub: params.sub,
         archived: false,
     });
+
     const contract = await TransactionService.deploy(
-        options.jsonInterface,
+        getAbiForContractName(contractName),
         getByteCodeForContractName(contractName),
         getDeployArgs(erc20, params.totalSupply),
         erc20.chainId,

@@ -23,11 +23,7 @@ const assetPoolSchema = new mongoose.Schema(
 
 assetPoolSchema.virtual('contract').get(function () {
     if (!this.address) return;
-    return getContractFromAbi(
-        this.chainId,
-        getDiamondAbi(this.chainId, this.variant || 'defaultDiamond'),
-        this.address,
-    );
+    return getContractFromAbi(this.chainId, getDiamondAbi(this.chainId, 'defaultDiamond'), this.address);
 });
 
 export const AssetPool = mongoose.model<AssetPoolDocument>('AssetPool', assetPoolSchema);
