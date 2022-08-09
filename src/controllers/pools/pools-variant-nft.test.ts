@@ -53,7 +53,6 @@ describe('NFT Pool', () => {
                     chainId: ChainId.Hardhat,
                     erc20tokens: [],
                     erc721tokens: [tokenAddress],
-                    variant: 'nftPool',
                 })
                 .expect(({ body }: request.Response) => {
                     expect(isAddress(body.address)).toBe(true);

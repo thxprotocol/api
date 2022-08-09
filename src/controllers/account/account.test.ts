@@ -130,7 +130,6 @@ describe('Account', () => {
             user.get('/v1/memberships/' + membershipID)
                 .set({ 'X-PoolId': poolId, 'Authorization': walletAccessToken })
                 .expect((res: request.Response) => {
-                    console.log(res.body);
                     expect(res.body._id).toBe(membershipID);
                     expect(res.body.poolId).toBe(poolId);
                     expect(res.body.chainId).toBe(ChainId.Hardhat);

@@ -129,7 +129,6 @@ export default class AssetPoolService {
 
     static async initializeERC721(pool: AssetPoolDocument, tokenAddress: string) {
         const erc721 = await ERC721Service.findByQuery({ address: tokenAddress, chainId: pool.chainId });
-
         await ERC721Service.addMinter(erc721, pool.address);
         await MembershipService.addERC721Membership(pool.sub, pool);
     }
