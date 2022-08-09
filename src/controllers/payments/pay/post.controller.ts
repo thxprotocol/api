@@ -40,7 +40,6 @@ const controller = async (req: Request, res: Response) => {
 
     // Recover signer from message
     const account = await AccountProxy.getById(req.auth.sub);
-    console.log(req.auth.sub, account.address, payment.receiver, defaultAccount);
     payment.sender = account.address;
 
     // Check balance to ensure throughput
