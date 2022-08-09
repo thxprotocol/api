@@ -45,7 +45,12 @@ export default class AssetPoolService {
         return AssetPool.findOne({ address });
     }
 
-    static async deploy(sub: string, chainId: ChainId, erc20: string, erc721: string): Promise<AssetPoolDocument> {
+    static async deploy(
+        sub: string,
+        chainId: ChainId,
+        erc20Address: string,
+        erc721Address: string,
+    ): Promise<AssetPoolDocument> {
         const poolFactory = getContract(chainId, 'Factory', currentVersion);
         const poolFacetContracts = diamondContracts(chainId, 'defaultDiamond');
         const pool = new AssetPool({
@@ -58,17 +63,24 @@ export default class AssetPoolService {
 
         const { fn, args, callback } = {
             fn: 'deploy',
-            args: [getDiamondCutForContractFacets(poolFacetContracts, []), erc20, erc721],
+            args: [getDiamondCutForContractFacets(poolFacetContracts, []), erc20Address, erc721Address],
             callback: async (tx: TransactionDocument, events?: CustomEventLog[]): Promise<AssetPoolDocument> => {
                 if (events) {
                     const event = findEvent('DiamondDeployed', events);
                     pool.address = event.args.diamond;
 
-                    if (erc20 !== ADDRESS_ZERO) {
-                        await AssetPoolService.initializeERC20(pool, erc20); // TODO Should move to ERC20Service
+                    if (erc20Address !== ADDRESS_ZERO) {
+                        const erc20 = await ERC20Service.findOrImport(pool, erc20Address);
+                        await AssetPoolService.initializeERC20(pool, erc20Address); // TODO Should move to ERC20Service
+                        pool.erc20Id = String(erc20._id);
                     }
-                    if (erc721 !== ADDRESS_ZERO) {
-                        await AssetPoolService.initializeERC721(pool, erc721); // TODO Should move to ERC721Service
+                    if (erc721Address !== ADDRESS_ZERO) {
+                        const erc721 = await ERC721Service.findByQuery({
+                            address: erc721Address,
+                            chainId: pool.chainId,
+                        });
+                        await AssetPoolService.initializeERC721(pool, erc721Address); // TODO Should move to ERC721Service
+                        pool.erc721Id = String(erc721._id);
                     }
                 }
                 pool.transactions.push(String(tx._id));

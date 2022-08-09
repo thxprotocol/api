@@ -7,13 +7,7 @@ import ERC20Service from '@/services/ERC20Service';
 import PromotionService from '@/services/PromotionService';
 import AccountProxy from '@/proxies/AccountProxy';
 
-const validation = [
-    body('call').exists(),
-    body('nonce').exists(),
-    body('sig').exists(),
-    body('item').optional().isMongoId(),
-    body('amount').optional().isNumeric(),
-];
+const validation = [body('item').optional().isMongoId(), body('amount').isNumeric()];
 
 const controller = async (req: Request, res: Response) => {
     // #swagger.tags = ['Deposits']
@@ -23,11 +17,11 @@ const controller = async (req: Request, res: Response) => {
     if (req.body.item) {
         const promoCode = await PromotionService.findById(req.body.item);
         if (!promoCode) throw new NotFoundError('Could not find promotion');
-        value = promoCode.price;
+        value = toWei(String(promoCode.price));
     }
 
     const account = await AccountProxy.getById(req.auth.sub);
-    const amount = toWei(String(value));
+    const amount = value;
     const erc20 = await ERC20Service.findByPool(req.assetPool);
 
     // Check balance to ensure throughput
@@ -38,9 +32,7 @@ const controller = async (req: Request, res: Response) => {
     const allowance = Number(await erc20.contract.methods.allowance(account.address, req.assetPool.address).call());
     if (allowance < Number(amount)) throw new AmountExceedsAllowanceError();
 
-    const { call, nonce, sig } = req.body;
-    const deposit = await DepositService.deposit(req.assetPool, account, value, { call, nonce, sig }, req.body.item);
-
+    const deposit = await DepositService.deposit(req.assetPool, account, value, req.body.item);
     res.json(deposit);
 };
 

@@ -15,7 +15,7 @@ import {
     userWalletPrivateKey2,
     walletAccessToken,
 } from '@/util/jest/constants';
-import { getByteCodeForContractName, getContract, getContractFromName } from '@/config/contracts';
+import { getByteCodeForContractName, getContract } from '@/config/contracts';
 import { PaymentState } from '@/types/enums/PaymentState';
 import TransactionService from '@/services/TransactionService';
 import { currentVersion } from '@thxnetwork/artifacts';

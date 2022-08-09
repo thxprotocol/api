@@ -5,14 +5,12 @@ import { AssetPoolDocument } from '@/models/AssetPool';
 export default class MemberService {
     static async getByAddress(assetPool: AssetPoolDocument, address: string) {
         const isMember = await this.isMember(assetPool, address);
-        const isManager = await this.isManager(assetPool, address);
         const memberId = await assetPool.contract.methods.getMemberByAddress(address).call();
 
         return {
             id: memberId,
             address,
             isMember,
-            isManager,
         };
     }
 
@@ -31,24 +29,13 @@ export default class MemberService {
 
     static async addMember(assetPool: AssetPoolDocument, address: string) {
         return await Member.create({
-            poolAddress: assetPool.address,
+            poolAddress: String(assetPool._id),
             address,
         });
     }
 
-    static async addExistingMember(assetPool: AssetPoolDocument, address: string) {
-        return await Member.create({
-            poolAddress: assetPool.address,
-            address,
-        });
-    }
-
-    static isMember(assetPool: AssetPoolDocument, address: string) {
-        return assetPool.contract.methods.isMember(address).call();
-    }
-
-    static isManager(assetPool: AssetPoolDocument, address: string) {
-        return assetPool.contract.methods.isManager(address).call();
+    static isMember(pool: AssetPoolDocument, address: string) {
+        return Member.exists({ poolId: String(pool._id), address });
     }
 
     static async findByQuery(query: { poolId: string }, page = 1, limit = 10) {

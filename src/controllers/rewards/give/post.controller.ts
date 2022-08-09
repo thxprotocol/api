@@ -33,7 +33,7 @@ const controller = async (req: Request, res: Response) => {
         req.params.id,
     );
 
-    w = await WithdrawalService.proposeWithdraw(req.assetPool, w, account);
+    w = await WithdrawalService.withdrawFor(req.assetPool, w, account);
 
     res.json({
         ...w.toJSON(),

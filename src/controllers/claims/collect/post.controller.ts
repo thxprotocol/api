@@ -48,7 +48,7 @@ const controller = async (req: Request, res: Response) => {
     }
 
     if (pool.erc20Id) {
-        const w: WithdrawalDocument = await WithdrawalService.schedule(
+        let w: WithdrawalDocument = await WithdrawalService.schedule(
             pool,
             WithdrawalType.ClaimReward,
             req.auth.sub,
@@ -59,7 +59,7 @@ const controller = async (req: Request, res: Response) => {
         );
         const erc20 = await ERC20Service.getById(claim.erc20Id);
 
-        await WithdrawalService.proposeWithdraw(pool, w, account);
+        w = await WithdrawalService.withdrawFor(pool, w, account);
 
         return res.json({ ...w.toJSON(), erc20 });
     }

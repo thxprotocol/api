@@ -1,6 +1,5 @@
 import { Request, Response } from 'express';
 import { param } from 'express-validator';
-import { fromWei } from 'web3-utils';
 import ERC20Service from '@/services/ERC20Service';
 import ERC721Service from '@/services/ERC721Service';
 import { ForbiddenError } from '@/util/errors';
@@ -25,8 +24,8 @@ export const controller = async (req: Request, res: Response) => {
         ]);
         result.erc20 = {
             ...erc20.toJSON(),
-            totalSupply: Number(fromWei(totalSupplyInWei)),
-            poolBalance: Number(fromWei(poolBalanceInWei)),
+            totalSupply: totalSupplyInWei,
+            poolBalance: poolBalanceInWei,
         };
     }
 
@@ -37,8 +36,8 @@ export const controller = async (req: Request, res: Response) => {
         ]);
         result.erc721 = {
             ...erc721.toJSON(),
-            totalSupply: Number(fromWei(totalSupplyInWei)),
-            poolBalance: Number(fromWei(poolBalanceInWei)),
+            totalSupply: totalSupplyInWei,
+            poolBalance: poolBalanceInWei,
         };
     }
 

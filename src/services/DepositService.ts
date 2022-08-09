@@ -16,13 +16,7 @@ async function getAll(assetPool: TAssetPool): Promise<DepositDocument[]> {
     return await Deposit.find({ poolAddress: assetPool.address });
 }
 
-async function deposit(
-    assetPool: TAssetPool,
-    account: IAccount,
-    amount: string,
-    callData: { call: string; nonce: number; sig: string },
-    item: string,
-) {
+async function deposit(assetPool: TAssetPool, account: IAccount, amount: string, item: string) {
     const deposit = await Deposit.create({
         sub: account.id,
         sender: account.address,
@@ -33,7 +27,7 @@ async function deposit(
     });
     const callback = async (tx: TransactionDocument, events?: CustomEventLog[]) => {
         if (events) {
-            assertEvent('Deposited', events);
+            assertEvent('ERC20DepositFrom', events);
             deposit.state = DepositState.Completed;
         }
         deposit.transactions.push(String(tx._id));
@@ -42,11 +36,10 @@ async function deposit(
 
     return await TransactionService.relay(
         assetPool.contract,
-        'call',
-        [callData.call, callData.nonce, callData.sig],
+        'depositFrom',
+        [account.address, amount],
         assetPool.chainId,
         callback,
-        200000,
     );
 }
 

@@ -908,15 +908,6 @@
                 },
                 "item": {
                   "example": "any"
-                },
-                "call": {
-                  "example": "any"
-                },
-                "nonce": {
-                  "example": "any"
-                },
-                "sig": {
-                  "example": "any"
                 }
               }
             }
