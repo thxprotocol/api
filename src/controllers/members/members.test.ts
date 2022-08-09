@@ -39,12 +39,6 @@ describe('Members', () => {
     });
 
     describe('GET /members/:address', () => {
-        it('HTTP 200 if OK', (done) => {
-            const { defaultAccount } = getProvider(ChainId.Hardhat);
-            user.get('/v1/members/' + defaultAccount)
-                .set({ 'X-PoolId': poolId, 'Authorization': adminAccessToken })
-                .expect(200, done);
-        });
         it('HTTP 404 if not found', (done) => {
             user.get('/v1/members/' + voter.address)
                 .set({ 'X-PoolId': poolId, 'Authorization': adminAccessToken })
@@ -61,52 +55,10 @@ describe('Members', () => {
         });
     });
 
-    describe('PATCH /members/:address (isManager: true)', () => {
-        let redirectURL = '';
-
-        it('HTTP 302 if OK', (done) => {
-            user.patch('/v1/members/' + userWallet.address)
-                .send({ isManager: true })
+    describe('GET /members/:address (after added)', () => {
+        it('HTTP 200 if OK', (done) => {
+            user.get('/v1/members/' + userWallet.address)
                 .set({ 'X-PoolId': poolId, 'Authorization': adminAccessToken })
-                .expect((res: request.Response) => {
-                    redirectURL = res.headers.location;
-                })
-                .expect(302, done);
-        });
-
-        it('HTTP 200 and isManager true', (done) => {
-            user.get(redirectURL)
-                .set({ 'X-PoolId': poolId, 'Authorization': adminAccessToken })
-                .expect((res: request.Response) => {
-                    expect(res.body.isMember).toEqual(true);
-                    expect(res.body.isManager).toEqual(true);
-                    expect(res.body.token.balance).toEqual(0);
-                })
-                .expect(200, done);
-        });
-    });
-
-    describe('PATCH /members/:address (isManager: false)', () => {
-        let redirectURL = '';
-
-        it('HTTP 302 if OK', (done) => {
-            user.patch('/v1/members/' + userWallet.address)
-                .send({ isManager: false })
-                .set({ 'X-PoolId': poolId, 'Authorization': adminAccessToken })
-                .expect((res: request.Response) => {
-                    redirectURL = res.headers.location;
-                })
-                .expect(302, done);
-        });
-
-        it('HTTP 200 and isManager: false', (done) => {
-            user.get(redirectURL)
-                .set({ 'X-PoolId': poolId, 'Authorization': adminAccessToken })
-                .expect((res: request.Response) => {
-                    expect(res.body.isMember).toEqual(true);
-                    expect(res.body.isManager).toEqual(false);
-                    expect(res.body.token.balance).toEqual(0);
-                })
                 .expect(200, done);
         });
     });

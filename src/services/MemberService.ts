@@ -5,10 +5,7 @@ import { AssetPoolDocument } from '@/models/AssetPool';
 export default class MemberService {
     static async getByAddress(assetPool: AssetPoolDocument, address: string) {
         const isMember = await this.isMember(assetPool, address);
-        const memberId = await assetPool.contract.methods.getMemberByAddress(address).call();
-
         return {
-            id: memberId,
             address,
             isMember,
         };
