@@ -43,16 +43,16 @@ describe('Upgrades', () => {
             const pool = await AssetPoolService.getById(poolId);
 
             expect(await AssetPoolService.contractVersionVariant(pool)).toEqual({
-                variant: 'defaultPool',
+                variant: 'defaultDiamond',
                 version: currentVersion,
             });
 
-            await updateDiamondContract(pool.chainId, pool.contract, 'poolRegistry');
-            expect((await AssetPoolService.contractVersionVariant(pool)).variant).toBe('poolRegistry');
+            await updateDiamondContract(pool.chainId, pool.contract, 'registry');
+            expect((await AssetPoolService.contractVersionVariant(pool)).variant).toBe('registry');
 
             await AssetPoolService.updateAssetPool(pool);
             expect(await AssetPoolService.contractVersionVariant(pool)).toEqual({
-                variant: 'defaultPool',
+                variant: 'defaultDiamond',
                 version: currentVersion,
             });
         });

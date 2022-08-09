@@ -1,6 +1,5 @@
 import request from 'supertest';
 import app from '@/app';
-import { getProvider } from '@/util/network';
 import { createWallet, voter } from '@/util/jest/network';
 import { adminAccessToken, dashboardAccessToken, userWalletPrivateKey2 } from '@/util/jest/constants';
 import { Contract } from 'web3-eth-contract';
