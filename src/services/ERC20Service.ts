@@ -5,7 +5,7 @@ import TransactionService from './TransactionService';
 import { assertEvent, parseLogs } from '@/util/events';
 import { ChainId, ERC20Type } from '@/types/enums';
 import { AssetPoolDocument } from '@/models/AssetPool';
-import { ContractName, currentVersion, TokenContractName } from '@thxnetwork/artifacts';
+import { currentVersion, TokenContractName } from '@thxnetwork/artifacts';
 import { getByteCodeForContractName, getContract, getContractFromName } from '@/config/contracts';
 import { keccak256, toUtf8Bytes } from 'ethers/lib/utils';
 import { ERC20Token } from '@/models/ERC20Token';

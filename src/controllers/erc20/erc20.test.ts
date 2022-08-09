@@ -36,7 +36,6 @@ describe('ERC20', () => {
                 .expect(({ body }: request.Response) => {
                     expect(isAddress(body._id)).toBeDefined();
                     expect(isAddress(body.address)).toBe(true);
-                    expect(body.transactions).toHaveLength(1);
                     tokenId = body._id;
                 })
                 .expect(201, done);
@@ -55,7 +54,6 @@ describe('ERC20', () => {
                 .expect(({ body }: request.Response) => {
                     expect(isAddress(body._id)).toBeDefined();
                     expect(isAddress(body.address)).toBe(true);
-                    expect(body.transactions).toHaveLength(1);
                 })
                 .expect(201, done);
         });

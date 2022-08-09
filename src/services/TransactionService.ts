@@ -4,9 +4,7 @@ import { Transaction, TransactionDocument } from '@/models/Transaction';
 import { getProvider } from '@/util/network';
 import { ChainId, TransactionState, TransactionType } from '@/types/enums';
 import { MINIMUM_GAS_LIMIT } from '@/config/secrets';
-import { CustomEventLog, findEvent, hex2a, parseLogs } from '@/util/events';
-import { logger } from '@/util/logger';
-import { InternalServerError } from '@/util/errors';
+import { CustomEventLog, parseLogs } from '@/util/events';
 import { paginatedResults } from '@/util/pagination';
 import { TTransaction } from '@/types/TTransaction';
 
