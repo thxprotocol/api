@@ -29,7 +29,7 @@ export default class MemberService {
 
     static async addMember(assetPool: AssetPoolDocument, address: string) {
         return await Member.create({
-            poolAddress: String(assetPool._id),
+            poolId: String(assetPool._id),
             address,
         });
     }

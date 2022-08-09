@@ -122,7 +122,6 @@ export default class AssetPoolService {
     static async initializeERC20(pool: AssetPoolDocument, tokenAddress: string) {
         const erc20 = await ERC20Service.findBy({ chainId: pool.chainId, address: tokenAddress, sub: pool.sub });
         if (erc20 && erc20.type === ERC20Type.Unlimited) {
-            console.log(erc20);
             await ERC20Service.addMinter(erc20, pool.address);
         }
         await MembershipService.addERC20Membership(pool.sub, pool);

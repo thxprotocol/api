@@ -1,6 +1,7 @@
 import request from 'supertest';
 import app from '@/app';
-import { ERC20Type, ChainId } from '@/types/enums';
+import { toWei } from 'web3-utils';
+import { ERC20Type, ChainId, WithdrawalState } from '@/types/enums';
 import {
     adminAccessToken,
     dashboardAccessToken,
@@ -67,7 +68,7 @@ describe('Propose Withdrawal', () => {
                 .set({ 'X-PoolId': poolId, 'Authorization': dashboardAccessToken })
                 .send()
                 .expect((res: request.Response) => {
-                    expect(isAddress(res.body.token.address)).toBe(true);
+                    expect(isAddress(res.body.erc20.address)).toBe(true);
                 })
                 .expect(200, done);
         });
@@ -92,41 +93,13 @@ describe('Propose Withdrawal', () => {
                     expect(body._id).toBeDefined();
                     expect(body.sub).toEqual(sub2);
                     expect(body.amount).toEqual(rewardWithdrawAmount);
-                    expect(body.state).toEqual(0);
+                    expect(body.state).toEqual(WithdrawalState.Withdrawn);
                     expect(body.createdAt).toBeDefined();
-                    expect(body.withdrawalId).toEqual(1);
                     expect(body.unlockDate).not.toBe(undefined);
 
                     withdrawalDocumentId = body._id;
                 })
                 .expect(201, done);
-        });
-    });
-
-    describe('POST /withdrawals/:id/withdraw', () => {
-        it('HTTP 200 and 0 balance', (done) => {
-            user.get('/v1/members/' + userWallet.address)
-                .set({ 'X-PoolId': poolId, 'Authorization': adminAccessToken })
-                .expect((res: request.Response) => {
-                    expect(res.body.token.balance).toBe(0);
-                })
-                .expect(200, done);
-        });
-
-        it('HTTP 200 OK', (done) => {
-            user.post(`/v1/withdrawals/${withdrawalDocumentId}/withdraw`)
-                .send()
-                .set({ 'X-PoolId': poolId, 'Authorization': adminAccessToken })
-                .expect(200, done);
-        });
-
-        it('HTTP 200 and 1000 balance', (done) => {
-            user.get('/v1/members/' + userWallet.address)
-                .set({ 'X-PoolId': poolId, 'Authorization': adminAccessToken })
-                .expect((res: request.Response) => {
-                    expect(res.body.token.balance).toBe(1000);
-                })
-                .expect(200, done);
         });
     });
 
@@ -143,10 +116,10 @@ describe('Propose Withdrawal', () => {
             user.get('/v1/pools/' + poolId)
                 .set({ 'X-PoolId': poolId, 'Authorization': dashboardAccessToken })
                 .expect((res: request.Response) => {
-                    expect(res.body.token.poolBalance).toBe(0);
-                    expect(res.body.token.name).toBe(tokenName);
-                    expect(res.body.token.symbol).toBe(tokenSymbol);
-                    expect(res.body.token.totalSupply).toBe(1025); // 1000 token reward + 25 protocol fee
+                    expect(res.body.erc20.poolBalance).toBe('0');
+                    expect(res.body.erc20.name).toBe(tokenName);
+                    expect(res.body.erc20.symbol).toBe(tokenSymbol);
+                    expect(res.body.erc20.totalSupply).toBe(toWei('1025')); // 1000 token reward + 25 protocol fee
                 })
                 .expect(200, done);
         });

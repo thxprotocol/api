@@ -116,7 +116,7 @@ describe('Claims', () => {
                 .set({ 'X-PoolId': poolId, 'Authorization': walletAccessToken })
                 .expect((res: request.Response) => {
                     expect(res.body._id).toBeDefined();
-                    expect(res.body.state).toEqual(WithdrawalState.Pending);
+                    expect(res.body.state).toEqual(WithdrawalState.Withdrawn);
                 })
                 .expect(200, done);
         });
