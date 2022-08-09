@@ -7,6 +7,7 @@ import { diamondFacetAddresses, getContractConfig, getContractFromName } from '@
 import { logger } from '@/util/logger';
 import newrelic from 'newrelic';
 import { currentVersion, diamondVariants } from '@thxnetwork/artifacts';
+import { NODE_ENV } from '@/config/secrets';
 
 function handleError(error: Error) {
     newrelic.noticeError(error);
@@ -28,19 +29,32 @@ async function getNetworkDetails(chainId: ChainId) {
     try {
         const { defaultAccount, relayer, web3 } = getProvider(chainId);
         const balance = await web3.eth.getBalance(defaultAccount);
+
+        let queue;
+        if (relayer) {
+            const [pending, failed, mined] = await Promise.all([
+                await relayer.list({ status: 'pending' }),
+                await relayer.list({ status: 'failed' }),
+                await relayer.list({ status: 'mined' }),
+            ]);
+
+            queue = {
+                pending: pending.length,
+                failed: failed.length,
+                mined: mined.length,
+            };
+        }
+
         return {
             admin: {
                 address: defaultAccount,
                 balance: fromWei(balance, 'ether'),
             },
-            relayer: relayer
-                ? {
-                      pending: (await relayer.list({ status: 'pending' })).length,
-                      failed: (await relayer.list({ status: 'failed' })).length,
-                      mined: (await relayer.list({ status: 'mined' })).length,
-                  }
-                : undefined,
+            queue,
             facets: facetAdresses(chainId),
+            registry: getContractConfig(chainId, 'Registry').address,
+            factory: getContractConfig(chainId, 'Factory').address,
+            feeCollector: await poolRegistry(chainId).methods.feeCollector().call(),
         };
     } catch (error) {
         return handleError(error);
@@ -48,37 +62,35 @@ async function getNetworkDetails(chainId: ChainId) {
 }
 
 function poolRegistry(chainId: ChainId) {
-    const { address } = getContractConfig(chainId, 'PoolRegistry');
-    return getContractFromName(chainId, 'PoolRegistry', address);
+    try {
+        const { address } = getContractConfig(chainId, 'Registry');
+        return getContractFromName(chainId, 'Registry', address);
+    } catch (error) {
+        return undefined;
+    }
 }
 
 export const getHealth = async (_req: Request, res: Response) => {
     // #swagger.tags = ['Health']
-    const [testnetDetails, mainnetDetails, testnetFeeCollector, mainnetFeeCollector] = await Promise.all([
-        await getNetworkDetails(ChainId.PolygonMumbai),
-        await getNetworkDetails(ChainId.Polygon),
-        await poolRegistry(ChainId.PolygonMumbai).methods.feeCollector().call(),
-        await poolRegistry(ChainId.Polygon).methods.feeCollector().call(),
-    ]);
-
-    const jsonData = {
+    const result: any = {
         name,
         version,
         license,
         artifacts: currentVersion,
-        testnet: {
-            ...testnetDetails,
-            registry: getContractConfig(ChainId.PolygonMumbai, 'Registry').address,
-            factory: getContractConfig(ChainId.PolygonMumbai, 'Factory').address,
-            feeCollector: testnetFeeCollector,
-        },
-        mainnet: {
-            ...mainnetDetails,
-            registry: getContractConfig(ChainId.Polygon, 'Registry').address,
-            factory: getContractConfig(ChainId.Polygon, 'Factory').address,
-            feeCollector: mainnetFeeCollector,
-        },
     };
 
-    res.header('Content-Type', 'application/json').send(JSON.stringify(jsonData, null, 4));
+    if (NODE_ENV !== 'production') {
+        result.hardhat = await getNetworkDetails(ChainId.Hardhat);
+    } else {
+        const [hardhat, testnet, mainnet] = await Promise.all([
+            await getNetworkDetails(ChainId.Hardhat),
+            await getNetworkDetails(ChainId.PolygonMumbai),
+            await getNetworkDetails(ChainId.Polygon),
+        ]);
+        result.hardhat = hardhat;
+        result.testnet = testnet;
+        result.mainnet = mainnet;
+    }
+
+    res.header('Content-Type', 'application/json').send(JSON.stringify(result, null, 4));
 };

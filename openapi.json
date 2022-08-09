@@ -1240,78 +1240,6 @@
         }
       }
     },
-    "/relay/call": {
-      "post": {
-        "tags": [
-          "Relay Hub"
-        ],
-        "description": "",
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "schema": {
-              "type": "object",
-              "properties": {
-                "call": {
-                  "example": "any"
-                },
-                "nonce": {
-                  "example": "any"
-                },
-                "sig": {
-                  "example": "any"
-                }
-              }
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK"
-          },
-          "500": {
-            "description": "Internal Server Error"
-          }
-        }
-      }
-    },
-    "/relay/upgrade_address": {
-      "post": {
-        "tags": [
-          "Relay Hub"
-        ],
-        "description": "",
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "schema": {
-              "type": "object",
-              "properties": {
-                "call": {
-                  "example": "any"
-                },
-                "nonce": {
-                  "example": "any"
-                },
-                "sig": {
-                  "example": "any"
-                }
-              }
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK"
-          },
-          "500": {
-            "description": "Internal Server Error"
-          }
-        }
-      }
-    },
     "/rewards/": {
       "get": {
         "tags": [
@@ -1685,27 +1613,6 @@
         }
       }
     },
-    "/withdrawals/{id}/withdraw": {
-      "post": {
-        "tags": [
-          "Withdrawals"
-        ],
-        "description": "",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        }
-      }
-    },
     "/transactions/": {
       "get": {
         "description": "",
@@ -1859,15 +1766,6 @@
                   "example": "any"
                 },
                 "amountIn": {
-                  "example": "any"
-                },
-                "call": {
-                  "example": "any"
-                },
-                "nonce": {
-                  "example": "any"
-                },
-                "sig": {
                   "example": "any"
                 }
               }
