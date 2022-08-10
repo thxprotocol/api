@@ -1,4 +1,4 @@
-const TokenFacetArtifact = require('@thxnetwork/artifacts/dist/exports/abis/ERC20Facet.json');
+const TokenFacetArtifact = require('@thxnetwork/artifacts/dist/exports/abis/ERC20ProxyFacet.json');
 const ERC20Artifact = require('@thxnetwork/artifacts/dist/exports/abis/ERC20.json');
 const Web3 = require('web3');
 
@@ -6,7 +6,7 @@ function getProvider(rpc) {
     const web3 = new Web3(rpc);
     const admin = web3.eth.accounts.privateKeyToAccount(process.env.PRIVATE_KEY);
 
-    web3.eth.defaultAccount = defaultAccount;
+    web3.eth.defaultAccount = admin.address;
 
     return { web3, admin };
 }
