@@ -10,7 +10,6 @@ import {
     RELAYER_SPEED,
 } from '@/config/secrets';
 import Web3 from 'web3';
-import { soliditySha3 } from 'web3-utils';
 import { Contract } from 'web3-eth-contract';
 import { arrayify, computeAddress, hashMessage, recoverPublicKey } from 'ethers/lib/utils';
 import { ChainId } from '../types/enums';
@@ -59,15 +58,6 @@ export function getProvider(chainId: ChainId) {
 
 export const recoverSigner = (message: string, sig: string) => {
     return computeAddress(recoverPublicKey(arrayify(hashMessage(message)), sig));
-};
-
-export const recoverAddress = (call: string, nonce: number, sig: string, isMetamaskAccount = false) => {
-    const hash = soliditySha3(call, nonce);
-    const pubKey = isMetamaskAccount
-        ? recoverPublicKey(arrayify(hash), sig)
-        : recoverPublicKey(arrayify(hashMessage(arrayify(hash))), sig);
-
-    return computeAddress(pubKey);
 };
 
 export function getSelectors(contract: Contract) {

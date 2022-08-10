@@ -1,5 +1,5 @@
 import db from '@/util/database';
-import AssetPoolService from '@/services/AssetPoolService';
+import AssetPoolService, { ADMIN_ROLE } from '@/services/AssetPoolService';
 import AccountProxy from '@/proxies/AccountProxy';
 import Web3 from 'web3';
 import { MONGODB_URI } from '@/config/secrets';
@@ -14,6 +14,10 @@ import { getProvider } from '@/util/network';
 import { logger } from '@/util/logger';
 import { toChecksumAddress } from 'web3-utils';
 import TransactionService from '@/services/TransactionService';
+// import { BigNumber } from 'ethers/lib/ethers';
+
+// const multiplier = BigNumber.from('10').pow(15);
+// const twoHalfPercent = BigNumber.from('25').mul(multiplier);
 
 db.connect(MONGODB_URI);
 
@@ -63,6 +67,15 @@ const send = async (web3: Web3, to: string, fn: any, from: string) => {
     }
 };
 
+// const getFeeCollector = (chainId: ChainId) => {
+//     const collectors: any = {};
+//     collectors[ChainId.PolygonMumbai] = '0x960911a62FdDf7BA84D0d3aD016EF7D15966F7Dc';
+//     collectors[ChainId.Polygon] = '0x960911a62FdDf7BA84D0d3aD016EF7D15966F7Dc';
+//     // collectors[ChainId.PolygonMumbai] = '0x2e2fe80CD6C4933B3B97b4c0B5c8eC56b073bE27';
+//     // collectors[ChainId.Polygon] = '0x802505465CB707c9347B9631818e14f6066f7513';
+//     return collectors[chainId];
+// };
+
 async function main() {
     const startTime = Date.now();
     console.log('Start!', startTime);
@@ -74,17 +87,56 @@ async function main() {
     for (const [contractName, diamondVariant] of Object.entries(diamonds)) {
         for (const chainId of [ChainId.PolygonMumbai, ChainId.Polygon]) {
             try {
+                const oldProvider = networks[chainId];
+                const newProvider = getProvider(chainId);
                 const contract = getContract(chainId, contractName as ContractName);
+                const currentOwner = toChecksumAddress(await contract.methods.owner().call());
+                const newOwner = toChecksumAddress(newProvider.defaultAccount);
+                // const registryAddress = toChecksumAddress(
+                //     getContract(chainId, 'Registry', currentVersion).options.address,
+                // );
+                // const feeCollector = getFeeCollector(chainId);
+
+                if (currentOwner !== newOwner) {
+                    console.log('TransferOwnership:', contract.options.address, `${currentOwner} -> ${newOwner}`);
+                    await send(
+                        oldProvider.web3,
+                        contract.options.address,
+                        contract.methods.transferOwnership(newOwner),
+                        currentOwner,
+                    );
+                }
+
                 const tx = await updateDiamondContract(chainId, contract, diamondVariant);
                 if (tx) console.log(`Upgraded: ${contractName} (${ChainId[chainId]}):`, currentVersion);
+
+                // switch (diamondVariant) {
+                //     case 'registry': {
+                //         const receipt = await TransactionService.send(
+                //             contract.options.address,
+                //             contract.methods.initialize(feeCollector, twoHalfPercent),
+                //             chainId,
+                //         );
+                //         console.log(chainId, diamondVariant, receipt);
+                //         break;
+                //     }
+                //     case 'factory': {
+                //         const receipt = await TransactionService.send(
+                //             contract.options.address,
+                //             contract.methods.initialize(newOwner, registryAddress),
+                //             chainId,
+                //         );
+                //         console.log(chainId, diamondVariant, receipt);
+                //         break;
+                //     }
+                // }
             } catch (error) {
                 console.error(error);
             }
         }
     }
 
-    // for (const pool of await AssetPool.find({ version: { $ne: currentVersion } })) {
-    for (const pool of await AssetPool.find()) {
+    for (const pool of await AssetPool.find({ version: { $ne: currentVersion } })) {
         try {
             const account = await AccountProxy.getById(pool.sub);
             if (!account) return;
