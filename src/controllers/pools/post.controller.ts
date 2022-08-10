@@ -6,14 +6,23 @@ import AccountProxy from '@/proxies/AccountProxy';
 import AssetPoolService from '@/services/AssetPoolService';
 import { checkAndUpgradeToBasicPlan } from '@/util/plans';
 import ClientProxy from '@/proxies/ClientProxy';
+import { ADDRESS_ZERO } from '@/config/secrets';
 
 const validation = [
-    body('tokens').custom((tokens: string[]) => {
+    body('erc20tokens').custom((tokens: string[]) => {
         for (const tokenAddress of tokens) {
             if (!isAddress(tokenAddress)) return false;
         }
         return true;
     }),
+    body('erc721tokens')
+        .optional()
+        .custom((tokens: string[]) => {
+            for (const tokenAddress of tokens) {
+                if (!isAddress(tokenAddress)) return false;
+            }
+            return true;
+        }),
     body('chainId').exists().isNumeric(),
     body('variant').optional().isString(),
 ];
@@ -24,7 +33,12 @@ const controller = async (req: Request, res: Response) => {
 
     await checkAndUpgradeToBasicPlan(account, req.body.chainId);
 
-    const pool = await AssetPoolService.deploy(req.auth.sub, req.body.chainId, req.body.variant, req.body.tokens);
+    const pool = await AssetPoolService.deploy(
+        req.auth.sub,
+        req.body.chainId,
+        req.body.erc20tokens && req.body.erc20tokens.length ? req.body.erc20tokens[0] : ADDRESS_ZERO,
+        req.body.erc721tokens && req.body.erc721tokens.length ? req.body.erc721tokens[0] : ADDRESS_ZERO,
+    );
 
     const client = await ClientProxy.create(req.auth.sub, String(pool._id), {
         application_type: 'web',

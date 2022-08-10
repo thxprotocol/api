@@ -1,10 +1,11 @@
-import { getSelectors, ADDRESS_ZERO } from './network';
+import { getSelectors } from './network';
 import TransactionService from '@/services/TransactionService';
 import { Contract } from 'web3-eth-contract';
 import { uniq } from '.';
 import { ChainId } from '@/types/enums';
 import { diamondContracts } from '@/config/contracts';
 import { DiamondVariant } from '@thxnetwork/artifacts';
+import { ADDRESS_ZERO } from '@/config/secrets';
 
 export enum FacetCutAction {
     Add = 0,

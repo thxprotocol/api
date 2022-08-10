@@ -1,9 +1,8 @@
 import { Request, Response } from 'express';
-import { body, param } from 'express-validator';
+import { param } from 'express-validator';
 import { BadRequestError, ForbiddenError } from '@/util/errors';
 import { WithdrawalState, WithdrawalType } from '@/types/enums';
 import { WithdrawalDocument } from '@/models/Withdrawal';
-import { agenda, EVENT_REQUIRE_TRANSACTIONS } from '@/util/agenda';
 import AccountProxy from '@/proxies/AccountProxy';
 import RewardService from '@/services/RewardService';
 import MemberService from '@/services/MemberService';
@@ -40,16 +39,16 @@ const controller = async (req: Request, res: Response) => {
 
     const hasMembership = await MembershipService.hasMembership(pool, account.id);
     if (!hasMembership && !reward.isMembershipRequired) {
-        if (pool.variant === 'defaultPool') {
+        if (claim.erc20Id) {
             await MembershipService.addERC20Membership(account.id, pool);
         }
-        if (pool.variant === 'nftPool') {
+        if (claim.erc721Id) {
             await MembershipService.addERC721Membership(account.id, pool);
         }
     }
 
-    if (pool.variant === 'defaultPool') {
-        const w: WithdrawalDocument = await WithdrawalService.schedule(
+    if (claim.erc20Id) {
+        let w: WithdrawalDocument = await WithdrawalService.schedule(
             pool,
             WithdrawalType.ClaimReward,
             req.auth.sub,
@@ -60,19 +59,15 @@ const controller = async (req: Request, res: Response) => {
         );
         const erc20 = await ERC20Service.getById(claim.erc20Id);
 
-        await WithdrawalService.proposeWithdraw(pool, w, account);
-
-        agenda.now(EVENT_REQUIRE_TRANSACTIONS, {});
+        w = await WithdrawalService.withdrawFor(pool, w, account);
 
         return res.json({ ...w.toJSON(), erc20 });
     }
 
-    if (pool.variant === 'nftPool') {
+    if (claim.erc721Id) {
         const metadata = await ERC721Service.findMetadataById(reward.erc721metadataId);
         const erc721 = await ERC721Service.findById(metadata.erc721);
         const token = await ERC721Service.mint(pool, erc721, metadata, account);
-
-        agenda.now(EVENT_REQUIRE_TRANSACTIONS, {});
 
         return res.json({ ...token.toJSON(), erc721: erc721.toJSON(), metadata: metadata.toJSON() });
     }

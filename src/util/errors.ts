@@ -134,6 +134,12 @@ class DuplicateEmailError extends BadRequestError {
 class GetPastWithdrawPollCreatedEventsError extends InternalServerError {
     message = 'GetPastEvents for WithdrawPollCreated event failed in callback.';
 }
+class MaxFeePerGasExceededError extends THXError {
+    message = 'MaxFeePerGas from oracle exceeds configured cap';
+}
+class NoFeeDataError extends THXError {
+    message = 'Could not get fee data from oracle';
+}
 
 export {
     THXError,
@@ -160,4 +166,6 @@ export {
     NotAMemberError,
     AlreadyAMemberError,
     NoDataAtAddressError,
+    MaxFeePerGasExceededError,
+    NoFeeDataError,
 };

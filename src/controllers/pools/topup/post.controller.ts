@@ -1,7 +1,6 @@
 import { Request, Response } from 'express';
 import { body, param } from 'express-validator';
 import { BadRequestError, InsufficientBalanceError } from '@/util/errors';
-import { agenda, EVENT_REQUIRE_TRANSACTIONS } from '@/util/agenda';
 import { toWei } from 'web3-utils';
 import { getProvider } from '@/util/network';
 import { ethers } from 'ethers';
@@ -14,18 +13,18 @@ export const validation = [param('id').isMongoId(), body('amount').isInt({ gt: 0
 
 const controller = async (req: Request, res: Response) => {
     // #swagger.tags = ['Pools']
-    const { admin } = getProvider(req.assetPool.chainId);
+    const { defaultAccount } = getProvider(req.assetPool.chainId);
     const amount = toWei(String(req.body.amount));
     const erc20 = await ERC20Service.findByPool(req.assetPool);
 
     if (erc20.type !== ERC20Type.Limited) throw new BadRequestError('Token type is not Limited type');
 
     // Check balance to ensure throughput
-    const balance = await erc20.contract.methods.balanceOf(admin.address).call();
+    const balance = await erc20.contract.methods.balanceOf(defaultAccount).call();
     if (Number(balance) < Number(amount)) throw new InsufficientBalanceError();
 
     // Check allowance for admin to ensure throughput
-    const allowance = await erc20.contract.methods.allowance(admin.address, req.assetPool.address).call();
+    const allowance = await erc20.contract.methods.allowance(defaultAccount, req.assetPool.address).call();
     if (Number(allowance) < Number(amount)) {
         await TransactionService.send(
             erc20.contract.options.address,
@@ -35,8 +34,6 @@ const controller = async (req: Request, res: Response) => {
     }
 
     const topup = await AssetPoolService.topup(req.assetPool, amount);
-
-    agenda.now(EVENT_REQUIRE_TRANSACTIONS, {});
 
     res.json(topup);
 };

@@ -1,7 +1,6 @@
 import express from 'express';
 import { guard, assertPlan, assertAssetPoolAccess, assertRequestInput, requireAssetPoolHeader } from '@/middlewares';
 import { AccountPlanType } from '@/types/enums';
-import CreateWithdrawalFinalize from './finalize/post.controller';
 import CreateWithdrawal from './post.controller';
 import ReadWithdrawal from './get.controller';
 import DeleteWithdrawal from './delete.controller';
@@ -33,15 +32,6 @@ router.get(
     assertRequestInput(ReadWithdrawal.validation),
     requireAssetPoolHeader,
     ReadWithdrawal.controller,
-);
-router.post(
-    '/:id/withdraw',
-    guard.check(['withdrawals:write', 'withdrawals:read']),
-    assertAssetPoolAccess,
-    assertRequestInput(CreateWithdrawalFinalize.validation),
-    requireAssetPoolHeader,
-    assertPlan([AccountPlanType.Basic, AccountPlanType.Premium]),
-    CreateWithdrawalFinalize.controller,
 );
 router.delete(
     '/:id',
