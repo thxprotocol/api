@@ -171,7 +171,7 @@ export default class AssetPoolService {
     }
 
     static async updateAssetPool(pool: AssetPoolDocument, version?: string) {
-        const tx = await updateDiamondContract(pool.chainId, pool.contract, pool.variant, version);
+        const tx = await updateDiamondContract(pool.chainId, pool.contract, 'defaultDiamond', version);
 
         pool.version = version;
 

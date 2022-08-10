@@ -13,6 +13,7 @@ import { getDiamondAbi } from '@/config/contracts';
 import { getProvider } from '@/util/network';
 import { logger } from '@/util/logger';
 import { toChecksumAddress } from 'web3-utils';
+import TransactionService from '@/services/TransactionService';
 
 db.connect(MONGODB_URI);
 
@@ -38,8 +39,7 @@ if (POLYGON_RPC) {
     })();
 }
 
-const send = async (web3: Web3, to: string, fn: any) => {
-    const [from] = await web3.eth.getAccounts();
+const send = async (web3: Web3, to: string, fn: any, from: string) => {
     const data = fn.encodeABI();
     const gas = await fn.estimateGas({ from });
     const gasPrice = await web3.eth.getGasPrice();
@@ -83,7 +83,8 @@ async function main() {
         }
     }
 
-    for (const pool of await AssetPool.find({ version: { $ne: currentVersion } })) {
+    // for (const pool of await AssetPool.find({ version: { $ne: currentVersion } })) {
+    for (const pool of await AssetPool.find()) {
         try {
             const account = await AccountProxy.getById(pool.sub);
             if (!account) return;
@@ -92,34 +93,36 @@ async function main() {
             const isFreeMumbai = account.plan === AccountPlanType.Free && pool.chainId === ChainId.PolygonMumbai;
 
             if (isPaidPlan || isFreeMumbai) {
-                // create provider for chain with PRIVATE_KEY
                 const oldProvider = networks[pool.chainId];
-                // get new provider for chain with getProvider()
                 const newProvider = getProvider(pool.chainId);
-                const { methods } = new oldProvider.web3.eth.Contract(
-                    getDiamondAbi(pool.chainId, 'defaultDiamond'),
-                    pool.address,
-                );
-
-                const currentOwner = toChecksumAddress(await methods.owner().call());
+                const currentOwner = toChecksumAddress(await pool.contract.methods.owner().call());
                 const newOwner = toChecksumAddress(newProvider.defaultAccount);
-
-                if (currentOwner !== newOwner) {
-                    logger.debug('TransferOwnership:', pool.address, `${currentOwner} -> ${newOwner}`);
-                    await send(oldProvider.web3, pool.address, methods.transferOwnership(newOwner));
-                }
-
-                logger.debug('Upgrade:', pool.address, `${pool.variant} ${pool.version} -> ${currentVersion}`);
-                await AssetPoolService.updateAssetPool(pool, currentVersion);
-
                 const currentRegistryAddress = toChecksumAddress(await pool.contract.methods.getRegistry().call());
                 const registryAddress = toChecksumAddress(
                     getContract(pool.chainId, 'Registry', currentVersion).options.address,
                 );
 
+                if (currentOwner !== newOwner) {
+                    const { methods } = new oldProvider.web3.eth.Contract(
+                        getDiamondAbi(pool.chainId, 'defaultDiamond'),
+                        pool.address,
+                    );
+                    console.log('TransferOwnership:', pool.address, `${currentOwner} -> ${newOwner}`);
+                    await send(oldProvider.web3, pool.address, methods.transferOwnership(newOwner), currentOwner);
+                }
+
+                if (pool.version !== currentVersion) {
+                    console.log('Upgrade:', pool.address, `${pool.variant} ${pool.version} -> ${currentVersion}`);
+                    await AssetPoolService.updateAssetPool(pool, currentVersion);
+                }
+
                 if (registryAddress !== currentRegistryAddress) {
-                    logger.debug('SetRegistry:', pool.address, `${currentRegistryAddress} -> ${registryAddress}`);
-                    await send(newProvider.web3, pool.address, methods.setRegistry(registryAddress));
+                    console.log('SetRegistry:', pool.address, `${currentRegistryAddress} -> ${registryAddress}`);
+                    await TransactionService.send(
+                        pool.address,
+                        pool.contract.methods.setRegistry(registryAddress),
+                        pool.chainId,
+                    );
                 }
             }
         } catch (error) {
