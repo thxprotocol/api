@@ -104,7 +104,6 @@ describe('Deposits', () => {
                 expect(body.value).toEqual(value);
                 expect(body.title).toEqual(title);
                 expect(body.description).toEqual(description);
-                // expect(Date.parse(body.expiry)).toEqual(expiry);
                 promotion = body;
             })
             .expect(201, done);
@@ -130,7 +129,6 @@ describe('Deposits', () => {
                 .set({ 'Authorization': walletAccessToken, 'X-PoolId': poolId })
                 .send({ item: promotion._id })
                 .expect(({ body }: Response) => {
-                    console.log(body);
                     expect(body.error.message).toEqual(new InsufficientBalanceError().message);
                 })
                 .expect(400);
