@@ -1,23 +1,26 @@
 import { Request, Response } from 'express';
 import { body } from 'express-validator';
-import { AmountExceedsAllowanceError, InsufficientBalanceError, NotFoundError } from '@/util/errors';
+import { AmountExceedsAllowanceError, BadRequestError, InsufficientBalanceError, NotFoundError } from '@/util/errors';
 import { toWei } from 'web3-utils';
 import DepositService from '@/services/DepositService';
 import ERC20Service from '@/services/ERC20Service';
 import PromotionService from '@/services/PromotionService';
 import AccountProxy from '@/proxies/AccountProxy';
 
-const validation = [body('item').optional().isMongoId(), body('amount').isNumeric()];
+const validation = [body('item').optional().isMongoId(), body('amount').optional().isNumeric()];
 
 const controller = async (req: Request, res: Response) => {
     // #swagger.tags = ['Deposits']
+    if (!req.body.amount && !req.body.item) {
+        throw new BadRequestError('Could not find amount or item parameters in the body if this request.');
+    }
     let value = req.body.amount;
 
     // If an item is referenced, replace the amount value with the price value
     if (req.body.item) {
-        const promoCode = await PromotionService.findById(req.body.item);
-        if (!promoCode) throw new NotFoundError('Could not find promotion');
-        value = toWei(String(promoCode.price));
+        const promotion = await PromotionService.findById(req.body.item);
+        if (!promotion) throw new NotFoundError('Could not find promotion');
+        value = toWei(String(promotion.price));
     }
 
     const account = await AccountProxy.getById(req.auth.sub);

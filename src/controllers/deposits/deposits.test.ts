@@ -4,8 +4,8 @@ import { Account } from 'web3-core';
 import { isAddress, toWei } from 'web3-utils';
 import { Contract } from 'web3-eth-contract';
 import { afterAllCallback, beforeAllCallback } from '@/util/jest/config';
-import { ChainId, ERC20Type, TransactionState } from '@/types/enums';
-import { createWallet, signMethod } from '@/util/jest/network';
+import { ChainId, ERC20Type } from '@/types/enums';
+import { createWallet } from '@/util/jest/network';
 import { findEvent, parseLogs } from '@/util/events';
 import {
     adminAccessToken,
@@ -125,17 +125,12 @@ describe('Deposits', () => {
         });
 
         it('POST /deposits 400 Bad Request', async () => {
-            const { call, nonce, sig } = await signMethod(
-                poolAddress,
-                'deposit',
-                [toWei(String(promotion.price))],
-                userWallet,
-            );
             await http
                 .post('/v1/deposits')
                 .set({ 'Authorization': walletAccessToken, 'X-PoolId': poolId })
-                .send({ call, nonce, sig, item: promotion._id })
+                .send({ item: promotion._id })
                 .expect(({ body }: Response) => {
+                    console.log(body);
                     expect(body.error.message).toEqual(new InsufficientBalanceError().message);
                 })
                 .expect(400);
@@ -155,16 +150,10 @@ describe('Deposits', () => {
         });
 
         it('POST /deposits 400 Bad Request', async () => {
-            const { call, nonce, sig } = await signMethod(
-                poolAddress,
-                'deposit',
-                [toWei(String(promotion.price))],
-                userWallet,
-            );
             await http
                 .post('/v1/deposits')
                 .set({ 'Authorization': walletAccessToken, 'X-PoolId': poolId })
-                .send({ call, nonce, sig, item: promotion._id })
+                .send({ item: promotion._id })
                 .expect(({ body }: Response) => {
                     expect(body.error.message).toEqual(new AmountExceedsAllowanceError().message);
                 })
@@ -180,16 +169,10 @@ describe('Deposits', () => {
         });
 
         it('POST /deposits 200 OK', async () => {
-            const { call, nonce, sig } = await signMethod(
-                poolAddress,
-                'deposit',
-                [toWei(String(promotion.price))],
-                userWallet,
-            );
             await http
                 .post('/v1/deposits')
                 .set({ 'Authorization': walletAccessToken, 'X-PoolId': poolId })
-                .send({ call, nonce, sig, item: promotion._id })
+                .send({ item: promotion._id })
                 .expect(200);
         });
 
