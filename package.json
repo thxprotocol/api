@@ -1,6 +1,6 @@
 {
     "name": "@thxnetwork/api",
-    "version": "1.18.3",
+    "version": "1.19.5",
     "repository": {
         "type": "git",
         "url": "https://github.com/thxprotocol/api"
@@ -23,6 +23,7 @@
         "test:debug": "npx jest --coverage --runInBand --detectOpenHandles",
         "migrate": "npm run migrate:db && npm run migrate:contracts",
         "migrate:contracts": "node -r tsconfig-paths/register ./scripts/upgradeContractsToLatest.js",
+        "migrate:ownership": "node -r tsconfig-paths/register ./scripts/transferOwnership.js",
         "migrate:db": "migrate-mongo up -f src/migrate-mongo-config.js",
         "migrate:create": "sh -c 'migrate-mongo create -f src/migrate-mongo-config.js $0'",
         "migrate:status": "migrate-mongo status -f src/migrate-mongo-config.js",
@@ -33,8 +34,9 @@
         "@aws-sdk/lib-storage": "^3.131.0",
         "@aws-sdk/s3-request-presigner": "^3.100.0",
         "@godaddy/terminus": "^4.9.0",
+        "@metamask/eth-sig-util": "^4.0.1",
         "@sendgrid/mail": "^7.6.2",
-        "@thxnetwork/artifacts": "^3.1.21",
+        "@thxnetwork/artifacts": "^4.0.4",
         "agenda": "^4.3.0",
         "axios": "^0.21.3",
         "axios-better-stacktrace": "^2.1.2",
@@ -43,6 +45,7 @@
         "change-case": "^4.1.2",
         "compression": "^1.7.4",
         "cors": "^2.8.5",
+        "defender-relay-client": "^1.26.1",
         "dotenv": "^16.0.0",
         "ethers": "^5.4.7",
         "express": "^4.17.1",

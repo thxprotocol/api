@@ -19,6 +19,7 @@ const controller = async (req: Request, res: Response) => {
         symbol: req.body.symbol,
         description: req.body.description,
         properties: req.body.schema,
+        archived: false,
     });
 
     res.status(201).json(erc721);

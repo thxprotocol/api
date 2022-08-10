@@ -45,6 +45,7 @@ describe('ERC721', () => {
                     expect(body.properties[1].name).toBe(schema[1].name);
                     expect(body.properties[1].propType).toBe(schema[1].propType);
                     expect(isAddress(body.address)).toBe(true);
+                    expect(body.archived).toBe(false);
 
                     erc721ID = body._id;
                 })
@@ -89,6 +90,20 @@ describe('ERC721', () => {
                     expect(body.error.message).toContain('Not Found');
                 })
                 .expect(404, done);
+        });
+        describe('PATCH /erc721/:id', () => {
+            it('should update a created token', (done) => {
+                user.patch('/v1/erc721/' + erc721ID)
+                    .set('Authorization', dashboardAccessToken)
+                    .send({
+                        archived: true,
+                    })
+                    .expect(({ body }: request.Response) => {
+                        expect(body).toBeDefined();
+                        expect(body.archived).toBe(true);
+                    })
+                    .expect(200, done);
+            });
         });
     });
 });

@@ -1,9 +1,9 @@
 import request from 'supertest';
 import app from '@/app';
-import { ChainId } from '@/types/enums';
+import { ChainId, WithdrawalState } from '@/types/enums';
 import { Account } from 'web3-core';
 import { toWei } from 'web3-utils';
-import { timeTravel, signMethod, createWallet } from '@/util/jest/network';
+import { timeTravel, createWallet } from '@/util/jest/network';
 import {
     rewardWithdrawAmount,
     rewardWithdrawDuration,
@@ -20,12 +20,13 @@ import {
 } from '@/util/jest/constants';
 import { isAddress } from 'web3-utils';
 import { afterAllCallback, beforeAllCallback } from '@/util/jest/config';
-import { getContract, getContractFromName } from '@/config/contracts';
+import { getByteCodeForContractName, getContract, getContractFromName } from '@/config/contracts';
 import { currentVersion } from '@thxnetwork/artifacts';
-import { assertEvent, parseLogs } from '@/util/events';
 import TransactionService from '@/services/TransactionService';
 import { RewardDocument } from '@/models/Reward';
 import { ClaimDocument } from '@/types/TClaim';
+import { getProvider } from '@/util/network';
+import { Response } from 'express';
 
 const user = request.agent(app);
 
@@ -52,19 +53,14 @@ describe('Default Pool', () => {
 
     describe('Existing ERC20 contract', () => {
         it('TokenDeployed event', async () => {
-            const tokenFactory = getContract(ChainId.Hardhat, 'TokenFactory', currentVersion);
-            const { receipt } = await TransactionService.send(
-                tokenFactory.options.address,
-                tokenFactory.methods.deployLimitedSupplyToken(
-                    tokenName,
-                    tokenSymbol,
-                    userWallet.address,
-                    toWei(String(tokenTotalSupply)),
-                ),
+            const { options } = getContract(ChainId.Hardhat, 'LimitedSupplyToken', currentVersion);
+            const token = await TransactionService.deploy(
+                options.jsonInterface,
+                getByteCodeForContractName('LimitedSupplyToken'),
+                [tokenName, tokenSymbol, userWallet.address, tokenTotalSupply],
                 ChainId.Hardhat,
             );
-            const event = assertEvent('TokenDeployed', parseLogs(tokenFactory.options.jsonInterface, receipt.logs));
-            tokenAddress = event.args.token;
+            tokenAddress = token.options.address;
         });
     });
 
@@ -74,10 +70,11 @@ describe('Default Pool', () => {
                 .set('Authorization', dashboardAccessToken)
                 .send({
                     chainId: ChainId.Hardhat,
-                    tokens: [tokenAddress],
+                    erc20tokens: [tokenAddress],
                 })
                 .expect((res: request.Response) => {
                     poolId = res.body._id;
+                    expect(res.body.archived).toBe(false);
                 })
                 .expect(201, done);
         });
@@ -113,16 +110,10 @@ describe('Default Pool', () => {
         });
 
         it('POST /deposits 201', async () => {
-            const { call, nonce, sig } = await signMethod(
-                poolAddress,
-                'deposit',
-                [toWei(String(tokenTotalSupply))],
-                userWallet,
-            );
             await user
                 .post('/v1/deposits')
                 .set({ 'Authorization': walletAccessToken, 'X-PoolId': poolId })
-                .send({ call, nonce, sig, amount: tokenTotalSupply })
+                .send({ amount: tokenTotalSupply })
                 .expect(200);
         });
     });
@@ -133,9 +124,11 @@ describe('Default Pool', () => {
                 .set({ 'X-PoolId': poolId, 'Authorization': dashboardAccessToken })
                 .expect(async ({ body }: request.Response) => {
                     expect(body.address).toEqual(poolAddress);
-                    expect(isAddress(body.token.address)).toEqual(true);
-                    expect(body.token.totalSupply).toBe(tokenTotalSupply);
-                    expect(body.token.poolBalance).toBe(97500000); // Total supply - 2.5% protocol fee on deposit
+                    expect(isAddress(body.erc20.address)).toEqual(true);
+                    expect(body.erc20.totalSupply).toBe(tokenTotalSupply);
+                    expect(Number(body.erc20.poolBalance)).toBe(
+                        Number(tokenTotalSupply) - Number(tokenTotalSupply) * 0.025, // Total supply - 2.5% protocol fee on deposit
+                    );
                 })
                 .expect(200, done);
         });
@@ -205,7 +198,7 @@ describe('Default Pool', () => {
                 .expect((res: request.Response) => {
                     const index = res.body.results.length - 1;
                     const withdrawal = res.body.results[index];
-                    expect(withdrawal.state).toEqual(0);
+                    expect(withdrawal.state).toEqual(WithdrawalState.Withdrawn);
                     expect(withdrawal.amount).toEqual(rewardWithdrawAmount);
                     expect(withdrawal.unlockDate).not.toBe(undefined);
                 })
@@ -224,61 +217,9 @@ describe('Default Pool', () => {
                     expect(body._id).toBeDefined();
                     expect(body.sub).toEqual(sub2);
                     expect(body.amount).toEqual(rewardWithdrawAmount);
-                    expect(body.state).toEqual(0);
-                    expect(body.createdAt).toBeDefined();
-                    expect(body.withdrawalId).toEqual(2);
-                    expect(body.unlockDate).not.toBe(undefined);
-
-                    withdrawDocumentId = body._id;
-                    withdrawPollID = body.withdrawalId;
-                })
-                .expect(200, done);
-        });
-    });
-
-    describe('POST /withdrawals/:id/withdraw', () => {
-        beforeAll(async () => {
-            await timeTravel(rewardWithdrawDuration);
-        });
-
-        it('HTTP 302 and redirect to withdrawal', async () => {
-            const { call, nonce, sig } = await signMethod(
-                poolAddress,
-                'withdrawPollFinalize',
-                [withdrawPollID],
-                userWallet,
-            );
-
-            await user
-                .post('/v1/relay/call')
-                .send({
-                    call,
-                    nonce,
-                    sig,
-                })
-                .set({ 'X-PoolId': poolId, 'Authorization': walletAccessToken })
-                .expect(200);
-        });
-
-        it('HTTP 200 and return state Withdrawn', (done) => {
-            user.get(`/v1/withdrawals/${withdrawDocumentId}`)
-                .set({ 'X-PoolId': poolId, 'Authorization': adminAccessToken })
-                .expect(({ body }: request.Response) => {
-                    expect(body.id).toBeDefined();
-                    expect(body.amount).toEqual(rewardWithdrawAmount);
-                    expect(body.sub).toEqual(sub2);
-                    expect(body.withdrawalId).toEqual(2);
                     expect(body.state).toEqual(1);
+                    expect(body.createdAt).toBeDefined();
                     expect(body.unlockDate).not.toBe(undefined);
-                })
-                .expect(200, done);
-        });
-
-        it('HTTP 200 and have the minted amount balance again', (done) => {
-            user.get('/v1/members/' + userWallet.address)
-                .set({ 'X-PoolId': poolId, 'Authorization': adminAccessToken })
-                .expect(async (res: request.Response) => {
-                    expect(res.body.token.balance).toBe(rewardWithdrawAmount);
                 })
                 .expect(200, done);
         });
@@ -289,8 +230,8 @@ describe('Default Pool', () => {
             user.get(`/v1/pools/${poolId}`)
                 .set({ 'X-PoolId': poolId, 'Authorization': dashboardAccessToken })
                 .expect(async (res: request.Response) => {
-                    // Total supply - 2.5% = 250000 deposit fee - 1000 token reward - 2.5% = 25 withdraw fee
-                    expect(res.body.token.poolBalance).toBe(97498975);
+                    // Total supply - 2.5% = 250000 deposit fee  - 2.5% = 25 withdraw fee
+                    expect(res.body.erc20.poolBalance).toBe(toWei('97497950'));
                 })
                 .expect(200, done);
         });
@@ -308,20 +249,20 @@ describe('Default Pool', () => {
     });
 
     describe('GET /withdrawals for withdrawn state', () => {
-        it('HTTP 200 and returns 1 items', (done) => {
+        it('HTTP 200 and returns 2 items for state = 1', (done) => {
             user.get('/v1/withdrawals?state=1&page=1&limit=2')
                 .set({ 'X-PoolId': poolId, 'Authorization': adminAccessToken })
                 .expect(async (res: request.Response) => {
-                    expect(res.body.results.length).toBe(1);
+                    expect(res.body.results.length).toBe(2);
                 })
                 .expect(200, done);
         });
 
-        it('HTTP 200 and returns 2 item for state = 0', (done) => {
+        it('HTTP 200 and returns 0 item for state = 0', (done) => {
             user.get('/v1/withdrawals?state=0&page=1&limit=2')
                 .set({ 'X-PoolId': poolId, 'Authorization': adminAccessToken })
                 .expect(async (res: request.Response) => {
-                    expect(res.body.results.length).toBe(1);
+                    expect(res.body.results.length).toBe(0);
                 })
                 .expect(200, done);
         });
@@ -339,7 +280,7 @@ describe('Default Pool', () => {
             user.get(`/v1/withdrawals?state=1&rewardId=${reward.id}&page=1&limit=2`)
                 .set({ 'X-PoolId': poolId, 'Authorization': adminAccessToken })
                 .expect(async (res: request.Response) => {
-                    expect(res.body.results.length).toBe(1);
+                    expect(res.body.results.length).toBe(2);
                 })
                 .expect(200, done);
         });
@@ -348,7 +289,7 @@ describe('Default Pool', () => {
             user.get(`/v1/withdrawals?member=${userWallet.address}&state=1&rewardId=${reward.id}&page=1&limit=2`)
                 .set({ 'X-PoolId': poolId, 'Authorization': adminAccessToken })
                 .expect(async (res: request.Response) => {
-                    expect(res.body.results.length).toBe(1);
+                    expect(res.body.results.length).toBe(2);
                 })
                 .expect(200, done);
         });
@@ -368,6 +309,21 @@ describe('Default Pool', () => {
                 .expect(async (res: request.Response) => {
                     expect(res.body.results.length).toBe(2);
                     expect(res.body.previous).toBeUndefined();
+                })
+                .expect(200, done);
+        });
+    });
+
+    describe('PATCH /pools/:id', () => {
+        it('HTTP 200', (done) => {
+            user.patch('/v1/pools/' + poolId)
+                .set({ Authorization: dashboardAccessToken })
+                .send({
+                    archived: true,
+                })
+                .expect(({ body }: request.Response) => {
+                    expect(body).toBeDefined();
+                    expect(body.archived).toBe(true);
                 })
                 .expect(200, done);
         });

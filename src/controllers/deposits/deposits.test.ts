@@ -4,8 +4,8 @@ import { Account } from 'web3-core';
 import { isAddress, toWei } from 'web3-utils';
 import { Contract } from 'web3-eth-contract';
 import { afterAllCallback, beforeAllCallback } from '@/util/jest/config';
-import { ChainId, ERC20Type, TransactionState } from '@/types/enums';
-import { createWallet, signMethod } from '@/util/jest/network';
+import { ChainId, ERC20Type } from '@/types/enums';
+import { createWallet } from '@/util/jest/network';
 import { findEvent, parseLogs } from '@/util/events';
 import {
     adminAccessToken,
@@ -70,7 +70,7 @@ describe('Deposits', () => {
             .set('Authorization', dashboardAccessToken)
             .send({
                 chainId: ChainId.Hardhat,
-                tokens: [tokenAddress],
+                erc20tokens: [tokenAddress],
             })
             .expect((res: request.Response) => {
                 expect(isAddress(res.body.address)).toBe(true);
@@ -125,17 +125,12 @@ describe('Deposits', () => {
         });
 
         it('POST /deposits 400 Bad Request', async () => {
-            const { call, nonce, sig } = await signMethod(
-                poolAddress,
-                'deposit',
-                [toWei(String(promotion.price))],
-                userWallet,
-            );
             await http
                 .post('/v1/deposits')
                 .set({ 'Authorization': walletAccessToken, 'X-PoolId': poolId })
-                .send({ call, nonce, sig, item: promotion._id })
+                .send({ item: promotion._id })
                 .expect(({ body }: Response) => {
+                    console.log(body);
                     expect(body.error.message).toEqual(new InsufficientBalanceError().message);
                 })
                 .expect(400);
@@ -143,28 +138,22 @@ describe('Deposits', () => {
 
         it('Increase user balance', async () => {
             const amount = toWei(String(price));
-            const { tx, receipt } = await TransactionService.send(
+            const receipt = await TransactionService.send(
                 testToken.options.address,
                 testToken.methods.transfer(userWallet.address, amount),
                 ChainId.Hardhat,
             );
             const event = findEvent('Transfer', parseLogs(testToken.options.jsonInterface, receipt.logs));
             expect(await testToken.methods.balanceOf(userWallet.address).call()).toBe(amount);
-            expect(tx.state).toBe(TransactionState.Mined);
+            // expect(tx.state).toBe(TransactionState.Mined);
             expect(event).toBeDefined();
         });
 
         it('POST /deposits 400 Bad Request', async () => {
-            const { call, nonce, sig } = await signMethod(
-                poolAddress,
-                'deposit',
-                [toWei(String(promotion.price))],
-                userWallet,
-            );
             await http
                 .post('/v1/deposits')
                 .set({ 'Authorization': walletAccessToken, 'X-PoolId': poolId })
-                .send({ call, nonce, sig, item: promotion._id })
+                .send({ item: promotion._id })
                 .expect(({ body }: Response) => {
                     expect(body.error.message).toEqual(new AmountExceedsAllowanceError().message);
                 })
@@ -180,16 +169,10 @@ describe('Deposits', () => {
         });
 
         it('POST /deposits 200 OK', async () => {
-            const { call, nonce, sig } = await signMethod(
-                poolAddress,
-                'deposit',
-                [toWei(String(promotion.price))],
-                userWallet,
-            );
             await http
                 .post('/v1/deposits')
                 .set({ 'Authorization': walletAccessToken, 'X-PoolId': poolId })
-                .send({ call, nonce, sig, item: promotion._id })
+                .send({ item: promotion._id })
                 .expect(200);
         });
 
@@ -204,7 +187,7 @@ describe('Deposits', () => {
     });
 
     describe('Create Asset Pool Deposit', () => {
-        const { admin } = getProvider(ChainId.Hardhat);
+        const { defaultAccount } = getProvider(ChainId.Hardhat);
         const totalSupply = fromWei('200000000000000000000', 'ether'); // 200 eth
 
         it('Create token', (done) => {
@@ -221,7 +204,7 @@ describe('Deposits', () => {
                     expect(isAddress(body.address)).toBe(true);
                     tokenAddress = body.address;
                     testToken = getContractFromName(ChainId.Hardhat, 'LimitedSupplyToken', tokenAddress);
-                    const adminBalance: BigNumber = await testToken.methods.balanceOf(admin.address).call();
+                    const adminBalance: BigNumber = await testToken.methods.balanceOf(defaultAccount).call();
                     expect(fromWei(String(adminBalance), 'ether')).toBe(totalSupply);
                 })
                 .expect(201, done);
@@ -232,13 +215,13 @@ describe('Deposits', () => {
                 .set('Authorization', dashboardAccessToken)
                 .send({
                     chainId: ChainId.Hardhat,
-                    tokens: [tokenAddress],
+                    erc20tokens: [tokenAddress],
                 })
                 .expect(async (res: request.Response) => {
                     expect(isAddress(res.body.address)).toBe(true);
                     poolAddress = res.body.address;
                     poolId = res.body._id;
-                    const adminBalance: BigNumber = await testToken.methods.balanceOf(admin.address).call();
+                    const adminBalance: BigNumber = await testToken.methods.balanceOf(defaultAccount).call();
                     const poolBalance: BigNumber = await testToken.methods.balanceOf(poolAddress).call();
                     expect(String(poolBalance)).toBe('0');
                     expect(fromWei(String(adminBalance), 'ether')).toBe(totalSupply);
@@ -252,7 +235,7 @@ describe('Deposits', () => {
                 .set({ 'Authorization': dashboardAccessToken, 'X-PoolId': poolId })
                 .send({ amount })
                 .expect(async () => {
-                    const adminBalance: BigNumber = await testToken.methods.balanceOf(admin.address).call();
+                    const adminBalance: BigNumber = await testToken.methods.balanceOf(defaultAccount).call();
                     const poolBalance: BigNumber = await testToken.methods.balanceOf(poolAddress).call();
                     expect(String(poolBalance)).toBe('100000000000000000000'); // 100 eth - protocol fee = 97.5 eth
                     expect(String(adminBalance)).toBe('100000000000000000000'); // 100 eth

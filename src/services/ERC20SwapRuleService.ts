@@ -18,12 +18,12 @@ function findOne(query: { poolId: string; tokenInId: string; tokenMultiplier: nu
 }
 
 async function create(assetPool: AssetPoolDocument, tokenInAddress: string, tokenMultiplier: number) {
-    const { receipt } = await TransactionService.send(
+    const receipt = await TransactionService.send(
         assetPool.address,
         assetPool.contract.methods.setSwapRule(tokenInAddress, String(tokenMultiplier)),
         assetPool.chainId,
     );
-    assertEvent('SwapRuleUpdated', parseLogs(assetPool.contract.options.jsonInterface, receipt.logs));
+    assertEvent('ERC20SwapRuleUpdated', parseLogs(assetPool.contract.options.jsonInterface, receipt.logs));
 
     const tokenIn = await ERC20Service.findOrImport(assetPool, tokenInAddress);
 

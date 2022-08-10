@@ -1,4 +1,4 @@
-import { ERC721, ERC721Document } from '@/models/ERC721';
+import { ERC721, ERC721Document, IERC721Updates } from '@/models/ERC721';
 import { ERC721Metadata, ERC721MetadataDocument } from '@/models/ERC721Metadata';
 import { ERC721TokenState, TERC721, TERC721Metadata, TERC721Token } from '@/types/TERC721';
 import TransactionService from './TransactionService';
@@ -7,8 +7,7 @@ import { VERSION, API_URL } from '@/config/secrets';
 import { assertEvent, CustomEventLog, parseLogs } from '@/util/events';
 import { AssetPoolDocument } from '@/models/AssetPool';
 import { ChainId } from '@/types/enums';
-import { getContract } from '@/config/contracts';
-import { currentVersion } from '@thxnetwork/artifacts';
+import { getAbiForContractName, getByteCodeForContractName } from '@/config/contracts';
 import { ERC721Token, ERC721TokenDocument } from '@/models/ERC721Token';
 import { TAssetPool } from '@/types/TAssetPool';
 import { keccak256, toUtf8Bytes } from 'ethers/lib/utils';
@@ -16,31 +15,23 @@ import { IAccount } from '@/models/Account';
 import { TransactionDocument } from '@/models/Transaction';
 import AccountProxy from '@/proxies/AccountProxy';
 
-function getDeployFnArgsCallback(erc721: ERC721Document) {
-    const { admin } = getProvider(erc721.chainId);
-    return {
-        fn: 'deployNonFungibleToken',
-        args: [erc721.name, erc721.symbol, erc721.baseURL, admin.address],
-        callback: async (tx: TransactionDocument, events?: CustomEventLog[]): Promise<ERC721Document> => {
-            if (events) {
-                const event = assertEvent('TokenDeployed', events);
-                erc721.address = event.args.token;
-            }
-
-            erc721.transactions.push(String(tx._id));
-
-            return await erc721.save();
-        },
-    };
-}
-
 async function deploy(data: TERC721): Promise<ERC721Document> {
-    const tokenFactory = getContract(data.chainId, 'TokenFactory', currentVersion);
+    const { defaultAccount } = getProvider(data.chainId);
+    const abi = getAbiForContractName('NonFungibleToken');
+    const bytecode = getByteCodeForContractName('NonFungibleToken');
     data.baseURL = `${API_URL}/${VERSION}/metadata/`;
-    const erc721 = new ERC721(data);
-    const { fn, args, callback } = getDeployFnArgsCallback(erc721);
 
-    return await TransactionService.relay(tokenFactory, fn, args, erc721.chainId, callback);
+    const erc721 = new ERC721(data);
+    const contract = await TransactionService.deploy(
+        abi,
+        bytecode,
+        [erc721.name, erc721.symbol, erc721.baseURL, defaultAccount],
+        erc721.chainId,
+    );
+
+    erc721.address = contract.options.address;
+
+    return await erc721.save();
 }
 
 export async function findById(id: string): Promise<ERC721Document> {
@@ -110,7 +101,7 @@ export async function parseAttributes(entry: ERC721MetadataDocument) {
 }
 
 async function addMinter(erc721: ERC721Document, address: string) {
-    const { receipt } = await TransactionService.send(
+    const receipt = await TransactionService.send(
         erc721.address,
         erc721.contract.methods.grantRole(keccak256(toUtf8Bytes('MINTER_ROLE')), address),
         erc721.chainId,
@@ -166,6 +157,10 @@ async function findByQuery(query: { poolAddress?: string; address?: string; chai
     return await ERC721.findOne(query);
 }
 
+export const update = (erc721: ERC721Document, updates: IERC721Updates) => {
+    return ERC721.findByIdAndUpdate(erc721._id, updates, { new: true });
+};
+
 export default {
     deploy,
     findById,
@@ -182,4 +177,5 @@ export default {
     findByQuery,
     addMinter,
     parseAttributes,
+    update,
 };

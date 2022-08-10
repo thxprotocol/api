@@ -1,9 +1,10 @@
 import { AccountPlanType } from '@/types/enums';
 import { getToken } from './jwt';
+import { toWei } from 'web3-utils';
 
 export const tokenName = 'Volunteers United';
 export const tokenSymbol = 'VUT';
-export const tokenTotalSupply = 100000000;
+export const tokenTotalSupply = toWei('100000000');
 export const rewardWithdrawAmount = 1000;
 export const rewardWithdrawDuration = 60;
 export const rewardWithdrawUnlockDate = '2022-04-20';

@@ -23,7 +23,7 @@ describe('Transactions', () => {
 
     // PERFORM 2 DEPOSITS TO GENERATE TRANSACTIONS
     describe('Create Asset Pool Deposit', () => {
-        const { admin } = getProvider(ChainId.Hardhat);
+        const { defaultAccount } = getProvider(ChainId.Hardhat);
         const totalSupply = fromWei('200000000000000000000', 'ether'); // 200 eth
 
         it('Create token', (done) => {
@@ -40,7 +40,7 @@ describe('Transactions', () => {
                     expect(isAddress(body.address)).toBe(true);
                     tokenAddress = body.address;
                     testToken = getContractFromName(ChainId.Hardhat, 'LimitedSupplyToken', tokenAddress);
-                    const adminBalance: BigNumber = await testToken.methods.balanceOf(admin.address).call();
+                    const adminBalance: BigNumber = await testToken.methods.balanceOf(defaultAccount).call();
                     expect(fromWei(String(adminBalance), 'ether')).toBe(totalSupply);
                 })
                 .expect(201, done);
@@ -51,14 +51,14 @@ describe('Transactions', () => {
                 .set('Authorization', dashboardAccessToken)
                 .send({
                     chainId: ChainId.Hardhat,
-                    tokens: [tokenAddress],
+                    erc20tokens: [tokenAddress],
                     variant: 'defaultPool',
                 })
                 .expect(async (res: request.Response) => {
                     expect(isAddress(res.body.address)).toBe(true);
                     poolAddress = res.body.address;
                     poolId = res.body._id;
-                    const adminBalance: BigNumber = await testToken.methods.balanceOf(admin.address).call();
+                    const adminBalance: BigNumber = await testToken.methods.balanceOf(defaultAccount).call();
                     const poolBalance: BigNumber = await testToken.methods.balanceOf(poolAddress).call();
                     expect(String(poolBalance)).toBe('0');
                     expect(fromWei(String(adminBalance), 'ether')).toBe(totalSupply);

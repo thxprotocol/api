@@ -5,18 +5,25 @@ import { mockClear } from './mock';
 import { logger } from '@/util/logger';
 import { getProvider } from '@/util/network';
 import { ChainId } from '@/types/enums';
-import { getContractConfig } from '@/config/contracts';
+import { getContract, getContractConfig } from '@/config/contracts';
 import { poll } from '../polling';
+import { currentVersion } from '@thxnetwork/artifacts';
 
 export async function beforeAllCallback() {
     await db.truncate();
     mockStart();
 
-    const { web3 } = getProvider(ChainId.Hardhat);
+    const { web3, defaultAccount } = getProvider(ChainId.Hardhat);
     const fn = () => web3.eth.getCode(getContractConfig(ChainId.Hardhat, 'OwnershipFacet').address);
     const fnCondition = (result: string) => result === '0x';
 
     await poll(fn, fnCondition, 500);
+
+    const registryAddress = getContractConfig(ChainId.Hardhat, 'Registry', currentVersion).address;
+    const factory = getContract(ChainId.Hardhat, 'Factory');
+
+    // TODO Make this part of hardhat container build
+    await factory.methods.initialize(defaultAccount, registryAddress).send({ from: defaultAccount });
 }
 
 export async function afterAllCallback() {

@@ -8,8 +8,8 @@ export type TTransaction = {
     nonce: number;
     gas: string;
     chainId: ChainId;
-    transactionHash: string;
-    relayTransactionHash?: string;
+    ransactionId: string;
+    transactionHash?: string;
     call?: { fn: string; args: string };
     baseFee?: string;
     maxFeeForGas?: string;

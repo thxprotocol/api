@@ -2,18 +2,13 @@ import { TAssetPool } from '@/types/TAssetPool';
 import { ERC20Swap, ERC20SwapDocument } from '@/models/ERC20Swap';
 import TransactionService from './TransactionService';
 import { assertEvent, CustomEventLog, findEvent, hex2a } from '@/util/events';
-import { InsufficientBalanceError, NotFoundError } from '@/util/errors';
-import ERC20SwapRuleService from './ERC20SwapRuleService';
+import { NotFoundError } from '@/util/errors';
 import { SwapState } from '@/types/enums/SwapState';
-import { logger } from '@/util/logger';
-import { InternalServerError } from '@/util/errors';
-import { recoverAddress } from '@/util/network';
-import ERC20Service from './ERC20Service';
 import { AssetPoolDocument } from '@/models/AssetPool';
 import { TransactionDocument } from '@/models/Transaction';
-import AssetPoolService from './AssetPoolService';
-import { toWei } from 'web3-utils';
 import { ERC20SwapRuleDocument } from '@/models/ERC20SwapRule';
+import { IAccount } from '@/models/Account';
+import { ERC20Document } from '@/models/ERC20';
 
 async function get(id: string): Promise<ERC20SwapDocument> {
     const erc20Swap = await ERC20Swap.findById(id);
@@ -27,9 +22,9 @@ async function getAll(assetPool: TAssetPool): Promise<ERC20SwapDocument[]> {
 
 async function create(
     assetPool: AssetPoolDocument,
-    sub: string,
-    callData: { call: string; nonce: number; sig: string },
+    account: IAccount,
     swapRule: ERC20SwapRuleDocument,
+    erc20TokenIn: ERC20Document,
     amountInInWei: string,
 ) {
     const swap = await ERC20Swap.create({
@@ -39,16 +34,8 @@ async function create(
 
     const callback = async (tx: TransactionDocument, events?: CustomEventLog[]): Promise<ERC20SwapDocument> => {
         if (events) {
-            const result = findEvent('Result', events);
-
-            if (!result.args.success) {
-                const error = hex2a(result.args.data.substr(10));
-                logger.error(error);
-                throw new InternalServerError(error);
-            }
-
-            assertEvent('Swap', events);
-            const swapEvent = findEvent('Swap', events);
+            assertEvent('ERC20SwapFor', events);
+            const swapEvent = findEvent('ERC20SwapFor', events);
 
             swap.transactions.push(String(tx._id));
             swap.state = SwapState.Completed;
@@ -61,8 +48,8 @@ async function create(
 
     return await TransactionService.relay(
         assetPool.contract,
-        'call',
-        [callData.call, callData.nonce, callData.sig],
+        'swapFor',
+        [account.address, amountInInWei, erc20TokenIn.address],
         assetPool.chainId,
         callback,
         200000,

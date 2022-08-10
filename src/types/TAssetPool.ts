@@ -6,10 +6,13 @@ export type TAssetPool = {
     address: string;
     contract: Contract;
     chainId: ChainId;
-    sub: string;
+    erc20Id: string;
+    erc721Id: string;
     clientId: string;
+    sub: string;
     transactions: string[];
     lastTransactionAt?: number;
     version?: string;
     variant?: DiamondVariant;
+    archived?: boolean;
 };

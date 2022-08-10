@@ -32,7 +32,7 @@ describe('Account', () => {
                 .set({ Authorization: dashboardAccessToken })
                 .send({
                     chainId: ChainId.Hardhat,
-                    tokens: [testToken.options.address],
+                    erc20tokens: [testToken.options.address],
                 })
                 .expect((res: request.Response) => {
                     poolId = res.body._id;
@@ -72,9 +72,6 @@ describe('Account', () => {
         it('HTTP 200 if OK', (done) => {
             user.get('/v1/members/' + userWalletAddress)
                 .set({ 'X-PoolId': poolId, 'Authorization': adminAccessToken })
-                .expect((res: request.Response) => {
-                    expect(res.body.isMember).toBe(true);
-                })
                 .expect(200, done);
         });
     });
@@ -122,7 +119,7 @@ describe('Account', () => {
             user.get('/v1/memberships/')
                 .set({ 'X-PoolId': poolId, 'Authorization': walletAccessToken })
                 .expect((res: request.Response) => {
-                    membershipID = res.body[0];
+                    membershipID = res.body[0]._id;
                 })
                 .expect(200, done);
         });

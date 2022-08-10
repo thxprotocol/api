@@ -1,15 +1,12 @@
 import request from 'supertest';
 import app from '@/app';
-import { Account } from 'web3-core';
 import { ChainId, ERC20Type } from '../../types/enums';
-import { createWallet, signMethod } from '@/util/jest/network';
 import {
     dashboardAccessToken,
     tokenName,
     tokenSymbol,
     walletAccessToken,
     walletAccessToken2,
-    userWalletPrivateKey2,
 } from '@/util/jest/constants';
 import { isAddress } from 'web3-utils';
 import { afterAllCallback, beforeAllCallback } from '@/util/jest/config';
@@ -20,16 +17,10 @@ import { ClaimDocument } from '@/types/TClaim';
 const user = request.agent(app);
 
 describe('Reward Claim', () => {
-    let poolId: string,
-        poolAddress: string,
-        withdrawalDocumentId: string,
-        withdrawalId: string,
-        userWallet: Account,
-        tokenAddress: string;
+    let poolId: string, withdrawalDocumentId: string, tokenAddress: string;
 
     beforeAll(async () => {
         await beforeAllCallback();
-        userWallet = createWallet(userWalletPrivateKey2);
     });
 
     afterAll(afterAllCallback);
@@ -56,12 +47,11 @@ describe('Reward Claim', () => {
             .set('Authorization', dashboardAccessToken)
             .send({
                 chainId: ChainId.Hardhat,
-                tokens: [tokenAddress],
+                erc20tokens: [tokenAddress],
             })
             .expect((res: request.Response) => {
                 expect(isAddress(res.body.address)).toBe(true);
                 poolId = res.body._id;
-                poolAddress = res.body.address;
             })
             .expect(201, done);
     });
@@ -86,42 +76,11 @@ describe('Reward Claim', () => {
                     .set({ 'X-PoolId': poolId, 'Authorization': walletAccessToken })
                     .expect((res: request.Response) => {
                         expect(res.body._id).toBeDefined();
-                        expect(res.body.state).toEqual(WithdrawalState.Pending);
+                        expect(res.body.state).toEqual(WithdrawalState.Withdrawn);
 
                         withdrawalDocumentId = res.body._id;
                     })
                     .expect(200, done);
-            });
-
-            it('should return Pending state', (done) => {
-                user.get(`/v1/withdrawals/${withdrawalDocumentId}`)
-                    .set({ 'X-PoolId': poolId, 'Authorization': walletAccessToken })
-                    .expect((res: request.Response) => {
-                        expect(res.body.state).toEqual(WithdrawalState.Pending);
-                        expect(res.body.withdrawalId).toBeDefined();
-
-                        withdrawalId = res.body.withdrawalId;
-                    })
-                    .expect(200, done);
-            });
-
-            it('should finalize the withdraw poll', async () => {
-                const { call, nonce, sig } = await signMethod(
-                    poolAddress,
-                    'withdrawPollFinalize',
-                    [withdrawalId],
-                    userWallet,
-                );
-
-                await user
-                    .post('/v1/relay/call')
-                    .set({ 'X-PoolId': poolId, 'Authorization': walletAccessToken })
-                    .send({
-                        call,
-                        nonce,
-                        sig,
-                    })
-                    .expect(200);
             });
 
             it('should return Withdrawn state', (done) => {
@@ -162,42 +121,11 @@ describe('Reward Claim', () => {
                     .set({ 'X-PoolId': poolId, 'Authorization': walletAccessToken })
                     .expect((res: request.Response) => {
                         expect(res.body._id).toBeDefined();
-                        expect(res.body.state).toEqual(WithdrawalState.Pending);
+                        expect(res.body.state).toEqual(WithdrawalState.Withdrawn);
 
                         withdrawalDocumentId = res.body._id;
                     })
                     .expect(200, done);
-            });
-
-            it('should return Pending state', (done) => {
-                user.get(`/v1/withdrawals/${withdrawalDocumentId}`)
-                    .set({ 'X-PoolId': poolId, 'Authorization': walletAccessToken })
-                    .expect((res: request.Response) => {
-                        expect(res.body.state).toEqual(WithdrawalState.Pending);
-                        expect(res.body.withdrawalId).toBeDefined();
-
-                        withdrawalId = res.body.withdrawalId;
-                    })
-                    .expect(200, done);
-            });
-
-            it('should finalize the withdraw poll', async () => {
-                const { call, nonce, sig } = await signMethod(
-                    poolAddress,
-                    'withdrawPollFinalize',
-                    [withdrawalId],
-                    userWallet,
-                );
-
-                await user
-                    .post('/v1/relay/call')
-                    .set({ 'X-PoolId': poolId, 'Authorization': walletAccessToken })
-                    .send({
-                        call,
-                        nonce,
-                        sig,
-                    })
-                    .expect(200);
             });
 
             it('should return Withdrawn state', (done) => {
@@ -237,42 +165,11 @@ describe('Reward Claim', () => {
                     .set({ 'X-PoolId': poolId, 'Authorization': walletAccessToken })
                     .expect((res: request.Response) => {
                         expect(res.body._id).toBeDefined();
-                        expect(res.body.state).toEqual(WithdrawalState.Pending);
+                        expect(res.body.state).toEqual(WithdrawalState.Withdrawn);
 
                         withdrawalDocumentId = res.body._id;
                     })
                     .expect(200, done);
-            });
-
-            it('should return Pending state', (done) => {
-                user.get(`/v1/withdrawals/${withdrawalDocumentId}`)
-                    .set({ 'X-PoolId': poolId, 'Authorization': walletAccessToken })
-                    .expect((res: request.Response) => {
-                        expect(res.body.state).toEqual(WithdrawalState.Pending);
-                        expect(res.body.withdrawalId).toBeDefined();
-
-                        withdrawalId = res.body.withdrawalId;
-                    })
-                    .expect(200, done);
-            });
-
-            it('should finalize the withdraw poll', async () => {
-                const { call, nonce, sig } = await signMethod(
-                    poolAddress,
-                    'withdrawPollFinalize',
-                    [withdrawalId],
-                    userWallet,
-                );
-
-                await user
-                    .post('/v1/relay/call')
-                    .set({ 'X-PoolId': poolId, 'Authorization': walletAccessToken })
-                    .send({
-                        call,
-                        nonce,
-                        sig,
-                    })
-                    .expect(200);
             });
 
             it('should return Withdrawn state', (done) => {
@@ -306,21 +203,18 @@ describe('Reward Claim', () => {
                     .set({ 'X-PoolId': poolId, 'Authorization': walletAccessToken })
                     .expect((res: request.Response) => {
                         expect(res.body._id).toBeDefined();
-                        expect(res.body.state).toEqual(WithdrawalState.Pending);
+                        expect(res.body.state).toEqual(WithdrawalState.Withdrawn);
 
                         withdrawalDocumentId = res.body._id;
                     })
                     .expect(200, done);
             });
 
-            it('should return Pending state', (done) => {
+            it('should return Withdrawn state', (done) => {
                 user.get(`/v1/withdrawals/${withdrawalDocumentId}`)
                     .set({ 'X-PoolId': poolId, 'Authorization': walletAccessToken })
                     .expect((res: request.Response) => {
-                        expect(res.body.state).toEqual(WithdrawalState.Pending);
-                        expect(res.body.withdrawalId).toBeDefined();
-
-                        withdrawalId = res.body.withdrawalId;
+                        expect(res.body.state).toEqual(WithdrawalState.Withdrawn);
                     })
                     .expect(200, done);
             });
@@ -347,42 +241,11 @@ describe('Reward Claim', () => {
                     .set({ 'X-PoolId': poolId, 'Authorization': walletAccessToken })
                     .expect((res: request.Response) => {
                         expect(res.body._id).toBeDefined();
-                        expect(res.body.state).toEqual(WithdrawalState.Pending);
+                        expect(res.body.state).toEqual(WithdrawalState.Withdrawn);
 
                         withdrawalDocumentId = res.body._id;
                     })
                     .expect(200, done);
-            });
-
-            it('should return Pending state', (done) => {
-                user.get(`/v1/withdrawals/${withdrawalDocumentId}`)
-                    .set({ 'X-PoolId': poolId, 'Authorization': walletAccessToken })
-                    .expect((res: request.Response) => {
-                        expect(res.body.state).toEqual(WithdrawalState.Pending);
-                        expect(res.body.withdrawalId).toBeDefined();
-
-                        withdrawalId = res.body.withdrawalId;
-                    })
-                    .expect(200, done);
-            });
-
-            it('should finalize the withdraw poll', async () => {
-                const { call, nonce, sig } = await signMethod(
-                    poolAddress,
-                    'withdrawPollFinalize',
-                    [withdrawalId],
-                    userWallet,
-                );
-
-                await user
-                    .post('/v1/relay/call')
-                    .set({ 'X-PoolId': poolId, 'Authorization': walletAccessToken })
-                    .send({
-                        call,
-                        nonce,
-                        sig,
-                    })
-                    .expect(200);
             });
 
             it('should return Withdrawn state', (done) => {
@@ -462,42 +325,11 @@ describe('Reward Claim', () => {
                     .set({ 'X-PoolId': poolId, 'Authorization': walletAccessToken })
                     .expect((res: request.Response) => {
                         expect(res.body._id).toBeDefined();
-                        expect(res.body.state).toEqual(WithdrawalState.Pending);
+                        expect(res.body.state).toEqual(WithdrawalState.Withdrawn);
 
                         withdrawalDocumentId = res.body._id;
                     })
                     .expect(200, done);
-            });
-
-            it('should return Pending state', (done) => {
-                user.get(`/v1/withdrawals/${withdrawalDocumentId}`)
-                    .set({ 'X-PoolId': poolId, 'Authorization': walletAccessToken })
-                    .expect((res: request.Response) => {
-                        expect(res.body.state).toEqual(WithdrawalState.Pending);
-                        expect(res.body.withdrawalId).toBeDefined();
-
-                        withdrawalId = res.body.withdrawalId;
-                    })
-                    .expect(200, done);
-            });
-
-            it('should finalize the withdraw poll', async () => {
-                const { call, nonce, sig } = await signMethod(
-                    poolAddress,
-                    'withdrawPollFinalize',
-                    [withdrawalId],
-                    userWallet,
-                );
-
-                await user
-                    .post('/v1/relay/call')
-                    .set({ 'X-PoolId': poolId, 'Authorization': walletAccessToken })
-                    .send({
-                        call,
-                        nonce,
-                        sig,
-                    })
-                    .expect(200);
             });
 
             it('should return Withdrawn state', (done) => {
@@ -537,42 +369,11 @@ describe('Reward Claim', () => {
                     .set({ 'X-PoolId': poolId, 'Authorization': walletAccessToken })
                     .expect((res: request.Response) => {
                         expect(res.body._id).toBeDefined();
-                        expect(res.body.state).toEqual(WithdrawalState.Pending);
+                        expect(res.body.state).toEqual(WithdrawalState.Withdrawn);
 
                         withdrawalDocumentId = res.body._id;
                     })
                     .expect(200, done);
-            });
-
-            it('should return Pending state', (done) => {
-                user.get(`/v1/withdrawals/${withdrawalDocumentId}`)
-                    .set({ 'X-PoolId': poolId, 'Authorization': walletAccessToken })
-                    .expect((res: request.Response) => {
-                        expect(res.body.state).toEqual(WithdrawalState.Pending);
-                        expect(res.body.withdrawalId).toBeDefined();
-
-                        withdrawalId = res.body.withdrawalId;
-                    })
-                    .expect(200, done);
-            });
-
-            it('should finalize the withdraw poll', async () => {
-                const { call, nonce, sig } = await signMethod(
-                    poolAddress,
-                    'withdrawPollFinalize',
-                    [withdrawalId],
-                    userWallet,
-                );
-
-                await user
-                    .post('/v1/relay/call')
-                    .set({ 'X-PoolId': poolId, 'Authorization': walletAccessToken })
-                    .send({
-                        call,
-                        nonce,
-                        sig,
-                    })
-                    .expect(200);
             });
 
             it('should return Withdrawn state', (done) => {

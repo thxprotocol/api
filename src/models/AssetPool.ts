@@ -6,21 +6,24 @@ export type AssetPoolDocument = mongoose.Document & TAssetPool;
 
 const assetPoolSchema = new mongoose.Schema(
     {
+        sub: String,
         address: String,
         chainId: Number,
-        sub: String,
+        erc20Id: String,
+        erc721Id: String,
         clientId: String,
         transactions: [String],
         lastTransactionAt: Date,
         version: String,
         variant: String,
+        archived: Boolean,
     },
     { timestamps: true },
 );
 
 assetPoolSchema.virtual('contract').get(function () {
     if (!this.address) return;
-    return getContractFromAbi(this.chainId, getDiamondAbi(this.chainId, this.variant || 'defaultPool'), this.address);
+    return getContractFromAbi(this.chainId, getDiamondAbi(this.chainId, 'defaultDiamond'), this.address);
 });
 
 export const AssetPool = mongoose.model<AssetPoolDocument>('AssetPool', assetPoolSchema);

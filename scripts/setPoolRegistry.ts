@@ -37,7 +37,7 @@ async function main() {
             const registry = getContract(pool.chainId, 'PoolRegistry', currentVersion);
 
             if (registry.options.address !== currentRegistryAddress) {
-                const { receipt } = await TransactionService.send(
+                const receipt = await TransactionService.send(
                     pool.address,
                     pool.contract.methods.setPoolRegistry(registry.options.address),
                     pool.chainId,
