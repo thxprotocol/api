@@ -15,6 +15,7 @@ import ERC721Service from './ERC721Service';
 import { Deposit } from '@/models/Deposit';
 import { TAssetPool } from '@/types/TAssetPool';
 import { ADDRESS_ZERO } from '@/config/secrets';
+import { isAddress } from 'ethers/lib/utils';
 
 export const ADMIN_ROLE = '0x0000000000000000000000000000000000000000000000000000000000000000';
 
@@ -65,13 +66,13 @@ export default class AssetPoolService {
                 const event = findEvent('DiamondDeployed', events);
                 pool.address = event.args.diamond;
 
-                if (erc20Address !== ADDRESS_ZERO) {
+                if (isAddress(erc20Address) && erc20Address !== ADDRESS_ZERO) {
                     const erc20 = await ERC20Service.findOrImport(pool, erc20Address);
                     await AssetPoolService.initializeERC20(pool, erc20Address); // TODO Should move to ERC20Service
                     pool.erc20Id = String(erc20._id);
                 }
 
-                if (erc721Address !== ADDRESS_ZERO) {
+                if (isAddress(erc721Address) && erc721Address !== ADDRESS_ZERO) {
                     const erc721 = await ERC721Service.findByQuery({
                         address: erc721Address,
                         chainId: pool.chainId,
@@ -121,16 +122,16 @@ export default class AssetPoolService {
         );
     }
 
-    static async initializeERC20(pool: AssetPoolDocument, tokenAddress: string) {
-        const erc20 = await ERC20Service.findBy({ chainId: pool.chainId, address: tokenAddress, sub: pool.sub });
+    static async initializeERC20(pool: AssetPoolDocument, address: string) {
+        const erc20 = await ERC20Service.findBy({ chainId: pool.chainId, address, sub: pool.sub });
         if (erc20 && erc20.type === ERC20Type.Unlimited) {
             await ERC20Service.addMinter(erc20, pool.address);
         }
         await MembershipService.addERC20Membership(pool.sub, pool);
     }
 
-    static async initializeERC721(pool: AssetPoolDocument, tokenAddress: string) {
-        const erc721 = await ERC721Service.findByQuery({ address: tokenAddress, chainId: pool.chainId });
+    static async initializeERC721(pool: AssetPoolDocument, address: string) {
+        const erc721 = await ERC721Service.findByQuery({ address, chainId: pool.chainId });
         await ERC721Service.addMinter(erc721, pool.address);
         await MembershipService.addERC721Membership(pool.sub, pool);
     }
