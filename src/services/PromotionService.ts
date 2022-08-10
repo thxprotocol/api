@@ -28,11 +28,11 @@ async function formatResult(sub: string, promotion: PromotionDocument) {
     const isOwner = promotion.sub === sub;
     // Check if user made a deposit
     const deposit = await Deposit.findOne({ sub, item: promotion.id, state: DepositState.Completed });
-    const id = String(promotion._id);
     const value = isOwner || deposit ? promotion.value : '';
 
     return {
-        id,
+        _id: String(promotion._id),
+        id: String(promotion._id), // TODO Deprecate this when tests are aligned
         title: promotion.title,
         description: promotion.description,
         price: promotion.price,

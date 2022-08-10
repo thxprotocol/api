@@ -1,7 +1,6 @@
-const TokenFacetArtifact = require('@thxnetwork/artifacts/dist/exports/abis/ERC20Facet.json');
+const TokenFacetArtifact = require('@thxnetwork/artifacts/dist/exports/abis/ERC20ProxyFacet.json');
 const Web3 = require('web3');
 const { ObjectId } = require('mongodb');
-const { query } = require('express');
 
 const hardhat = new Web3(process.env.HARDHAT_RPC_TEST_OVERRIDE);
 const hardhatAdmin = hardhat.eth.accounts.privateKeyToAccount(process.env.PRIVATE_KEY);

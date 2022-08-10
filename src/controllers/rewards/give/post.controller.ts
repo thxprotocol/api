@@ -6,7 +6,6 @@ import RewardService from '@/services/RewardService';
 import WithdrawalService from '@/services/WithdrawalService';
 import MemberService from '@/services/MemberService';
 import { WithdrawalDocument } from '@/models/Withdrawal';
-import { agenda, EVENT_REQUIRE_TRANSACTIONS } from '@/util/agenda';
 import { param, body } from 'express-validator';
 
 const validation = [param('id').exists(), body('member').exists()];
@@ -34,9 +33,7 @@ const controller = async (req: Request, res: Response) => {
         req.params.id,
     );
 
-    w = await WithdrawalService.proposeWithdraw(req.assetPool, w, account);
-
-    agenda.now(EVENT_REQUIRE_TRANSACTIONS, {});
+    w = await WithdrawalService.withdrawFor(req.assetPool, w, account);
 
     res.json({
         ...w.toJSON(),
