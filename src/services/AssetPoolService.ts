@@ -84,7 +84,6 @@ export default class AssetPoolService {
                     }
                 }
                 pool.transactions.push(String(tx._id));
-
                 return await pool.save();
             },
         };
