@@ -1,50 +1,30 @@
 import ERC20, { ERC20Document, IERC20Updates } from '@/models/ERC20';
 import { toWei } from 'web3-utils';
-import { getProvider } from '@/util/network';
 import { ICreateERC20Params } from '@/types/interfaces';
 import TransactionService from './TransactionService';
-import { assertEvent, CustomEventLog, parseLogs } from '@/util/events';
+import { assertEvent, parseLogs } from '@/util/events';
 import { ChainId, ERC20Type } from '@/types/enums';
 import { AssetPoolDocument } from '@/models/AssetPool';
-import { currentVersion } from '@thxnetwork/artifacts';
-import { getContract, getContractFromName } from '@/config/contracts';
+import { TokenContractName } from '@thxnetwork/artifacts';
+import { getAbiForContractName, getByteCodeForContractName, getContractFromName } from '@/config/contracts';
 import { keccak256, toUtf8Bytes } from 'ethers/lib/utils';
 import { ERC20Token } from '@/models/ERC20Token';
-import { TransactionDocument } from '@/models/Transaction';
+import { getProvider } from '@/util/network';
 
-function getDeployFnArgsCallback(erc20: ERC20Document, totalSupply: string) {
-    const { admin } = getProvider(erc20.chainId);
-    const callback = async (tx: TransactionDocument, events?: CustomEventLog[]): Promise<ERC20Document> => {
-        if (events) {
-            const event = assertEvent('TokenDeployed', events);
-            erc20.address = event.args.token;
-        }
-
-        erc20.transactions.push(String(tx._id));
-
-        return await erc20.save();
-    };
+function getDeployArgs(erc20: ERC20Document, totalSupply?: string) {
+    const { defaultAccount } = getProvider(erc20.chainId);
 
     switch (erc20.type) {
         case ERC20Type.Limited: {
-            return {
-                fn: 'deployLimitedSupplyToken',
-                args: [erc20.name, erc20.symbol, admin.address, toWei(String(totalSupply))],
-                callback,
-            };
+            return [erc20.name, erc20.symbol, defaultAccount, toWei(String(totalSupply))];
         }
         case ERC20Type.Unlimited: {
-            return {
-                fn: 'deployUnlimitedSupplyToken',
-                args: [erc20.name, erc20.symbol, admin.address],
-                callback,
-            };
+            return [erc20.name, erc20.symbol, defaultAccount];
         }
     }
 }
 
-export const deploy = async (params: ICreateERC20Params) => {
-    const tokenFactory = getContract(params.chainId, 'TokenFactory', currentVersion);
+export const deploy = async (contractName: TokenContractName, params: ICreateERC20Params) => {
     const erc20 = await ERC20.create({
         name: params.name,
         symbol: params.symbol,
@@ -53,13 +33,21 @@ export const deploy = async (params: ICreateERC20Params) => {
         sub: params.sub,
         archived: false,
     });
-    const { fn, args, callback } = getDeployFnArgsCallback(erc20, params.totalSupply);
 
-    return await TransactionService.relay(tokenFactory, fn, args, erc20.chainId, callback);
+    const contract = await TransactionService.deploy(
+        getAbiForContractName(contractName),
+        getByteCodeForContractName(contractName),
+        getDeployArgs(erc20, params.totalSupply),
+        erc20.chainId,
+    );
+
+    erc20.address = contract.options.address;
+
+    return await erc20.save();
 };
 
 const addMinter = async (erc20: ERC20Document, address: string) => {
-    const { receipt } = await TransactionService.send(
+    const receipt = await TransactionService.send(
         erc20.address,
         erc20.contract.methods.grantRole(keccak256(toUtf8Bytes('MINTER_ROLE')), address),
         erc20.chainId,

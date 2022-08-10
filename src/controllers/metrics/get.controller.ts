@@ -25,10 +25,10 @@ const controller = async (_req: Request, res: Response) => {
         },
         count_transactions: {
             mainnet:
-                (await providerMain.web3.eth.getTransactionCount(providerMain.admin.address)) +
+                (await providerMain.web3.eth.getTransactionCount(providerMain.defaultAccount)) +
                 (await providerMain.web3.eth.getTransactionCount('0xe583A501276B2E64178512e83972581f98e9290c')), // Including rotated account for accurate total
             testnet:
-                (await providerTest.web3.eth.getTransactionCount(providerTest.admin.address)) +
+                (await providerTest.web3.eth.getTransactionCount(providerTest.defaultAccount)) +
                 (await providerTest.web3.eth.getTransactionCount('0xe583A501276B2E64178512e83972581f98e9290c')), // Including rotated account for accurate total
         },
     };

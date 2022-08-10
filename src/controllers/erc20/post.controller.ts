@@ -3,6 +3,7 @@ import { body } from 'express-validator';
 import ERC20Service from '@/services/ERC20Service';
 import AccountProxy from '@/proxies/AccountProxy';
 import { checkAndUpgradeToBasicPlan } from '@/util/plans';
+import { ERC20Type } from '@/types/enums';
 // import { fromWei } from 'web3-utils';
 // import { getProvider } from '@/util/network';
 
@@ -20,7 +21,8 @@ export const controller = async (req: Request, res: Response) => {
 
     await checkAndUpgradeToBasicPlan(account, req.body.chainId);
 
-    const erc20 = await ERC20Service.deploy({
+    const contractName = req.body.type === ERC20Type.Unlimited ? 'UnlimitedSupplyToken' : 'LimitedSupplyToken';
+    const erc20 = await ERC20Service.deploy(contractName, {
         name: req.body.name,
         symbol: req.body.symbol,
         chainId: req.body.chainId,
