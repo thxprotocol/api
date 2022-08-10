@@ -161,17 +161,6 @@ describe('Payment Request', () => {
             ];
 
         describe('POST /erc721', () => {
-            // it('Deploy existing token', async () => {
-            //     const { options } = getContract(ChainId.Hardhat, 'NonFungibleToken', currentVersion);
-            //     nft = await TransactionService.deploy(
-            //         options.jsonInterface,
-            //         getByteCodeForContractName('NonFungibleToken'),
-            //         [name, symbol, baseURL, admin.address],
-            //         ChainId.Hardhat,
-            //     );
-            //     erc721Address = nft.options.address;
-            // });
-
             it('should create an ERC721 and return contract details', (done) => {
                 http.post('/v1/erc721')
                     .set('Authorization', dashboardAccessToken)
@@ -319,7 +308,7 @@ describe('Payment Request', () => {
             });
         });
 
-        it('should return contract details', (done) => {
+        it('should return ERC721Token with state = MINTED', (done) => {
             http.get('/v1/erc721/token')
                 .set('Authorization', dashboardAccessToken)
                 .send()
