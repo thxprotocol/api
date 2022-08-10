@@ -1,17 +1,20 @@
-import RewardService from '@/services/RewardService';
 import { Job } from 'agenda';
+import axios from 'axios';
+import stream from 'stream';
+import path from 'path';
 import { AWS_S3_PRIVATE_BUCKET_NAME, DASHBOARD_URL, WALLET_URL } from '@/config/secrets';
-import MailService from '@/services/MailService';
 import AccountProxy from '@/proxies/AccountProxy';
 import AssetPoolService from '@/services/AssetPoolService';
+import BrandService from '@/services/BrandService';
 import ClaimService from '@/services/ClaimService';
-import stream from 'stream';
 import ImageService from '@/services/ImageService';
-import { s3PrivateClient } from '@/util/s3';
-import { Upload } from '@aws-sdk/lib-storage';
+import MailService from '@/services/MailService';
+import RewardService from '@/services/RewardService';
 import { ClaimDocument } from '@/types/TClaim';
-import { createArchiver } from '@/util/zip';
 import { logger } from '@/util/logger';
+import { s3PrivateClient } from '@/util/s3';
+import { createArchiver } from '@/util/zip';
+import { Upload } from '@aws-sdk/lib-storage';
 
 export const generateRewardQRCodesJob = async ({ attrs }: Job) => {
     if (!attrs.data) return;
@@ -32,6 +35,17 @@ export const generateRewardQRCodesJob = async ({ attrs }: Job) => {
         const claims = await ClaimService.findByReward(reward);
         if (!claims.length) throw new Error('Claims not found');
 
+        const brand = await BrandService.get(poolId);
+        let logo = path.resolve(__dirname, '../public/qr-logo.jpg');
+        if (brand && brand.logoImgUrl) {
+            try {
+                const response = await axios.get(brand.logoImgUrl, { responseType: 'arraybuffer' });
+                logo = Buffer.from(response.data, 'utf-8').toString();
+            } catch {
+                // Fail silently and fallback to default logo img
+            }
+        }
+
         // Create an instance of jsZip and build an archive
         const { jsZip, archive } = createArchiver();
 
@@ -39,7 +53,7 @@ export const generateRewardQRCodesJob = async ({ attrs }: Job) => {
         await Promise.all(
             claims.map(async ({ _id }: ClaimDocument) => {
                 const id = String(_id);
-                const base64Data: string = await ImageService.createQRCode(`${WALLET_URL}/claims/${id}`);
+                const base64Data: string = await ImageService.createQRCode(`${WALLET_URL}/claims/${id}`, logo);
                 // Adds file to the qrcode archive
                 return archive.file(`${id}.png`, base64Data, { base64: true });
             }),

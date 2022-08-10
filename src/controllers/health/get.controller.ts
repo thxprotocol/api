@@ -3,24 +3,16 @@ import { Response, Request } from 'express';
 import { fromWei } from 'web3-utils';
 import { getProvider } from '@/util/network';
 import { ChainId } from '@/types/enums';
-import InfuraService from '@/services/InfuraService';
 import { diamondFacetAddresses, getContractConfig, getContractFromName } from '@/config/contracts';
 import { logger } from '@/util/logger';
 import newrelic from 'newrelic';
 import { currentVersion, diamondVariants } from '@thxnetwork/artifacts';
+import { NODE_ENV } from '@/config/secrets';
 
 function handleError(error: Error) {
     newrelic.noticeError(error);
     logger.error(error);
     return { error: 'invalid response' };
-}
-
-async function getGasTankInfo(chainId: ChainId) {
-    try {
-        return fromWei(await InfuraService.getAdminBalance(chainId), 'ether');
-    } catch (error) {
-        return handleError(error);
-    }
 }
 
 function facetAdresses(chainId: ChainId) {
@@ -35,22 +27,34 @@ function facetAdresses(chainId: ChainId) {
 
 async function getNetworkDetails(chainId: ChainId) {
     try {
-        const provider = getProvider(chainId);
-        const { admin, web3 } = provider;
-        const balance = await web3.eth.getBalance(admin.address);
+        const { defaultAccount, relayer, web3 } = getProvider(chainId);
+        const balance = await web3.eth.getBalance(defaultAccount);
+
+        let queue;
+        if (relayer) {
+            const [pending, failed, mined] = await Promise.all([
+                await relayer.list({ status: 'pending' }),
+                await relayer.list({ status: 'failed' }),
+                await relayer.list({ status: 'mined' }),
+            ]);
+
+            queue = {
+                pending: pending.length,
+                failed: failed.length,
+                mined: mined.length,
+            };
+        }
 
         return {
             admin: {
-                address: admin.address,
+                address: defaultAccount,
                 balance: fromWei(balance, 'ether'),
             },
-            gasTank: {
-                queue: (await InfuraService.scheduled(chainId)).length,
-                address: InfuraService.getGasTank(chainId),
-                balance: await getGasTankInfo(chainId),
-            },
-            // feeData: await getFeeData(npid),
+            queue,
             facets: facetAdresses(chainId),
+            registry: getContractConfig(chainId, 'Registry').address,
+            factory: getContractConfig(chainId, 'Factory').address,
+            feeCollector: await poolRegistry(chainId).methods.feeCollector().call(),
         };
     } catch (error) {
         return handleError(error);
@@ -58,39 +62,35 @@ async function getNetworkDetails(chainId: ChainId) {
 }
 
 function poolRegistry(chainId: ChainId) {
-    const { address } = getContractConfig(chainId, 'PoolRegistry');
-    return getContractFromName(chainId, 'PoolRegistry', address);
+    try {
+        const { address } = getContractConfig(chainId, 'Registry');
+        return getContractFromName(chainId, 'Registry', address);
+    } catch (error) {
+        return undefined;
+    }
 }
 
 export const getHealth = async (_req: Request, res: Response) => {
     // #swagger.tags = ['Health']
-    const [testnetDetails, mainnetDetails, testnetFeeCollector, mainnetFeeCollector] = await Promise.all([
-        await getNetworkDetails(ChainId.PolygonMumbai),
-        await getNetworkDetails(ChainId.Polygon),
-        await poolRegistry(ChainId.PolygonMumbai).methods.feeCollector().call(),
-        await poolRegistry(ChainId.Polygon).methods.feeCollector().call(),
-    ]);
-
-    const jsonData = {
+    const result: any = {
         name,
         version,
         license,
         artifacts: currentVersion,
-        testnet: {
-            ...testnetDetails,
-            poolRegistry: getContractConfig(ChainId.PolygonMumbai, 'PoolRegistry').address,
-            poolFactory: getContractConfig(ChainId.PolygonMumbai, 'PoolFactory').address,
-            tokenFactory: getContractConfig(ChainId.PolygonMumbai, 'TokenFactory').address,
-            feeCollector: testnetFeeCollector,
-        },
-        mainnet: {
-            ...mainnetDetails,
-            poolRegistry: poolRegistry(ChainId.Polygon).options.address,
-            poolFactory: getContractConfig(ChainId.Polygon, 'PoolFactory').address,
-            tokenFactory: getContractConfig(ChainId.Polygon, 'TokenFactory').address,
-            feeCollector: mainnetFeeCollector,
-        },
     };
 
-    res.header('Content-Type', 'application/json').send(JSON.stringify(jsonData, null, 4));
+    if (NODE_ENV !== 'production') {
+        result.hardhat = await getNetworkDetails(ChainId.Hardhat);
+    } else {
+        const [hardhat, testnet, mainnet] = await Promise.all([
+            await getNetworkDetails(ChainId.Hardhat),
+            await getNetworkDetails(ChainId.PolygonMumbai),
+            await getNetworkDetails(ChainId.Polygon),
+        ]);
+        result.hardhat = hardhat;
+        result.testnet = testnet;
+        result.mainnet = mainnet;
+    }
+
+    res.header('Content-Type', 'application/json').send(JSON.stringify(result, null, 4));
 };

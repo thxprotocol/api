@@ -35,11 +35,11 @@ async function handleEvents(tx: TransactionDocument, events: CustomEventLog[]) {
             pool.address = event.args.pool;
             await pool.save();
 
-            if (pool.variant === 'defaultPool') {
-                await AssetPoolService.initializeDefaultPool(pool, event.args.token);
+            if (pool.erc20Id) {
+                await AssetPoolService.initializeERC20(pool, event.args.token);
             }
-            if (pool.variant === 'nftPool') {
-                await AssetPoolService.initializeNFTPool(pool, event.args.token);
+            if (pool.erc721Id) {
+                await AssetPoolService.initializeERC721(pool, event.args.token);
             }
             // if (pool.variant === 'paymentPool') {
             //     await AssetPoolService.initializePaymentPool(pool, event.args.token);
@@ -55,12 +55,6 @@ async function handleEvents(tx: TransactionDocument, events: CustomEventLog[]) {
                     failReason: '',
                 },
             );
-        },
-        RoleGranted: async function (event?: CustomEventLog) {
-            const pool = await AssetPool.findOne({ address: tx.to });
-            if (pool) {
-                await MemberService.addExistingMember(pool, event.args.account);
-            }
         },
         WithdrawPollCreated: async function (event?: CustomEventLog) {
             await Withdrawal.updateOne(

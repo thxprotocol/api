@@ -1,16 +1,16 @@
 import mongoose from 'mongoose';
 
 export type IMember = mongoose.Document & {
-    poolAddress: string;
-    memberId: number;
+    sub?: string;
     address: string;
+    poolId: string;
 };
 
 const memberSchema = new mongoose.Schema(
     {
-        poolAddress: String,
-        memberId: Number,
+        sub: String,
         address: String,
+        poolId: String,
     },
     { timestamps: true },
 );

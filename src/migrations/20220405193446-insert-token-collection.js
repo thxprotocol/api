@@ -6,7 +6,7 @@ function getProvider(rpc) {
     const web3 = new Web3(rpc);
     const admin = web3.eth.accounts.privateKeyToAccount(process.env.PRIVATE_KEY);
 
-    web3.eth.defaultAccount = admin.address;
+    web3.eth.defaultAccount = defaultAccount;
 
     return { web3, admin };
 }

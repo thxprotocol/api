@@ -25,7 +25,7 @@ jobs:
 
             - name: Run test
               run: |
-                  docker compose -f docker-compose.yml -f docker-compose.ci.yml run -T api npm run test
+                  docker compose -f docker-compose.yml -f docker-compose.ci.yml run -e AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }} -e AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }} -T api npm test
 
     bumpVersion:
         name: 'Bump Version on main'

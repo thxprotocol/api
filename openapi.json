@@ -1,7 +1,7 @@
 {
   "swagger": "2.0",
   "info": {
-    "version": "1.18.3",
+    "version": "1.19.5",
     "title": "THX API Specification",
     "description": "User guides are available at https://docs.thx.network."
   },
@@ -112,24 +112,6 @@
             "name": "X-Payment-Token",
             "in": "header",
             "type": "string"
-          },
-          {
-            "name": "body",
-            "in": "body",
-            "schema": {
-              "type": "object",
-              "properties": {
-                "call": {
-                  "example": "any"
-                },
-                "nonce": {
-                  "example": "any"
-                },
-                "sig": {
-                  "example": "any"
-                }
-              }
-            }
           }
         ],
         "responses": {
@@ -203,16 +185,10 @@
             "schema": {
               "type": "object",
               "properties": {
-                "address": {
+                "authRequestMessage": {
                   "example": "any"
                 },
-                "googleAccess": {
-                  "example": "any"
-                },
-                "twitterAccess": {
-                  "example": "any"
-                },
-                "spotifyAccess": {
+                "authRequestSignature": {
                   "example": "any"
                 }
               }
@@ -349,10 +325,10 @@
                 "chainId": {
                   "example": "any"
                 },
-                "variant": {
+                "erc20tokens": {
                   "example": "any"
                 },
-                "tokens": {
+                "erc721tokens": {
                   "example": "any"
                 }
               }
@@ -508,7 +484,13 @@
           "ERC20"
         ],
         "description": "",
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "chainId",
+            "in": "query",
+            "type": "string"
+          }
+        ],
         "responses": {
           "200": {
             "description": "OK"
@@ -576,6 +558,9 @@
                 "chainId": {
                   "example": "any"
                 },
+                "type": {
+                  "example": "any"
+                },
                 "name": {
                   "example": "any"
                 },
@@ -583,9 +568,6 @@
                   "example": "any"
                 },
                 "totalSupply": {
-                  "example": "any"
-                },
-                "type": {
                   "example": "any"
                 }
               }
@@ -664,7 +646,13 @@
           "ERC721"
         ],
         "description": "",
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "chainId",
+            "in": "query",
+            "type": "string"
+          }
+        ],
         "responses": {
           "200": {
             "description": "OK"
@@ -959,15 +947,6 @@
                 },
                 "item": {
                   "example": "any"
-                },
-                "call": {
-                  "example": "any"
-                },
-                "nonce": {
-                  "example": "any"
-                },
-                "sig": {
-                  "example": "any"
                 }
               }
             }
@@ -1147,7 +1126,13 @@
           "Memberships"
         ],
         "description": "",
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "chainId",
+            "in": "query",
+            "type": "string"
+          }
+        ],
         "responses": {
           "200": {
             "description": "OK"
@@ -1290,78 +1275,6 @@
         "responses": {
           "204": {
             "description": "No Content"
-          }
-        }
-      }
-    },
-    "/relay/call": {
-      "post": {
-        "tags": [
-          "Relay Hub"
-        ],
-        "description": "",
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "schema": {
-              "type": "object",
-              "properties": {
-                "call": {
-                  "example": "any"
-                },
-                "nonce": {
-                  "example": "any"
-                },
-                "sig": {
-                  "example": "any"
-                }
-              }
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK"
-          },
-          "500": {
-            "description": "Internal Server Error"
-          }
-        }
-      }
-    },
-    "/relay/upgrade_address": {
-      "post": {
-        "tags": [
-          "Relay Hub"
-        ],
-        "description": "",
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "schema": {
-              "type": "object",
-              "properties": {
-                "call": {
-                  "example": "any"
-                },
-                "nonce": {
-                  "example": "any"
-                },
-                "sig": {
-                  "example": "any"
-                }
-              }
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK"
-          },
-          "500": {
-            "description": "Internal Server Error"
           }
         }
       }
@@ -1739,27 +1652,6 @@
         }
       }
     },
-    "/withdrawals/{id}/withdraw": {
-      "post": {
-        "tags": [
-          "Withdrawals"
-        ],
-        "description": "",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        }
-      }
-    },
     "/transactions/": {
       "get": {
         "description": "",
@@ -1913,15 +1805,6 @@
                   "example": "any"
                 },
                 "amountIn": {
-                  "example": "any"
-                },
-                "call": {
-                  "example": "any"
-                },
-                "nonce": {
-                  "example": "any"
-                },
-                "sig": {
                   "example": "any"
                 }
               }

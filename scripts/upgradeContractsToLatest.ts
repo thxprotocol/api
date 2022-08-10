@@ -14,9 +14,8 @@ async function main() {
     const startTime = Date.now();
     console.log('Start!', startTime);
     const diamonds: Partial<Record<ContractName, DiamondVariant>> = {
-        PoolRegistry: 'poolRegistry',
-        PoolFactory: 'poolFactory',
-        TokenFactory: 'tokenFactory',
+        Registry: 'registry',
+        Factory: 'factory',
     };
 
     for (const [contractName, diamondVariant] of Object.entries(diamonds)) {
@@ -34,8 +33,12 @@ async function main() {
     for (const pool of await AssetPool.find({ version: { $ne: currentVersion } })) {
         try {
             const account = await AccountProxy.getById(pool.sub);
-            // We only upgrade paying accounts automatically. Other accounts will see a notification in Dashboard
-            if (account.plan !== AccountPlanType.Free) {
+            if (!account) return;
+
+            const isPaidPlan = [AccountPlanType.Basic, AccountPlanType.Premium].includes(account.plan);
+            const isFreeMumbai = account.plan === AccountPlanType.Free && pool.chainId === ChainId.PolygonMumbai;
+
+            if (isPaidPlan || isFreeMumbai) {
                 console.log('Upgrade:', pool.address, `${pool.variant} ${pool.version} -> ${currentVersion}`);
                 await AssetPoolService.updateAssetPool(pool, currentVersion);
             }

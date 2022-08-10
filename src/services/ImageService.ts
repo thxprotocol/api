@@ -1,7 +1,6 @@
-import short from 'short-uuid';
-import path from 'path';
-import QRCode from 'qrcode';
 import { createCanvas, loadImage } from 'canvas';
+import QRCode from 'qrcode';
+import short from 'short-uuid';
 import { AWS_S3_PUBLIC_BUCKET_NAME, AWS_S3_PUBLIC_BUCKET_REGION } from '@/config/secrets';
 import { s3Client } from '@/util/s3';
 import { GetObjectCommand, PutObjectCommand } from '@aws-sdk/client-s3';
@@ -30,8 +29,7 @@ export default {
     getPublicUrl: (key: string) => {
         return `https://${AWS_S3_PUBLIC_BUCKET_NAME}.s3.${AWS_S3_PUBLIC_BUCKET_REGION}.amazonaws.com/${key}`;
     },
-    createQRCode: async (url: string) => {
-        const logoPath = path.resolve(__dirname, '../public/qr-logo.jpg');
+    createQRCode: async (url: string, logo: Buffer | string) => {
         const width = 55;
         const center = 58;
         const canvas = createCanvas(width, width);
@@ -46,7 +44,7 @@ export default {
         });
 
         const ctx = canvas.getContext('2d');
-        const img = await loadImage(logoPath);
+        const img = await loadImage(logo);
         ctx.drawImage(img, center, center, width, width);
 
         const qrCode = canvas.toDataURL('image/png');

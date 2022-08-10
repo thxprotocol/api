@@ -21,8 +21,8 @@ const controller = async (req: Request, res: Response) => {
     if (!pool) return res.send(membership);
 
     let poolBalance;
-    if (pool && pool.variant === 'defaultPool') {
-        const balanceInWei = await pool.contract.methods.getBalance().call();
+    if (pool && pool.erc20Id) {
+        const balanceInWei = await pool.contract.methods.balanceOf(pool.address).call();
         poolBalance = Number(fromWei(balanceInWei));
     }
 

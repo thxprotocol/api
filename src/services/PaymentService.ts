@@ -4,10 +4,10 @@ import { WALLET_URL } from '@/config/secrets';
 import { assertEvent, CustomEventLog } from '@/util/events';
 import { TransactionDocument } from '@/models/Transaction';
 import TransactionService from './TransactionService';
-import { TAssetPool } from '@/types/TAssetPool';
 import { createRandomToken } from '@/util/token';
 import ERC20Service from '@/services/ERC20Service';
 import { AssetPoolDocument } from '@/models/AssetPool';
+import { Contract } from 'web3-eth-contract';
 
 async function create(
     pool: AssetPoolDocument,
@@ -47,26 +47,24 @@ async function findByPool(pool: AssetPoolDocument) {
     });
 }
 
-async function pay(pool: TAssetPool, payment: PaymentDocument, callData: { call: string; nonce: number; sig: string }) {
-    const callback = async (tx: TransactionDocument, events?: CustomEventLog[]): Promise<PaymentDocument> => {
-        if (events) {
-            assertEvent('Topup', events);
-            payment.state = PaymentState.Completed;
-        }
-        payment.transactions.push(String(tx._id));
-
-        return await payment.save();
-    };
-
+async function pay(contract: Contract, payment: PaymentDocument) {
     payment.state = PaymentState.Pending;
     await payment.save();
 
     return await TransactionService.relay(
-        pool.contract,
-        'call',
-        [callData.call, callData.nonce, callData.sig],
-        pool.chainId,
-        callback,
+        contract,
+        'transferFrom',
+        [payment.sender, payment.receiver, payment.amount],
+        payment.chainId,
+        async (tx: TransactionDocument, events?: CustomEventLog[]): Promise<PaymentDocument> => {
+            if (events) {
+                assertEvent('Transfer', events);
+                payment.state = PaymentState.Completed;
+            }
+            payment.transactions.push(String(tx._id));
+
+            return await payment.save();
+        },
     );
 }
 

@@ -38,7 +38,7 @@ describe('Widgets', () => {
                 .set({ Authorization: dashboardAccessToken })
                 .send({
                     chainId: ChainId.Hardhat,
-                    tokens: [testToken.options.address],
+                    erc20tokens: [testToken.options.address],
                 })
                 .expect(({ body }: request.Response) => {
                     pool = body;

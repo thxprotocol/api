@@ -26,7 +26,7 @@ const controller = async (req: Request, res: Response) => {
 
     const { receipt } = await TransactionService.sendValue(account.address, toWei('0.01'), req.assetPool.chainId);
 
-    if (req.assetPool.chainId !== ChainId.Hardhat && SENDGRID_API_KEY) {
+    if (req.assetPool.chainId !== ChainId.Hardhat && SENDGRID_API_KEY && receipt.transactionHash) {
         await MailService.send(
             'peter@thx.network',
             `0.01 MATIC -> ${account.address}`,

@@ -1,17 +1,18 @@
 import { Request, Response } from 'express';
 import { VERSION } from '@/config/secrets';
 import AccountProxy from '@/proxies/AccountProxy';
+import { recoverSigner } from '@/util/network';
 
-const controller = async (req: Request, res: Response) => {
-    // #swagger.tags = ['Account']
-    await AccountProxy.update(req.auth.sub, {
-        address: req.body.address,
-        googleAccess: req.body.googleAccess,
-        twitterAccess: req.body.twitterAccess,
-        spotifyAccess: req.body.spotifyAccess,
-    });
+export default {
+    controller: async (req: Request, res: Response) => {
+        // #swagger.tags = ['Account']
+        let address;
+        if (req.body.authRequestMessage && req.body.authRequestSignature) {
+            address = recoverSigner(req.body.authRequestMessage, req.body.authRequestSignature);
+        }
 
-    res.redirect(303, `/${VERSION}/account`);
+        await AccountProxy.update(req.auth.sub, { ...req.body, address });
+
+        res.redirect(303, `/${VERSION}/account`);
+    },
 };
-
-export default { controller };

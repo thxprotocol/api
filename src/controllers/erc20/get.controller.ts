@@ -13,11 +13,11 @@ const controller = async (req: Request, res: Response) => {
     if (!erc20) new NotFoundError('ERC20 not found');
     if (!erc20.address) return res.send(erc20);
 
-    const { admin } = getProvider(erc20.chainId);
+    const { defaultAccount } = getProvider(erc20.chainId);
     const [totalSupplyInWei, decimalsString, adminBalanceInWei] = await Promise.all([
         erc20.contract.methods.totalSupply().call(),
         erc20.contract.methods.decimals().call(),
-        erc20.contract.methods.balanceOf(admin.address).call(),
+        erc20.contract.methods.balanceOf(defaultAccount).call(),
     ]);
     const totalSupply = Number(fromWei(totalSupplyInWei, 'ether'));
     const decimals = Number(decimalsString);
