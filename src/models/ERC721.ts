@@ -1,6 +1,7 @@
 import mongoose from 'mongoose';
 import { TERC721 } from '@/types/TERC721';
-import { getContractFromName } from '@/config/contracts';
+import { getAbiForContractName } from '@/config/contracts';
+import { getProvider } from '@/util/network';
 
 export type ERC721Document = mongoose.Document & TERC721;
 
@@ -21,7 +22,10 @@ const ERC721Schema = new mongoose.Schema(
 );
 
 ERC721Schema.virtual('contract').get(function () {
-    return getContractFromName(this.chainId, 'NonFungibleToken', this.address);
+    if (!this.address) return;
+    const { readProvider, defaultAccount } = getProvider(this.chainId);
+    const abi = getAbiForContractName('NonFungibleToken');
+    return new readProvider.eth.Contract(abi, this.address, { from: defaultAccount });
 });
 
 export interface IERC721Updates {
