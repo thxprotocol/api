@@ -147,10 +147,6 @@ async function main() {
                 const newProvider = getProvider(pool.chainId);
                 const currentOwner = toChecksumAddress(await pool.contract.methods.owner().call());
                 const newOwner = toChecksumAddress(newProvider.defaultAccount);
-                const currentRegistryAddress = toChecksumAddress(await pool.contract.methods.getRegistry().call());
-                const registryAddress = toChecksumAddress(
-                    getContract(pool.chainId, 'Registry', currentVersion).options.address,
-                );
 
                 if (currentOwner !== newOwner) {
                     const { methods } = new oldProvider.web3.eth.Contract(
@@ -165,6 +161,11 @@ async function main() {
                     console.log('Upgrade:', pool.address, `${pool.variant} ${pool.version} -> ${currentVersion}`);
                     await AssetPoolService.updateAssetPool(pool, currentVersion);
                 }
+
+                const currentRegistryAddress = toChecksumAddress(await pool.contract.methods.getRegistry().call());
+                const registryAddress = toChecksumAddress(
+                    getContract(pool.chainId, 'Registry', currentVersion).options.address,
+                );
 
                 if (registryAddress !== currentRegistryAddress) {
                     console.log('SetRegistry:', pool.address, `${currentRegistryAddress} -> ${registryAddress}`);
