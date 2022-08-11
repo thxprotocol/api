@@ -3,7 +3,7 @@ import AssetPoolService, { ADMIN_ROLE } from '@/services/AssetPoolService';
 import AccountProxy from '@/proxies/AccountProxy';
 import Web3 from 'web3';
 import { MONGODB_URI } from '@/config/secrets';
-import { getContract } from '@/config/contracts';
+import { getAbiForContractName, getContract } from '@/config/contracts';
 import { updateDiamondContract } from '@/util/upgrades';
 import { AssetPool } from '@/models/AssetPool';
 import { AccountPlanType, ChainId } from '@/types/enums';
@@ -112,21 +112,19 @@ async function main() {
 
                 // switch (diamondVariant) {
                 //     case 'registry': {
-                //         const receipt = await TransactionService.send(
+                //         await TransactionService.send(
                 //             contract.options.address,
                 //             contract.methods.initialize(feeCollector, twoHalfPercent),
                 //             chainId,
                 //         );
-                //         console.log(chainId, diamondVariant, receipt);
                 //         break;
                 //     }
                 //     case 'factory': {
-                //         const receipt = await TransactionService.send(
+                //         await TransactionService.send(
                 //             contract.options.address,
                 //             contract.methods.initialize(newOwner, registryAddress),
                 //             chainId,
                 //         );
-                //         console.log(chainId, diamondVariant, receipt);
                 //         break;
                 //     }
                 // }
