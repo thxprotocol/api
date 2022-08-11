@@ -28,8 +28,7 @@ const http = request.agent(app);
 
 describe('Payment Request', () => {
     let basicAccessToken: string,
-        poolIdErc20: string,
-        poolIdErc721: string,
+        poolId: string,
         poolAddress: string,
         paymentId: string,
         admin: Account,
@@ -72,7 +71,7 @@ describe('Payment Request', () => {
                 })
                 .expect((res: Response) => {
                     expect(isAddress(res.body.address)).toBe(true);
-                    poolIdErc20 = res.body._id;
+                    poolId = res.body._id;
                     poolAddress = res.body.address;
                 })
                 .expect(201, done);
@@ -80,7 +79,7 @@ describe('Payment Request', () => {
 
         it('should Request a payment', (done) => {
             http.post('/v1/payments')
-                .set({ 'Authorization': adminAccessToken, 'X-PoolId': poolIdErc20 })
+                .set({ 'Authorization': adminAccessToken, 'X-PoolId': poolId })
                 .send({
                     amount,
                     successUrl,
@@ -110,7 +109,7 @@ describe('Payment Request', () => {
 
         it('Get payment information', (done) => {
             http.get('/v1/payments/' + paymentId)
-                .set({ 'X-PoolId': poolIdErc20, 'X-Payment-Token': basicAccessToken })
+                .set({ 'X-PoolId': poolId, 'X-Payment-Token': basicAccessToken })
                 .expect(({ body }: Response) => {
                     expect(body.successUrl).toBe(successUrl);
                     expect(body.failUrl).toBe(failUrl);
@@ -140,7 +139,7 @@ describe('Payment Request', () => {
                 .post(`/v1/payments/${paymentId}/pay`)
                 .set({
                     'Authorization': walletAccessToken,
-                    'X-PoolId': poolIdErc20,
+                    'X-PoolId': poolId,
                     'X-Payment-Token': basicAccessToken,
                 })
                 .expect(({ body }: Response) => {
@@ -153,12 +152,22 @@ describe('Payment Request', () => {
     describe('for ERC721 Token', () => {
         const name = 'Planets of the Galaxy',
             symbol = 'GLXY',
-            baseURL = 'baseURL',
             description = 'description',
             schema = [
                 { name: 'color', propType: 'string', description: 'lorem ipsum' },
                 { name: 'size', propType: 'string', description: 'lorem ipsum dolor sit' },
             ];
+
+        it('Deploy an ERC20 Token', async () => {
+            const { options } = getContract(ChainId.Hardhat, 'LimitedSupplyToken', currentVersion);
+            erc20 = await TransactionService.deploy(
+                options.jsonInterface,
+                getByteCodeForContractName('LimitedSupplyToken'),
+                [tokenName, tokenSymbol, admin.address, toWei(String(tokenTotalSupply))],
+                ChainId.Hardhat,
+            );
+            await erc20.methods.transfer(account2.address, '5000').send({ from: admin.address });
+        });
 
         describe('POST /erc721', () => {
             it('should create an ERC721 and return contract details', (done) => {
@@ -174,8 +183,8 @@ describe('Payment Request', () => {
                     .expect(({ body }: request.Response) => {
                         expect(body._id).toBeDefined();
                         expect(body.address).toBeDefined();
-                        erc721Address = body.address;
                         erc721ID = body._id;
+                        erc721Address = body.address;
                     })
                     .expect(201, done);
             });
@@ -187,14 +196,14 @@ describe('Payment Request', () => {
                     .set('Authorization', dashboardAccessToken)
                     .send({
                         chainId: ChainId.Hardhat,
-                        erc20tokens: [],
+                        erc20tokens: [erc20.options.address],
                         erc721tokens: [erc721Address],
                     })
                     .expect(({ body }: request.Response) => {
                         expect(isAddress(body.address)).toBe(true);
-                        expect(body.erc20Id).toBe(undefined);
                         expect(body.erc721Id).toBe(erc721ID);
-                        poolIdErc721 = body._id;
+                        poolId = body._id;
+                        poolAddress = body.address;
                     })
                     .expect(201, done);
             });
@@ -209,7 +218,7 @@ describe('Payment Request', () => {
 
                 http.post('/v1/erc721/' + erc721ID + '/metadata')
                     .set('Authorization', dashboardAccessToken)
-                    .set('X-PoolId', poolIdErc721)
+                    .set('X-PoolId', poolId)
                     .send({
                         title,
                         description,
@@ -235,7 +244,7 @@ describe('Payment Request', () => {
         describe('POST payment', () => {
             it('should Request a payment', (done) => {
                 http.post('/v1/payments')
-                    .set({ 'Authorization': adminAccessToken, 'X-PoolId': poolIdErc20 })
+                    .set({ 'Authorization': adminAccessToken, 'X-PoolId': poolId })
                     .send({
                         amount,
                         successUrl,
@@ -267,7 +276,7 @@ describe('Payment Request', () => {
 
             it('Get payment information', (done) => {
                 http.get('/v1/payments/' + paymentId)
-                    .set({ 'X-PoolId': poolIdErc20, 'X-Payment-Token': basicAccessToken })
+                    .set({ 'X-PoolId': poolId, 'X-Payment-Token': basicAccessToken })
                     .expect(({ body }: Response) => {
                         expect(body.successUrl).toBe(successUrl);
                         expect(body.failUrl).toBe(failUrl);
@@ -298,7 +307,7 @@ describe('Payment Request', () => {
                     .post(`/v1/payments/${paymentId}/pay`)
                     .set({
                         'Authorization': walletAccessToken,
-                        'X-PoolId': poolIdErc20,
+                        'X-PoolId': poolId,
                         'X-Payment-Token': basicAccessToken,
                     })
                     .expect(({ body }: Response) => {
@@ -307,17 +316,18 @@ describe('Payment Request', () => {
                     .expect(200);
             });
         });
-
-        it('should return ERC721Token with state = MINTED', (done) => {
-            http.get('/v1/erc721/token')
-                .set('Authorization', dashboardAccessToken)
-                .send()
-                .expect(({ body }: request.Response) => {
-                    expect(body[0].erc721Id).toBe(erc721ID);
-                    expect(body[0].state).toBe(ERC721TokenState.Minted);
-                    expect(body[0].transactions.length).toBe(1);
-                })
-                .expect(200, done);
+        describe('GET erc721/token', () => {
+            it('should return ERC721Token with state = MINTED', (done) => {
+                http.get('/v1/erc721/token')
+                    .set('Authorization', dashboardAccessToken)
+                    .send()
+                    .expect(({ body }: request.Response) => {
+                        expect(body[0].erc721Id).toBe(erc721ID);
+                        expect(body[0].state).toBe(ERC721TokenState.Minted);
+                        expect(body[0].transactions.length).toBe(1);
+                    })
+                    .expect(200, done);
+            });
         });
     });
 });

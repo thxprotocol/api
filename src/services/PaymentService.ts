@@ -11,6 +11,7 @@ import { Contract } from 'web3-eth-contract';
 import ERC721Service from './ERC721Service';
 import AccountProxy from '@/proxies/AccountProxy';
 import { logger } from '@/util/logger';
+import AssetPoolService from './AssetPoolService';
 
 async function create(
     pool: AssetPoolDocument,
@@ -73,7 +74,7 @@ async function pay(contract: Contract, payment: PaymentDocument) {
                 try {
                     const metadata = await ERC721Service.findMetadataById(payment.metadataId);
                     const erc721 = await ERC721Service.findById(metadata.erc721);
-                    const assetPool = await AssetPool.findOne({ erc721Id: metadata.erc721 });
+                    const assetPool = await AssetPoolService.getById(payment.poolId);
                     const account = await AccountProxy.getById(assetPool.sub);
                     await ERC721Service.mint(assetPool, erc721, metadata, account);
                 } catch (err) {
