@@ -3,14 +3,15 @@ import {
     MUMBAI_RELAYER,
     MUMBAI_RELAYER_API_KEY,
     MUMBAI_RELAYER_API_SECRET,
+    POLYGON_MUMBAI_RPC,
     POLYGON_RELAYER,
     POLYGON_RELAYER_API_KEY,
     POLYGON_RELAYER_API_SECRET,
+    POLYGON_RPC,
     PRIVATE_KEY,
     RELAYER_SPEED,
 } from '@/config/secrets';
 import Web3 from 'web3';
-import { soliditySha3 } from 'web3-utils';
 import { Contract } from 'web3-eth-contract';
 import { arrayify, computeAddress, hashMessage, recoverPublicKey } from 'ethers/lib/utils';
 import { ChainId } from '../types/enums';
@@ -18,7 +19,8 @@ import { DefenderRelayProvider } from 'defender-relay-client/lib/web3';
 import { Relayer } from 'defender-relay-client';
 
 const web3 = new Web3();
-const networks: { [chainId: number]: { web3: Web3; defaultAccount: string; relayer?: Relayer } } = {};
+const networks: { [chainId: number]: { web3: Web3; readProvider: Web3; defaultAccount: string; relayer?: Relayer } } =
+    {};
 
 if (HARDHAT_RPC) {
     networks[ChainId.Hardhat] = (() => {
@@ -26,6 +28,7 @@ if (HARDHAT_RPC) {
         return {
             web3,
             defaultAccount: web3.eth.accounts.privateKeyToAccount(PRIVATE_KEY).address,
+            readProvider: web3,
         };
     })();
 }
@@ -37,7 +40,8 @@ if (MUMBAI_RELAYER) {
             { speed: RELAYER_SPEED },
         );
         const relayer = new Relayer({ apiKey: MUMBAI_RELAYER_API_KEY, apiSecret: MUMBAI_RELAYER_API_SECRET });
-        return { web3: new Web3(provider), relayer, defaultAccount: MUMBAI_RELAYER };
+        const readProvider = new Web3(POLYGON_MUMBAI_RPC);
+        return { web3: new Web3(provider), relayer, defaultAccount: MUMBAI_RELAYER, readProvider };
     })();
 }
 
@@ -48,7 +52,8 @@ if (POLYGON_RELAYER) {
             { speed: RELAYER_SPEED },
         );
         const relayer = new Relayer({ apiKey: POLYGON_RELAYER_API_KEY, apiSecret: POLYGON_RELAYER_API_SECRET });
-        return { web3: new Web3(provider), relayer, defaultAccount: POLYGON_RELAYER };
+        const readProvider = new Web3(POLYGON_RPC);
+        return { web3: new Web3(provider), relayer, defaultAccount: POLYGON_RELAYER, readProvider };
     })();
 }
 
@@ -59,15 +64,6 @@ export function getProvider(chainId: ChainId) {
 
 export const recoverSigner = (message: string, sig: string) => {
     return computeAddress(recoverPublicKey(arrayify(hashMessage(message)), sig));
-};
-
-export const recoverAddress = (call: string, nonce: number, sig: string, isMetamaskAccount = false) => {
-    const hash = soliditySha3(call, nonce);
-    const pubKey = isMetamaskAccount
-        ? recoverPublicKey(arrayify(hash), sig)
-        : recoverPublicKey(arrayify(hashMessage(arrayify(hash))), sig);
-
-    return computeAddress(pubKey);
 };
 
 export function getSelectors(contract: Contract) {

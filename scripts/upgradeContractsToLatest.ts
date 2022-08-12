@@ -1,18 +1,19 @@
 import db from '@/util/database';
+import AssetPoolService from '@/services/AssetPoolService';
+import AccountProxy from '@/proxies/AccountProxy';
 import { MONGODB_URI } from '@/config/secrets';
 import { getContract } from '@/config/contracts';
 import { updateDiamondContract } from '@/util/upgrades';
 import { AssetPool } from '@/models/AssetPool';
 import { AccountPlanType, ChainId } from '@/types/enums';
 import { ContractName, currentVersion, DiamondVariant } from '@thxnetwork/artifacts';
-import AssetPoolService from '@/services/AssetPoolService';
-import AccountProxy from '@/proxies/AccountProxy';
 
 db.connect(MONGODB_URI);
 
 async function main() {
+    let counter = 0;
+    let pools = await AssetPool.find({ version: { $ne: currentVersion } });
     const startTime = Date.now();
-    console.log('Start!', startTime);
     const diamonds: Partial<Record<ContractName, DiamondVariant>> = {
         Registry: 'registry',
         Factory: 'factory',
@@ -30,25 +31,36 @@ async function main() {
         }
     }
 
-    for (const pool of await AssetPool.find({ version: { $ne: currentVersion } })) {
+    pools = await Promise.all(
+        pools.filter(async (pool) => {
+            try {
+                const account = await AccountProxy.getById(pool.sub);
+                if (!account) return;
+
+                const isPaidAccount = [AccountPlanType.Basic, AccountPlanType.Premium].includes(account.plan);
+                const isFreeMumbai = account.plan === AccountPlanType.Free && pool.chainId === ChainId.PolygonMumbai;
+
+                return !isPaidAccount && !isFreeMumbai;
+            } catch (error) {
+                return false;
+            }
+        }),
+    );
+
+    for (const pool of pools) {
         try {
-            const account = await AccountProxy.getById(pool.sub);
-            if (!account) return;
-
-            const isPaidPlan = [AccountPlanType.Basic, AccountPlanType.Premium].includes(account.plan);
-            const isFreeMumbai = account.plan === AccountPlanType.Free && pool.chainId === ChainId.PolygonMumbai;
-
-            if (isPaidPlan || isFreeMumbai) {
+            console.log(`${counter++}/${pools.length}`);
+            const isUpgraded = await AssetPoolService.updateAssetPool(pool, currentVersion);
+            if (isUpgraded) {
                 console.log('Upgrade:', pool.address, `${pool.variant} ${pool.version} -> ${currentVersion}`);
-                await AssetPoolService.updateAssetPool(pool, currentVersion);
             }
         } catch (error) {
-            console.error(pool.address, error);
+            console.error(String(pool._id), error);
         }
     }
 
     const endTime = Date.now();
-    console.log('Done!', startTime, endTime, endTime - startTime);
+    console.log(`🔔 Duration: ${Math.floor((endTime - startTime) / 1000)} seconds`);
 }
 
 main()
