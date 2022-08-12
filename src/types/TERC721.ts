@@ -49,6 +49,7 @@ export type TERC721 = {
 };
 
 export type TERC721Metadata = {
+    _id?: string;
     erc721: string;
     title: string;
     description: string;

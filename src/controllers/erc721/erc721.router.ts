@@ -1,4 +1,4 @@
-import express from 'express';
+import express, { Request, Response } from 'express';
 import { assertRequestInput, requireAssetPoolHeader, guard } from '@/middlewares';
 import ReadERC721 from './get.controller';
 import ListERC721 from './list.controller';
@@ -8,9 +8,12 @@ import ReadERC721Token from './token/get.controller';
 import CreateERC721 from './post.controller';
 import CreateERC721Metadata from './metadata/post.controller';
 import MintERC721Metadata from './metadata/mint/post.controller';
-import CreateMultipleERC721Metadata from './metadata/multiple/post.controller';
+import CreateMultipleERC721Metadata from './metadata/images/post.controller';
+import DownloadERC721MetadataCSV from './metadata/csv/get.controller';
+import UploadERC721MetadataCSV from './metadata/csv/post.controller';
 import { upload } from '@/util/multer';
 import UpdateERC721 from './patch.controller';
+import { validationResult } from 'express-validator';
 
 const router = express.Router();
 
@@ -25,6 +28,7 @@ router.post(
     CreateERC721.controller,
 );
 router.post('/', guard.check(['erc721:write']), assertRequestInput(CreateERC721.validation), CreateERC721.controller);
+
 router.post(
     '/:id/metadata/:metadataId/mint',
     guard.check(['erc721:write']),
@@ -34,19 +38,34 @@ router.post(
 );
 router.get('/:id/metadata', guard.check(['erc721:read']), ListERC721Metadata.controller);
 router.post(
-    '/:id/metadata',
+    '/:id/metadata/',
     guard.check(['erc721:write']),
     requireAssetPoolHeader,
     assertRequestInput(CreateERC721Metadata.validation),
     CreateERC721Metadata.controller,
 );
 router.post(
-    '/:id/metadata/multiple',
-    upload.single('compressedFile'),
+    '/:id/metadata/zip',
+    upload.single('file'),
     guard.check(['erc721:write']),
     requireAssetPoolHeader,
     assertRequestInput(CreateMultipleERC721Metadata.validation),
     CreateMultipleERC721Metadata.controller,
+);
+router.get(
+    '/:id/metadata/csv',
+    guard.check(['erc721:read']),
+    requireAssetPoolHeader,
+    assertRequestInput(DownloadERC721MetadataCSV.validation),
+    DownloadERC721MetadataCSV.controller,
+);
+router.post(
+    '/:id/metadata/csv',
+    upload.single('file'),
+    guard.check(['erc721:read', 'erc721:write']),
+    requireAssetPoolHeader,
+    assertRequestInput(UploadERC721MetadataCSV.validation),
+    UploadERC721MetadataCSV.controller,
 );
 router.patch(
     '/:id',

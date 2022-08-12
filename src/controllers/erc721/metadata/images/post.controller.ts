@@ -31,12 +31,12 @@ const validation = [
 ];
 
 const controller = async (req: Request, res: Response) => {
-    const zip = createArchiver().jsZip;
     // #swagger.tags = ['ERC721']
     const erc721 = await ERC721Service.findById(req.params.id);
     if (!erc721) throw new NotFoundError('Could not find this NFT in the database');
 
     // UNZIP THE FILE
+    const zip = createArchiver().jsZip;
     const metadatas: ERC721MetadataDocument[] = [];
 
     // LOAD ZIP IN MEMORY
@@ -109,15 +109,13 @@ const controller = async (req: Request, res: Response) => {
 };
 
 function isValidExtension(extension: string) {
-    const allowedExtensions = ['jpg', 'jpeg', 'gif', 'png'];
-    return allowedExtensions.includes(extension);
+    return ['jpg', 'jpeg', 'gif', 'png'].includes(extension);
 }
 
 async function isValidFileType(buffer: Buffer) {
     const { mime } = await fromBuffer(buffer);
-    const allowedMimeTypes = ['image/jpeg', 'image/png', 'image/gif'];
 
-    if (!allowedMimeTypes.includes(mime)) {
+    if (!['image/jpeg', 'image/png', 'image/gif'].includes(mime)) {
         return false;
     }
 

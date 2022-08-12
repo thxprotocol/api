@@ -829,6 +829,16 @@
             "in": "path",
             "required": true,
             "type": "string"
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "type": "string"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "type": "string"
           }
         ],
         "responses": {
@@ -836,7 +846,9 @@
             "description": "OK"
           }
         }
-      },
+      }
+    },
+    "/erc721/{id}/metadata/": {
       "post": {
         "tags": [
           "ERC721"
@@ -878,7 +890,7 @@
         }
       }
     },
-    "/erc721/{id}/metadata/multiple": {
+    "/erc721/{id}/metadata/zip": {
       "post": {
         "tags": [
           "ERC721"
@@ -908,6 +920,42 @@
                 }
               }
             }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created"
+          }
+        }
+      }
+    },
+    "/erc721/{id}/metadata/csv": {
+      "get": {
+        "tags": [
+          "ERC721"
+        ],
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {}
+      },
+      "post": {
+        "tags": [
+          "ERC721"
+        ],
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
           }
         ],
         "responses": {
