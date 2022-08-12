@@ -30,9 +30,9 @@ const controller = async (req: Request, res: Response) => {
         // CREATE THE CSV RECORDS
         const records: any = [];
 
-        metadataList.forEach((x) => {
+        metadataList.results.forEach((x) => {
             const obj: any = {};
-            x.attributes.forEach((a) => {
+            x.attributes.forEach((a: any) => {
                 obj[a.key] = a.value;
             });
             obj.id = x._id;
