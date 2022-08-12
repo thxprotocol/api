@@ -14,6 +14,7 @@ import SpotifyDataProxy from '@/proxies/SpotifyDataProxy';
 import WithdrawalService from './WithdrawalService';
 import ERC721Service from './ERC721Service';
 import { AssetPoolDocument } from '@/models/AssetPool';
+import { paginatedResults } from '@/util/pagination';
 
 export default class RewardService {
     static async get(assetPool: AssetPoolDocument, rewardId: string): Promise<RewardDocument> {
@@ -22,12 +23,18 @@ export default class RewardService {
         return reward;
     }
 
-    static async findByPool(assetPool: AssetPoolDocument): Promise<RewardDocument[]> {
+    static async findByPool(assetPool: AssetPoolDocument, page: number, limit: number) {
         const rewards = [];
-        for (const r of await Reward.find({ poolId: String(assetPool._id) })) {
+
+        const results = await paginatedResults(Reward, page, limit, { poolId: String(assetPool._id) });
+
+        for (const r of results.results) {
             rewards.push(await this.get(assetPool, r.id));
         }
-        return rewards;
+
+        results.results = rewards.map((r) => r.toJSON());
+
+        return results;
     }
 
     static async canClaim(
