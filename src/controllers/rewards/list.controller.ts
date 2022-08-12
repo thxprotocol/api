@@ -5,10 +5,9 @@ import ClaimService from '@/services/ClaimService';
 
 const controller = async (req: Request, res: Response) => {
     // #swagger.tags = ['Rewards']
-    const rewards = await RewardService.findByPool(req.assetPool);
+    const rewards = await RewardService.findByPool(req.assetPool, Number(req.query.page), Number(req.query.limit));
 
-    const result = [];
-    for (const r of rewards) {
+    const promises = rewards.results.map(async (r, i) => {
         const rewardId = String(r.id);
         const withdrawals = await WithdrawalService.findByQuery({
             poolId: String(req.assetPool._id),
@@ -16,15 +15,19 @@ const controller = async (req: Request, res: Response) => {
         });
         const claims = await ClaimService.findByReward(r);
 
-        result.push({
+        rewards.results[i] = {
             claims,
             id: rewardId,
             progress: withdrawals.length,
-            ...r.toJSON(),
-        });
-    }
+            ...r,
+        };
 
-    res.json(result);
+        return rewards;
+    });
+
+    await Promise.all(promises);
+
+    res.json(rewards);
 };
 
 export default { controller };
