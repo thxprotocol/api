@@ -49,7 +49,7 @@ const controller = async (req: Request, res: Response) => {
                 const promise = new Promise(async (resolve, reject) => {
                     try {
                         // MAP THE RECORDS TO ATTRIBUTES
-                        let attributes: { key: string; value: any }[] = Object.entries(row)
+                        const attributes: { key: string; value: any }[] = Object.entries(row)
                             .filter((x) => x[0].toLocaleLowerCase() != 'metadataid')
                             .map((e) => {
                                 return {

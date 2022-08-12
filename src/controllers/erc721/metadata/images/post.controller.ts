@@ -109,15 +109,13 @@ const controller = async (req: Request, res: Response) => {
 };
 
 function isValidExtension(extension: string) {
-    const allowedExtensions = ['jpg', 'jpeg', 'gif', 'png'];
-    return allowedExtensions.includes(extension);
+    return ['jpg', 'jpeg', 'gif', 'png'].includes(extension);
 }
 
 async function isValidFileType(buffer: Buffer) {
     const { mime } = await fromBuffer(buffer);
-    const allowedMimeTypes = ['image/jpeg', 'image/png', 'image/gif'];
 
-    if (!allowedMimeTypes.includes(mime)) {
+    if (!['image/jpeg', 'image/png', 'image/gif'].includes(mime)) {
         return false;
     }
 
