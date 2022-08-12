@@ -1,6 +1,7 @@
 import mongoose from 'mongoose';
-import { getContractFromAbi, getDiamondAbi } from '@/config/contracts';
+import { getDiamondAbi } from '@/config/contracts';
 import { TAssetPool } from '@/types/TAssetPool';
+import { getProvider } from '@/util/network';
 
 export type AssetPoolDocument = mongoose.Document & TAssetPool;
 
@@ -23,7 +24,9 @@ const assetPoolSchema = new mongoose.Schema(
 
 assetPoolSchema.virtual('contract').get(function () {
     if (!this.address) return;
-    return getContractFromAbi(this.chainId, getDiamondAbi(this.chainId, 'defaultDiamond'), this.address);
+    const { readProvider, defaultAccount } = getProvider(this.chainId);
+    const abi = getDiamondAbi(this.chainId, 'defaultDiamond');
+    return new readProvider.eth.Contract(abi, this.address, { from: defaultAccount });
 });
 
 export const AssetPool = mongoose.model<AssetPoolDocument>('AssetPool', assetPoolSchema);

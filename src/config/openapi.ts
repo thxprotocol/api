@@ -15,7 +15,7 @@ const doc: any = {
 const outputFile = './openapi.json';
 const endpointsFiles = ['./src/controllers/index.ts'];
 
-if (NODE_ENV !== 'test') {
+if (!['test', 'production'].includes(NODE_ENV)) {
     swaggerAutogen()(outputFile, endpointsFiles, doc).then(async () => {
         await import('../app');
     });

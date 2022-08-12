@@ -17,10 +17,8 @@ const validation = [param('id').isMongoId()];
 
 const controller = async (req: Request, res: Response) => {
     // #swagger.tags = ['Rewards']
-    if (!req.auth.sub) throw new BadRequestError('No subscription is found for this type of access token.');
-
     const claim = await Claim.findById(req.params.id);
-    if (!claim) throw new BadRequestError('The claim for this claimId does not exist.');
+    if (!claim) throw new BadRequestError('This claim URL is invalid.');
 
     const pool = await AssetPoolService.getById(claim.poolId);
     if (!pool) throw new BadRequestError('The pool for this rewards has been removed.');

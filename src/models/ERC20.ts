@@ -1,7 +1,8 @@
 import mongoose from 'mongoose';
 import { TERC20 } from '@/types/TERC20';
-import { getContractFromName } from '@/config/contracts';
+import { getAbiForContractName } from '@/config/contracts';
 import { ERC20Type } from '@/types/enums';
+import { getProvider } from '@/util/network';
 
 export type ERC20Document = mongoose.Document & TERC20;
 
@@ -21,8 +22,10 @@ const erc20Schema = new mongoose.Schema(
 
 erc20Schema.virtual('contract').get(function () {
     if (!this.address) return;
+    const { readProvider, defaultAccount } = getProvider(this.chainId);
     const contractName = this.type === ERC20Type.Unlimited ? 'UnlimitedSupplyToken' : 'LimitedSupplyToken';
-    return getContractFromName(this.chainId, contractName, this.address);
+    const abi = getAbiForContractName(contractName);
+    return new readProvider.eth.Contract(abi, this.address, { from: defaultAccount });
 });
 
 export interface IERC20Updates {

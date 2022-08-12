@@ -1,9 +1,9 @@
 import db from '@/util/database';
-import AssetPoolService from '@/services/AssetPoolService';
+import AssetPoolService, { ADMIN_ROLE } from '@/services/AssetPoolService';
 import AccountProxy from '@/proxies/AccountProxy';
 import Web3 from 'web3';
 import { MONGODB_URI } from '@/config/secrets';
-import { getContract } from '@/config/contracts';
+import { getAbiForContractName, getContract } from '@/config/contracts';
 import { updateDiamondContract } from '@/util/upgrades';
 import { AssetPool } from '@/models/AssetPool';
 import { AccountPlanType, ChainId } from '@/types/enums';
@@ -13,6 +13,11 @@ import { getDiamondAbi } from '@/config/contracts';
 import { getProvider } from '@/util/network';
 import { logger } from '@/util/logger';
 import { toChecksumAddress } from 'web3-utils';
+import TransactionService from '@/services/TransactionService';
+// import { BigNumber } from 'ethers/lib/ethers';
+
+// const multiplier = BigNumber.from('10').pow(15);
+// const twoHalfPercent = BigNumber.from('25').mul(multiplier);
 
 db.connect(MONGODB_URI);
 
@@ -38,8 +43,7 @@ if (POLYGON_RPC) {
     })();
 }
 
-const send = async (web3: Web3, to: string, fn: any) => {
-    const [from] = await web3.eth.getAccounts();
+const send = async (web3: Web3, to: string, fn: any, from: string) => {
     const data = fn.encodeABI();
     const gas = await fn.estimateGas({ from });
     const gasPrice = await web3.eth.getGasPrice();
@@ -63,6 +67,15 @@ const send = async (web3: Web3, to: string, fn: any) => {
     }
 };
 
+// const getFeeCollector = (chainId: ChainId) => {
+//     const collectors: any = {};
+//     collectors[ChainId.PolygonMumbai] = '0x960911a62FdDf7BA84D0d3aD016EF7D15966F7Dc';
+//     collectors[ChainId.Polygon] = '0x960911a62FdDf7BA84D0d3aD016EF7D15966F7Dc';
+//     // collectors[ChainId.PolygonMumbai] = '0x2e2fe80CD6C4933B3B97b4c0B5c8eC56b073bE27';
+//     // collectors[ChainId.Polygon] = '0x802505465CB707c9347B9631818e14f6066f7513';
+//     return collectors[chainId];
+// };
+
 async function main() {
     const startTime = Date.now();
     console.log('Start!', startTime);
@@ -74,9 +87,47 @@ async function main() {
     for (const [contractName, diamondVariant] of Object.entries(diamonds)) {
         for (const chainId of [ChainId.PolygonMumbai, ChainId.Polygon]) {
             try {
+                const oldProvider = networks[chainId];
+                const newProvider = getProvider(chainId);
                 const contract = getContract(chainId, contractName as ContractName);
+                const currentOwner = toChecksumAddress(await contract.methods.owner().call());
+                const newOwner = toChecksumAddress(newProvider.defaultAccount);
+                // const registryAddress = toChecksumAddress(
+                //     getContract(chainId, 'Registry', currentVersion).options.address,
+                // );
+                // const feeCollector = getFeeCollector(chainId);
+
+                if (currentOwner !== newOwner) {
+                    console.log('TransferOwnership:', contract.options.address, `${currentOwner} -> ${newOwner}`);
+                    await send(
+                        oldProvider.web3,
+                        contract.options.address,
+                        contract.methods.transferOwnership(newOwner),
+                        currentOwner,
+                    );
+                }
+
                 const tx = await updateDiamondContract(chainId, contract, diamondVariant);
                 if (tx) console.log(`Upgraded: ${contractName} (${ChainId[chainId]}):`, currentVersion);
+
+                // switch (diamondVariant) {
+                //     case 'registry': {
+                //         await TransactionService.send(
+                //             contract.options.address,
+                //             contract.methods.initialize(feeCollector, twoHalfPercent),
+                //             chainId,
+                //         );
+                //         break;
+                //     }
+                //     case 'factory': {
+                //         await TransactionService.send(
+                //             contract.options.address,
+                //             contract.methods.initialize(newOwner, registryAddress),
+                //             chainId,
+                //         );
+                //         break;
+                //     }
+                // }
             } catch (error) {
                 console.error(error);
             }
@@ -92,25 +143,24 @@ async function main() {
             const isFreeMumbai = account.plan === AccountPlanType.Free && pool.chainId === ChainId.PolygonMumbai;
 
             if (isPaidPlan || isFreeMumbai) {
-                // create provider for chain with PRIVATE_KEY
                 const oldProvider = networks[pool.chainId];
-                // get new provider for chain with getProvider()
                 const newProvider = getProvider(pool.chainId);
-                const { methods } = new oldProvider.web3.eth.Contract(
-                    getDiamondAbi(pool.chainId, 'defaultDiamond'),
-                    pool.address,
-                );
-
-                const currentOwner = toChecksumAddress(await methods.owner().call());
+                const currentOwner = toChecksumAddress(await pool.contract.methods.owner().call());
                 const newOwner = toChecksumAddress(newProvider.defaultAccount);
 
                 if (currentOwner !== newOwner) {
-                    logger.debug('TransferOwnership:', pool.address, `${currentOwner} -> ${newOwner}`);
-                    await send(oldProvider.web3, pool.address, methods.transferOwnership(newOwner));
+                    const { methods } = new oldProvider.web3.eth.Contract(
+                        getDiamondAbi(pool.chainId, 'defaultDiamond'),
+                        pool.address,
+                    );
+                    console.log('TransferOwnership:', pool.address, `${currentOwner} -> ${newOwner}`);
+                    await send(oldProvider.web3, pool.address, methods.transferOwnership(newOwner), currentOwner);
                 }
 
-                logger.debug('Upgrade:', pool.address, `${pool.variant} ${pool.version} -> ${currentVersion}`);
-                await AssetPoolService.updateAssetPool(pool, currentVersion);
+                if (pool.version !== currentVersion) {
+                    console.log('Upgrade:', pool.address, `${pool.variant} ${pool.version} -> ${currentVersion}`);
+                    await AssetPoolService.updateAssetPool(pool, currentVersion);
+                }
 
                 const currentRegistryAddress = toChecksumAddress(await pool.contract.methods.getRegistry().call());
                 const registryAddress = toChecksumAddress(
@@ -118,8 +168,12 @@ async function main() {
                 );
 
                 if (registryAddress !== currentRegistryAddress) {
-                    logger.debug('SetRegistry:', pool.address, `${currentRegistryAddress} -> ${registryAddress}`);
-                    await send(newProvider.web3, pool.address, methods.setRegistry(registryAddress));
+                    console.log('SetRegistry:', pool.address, `${currentRegistryAddress} -> ${registryAddress}`);
+                    await TransactionService.send(
+                        pool.address,
+                        pool.contract.methods.setRegistry(registryAddress),
+                        pool.chainId,
+                    );
                 }
             }
         } catch (error) {
