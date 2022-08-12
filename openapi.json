@@ -917,6 +917,23 @@
         }
       }
     },
+    "/erc721/{id}/metadata/csv": {
+      "get": {
+        "tags": [
+          "ERC721"
+        ],
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {}
+      }
+    },
     "/deposits/": {
       "get": {
         "tags": [
