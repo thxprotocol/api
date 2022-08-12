@@ -154,8 +154,10 @@ describe('NFT Pool', () => {
                 .set('Authorization', dashboardAccessToken)
                 .send()
                 .expect(({ body }: request.Response) => {
-                    expect(body[schema[0].name]).toBe(value1);
-                    expect(body[schema[1].name]).toBe(value2);
+                    expect(body.title).toBe('NFT title 2');
+                    expect(body.description).toBe('NFT description 2');
+                    expect(body.attributes[schema[0].name]).toBe(value1);
+                    expect(body.attributes[schema[1].name]).toBe(value2);
                 })
                 .expect(200, done);
         });

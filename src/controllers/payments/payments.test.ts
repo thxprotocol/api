@@ -109,7 +109,7 @@ describe('Payment Request', () => {
 
         it('Get payment information', (done) => {
             http.get('/v1/payments/' + paymentId)
-                .set({ 'X-PoolId': poolId, 'X-Payment-Token': basicAccessToken })
+                .set({ 'X-Payment-Token': basicAccessToken })
                 .expect(({ body }: Response) => {
                     expect(body.successUrl).toBe(successUrl);
                     expect(body.failUrl).toBe(failUrl);
@@ -231,10 +231,8 @@ describe('Payment Request', () => {
                         expect(body._id).toBeDefined();
                         expect(body.title).toBe(title);
                         expect(body.description).toBe(description);
-                        expect(body.attributes[0].key).toBe(schema[0].name);
-                        expect(body.attributes[0].value).toBe(value1);
-                        expect(body.attributes[1].key).toBe(schema[1].name);
-                        expect(body.attributes[1].value).toBe(value2);
+                        expect(body.attributes[schema[0].name]).toBe(value1);
+                        expect(body.attributes[schema[1].name]).toBe(value2);
                         metadataId = body._id;
                     })
                     .expect(201, done);
@@ -276,7 +274,7 @@ describe('Payment Request', () => {
 
             it('Get payment information', (done) => {
                 http.get('/v1/payments/' + paymentId)
-                    .set({ 'X-PoolId': poolId, 'X-Payment-Token': basicAccessToken })
+                    .set({ 'X-Payment-Token': basicAccessToken })
                     .expect(({ body }: Response) => {
                         expect(body.successUrl).toBe(successUrl);
                         expect(body.failUrl).toBe(failUrl);
