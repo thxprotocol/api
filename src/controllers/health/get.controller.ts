@@ -28,33 +28,32 @@ function facetAdresses(chainId: ChainId) {
 async function getNetworkDetails(chainId: ChainId) {
     try {
         const { defaultAccount, relayer, web3 } = getProvider(chainId);
-        const balance = await web3.eth.getBalance(defaultAccount);
-
-        let queue;
-        if (relayer) {
-            const [pending, failed, mined] = await Promise.all([
-                await relayer.list({ status: 'pending' }),
-                await relayer.list({ status: 'failed' }),
-                await relayer.list({ status: 'mined' }),
-            ]);
-
-            queue = {
-                pending: pending.length,
-                failed: failed.length,
-                mined: mined.length,
-            };
-        }
+        const [balance, feeCollector, feePercentage, pending, failed, mined] = await Promise.all([
+            await web3.eth.getBalance(defaultAccount),
+            await poolRegistry(chainId).methods.feeCollector().call(),
+            await poolRegistry(chainId).methods.feePercentage().call(),
+            relayer ? await relayer.list({ status: 'pending' }) : [],
+            relayer ? await relayer.list({ status: 'failed' }) : [],
+            relayer ? await relayer.list({ status: 'mined' }) : [],
+        ]);
 
         return {
             admin: {
                 address: defaultAccount,
                 balance: fromWei(balance, 'ether'),
             },
-            queue,
+            queue: relayer
+                ? {
+                      pending: pending.length,
+                      failed: failed.length,
+                      mined: mined.length,
+                  }
+                : undefined,
             facets: facetAdresses(chainId),
-            registry: getContractConfig(chainId, 'Registry').address,
             factory: getContractConfig(chainId, 'Factory').address,
-            feeCollector: await poolRegistry(chainId).methods.feeCollector().call(),
+            registry: getContractConfig(chainId, 'Registry').address,
+            feeCollector,
+            feePercentage: `${Number(fromWei(feePercentage)) * 100}%`,
         };
     } catch (error) {
         return handleError(error);
@@ -82,14 +81,12 @@ export const getHealth = async (_req: Request, res: Response) => {
     if (NODE_ENV !== 'production') {
         result.hardhat = await getNetworkDetails(ChainId.Hardhat);
     } else {
-        const [hardhat, testnet, mainnet] = await Promise.all([
-            await getNetworkDetails(ChainId.Hardhat),
+        const [mumbai, polygon] = await Promise.all([
             await getNetworkDetails(ChainId.PolygonMumbai),
             await getNetworkDetails(ChainId.Polygon),
         ]);
-        result.hardhat = hardhat;
-        result.testnet = testnet;
-        result.mainnet = mainnet;
+        result.testnet = mumbai;
+        result.mainnet = polygon;
     }
 
     res.header('Content-Type', 'application/json').send(JSON.stringify(result, null, 4));
