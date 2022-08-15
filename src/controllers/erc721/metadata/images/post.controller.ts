@@ -49,9 +49,7 @@ const controller = async (req: Request, res: Response) => {
     for (let i = 0; i < objectKeys.length; i++) {
         const file = objectKeys[i];
         const extension = file.substring(file.lastIndexOf('.')).substring(1);
-        console.log(extension);
         const originalFileName = file.substring(0, file.lastIndexOf('.'));
-        console.log(originalFileName);
 
         if (!extension) {
             continue;

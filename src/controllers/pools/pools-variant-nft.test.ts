@@ -6,10 +6,16 @@ import { afterAllCallback, beforeAllCallback } from '@/util/jest/config';
 import { account2, dashboardAccessToken } from '@/util/jest/constants';
 import { createImage } from '@/util/jest/images';
 import { createArchiver } from '@/util/zip';
+import { ERC721MetadataDocument } from '@/models/ERC721Metadata';
 const user = request.agent(app);
 
 describe('NFT Pool', () => {
-    let poolId: string, tokenAddress: string, erc721ID: string, metadataId: string, csvFile: string;
+    let poolId: string,
+        tokenAddress: string,
+        erc721ID: string,
+        metadataId: string,
+        csvFile: string,
+        metadata: ERC721MetadataDocument;
     const chainId = ChainId.Hardhat,
         name = 'Planets of the Galaxy',
         symbol = 'GLXY',
@@ -271,6 +277,21 @@ describe('NFT Pool', () => {
                     expect(body.results[0].attributes[1].value).toBe('medium');
                     expect(body.results[0].attributes[2].key).toBe(schema[2].name);
                     expect(body.results[0].attributes[2].value).toBe('http://imageURL3');
+                    metadata = body.results[0];
+                })
+                .expect(200, done);
+        });
+
+        it('should returns the metadata with title and description', (done) => {
+            user.get('/v1/erc721/' + erc721ID + '/metadata/' + metadata._id)
+                .set('Authorization', dashboardAccessToken)
+                .set('X-PoolId', poolId)
+                .expect(({ body }: request.Response) => {
+                    expect(body.title).toBe(metadata.title);
+                    expect(body.description).toBe(metadata.description);
+                    expect(body.attributes[schema[0].name]).toBe('pink');
+                    expect(body.attributes[schema[1].name]).toBe('medium');
+                    expect(body.attributes[schema[2].name]).toBe('http://imageURL3');
                 })
                 .expect(200, done);
         });

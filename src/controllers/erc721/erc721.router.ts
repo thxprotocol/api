@@ -13,7 +13,7 @@ import DownloadERC721MetadataCSV from './metadata/csv/get.controller';
 import UploadERC721MetadataCSV from './metadata/csv/post.controller';
 import { upload } from '@/util/multer';
 import UpdateERC721 from './patch.controller';
-import { validationResult } from 'express-validator';
+import ReadERC721Metadata from './metadata/get.controller';
 
 const router = express.Router();
 
@@ -36,7 +36,9 @@ router.post(
     assertRequestInput(MintERC721Metadata.validation),
     MintERC721Metadata.controller,
 );
+
 router.get('/:id/metadata', guard.check(['erc721:read']), ListERC721Metadata.controller);
+
 router.post(
     '/:id/metadata/',
     guard.check(['erc721:write']),
@@ -59,6 +61,15 @@ router.get(
     assertRequestInput(DownloadERC721MetadataCSV.validation),
     DownloadERC721MetadataCSV.controller,
 );
+
+router.get(
+    '/:id/metadata/:metadataId',
+    guard.check(['erc721:read']),
+    requireAssetPoolHeader,
+    ReadERC721Metadata.controller,
+    assertRequestInput(ReadERC721Metadata.validation),
+);
+
 router.post(
     '/:id/metadata/csv',
     upload.single('file'),
