@@ -1,5 +1,5 @@
 import express from 'express';
-import { assertRequestInput } from '@/middlewares';
+import { assertRequestInput, guard, requireAssetPoolHeader } from '@/middlewares';
 import ReadERC721Metadata from './get.controller';
 
 const router = express.Router();
