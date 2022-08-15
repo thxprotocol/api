@@ -319,7 +319,7 @@ describe('Payment Request', () => {
         describe('GET erc721/token', () => {
             it('should return ERC721Token with state = MINTED', (done) => {
                 http.get('/v1/erc721/token')
-                    .set('Authorization', dashboardAccessToken)
+                    .set('Authorization', walletAccessToken)
                     .send()
                     .expect(({ body }: request.Response) => {
                         expect(body[0].erc721Id).toBe(erc721ID);
