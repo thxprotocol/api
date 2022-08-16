@@ -51,7 +51,6 @@ const controller = async (req: Request, res: Response) => {
     if (Number(allowance) < Number(payment.amount)) throw new AmountExceedsAllowanceError();
 
     payment = await PaymentService.pay(contract, payment);
-
     res.json(await payment.save());
 };
 
