@@ -8,7 +8,13 @@ import AccountProxy from '@/proxies/AccountProxy';
 const validation = [param('id').exists().isMongoId()];
 
 const controller = async (req: Request, res: Response) => {
-    // #swagger.tags = ['ERC20']
+    /*
+    #swagger.tags = ['ERC20 Token']
+    #swagger.responses[200] = { 
+            description: 'Get an ERC20 token for this user.',
+            schema: { $ref: '#/definitions/ERC20Token' } 
+    }
+    */
     const token = await ERC20Service.getTokenById(req.params.id);
     if (!token) throw new NotFoundError('ERC20Token not found');
 

@@ -10,7 +10,13 @@ import ClaimService from '@/services/ClaimService';
 const validation = [param('id').isMongoId()];
 
 const controller = async (req: Request, res: Response) => {
-    // #swagger.tags = ['Claims']
+    /*
+    #swagger.tags = ['Claims']
+    #swagger.responses[200] = { 
+        description: 'Get a reward claim',
+        schema: { $ref: '#/definitions/Claim' } 
+    }
+    */
     const claim = await ClaimService.findById(req.params.id);
     if (!claim) throw new NotFoundError('Could not find this claim');
 

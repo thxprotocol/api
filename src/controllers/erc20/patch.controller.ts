@@ -6,7 +6,7 @@ import { NotFoundError } from '@/util/errors';
 export const validation = [param('id').exists(), body('archived').exists().isBoolean()];
 
 export const controller = async (req: Request, res: Response) => {
-    // #swagger.tags = ['ERC20']
+    // #swagger.tags = ['ERC20 Contract']
     const erc20 = await ERC20Service.getById(req.params.id);
     if (!erc20) throw new NotFoundError('Could not find the token for this id');
     const result = await ERC20Service.update(erc20, req.body);

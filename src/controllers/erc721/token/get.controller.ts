@@ -7,7 +7,7 @@ import ERC721Service from '@/services/ERC721Service';
 const validation = [param('id').exists().isMongoId()];
 
 const controller = async (req: Request, res: Response) => {
-    // #swagger.tags = ['ERC721']
+    // #swagger.tags = ['ERC721 Token']
     const token = await ERC721Service.findTokenById(req.params.id);
     if (!token) throw new NotFoundError('ERC721Token not found');
 

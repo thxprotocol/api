@@ -5,6 +5,13 @@ import ClientProxy from '@/proxies/ClientProxy';
 
 export default {
     controller: async (req: Request, res: Response) => {
+        /*
+        #swagger.tags = ['Client']
+        #swagger.responses[200] = { 
+            description: 'Create a set of client credentials',
+            schema: { $ref: '#/definitions/Client' } 
+        }
+        */
         const poolId = req.headers['x-poolid'] as string;
         if (!poolId) throw new BadRequestError('Cannot found Pool ID in this request');
 

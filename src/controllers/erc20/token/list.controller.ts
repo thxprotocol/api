@@ -4,7 +4,18 @@ import { Request, Response } from 'express';
 import { TERC20, TERC20Token } from '@/types/TERC20';
 
 export const controller = async (req: Request, res: Response) => {
-    // #swagger.tags = ['ERC20']
+    /*
+    #swagger.tags = ['ERC20 Token']
+    #swagger.responses[200] = { 
+        description: 'Get a list of ERC20 tokens for this user.',
+        schema: { 
+            type: 'array',
+            items: { 
+                $ref: '#/definitions/ERC20Token',
+            } 
+        }
+    }
+    */
     const tokens = await ERC20Service.getTokensForSub(req.auth.sub);
     const result = await Promise.all(
         tokens.map(async (token: ERC20TokenDocument) => {

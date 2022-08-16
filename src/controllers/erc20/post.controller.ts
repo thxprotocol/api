@@ -4,8 +4,6 @@ import ERC20Service from '@/services/ERC20Service';
 import AccountProxy from '@/proxies/AccountProxy';
 import { checkAndUpgradeToBasicPlan } from '@/util/plans';
 import { ERC20Type } from '@/types/enums';
-// import { fromWei } from 'web3-utils';
-// import { getProvider } from '@/util/network';
 
 export const validation = [
     body('name').exists().isString(),
@@ -16,7 +14,13 @@ export const validation = [
 ];
 
 export const controller = async (req: Request, res: Response) => {
-    // #swagger.tags = ['ERC20']
+    /*
+    #swagger.tags = ['ERC20 Contract']
+    #swagger.responses[200] = { 
+            description: 'Deploy an ERC20 contract for this user.',
+            schema: { $ref: '#/definitions/ERC20' } 
+    }
+    */
     const account = await AccountProxy.getById(req.auth.sub);
 
     await checkAndUpgradeToBasicPlan(account, req.body.chainId);
