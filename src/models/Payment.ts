@@ -18,6 +18,7 @@ export type TPayment = {
     failUrl: string;
     createdAt: Date;
     updatedAt?: Date;
+    metadataId?: string;
 };
 
 export type PaymentDocument = mongoose.Document & TPayment;
@@ -37,6 +38,7 @@ const paymentSchema = new mongoose.Schema(
         successUrl: String,
         cancelUrl: String,
         failUrl: String,
+        metadataId: String,
     },
     { timestamps: true },
 );

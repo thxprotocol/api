@@ -9,6 +9,7 @@ const validation = [
     body('successUrl').optional().isURL(),
     body('failUrl').optional().isURL(),
     body('cancelUrl').optional().isURL(),
+    body('metadataId').optional().isMongoId(),
 ];
 
 async function controller(req: Request, res: Response) {

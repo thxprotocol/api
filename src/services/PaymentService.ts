@@ -6,8 +6,12 @@ import { TransactionDocument } from '@/models/Transaction';
 import TransactionService from './TransactionService';
 import { createRandomToken } from '@/util/token';
 import ERC20Service from '@/services/ERC20Service';
-import { AssetPoolDocument } from '@/models/AssetPool';
+import { AssetPool, AssetPoolDocument } from '@/models/AssetPool';
 import { Contract } from 'web3-eth-contract';
+import ERC721Service from './ERC721Service';
+import AccountProxy from '@/proxies/AccountProxy';
+import { logger } from '@/util/logger';
+import AssetPoolService from './AssetPoolService';
 
 async function create(
     pool: AssetPoolDocument,
@@ -17,7 +21,8 @@ async function create(
         successUrl,
         failUrl,
         cancelUrl,
-    }: { amount: string; successUrl: string; failUrl: string; cancelUrl: string },
+        metadataId,
+    }: { amount: string; successUrl: string; failUrl: string; cancelUrl: string; metadataId?: string },
 ) {
     const token = createRandomToken();
     const address = await pool.contract.methods.getERC20().call();
@@ -34,6 +39,7 @@ async function create(
         successUrl,
         failUrl,
         cancelUrl,
+        metadataId,
     });
 }
 
@@ -63,6 +69,19 @@ async function pay(contract: Contract, payment: PaymentDocument) {
             }
             payment.transactions.push(String(tx._id));
 
+            if (payment.metadataId) {
+                // PERFORM THE MINT OF THE NFT
+                try {
+                    const metadata = await ERC721Service.findMetadataById(payment.metadataId);
+                    const erc721 = await ERC721Service.findById(metadata.erc721);
+                    const assetPool = await AssetPoolService.getById(payment.poolId);
+                    const account = await AccountProxy.getByAddress(payment.sender);
+                    await ERC721Service.mint(assetPool, erc721, metadata, account);
+                } catch (err) {
+                    logger.error(err);
+                    throw new Error('ERROR ON MINT AFTER PAYMENT');
+                }
+            }
             return await payment.save();
         },
     );
