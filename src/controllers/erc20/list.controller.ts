@@ -6,7 +6,18 @@ import { query } from 'express-validator';
 export const validation = [query('archived').optional().isBoolean()];
 
 export const controller = async (req: Request, res: Response) => {
-    // #swagger.tags = ['ERC20']
+    /*
+    #swagger.tags = ['ERC20 Contract']
+    #swagger.responses[200] = { 
+        description: 'Get a list of ERC20 contracts for this user.',
+        schema: { 
+            type: 'array',
+            items: { 
+                $ref: '#/definitions/ERC20',
+            } 
+        }
+    }
+    */
     let erc20s;
     if (req.query.archived == 'true') {
         erc20s = await ERC20Service.getAll(req.auth.sub);
