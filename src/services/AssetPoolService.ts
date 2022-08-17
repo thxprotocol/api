@@ -68,7 +68,7 @@ export default class AssetPoolService {
 
                 if (isAddress(erc20Address) && erc20Address !== ADDRESS_ZERO) {
                     const erc20 = await ERC20Service.findOrImport(pool, erc20Address);
-                    await AssetPoolService.initializeERC20(pool, erc20Address); // TODO Should move to ERC20Service
+                    await ERC20Service.initialize(pool, erc20Address); // TODO Should move to ERC20Service
                     pool.erc20Id = String(erc20._id);
                 }
 
@@ -77,7 +77,7 @@ export default class AssetPoolService {
                         address: erc721Address,
                         chainId: pool.chainId,
                     });
-                    await AssetPoolService.initializeERC721(pool, erc721Address); // TODO Should move to ERC721Service
+                    await ERC721Service.initialize(pool, erc721Address); // TODO Should move to ERC721Service
                     pool.erc721Id = String(erc721._id);
                 }
             }
@@ -120,20 +120,6 @@ export default class AssetPoolService {
                 return await deposit.save();
             },
         );
-    }
-
-    static async initializeERC20(pool: AssetPoolDocument, address: string) {
-        const erc20 = await ERC20Service.findBy({ chainId: pool.chainId, address, sub: pool.sub });
-        if (erc20 && erc20.type === ERC20Type.Unlimited) {
-            await ERC20Service.addMinter(erc20, pool.address);
-        }
-        await MembershipService.addERC20Membership(pool.sub, pool);
-    }
-
-    static async initializeERC721(pool: AssetPoolDocument, address: string) {
-        const erc721 = await ERC721Service.findByQuery({ address, chainId: pool.chainId });
-        await ERC721Service.addMinter(erc721, pool.address);
-        await MembershipService.addERC721Membership(pool.sub, pool);
     }
 
     static async getAllBySub(sub: string, archived = false) {

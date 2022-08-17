@@ -52,7 +52,6 @@ async function create(
         [account.address, amountInInWei, erc20TokenIn.address],
         assetPool.chainId,
         callback,
-        200000,
     );
 }
 
