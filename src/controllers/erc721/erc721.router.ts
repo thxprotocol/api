@@ -62,14 +62,6 @@ router.get(
     DownloadERC721MetadataCSV.controller,
 );
 
-router.get(
-    '/:id/metadata/:metadataId',
-    guard.check(['erc721:read']),
-    requireAssetPoolHeader,
-    ReadERC721Metadata.controller,
-    assertRequestInput(ReadERC721Metadata.validation),
-);
-
 router.post(
     '/:id/metadata/csv',
     upload.single('file'),
@@ -83,6 +75,13 @@ router.patch(
     guard.check(['erc721:write', 'erc721:read']),
     assertRequestInput(UpdateERC721.validation),
     UpdateERC721.controller,
+);
+
+router.get(
+    '/:id/metadata/:metadataId',
+    guard.check(['erc721:read']),
+    ReadERC721Metadata.controller,
+    assertRequestInput(ReadERC721Metadata.validation),
 );
 
 export default router;
