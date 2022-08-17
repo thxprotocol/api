@@ -10,6 +10,7 @@ import { getAbiForContractName, getByteCodeForContractName, getContractFromName 
 import { keccak256, toUtf8Bytes } from 'ethers/lib/utils';
 import { ERC20Token } from '@/models/ERC20Token';
 import { getProvider } from '@/util/network';
+import MembershipService from './MembershipService';
 
 function getDeployArgs(erc20: ERC20Document, totalSupply?: string) {
     const { defaultAccount } = getProvider(erc20.chainId);
@@ -44,6 +45,14 @@ export const deploy = async (contractName: TokenContractName, params: ICreateERC
     erc20.address = contract.options.address;
 
     return await erc20.save();
+};
+
+const initialize = async (pool: AssetPoolDocument, address: string) => {
+    const erc20 = await findBy({ chainId: pool.chainId, address, sub: pool.sub });
+    if (erc20 && erc20.type === ERC20Type.Unlimited) {
+        await addMinter(erc20, pool.address);
+    }
+    await MembershipService.addERC20Membership(pool.sub, pool);
 };
 
 const addMinter = async (erc20: ERC20Document, address: string) => {
@@ -168,4 +177,5 @@ export default {
     getTokensForSub,
     getTokenById,
     update,
+    initialize,
 };

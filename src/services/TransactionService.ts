@@ -7,6 +7,8 @@ import { MINIMUM_GAS_LIMIT } from '@/config/secrets';
 import { CustomEventLog, parseLogs } from '@/util/events';
 import { paginatedResults } from '@/util/pagination';
 import { TTransaction } from '@/types/TTransaction';
+import { TransactionReceipt } from 'web3-core';
+import { reject, resolve } from 'bluebird';
 
 function getById(id: string) {
     return Transaction.findById(id);
@@ -41,24 +43,42 @@ async function sendValue(to: string, value: string, chainId: ChainId) {
     return { tx, receipt };
 }
 
+async function getReceipt(
+    chainId: ChainId,
+    tx: TransactionReceipt,
+    confirmations: number,
+): Promise<TransactionReceipt> {
+    const { web3 } = getProvider(chainId);
+    return new Promise((resolve, reject) => {
+        let counter = 0;
+        const interval = setInterval(async function () {
+            const receipt = await web3.eth.getTransactionReceipt(tx.transactionHash);
+            if (receipt) {
+                clearInterval(interval);
+                resolve(receipt);
+            }
+            if (counter === confirmations) reject();
+            counter++;
+        }, 500);
+    });
+}
+
 async function relay(
     contract: Contract,
     fn: string,
     args: any[],
     chainId: ChainId,
     callback: (tx: TransactionDocument, events?: CustomEventLog[]) => Promise<Document>,
-    gasLimit?: number,
 ): Promise<any> {
     const tx = await queue(contract.options.address, fn, args, chainId);
-    const receipt = await send(contract.options.address, contract.methods[fn](...args), chainId, gasLimit);
-    const events = parseLogs(contract.options.jsonInterface, receipt.logs);
+    const receipt = await send(contract.options.address, contract.methods[fn](...args), chainId);
+    const minedReceipt = await getReceipt(chainId, receipt, 3);
+    const events = parseLogs(contract.options.jsonInterface, minedReceipt.logs);
 
-    if (receipt) {
-        await tx.updateOne({
-            state: TransactionState.Mined,
-            gas: receipt.gasUsed,
-        });
-    }
+    await tx.updateOne({
+        state: TransactionState.Mined,
+        gas: receipt.gasUsed,
+    });
 
     return await callback(tx, events);
 }

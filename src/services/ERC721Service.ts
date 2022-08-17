@@ -15,6 +15,7 @@ import { IAccount } from '@/models/Account';
 import { TransactionDocument } from '@/models/Transaction';
 import AccountProxy from '@/proxies/AccountProxy';
 import { paginatedResults } from '@/util/pagination';
+import MembershipService from './MembershipService';
 
 async function deploy(data: TERC721): Promise<ERC721Document> {
     const { defaultAccount } = getProvider(data.chainId);
@@ -34,6 +35,12 @@ async function deploy(data: TERC721): Promise<ERC721Document> {
 
     return await erc721.save();
 }
+
+const initialize = async (pool: AssetPoolDocument, address: string) => {
+    const erc721 = await findByQuery({ address, chainId: pool.chainId });
+    await addMinter(erc721, pool.address);
+    await MembershipService.addERC721Membership(pool.sub, pool);
+};
 
 export async function findById(id: string): Promise<ERC721Document> {
     return await ERC721.findById(id);
@@ -182,4 +189,5 @@ export default {
     addMinter,
     parseAttributes,
     update,
+    initialize,
 };

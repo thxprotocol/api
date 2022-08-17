@@ -13,6 +13,8 @@ import { Payment } from '@/models/Payment';
 import { PaymentState } from '@/types/enums/PaymentState';
 import ERC20 from '@/models/ERC20';
 import { ERC721 } from '@/models/ERC721';
+import ERC721Service from '@/services/ERC721Service';
+import ERC20Service from '@/services/ERC20Service';
 
 type CustomEventHandler = (event?: CustomEventLog) => Promise<void>;
 
@@ -36,14 +38,11 @@ async function handleEvents(tx: TransactionDocument, events: CustomEventLog[]) {
             await pool.save();
 
             if (pool.erc20Id) {
-                await AssetPoolService.initializeERC20(pool, event.args.token);
+                await ERC20Service.initialize(pool, event.args.token);
             }
             if (pool.erc721Id) {
-                await AssetPoolService.initializeERC721(pool, event.args.token);
+                await ERC721Service.initialize(pool, event.args.token);
             }
-            // if (pool.variant === 'paymentPool') {
-            //     await AssetPoolService.initializePaymentPool(pool, event.args.token);
-            // }
         },
         ERC721Minted: async function (event?: CustomEventLog) {
             await ERC721Token.updateOne(
