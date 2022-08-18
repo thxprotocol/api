@@ -13,6 +13,18 @@ export default class ClientProxy {
         return { ...client.toJSON(), clientSecret: data['client_secret'], requestUris: data['request_uris'] };
     }
 
+    static async isAllowedOrigin(clientId: string, origin: string) {
+        const client = await Client.findOne({ clientId });
+        if (!client) return false;
+
+        const { data } = await authClient({
+            method: 'GET',
+            url: `/reg/${client.clientId}?access_token=${client.registrationAccessToken}`,
+        });
+
+        return data['request_uris'].includes(origin);
+    }
+
     static async findByQuery(query: { poolId: string }, page = 1, limit = 10) {
         return paginatedResults(Client, page, limit, query);
     }

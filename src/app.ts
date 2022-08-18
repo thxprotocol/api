@@ -20,7 +20,6 @@ db.connect(MONGODB_URI);
 
 app.set('trust proxy', true);
 app.set('port', PORT);
-app.use(corsHandler);
 app.use(requestLogger);
 app.use(compression());
 app.use(lusca.xframe('SAMEORIGIN'));
@@ -28,6 +27,7 @@ app.use(lusca.xssProtection(true));
 app.use(express.static(path.join(__dirname, 'public'), { maxAge: 31557600000 }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(corsHandler);
 app.use(`/${VERSION}`, router);
 app.use(notFoundHandler);
 app.use(errorLogger);

@@ -23,7 +23,7 @@ import clientRouter from './client/client.router';
 import erc20SwapRouter from './swaps/swaps.router';
 import claimsRouter from './claims/claims.router';
 import brandsRouter from './brands/brands.router';
-import { checkJwt } from '@/middlewares';
+import { checkJwt, corsHandler } from '@/middlewares';
 
 const router = express.Router();
 
@@ -34,6 +34,7 @@ router.use('/docs', docsRouter);
 router.use('/metadata', erc721MetadataRouter);
 router.use('/payments', paymentsRouter);
 router.use(checkJwt);
+router.use(corsHandler);
 router.use('/account', accountRouter);
 router.use('/pools', poolsRouter);
 router.use('/metrics', metricsRouter);
