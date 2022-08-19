@@ -1,10 +1,12 @@
 import ERC721Service from '@/services/ERC721Service';
 import { BadRequestError, NotFoundError } from '@/util/errors';
 import { Request, Response } from 'express';
-import { check, param } from 'express-validator';
+import { body, check, param, oneOf } from 'express-validator';
 import { Readable } from 'stream';
 import { logger } from '@/util/logger';
 import CsvReadableStream from 'csv-reader';
+import { createReward } from '@/controllers/rewards/utils';
+import CreateReward from '../../../rewards/post.controller';
 
 const validation = [
     param('id').isMongoId(),
@@ -16,6 +18,7 @@ const validation = [
                 return false;
         }
     }),
+    oneOf([CreateReward.validation, body('createReward').optional().isBoolean().equals('yes')]),
 ];
 
 const controller = async (req: Request, res: Response) => {
@@ -70,7 +73,12 @@ const controller = async (req: Request, res: Response) => {
                             metadata.save();
                         } else {
                             // CREATE NEW METADATA
-                            ERC721Service.createMetadata(erc721, '', '', attributes);
+                            metadata = await ERC721Service.createMetadata(erc721, '', '', attributes);
+                            if (req.body.createReward == 'true') {
+                                // GENERATE A NEW REWARD and CLAIMS FOR THE NEW METADATA
+                                const body = { ...req.body, erc721metadataId: metadata._id };
+                                createReward(req.assetPool, body);
+                            }
                         }
                         resolve(true);
                     } catch (err) {

@@ -1,3 +1,10 @@
+import { AssetPoolDocument } from '@/models/AssetPool';
+import ClaimService from '@/services/ClaimService';
+import ERC20Service from '@/services/ERC20Service';
+import ERC721Service from '@/services/ERC721Service';
+import RewardService from '@/services/RewardService';
+import { NotFoundError } from '@/util/errors';
+
 export function addMinutes(date: Date, minutes: number) {
     return new Date(date.getTime() + minutes * 60000);
 }
@@ -157,3 +164,56 @@ type RewardSlug =
     | 'claim-one-is-enabled'
     | 'claim-one-is-enabled-and-amount-is-greather-than-1'
     | 'claim-one-is-disabled';
+
+export const createReward = async (assetPool: AssetPoolDocument, reqBody: any) => {
+    let withdrawUnlockDate = reqBody.withdrawUnlockDate;
+
+    if (!withdrawUnlockDate) {
+        const now = new Date();
+        withdrawUnlockDate = `${now.getFullYear()}/${now.getMonth() + 1}/${now.getDate()}`;
+    }
+
+    const reward = await RewardService.create(assetPool, {
+        title: reqBody.title,
+        slug: reqBody.slug,
+        withdrawLimit: reqBody.withdrawLimit || 0,
+        withdrawAmount: reqBody.withdrawAmount,
+        withdrawDuration: reqBody.withdrawDuration,
+        isMembershipRequired: reqBody.isMembershipRequired,
+        isClaimOnce: reqBody.isClaimOnce,
+        withdrawUnlockDate: new Date(withdrawUnlockDate),
+        withdrawCondition: reqBody.withdrawCondition,
+        expiryDate: reqBody.expiryDate,
+        erc721metadataId: reqBody.erc721metadataId,
+        amount: reqBody.amount,
+    });
+
+    let erc20Id: string, erc721Id: string;
+    if (reward.erc721metadataId) {
+        const metadata = await ERC721Service.findMetadataById(reward.erc721metadataId);
+        if (!metadata) {
+            throw new NotFoundError('could not find the Metadata for this metadataId');
+        }
+        erc721Id = metadata.erc721;
+    } else {
+        const erc20 = await ERC20Service.findByPool(assetPool);
+        if (!erc20) {
+            throw new NotFoundError('could not find the ERC20 for this pool');
+        }
+        erc20Id = erc20._id;
+    }
+
+    await Promise.all(
+        Array.from({ length: reward.amount }).map(() =>
+            ClaimService.create({
+                poolId: assetPool._id,
+                erc20Id,
+                erc721Id,
+                rewardId: String(reward._id),
+            }),
+        ),
+    );
+
+    const claims = await ClaimService.findByReward(reward);
+    return { reward, claims };
+};

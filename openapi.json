@@ -1012,6 +1012,18 @@
             "in": "path",
             "required": true,
             "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "createReward": {
+                  "example": "any"
+                }
+              }
+            }
           }
         ],
         "responses": {
@@ -1439,53 +1451,7 @@
           "Rewards"
         ],
         "description": "",
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "schema": {
-              "type": "object",
-              "properties": {
-                "withdrawUnlockDate": {
-                  "example": "any"
-                },
-                "title": {
-                  "example": "any"
-                },
-                "slug": {
-                  "example": "any"
-                },
-                "withdrawLimit": {
-                  "example": "any"
-                },
-                "withdrawAmount": {
-                  "example": "any"
-                },
-                "withdrawDuration": {
-                  "example": "any"
-                },
-                "isMembershipRequired": {
-                  "example": "any"
-                },
-                "isClaimOnce": {
-                  "example": "any"
-                },
-                "withdrawCondition": {
-                  "example": "any"
-                },
-                "expiryDate": {
-                  "example": "any"
-                },
-                "erc721metadataId": {
-                  "example": "any"
-                },
-                "amount": {
-                  "example": "any"
-                }
-              }
-            }
-          }
-        ],
+        "parameters": [],
         "responses": {
           "201": {
             "description": "Created"
