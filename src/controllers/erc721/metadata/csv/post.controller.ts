@@ -18,7 +18,7 @@ const validation = [
                 return false;
         }
     }),
-    oneOf([CreateReward.validation, body('createReward').optional().isBoolean().equals('yes')]),
+    oneOf([CreateReward.validation, body('createReward').optional().isBoolean().equals('true')]),
 ];
 
 const controller = async (req: Request, res: Response) => {

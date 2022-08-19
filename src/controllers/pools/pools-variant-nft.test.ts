@@ -185,7 +185,7 @@ describe('NFT Pool', () => {
         const description = 'description';
         const propName = 'img';
 
-        it('should upload multiple metadata images and create metadata', async () => {
+        it('should upload multiple metadata images and create metadata and create rewards', async () => {
             const image1 = await createImage('image1');
             const image2 = await createImage('image3');
             const image3 = await createImage('image3');
@@ -196,7 +196,7 @@ describe('NFT Pool', () => {
             zipFolder.file('image3.jpg', image3, { binary: true });
 
             const zipFile = await zip.generateAsync({ type: 'nodebuffer', compression: 'DEFLATE' });
-
+            const rewardFields = getRewardConfiguration('claim-one-is-enabled');
             await user
                 .post('/v1/erc721/' + erc721ID + '/metadata/zip')
                 .set('Authorization', dashboardAccessToken)
@@ -206,11 +206,31 @@ describe('NFT Pool', () => {
                     title,
                     description,
                     propName,
+                    createReward: true,
+                    //title: rewardFields.title,
+                    slug: rewardFields.slug,
+                    withdrawAmount: rewardFields.withdrawAmount,
+                    withdrawDuration: rewardFields.withdrawDuration,
+                    withdrawLimit: rewardFields.withdrawLimit,
+                    isClaimOnce: rewardFields.isClaimOnce,
+                    isMembershipRequired: rewardFields.isMembershipRequired,
+                    amount: rewardFields.amount,
                 })
                 .expect(({ body }: request.Response) => {
                     expect(body.metadatas.length).toBe(3);
                 })
                 .expect(201);
+        });
+
+        it('should return created reward', (done) => {
+            user.get('/v1/rewards')
+                .set({ 'X-PoolId': poolId, 'Authorization': dashboardAccessToken })
+                .expect(async (res: request.Response) => {
+                    expect(res.body.total).toBe(3);
+                    expect(res.body.results[2].erc721metadataId).toBeDefined();
+                    expect(res.body.results[2].claims).toBeDefined();
+                })
+                .expect(200, done);
         });
     });
 
@@ -326,9 +346,9 @@ describe('NFT Pool', () => {
             user.get('/v1/rewards')
                 .set({ 'X-PoolId': poolId, 'Authorization': dashboardAccessToken })
                 .expect(async (res: request.Response) => {
-                    expect(res.body.total).toBe(1);
-                    expect(res.body.results[0].erc721metadataId).toBeDefined();
-                    expect(res.body.results[0].claims).toBeDefined();
+                    expect(res.body.total).toBe(4);
+                    expect(res.body.results[3].erc721metadataId).toBeDefined();
+                    expect(res.body.results[3].claims).toBeDefined();
                 })
                 .expect(200, done);
         });

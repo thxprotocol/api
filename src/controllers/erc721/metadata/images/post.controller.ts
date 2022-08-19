@@ -10,8 +10,10 @@ import { PutObjectCommand } from '@aws-sdk/client-s3';
 import { fromBuffer } from 'file-type';
 
 import { Request, Response } from 'express';
-import { body, check, param } from 'express-validator';
+import { body, check, param, oneOf } from 'express-validator';
 import short from 'short-uuid';
+import { createReward } from '@/controllers/rewards/utils';
+import CreateReward from '../../../rewards/post.controller';
 
 const validation = [
     param('id').isMongoId(),
@@ -28,6 +30,7 @@ const validation = [
                 return false;
         }
     }),
+    oneOf([CreateReward.validation, body('createReward').optional().isBoolean().equals('true')]),
 ];
 
 const controller = async (req: Request, res: Response) => {
@@ -94,6 +97,12 @@ const controller = async (req: Request, res: Response) => {
                 const metadata = await ERC721Service.createMetadata(erc721, req.body.title, req.body.description, [
                     { key: req.body.propName, value: url },
                 ]);
+
+                if (req.body.createReward == 'true') {
+                    // GENERATE A NEW REWARD and CLAIMS FOR THE NEW METADATA
+                    const body = { ...req.body, erc721metadataId: metadata._id };
+                    createReward(req.assetPool, body);
+                }
 
                 metadatas.push(metadata);
                 resolve(metadata);

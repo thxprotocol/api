@@ -973,6 +973,9 @@
                 },
                 "propName": {
                   "example": "any"
+                },
+                "createReward": {
+                  "example": "any"
                 }
               }
             }
@@ -1447,9 +1450,6 @@
         }
       },
       "post": {
-        "tags": [
-          "Rewards"
-        ],
         "description": "",
         "parameters": [],
         "responses": {
