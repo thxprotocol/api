@@ -986,6 +986,25 @@
             "description": "Created"
           }
         }
+      },
+      "get": {
+        "tags": [
+          "Rewards"
+        ],
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created"
+          }
+        }
       }
     },
     "/erc721/{id}/metadata/csv": {

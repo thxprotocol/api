@@ -3,6 +3,7 @@ import { Agenda } from 'agenda';
 import { logger } from './logger';
 // import { jobProcessTransactions } from '@/jobs/transactionProcessor';
 import { generateRewardQRCodesJob } from '@/jobs/rewardQRcodesJob';
+import { generateMetadataRewardQRCodesJob } from '@/jobs/metadataRewardQRcodesJob';
 
 const agenda = new Agenda({
     name: 'jobs',
@@ -13,9 +14,11 @@ const agenda = new Agenda({
 
 const EVENT_REQUIRE_TRANSACTIONS = 'requireTransactions';
 const EVENT_SEND_DOWNLOAD_QR_EMAIL = 'sendDownloadQrEmail';
+const EVENT_SEND_DOWNLOAD_METADATA_QR_EMAIL = 'sendDownloadMetadataQrEmail';
 
 // agenda.define(EVENT_REQUIRE_TRANSACTIONS, jobProcessTransactions);
 agenda.define(EVENT_SEND_DOWNLOAD_QR_EMAIL, generateRewardQRCodesJob);
+agenda.define(EVENT_SEND_DOWNLOAD_METADATA_QR_EMAIL, generateMetadataRewardQRCodesJob);
 
 db.connection.once('open', async () => {
     agenda.mongo(db.connection.getClient().db(), 'jobs');
@@ -28,4 +31,4 @@ db.connection.once('open', async () => {
     logger.info('AgendaJS successfully started job processor');
 });
 
-export { agenda, EVENT_REQUIRE_TRANSACTIONS, EVENT_SEND_DOWNLOAD_QR_EMAIL };
+export { agenda, EVENT_REQUIRE_TRANSACTIONS, EVENT_SEND_DOWNLOAD_QR_EMAIL, EVENT_SEND_DOWNLOAD_METADATA_QR_EMAIL };

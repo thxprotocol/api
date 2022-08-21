@@ -8,6 +8,7 @@ import { createImage } from '@/util/jest/images';
 import { createArchiver } from '@/util/zip';
 import { ERC721MetadataDocument } from '@/models/ERC721Metadata';
 import { getRewardConfiguration } from '../rewards/utils';
+import { agenda, EVENT_SEND_DOWNLOAD_METADATA_QR_EMAIL } from '@/util/agenda';
 const user = request.agent(app);
 
 describe('NFT Pool', () => {
@@ -351,6 +352,24 @@ describe('NFT Pool', () => {
                     expect(res.body.results[3].claims).toBeDefined();
                 })
                 .expect(200, done);
+        });
+    });
+
+    describe('GET /erc721/:id/metadata/zip', () => {
+        it('should generate and download the qrcodes for the metadata rewards in a zip file', (done) => {
+            user.get('/v1/erc721/' + erc721ID + '/metadata/zip')
+                .set('Authorization', dashboardAccessToken)
+                .set('X-PoolId', poolId)
+                .send()
+                .expect(201, done);
+        });
+
+        it('should cast a success event for sendDownloadMetadataQrEmail event', (done) => {
+            const callback = async () => {
+                agenda.off(`success:${EVENT_SEND_DOWNLOAD_METADATA_QR_EMAIL}`, callback);
+                done();
+            };
+            agenda.on(`success:${EVENT_SEND_DOWNLOAD_METADATA_QR_EMAIL}`, callback);
         });
     });
 });

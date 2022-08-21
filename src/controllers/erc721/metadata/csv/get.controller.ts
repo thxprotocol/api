@@ -8,7 +8,6 @@ import { s3Client } from '@/util/s3';
 import { GetObjectCommand, PutObjectCommand } from '@aws-sdk/client-s3';
 import { Readable } from 'stream';
 import { logger } from '@/util/logger';
-import ImageService from '@/services/ImageService';
 
 const validation = [param('id').isMongoId()];
 
@@ -67,8 +66,6 @@ const controller = async (req: Request, res: Response) => {
                 Key: csvFileName,
             }),
         );
-        // COLLECT THE URL
-        const url = ImageService.getPublicUrl(csvFileName);
 
         // RETURN THE FILE TO THE RESPONSE
         (response.Body as Readable).pipe(res).attachment(csvFileName);
