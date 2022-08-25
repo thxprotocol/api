@@ -765,6 +765,9 @@
             "schema": {
               "type": "object",
               "properties": {
+                "schema": {
+                  "example": "any"
+                },
                 "chainId": {
                   "example": "any"
                 },
@@ -775,9 +778,6 @@
                   "example": "any"
                 },
                 "description": {
-                  "example": "any"
-                },
-                "schema": {
                   "example": "any"
                 }
               }

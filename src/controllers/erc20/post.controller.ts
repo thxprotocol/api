@@ -4,8 +4,7 @@ import ERC20Service from '@/services/ERC20Service';
 import AccountProxy from '@/proxies/AccountProxy';
 import { checkAndUpgradeToBasicPlan } from '@/util/plans';
 import { ERC20Type } from '@/types/enums';
-import { AWS_S3_PUBLIC_BUCKET_NAME } from '@/config/secrets';
-import { s3Client } from '@/util/s3';
+
 import ImageService from '@/services/ImageService';
 
 export const validation = [
@@ -33,7 +32,8 @@ export const controller = async (req: Request, res: Response) => {
 
     await checkAndUpgradeToBasicPlan(account, req.body.chainId);
 
-    const contractName = req.body.type === ERC20Type.Unlimited ? 'UnlimitedSupplyToken' : 'LimitedSupplyToken';
+    const contractName =
+        Number.parseInt(req.body.type) === ERC20Type.Unlimited ? 'UnlimitedSupplyToken' : 'LimitedSupplyToken';
 
     let logoImgUrl;
     if (req.file) {

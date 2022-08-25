@@ -25,10 +25,16 @@ const controller = async (req: Request, res: Response) => {
         const response = await ImageService.upload(req.file);
         logoImgUrl = ImageService.getPublicUrl(response.key);
     }
-    const properties = typeof req.body.schema == 'string' ? JSON.parse(req.body.schema) : req.body.schema;
+    let properties: any;
+    try {
+        properties = typeof req.body.schema == 'string' ? JSON.parse(req.body.schema) : req.body.schema;
+        console.log('properties', properties);
+    } catch (err) {
+        throw new BadRequestError('invalid schema');
+    }
 
     if (!Array.isArray(properties)) {
-        throw new BadRequestError('properties must be an Array');
+        throw new BadRequestError('schema must be an Array');
     }
 
     const erc721 = await ERC721Service.deploy({
