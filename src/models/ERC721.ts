@@ -17,6 +17,7 @@ const ERC721Schema = new mongoose.Schema(
         baseURL: String,
         properties: [{ name: String, propType: String, description: String }],
         archived: Boolean,
+        logoImgUrl: String,
     },
     { timestamps: true },
 );

@@ -3156,6 +3156,15 @@
             }
           }
         },
+        "logoImgUrl": {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "example": "string"
+            }
+          }
+        },
         "_id": {
           "type": "object",
           "properties": {
