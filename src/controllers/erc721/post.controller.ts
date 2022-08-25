@@ -28,7 +28,6 @@ const controller = async (req: Request, res: Response) => {
     let properties: any;
     try {
         properties = typeof req.body.schema == 'string' ? JSON.parse(req.body.schema) : req.body.schema;
-        console.log('properties', properties);
     } catch (err) {
         throw new BadRequestError('invalid schema');
     }
