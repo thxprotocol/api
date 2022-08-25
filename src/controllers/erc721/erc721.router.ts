@@ -1,4 +1,4 @@
-import express, { Request, Response } from 'express';
+import express from 'express';
 import { assertRequestInput, requireAssetPoolHeader, guard } from '@/middlewares';
 import ReadERC721 from './get.controller';
 import ListERC721 from './list.controller';
