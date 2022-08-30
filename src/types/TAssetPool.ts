@@ -15,4 +15,6 @@ export type TAssetPool = {
     version?: string;
     variant?: DiamondVariant;
     archived?: boolean;
+    verifiedAt?: Date;
+    verifiedVersion?: string;
 };

@@ -18,6 +18,8 @@ const assetPoolSchema = new mongoose.Schema(
         version: String,
         variant: String,
         archived: Boolean,
+        verifiedAt: Date,
+        verifiedVersion: String,
     },
     { timestamps: true },
 );

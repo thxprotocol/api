@@ -53,6 +53,7 @@ async function main() {
             const isUpgraded = await AssetPoolService.updateAssetPool(pool, currentVersion);
             if (isUpgraded) {
                 console.log('Upgrade:', pool.address, `${pool.variant} ${pool.version} -> ${currentVersion}`);
+                // TODO: RUN VERIFICATION
             }
         } catch (error) {
             console.error(String(pool._id), error);
