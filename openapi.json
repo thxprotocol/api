@@ -168,6 +168,20 @@
         }
       }
     },
+    "/arweave/": {
+      "put": {
+        "description": "",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "440": {
+            "description": ""
+          }
+        }
+      }
+    },
     "/account/": {
       "get": {
         "tags": [
@@ -1948,122 +1962,14 @@
                 },
                 "amountIn": {
                   "example": "any"
-                }
-              }
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        }
-      }
-    },
-    "/swaps/{id}": {
-      "get": {
-        "tags": [
-          "ERC20Swaps"
-        ],
-        "description": "",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        }
-      }
-    },
-    "/brands/": {
-      "get": {
-        "description": "",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        }
-      },
-      "put": {
-        "description": "",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        }
-      }
-    },
-    "/upload/": {
-      "put": {
-        "description": "",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "OK"
-          },
-          "440": {
-            "description": ""
-          }
-        }
-      }
-    },
-    "/clients/": {
-      "get": {
-        "tags": [
-          "Client"
-        ],
-        "description": "",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "Get a list of client credentials for this user",
-            "schema": {
-              "type": "object",
-              "properties": {
-                "type": {
-                  "type": "string",
-                  "example": "array"
                 },
-                "items": {
-                  "$ref": "#/definitions/Client"
-                }
-              },
-              "xml": {
-                "name": "main"
-              }
-            }
-          }
-        }
-      },
-      "post": {
-        "tags": [
-          "Client"
-        ],
-        "description": "",
-        "parameters": [
-          {
-            "name": "x-poolid",
-            "in": "header",
-            "type": "string"
-          },
-          {
-            "name": "body",
-            "in": "body",
-            "schema": {
-              "type": "object",
-              "properties": {
-                "description": {
+                "call": {
                   "example": "any"
                 },
-                "schema": {
+                "nonce": {
+                  "example": "any"
+                },
+                "sig": {
                   "example": "any"
                 }
               }
@@ -2104,11 +2010,20 @@
         }
       }
     },
-    "/claims/{id}/collect": {
-      "post": {
-        "tags": [
-          "Rewards"
+    "/brand/{pool_address}": {
+      "get": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "pool_address",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
         ],
+        "responses": {}
+      },
+      "put": {
         "description": "",
         "parameters": [
           {
@@ -2118,51 +2033,13 @@
             "type": "string"
           }
         ],
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        }
+        "responses": {}
       }
     },
-    "/claims/{id}": {
-      "get": {
-        "tags": [
-          "Claims"
-        ],
+    "/upload/": {
+      "put": {
         "description": "",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Get a reward claim",
-            "schema": {
-              "$ref": "#/definitions/Claim"
-            }
-          }
-        }
-      }
-    },
-    "/claims/hash/{hash}": {
-      "get": {
-        "tags": [
-          "Claims"
-        ],
-        "description": "",
-        "parameters": [
-          {
-            "name": "hash",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          }
-        ],
+        "parameters": [],
         "responses": {
           "200": {
             "description": "OK"

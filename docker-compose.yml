@@ -15,7 +15,7 @@ services:
         volumes:
             - mongo-data:/data/db
             - ./scripts/mongo-init.sh:/docker-entrypoint-initdb.d/mongo-init.sh
-       
+
     api_hardhat:
         container_name: thx_api_hardhat
         image: public.ecr.aws/o5j5y3t5/hardhat-thx-artifacts:4.0.4
@@ -42,5 +42,69 @@ services:
         ports:
             - 8546:443
                 
+    postgres:
+        image: postgres:12
+        volumes:
+            - database:/var/lib/postgresql/data
+            - app:/app
+        expose:
+            - 5432
+        ports:
+            - "5432:5432"
+        environment:
+            POSTGRES_USER: "arweave"
+            POSTGRES_PASSWORD: "arweave"
+            POSTGRES_DB: "arweave"
+        command: -p 5432
+        networks:
+            - sub-etha
+    # Arweave Node Configurations
+    arweave-node:
+        image: lucaarweave/arweave-node:0.0.4
+        expose:
+            - 1984
+        ports:
+            - "1984:1984"
+        environment:
+            AR_RUNMODE: "test"
+        volumes:
+            - "ardata:/mnt/arweave-data"
+            # restart: "always"
+        networks:
+            - sub-etha
+    # Arweave Gateway configuration
+    arweave-gateway:
+        image: lucaarweave/arweave-gateway:0.0.1
+        volumes:
+            - app:/app
+        links:
+            - postgres
+            - arweave-node
+        expose:
+            - 3000
+        ports:
+            - "4000:3000"
+        networks:
+            - sub-etha
+    # The TestWeave net
+    testweave:
+        image: "ghcr.io/demo-hub/testweave-net:latest"
+        container_name: testweave
+        links:
+            - postgres
+            - arweave-node
+            - arweave-gateway
+        ports:
+            - "80:80"
+        expose:
+            - 80
+        networks:
+            - sub-etha
+
 volumes:
+    app:
+    database:
+    ardata:
     mongo-data:
+networks:
+    sub-etha:
