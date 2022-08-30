@@ -27,7 +27,7 @@ async function deploy(data: TERC721): Promise<ERC721Document> {
     const contract = await TransactionService.deploy(
         abi,
         bytecode,
-        [erc721.name, erc721.symbol, erc721.baseURL, defaultAccount],
+        [erc721.name, erc721.symbol, erc721.baseURL, defaultAccount, erc721.royaltyRecipient, erc721.royaltyBps],
         erc721.chainId,
     );
 

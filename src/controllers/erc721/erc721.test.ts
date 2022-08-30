@@ -15,7 +15,9 @@ describe('ERC721', () => {
         schema = [
             { name: 'color', propType: 'string', description: 'lorem ipsum' },
             { name: 'size', propType: 'string', description: 'lorem ipsum dolor sit' },
-        ];
+        ],
+        royaltyAddress = '0x00',
+        royaltyPercentage = 5;
     let erc721ID: string;
 
     beforeAll(beforeAllCallback);
@@ -31,6 +33,8 @@ describe('ERC721', () => {
                     symbol,
                     description,
                     schema,
+                    royaltyAddress,
+                    royaltyPercentage,
                 })
                 .expect(({ body }: request.Response) => {
                     expect(body._id).toBeDefined();
@@ -46,7 +50,8 @@ describe('ERC721', () => {
                     expect(body.properties[1].propType).toBe(schema[1].propType);
                     expect(isAddress(body.address)).toBe(true);
                     expect(body.archived).toBe(false);
-
+                    expect(body.royaltyRecipient).toBe(royaltyAddress);
+                    expect(body.royaltyBps).toBe(royaltyPercentage * 1000);
                     erc721ID = body._id;
                 })
                 .expect(201, done);
@@ -69,6 +74,8 @@ describe('ERC721', () => {
                     expect(body.properties[1].description).toBe(schema[1].description);
                     expect(body.properties[1].name).toBe(schema[1].name);
                     expect(body.properties[1].propType).toBe(schema[1].propType);
+                    expect(body.royaltyRecipient).toBe(royaltyAddress);
+                    expect(body.royaltyBps).toBe(royaltyPercentage * 1000);
                     expect(isAddress(body.address)).toBe(true);
                 })
                 .expect(200, done);
