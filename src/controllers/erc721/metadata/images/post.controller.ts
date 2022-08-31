@@ -1,4 +1,4 @@
-import { AWS_S3_PUBLIC_BUCKET_NAME } from '@/config/secrets';
+import { ARWEAEVE_ENABLED, AWS_S3_PUBLIC_BUCKET_NAME } from '@/config/secrets';
 import { ERC721MetadataDocument } from '@/models/ERC721Metadata';
 import ERC721Service from '@/services/ERC721Service';
 import ImageService from '@/services/ImageService';
@@ -12,6 +12,8 @@ import { fromBuffer } from 'file-type';
 import { Request, Response } from 'express';
 import { body, check, param } from 'express-validator';
 import short from 'short-uuid';
+import ArweaveService from '@/services/ArweaveService';
+import core from 'file-type/core';
 
 const validation = [
     param('id').isMongoId(),
@@ -62,7 +64,9 @@ const controller = async (req: Request, res: Response) => {
         // CREATE THE FILE BUFFER
         const buffer = await zip.file(file).async('nodebuffer');
 
-        if (!(await isValidFileType(buffer))) {
+        const { mime } = await fromBuffer(buffer);
+
+        if (!(await isValidFileType(mime))) {
             logger.info(`INVALID FILE TYPE, FILE SKIPPED: ${file}`);
             continue;
         }
@@ -76,19 +80,25 @@ const controller = async (req: Request, res: Response) => {
                     short.generate() +
                     `.${extension}`;
 
-                // PREPARE PARAMS FOR UPLOAD TO S3 BUCKET
-                const uploadParams = {
-                    Key: filename,
-                    Bucket: AWS_S3_PUBLIC_BUCKET_NAME,
-                    ACL: 'public-read',
-                    Body: buffer,
-                };
+                let url;
+                if (ARWEAEVE_ENABLED) {
+                    const response = await ArweaveService.upload({ buffer, mimetype: mime });
+                    url = await ArweaveService.generateUrl(response.id);
+                } else {
+                    // PREPARE PARAMS FOR UPLOAD TO S3 BUCKET
+                    const uploadParams = {
+                        Key: filename,
+                        Bucket: AWS_S3_PUBLIC_BUCKET_NAME,
+                        ACL: 'public-read',
+                        Body: buffer,
+                    };
 
-                // UPLOAD THE FILE TO S3
-                await s3Client.send(new PutObjectCommand(uploadParams));
+                    // UPLOAD THE FILE TO S3
+                    await s3Client.send(new PutObjectCommand(uploadParams));
 
-                // COLLECT THE URL
-                const url = ImageService.getPublicUrl(filename);
+                    // COLLECT THE URL
+                    url = ImageService.getPublicUrl(filename);
+                }
 
                 // CREATE THE METADATA
                 const metadata = await ERC721Service.createMetadata(erc721, req.body.title, req.body.description, [
@@ -113,9 +123,7 @@ function isValidExtension(extension: string) {
     return ['jpg', 'jpeg', 'gif', 'png'].includes(extension);
 }
 
-async function isValidFileType(buffer: Buffer) {
-    const { mime } = await fromBuffer(buffer);
-
+async function isValidFileType(mime: core.MimeType) {
     if (!['image/jpeg', 'image/png', 'image/gif'].includes(mime)) {
         return false;
     }

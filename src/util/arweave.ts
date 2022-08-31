@@ -17,9 +17,7 @@ export const getArweaveKey = async () => {
     const address = await arweave.wallets.jwkToAddress(key);
     const balance = await arweave.wallets.getBalance(address);
     const ar = arweave.ar.winstonToAr(balance);
-    console.log('winston', balance);
-    console.log('ar', ar);
-
+    console.log('arweave wallet balance', balance);
     return key;
 };
 

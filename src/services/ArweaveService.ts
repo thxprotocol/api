@@ -1,7 +1,7 @@
 import arweave, { getArweaveKey, ARWEAVE_URL } from '@/util/arweave';
 import { NotFoundError } from '@/util/errors';
 
-async function upload(file: Express.Multer.File) {
+async function upload(file: { buffer: Buffer; mimetype: string }) {
     try {
         const key = await getArweaveKey();
         const data = file.buffer;
@@ -27,7 +27,6 @@ async function upload(file: Express.Multer.File) {
 
 async function getData(id: string) {
     const status = await arweave.transactions.getStatus(id);
-    console.log('status', status);
 
     if (!status.confirmed) {
         throw new NotFoundError('the transaction is not confirmed yet');

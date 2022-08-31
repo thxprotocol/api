@@ -10,7 +10,7 @@ export default {
 
         // UPLOAD FILE TO ETERNAL STORAGE
         if (ARWEAEVE_ENABLED) {
-            const response = await ArweaveService.upload(file);
+            const response = await ArweaveService.upload({ buffer: file.buffer, mimetype: file.mimetype });
             const publicUrl = await ArweaveService.generateUrl(response.id);
             res.send({ publicUrl });
         }
