@@ -6,7 +6,7 @@ export default {
         const file = req.file;
         if (!file) return res.status(440).send('There no file to process');
         const response = await ArweaveService.upload(file);
-        const publicUrl = ArweaveService.generateUrl(response.id);
+        const publicUrl = await ArweaveService.generateUrl(response.id);
         res.send({ publicUrl });
     },
 };

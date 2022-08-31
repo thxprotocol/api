@@ -11,7 +11,7 @@ describe('Arweave', () => {
     beforeAll(beforeAllCallback);
     afterAll(afterAllCallback);
 
-    let TEST_URL = '';
+    let PUBLIC_URL = '';
 
     it('PUT /v1/arweave', (done) => {
         http.put('/v1/arweave/')
@@ -19,17 +19,16 @@ describe('Arweave', () => {
             .attach('file', testImage, { contentType: 'image/jpeg' })
             .expect((res: Response) => {
                 expect(res.body['publicUrl']).not.toBeNull();
-                TEST_URL = res.body['publicUrl'];
+                PUBLIC_URL = res.body['publicUrl'];
             })
             .expect(200, done);
     });
 
     it('GET /v1/arweave', (done) => {
-        const url = TEST_URL.split('/');
+        const url = PUBLIC_URL.split('/');
         const id = url[url.length - 1];
-
         http.get('/v1/arweave/' + id)
             .set('Authorization', dashboardAccessToken)
-            .expect(200, done);
+            .expect(404, done); // it returns this status since the block is not mined yet
     });
 });
