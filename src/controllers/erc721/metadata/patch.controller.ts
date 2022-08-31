@@ -21,8 +21,11 @@ const controller = async (req: Request, res: Response) => {
 
     const tokens = metadata.tokens || [];
 
-    metadata.update({ title: req.body.title, description: req.body.description, attributes: req.body.attributes });
-    metadata.save();
+    await metadata.updateOne({
+        title: req.body.title,
+        description: req.body.description,
+        attributes: req.body.attributes,
+    });
 
     res.status(201).json({ ...metadata.toJSON(), tokens });
 };

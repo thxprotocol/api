@@ -168,20 +168,6 @@
         }
       }
     },
-    "/upload/": {
-      "put": {
-        "description": "",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "OK"
-          },
-          "440": {
-            "description": ""
-          }
-        }
-      }
-    },
     "/account/": {
       "get": {
         "tags": [
@@ -1968,6 +1954,20 @@
         "responses": {
           "200": {
             "description": "OK"
+          }
+        }
+      }
+    },
+    "/upload/": {
+      "put": {
+        "description": "",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "440": {
+            "description": ""
           }
         }
       }
