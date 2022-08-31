@@ -1,7 +1,7 @@
 import { createCanvas, loadImage } from 'canvas';
 import QRCode from 'qrcode';
 import short from 'short-uuid';
-import { ARWEAEVE_ENABLED, AWS_S3_PUBLIC_BUCKET_NAME, AWS_S3_PUBLIC_BUCKET_REGION } from '@/config/secrets';
+import { AWS_S3_PUBLIC_BUCKET_NAME, AWS_S3_PUBLIC_BUCKET_REGION } from '@/config/secrets';
 import { s3Client } from '@/util/s3';
 import { GetObjectCommand, PutObjectCommand } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';

@@ -1,7 +1,7 @@
 {
   "swagger": "2.0",
   "info": {
-    "version": "1.20.7",
+    "version": "1.20.8",
     "title": "THX API Specification",
     "description": "User guides are available at https://docs.thx.network."
   },
@@ -178,6 +178,24 @@
           },
           "440": {
             "description": ""
+          }
+        }
+      }
+    },
+    "/arweave/{id}": {
+      "get": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
           }
         }
       }
@@ -1962,14 +1980,122 @@
                 },
                 "amountIn": {
                   "example": "any"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/swaps/{id}": {
+      "get": {
+        "tags": [
+          "ERC20Swaps"
+        ],
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/brands/": {
+      "get": {
+        "description": "",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      },
+      "put": {
+        "description": "",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/upload/": {
+      "put": {
+        "description": "",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "440": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/clients/": {
+      "get": {
+        "tags": [
+          "Client"
+        ],
+        "description": "",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Get a list of client credentials for this user",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "example": "array"
                 },
-                "call": {
+                "items": {
+                  "$ref": "#/definitions/Client"
+                }
+              },
+              "xml": {
+                "name": "main"
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Client"
+        ],
+        "description": "",
+        "parameters": [
+          {
+            "name": "x-poolid",
+            "in": "header",
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "description": {
                   "example": "any"
                 },
-                "nonce": {
-                  "example": "any"
-                },
-                "sig": {
+                "schema": {
                   "example": "any"
                 }
               }
@@ -2010,20 +2136,11 @@
         }
       }
     },
-    "/brand/{pool_address}": {
-      "get": {
-        "description": "",
-        "parameters": [
-          {
-            "name": "pool_address",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          }
+    "/claims/{id}/collect": {
+      "post": {
+        "tags": [
+          "Rewards"
         ],
-        "responses": {}
-      },
-      "put": {
         "description": "",
         "parameters": [
           {
@@ -2033,13 +2150,51 @@
             "type": "string"
           }
         ],
-        "responses": {}
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
       }
     },
-    "/upload/": {
-      "put": {
+    "/claims/{id}": {
+      "get": {
+        "tags": [
+          "Claims"
+        ],
         "description": "",
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Get a reward claim",
+            "schema": {
+              "$ref": "#/definitions/Claim"
+            }
+          }
+        }
+      }
+    },
+    "/claims/hash/{hash}": {
+      "get": {
+        "tags": [
+          "Claims"
+        ],
+        "description": "",
+        "parameters": [
+          {
+            "name": "hash",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
         "responses": {
           "200": {
             "description": "OK"
