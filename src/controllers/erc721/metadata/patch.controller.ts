@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import { body, param } from 'express-validator';
 
 import ERC721Service from '@/services/ERC721Service';
-import { NotFoundError } from '@/util/errors';
+import { BadRequestError, NotFoundError } from '@/util/errors';
 
 const validation = [
     param('id').isMongoId(),
@@ -20,6 +20,7 @@ const controller = async (req: Request, res: Response) => {
     if (!metadata) throw new NotFoundError('Could not find this NFT Metadata in the database');
 
     const tokens = metadata.tokens || [];
+    if (tokens.length) throw new BadRequestError('There token minted with this metadata');
 
     await metadata.updateOne({
         title: req.body.title,
