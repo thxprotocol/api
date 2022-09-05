@@ -347,7 +347,7 @@ describe('NFT Pool', () => {
             user.get('/v1/rewards')
                 .set({ 'X-PoolId': poolId, 'Authorization': dashboardAccessToken })
                 .expect(async (res: request.Response) => {
-                    expect(res.body.total).toBe(4);
+                    expect(res.body.total).toBe(5);
                     expect(res.body.results[3].erc721metadataId).toBeDefined();
                     expect(res.body.results[3].claims).toBeDefined();
                 })
