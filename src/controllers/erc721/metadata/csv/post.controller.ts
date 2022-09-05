@@ -1,12 +1,12 @@
 import ERC721Service from '@/services/ERC721Service';
 import { BadRequestError, NotFoundError } from '@/util/errors';
 import { Request, Response } from 'express';
-import { body, check, param, oneOf } from 'express-validator';
+import { check, param } from 'express-validator';
 import { Readable } from 'stream';
 import { logger } from '@/util/logger';
 import CsvReadableStream from 'csv-reader';
 import { createReward } from '@/controllers/rewards/utils';
-import CreateReward from '../../../rewards/post.controller';
+import { agenda, EVENT_SEND_DOWNLOAD_METADATA_QR_EMAIL } from '@/util/agenda';
 
 const validation = [
     param('id').isMongoId(),
@@ -18,7 +18,6 @@ const validation = [
                 return false;
         }
     }),
-    oneOf([CreateReward.validation, body('createReward').optional().isBoolean().equals('true')]),
 ];
 
 const controller = async (req: Request, res: Response) => {
@@ -74,11 +73,18 @@ const controller = async (req: Request, res: Response) => {
                         } else {
                             // CREATE NEW METADATA
                             metadata = await ERC721Service.createMetadata(erc721, '', '', attributes);
-                            if (req.body.createReward == 'true') {
-                                // GENERATE A NEW REWARD and CLAIMS FOR THE NEW METADATA
-                                const body = { ...req.body, erc721metadataId: metadata._id };
-                                createReward(req.assetPool, body);
-                            }
+
+                            // GENERATE A NEW REWARD and CLAIMS FOR THE NEW METADATA
+                            const body = {
+                                ...req.body,
+                                erc721metadataId: metadata._id,
+                                withdrawAmount: 0,
+                                withdrawDuration: 0,
+                                withdrawLimit: 0,
+                                isClaimOnce: true,
+                                isMembershipRequired: false,
+                            };
+                            createReward(req.assetPool, body);
                         }
                         resolve(true);
                     } catch (err) {
@@ -96,6 +102,19 @@ const controller = async (req: Request, res: Response) => {
             })
             .on('end', async () => {
                 await Promise.all(promises);
+
+                const poolId = String(req.assetPool._id);
+                const sub = req.assetPool.sub;
+                const notify = false; // IT WILL RE-CREATE THE FILE WITHOUT SENDING THE EMAIL
+                const fileName = `${req.assetPool._id}_metadata.zip`;
+
+                await agenda.now(EVENT_SEND_DOWNLOAD_METADATA_QR_EMAIL, {
+                    poolId,
+                    sub,
+                    fileName,
+                    notify,
+                });
+
                 res.status(201).json({}).end();
             });
     } catch (err) {

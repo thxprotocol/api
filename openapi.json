@@ -1,7 +1,7 @@
 {
   "swagger": "2.0",
   "info": {
-    "version": "1.20.7",
+    "version": "1.20.8",
     "title": "THX API Specification",
     "description": "User guides are available at https://docs.thx.network."
   },
@@ -973,9 +973,6 @@
                 },
                 "propName": {
                   "example": "any"
-                },
-                "createReward": {
-                  "example": "any"
                 }
               }
             }
@@ -989,7 +986,7 @@
       },
       "get": {
         "tags": [
-          "Rewards"
+          "ERC721 Metadata"
         ],
         "description": "",
         "parameters": [
@@ -1034,18 +1031,6 @@
             "in": "path",
             "required": true,
             "type": "string"
-          },
-          {
-            "name": "body",
-            "in": "body",
-            "schema": {
-              "type": "object",
-              "properties": {
-                "createReward": {
-                  "example": "any"
-                }
-              }
-            }
           }
         ],
         "responses": {

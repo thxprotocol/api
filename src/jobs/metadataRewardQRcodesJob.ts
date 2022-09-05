@@ -20,7 +20,7 @@ export const generateMetadataRewardQRCodesJob = async ({ attrs }: Job) => {
     if (!attrs.data) return;
 
     try {
-        const { poolId, sub, fileName } = attrs.data;
+        const { poolId, sub, fileName, notify } = attrs.data;
 
         const pool = await AssetPoolService.getById(poolId);
         if (!pool) throw new Error('Reward not found');
@@ -76,12 +76,14 @@ export const generateMetadataRewardQRCodesJob = async ({ attrs }: Job) => {
 
         await multipartUpload.done();
 
-        await MailService.send(
-            account.email,
-            'Your QR codes are ready!',
-            `Visit THX Dashboard to download your your QR codes archive. Visit this URL in your browser:
-            <br/>${`${DASHBOARD_URL}/pool/${poolId}/rewards`}`,
-        );
+        if (notify) {
+            await MailService.send(
+                account.email,
+                'Your QR codes are ready!',
+                `Visit THX Dashboard to download your your QR codes archive. Visit this URL in your browser:
+                <br/>${`${DASHBOARD_URL}/pool/${poolId}/metadata?qrcodes=1`}`,
+            );
+        }
     } catch (error) {
         logger.error(error);
     }

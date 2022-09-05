@@ -13,14 +13,14 @@ import { Request, Response } from 'express';
 import { body, check, param, oneOf } from 'express-validator';
 import short from 'short-uuid';
 import { createReward } from '@/controllers/rewards/utils';
-import CreateReward from '../../../rewards/post.controller';
+import { agenda, EVENT_SEND_DOWNLOAD_METADATA_QR_EMAIL } from '@/util/agenda';
 
 const validation = [
     param('id').isMongoId(),
     body('title').optional().isString().isLength({ min: 0, max: 100 }),
     body('description').optional().isString().isLength({ min: 0, max: 400 }),
     body('propName').exists().isString(),
-    check('compressedFile').custom((value, { req }) => {
+    check('file').custom((value, { req }) => {
         switch (req.file.mimetype) {
             case 'application/octet-stream':
             case 'application/zip':
@@ -30,7 +30,6 @@ const validation = [
                 return false;
         }
     }),
-    oneOf([CreateReward.validation, body('createReward').optional().isBoolean().equals('true')]),
 ];
 
 const controller = async (req: Request, res: Response) => {
@@ -47,6 +46,7 @@ const controller = async (req: Request, res: Response) => {
 
     // ITERATE THE CONTENT BY OBJECT KEYS
     const objectKeys = Object.keys(contents.files);
+
     const promises = [];
 
     for (let i = 0; i < objectKeys.length; i++) {
@@ -69,7 +69,6 @@ const controller = async (req: Request, res: Response) => {
             logger.info(`INVALID FILE TYPE, FILE SKIPPED: ${file}`);
             continue;
         }
-
         const promise = new Promise(async (resolve, reject) => {
             try {
                 // FORMAT FILENAME
@@ -98,11 +97,17 @@ const controller = async (req: Request, res: Response) => {
                     { key: req.body.propName, value: url },
                 ]);
 
-                if (req.body.createReward == 'true') {
-                    // GENERATE A NEW REWARD and CLAIMS FOR THE NEW METADATA
-                    const body = { ...req.body, erc721metadataId: metadata._id };
-                    createReward(req.assetPool, body);
-                }
+                // GENERATE A NEW REWARD and CLAIMS FOR THE NEW METADATA
+                const body = {
+                    ...req.body,
+                    erc721metadataId: metadata._id,
+                    withdrawAmount: 0,
+                    withdrawDuration: 0,
+                    withdrawLimit: 0,
+                    isClaimOnce: true,
+                    isMembershipRequired: false,
+                };
+                createReward(req.assetPool, body);
 
                 metadatas.push(metadata);
                 resolve(metadata);
@@ -115,6 +120,19 @@ const controller = async (req: Request, res: Response) => {
         promises.push(promise);
     }
     await Promise.all(promises);
+
+    const poolId = String(req.assetPool._id);
+    const sub = req.assetPool.sub;
+    const notify = false; // IT WILL RE-CREATE THE FILE WITHOUT SENDING THE EMAIL
+    const fileName = `${req.assetPool._id}_metadata.zip`;
+
+    await agenda.now(EVENT_SEND_DOWNLOAD_METADATA_QR_EMAIL, {
+        poolId,
+        sub,
+        fileName,
+        notify,
+    });
+
     res.status(201).json({ metadatas });
 };
 

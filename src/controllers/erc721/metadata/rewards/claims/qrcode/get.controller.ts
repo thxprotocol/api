@@ -11,7 +11,7 @@ const controller = async (req: Request, res: Response) => {
     // #swagger.tags = ['ERC721 Metadata']
     if (req.auth.sub !== req.assetPool.sub) throw new SubjectUnauthorizedError();
 
-    const fileName = `${req.assetPool._id}.zip`;
+    const fileName = `${req.assetPool._id}_metadata.zip`;
     try {
         const response = await s3PrivateClient.send(
             new GetObjectCommand({
@@ -24,18 +24,15 @@ const controller = async (req: Request, res: Response) => {
         if (err.$metadata && err.$metadata.httpStatusCode == 404) {
             const poolId = String(req.assetPool._id);
             const sub = req.assetPool.sub;
-            const equalJobs = await agenda.jobs({
-                name: EVENT_SEND_DOWNLOAD_METADATA_QR_EMAIL,
-                data: { poolId, sub, fileName },
+            const notify = true;
+
+            agenda.now(EVENT_SEND_DOWNLOAD_METADATA_QR_EMAIL, {
+                poolId,
+                sub,
+                fileName,
+                notify,
             });
 
-            if (!equalJobs.length) {
-                agenda.now(EVENT_SEND_DOWNLOAD_METADATA_QR_EMAIL, {
-                    poolId,
-                    sub,
-                    fileName,
-                });
-            }
             res.status(201).end();
         } else {
             logger.error(err);
