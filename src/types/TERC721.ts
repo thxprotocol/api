@@ -46,6 +46,7 @@ export type TERC721 = {
     createdAt?: Date;
     updatedAt?: Date;
     archived?: boolean;
+    logoImgUrl?: string;
 };
 
 export type TERC721Metadata = {

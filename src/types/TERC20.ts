@@ -15,6 +15,7 @@ export type TERC20 = {
     adminBalance?: number;
     poolBalance?: number; // TODO Should move to TAssetPool
     archived: boolean;
+    logoImgUrl?: string;
 };
 
 export type TERC20Token = {
