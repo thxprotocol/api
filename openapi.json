@@ -1,7 +1,7 @@
 {
   "swagger": "2.0",
   "info": {
-    "version": "1.20.7",
+    "version": "1.20.8",
     "title": "THX API Specification",
     "description": "User guides are available at https://docs.thx.network."
   },
@@ -2097,6 +2097,33 @@
         "responses": {
           "200": {
             "description": "Get a set of client credentials",
+            "schema": {
+              "$ref": "#/definitions/Client"
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "Client"
+        ],
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "x-poolid",
+            "in": "header",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Edit paramed client credentials",
             "schema": {
               "$ref": "#/definitions/Client"
             }
