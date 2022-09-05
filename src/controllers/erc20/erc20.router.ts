@@ -8,6 +8,7 @@ import CreateERC20 from './post.controller';
 import ImportERC20 from './token/post.controller';
 import DeleteERC20 from './delete.controller';
 import UpdateERC20 from './patch.controller';
+import { upload } from '@/util/multer';
 
 const router = express.Router();
 
@@ -17,6 +18,7 @@ router.get('/', guard.check(['erc20:read']), assertRequestInput(ListERC20.valida
 router.get('/:id', guard.check(['erc20:read']), assertRequestInput(ReadERC20.validation), ReadERC20.controller);
 router.post(
     '/',
+    upload.single('file'),
     guard.check(['erc20:write', 'erc20:read']),
     assertRequestInput(CreateERC20.validation),
     CreateERC20.controller,

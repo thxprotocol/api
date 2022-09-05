@@ -765,6 +765,9 @@
             "schema": {
               "type": "object",
               "properties": {
+                "schema": {
+                  "example": "any"
+                },
                 "chainId": {
                   "example": "any"
                 },
@@ -775,9 +778,6 @@
                   "example": "any"
                 },
                 "description": {
-                  "example": "any"
-                },
-                "schema": {
                   "example": "any"
                 }
               }
@@ -2710,6 +2710,15 @@
             }
           }
         },
+        "logoImgUrl": {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "example": "string"
+            }
+          }
+        },
         "_id": {
           "type": "object",
           "properties": {
@@ -3114,6 +3123,15 @@
             "type": {
               "type": "string",
               "example": "boolean"
+            }
+          }
+        },
+        "logoImgUrl": {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "example": "string"
             }
           }
         },

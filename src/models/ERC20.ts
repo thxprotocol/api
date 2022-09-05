@@ -16,6 +16,7 @@ const erc20Schema = new mongoose.Schema(
         symbol: String,
         transactions: [String],
         archived: Boolean,
+        logoImgUrl: String,
     },
     { timestamps: true },
 );

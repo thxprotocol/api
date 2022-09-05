@@ -4,6 +4,7 @@ import { ChainId } from '@/types/enums';
 import { isAddress } from 'web3-utils';
 import { afterAllCallback, beforeAllCallback } from '@/util/jest/config';
 import { dashboardAccessToken } from '@/util/jest/constants';
+import { createImage } from '@/util/jest/images';
 
 const user = request.agent(app);
 
@@ -22,15 +23,18 @@ describe('ERC721', () => {
     afterAll(afterAllCallback);
 
     describe('POST /erc721', () => {
-        it('should create and return contract details', (done) => {
-            user.post('/v1/erc721')
+        it('should create and return contract details', async () => {
+            const logoImg = await createImage('image1');
+            await user
+                .post('/v1/erc721')
                 .set('Authorization', dashboardAccessToken)
-                .send({
+                .attach('file', logoImg, { filename: 'logoImg.jpg', contentType: 'image/jpg' })
+                .field({
                     chainId,
                     name,
                     symbol,
                     description,
-                    schema,
+                    schema: JSON.stringify(schema),
                 })
                 .expect(({ body }: request.Response) => {
                     expect(body._id).toBeDefined();
@@ -46,10 +50,10 @@ describe('ERC721', () => {
                     expect(body.properties[1].propType).toBe(schema[1].propType);
                     expect(isAddress(body.address)).toBe(true);
                     expect(body.archived).toBe(false);
-
+                    expect(body.logoImgUrl).toBeDefined();
                     erc721ID = body._id;
                 })
-                .expect(201, done);
+                .expect(201);
         });
     });
 
@@ -70,6 +74,7 @@ describe('ERC721', () => {
                     expect(body.properties[1].name).toBe(schema[1].name);
                     expect(body.properties[1].propType).toBe(schema[1].propType);
                     expect(isAddress(body.address)).toBe(true);
+                    expect(body.logoImgUrl).toBeDefined();
                 })
                 .expect(200, done);
         });

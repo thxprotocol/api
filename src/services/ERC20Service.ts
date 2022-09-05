@@ -33,6 +33,7 @@ export const deploy = async (contractName: TokenContractName, params: ICreateERC
         type: params.type,
         sub: params.sub,
         archived: false,
+        logoImgUrl: params.logoImgUrl,
     });
 
     const contract = await TransactionService.deploy(
