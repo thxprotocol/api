@@ -8,6 +8,7 @@ export interface ICreateERC20Params {
     type: ERC20Type;
     sub: string;
     address?: string;
+    logoImgUrl?: string;
 }
 
 export interface CreateERC20Params {

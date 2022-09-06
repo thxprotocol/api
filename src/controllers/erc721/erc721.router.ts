@@ -1,4 +1,4 @@
-import express, { Request, Response } from 'express';
+import express from 'express';
 import { assertRequestInput, requireAssetPoolHeader, guard } from '@/middlewares';
 import ReadERC721 from './get.controller';
 import ListERC721 from './list.controller';
@@ -14,6 +14,7 @@ import UploadERC721MetadataCSV from './metadata/csv/post.controller';
 import { upload } from '@/util/multer';
 import UpdateERC721 from './patch.controller';
 import ReadERC721Metadata from './metadata/get.controller';
+import PatchERC721Metadata from './metadata/patch.controller';
 
 const router = express.Router();
 
@@ -23,11 +24,11 @@ router.get('/', guard.check(['erc721:read']), assertRequestInput(ListERC721.vali
 router.get('/:id', guard.check(['erc721:read']), assertRequestInput(ReadERC721.validation), ReadERC721.controller);
 router.post(
     '/',
+    upload.single('file'),
     guard.check(['erc721:read', 'erc721:write']),
     assertRequestInput(CreateERC721.validation),
     CreateERC721.controller,
 );
-router.post('/', guard.check(['erc721:write']), assertRequestInput(CreateERC721.validation), CreateERC721.controller);
 
 router.post(
     '/:id/metadata/:metadataId/mint',
@@ -35,6 +36,14 @@ router.post(
     requireAssetPoolHeader,
     assertRequestInput(MintERC721Metadata.validation),
     MintERC721Metadata.controller,
+);
+
+router.patch(
+    '/:id/metadata/:metadataId',
+    guard.check(['erc721:write']),
+    requireAssetPoolHeader,
+    assertRequestInput(PatchERC721Metadata.validation),
+    PatchERC721Metadata.controller,
 );
 
 router.get('/:id/metadata', guard.check(['erc721:read']), ListERC721Metadata.controller);

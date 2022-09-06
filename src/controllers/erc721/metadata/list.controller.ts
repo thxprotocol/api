@@ -7,6 +7,7 @@ export const validation = [
     param('id').isMongoId(),
     query('limit').optional().isInt({ gt: 0 }),
     query('page').optional().isInt({ gt: 0 }),
+    query('q').optional().isString(),
 ];
 
 export const controller = async (req: Request, res: Response) => {
@@ -18,8 +19,8 @@ export const controller = async (req: Request, res: Response) => {
         erc721._id,
         req.query.page ? Number(req.query.page) : null,
         req.query.limit ? Number(req.query.limit) : null,
+        req.query.q ? String(req.query.q) : null,
     );
-
     res.json(result);
 };
 
