@@ -7,7 +7,11 @@ export const corsHandler = cors(async (req: any, callback: any) => {
     const allowedOrigins = [AUTH_URL, API_URL, WALLET_URL, DASHBOARD_URL, WIDGETS_URL];
     const isAllowedOrigin = req.auth?.client_id ? await ClientProxy.isAllowedOrigin(req.auth.client_id, origin) : false;
 
-    if (!origin || allowedOrigins.includes(origin) || isAllowedOrigin) {
+    if (isAllowedOrigin) {
+        allowedOrigins.push(origin);
+    }
+
+    if (!origin || allowedOrigins.includes(origin)) {
         callback(null, {
             credentials: true,
             origin: allowedOrigins,
