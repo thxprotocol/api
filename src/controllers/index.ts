@@ -33,6 +33,7 @@ router.use('/token', tokenRouter);
 router.use('/docs', docsRouter);
 router.use('/metadata', erc721MetadataRouter);
 router.use('/payments', paymentsRouter);
+
 router.use(checkJwt);
 router.use(corsHandler);
 router.use('/account', accountRouter);
@@ -49,9 +50,9 @@ router.use('/widgets', widgetsRouter);
 router.use('/withdrawals', withdrawalsRouter);
 router.use('/transactions', transactionsRouter);
 router.use('/swaprules', erc20SwapRuleRouter);
+router.use('/upload', uploadRouter);
 router.use('/swaps', erc20SwapRouter);
 router.use('/brands', brandsRouter);
-router.use('/upload', uploadRouter);
 router.use('/clients', clientRouter);
 router.use('/transactions', transactionsRouter);
 router.use('/claims', claimsRouter);

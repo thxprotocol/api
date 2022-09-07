@@ -60,4 +60,20 @@ export default class ClientProxy {
 
         return await client.remove();
     }
+
+    static async update(clientId: string, updates: TClientUpdatePayload) {
+        const client = await Client.findOne({ clientId });
+        await client.updateOne(updates);
+
+        const { data } = await authClient({
+            method: 'GET',
+            url: `/reg/${client.clientId}?access_token=${client.registrationAccessToken}`,
+        });
+
+        return { ...client.toJSON(), clientSecret: data['client_secret'], requestUris: data['request_uris'] };
+    }
 }
+
+export type TClientUpdatePayload = Partial<{
+    name: string;
+}>;

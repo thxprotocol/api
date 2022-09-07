@@ -122,7 +122,7 @@ export const findOrImport = async (pool: AssetPoolDocument, address: string) => 
     return erc20;
 };
 
-export const importERC20Token = async (chainId: number, address: string, sub: string) => {
+export const importERC20Token = async (chainId: number, address: string, sub: string, logoImgUrl: string) => {
     const contract = getContractFromName(chainId, 'LimitedSupplyToken', address);
 
     const [name, symbol] = await Promise.all([contract.methods.name().call(), contract.methods.symbol().call()]);
@@ -134,6 +134,7 @@ export const importERC20Token = async (chainId: number, address: string, sub: st
         chainId,
         type: ERC20Type.Unknown,
         sub,
+        logoImgUrl,
     });
 
     // Create an ERC20Token object for the sub if it does not exist
