@@ -21,7 +21,7 @@ const controller = async (req: Request, res: Response) => {
     const totalSupply = await erc721.contract.methods.totalSupply().call();
     const owner = await erc721.contract.methods.owner().call();
 
-    const assetPool = await AssetPool.findOne({ erc721: erc721._id });
+    const assetPool = await AssetPool.findOne({ erc721Id: erc721._id });
     const poolId = assetPool ? String(assetPool._id) : undefined;
 
     res.json({ ...erc721.toJSON(), totalSupply, owner, poolId });
