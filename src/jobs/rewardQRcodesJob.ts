@@ -53,7 +53,7 @@ export const generateRewardQRCodesJob = async ({ attrs }: Job) => {
         await Promise.all(
             claims.map(async ({ _id }: ClaimDocument) => {
                 const id = String(_id);
-                const base64Data: string = await ImageService.createQRCode(`${WALLET_URL}/claims/${id}`, logo);
+                const base64Data: string = await ImageService.createQRCode(`${WALLET_URL}/claim/${id}`, logo);
                 // Adds file to the qrcode archive
                 return archive.file(`${id}.png`, base64Data, { base64: true });
             }),
