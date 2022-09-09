@@ -1,16 +1,18 @@
 import 'express-async-errors';
 import '@/config/openapi';
-import express from 'express';
-import compression from 'compression';
-import lusca from 'lusca';
-import path from 'path';
+
 import axios from 'axios';
 import axiosBetterStacktrace from 'axios-better-stacktrace';
+import compression from 'compression';
+import express from 'express';
+import lusca from 'lusca';
+import path from 'path';
+
+import { MONGODB_URI, PORT, VERSION } from '@/config/secrets';
 import router from '@/controllers';
+import { errorLogger, errorNormalizer, errorOutput, notFoundHandler } from '@/middlewares';
 import db from '@/util/database';
 import { requestLogger } from '@/util/logger';
-import { errorOutput, notFoundHandler, errorLogger, errorNormalizer, corsHandler } from '@/middlewares';
-import { PORT, VERSION, MONGODB_URI } from '@/config/secrets';
 
 axiosBetterStacktrace(axios);
 
@@ -27,7 +29,8 @@ app.use(lusca.xssProtection(true));
 app.use(express.static(path.join(__dirname, 'public'), { maxAge: 31557600000 }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(corsHandler);
+// app.use(corsHandler);
+// app.use(cors('*'));
 app.use(`/${VERSION}`, router);
 app.use(notFoundHandler);
 app.use(errorLogger);
