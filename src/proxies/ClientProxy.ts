@@ -14,7 +14,7 @@ export default class ClientProxy {
         const clientWithOrigin = await Client.find({ origin: { $ne: null } });
 
         clientWithOrigin.forEach((client) => {
-            originCache.set(client.origin, true);
+            client.origins.forEach((origin) => originCache.set(origin, true));
         });
 
         initialized = true;
@@ -32,6 +32,7 @@ export default class ClientProxy {
 
     static async isAllowedOrigin(origin: string) {
         const originCache = await this.getCache();
+        if (!origin) return;
         return !!originCache.get(origin);
     }
 
@@ -49,8 +50,6 @@ export default class ClientProxy {
             data: payload,
         });
 
-        const origin = new URL(payload.request_uris[0]);
-
         const client = await Client.create({
             sub,
             name,
@@ -58,10 +57,17 @@ export default class ClientProxy {
             grantType: payload.grant_types[0],
             clientId: data.client_id,
             registrationAccessToken: data.registration_access_token,
-            origin: `${origin.protocol}//${origin.host}`,
         });
 
-        originCache.set(`${origin.protocol}//${origin.host}`, true);
+        if (payload.request_uris.length) {
+            const origins = payload.request_uris.map((uri: string) => {
+                const origin = new URL(uri);
+                originCache.set(`${origin.protocol}//${origin.host}`, true);
+                return origin;
+            });
+
+            await client.updateOne({ origins });
+        }
 
         return { ...client.toJSON(), clientSecret: data['client_secret'], requestUris: data['request_uris'] };
     }

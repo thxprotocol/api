@@ -9,7 +9,7 @@ export type TClient = {
     clientSecret: string;
     requestUris: string[];
     registrationAccessToken: string;
-    origin?: string;
+    origins?: string[];
 };
 export type TClientPayload = {
     application_type: string;

@@ -104,6 +104,7 @@ export const findOrImport = async (pool: AssetPoolDocument, address: string) => 
         chainId: pool.chainId,
         type: ERC20Type.Unknown,
         sub: pool.sub,
+        archived: false,
     });
 
     // Create an ERC20Token object for the sub if it does not exist
