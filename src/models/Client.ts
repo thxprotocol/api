@@ -9,6 +9,7 @@ export type TClient = {
     clientSecret: string;
     requestUris: string[];
     registrationAccessToken: string;
+    origins?: string[];
 };
 export type TClientPayload = {
     application_type: string;
@@ -29,6 +30,7 @@ const clientSchema = new mongoose.Schema(
         clientId: String,
         grantType: String,
         registrationAccessToken: String,
+        origin: String,
     },
     { timestamps: true },
 );
