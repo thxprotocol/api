@@ -30,7 +30,7 @@ const clientSchema = new mongoose.Schema(
         clientId: String,
         grantType: String,
         registrationAccessToken: String,
-        origin: String,
+        origins: [String],
     },
     { timestamps: true },
 );

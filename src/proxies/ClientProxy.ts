@@ -11,9 +11,8 @@ export default class ClientProxy {
     static async getCache() {
         if (initialized) return originCache;
 
-        const clientWithOrigin = await Client.find({ origin: { $ne: null } });
-
-        clientWithOrigin.forEach((client) => {
+        const clientWithOrigins = await Client.find({ origins: { $ne: null } });
+        clientWithOrigins.forEach((client) => {
             client.origins.forEach((origin) => originCache.set(origin, true));
         });
 
