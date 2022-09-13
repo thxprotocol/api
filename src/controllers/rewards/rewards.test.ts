@@ -441,7 +441,7 @@ describe('Reward Claim', () => {
         describe('PATCH /rewards/:id', () => {
             it('Should return 200 when edit the claim', (done) => {
                 user.patch(`/v1/rewards/${id}`)
-                    .set({ 'X-PoolId': poolId, 'Authorization': walletAccessToken })
+                    .set({ 'X-PoolId': poolId, 'Authorization': dashboardAccessToken })
                     .send(getRewardConfiguration('claim-one-is-enabled'))
                     .expect((res: request.Response) => {
                         expect(res.body.isClaimOnce).toEqual(true);
