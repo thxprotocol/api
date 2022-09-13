@@ -1,7 +1,7 @@
 import { Promotion, PromotionDocument } from '@/models/Promotion';
 import { paginatedResults } from '@/util/pagination';
 import { Deposit } from '@/models/Deposit';
-import { ForbiddenError, PromoCodeNotFoundError } from '@/util/errors';
+import { ForbiddenError } from '@/util/errors';
 import { DepositState } from '@/types/enums/DepositState';
 import { TPromotion } from '@/types/TPromotion';
 

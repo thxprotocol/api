@@ -8,7 +8,6 @@ import { CustomEventLog, parseLogs } from '@/util/events';
 import { paginatedResults } from '@/util/pagination';
 import { TTransaction } from '@/types/TTransaction';
 import { TransactionReceipt } from 'web3-core';
-import { reject, resolve } from 'bluebird';
 
 function getById(id: string) {
     return Transaction.findById(id);

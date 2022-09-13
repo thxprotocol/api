@@ -3,7 +3,7 @@ import app from '@/app';
 import { ChainId, WithdrawalState } from '@/types/enums';
 import { Account } from 'web3-core';
 import { toWei } from 'web3-utils';
-import { timeTravel, createWallet } from '@/util/jest/network';
+import { createWallet } from '@/util/jest/network';
 import {
     rewardWithdrawAmount,
     rewardWithdrawDuration,
@@ -25,8 +25,6 @@ import { currentVersion } from '@thxnetwork/artifacts';
 import TransactionService from '@/services/TransactionService';
 import { RewardDocument } from '@/models/Reward';
 import { ClaimDocument } from '@/types/TClaim';
-import { getProvider } from '@/util/network';
-import { Response } from 'express';
 
 const user = request.agent(app);
 
@@ -35,8 +33,6 @@ describe('Default Pool', () => {
         slug = 'welcome-package';
 
     let poolAddress: string,
-        withdrawDocumentId: string,
-        withdrawPollID: string,
         tokenAddress: string,
         userWallet: Account,
         poolId: string,
