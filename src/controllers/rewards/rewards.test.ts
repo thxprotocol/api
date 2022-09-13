@@ -442,8 +442,8 @@ describe('Reward Claim', () => {
                     .set({ 'X-PoolId': poolId, 'Authorization': walletAccessToken })
                     .send(getRewardConfiguration('claim-one-is-enabled'))
                     .expect((res: request.Response) => {
-                        console.log('Lorem body', res.body);
-                        // expect(res.body.state).toEqual(WithdrawalState.Withdrawn);
+                        expect(res.body.isClaimOnce).toEqual(true);
+                        done();
                     });
             });
         });
