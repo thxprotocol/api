@@ -13,22 +13,29 @@ This repository holds the REST API consumed by THX client and third party apps. 
 ## 1. Prerequisites
 
 ### Docker
+
 https://www.docker.com/products/docker-desktop/
 
-### OpenSSL 
+### OpenSSL
+
 ```
-# Install latest openssl 
+# Install latest openssl
 brew update
 brew install openssl
 
 # Create openssl alias (optionally replace .zshrc with .bash_profile)
-echo "export PATH="/opt/homebrew/opt/openssl@1.1/bin:$PATH" >> ~/.zshrc 
+echo "export PATH="/opt/homebrew/opt/openssl@1.1/bin:$PATH" >> ~/.zshrc
 source ~/.zshrc
 ```
+
+Alternatively you can use [mkcert](https://github.com/FiloSottile/mkcert) to simplify generation of certs and easily register the root CA.
+
 ### NVM
+
 ```
 brew install nvm # mind the optional install instructions
 ```
+
 ## 2. Installing
 
 ```
@@ -40,6 +47,10 @@ cp .env.example .env
 
 # 3 Install certificates
 npm run build:ssl localhost
+
+or
+
+mkcert -key-file certs/localhost.key -cert-file certs/localhost.crt localhost
 
 # 4. Install node-canvas binaries for your OS
 # MacOS
@@ -56,6 +67,7 @@ npm ci
 ```
 
 ## 3. Usage
+
 A thx_hardhat container with prefilled wallets and all required contracts will be deployed automatically.
 
 ```
@@ -70,7 +82,7 @@ npm start
 
 ```
 #Runs all suites
-npm test 
+npm test
 
 #Runs a specific test by file name
 npm test <file_name_part>
@@ -105,9 +117,11 @@ npm run migrate:undo-last
 ```
 
 ### 5.4 Upgrading contracts
+
 ```
 # To get the contracts artifacts upgraded:
 1. npm i @thxnetwork/artifacts@x.x.x --save
 2. Update hardhat-thx-artifacts version in docker-compose.yml
 3. docker compose pull
 3. docker compose up
+```

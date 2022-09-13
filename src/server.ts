@@ -17,7 +17,6 @@ if (app.get('env') === 'development') {
         {
             key: fs.readFileSync(dir + '/certs/localhost.key'),
             cert: fs.readFileSync(dir + '/certs/localhost.crt'),
-            ca: fs.readFileSync(dir + '/certs/rootCA.crt'),
         },
         app,
     );
