@@ -392,4 +392,60 @@ describe('Reward Claim', () => {
             });
         });
     });
+
+    describe('Edit a token reward with claim once disabled to enabled', () => {
+        let claim: ClaimDocument;
+        it('Create reward', (done) => {
+            user.post('/v1/rewards/')
+                .set({ 'X-PoolId': poolId, 'Authorization': dashboardAccessToken })
+                .send(getRewardConfiguration('claim-one-is-disabled'))
+                .expect((res: request.Response) => {
+                    expect(res.body.id).toEqual(res.body._id);
+                    expect(res.body.claims).toBeDefined();
+                    claim = res.body.claims[0];
+                })
+                .expect(201, done);
+        });
+
+        describe('POST /rewards/:id/claim', () => {
+            it('should return a 200 and withdrawal id', (done) => {
+                user.post(`/v1/claims/${claim._id}/collect`)
+                    .set({ 'X-PoolId': poolId, 'Authorization': walletAccessToken })
+                    .expect((res: request.Response) => {
+                        expect(res.body._id).toBeDefined();
+                        expect(res.body.state).toEqual(WithdrawalState.Withdrawn);
+
+                        withdrawalDocumentId = res.body._id;
+                    })
+                    .expect(200, done);
+            });
+
+            it('should return Withdrawn state', (done) => {
+                user.get(`/v1/withdrawals/${withdrawalDocumentId}`)
+                    .set({ 'X-PoolId': poolId, 'Authorization': walletAccessToken })
+                    .expect((res: request.Response) => {
+                        expect(res.body.state).toEqual(WithdrawalState.Withdrawn);
+                    })
+                    .expect(200, done);
+            });
+
+            it('should return a 200 for this second claim', (done) => {
+                user.post(`/v1/claims/${claim._id}/collect`)
+                    .set({ 'X-PoolId': poolId, 'Authorization': walletAccessToken })
+                    .expect(200, done);
+            });
+        });
+
+        describe('PATCH /rewards/:id', () => {
+            it('Should return 200 when edit the claim', (done) => {
+                user.patch(`/v1/claims/${claim._id}/collect`)
+                    .set({ 'X-PoolId': poolId, 'Authorization': walletAccessToken })
+                    .send(getRewardConfiguration('claim-one-is-enabled'))
+                    .expect((res: request.Response) => {
+                        console.log('Lorem body', res.body);
+                        // expect(res.body.state).toEqual(WithdrawalState.Withdrawn);
+                    });
+            });
+        });
+    });
 });
