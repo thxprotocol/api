@@ -443,8 +443,8 @@ describe('Reward Claim', () => {
                     .send(getRewardConfiguration('claim-one-is-enabled'))
                     .expect((res: request.Response) => {
                         expect(res.body.isClaimOnce).toEqual(true);
-                        done();
-                    });
+                    })
+                    .expect(200, done);
             });
         });
     });
