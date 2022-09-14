@@ -16,10 +16,6 @@ describe('ERC721', () => {
         schema = [
             { name: 'color', propType: 'string', description: 'lorem ipsum' },
             { name: 'size', propType: 'string', description: 'lorem ipsum dolor sit' },
-        ],
-        nft1 = [
-            { key: 'color', value: 'red' },
-            { key: 'size', value: '12' },
         ];
     let erc721ID: string;
 
@@ -114,10 +110,5 @@ describe('ERC721', () => {
                     .expect(200, done);
             });
         });
-    });
-
-    describe('POST /erc721/:id/metadata', () => {
-   
-        it('should successfully create a pool with', async () => {})
     });
 });
