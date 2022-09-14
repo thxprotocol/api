@@ -167,9 +167,9 @@ describe('NFT Pool', () => {
                     ],
                 })
                 .expect(({ body }: request.Response) => {
-                    expect(body[schema[0].name]).toBe(value1);
-                    expect(body[schema[1].name]).toBe(value2);
-                    expect(body[schema[2].name]).toBe(value3);
+                    expect(body.attributes[0].value).toBe(value1);
+                    expect(body.attributes[1].value).toBe(value2);
+                    expect(body.attributes[2].value).toBe(value3);
                 })
                 .expect(200, done);
         });
@@ -292,20 +292,6 @@ describe('NFT Pool', () => {
                     expect(body.results[0].attributes[2].key).toBe(schema[2].name);
                     expect(body.results[0].attributes[2].value).toBe('http://imageURL3');
                     metadata = body.results[0];
-                })
-                .expect(200, done);
-        });
-
-        it('should returns the metadata with title and description', (done) => {
-            user.patch('/v1/erc721/' + erc721ID + '/metadata/' + metadataId)
-                .set('Authorization', dashboardAccessToken)
-                .set('X-PoolId', poolId)
-                .expect(({ body }: request.Response) => {
-                    expect(body.title).toBe(metadata.title);
-                    expect(body.description).toBe(metadata.description);
-                    expect(body.attributes[schema[0].name]).toBe('pink');
-                    expect(body.attributes[schema[1].name]).toBe('medium');
-                    expect(body.attributes[schema[2].name]).toBe('http://imageURL3');
                 })
                 .expect(200, done);
         });
