@@ -297,7 +297,7 @@ describe('NFT Pool', () => {
         });
 
         it('should returns the metadata with title and description', (done) => {
-            user.get('/v1/erc721/' + erc721ID + '/metadata/' + metadata._id)
+            user.patch('/v1/erc721/' + erc721ID + '/metadata/' + metadataId)
                 .set('Authorization', dashboardAccessToken)
                 .set('X-PoolId', poolId)
                 .expect(({ body }: request.Response) => {
