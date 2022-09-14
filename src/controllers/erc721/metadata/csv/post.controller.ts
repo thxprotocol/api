@@ -46,7 +46,7 @@ const controller = async (req: Request, res: Response) => {
                 }
             })
             .on('data', async (row: any) => {
-                const promise = new Promise(async (resolve, reject) => {
+                const promise = (async () => {
                     try {
                         // MAP THE RECORDS TO ATTRIBUTES
                         const attributes: { key: string; value: any }[] = Object.entries(row)
@@ -72,11 +72,10 @@ const controller = async (req: Request, res: Response) => {
                             // CREATE NEW METADATA
                             ERC721Service.createMetadata(erc721, '', '', attributes);
                         }
-                        resolve(true);
                     } catch (err) {
-                        reject(err);
+                        logger.error(err);
                     }
-                });
+                })();
                 promises.push(promise);
             })
             .on('error', (err) => {

@@ -6,7 +6,7 @@ import { TransactionDocument } from '@/models/Transaction';
 import TransactionService from './TransactionService';
 import { createRandomToken } from '@/util/token';
 import ERC20Service from '@/services/ERC20Service';
-import { AssetPool, AssetPoolDocument } from '@/models/AssetPool';
+import { AssetPoolDocument } from '@/models/AssetPool';
 import { Contract } from 'web3-eth-contract';
 import ERC721Service from './ERC721Service';
 import AccountProxy from '@/proxies/AccountProxy';

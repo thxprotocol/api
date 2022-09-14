@@ -1,5 +1,3 @@
-import { Account } from 'web3-core';
-import { soliditySha3 } from 'web3-utils';
 import { VOTER_PK, DEPOSITOR_PK } from './constants';
 import { getProvider } from '@/util/network';
 import { ChainId } from '@/types/enums';
