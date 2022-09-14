@@ -2,7 +2,7 @@ import { Job } from 'agenda';
 import axios from 'axios';
 import stream from 'stream';
 import path from 'path';
-import { AWS_S3_PRIVATE_BUCKET_NAME, DASHBOARD_URL, WALLET_URL } from '@/config/secrets';
+import { API_URL, AWS_S3_PRIVATE_BUCKET_NAME, DASHBOARD_URL, WALLET_URL } from '@/config/secrets';
 import AccountProxy from '@/proxies/AccountProxy';
 import AssetPoolService from '@/services/AssetPoolService';
 import BrandService from '@/services/BrandService';
@@ -78,6 +78,7 @@ export const generateRewardQRCodesJob = async ({ attrs }: Job) => {
             path.dirname(__dirname) + '/templates/email/qrcodesReady.ejs',
             {
                 dashboardUrl,
+                baseUrl: API_URL,
             },
             { async: true },
         );
