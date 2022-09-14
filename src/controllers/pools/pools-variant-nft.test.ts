@@ -167,13 +167,11 @@ describe('NFT Pool', () => {
                     ],
                 })
                 .expect(({ body }: request.Response) => {
-                    console.log(body);
-
                     expect(body.attributes[0].value).toBe(value1);
                     expect(body.attributes[1].value).toBe(value2);
                     expect(body.attributes[2].value).toBe(value3);
                 })
-                .expect(200, done);
+                .expect(204, done);
         });
     });
 
