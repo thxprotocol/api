@@ -23,6 +23,10 @@ jobs:
               with:
                   registry: public.ecr.aws
 
+            - name: Lint code
+              run: |
+                  docker compose -f docker-compose.yml -f docker-compose.ci.yml run -e AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }} -e AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }} -T api npm run lint
+
             - name: Run test
               run: |
                   docker compose -f docker-compose.yml -f docker-compose.ci.yml run -e AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }} -e AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }} -T api npm test
