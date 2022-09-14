@@ -28,7 +28,7 @@ const controller = async (req: Request, res: Response) => {
         attributes: req.body.attributes,
     });
 
-    res.status(204).json({ ...metadata.toJSON(), tokens });
+    res.json({ ...metadata.toJSON(), tokens });
 };
 
 export default { controller, validation };

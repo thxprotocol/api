@@ -164,12 +164,12 @@ describe('NFT Pool', () => {
                         { key: schema[2].name, value: value3 },
                     ],
                 })
-                .expect(({ body }: request.Response) => {
-                    expect(body.attributes[0].value).toBe(value1);
-                    expect(body.attributes[1].value).toBe(value2);
-                    expect(body.attributes[2].value).toBe(value3);
+                .expect((res: request.Response) => {
+                    expect(res.body.attributes[0].value).toBe(value1);
+                    expect(res.body.attributes[1].value).toBe(value2);
+                    expect(res.body.attributes[2].value).toBe(value3);
                 })
-                .expect(204, done);
+                .expect(200, done);
         });
     });
 
