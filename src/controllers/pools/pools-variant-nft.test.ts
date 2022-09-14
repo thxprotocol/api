@@ -154,7 +154,7 @@ describe('NFT Pool', () => {
             value3 = 'http://imageURL2';
 
         it('should return modified metadata for metadataId', (done) => {
-            user.patch('/v1/metadata/' + metadataId)
+            user.patch('/v1/erc721/' + erc721ID + '/metadata/' + metadataId)
                 .set('X-PoolId', poolId)
                 .set('Authorization', dashboardAccessToken)
                 .send({
