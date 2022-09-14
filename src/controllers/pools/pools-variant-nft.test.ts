@@ -14,8 +14,11 @@ describe('NFT Pool', () => {
         tokenAddress: string,
         erc721ID: string,
         metadataId: string,
+        metaTitle: string,
+        metaDesc: string,
         csvFile: string,
         metadata: ERC721MetadataDocument;
+
     const chainId = ChainId.Hardhat,
         name = 'Planets of the Galaxy',
         symbol = 'GLXY',
@@ -138,8 +141,37 @@ describe('NFT Pool', () => {
                     expect(body.attributes[2].key).toBe(schema[2].name);
                     expect(body.attributes[2].value).toBe(value3);
                     metadataId = body._id;
+                    metaTitle = body.title;
+                    metaDesc = body.description;
                 })
                 .expect(201, done);
+        });
+    });
+
+    describe('PATCH /metadata/:metadataId', () => {
+        const value1 = 'blue',
+            value2 = 'small',
+            value3 = 'http://imageURL2';
+
+        it('should return modified metadata for metadataId', (done) => {
+            user.patch('/v1/metadata/' + metadataId)
+                .set('X-PoolId', poolId)
+                .set('Authorization', dashboardAccessToken)
+                .send({
+                    title: metaTitle,
+                    description: metaDesc,
+                    attributes: [
+                        { key: schema[0].name, value: value1 },
+                        { key: schema[1].name, value: value2 },
+                        { key: schema[2].name, value: value3 },
+                    ],
+                })
+                .expect(({ body }: request.Response) => {
+                    expect(body[schema[0].name]).toBe(value1);
+                    expect(body[schema[1].name]).toBe(value2);
+                    expect(body[schema[2].name]).toBe(value3);
+                })
+                .expect(200, done);
         });
     });
 
@@ -158,24 +190,6 @@ describe('NFT Pool', () => {
                     expect(body.tokens[0].recipient).toBe(recipient);
                 })
                 .expect(201, done);
-        });
-    });
-
-    describe('GET /metadata/:metadataId', () => {
-        const value1 = 'blue',
-            value2 = 'small',
-            value3 = 'http://imageURL2';
-
-        it('should return metadata for metadataId', (done) => {
-            user.get('/v1/metadata/' + metadataId)
-                .set('Authorization', dashboardAccessToken)
-                .send()
-                .expect(({ body }: request.Response) => {
-                    expect(body[schema[0].name]).toBe(value1);
-                    expect(body[schema[1].name]).toBe(value2);
-                    expect(body[schema[2].name]).toBe(value3);
-                })
-                .expect(200, done);
         });
     });
 
