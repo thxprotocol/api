@@ -37,7 +37,7 @@ const controller = async (req: Request, res: Response) => {
 
     // UNZIP THE FILE
     const zip = createArchiver().jsZip;
-    const metadatas: ERC721MetadataDocument[] = [];
+    // const metadatas: ERC721MetadataDocument[] = [];
 
     // LOAD ZIP IN MEMORY
     const contents = await zip.loadAsync(req.file.buffer);
@@ -67,45 +67,43 @@ const controller = async (req: Request, res: Response) => {
             continue;
         }
 
-        const promise = new Promise(async (resolve, reject) => {
-            try {
-                // FORMAT FILENAME
-                const filename =
-                    originalFileName.toLowerCase().split(' ').join('-').split('.') +
-                    '-' +
-                    short.generate() +
-                    `.${extension}`;
+        promises.push(
+            (async () => {
+                try {
+                    // FORMAT FILENAME
+                    const filename =
+                        originalFileName.toLowerCase().split(' ').join('-').split('.') +
+                        '-' +
+                        short.generate() +
+                        `.${extension}`;
 
-                // PREPARE PARAMS FOR UPLOAD TO S3 BUCKET
-                const uploadParams = {
-                    Key: filename,
-                    Bucket: AWS_S3_PUBLIC_BUCKET_NAME,
-                    ACL: 'public-read',
-                    Body: buffer,
-                };
+                    // PREPARE PARAMS FOR UPLOAD TO S3 BUCKET
+                    const uploadParams = {
+                        Key: filename,
+                        Bucket: AWS_S3_PUBLIC_BUCKET_NAME,
+                        ACL: 'public-read',
+                        Body: buffer,
+                    };
 
-                // UPLOAD THE FILE TO S3
-                await s3Client.send(new PutObjectCommand(uploadParams));
+                    // UPLOAD THE FILE TO S3
+                    await s3Client.send(new PutObjectCommand(uploadParams));
 
-                // COLLECT THE URL
-                const url = ImageService.getPublicUrl(filename);
+                    // COLLECT THE URL
+                    const url = ImageService.getPublicUrl(filename);
 
-                // CREATE THE METADATA
-                const metadata = await ERC721Service.createMetadata(erc721, req.body.title, req.body.description, [
-                    { key: req.body.propName, value: url },
-                ]);
-
-                metadatas.push(metadata);
-                resolve(metadata);
-            } catch (err) {
-                logger.error(err);
-                reject(err);
-            }
-        });
-
-        promises.push(promise);
+                    // CREATE THE METADATA
+                    return await ERC721Service.createMetadata(erc721, req.body.title, req.body.description, [
+                        { key: req.body.propName, value: url },
+                    ]);
+                } catch (err) {
+                    logger.error(err);
+                }
+            })(),
+        );
     }
-    await Promise.all(promises);
+
+    const metadatas: ERC721MetadataDocument[] = await Promise.all(promises);
+
     res.status(201).json({ metadatas });
 };
 

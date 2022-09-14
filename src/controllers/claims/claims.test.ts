@@ -1,15 +1,7 @@
 import request from 'supertest';
 import app from '@/app';
-import { Account } from 'web3-core';
 import { ChainId, ERC20Type } from '../../types/enums';
-import { createWallet } from '@/util/jest/network';
-import {
-    dashboardAccessToken,
-    tokenName,
-    tokenSymbol,
-    walletAccessToken,
-    userWalletPrivateKey2,
-} from '@/util/jest/constants';
+import { dashboardAccessToken, tokenName, tokenSymbol, walletAccessToken } from '@/util/jest/constants';
 import { isAddress } from 'web3-utils';
 import { afterAllCallback, beforeAllCallback } from '@/util/jest/config';
 import { WithdrawalState } from '@/types/enums';
