@@ -104,4 +104,22 @@ describe('ERC20', () => {
                 .expect(200, done);
         });
     });
+
+    describe('POST /erc20/preview', () => {
+        it('should return name symbol and total supply of an oncChain ERC20Token', (done) => {
+            http.post('/v1/erc20/preview')
+                .set('Authorization', ACCESS_TOKEN)
+                .send({
+                    chainId: ChainId.Polygon,
+                    address: '0x0000000000000000000000000000000000001010', //MATIC TOKEN
+                })
+                .expect(({ body }: request.Response) => {
+                    expect(body).toBeDefined();
+                    expect(body.name).toBeDefined();
+                    expect(body.symbol).toBe('MATIC');
+                    expect(body.totalSupply).toBeDefined();
+                })
+                .expect(200, done);
+        });
+    });
 });
