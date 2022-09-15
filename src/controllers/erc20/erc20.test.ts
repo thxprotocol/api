@@ -10,7 +10,7 @@ const http = request.agent(app);
 
 describe('ERC20', () => {
     const ACCESS_TOKEN = dashboardAccessToken;
-    let tokenId: string;
+    let tokenId: string, tokenAddress: string, tokenName: string, tokenSymbol: string;
 
     beforeAll(async () => {
         await beforeAllCallback();
@@ -43,6 +43,9 @@ describe('ERC20', () => {
                     expect(isAddress(body.address)).toBe(true);
                     expect(body.logoImgUrl).toBeDefined();
                     tokenId = body._id;
+                    tokenAddress = body.address;
+                    tokenName = body.name;
+                    tokenSymbol = body.symbol;
                 })
                 .expect(201);
         });
@@ -110,13 +113,13 @@ describe('ERC20', () => {
             http.post('/v1/erc20/preview')
                 .set('Authorization', ACCESS_TOKEN)
                 .send({
-                    chainId: ChainId.Polygon,
-                    address: '0x0000000000000000000000000000000000001010', //MATIC TOKEN
+                    chainId: ChainId.Hardhat,
+                    address: tokenAddress,
                 })
                 .expect(({ body }: request.Response) => {
                     expect(body).toBeDefined();
-                    expect(body.name).toBeDefined();
-                    expect(body.symbol).toBe('MATIC');
+                    expect(body.name).toBe(tokenName);
+                    expect(body.symbol).toBe(tokenSymbol);
                     expect(body.totalSupply).toBeDefined();
                 })
                 .expect(200, done);
