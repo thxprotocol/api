@@ -1,16 +1,24 @@
 import { INITIAL_ACCESS_TOKEN } from '@/config/secrets';
-import { Client, TClientPayload } from '@/models/Client';
+import { Client, ClientDocument, TClient, TClientPayload } from '@/models/Client';
 import { authClient } from '@/util/auth';
 import { paginatedResults } from '@/util/pagination';
 
 export default class ClientProxy {
-    static async get(id: string) {
-        const client = await Client.findById(id);
+    static async getCredentials(client: ClientDocument) {
         const { data } = await authClient({
             method: 'GET',
             url: `/reg/${client.clientId}?access_token=${client.registrationAccessToken}`,
         });
-        return { ...client.toJSON(), clientSecret: data['client_secret'], requestUris: data['request_uris'] };
+
+        client.clientSecret = data['client_secret'];
+        client.requestUris = data['request_uris'];
+
+        return client;
+    }
+
+    static async get(id: string): Promise<TClient> {
+        const client = await Client.findById(id);
+        return await this.getCredentials(client);
     }
 
     static async isAllowedOrigin(origin: string) {
@@ -45,7 +53,10 @@ export default class ClientProxy {
             await client.updateOne({ origins });
         }
 
-        return { ...client.toJSON(), clientSecret: data['client_secret'], requestUris: data['request_uris'] };
+        client.clientSecret = data['client_secret'];
+        client.requestUris = data['request_uris'];
+
+        return client;
     }
 
     static async remove(clientId: string) {
@@ -62,13 +73,7 @@ export default class ClientProxy {
     static async update(clientId: string, updates: TClientUpdatePayload) {
         const client = await Client.findOne({ clientId });
         await client.updateOne(updates);
-
-        const { data } = await authClient({
-            method: 'GET',
-            url: `/reg/${client.clientId}?access_token=${client.registrationAccessToken}`,
-        });
-
-        return { ...client.toJSON(), clientSecret: data['client_secret'], requestUris: data['request_uris'] };
+        return await this.getCredentials(client);
     }
 }
 

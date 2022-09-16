@@ -1,7 +1,7 @@
 {
   "swagger": "2.0",
   "info": {
-    "version": "1.23.9",
+    "version": "1.25.0",
     "title": "THX API Specification",
     "description": "User guides are available at https://docs.thx.network."
   },
@@ -674,6 +674,13 @@
             "description": "No Content"
           }
         }
+      }
+    },
+    "/erc20/preview": {
+      "post": {
+        "description": "",
+        "parameters": [],
+        "responses": {}
       }
     },
     "/erc721/token": {
