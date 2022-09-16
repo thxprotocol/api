@@ -1,5 +1,5 @@
 import { assertEvent, CustomEventLog, findEvent } from '@/util/events';
-import { ChainId, DepositState, ERC20Type } from '@/types/enums';
+import { ChainId, DepositState } from '@/types/enums';
 import { AssetPool, AssetPoolDocument } from '@/models/AssetPool';
 import { getProvider } from '@/util/network';
 import { Membership } from '@/models/Membership';
@@ -9,7 +9,6 @@ import { pick } from '@/util';
 import { diamondSelectors, getDiamondCutForContractFacets, updateDiamondContract } from '@/util/upgrades';
 import { currentVersion } from '@thxnetwork/artifacts';
 import { TransactionDocument } from '@/models/Transaction';
-import MembershipService from './MembershipService';
 import ERC20Service from './ERC20Service';
 import ERC721Service from './ERC721Service';
 import { Deposit } from '@/models/Deposit';

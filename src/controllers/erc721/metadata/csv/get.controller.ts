@@ -2,13 +2,12 @@ import ERC721Service from '@/services/ERC721Service';
 import { NotFoundError } from '@/util/errors';
 import { Request, Response } from 'express';
 import { param } from 'express-validator';
-import { csvWriter } from '@/util/csv';
+import * as csvWriter from 'csv-writer';
 import { AWS_S3_PUBLIC_BUCKET_NAME } from '@/config/secrets';
 import { s3Client } from '@/util/s3';
 import { GetObjectCommand, PutObjectCommand } from '@aws-sdk/client-s3';
 import { Readable } from 'stream';
 import { logger } from '@/util/logger';
-import ImageService from '@/services/ImageService';
 import { ERC721Metadata } from '@/models/ERC721Metadata';
 
 const validation = [param('id').isMongoId()];
@@ -68,8 +67,6 @@ const controller = async (req: Request, res: Response) => {
                 Key: csvFileName,
             }),
         );
-        // COLLECT THE URL
-        const url = ImageService.getPublicUrl(csvFileName);
 
         // RETURN THE FILE TO THE RESPONSE
         (response.Body as Readable).pipe(res).attachment(csvFileName);

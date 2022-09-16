@@ -1,8 +1,6 @@
 import { Deposit } from '@/models/Deposit';
 import { TransactionDocument } from '@/models/Transaction';
 import { Withdrawal } from '@/models/Withdrawal';
-import MemberService from '@/services/MemberService';
-import AssetPoolService from '@/services/AssetPoolService';
 import { DepositState, WithdrawalState } from '@/types/enums';
 import { ERC721TokenState } from '@/types/TERC721';
 import { CustomEventLog, findEvent } from './events';
