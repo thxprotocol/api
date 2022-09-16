@@ -135,7 +135,7 @@ async function findTokensByRecipient(recipient: string, erc721Id: string): Promi
     const result = [];
     for await (const token of ERC721Token.find({ recipient, erc721Id })) {
         const metadata = await ERC721Metadata.findById(token.metadataId);
-        result.push({ ...token.toJSON(), metadata });
+        result.push({ ...(token.toJSON() as TERC721Token), metadata });
     }
     return result;
 }

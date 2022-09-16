@@ -44,7 +44,7 @@ const paymentSchema = new mongoose.Schema(
 );
 
 paymentSchema.virtual('paymentUrl').get(function () {
-    return PaymentService.getPaymentUrl(this._id, this.token);
+    return PaymentService.getPaymentUrl(String(this._id), this.token);
 });
 
 export const Payment = mongoose.model<PaymentDocument>('Payment', paymentSchema, 'payments');

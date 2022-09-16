@@ -26,7 +26,7 @@ export const controller = async (req: Request, res: Response) => {
             const balanceInWei = await erc20.contract.methods.balanceOf(account.address).call();
             const balance = Number(fromWei(balanceInWei, 'ether'));
 
-            return { ...token.toJSON(), balanceInWei, balance, erc20 };
+            return { ...(token.toJSON() as TERC20Token), balanceInWei, balance, erc20 };
         }),
     );
 
