@@ -392,4 +392,31 @@ describe('Reward Claim', () => {
             });
         });
     });
+
+    describe('Edit a token reward with claim once disabled to enabled', () => {
+        let id = '';
+        it('Create reward', (done) => {
+            user.post('/v1/rewards/')
+                .set({ 'X-PoolId': poolId, 'Authorization': dashboardAccessToken })
+                .send(getRewardConfiguration('claim-one-is-disabled'))
+                .expect((res: request.Response) => {
+                    expect(res.body.id).toEqual(res.body._id);
+                    expect(res.body.claims).toBeDefined();
+                    id = res.body.id;
+                })
+                .expect(201, done);
+        });
+
+        describe('PATCH /rewards/:id', () => {
+            it('Should return 200 when edit the claim', (done) => {
+                user.patch(`/v1/rewards/${id}`)
+                    .set({ 'X-PoolId': poolId, 'Authorization': dashboardAccessToken })
+                    .send(getRewardConfiguration('claim-one-is-enabled'))
+                    .expect((res: request.Response) => {
+                        expect(res.body.isClaimOnce).toEqual(true);
+                    })
+                    .expect(200, done);
+            });
+        });
+    });
 });
