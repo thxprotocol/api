@@ -23,9 +23,9 @@ jobs:
               with:
                   registry: public.ecr.aws
 
-            - name: Run test
+            - name: Lint code and run tests
               run: |
-                  docker compose -f docker-compose.yml -f docker-compose.ci.yml run -e AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }} -e AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }} -T api npm test
+                  docker compose -f docker-compose.yml -f docker-compose.ci.yml run -e AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }} -e AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }} -T api  sh -c "npm run lint && npm test"
 
     bumpVersion:
         name: 'Bump Version on main'

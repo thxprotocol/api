@@ -6,7 +6,6 @@ import { afterAllCallback, beforeAllCallback } from '@/util/jest/config';
 import { account2, dashboardAccessToken } from '@/util/jest/constants';
 import { createImage } from '@/util/jest/images';
 import { createArchiver } from '@/util/zip';
-import { ERC721MetadataDocument } from '@/models/ERC721Metadata';
 const user = request.agent(app);
 
 describe('NFT Pool', () => {
@@ -16,8 +15,7 @@ describe('NFT Pool', () => {
         metadataId: string,
         metaTitle: string,
         metaDesc: string,
-        csvFile: string,
-        metadata: ERC721MetadataDocument;
+        csvFile: string;
 
     const chainId = ChainId.Hardhat,
         name = 'Planets of the Galaxy',
@@ -291,7 +289,6 @@ describe('NFT Pool', () => {
                     expect(body.results[0].attributes[1].value).toBe('medium');
                     expect(body.results[0].attributes[2].key).toBe(schema[2].name);
                     expect(body.results[0].attributes[2].value).toBe('http://imageURL3');
-                    metadata = body.results[0];
                 })
                 .expect(200, done);
         });
