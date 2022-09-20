@@ -18,7 +18,7 @@ const controller = async (req: Request, res: Response) => {
     const reward = await RewardService.get(req.assetPool, req.params.id);
     if (!reward) throw new NotFoundError('Reward not found');
 
-    const fileName = `${reward._id}.zip`;
+    const fileName = `${reward.id}.zip`;
     try {
         const response = await s3PrivateClient.send(
             new GetObjectCommand({

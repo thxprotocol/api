@@ -15,7 +15,7 @@ export default {
         return Claim.find({ poolId: String(pool._id) });
     },
     findByReward: (reward: RewardDocument) => {
-        return Claim.find({ rewardId: String(reward.id), poolId: reward.poolId });
+        return Claim.find({ rewardId: reward.id, poolId: reward.poolId });
     },
     findByHash: async (hash: string) => {
         const rewardData = JSON.parse(Buffer.from(hash, 'base64').toString());
