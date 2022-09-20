@@ -63,7 +63,7 @@ describe('Reward Claim', () => {
                 .set({ 'X-PoolId': poolId, 'Authorization': dashboardAccessToken })
                 .send(getRewardConfiguration('no-limit-and-claim-one-disabled'))
                 .expect((res: request.Response) => {
-                    expect(res.body.id).toEqual(res.body._id);
+                    expect(res.body.id).toBeDefined();
                     expect(res.body.claims).toBeDefined();
                     claim = res.body.claims[0];
                 })
@@ -108,7 +108,7 @@ describe('Reward Claim', () => {
                 .set({ 'X-PoolId': poolId, 'Authorization': dashboardAccessToken })
                 .send(getRewardConfiguration('one-limit-and-claim-one-disabled'))
                 .expect((res: request.Response) => {
-                    expect(res.body.id).toEqual(res.body._id);
+                    expect(res.body.id).toBeDefined();
                     expect(res.body.claims).toBeDefined();
                     claim = res.body.claims[0];
                 })
@@ -152,7 +152,7 @@ describe('Reward Claim', () => {
                 .set({ 'X-PoolId': poolId, 'Authorization': dashboardAccessToken })
                 .send(getRewardConfiguration('withdraw-date-is-today'))
                 .expect((res: request.Response) => {
-                    expect(res.body.id).toEqual(res.body._id);
+                    expect(res.body.id).toBeDefined();
                     expect(res.body.claims).toBeDefined();
                     claim = res.body.claims[0];
                 })
@@ -190,7 +190,7 @@ describe('Reward Claim', () => {
                 .set({ 'X-PoolId': poolId, 'Authorization': dashboardAccessToken })
                 .send(getRewardConfiguration('withdraw-date-is-tomorrow'))
                 .expect((res: request.Response) => {
-                    expect(res.body.id).toEqual(res.body._id);
+                    expect(res.body.id).toBeDefined();
                     expect(res.body.claims).toBeDefined();
                     claim = res.body.claims[0];
                 })
@@ -228,7 +228,7 @@ describe('Reward Claim', () => {
                 .set({ 'X-PoolId': poolId, 'Authorization': dashboardAccessToken })
                 .send(getRewardConfiguration('expiration-date-is-next-30-min'))
                 .expect((res: request.Response) => {
-                    expect(res.body.id).toEqual(res.body._id);
+                    expect(res.body.id).toBeDefined();
                     expect(res.body.claims).toBeDefined();
                     claim = res.body.claims[0];
                 })
@@ -266,7 +266,7 @@ describe('Reward Claim', () => {
                 .set({ 'X-PoolId': poolId, 'Authorization': dashboardAccessToken })
                 .send(getRewardConfiguration('expiration-date-is-previous-30-min'))
                 .expect((res: request.Response) => {
-                    expect(res.body.id).toEqual(res.body._id);
+                    expect(res.body.id).toBeDefined();
                     expect(res.body.claims).toBeDefined();
                     claim = res.body.claims[0];
                 })
@@ -289,7 +289,7 @@ describe('Reward Claim', () => {
                 .set({ 'X-PoolId': poolId, 'Authorization': dashboardAccessToken })
                 .send(getRewardConfiguration('membership-is-required'))
                 .expect((res: request.Response) => {
-                    expect(res.body.id).toEqual(res.body._id);
+                    expect(res.body.id).toBeDefined();
                     expect(res.body.claims).toBeDefined();
                     claim = res.body.claims[0];
                 })
@@ -312,7 +312,7 @@ describe('Reward Claim', () => {
                 .set({ 'X-PoolId': poolId, 'Authorization': dashboardAccessToken })
                 .send(getRewardConfiguration('claim-one-is-enabled'))
                 .expect((res: request.Response) => {
-                    expect(res.body.id).toEqual(res.body._id);
+                    expect(res.body.id).toBeDefined();
                     expect(res.body.claims).toBeDefined();
                     claim = res.body.claims[0];
                 })
@@ -356,7 +356,7 @@ describe('Reward Claim', () => {
                 .set({ 'X-PoolId': poolId, 'Authorization': dashboardAccessToken })
                 .send(getRewardConfiguration('claim-one-is-disabled'))
                 .expect((res: request.Response) => {
-                    expect(res.body.id).toEqual(res.body._id);
+                    expect(res.body.id).toBeDefined();
                     expect(res.body.claims).toBeDefined();
                     claim = res.body.claims[0];
                 })
@@ -400,7 +400,7 @@ describe('Reward Claim', () => {
                 .set({ 'X-PoolId': poolId, 'Authorization': dashboardAccessToken })
                 .send(getRewardConfiguration('claim-one-is-disabled'))
                 .expect((res: request.Response) => {
-                    expect(res.body.id).toEqual(res.body._id);
+                    expect(res.body.id).toBeDefined();
                     expect(res.body.claims).toBeDefined();
                     id = res.body.id;
                 })

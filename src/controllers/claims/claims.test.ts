@@ -61,7 +61,7 @@ describe('Claims', () => {
             .set({ 'X-PoolId': poolId, 'Authorization': dashboardAccessToken })
             .send(getRewardConfiguration('no-limit-and-claim-one-disabled'))
             .expect((res: request.Response) => {
-                expect(res.body.id).toEqual(res.body._id);
+                expect(res.body.id).toBeDefined();
                 expect(res.body.claims).toBeDefined();
                 reward = res.body;
                 claim = res.body.claims[0];

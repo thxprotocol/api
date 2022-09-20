@@ -143,7 +143,7 @@ describe('Default Pool', () => {
                     amount: 1,
                 })
                 .expect(async (res: request.Response) => {
-                    expect(res.body.id).toEqual(res.body._id);
+                    expect(res.body.id).toBeDefined();
                     reward = res.body;
                     claim = res.body.claims[0];
                 })
