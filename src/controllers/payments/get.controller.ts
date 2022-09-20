@@ -5,7 +5,7 @@ import PaymentService from '@/services/PaymentService';
 import ERC20Service from '@/services/ERC20Service';
 import TransactionService from '@/services/TransactionService';
 
-const validation = [param('id').isMongoId()];
+const validation = [param('id').exists().isString()];
 
 const controller = async (req: Request, res: Response) => {
     // #swagger.tags = ['Payments']
