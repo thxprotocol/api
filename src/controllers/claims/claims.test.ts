@@ -71,7 +71,7 @@ describe('Claims', () => {
 
     describe('GET /claims/:id', () => {
         it('should return 200', (done) => {
-            user.get(`/v1/claims/${claim._id}`)
+            user.get(`/v1/claims/${claim.id}`)
                 .set({ 'X-PoolId': poolId, 'Authorization': dashboardAccessToken })
                 .expect((res: request.Response) => {
                     expect(res.body.poolAddress).toEqual(poolAddress);
@@ -104,7 +104,7 @@ describe('Claims', () => {
 
     describe('POST /claims/:id/collect', () => {
         it('should return a 200 and withdrawal id', (done) => {
-            user.post(`/v1/claims/${claim._id}/collect`)
+            user.post(`/v1/claims/${claim.id}/collect`)
                 .set({ 'X-PoolId': poolId, 'Authorization': walletAccessToken })
                 .expect((res: request.Response) => {
                     expect(res.body._id).toBeDefined();
