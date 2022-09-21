@@ -27,12 +27,29 @@ const controller = async (req: Request, res: Response) => {
     if (!reward) throw new NotFoundError('Could not find this reward');
 
     let tokenSymbol;
+    let nftImageUrl, nftTitle, nftDescription;
     if (claim.erc20Id) {
         const erc20 = await ERC20Service.getById(claim.erc20Id);
         tokenSymbol = erc20.symbol;
     } else if (claim.erc721Id) {
         const erc721 = await ERC721Service.findById(claim.erc721Id);
         tokenSymbol = erc721.symbol;
+        if (reward.erc721metadataId) {
+            const metadata = await ERC721Service.findMetadataById(reward.erc721metadataId);
+            if (metadata) {
+                nftTitle = metadata.title;
+                nftDescription = metadata.description;
+                if (erc721.properties.length && metadata.attributes.length) {
+                    const allImageProps = erc721.properties.filter((p) => p.propType === 'image');
+                    if (allImageProps.length) {
+                        const imageAttribute = metadata.attributes.find((x) => x.key === allImageProps[0].name);
+                        if (imageAttribute) {
+                            nftImageUrl = imageAttribute.value;
+                        }
+                    }
+                }
+            }
+        }
     }
 
     res.json({
@@ -47,6 +64,9 @@ const controller = async (req: Request, res: Response) => {
         clientId: pool.clientId,
         poolAddress: pool.address,
         tokenSymbol,
+        nftTitle,
+        nftDescription,
+        nftImageUrl,
     });
 };
 
