@@ -65,6 +65,7 @@ describe('Reward Claim', () => {
                 .expect((res: request.Response) => {
                     expect(res.body.id).toBeDefined();
                     expect(res.body.claims).toBeDefined();
+                    expect(res.body.claims[0].id).toBeDefined();
                     claim = res.body.claims[0];
                 })
                 .expect(201, done);
@@ -110,6 +111,7 @@ describe('Reward Claim', () => {
                 .expect((res: request.Response) => {
                     expect(res.body.id).toBeDefined();
                     expect(res.body.claims).toBeDefined();
+                    expect(res.body.claims[0].id).toBeDefined();
                     claim = res.body.claims[0];
                 })
                 .expect(201, done);
@@ -154,6 +156,7 @@ describe('Reward Claim', () => {
                 .expect((res: request.Response) => {
                     expect(res.body.id).toBeDefined();
                     expect(res.body.claims).toBeDefined();
+                    expect(res.body.claims[0].id).toBeDefined();
                     claim = res.body.claims[0];
                 })
                 .expect(201, done);
@@ -192,6 +195,7 @@ describe('Reward Claim', () => {
                 .expect((res: request.Response) => {
                     expect(res.body.id).toBeDefined();
                     expect(res.body.claims).toBeDefined();
+                    expect(res.body.claims[0].id).toBeDefined();
                     claim = res.body.claims[0];
                 })
                 .expect(201, done);
@@ -230,6 +234,7 @@ describe('Reward Claim', () => {
                 .expect((res: request.Response) => {
                     expect(res.body.id).toBeDefined();
                     expect(res.body.claims).toBeDefined();
+                    expect(res.body.claims[0].id).toBeDefined();
                     claim = res.body.claims[0];
                 })
                 .expect(201, done);
@@ -268,6 +273,7 @@ describe('Reward Claim', () => {
                 .expect((res: request.Response) => {
                     expect(res.body.id).toBeDefined();
                     expect(res.body.claims).toBeDefined();
+                    expect(res.body.claims[0].id).toBeDefined();
                     claim = res.body.claims[0];
                 })
                 .expect(201, done);
@@ -291,6 +297,7 @@ describe('Reward Claim', () => {
                 .expect((res: request.Response) => {
                     expect(res.body.id).toBeDefined();
                     expect(res.body.claims).toBeDefined();
+                    expect(res.body.claims[0].id).toBeDefined();
                     claim = res.body.claims[0];
                 })
                 .expect(201, done);
@@ -314,6 +321,7 @@ describe('Reward Claim', () => {
                 .expect((res: request.Response) => {
                     expect(res.body.id).toBeDefined();
                     expect(res.body.claims).toBeDefined();
+                    expect(res.body.claims[0].id).toBeDefined();
                     claim = res.body.claims[0];
                 })
                 .expect(201, done);
@@ -358,6 +366,7 @@ describe('Reward Claim', () => {
                 .expect((res: request.Response) => {
                     expect(res.body.id).toBeDefined();
                     expect(res.body.claims).toBeDefined();
+                    expect(res.body.claims[0].id).toBeDefined();
                     claim = res.body.claims[0];
                 })
                 .expect(201, done);
@@ -402,6 +411,7 @@ describe('Reward Claim', () => {
                 .expect((res: request.Response) => {
                     expect(res.body.id).toBeDefined();
                     expect(res.body.claims).toBeDefined();
+                    expect(res.body.claims[0].id).toBeDefined();
                     id = res.body.id;
                 })
                 .expect(201, done);

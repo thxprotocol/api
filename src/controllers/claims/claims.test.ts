@@ -63,6 +63,7 @@ describe('Claims', () => {
             .expect((res: request.Response) => {
                 expect(res.body.id).toBeDefined();
                 expect(res.body.claims).toBeDefined();
+                expect(res.body.claims[0].id).toBeDefined();
                 reward = res.body;
                 claim = res.body.claims[0];
             })
@@ -74,6 +75,7 @@ describe('Claims', () => {
             user.get(`/v1/claims/${claim.id}`)
                 .set({ 'X-PoolId': poolId, 'Authorization': dashboardAccessToken })
                 .expect((res: request.Response) => {
+                    expect(res.body.id).toBeDefined();
                     expect(res.body.poolAddress).toEqual(poolAddress);
                     expect(res.body.tokenSymbol).toEqual(tokenSymbol);
                     expect(res.body.withdrawAmount).toEqual(reward.withdrawAmount);
