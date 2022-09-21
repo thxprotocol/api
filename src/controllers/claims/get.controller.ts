@@ -39,10 +39,13 @@ const controller = async (req: Request, res: Response) => {
             if (metadata) {
                 nftTitle = metadata.title;
                 nftDescription = metadata.description;
-                if (metadata.attributes.length) {
-                    const imageAttribute = metadata.attributes.find((x) => x.key == 'image');
-                    if (imageAttribute) {
-                        nftImageUrl = imageAttribute.value;
+                if (erc721.properties.length && metadata.attributes.length) {
+                    const allImageProps = erc721.properties.filter((p) => p.propType === 'image');
+                    if (allImageProps.length) {
+                        const imageAttribute = metadata.attributes.find((x) => x.key === allImageProps[0].name);
+                        if (imageAttribute) {
+                            nftImageUrl = imageAttribute.value;
+                        }
                     }
                 }
             }
