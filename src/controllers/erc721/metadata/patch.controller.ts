@@ -7,8 +7,8 @@ import { BadRequestError, NotFoundError } from '@/util/errors';
 const validation = [
     param('id').isMongoId(),
     param('metadataId').isMongoId(),
-    body('title').isString().isLength({ min: 0, max: 100 }),
-    body('description').isString().isLength({ min: 0, max: 400 }),
+    body('title').optional().isString().isLength({ min: 0, max: 100 }),
+    body('description').optional().isString().isLength({ min: 0, max: 400 }),
     body('attributes').exists(),
 ];
 
