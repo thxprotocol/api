@@ -54,7 +54,7 @@ export default class AccountProxy {
     static async getActiveAccountsEmail(): Promise<IAccount[]> {
         const { data } = await authClient({
             method: 'GET',
-            url: `account/emails`,
+            url: 'account/emails',
             headers: {
                 Authorization: await getAuthAccessToken(),
             },
