@@ -10,6 +10,7 @@ export interface IAccount {
     spotify?: any;
     plan: AccountPlanType;
     email: string;
+    createdAt?: Date;
 }
 export interface ERC20Token {
     chainId: ChainId;

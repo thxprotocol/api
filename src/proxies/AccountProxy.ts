@@ -51,6 +51,17 @@ export default class AccountProxy {
         return data;
     }
 
+    static async getActiveAccountsEmail(): Promise<IAccount[]> {
+        const { data } = await authClient({
+            method: 'GET',
+            url: `account/emails`,
+            headers: {
+                Authorization: await getAuthAccessToken(),
+            },
+        });
+        return data;
+    }
+
     static async isEmailDuplicate(email: string) {
         try {
             await authClient({
