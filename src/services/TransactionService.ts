@@ -3,11 +3,15 @@ import { Contract } from 'web3-eth-contract';
 import { Transaction, TransactionDocument } from '@/models/Transaction';
 import { getProvider } from '@/util/network';
 import { ChainId, TransactionState, TransactionType } from '@/types/enums';
-import { MINIMUM_GAS_LIMIT } from '@/config/secrets';
+import { MINIMUM_GAS_LIMIT, RELAYER_SPEED } from '@/config/secrets';
 import { CustomEventLog, parseLogs } from '@/util/events';
 import { paginatedResults } from '@/util/pagination';
-import { TTransaction } from '@/types/TTransaction';
+import { TTransaction, TTransactionCallback } from '@/types/TTransaction';
 import { TransactionReceipt } from 'web3-core';
+import { poll } from '@/util/polling';
+import ERC20 from '@/models/ERC20';
+import ERC20Service, { erc20DeployCallback } from './ERC20Service';
+import { logger } from '@/util/logger';
 
 function getById(id: string) {
     return Transaction.findById(id);
@@ -154,6 +158,107 @@ async function deploy(abi: any, bytecode: any, arg: any[], chainId: ChainId) {
     return contract;
 }
 
+async function deployAsync(abi: any, bytecode: any, arg: any[], chainId: ChainId, callback?: TTransactionCallback) {
+    const { web3, relayer, defaultAccount } = getProvider(chainId);
+    const contract = new web3.eth.Contract(abi);
+
+    const tx = await Transaction.create({
+        type: TransactionType.Default,
+        state: TransactionState.Queued,
+        from: defaultAccount,
+        chainId,
+        callback,
+    });
+
+    const data = contract
+        .deploy({
+            data: bytecode,
+            arguments: arg,
+        })
+        .encodeABI();
+
+    if (relayer) {
+        const defenderTx = await relayer.sendTransaction({
+            data,
+            speed: RELAYER_SPEED,
+            gasLimit: 1000000,
+        });
+
+        Object.assign(tx, {
+            transactionId: defenderTx.transactionId,
+            transactionHash: defenderTx.hash,
+            state: TransactionState.Sent,
+        });
+
+        await tx.save();
+        // For now we poll defender so the test works.
+        await poll(
+            () => updateTransactionStatus(tx),
+            (trans) => trans.state === TransactionState.Sent,
+            1000,
+        );
+    } else {
+        const gas = await contract
+            .deploy({
+                data: bytecode,
+                arguments: arg,
+            })
+            .estimateGas();
+
+        const receipt = await web3.eth.sendTransaction({
+            from: defaultAccount,
+            data,
+            gas,
+        });
+
+        await transactionMined(tx, receipt);
+    }
+
+    return tx;
+}
+
+async function transactionMined(tx: TransactionDocument, receipt: TransactionReceipt) {
+    Object.assign(tx, {
+        to: receipt.to,
+        transactionHash: receipt.transactionHash,
+        state: TransactionState.Mined,
+    });
+
+    if (tx.callback) {
+        await executeCallback(tx, receipt);
+    }
+
+    await tx.save();
+}
+
+async function executeCallback(tx: TransactionDocument, receipt: TransactionReceipt) {
+    const callbacks = {
+        Erc20DeployCallback: erc20DeployCallback,
+    };
+    if (callbacks[tx.callback.type] instanceof Function) {
+        await callbacks[tx.callback.type](tx, receipt);
+    } else {
+        logger.warning(`No callback handler found for type: ${tx.callback.type}`);
+    }
+}
+
+async function updateTransactionStatus(tx: TransactionDocument) {
+    const { web3, relayer } = getProvider(tx.chainId);
+
+    const defenderTx = await relayer.query(tx.transactionId);
+
+    if (['mined', 'confirmed', 'failed'].includes(defenderTx.status)) {
+        tx.state = defenderTx.status == 'failed' ? TransactionState.Failed : TransactionState.Mined;
+        tx.transactionHash = defenderTx.hash;
+        await tx.save();
+
+        const receipt = await web3.eth.getTransactionReceipt(tx.transactionHash);
+        await executeCallback(tx, receipt);
+    }
+
+    return tx;
+}
+
 async function findFailReason(transactions: string[]): Promise<string | undefined> {
     const list = await Promise.all(transactions.map((id: string) => getById(id)));
     const tx = list.filter((tx: TTransaction) => tx.state === TransactionState.Failed);
@@ -177,4 +282,4 @@ async function findByQuery(poolAddress: string, page = 1, limit = 10, startDate?
     return result;
 }
 
-export default { relay, queue, getById, send, deploy, sendValue, findByQuery, findFailReason };
+export default { relay, queue, getById, send, deploy, deployAsync, sendValue, findByQuery, findFailReason };
