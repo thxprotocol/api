@@ -26,7 +26,7 @@ db.connection.once('open', async () => {
 
     // agenda.every('5 seconds', EVENT_REQUIRE_TRANSACTIONS);
     agenda.every('5 seconds', EVENT_SEND_DOWNLOAD_QR_EMAIL);
-    agenda.every('0 9 * * *', EVENT_REMINDER_SENT);
+    agenda.every('0 9 * * *', EVENT_REMINDER_SENT); // EVERY DAY AT 9AM
 
     logger.info('AgendaJS successfully started job processor');
 });
