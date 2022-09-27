@@ -10,7 +10,6 @@ import {
 } from '@/models/Reward';
 import TwitterDataProxy from '@/proxies/TwitterDataProxy';
 import YouTubeDataProxy from '@/proxies/YoutubeDataProxy';
-import SpotifyDataProxy from '@/proxies/SpotifyDataProxy';
 import WithdrawalService from './WithdrawalService';
 import ERC721Service from './ERC721Service';
 import { AssetPoolDocument } from '@/models/AssetPool';
@@ -170,31 +169,6 @@ export default class RewardService {
             case ChannelAction.TwitterFollow: {
                 const result = await TwitterDataProxy.validateFollow(account, channelItem);
                 if (!result) return { error: 'Twitter: Account is not followed.' };
-                break;
-            }
-            case ChannelAction.SpotifyUserFollow: {
-                const result = await SpotifyDataProxy.validateUserFollow(account, channelItem);
-                if (!result) return { error: 'Spotify: User not followed.' };
-                break;
-            }
-            case ChannelAction.SpotifyPlaylistFollow: {
-                const result = await SpotifyDataProxy.validatePlaylistFollow(account, channelItem);
-                if (!result) return { error: 'Spotify: Playlist is not followed.' };
-                break;
-            }
-            case ChannelAction.SpotifyTrackPlaying: {
-                const result = await SpotifyDataProxy.validateTrackPlaying(account, channelItem);
-                if (!result) return { error: 'Spotify: Track is not playing.' };
-                break;
-            }
-            case ChannelAction.SpotifyTrackRecent: {
-                const result = await SpotifyDataProxy.validateRecentTrack(account, channelItem);
-                if (!result) return { error: 'Spotify: Track not found in recent tracks.' };
-                break;
-            }
-            case ChannelAction.SpotifyTrackSaved: {
-                const result = await SpotifyDataProxy.validateSavedTracks(account, channelItem);
-                if (!result) return { error: 'Spotify: Track not saved.' };
                 break;
             }
         }

@@ -277,20 +277,6 @@
         }
       }
     },
-    "/account/spotify": {
-      "get": {
-        "tags": [
-          "Account"
-        ],
-        "description": "",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        }
-      }
-    },
     "/account/login": {
       "post": {
         "tags": [
