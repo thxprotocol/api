@@ -122,6 +122,10 @@ async function findTokenById(id: string): Promise<ERC721TokenDocument> {
     return await ERC721Token.findById(id);
 }
 
+async function findTokensByMetadataAndSub(metadataId: string, account: IAccount): Promise<ERC721TokenDocument[]> {
+    return await ERC721Token.find({ sub: account.id, metadataId });
+}
+
 async function findTokensBySub(sub: string): Promise<ERC721TokenDocument[]> {
     const { address } = await AccountProxy.getById(sub);
     return await ERC721Token.find({ recipient: address });
@@ -186,6 +190,7 @@ export default {
     mint,
     findBySub,
     findTokenById,
+    findTokensByMetadataAndSub,
     findTokensByMetadata,
     findTokensBySub,
     findMetadataById,

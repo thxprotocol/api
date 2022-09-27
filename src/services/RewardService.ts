@@ -71,16 +71,11 @@ export default class RewardService {
             return { error: 'You have already claimed this reward' };
         }
 
-        const token = await ERC721Service.findTokenById(reward.erc721metadataId);
+        const tokens = await ERC721Service.findTokensByMetadataAndSub(reward.erc721metadataId, account);
 
         // Can only claim this reward once, metadata exists, but is not minted
-        if (reward.isClaimOnce && token && !!token.tokenId) {
-            return {
-                error:
-                    token.recipient === account.address
-                        ? 'You have already claimed this NFT'
-                        : 'Someone has already claimed this NFT',
-            };
+        if (reward.isClaimOnce && tokens.length) {
+            return { error: 'You have already claimed this NFT' };
         }
 
         // Can claim if no condition and channel are set
@@ -88,7 +83,7 @@ export default class RewardService {
             return { result: true };
         }
 
-        return await this.validate(
+        return await this.validateCondition(
             account,
             reward.withdrawCondition.channelAction,
             reward.withdrawCondition.channelItem,
@@ -146,7 +141,7 @@ export default class RewardService {
         return Reward.findByIdAndUpdate(reward._id, updates, { new: true });
     }
 
-    static async validate(
+    static async validateCondition(
         account: IAccount,
         channelAction: ChannelAction,
         channelItem: string,
