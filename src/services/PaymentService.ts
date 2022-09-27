@@ -22,7 +22,15 @@ async function create(
         failUrl,
         cancelUrl,
         metadataId,
-    }: { amount: string; successUrl: string; failUrl: string; cancelUrl: string; metadataId?: string },
+        promotionId,
+    }: {
+        amount: string;
+        successUrl: string;
+        failUrl: string;
+        cancelUrl: string;
+        metadataId?: string;
+        promotionId?: string;
+    },
 ) {
     const token = createRandomToken();
     const address = await pool.contract.methods.getERC20().call();
@@ -40,6 +48,7 @@ async function create(
         failUrl,
         cancelUrl,
         metadataId,
+        promotionId,
     });
 }
 

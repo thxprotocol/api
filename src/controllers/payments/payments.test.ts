@@ -23,6 +23,7 @@ import { getProvider } from '@/util/network';
 import { HARDHAT_RPC, PRIVATE_KEY, WALLET_URL } from '@/config/secrets';
 import Web3 from 'web3';
 import { ERC721TokenState } from '@/types/TERC721';
+import { Promotion } from '@/models/Promotion';
 
 const http = request.agent(app);
 
@@ -316,6 +317,7 @@ describe('Payment Request', () => {
                     .expect(200);
             });
         });
+
         describe('GET erc721/token', () => {
             it('should return ERC721Token with state = MINTED', (done) => {
                 http.get('/v1/erc721/token')
@@ -328,6 +330,84 @@ describe('Payment Request', () => {
                     })
                     .expect(200, done);
             });
+        });
+    });
+
+    describe('for a Promotion', () => {
+        let promotion: any;
+        it('should create a Promotion POST /promotions', (done) => {
+            const value = 'XX78WEJ1219WZ';
+            const price = 10;
+            const title = 'The promocode title shown in wallet';
+            const description = 'Longer form for a description of the usage';
+
+            http.post('/v1/promotions')
+                .set({ 'Authorization': dashboardAccessToken, 'X-PoolId': poolId })
+                .send({
+                    price,
+                    value,
+                    title,
+                    description,
+                })
+                .expect(({ body }: Response) => {
+                    expect(body._id).toBeDefined();
+                    expect(body.price).toEqual(price);
+                    expect(body.value).toEqual(value);
+                    expect(body.title).toEqual(title);
+                    expect(body.description).toEqual(description);
+                    promotion = body;
+                })
+                .expect(201, done);
+        });
+
+        it('should Request a payment', (done) => {
+            http.post('/v1/payments')
+                .set({ 'Authorization': adminAccessToken, 'X-PoolId': poolId })
+                .send({
+                    amount,
+                    successUrl,
+                    failUrl,
+                    cancelUrl,
+                    chainId: ChainId.Hardhat,
+                    promotionId: promotion._id,
+                })
+                .expect(({ body }: Response) => {
+                    paymentId = body._id;
+                    basicAccessToken = body.token;
+
+                    expect(body.paymentUrl).toBe(
+                        `${WALLET_URL}/payment/${String(paymentId)}?accessToken=${basicAccessToken}`,
+                    );
+                    expect(body.successUrl).toBe(successUrl);
+                    expect(body.failUrl).toBe(failUrl);
+                    expect(body.cancelUrl).toBe(cancelUrl);
+                    expect(body.chainId).toBe(31337);
+                    expect(body.state).toBe(PaymentState.Requested);
+                    expect(body.tokenAddress).toBe(erc20.options.address);
+                    expect(body.token).toHaveLength(32);
+                    expect(body.receiver).toBe(poolAddress);
+                    expect(body.amount).toBe(amount);
+                    expect(body.promotionId).toBe(promotion._id);
+                })
+                .expect(201, done);
+        });
+
+        it('Get payment information', (done) => {
+            http.get('/v1/payments/' + paymentId)
+                .set({ 'X-Payment-Token': basicAccessToken })
+                .expect(({ body }: Response) => {
+                    expect(body.successUrl).toBe(successUrl);
+                    expect(body.failUrl).toBe(failUrl);
+                    expect(body.cancelUrl).toBe(cancelUrl);
+                    expect(body.chainId).toBe(31337);
+                    expect(body.state).toBe(PaymentState.Requested);
+                    expect(body.tokenAddress).toBe(erc20.options.address);
+                    expect(body.token).toHaveLength(32);
+                    expect(body.receiver).toBe(poolAddress);
+                    expect(body.amount).toBe(amount);
+                    expect(body.promotionId).toBe(promotion._id);
+                })
+                .expect(200, done);
         });
     });
 });
