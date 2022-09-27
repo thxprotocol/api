@@ -11,7 +11,6 @@ import { keccak256, toUtf8Bytes } from 'ethers/lib/utils';
 import { ERC20Token } from '@/models/ERC20Token';
 import { getProvider } from '@/util/network';
 import MembershipService from './MembershipService';
-import { TransactionDocument } from '@/models/Transaction';
 import { TransactionReceipt } from 'web3-core';
 
 function getDeployArgs(erc20: ERC20Document, totalSupply?: string) {
@@ -38,20 +37,21 @@ export const deploy = async (contractName: TokenContractName, params: ICreateERC
         logoImgUrl: params.logoImgUrl,
     });
 
-    const tx = await TransactionService.deployAsync(
+    const txId = await TransactionService.deployAsync(
         getAbiForContractName(contractName),
         getByteCodeForContractName(contractName),
         getDeployArgs(erc20, params.totalSupply),
         erc20.chainId,
+        true,
         { type: 'Erc20DeployCallback', args: { erc20Id: String(erc20._id) } },
     );
 
-    return await ERC20.findByIdAndUpdate(erc20._id, { transactions: [tx._id] }, { new: true });
+    return await ERC20.findByIdAndUpdate(erc20._id, { transactions: [txId] }, { new: true });
 };
 
-export async function erc20DeployCallback(tx: TransactionDocument, receipt: TransactionReceipt) {
+export async function deployCallback({ erc20Id }: { erc20Id: string }, receipt: TransactionReceipt) {
     // TODO: (how to) validate receipt?
-    await ERC20.findByIdAndUpdate(tx.callback.args.erc20Id, { address: receipt.contractAddress }, { new: true });
+    await ERC20.findByIdAndUpdate(erc20Id, { address: receipt.contractAddress });
 }
 
 const initialize = async (pool: AssetPoolDocument, address: string) => {
