@@ -12,6 +12,7 @@ import { ERC20Token } from '@/models/ERC20Token';
 import { getProvider } from '@/util/network';
 import MembershipService from './MembershipService';
 import { TransactionReceipt } from 'web3-core';
+import { TERC20DeployCallbackArgs } from '@/types/TTransaction';
 
 function getDeployArgs(erc20: ERC20Document, totalSupply?: string) {
     const { defaultAccount } = getProvider(erc20.chainId);
@@ -26,7 +27,7 @@ function getDeployArgs(erc20: ERC20Document, totalSupply?: string) {
     }
 }
 
-export const deploy = async (contractName: TokenContractName, params: ICreateERC20Params) => {
+export const deploy = async (contractName: TokenContractName, params: ICreateERC20Params, forceSync = true) => {
     const erc20 = await ERC20.create({
         name: params.name,
         symbol: params.symbol,
@@ -42,14 +43,14 @@ export const deploy = async (contractName: TokenContractName, params: ICreateERC
         getByteCodeForContractName(contractName),
         getDeployArgs(erc20, params.totalSupply),
         erc20.chainId,
-        true,
+        forceSync,
         { type: 'Erc20DeployCallback', args: { erc20Id: String(erc20._id) } },
     );
 
     return await ERC20.findByIdAndUpdate(erc20._id, { transactions: [txId] }, { new: true });
 };
 
-export async function deployCallback({ erc20Id }: { erc20Id: string }, receipt: TransactionReceipt) {
+export async function deployCallback({ erc20Id }: TERC20DeployCallbackArgs, receipt: TransactionReceipt) {
     // TODO: (how to) validate receipt?
     await ERC20.findByIdAndUpdate(erc20Id, { address: receipt.contractAddress });
 }

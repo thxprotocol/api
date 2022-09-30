@@ -8,9 +8,10 @@ import { CustomEventLog, parseLogs } from '@/util/events';
 import { paginatedResults } from '@/util/pagination';
 import { TTransaction, TTransactionCallback } from '@/types/TTransaction';
 import { TransactionReceipt } from 'web3-core';
+import { toChecksumAddress } from 'web3-utils';
 import { poll } from '@/util/polling';
 import { deployCallback as erc20DeployCallback } from './ERC20Service';
-import { logger } from '@/util/logger';
+import AssetPoolService from './AssetPoolService';
 
 function getById(id: string) {
     return Transaction.findById(id);
@@ -98,6 +99,61 @@ async function send(to: string, fn: any, chainId: ChainId, gasLimit?: number) {
         data,
         gas,
     });
+}
+
+async function sendAsync(to: string, fn: any, chainId: ChainId, forceSync = true, callback?: TTransactionCallback) {
+    const { web3, relayer, defaultAccount } = getProvider(chainId);
+    const data = fn.encodeABI();
+    const tx = await Transaction.create({
+        type: relayer && !forceSync ? TransactionType.Relayed : TransactionType.Default,
+        state: TransactionState.Queued,
+        from: defaultAccount,
+        to: to.toUpperCase(),
+        chainId,
+        callback,
+    });
+
+    if (relayer) {
+        const defenderTx = await relayer.sendTransaction({
+            data,
+            speed: RELAYER_SPEED,
+            gasLimit: 1000000,
+        });
+
+        Object.assign(tx, {
+            transactionId: defenderTx.transactionId,
+            transactionHash: defenderTx.hash,
+            state: TransactionState.Sent,
+        });
+
+        await tx.save();
+
+        if (forceSync) {
+            await poll(
+                async () => {
+                    const transaction = await getById(tx._id);
+                    return queryTransactionStatusReceipt(transaction);
+                },
+                (trans: TTransaction) => trans.state === TransactionState.Sent,
+                1000,
+            );
+        }
+    } else {
+        const estimate = await fn.estimateGas({ from: defaultAccount });
+        const gas = estimate < MINIMUM_GAS_LIMIT ? MINIMUM_GAS_LIMIT : estimate;
+
+        const receipt = await web3.eth.sendTransaction({
+            from: defaultAccount,
+            to,
+            data,
+            gas,
+        });
+
+        await transactionMined(tx, receipt);
+    }
+
+    // We return the id because the transaction might be out of date.
+    return String(tx._id);
 }
 
 async function queue(to: string, method: string, params: string[], chainId: ChainId) {
@@ -231,10 +287,13 @@ async function deployAsync(
 
 async function transactionMined(tx: TransactionDocument, receipt: TransactionReceipt) {
     Object.assign(tx, {
-        to: receipt.to,
         transactionHash: receipt.transactionHash,
         state: TransactionState.Mined,
     });
+
+    if (receipt.to) {
+        Object.assign(tx, { to: toChecksumAddress(receipt.to) });
+    }
 
     if (tx.callback) {
         await executeCallback(tx, receipt);
@@ -244,13 +303,16 @@ async function transactionMined(tx: TransactionDocument, receipt: TransactionRec
 }
 
 async function executeCallback(tx: TransactionDocument, receipt: TransactionReceipt) {
-    const callbacks = {
-        Erc20DeployCallback: erc20DeployCallback,
-    };
-    if (callbacks[tx.callback.type] instanceof Function) {
-        await callbacks[tx.callback.type](tx.callback.args, receipt);
-    } else {
-        logger.warning(`No callback handler found for type: ${tx.callback.type}`);
+    switch (tx.callback.type) {
+        case 'Erc20DeployCallback':
+            await erc20DeployCallback(tx.callback.args, receipt);
+            break;
+        case 'assetPoolDeployCallback':
+            await AssetPoolService.deployCallback(tx.callback.args, receipt);
+            break;
+        case 'topupCallback':
+            await AssetPoolService.topupCallback(tx.callback.args, receipt);
+            break;
     }
 }
 
@@ -313,15 +375,14 @@ async function findByQuery(poolAddress: string, page = 1, limit = 10, startDate?
     } else {
         query = { to: poolAddress };
     }
-    const result = await paginatedResults(Transaction, page, limit, query);
-    return result;
+    return await paginatedResults(Transaction, page, limit, query);
 }
 
 export default {
     relay,
-    queue,
     getById,
     send,
+    sendAsync,
     deploy,
     deployAsync,
     sendValue,

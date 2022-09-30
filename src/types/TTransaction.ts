@@ -18,11 +18,35 @@ export type TTransaction = {
     callback: TTransactionCallback;
 };
 
-type ERC20DeployCallback = {
-    type: 'Erc20DeployCallback';
-    args: {
-        erc20Id: string;
-    };
+export type TERC20DeployCallbackArgs = {
+    erc20Id: string;
 };
 
-export type TTransactionCallback = ERC20DeployCallback;
+type ERC20DeployCallback = {
+    type: 'Erc20DeployCallback';
+    args: TERC20DeployCallbackArgs;
+};
+
+export type TAssetPoolDeployCallbackArgs = {
+    assetPoolId: string;
+    chainId: number;
+    erc20Address: string;
+    erc721Address: string;
+};
+
+type AssetPoolDeployCallback = {
+    type: 'assetPoolDeployCallback';
+    args: TAssetPoolDeployCallbackArgs;
+};
+
+export type TTopupCallbackArgs = {
+    receiver: string;
+    depositId: string;
+};
+
+type TopupCallback = {
+    type: 'topupCallback';
+    args: TTopupCallbackArgs;
+};
+
+export type TTransactionCallback = ERC20DeployCallback | AssetPoolDeployCallback | TopupCallback;
