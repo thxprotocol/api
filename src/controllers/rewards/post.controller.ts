@@ -58,7 +58,7 @@ const controller = async (req: Request, res: Response) => {
                 poolId: req.assetPool._id,
                 erc20Id,
                 erc721Id,
-                rewardId: String(reward._id),
+                rewardId: reward.id,
             }),
         ),
     );
