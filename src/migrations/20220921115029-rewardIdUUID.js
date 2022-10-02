@@ -8,14 +8,6 @@ module.exports = {
         const widgetColl = db.collection('widget');
         const rewards = await (await rewardsColl.find({ $expr: { $eq: [{ $toString: '$_id' }, '$id'] } })).toArray();
 
-        console.log(
-            'IDS TO MIGRATE:',
-            rewards.length,
-            rewards.map((x) => {
-                return { _id: String(x._id), id: x.id };
-            }),
-        );
-
         const promises = (await rewards).map(async (reward) => {
             try {
                 const UUID = v4();

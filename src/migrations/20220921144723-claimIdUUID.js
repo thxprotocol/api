@@ -3,15 +3,7 @@ const { v4 } = require('uuid');
 module.exports = {
     async up(db) {
         const claimsColl = db.collection('claims');
-        const claims = await (await claimsColl.find({id: {$eq: null}})).toArray();
-
-        console.log(
-            'IDS TO MIGRATE:',
-            claims.length,
-            claims.map((x) => {
-                return { _id: String(x._id), id: x.id };
-            }),
-        );
+        const claims = await (await claimsColl.find({ id: { $eq: null } })).toArray();
 
         const promises = (await claims).map(async (claim) => {
             try {
