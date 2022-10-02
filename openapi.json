@@ -1,7 +1,7 @@
 {
   "swagger": "2.0",
   "info": {
-    "version": "1.26.3",
+    "version": "1.26.7",
     "title": "THX API Specification",
     "description": "User guides are available at https://docs.thx.network."
   },
@@ -264,20 +264,6 @@
       }
     },
     "/account/youtube": {
-      "get": {
-        "tags": [
-          "Account"
-        ],
-        "description": "",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        }
-      }
-    },
-    "/account/spotify": {
       "get": {
         "tags": [
           "Account"

@@ -15,6 +15,7 @@ import { getContractFromName } from '@/config/contracts';
 import { TransactionReceipt } from 'web3-core';
 import { TPayCallbackArgs } from '@/types/TTransaction';
 import { TokenContractName } from '@thxnetwork/artifacts';
+import db from '@/util/database';
 
 async function create(
     pool: AssetPoolDocument,
@@ -31,7 +32,7 @@ async function create(
     const address = await pool.contract.methods.getERC20().call();
     const erc20 = await ERC20Service.findOrImport(pool, address);
 
-    return await Payment.create({
+    const payment = await Payment.create({
         poolId: pool._id,
         chainId,
         state: PaymentState.Requested,
@@ -44,10 +45,12 @@ async function create(
         cancelUrl,
         metadataId,
     });
+    payment.id = db.createUUID();
+    return await payment.save();
 }
 
 async function get(id: string) {
-    return Payment.findById(id);
+    return Payment.findOne({ id });
 }
 
 async function findByPool(pool: AssetPoolDocument) {
@@ -76,7 +79,7 @@ async function pay(contract: Contract, payment: PaymentDocument, contractName: T
 
 async function payCallback(args: TPayCallbackArgs, receipt: TransactionReceipt) {
     const { paymentId, contractName, address } = args;
-    const payment = await get(paymentId);
+    const payment = await Payment.findById(paymentId);
     const contract = getContractFromName(payment.chainId, contractName, address);
     const events = parseLogs(contract.options.jsonInterface, receipt.logs);
 
@@ -101,7 +104,7 @@ async function payCallback(args: TPayCallbackArgs, receipt: TransactionReceipt) 
 }
 
 function getPaymentUrl(id: string, token: string) {
-    return `${WALLET_URL}/payment/${String(id)}?accessToken=${token}`;
+    return `${WALLET_URL}/payment/${id}?accessToken=${token}`;
 }
 
 export default { create, pay, payCallback, get, getPaymentUrl, findByPool };

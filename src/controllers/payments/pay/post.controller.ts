@@ -14,7 +14,7 @@ import { PaymentState } from '@/types/enums/PaymentState';
 import AccountProxy from '@/proxies/AccountProxy';
 import { getProvider } from '@/util/network';
 
-const validation = [param('id').isMongoId()];
+const validation = [param('id').exists().isString()];
 
 const controller = async (req: Request, res: Response) => {
     // #swagger.tags = ['Payments']
