@@ -3,7 +3,6 @@ import { body, check } from 'express-validator';
 import ERC20Service from '@/services/ERC20Service';
 import AccountProxy from '@/proxies/AccountProxy';
 import { checkAndUpgradeToBasicPlan } from '@/util/plans';
-import { ERC20Type } from '@/types/enums';
 
 import ImageService from '@/services/ImageService';
 

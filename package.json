@@ -8,7 +8,7 @@
     "author": "Peter Polman",
     "license": "AGPL-3.0",
     "scripts": {
-        "lint": "tsc && eslint \"./src/**/*.ts\"",
+        "lint": "tsc && eslint \"./src/**/*.ts\" --max-warnings=0",
         "lint:fix": "tsc && eslint \"./src/**/*.ts\" --fix",
         "dev": "docker-compose up -d && npm run watch:node",
         "exec": "export NODE_TLS_REJECT_UNAUTHORIZED='0' && ts-node-dev -r tsconfig-paths/register ",
