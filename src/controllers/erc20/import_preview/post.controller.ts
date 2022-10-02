@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { body, check } from 'express-validator';
+import { body } from 'express-validator';
 import ERC20Service from '@/services/ERC20Service';
 
 export const validation = [body('address').exists().isString(), body('chainId').exists().isInt()];
