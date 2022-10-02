@@ -5,12 +5,16 @@ import ClientProxy from '@/proxies/ClientProxy';
 export const corsHandler = cors(async (req: any, callback: any) => {
     const origin = req.header('Origin');
     const allowedOrigins = [AUTH_URL, API_URL, WALLET_URL, DASHBOARD_URL, WIDGETS_URL];
-    const isAllowedOrigin = req.auth?.client_id ? await ClientProxy.isAllowedOrigin(req.auth.client_id, origin) : false;
+    const isAllowedOrigin = await ClientProxy.isAllowedOrigin(origin);
 
-    if (!origin || allowedOrigins.includes(origin) || isAllowedOrigin) {
+    if (isAllowedOrigin) {
+        allowedOrigins.push(origin);
+    }
+
+    if (!origin || allowedOrigins.includes(origin)) {
         callback(null, {
             credentials: true,
-            origin: allowedOrigins,
+            origin: allowedOrigins.push(origin),
         });
     } else {
         callback(new Error('Not allowed by CORS'));

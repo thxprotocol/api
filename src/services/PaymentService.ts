@@ -6,12 +6,13 @@ import { TransactionDocument } from '@/models/Transaction';
 import TransactionService from './TransactionService';
 import { createRandomToken } from '@/util/token';
 import ERC20Service from '@/services/ERC20Service';
-import { AssetPool, AssetPoolDocument } from '@/models/AssetPool';
+import { AssetPoolDocument } from '@/models/AssetPool';
 import { Contract } from 'web3-eth-contract';
 import ERC721Service from './ERC721Service';
 import AccountProxy from '@/proxies/AccountProxy';
 import { logger } from '@/util/logger';
 import AssetPoolService from './AssetPoolService';
+import db from '@/util/database';
 
 async function create(
     pool: AssetPoolDocument,
@@ -28,7 +29,7 @@ async function create(
     const address = await pool.contract.methods.getERC20().call();
     const erc20 = await ERC20Service.findOrImport(pool, address);
 
-    return await Payment.create({
+    const payment = await Payment.create({
         poolId: pool._id,
         chainId,
         state: PaymentState.Requested,
@@ -41,10 +42,12 @@ async function create(
         cancelUrl,
         metadataId,
     });
+    payment.id = db.createUUID();
+    return await payment.save();
 }
 
 async function get(id: string) {
-    return Payment.findById(id);
+    return Payment.findOne({ id });
 }
 
 async function findByPool(pool: AssetPoolDocument) {
@@ -88,7 +91,7 @@ async function pay(contract: Contract, payment: PaymentDocument) {
 }
 
 function getPaymentUrl(id: string, token: string) {
-    return `${WALLET_URL}/payment/${String(id)}?accessToken=${token}`;
+    return `${WALLET_URL}/payment/${id}?accessToken=${token}`;
 }
 
 export default { create, pay, get, getPaymentUrl, findByPool };

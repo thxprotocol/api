@@ -39,7 +39,7 @@ const controller = async (req: Request, res: Response) => {
 
     // UNZIP THE FILE
     const zip = createArchiver().jsZip;
-    const metadatas: ERC721MetadataDocument[] = [];
+    // const metadatas: ERC721MetadataDocument[] = [];
 
     // LOAD ZIP IN MEMORY
     const contents = await zip.loadAsync(req.file.buffer);
@@ -69,69 +69,58 @@ const controller = async (req: Request, res: Response) => {
             logger.info(`INVALID FILE TYPE, FILE SKIPPED: ${file}`);
             continue;
         }
-        const promise = new Promise(async (resolve, reject) => {
-            try {
-                // FORMAT FILENAME
-                const filename =
-                    originalFileName.toLowerCase().split(' ').join('-').split('.') +
-                    '-' +
-                    short.generate() +
-                    `.${extension}`;
 
-                // PREPARE PARAMS FOR UPLOAD TO S3 BUCKET
-                const uploadParams = {
-                    Key: filename,
-                    Bucket: AWS_S3_PUBLIC_BUCKET_NAME,
-                    ACL: 'public-read',
-                    Body: buffer,
-                };
+        promises.push(
+            (async () => {
+                try {
+                    // FORMAT FILENAME
+                    const filename =
+                        originalFileName.toLowerCase().split(' ').join('-').split('.') +
+                        '-' +
+                        short.generate() +
+                        `.${extension}`;
 
-                // UPLOAD THE FILE TO S3
-                await s3Client.send(new PutObjectCommand(uploadParams));
+                    // PREPARE PARAMS FOR UPLOAD TO S3 BUCKET
+                    const uploadParams = {
+                        Key: filename,
+                        Bucket: AWS_S3_PUBLIC_BUCKET_NAME,
+                        ACL: 'public-read',
+                        Body: buffer,
+                    };
 
-                // COLLECT THE URL
-                const url = ImageService.getPublicUrl(filename);
+                    // UPLOAD THE FILE TO S3
+                    await s3Client.send(new PutObjectCommand(uploadParams));
 
-                // CREATE THE METADATA
-                const metadata = await ERC721Service.createMetadata(erc721, req.body.title, req.body.description, [
-                    { key: req.body.propName, value: url },
-                ]);
+                    // COLLECT THE URL
+                    const url = ImageService.getPublicUrl(filename);
 
-                // GENERATE A NEW REWARD and CLAIMS FOR THE NEW METADATA
-                const body = {
-                    ...req.body,
-                    erc721metadataId: metadata._id,
-                    withdrawAmount: 0,
-                    withdrawDuration: 0,
-                    withdrawLimit: 0,
-                    isClaimOnce: true,
-                    isMembershipRequired: false,
-                };
-                createReward(req.assetPool, body);
+                    // CREATE THE METADATA
+                    const metadata = await ERC721Service.createMetadata(erc721, req.body.title, req.body.description, [
+                        { key: req.body.propName, value: url },
+                    ]);
 
-                metadatas.push(metadata);
-                resolve(metadata);
-            } catch (err) {
-                logger.error(err);
-                reject(err);
-            }
-        });
+                    // GENERATE A NEW REWARD and CLAIMS FOR THE NEW METADATA
+                    const body = {
+                        ...req.body,
+                        erc721metadataId: metadata._id,
+                        withdrawAmount: 0,
+                        withdrawDuration: 0,
+                        withdrawLimit: 0,
+                        isClaimOnce: true,
+                        isMembershipRequired: false,
+                    };
 
-        promises.push(promise);
+                    await createReward(req.assetPool, body);
+
+                    return metadata;
+                } catch (err) {
+                    logger.error(err);
+                }
+            })(),
+        );
     }
-    await Promise.all(promises);
 
-    const poolId = String(req.assetPool._id);
-    const sub = req.assetPool.sub;
-    const notify = false; // IT WILL RE-CREATE THE FILE WITHOUT SENDING THE EMAIL
-    const fileName = `${req.assetPool._id}_metadata.zip`;
-
-    await agenda.now(EVENT_SEND_DOWNLOAD_METADATA_QR_EMAIL, {
-        poolId,
-        sub,
-        fileName,
-        notify,
-    });
+    const metadatas: ERC721MetadataDocument[] = await Promise.all(promises);
 
     res.status(201).json({ metadatas });
 };

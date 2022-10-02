@@ -12,12 +12,17 @@ import ERC721Service from '@/services/ERC721Service';
 import AssetPoolService from '@/services/AssetPoolService';
 import { Claim } from '@/models/Claim';
 import ERC20Service from '@/services/ERC20Service';
+import ClaimService from '@/services/ClaimService';
 
-const validation = [param('id').isMongoId()];
+const validation = [param('id').exists().isString()];
 
 const controller = async (req: Request, res: Response) => {
     // #swagger.tags = ['Rewards']
-    const claim = await Claim.findById(req.params.id);
+    let claim = await ClaimService.findById(req.params.id);
+    if (!claim) {
+        // maintain compatibility with old the claim urls
+        claim = await Claim.findById(req.params.id);
+    }
     if (!claim) throw new BadRequestError('This claim URL is invalid.');
 
     const pool = await AssetPoolService.getById(claim.poolId);

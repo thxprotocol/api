@@ -18,7 +18,6 @@ const validation = [
 
 const controller = async (req: Request, res: Response) => {
     const { reward, claims } = await createReward(req.assetPool, req.body);
-
     res.status(201).json({ ...reward.toJSON(), claims });
 };
 

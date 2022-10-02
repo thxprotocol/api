@@ -203,17 +203,17 @@ export const createReward = async (assetPool: AssetPoolDocument, reqBody: any) =
         erc20Id = erc20._id;
     }
 
-    await Promise.all(
+    const claims = await Promise.all(
         Array.from({ length: reward.amount }).map(() =>
             ClaimService.create({
                 poolId: assetPool._id,
                 erc20Id,
                 erc721Id,
-                rewardId: String(reward._id),
+                rewardId: reward.id,
             }),
         ),
     );
 
-    const claims = await ClaimService.findByReward(reward);
+    // const claims = await ClaimService.findByReward(reward);
     return { reward, claims };
 };

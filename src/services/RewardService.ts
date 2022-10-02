@@ -10,11 +10,11 @@ import {
 } from '@/models/Reward';
 import TwitterDataProxy from '@/proxies/TwitterDataProxy';
 import YouTubeDataProxy from '@/proxies/YoutubeDataProxy';
-import SpotifyDataProxy from '@/proxies/SpotifyDataProxy';
 import WithdrawalService from './WithdrawalService';
 import ERC721Service from './ERC721Service';
 import { AssetPoolDocument } from '@/models/AssetPool';
 import { paginatedResults } from '@/util/pagination';
+import db from '@/util/database';
 
 export default class RewardService {
     static async get(assetPool: AssetPoolDocument, rewardId: string): Promise<RewardDocument> {
@@ -71,16 +71,11 @@ export default class RewardService {
             return { error: 'You have already claimed this reward' };
         }
 
-        const token = await ERC721Service.findTokenById(reward.erc721metadataId);
+        const tokens = await ERC721Service.findTokensByMetadataAndSub(reward.erc721metadataId, account);
 
         // Can only claim this reward once, metadata exists, but is not minted
-        if (reward.isClaimOnce && token && !!token.tokenId) {
-            return {
-                error:
-                    token.recipient === account.address
-                        ? 'You have already claimed this NFT'
-                        : 'Someone has already claimed this NFT',
-            };
+        if (reward.isClaimOnce && tokens.length) {
+            return { error: 'You have already claimed this NFT' };
         }
 
         // Can claim if no condition and channel are set
@@ -88,7 +83,7 @@ export default class RewardService {
             return { result: true };
         }
 
-        return await this.validate(
+        return await this.validateCondition(
             account,
             reward.withdrawCondition.channelAction,
             reward.withdrawCondition.channelItem,
@@ -136,9 +131,7 @@ export default class RewardService {
             isClaimOnce: data.isClaimOnce,
             amount: data.amount || 1,
         });
-
-        // Store in id to minimize regresion. Remove when old style QR's are no longer going around.
-        reward.id = String(reward._id);
+        reward.id = db.createUUID();
         return await reward.save();
     }
 
@@ -146,7 +139,7 @@ export default class RewardService {
         return Reward.findByIdAndUpdate(reward._id, updates, { new: true });
     }
 
-    static async validate(
+    static async validateCondition(
         account: IAccount,
         channelAction: ChannelAction,
         channelItem: string,
@@ -175,31 +168,6 @@ export default class RewardService {
             case ChannelAction.TwitterFollow: {
                 const result = await TwitterDataProxy.validateFollow(account, channelItem);
                 if (!result) return { error: 'Twitter: Account is not followed.' };
-                break;
-            }
-            case ChannelAction.SpotifyUserFollow: {
-                const result = await SpotifyDataProxy.validateUserFollow(account, channelItem);
-                if (!result) return { error: 'Spotify: User not followed.' };
-                break;
-            }
-            case ChannelAction.SpotifyPlaylistFollow: {
-                const result = await SpotifyDataProxy.validatePlaylistFollow(account, channelItem);
-                if (!result) return { error: 'Spotify: Playlist is not followed.' };
-                break;
-            }
-            case ChannelAction.SpotifyTrackPlaying: {
-                const result = await SpotifyDataProxy.validateTrackPlaying(account, channelItem);
-                if (!result) return { error: 'Spotify: Track is not playing.' };
-                break;
-            }
-            case ChannelAction.SpotifyTrackRecent: {
-                const result = await SpotifyDataProxy.validateRecentTrack(account, channelItem);
-                if (!result) return { error: 'Spotify: Track not found in recent tracks.' };
-                break;
-            }
-            case ChannelAction.SpotifyTrackSaved: {
-                const result = await SpotifyDataProxy.validateSavedTracks(account, channelItem);
-                if (!result) return { error: 'Spotify: Track not saved.' };
                 break;
             }
         }

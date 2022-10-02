@@ -2,7 +2,7 @@ import { Job } from 'agenda';
 import axios from 'axios';
 import stream from 'stream';
 import path from 'path';
-import { AWS_S3_PRIVATE_BUCKET_NAME, DASHBOARD_URL, WALLET_URL } from '@/config/secrets';
+import { API_URL, AWS_S3_PRIVATE_BUCKET_NAME, DASHBOARD_URL, WALLET_URL } from '@/config/secrets';
 import AccountProxy from '@/proxies/AccountProxy';
 import AssetPoolService from '@/services/AssetPoolService';
 import BrandService from '@/services/BrandService';
@@ -15,6 +15,7 @@ import { logger } from '@/util/logger';
 import { s3PrivateClient } from '@/util/s3';
 import { createArchiver } from '@/util/zip';
 import { Upload } from '@aws-sdk/lib-storage';
+import ejs from 'ejs';
 
 export const generateRewardQRCodesJob = async ({ attrs }: Job) => {
     if (!attrs.data) return;
@@ -53,7 +54,7 @@ export const generateRewardQRCodesJob = async ({ attrs }: Job) => {
         await Promise.all(
             claims.map(async ({ _id }: ClaimDocument) => {
                 const id = String(_id);
-                const base64Data: string = await ImageService.createQRCode(`${WALLET_URL}/claims/${id}`, logo);
+                const base64Data: string = await ImageService.createQRCode(`${WALLET_URL}/claim/${id}`, logo);
                 // Adds file to the qrcode archive
                 return archive.file(`${id}.png`, base64Data, { base64: true });
             }),
@@ -72,13 +73,17 @@ export const generateRewardQRCodesJob = async ({ attrs }: Job) => {
         });
 
         await multipartUpload.done();
-
-        await MailService.send(
-            account.email,
-            'Your QR codes are ready!',
-            `Visit THX Dashboard to download your your QR codes archive. Visit this URL in your browser:
-            <br/>${`${DASHBOARD_URL}/pool/${reward.poolId}/rewards`}`,
+        const dashboardUrl = `${DASHBOARD_URL}/pool/${reward.poolId}/rewards`;
+        const html = await ejs.renderFile(
+            path.dirname(__dirname) + '/templates/email/qrcodesReady.ejs',
+            {
+                dashboardUrl,
+                baseUrl: API_URL,
+            },
+            { async: true },
         );
+
+        await MailService.send(account.email, 'Your QR codes are ready!', html);
     } catch (error) {
         logger.error(error);
     }

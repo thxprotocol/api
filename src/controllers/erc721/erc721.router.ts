@@ -15,6 +15,7 @@ import { upload } from '@/util/multer';
 import UpdateERC721 from './patch.controller';
 import ReadERC721Metadata from './metadata/get.controller';
 import DownloadERC721MetadataZip from './metadata/rewards/claims/qrcode/get.controller';
+import PatchERC721Metadata from './metadata/patch.controller';
 
 const router = express.Router();
 
@@ -36,6 +37,14 @@ router.post(
     requireAssetPoolHeader,
     assertRequestInput(MintERC721Metadata.validation),
     MintERC721Metadata.controller,
+);
+
+router.patch(
+    '/:id/metadata/:metadataId',
+    guard.check(['erc721:write']),
+    requireAssetPoolHeader,
+    assertRequestInput(PatchERC721Metadata.validation),
+    PatchERC721Metadata.controller,
 );
 
 router.get('/:id/metadata', guard.check(['erc721:read']), ListERC721Metadata.controller);

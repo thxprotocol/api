@@ -1,7 +1,7 @@
 import { TAssetPool } from '@/types/TAssetPool';
 import { ERC20Swap, ERC20SwapDocument } from '@/models/ERC20Swap';
 import TransactionService from './TransactionService';
-import { assertEvent, CustomEventLog, findEvent, hex2a } from '@/util/events';
+import { assertEvent, CustomEventLog, findEvent } from '@/util/events';
 import { NotFoundError } from '@/util/errors';
 import { SwapState } from '@/types/enums/SwapState';
 import { AssetPoolDocument } from '@/models/AssetPool';

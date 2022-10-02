@@ -2,6 +2,7 @@ import { param } from 'express-validator';
 import { Request, Response } from 'express';
 import ERC721Service from '@/services/ERC721Service';
 import { NotFoundError } from '@/util/errors';
+import { AssetPool } from '@/models/AssetPool';
 
 const validation = [param('id').isMongoId()];
 
@@ -20,7 +21,10 @@ const controller = async (req: Request, res: Response) => {
     const totalSupply = await erc721.contract.methods.totalSupply().call();
     const owner = await erc721.contract.methods.owner().call();
 
-    res.json({ ...erc721.toJSON(), totalSupply, owner });
+    const assetPool = await AssetPool.findOne({ erc721Id: erc721._id });
+    const poolId = assetPool ? String(assetPool._id) : undefined;
+
+    res.json({ ...erc721.toJSON(), totalSupply, owner, poolId });
 };
 
 export default { controller, validation };

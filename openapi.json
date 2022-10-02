@@ -1,7 +1,7 @@
 {
   "swagger": "2.0",
   "info": {
-    "version": "1.20.8",
+    "version": "1.26.7",
     "title": "THX API Specification",
     "description": "User guides are available at https://docs.thx.network."
   },
@@ -264,20 +264,6 @@
       }
     },
     "/account/youtube": {
-      "get": {
-        "tags": [
-          "Account"
-        ],
-        "description": "",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        }
-      }
-    },
-    "/account/spotify": {
       "get": {
         "tags": [
           "Account"
@@ -690,6 +676,13 @@
         }
       }
     },
+    "/erc20/preview": {
+      "post": {
+        "description": "",
+        "parameters": [],
+        "responses": {}
+      }
+    },
     "/erc721/token": {
       "get": {
         "tags": [
@@ -873,6 +866,73 @@
         }
       }
     },
+    "/erc721/{id}/metadata/{metadataId}": {
+      "patch": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "metadataId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "title": {
+                  "example": "any"
+                },
+                "description": {
+                  "example": "any"
+                },
+                "attributes": {
+                  "example": "any"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "ERC721 Metadata"
+        ],
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "metadataId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
     "/erc721/{id}/metadata": {
       "get": {
         "tags": [
@@ -893,6 +953,11 @@
           },
           {
             "name": "limit",
+            "in": "query",
+            "type": "string"
+          },
+          {
+            "name": "q",
             "in": "query",
             "type": "string"
           }
@@ -1036,33 +1101,6 @@
         "responses": {
           "201": {
             "description": "Created"
-          }
-        }
-      }
-    },
-    "/erc721/{id}/metadata/{metadataId}": {
-      "get": {
-        "tags": [
-          "ERC721 Metadata"
-        ],
-        "description": "",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "metadataId",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK"
           }
         }
       }
@@ -1888,6 +1926,20 @@
         }
       }
     },
+    "/upload/": {
+      "put": {
+        "description": "",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "440": {
+            "description": ""
+          }
+        }
+      }
+    },
     "/swaps/": {
       "get": {
         "tags": [
@@ -1967,20 +2019,6 @@
         "responses": {
           "200": {
             "description": "OK"
-          }
-        }
-      }
-    },
-    "/upload/": {
-      "put": {
-        "description": "",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "OK"
-          },
-          "440": {
-            "description": ""
           }
         }
       }
@@ -2067,6 +2105,33 @@
         "responses": {
           "200": {
             "description": "Get a set of client credentials",
+            "schema": {
+              "$ref": "#/definitions/Client"
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "Client"
+        ],
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "x-poolid",
+            "in": "header",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Edit paramed client credentials",
             "schema": {
               "$ref": "#/definitions/Client"
             }
@@ -2465,6 +2530,24 @@
             "type": {
               "type": "string",
               "example": "string"
+            }
+          }
+        },
+        "origins": {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "example": "array"
+            },
+            "items": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "example": "string"
+                }
+              }
             }
           }
         },
