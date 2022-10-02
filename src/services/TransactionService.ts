@@ -267,6 +267,11 @@ async function queryTransactionStatusReceipt(tx: TransactionDocument) {
     const receipt = await web3.eth.getTransactionReceipt(tx.transactionHash);
 
     if (receipt) {
+        // Wait 500 ms for transactions to be propagated to all nodes.
+        // Since we use multiple RPCs it happens we already have the receipt but the other RPC
+        // doesn't have the block available yet.
+        await new Promise((done) => setTimeout(done, 500));
+
         await transactionMined(tx, receipt);
     }
 
