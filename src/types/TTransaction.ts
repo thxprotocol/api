@@ -1,4 +1,4 @@
-import { ContractName, TokenContractName } from '@thxnetwork/artifacts';
+import { TokenContractName } from '@thxnetwork/artifacts';
 import { ChainId, TransactionState, TransactionType } from './enums';
 
 export type TTransaction = {

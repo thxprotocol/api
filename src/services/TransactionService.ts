@@ -120,7 +120,7 @@ async function sendAsync(
         await transactionMined(tx, receipt);
     }
 
-    // We return the id because the transaction might be out of date.
+    // We return the id because the transaction might be out of date and the transaction is not used by callers anyway.
     return String(tx._id);
 }
 
