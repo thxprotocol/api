@@ -86,6 +86,10 @@ async function sendAsync(
 ) {
     const { web3, relayer, defaultAccount } = getProvider(chainId);
     const data = fn.encodeABI();
+
+    const estimate = await fn.estimateGas({ from: defaultAccount });
+    const gas = estimate < MINIMUM_GAS_LIMIT ? MINIMUM_GAS_LIMIT : estimate;
+
     const tx = await Transaction.create({
         type: relayer && !forceSync ? TransactionType.Relayed : TransactionType.Default,
         state: TransactionState.Queued,
@@ -99,7 +103,7 @@ async function sendAsync(
         const defenderTx = await relayer.sendTransaction({
             data,
             speed: RELAYER_SPEED,
-            gasLimit: 1000000,
+            gasLimit: gas,
         });
 
         Object.assign(tx, {
@@ -121,9 +125,6 @@ async function sendAsync(
             );
         }
     } else {
-        const estimate = await fn.estimateGas({ from: defaultAccount });
-        const gas = estimate < MINIMUM_GAS_LIMIT ? MINIMUM_GAS_LIMIT : estimate;
-
         const receipt = await web3.eth.sendTransaction({
             from: defaultAccount,
             to,
