@@ -2,7 +2,7 @@ import ERC20, { ERC20Document, IERC20Updates } from '@/models/ERC20';
 import { toWei } from 'web3-utils';
 import { ICreateERC20Params } from '@/types/interfaces';
 import TransactionService from './TransactionService';
-import { assertEvent, parseLogs } from '@/util/events';
+import { assertEvent, ExpectedEventNotFound, findEvent, parseLogs } from '@/util/events';
 import { ChainId, ERC20Type } from '@/types/enums';
 import { AssetPoolDocument } from '@/models/AssetPool';
 import { TokenContractName } from '@thxnetwork/artifacts';
@@ -27,7 +27,7 @@ function getDeployArgs(erc20: ERC20Document, totalSupply?: string) {
     }
 }
 
-export const deploy = async (contractName: TokenContractName, params: ICreateERC20Params, forceSync = true) => {
+export const deploy = async (params: ICreateERC20Params, forceSync = true) => {
     const erc20 = await ERC20.create({
         name: params.name,
         symbol: params.symbol,
@@ -38,8 +38,8 @@ export const deploy = async (contractName: TokenContractName, params: ICreateERC
         logoImgUrl: params.logoImgUrl,
     });
 
-    const contract = getContractFromName(params.chainId, contractName);
-    const bytecode = getByteCodeForContractName(contractName);
+    const contract = getContractFromName(params.chainId, erc20.contractName);
+    const bytecode = getByteCodeForContractName(erc20.contractName);
 
     const fn = contract.deploy({
         data: bytecode,
@@ -55,7 +55,15 @@ export const deploy = async (contractName: TokenContractName, params: ICreateERC
 };
 
 export async function deployCallback({ erc20Id }: TERC20DeployCallbackArgs, receipt: TransactionReceipt) {
-    // TODO: (how to) validate receipt?
+    const erc20 = await ERC20.findById(erc20Id);
+    const contract = getContractFromName(erc20.chainId, erc20.contractName);
+    const events = parseLogs(contract.options.jsonInterface, receipt.logs);
+
+    // Limited and unlimited tokes emit different events. Check if one of the two is emitted.
+    if (!findEvent('OwnershipTransferred', events) && !findEvent('Transfer', events)) {
+        throw new ExpectedEventNotFound('Transfer or OwnershipTransferred');
+    }
+
     await ERC20.findByIdAndUpdate(erc20Id, { address: receipt.contractAddress });
 }
 

@@ -83,6 +83,7 @@ export default class WithdrawalService {
                 args: { assetPoolId: String(pool._id), withdrawalId: String(withdrawal._id) },
             },
         );
+
         return await Withdrawal.findByIdAndUpdate(withdrawal._id, { transactions: [txId] }, { new: true });
     }
 
@@ -90,10 +91,10 @@ export default class WithdrawalService {
         const { assetPoolId, withdrawalId } = args;
         const { contract } = await AssetPoolService.getById(assetPoolId);
         const events = parseLogs(contract.options.jsonInterface, receipt.logs);
-        if (events) {
-            assertEvent('ERC20WithdrawFor', events);
-            await Withdrawal.findByIdAndUpdate(withdrawalId, { state: WithdrawalState.Withdrawn });
-        }
+
+        assertEvent('ERC20WithdrawFor', events);
+
+        await Withdrawal.findByIdAndUpdate(withdrawalId, { state: WithdrawalState.Withdrawn });
     }
 
     static countByPool(assetPool: AssetPoolDocument) {

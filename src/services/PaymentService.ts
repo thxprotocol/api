@@ -83,24 +83,24 @@ async function payCallback(args: TPayCallbackArgs, receipt: TransactionReceipt) 
     const contract = getContractFromName(payment.chainId, contractName, address);
     const events = parseLogs(contract.options.jsonInterface, receipt.logs);
 
-    if (events) {
-        assertEvent('Transfer', events);
-        payment.state = PaymentState.Completed;
-        if (payment.metadataId) {
-            // PERFORM THE MINT OF THE NFT
-            try {
-                const metadata = await ERC721Service.findMetadataById(payment.metadataId);
-                const erc721 = await ERC721Service.findById(metadata.erc721);
-                const assetPool = await AssetPoolService.getById(payment.poolId);
-                const account = await AccountProxy.getByAddress(payment.sender);
-                await ERC721Service.mint(assetPool, erc721, metadata, account);
-            } catch (err) {
-                logger.error(err);
-                throw new Error('ERROR ON MINT AFTER PAYMENT');
-            }
+    assertEvent('Transfer', events);
+
+    if (payment.metadataId) {
+        // PERFORM THE MINT OF THE NFT
+        try {
+            const metadata = await ERC721Service.findMetadataById(payment.metadataId);
+            const erc721 = await ERC721Service.findById(metadata.erc721);
+            const assetPool = await AssetPoolService.getById(payment.poolId);
+            const account = await AccountProxy.getByAddress(payment.sender);
+            await ERC721Service.mint(assetPool, erc721, metadata, account);
+        } catch (err) {
+            logger.error(err);
+            throw new Error('ERROR ON MINT AFTER PAYMENT');
         }
-        await payment.save();
     }
+
+    payment.state = PaymentState.Completed;
+    await payment.save();
 }
 
 function getPaymentUrl(id: string, token: string) {

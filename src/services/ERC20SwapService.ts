@@ -1,7 +1,7 @@
 import { TAssetPool } from '@/types/TAssetPool';
 import { ERC20Swap, ERC20SwapDocument } from '@/models/ERC20Swap';
 import TransactionService from './TransactionService';
-import { findEvent, parseLogs } from '@/util/events';
+import { assertEvent, parseLogs } from '@/util/events';
 import { NotFoundError } from '@/util/errors';
 import { SwapState } from '@/types/enums/SwapState';
 import { AssetPoolDocument } from '@/models/AssetPool';
@@ -48,10 +48,10 @@ async function create(
 async function createCallback({ swapId, assetPoolId }: TSwapCreateCallbackArgs, receipt: TransactionReceipt) {
     const { contract } = await AssetPoolService.getById(assetPoolId);
     const events = parseLogs(contract.options.jsonInterface, receipt.logs);
-    const swapEvent = findEvent('ERC20SwapFor', events);
-    if (swapEvent) {
-        await ERC20Swap.findByIdAndUpdate(swapId, { state: SwapState.Completed, amountOut: swapEvent.args.amountOut });
-    }
+
+    const swapEvent = assertEvent('ERC20SwapFor', events);
+
+    await ERC20Swap.findByIdAndUpdate(swapId, { state: SwapState.Completed, amountOut: swapEvent.args.amountOut });
 }
 
 export default { get, getAll, create, createCallback };

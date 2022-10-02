@@ -43,10 +43,10 @@ async function deposit(assetPool: AssetPoolDocument, account: IAccount, amount: 
 async function depositCallback({ depositId, assetPoolId }: TDepositCallbackArgs, receipt: TransactionReceipt) {
     const { contract } = await AssetPoolService.getById(assetPoolId);
     const events = parseLogs(contract.options.jsonInterface, receipt.logs);
-    if (events) {
-        assertEvent('ERC20DepositFrom', events);
-        await Deposit.findByIdAndUpdate(depositId, { state: DepositState.Completed });
-    }
+
+    assertEvent('ERC20DepositFrom', events);
+
+    await Deposit.findByIdAndUpdate(depositId, { state: DepositState.Completed });
 }
 
 export default { get, getAll, deposit, depositCallback };

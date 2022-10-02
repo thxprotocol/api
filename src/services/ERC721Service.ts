@@ -99,14 +99,13 @@ export async function mintCallback(args: TERC721TokenMintCallbackArgs, receipt: 
     const { contract } = await AssetPoolService.getById(assetPoolId);
     const events = parseLogs(contract.options.jsonInterface, receipt.logs);
 
-    if (events) {
-        const event = assertEvent('ERC721Minted', events);
-        await ERC721Token.findByIdAndUpdate(erc721tokenId, {
-            state: ERC721TokenState.Minted,
-            tokenId: Number(event.args.tokenId),
-            recipient: event.args.recipient,
-        });
-    }
+    const event = assertEvent('ERC721Minted', events);
+
+    await ERC721Token.findByIdAndUpdate(erc721tokenId, {
+        state: ERC721TokenState.Minted,
+        tokenId: Number(event.args.tokenId),
+        recipient: event.args.recipient,
+    });
 }
 
 export async function parseAttributes(entry: ERC721MetadataDocument) {

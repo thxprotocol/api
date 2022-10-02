@@ -184,7 +184,7 @@ async function deploy(abi: any, bytecode: any, arg: any[], chainId: ChainId) {
 async function transactionMined(tx: TransactionDocument, receipt: TransactionReceipt) {
     Object.assign(tx, {
         transactionHash: receipt.transactionHash,
-        state: TransactionState.Mined,
+        state: TransactionState.Failed,
     });
 
     if (receipt.to) {
@@ -192,7 +192,12 @@ async function transactionMined(tx: TransactionDocument, receipt: TransactionRec
     }
 
     if (tx.callback) {
-        await executeCallback(tx, receipt);
+        try {
+            await executeCallback(tx, receipt);
+            tx.state = TransactionState.Mined;
+        } catch (e) {
+            tx.failReason = e.message;
+        }
     }
 
     await tx.save();
