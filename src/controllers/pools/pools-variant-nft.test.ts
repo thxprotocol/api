@@ -6,6 +6,8 @@ import { afterAllCallback, beforeAllCallback } from '@/util/jest/config';
 import { account2, dashboardAccessToken } from '@/util/jest/constants';
 import { createImage } from '@/util/jest/images';
 import { createArchiver } from '@/util/zip';
+import { agenda, EVENT_SEND_DOWNLOAD_METADATA_QR_EMAIL } from '@/util/agenda';
+import { getRewardConfiguration } from '../rewards/utils';
 const user = request.agent(app);
 
 describe('NFT Pool', () => {
@@ -196,7 +198,7 @@ describe('NFT Pool', () => {
         const description = 'description';
         const propName = 'img';
 
-        it('should upload multiple metadata images and create metadata', async () => {
+        it('should upload multiple metadata images and create metadata and create rewards', async () => {
             const image1 = await createImage('image1');
             const image2 = await createImage('image3');
             const image3 = await createImage('image3');
@@ -207,7 +209,7 @@ describe('NFT Pool', () => {
             zipFolder.file('image3.jpg', image3, { binary: true });
 
             const zipFile = await zip.generateAsync({ type: 'nodebuffer', compression: 'DEFLATE' });
-
+            const rewardFields = getRewardConfiguration('claim-one-is-enabled');
             await user
                 .post('/v1/erc721/' + erc721ID + '/metadata/zip')
                 .set('Authorization', dashboardAccessToken)
@@ -217,11 +219,31 @@ describe('NFT Pool', () => {
                     title,
                     description,
                     propName,
+                    createReward: true,
+                    //title: rewardFields.title,
+                    slug: rewardFields.slug,
+                    withdrawAmount: rewardFields.withdrawAmount,
+                    withdrawDuration: rewardFields.withdrawDuration,
+                    withdrawLimit: rewardFields.withdrawLimit,
+                    isClaimOnce: rewardFields.isClaimOnce,
+                    isMembershipRequired: rewardFields.isMembershipRequired,
+                    amount: rewardFields.amount,
                 })
                 .expect(({ body }: request.Response) => {
                     expect(body.metadatas.length).toBe(3);
                 })
                 .expect(201);
+        });
+
+        it('should return created reward', (done) => {
+            user.get('/v1/rewards')
+                .set({ 'X-PoolId': poolId, 'Authorization': dashboardAccessToken })
+                .expect(async (res: request.Response) => {
+                    expect(res.body.total).toBe(5);
+                    expect(res.body.results[2].erc721metadataId).toBeDefined();
+                    expect(res.body.results[2].claims).toBeDefined();
+                })
+                .expect(200, done);
         });
     });
 
@@ -276,7 +298,7 @@ describe('NFT Pool', () => {
                 .expect(201, done);
         });
 
-        it('should returns the new created Metadata from the CSV', (done) => {
+        it('should return the new created Metadata from the CSV', (done) => {
             user.get('/v1/erc721/' + erc721ID + '/metadata')
                 .set('Authorization', dashboardAccessToken)
                 .set('X-PoolId', poolId)
@@ -291,6 +313,59 @@ describe('NFT Pool', () => {
                     expect(body.results[0].attributes[2].value).toBe('http://imageURL3');
                 })
                 .expect(200, done);
+        });
+
+        it('should upload and parse the metadata csv and create the rewards', (done) => {
+            const buffer = Buffer.from(csvFile, 'utf-8');
+            const rewardFields = getRewardConfiguration('claim-one-is-enabled');
+
+            user.post('/v1/erc721/' + erc721ID + '/metadata/csv')
+                .set('Authorization', dashboardAccessToken)
+                .set('X-PoolId', poolId)
+                .attach('file', buffer, {
+                    filename: 'updatedCSV.csv',
+                    contentType: 'text/csv; charset=utf-8',
+                })
+                .field({
+                    createReward: true,
+                    title: rewardFields.title,
+                    slug: rewardFields.slug,
+                    withdrawAmount: rewardFields.withdrawAmount,
+                    withdrawDuration: rewardFields.withdrawDuration,
+                    withdrawLimit: rewardFields.withdrawLimit,
+                    isClaimOnce: rewardFields.isClaimOnce,
+                    isMembershipRequired: rewardFields.isMembershipRequired,
+                    amount: rewardFields.amount,
+                })
+                .expect(201, done);
+        });
+
+        it('should return created reward', (done) => {
+            user.get('/v1/rewards')
+                .set({ 'X-PoolId': poolId, 'Authorization': dashboardAccessToken })
+                .expect(async (res: request.Response) => {
+                    expect(res.body.total).toBe(7);
+                    expect(res.body.results[3].erc721metadataId).toBeDefined();
+                    expect(res.body.results[3].claims).toBeDefined();
+                })
+                .expect(200, done);
+        });
+    });
+
+    describe('GET /erc721/:id/metadata/zip', () => {
+        it('should generate and download the qrcodes for the metadata rewards in a zip file', (done) => {
+            user.get('/v1/erc721/' + erc721ID + '/metadata/zip')
+                .set('Authorization', dashboardAccessToken)
+                .set('X-PoolId', poolId)
+                .send()
+                .expect(201, done);
+        });
+        it('should cast a success event for sendDownloadMetadataQrEmail event', (done) => {
+            const callback = async () => {
+                agenda.off(`success:${EVENT_SEND_DOWNLOAD_METADATA_QR_EMAIL}`, callback);
+                done();
+            };
+            agenda.on(`success:${EVENT_SEND_DOWNLOAD_METADATA_QR_EMAIL}`, callback);
         });
     });
 });
