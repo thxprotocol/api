@@ -52,7 +52,7 @@ export default class AssetPoolService {
         erc20Address: string,
         erc721Address: string,
     ): Promise<AssetPoolDocument> {
-        const factory = getContract(chainId, 'Factory');
+        const factory = getContract(chainId, 'Factory', currentVersion);
         const variant = 'defaultDiamond';
         const poolFacetContracts = diamondContracts(chainId, variant);
         const pool = await AssetPool.create({
@@ -62,7 +62,6 @@ export default class AssetPoolService {
             version: currentVersion,
             archived: false,
         });
-
         const txId = await TransactionService.sendAsync(
             factory.options.address,
             factory.methods.deploy(getDiamondCutForContractFacets(poolFacetContracts, []), erc20Address, erc721Address),

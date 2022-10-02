@@ -1,7 +1,7 @@
 {
   "swagger": "2.0",
   "info": {
-    "version": "1.26.11",
+    "version": "1.26.13",
     "title": "THX API Specification",
     "description": "User guides are available at https://docs.thx.network."
   },
