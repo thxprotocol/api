@@ -63,6 +63,20 @@ async function send(to: string, fn: any, chainId: ChainId, gasLimit?: number) {
     });
 }
 
+/**
+ * Creates a transaction in the db and either executes or schedules a web3 transaction.
+ *
+ * When the chain has a relayer configured the transaction is scheduled through it instead of directly executed.
+ *
+ * By setting the forceSync bool to true you can force the call to behave synchronously. It will poll for the transaction to be executed and only return after the transaction and its callback are executed.
+ *
+ * @param to Recipient
+ * @param fn Web3 contract method
+ * @param chainId Chainid to execute on
+ * @param forceSync Boolean to force synchronous execution, this waits for the transaction to be processed before returning.
+ * @param callback Callback configuration.
+ * @returns The transaction ID. This can be stored so the status of the transaction can be queried.
+ */
 async function sendAsync(
     to: string | null,
     fn: any,
