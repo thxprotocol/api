@@ -1,10 +1,7 @@
-import { Document } from 'mongoose';
-import { Contract } from 'web3-eth-contract';
 import { Transaction, TransactionDocument } from '@/models/Transaction';
 import { getProvider } from '@/util/network';
 import { ChainId, TransactionState, TransactionType } from '@/types/enums';
 import { MINIMUM_GAS_LIMIT, RELAYER_SPEED } from '@/config/secrets';
-import { CustomEventLog, parseLogs } from '@/util/events';
 import { paginatedResults } from '@/util/pagination';
 import { TTransaction, TTransactionCallback } from '@/types/TTransaction';
 import { TransactionReceipt } from 'web3-core';
@@ -12,6 +9,11 @@ import { toChecksumAddress } from 'web3-utils';
 import { poll } from '@/util/polling';
 import { deployCallback as erc20DeployCallback } from './ERC20Service';
 import AssetPoolService from './AssetPoolService';
+import DepositService from './DepositService';
+import ERC20SwapService from './ERC20SwapService';
+import ERC721Service from './ERC721Service';
+import PaymentService from './PaymentService';
+import WithdrawalService from './WithdrawalService';
 
 function getById(id: string) {
     return Transaction.findById(id);
@@ -44,46 +46,6 @@ async function sendValue(to: string, value: string, chainId: ChainId) {
     }
 
     return { tx, receipt };
-}
-
-async function getReceipt(
-    chainId: ChainId,
-    tx: TransactionReceipt,
-    confirmations: number,
-): Promise<TransactionReceipt> {
-    const { web3 } = getProvider(chainId);
-    return new Promise((resolve, reject) => {
-        let counter = 0;
-        const interval = setInterval(async function () {
-            const receipt = await web3.eth.getTransactionReceipt(tx.transactionHash);
-            if (receipt) {
-                clearInterval(interval);
-                resolve(receipt);
-            }
-            if (counter === confirmations) reject();
-            counter++;
-        }, 500);
-    });
-}
-
-async function relay(
-    contract: Contract,
-    fn: string,
-    args: any[],
-    chainId: ChainId,
-    callback: (tx: TransactionDocument, events?: CustomEventLog[]) => Promise<Document>,
-): Promise<any> {
-    const tx = await queue(contract.options.address, fn, args, chainId);
-    const receipt = await send(contract.options.address, contract.methods[fn](...args), chainId);
-    const minedReceipt = await getReceipt(chainId, receipt, 3);
-    const events = parseLogs(contract.options.jsonInterface, minedReceipt.logs);
-
-    await tx.updateOne({
-        state: TransactionState.Mined,
-        gas: receipt.gasUsed,
-    });
-
-    return await callback(tx, events);
 }
 
 async function send(to: string, fn: any, chainId: ChainId, gasLimit?: number) {
@@ -154,20 +116,6 @@ async function sendAsync(to: string, fn: any, chainId: ChainId, forceSync = true
 
     // We return the id because the transaction might be out of date.
     return String(tx._id);
-}
-
-async function queue(to: string, method: string, params: string[], chainId: ChainId) {
-    const { web3, defaultAccount } = getProvider(chainId);
-    const nonce = await web3.eth.getTransactionCount(defaultAccount, 'pending');
-
-    return await Transaction.create({
-        state: TransactionState.Queued,
-        from: defaultAccount,
-        call: { fn: method, args: JSON.stringify(params) },
-        chainId,
-        to,
-        nonce,
-    });
 }
 
 async function deploy(abi: any, bytecode: any, arg: any[], chainId: ChainId) {
@@ -313,6 +261,21 @@ async function executeCallback(tx: TransactionDocument, receipt: TransactionRece
         case 'topupCallback':
             await AssetPoolService.topupCallback(tx.callback.args, receipt);
             break;
+        case 'depositCallback':
+            await DepositService.depositCallback(tx.callback.args, receipt);
+            break;
+        case 'swapCreateCallback':
+            await ERC20SwapService.createCallback(tx.callback.args, receipt);
+            break;
+        case 'erc721TokenMintCallback':
+            await ERC721Service.mintCallback(tx.callback.args, receipt);
+            break;
+        case 'paymentCallback':
+            await PaymentService.payCallback(tx.callback.args, receipt);
+            break;
+        case 'withdrawForCallback':
+            await WithdrawalService.withdrawForCallback(tx.callback.args, receipt);
+            break;
     }
 }
 
@@ -379,7 +342,6 @@ async function findByQuery(poolAddress: string, page = 1, limit = 10, startDate?
 }
 
 export default {
-    relay,
     getById,
     send,
     sendAsync,

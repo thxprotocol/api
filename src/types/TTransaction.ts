@@ -1,3 +1,4 @@
+import { ContractName, TokenContractName } from '@thxnetwork/artifacts';
 import { ChainId, TransactionState, TransactionType } from './enums';
 
 export type TTransaction = {
@@ -49,4 +50,63 @@ type TopupCallback = {
     args: TTopupCallbackArgs;
 };
 
-export type TTransactionCallback = ERC20DeployCallback | AssetPoolDeployCallback | TopupCallback;
+export type TDepositCallbackArgs = {
+    assetPoolId: string;
+    depositId: string;
+};
+
+type DepositCallback = {
+    type: 'depositCallback';
+    args: TDepositCallbackArgs;
+};
+
+export type TSwapCreateCallbackArgs = {
+    assetPoolId: string;
+    swapId: string;
+};
+
+type SwapCreateCallback = {
+    type: 'swapCreateCallback';
+    args: TSwapCreateCallbackArgs;
+};
+
+export type TERC721TokenMintCallbackArgs = {
+    erc721tokenId: string;
+    assetPoolId: string;
+};
+
+type ERC721TokenMintCallback = {
+    type: 'erc721TokenMintCallback';
+    args: TERC721TokenMintCallbackArgs;
+};
+
+export type TPayCallbackArgs = {
+    paymentId: string;
+    contractName: TokenContractName;
+    address: string;
+};
+
+type PaymentCallback = {
+    type: 'paymentCallback';
+    args: TPayCallbackArgs;
+};
+
+export type TWithdrawForCallbackArgs = {
+    withdrawalId: string;
+    assetPoolId: string;
+};
+
+type WithdrawForCallback = {
+    type: 'withdrawForCallback';
+    args: TWithdrawForCallbackArgs;
+};
+
+export type TTransactionCallback =
+    | ERC20DeployCallback
+    | AssetPoolDeployCallback
+    | TopupCallback
+    | DepositCallback
+    | SwapCreateCallback
+    | ERC721TokenMintCallback
+    | PaymentCallback
+    | WithdrawForCallback;

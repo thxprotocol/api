@@ -11,7 +11,7 @@ export async function checkReceipts() {
 
     for (const tx of transactions) {
         try {
-            TransactionService.checkForReceipt(tx);
+            TransactionService.queryTransactionStatusReceipt(tx);
         } catch (error) {
             logger.error(error);
         }

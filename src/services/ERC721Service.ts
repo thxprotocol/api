@@ -4,7 +4,7 @@ import { ERC721TokenState, TERC721, TERC721Metadata, TERC721Token } from '@/type
 import TransactionService from './TransactionService';
 import { getProvider } from '@/util/network';
 import { VERSION, API_URL } from '@/config/secrets';
-import { assertEvent, CustomEventLog, parseLogs } from '@/util/events';
+import { assertEvent, parseLogs } from '@/util/events';
 import { AssetPoolDocument } from '@/models/AssetPool';
 import { ChainId } from '@/types/enums';
 import { getAbiForContractName, getByteCodeForContractName } from '@/config/contracts';
@@ -12,10 +12,12 @@ import { ERC721Token, ERC721TokenDocument } from '@/models/ERC721Token';
 import { TAssetPool } from '@/types/TAssetPool';
 import { keccak256, toUtf8Bytes } from 'ethers/lib/utils';
 import { IAccount } from '@/models/Account';
-import { TransactionDocument } from '@/models/Transaction';
 import AccountProxy from '@/proxies/AccountProxy';
 import { paginatedResults } from '@/util/pagination';
 import MembershipService from './MembershipService';
+import AssetPoolService from './AssetPoolService';
+import { TERC721TokenMintCallbackArgs } from '@/types/TTransaction';
+import { TransactionReceipt } from 'web3-core';
 
 async function deploy(data: TERC721): Promise<ERC721Document> {
     const { defaultAccount } = getProvider(data.chainId);
@@ -70,7 +72,7 @@ export async function mint(
     metadata: ERC721MetadataDocument,
     account: IAccount,
 ): Promise<ERC721TokenDocument> {
-    const erc721token = new ERC721Token({
+    const erc721token = await ERC721Token.create({
         sub: account.id,
         recipient: account.address,
         state: ERC721TokenState.Pending,
@@ -78,24 +80,33 @@ export async function mint(
         metadataId: String(metadata._id),
     });
 
-    const callback = async (tx: TransactionDocument, events?: CustomEventLog[]) => {
-        if (events) {
-            const event = assertEvent('ERC721Minted', events);
-            erc721token.state = ERC721TokenState.Minted;
-            erc721token.tokenId = Number(event.args.tokenId);
-            erc721token.recipient = event.args.recipient;
-        }
-        erc721token.transactions.push(String(tx._id));
-        return await erc721token.save();
-    };
-
-    return await TransactionService.relay(
-        assetPool.contract,
-        'mintFor',
-        [account.address, String(metadata._id)],
+    const txId = await TransactionService.sendAsync(
+        assetPool.contract.options.address,
+        assetPool.contract.methods.mintFor(account.address, String(metadata._id)),
         assetPool.chainId,
-        callback,
+        true,
+        {
+            type: 'erc721TokenMintCallback',
+            args: { erc721tokenId: String(erc721token._id), assetPoolId: String(assetPool._id) },
+        },
     );
+
+    return await ERC721Token.findByIdAndUpdate(erc721token._id, { transactions: [txId] }, { new: true });
+}
+
+export async function mintCallback(args: TERC721TokenMintCallbackArgs, receipt: TransactionReceipt) {
+    const { assetPoolId, erc721tokenId } = args;
+    const { contract } = await AssetPoolService.getById(assetPoolId);
+    const events = parseLogs(contract.options.jsonInterface, receipt.logs);
+
+    if (events) {
+        const event = assertEvent('ERC721Minted', events);
+        await ERC721Token.findByIdAndUpdate(erc721tokenId, {
+            state: ERC721TokenState.Minted,
+            tokenId: Number(event.args.tokenId),
+            recipient: event.args.recipient,
+        });
+    }
 }
 
 export async function parseAttributes(entry: ERC721MetadataDocument) {
@@ -188,6 +199,7 @@ export default {
     findById,
     createMetadata,
     mint,
+    mintCallback,
     findBySub,
     findTokenById,
     findTokensByMetadataAndSub,
