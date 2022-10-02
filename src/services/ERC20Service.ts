@@ -6,7 +6,7 @@ import { assertEvent, parseLogs } from '@/util/events';
 import { ChainId, ERC20Type } from '@/types/enums';
 import { AssetPoolDocument } from '@/models/AssetPool';
 import { TokenContractName } from '@thxnetwork/artifacts';
-import { getAbiForContractName, getByteCodeForContractName, getContractFromName } from '@/config/contracts';
+import { getByteCodeForContractName, getContractFromName } from '@/config/contracts';
 import { keccak256, toUtf8Bytes } from 'ethers/lib/utils';
 import { ERC20Token } from '@/models/ERC20Token';
 import { getProvider } from '@/util/network';
@@ -38,14 +38,18 @@ export const deploy = async (contractName: TokenContractName, params: ICreateERC
         logoImgUrl: params.logoImgUrl,
     });
 
-    const txId = await TransactionService.deployAsync(
-        getAbiForContractName(contractName),
-        getByteCodeForContractName(contractName),
-        getDeployArgs(erc20, params.totalSupply),
-        erc20.chainId,
-        forceSync,
-        { type: 'Erc20DeployCallback', args: { erc20Id: String(erc20._id) } },
-    );
+    const contract = getContractFromName(params.chainId, contractName);
+    const bytecode = getByteCodeForContractName(contractName);
+
+    const fn = contract.deploy({
+        data: bytecode,
+        arguments: getDeployArgs(erc20, params.totalSupply),
+    });
+
+    const txId = await TransactionService.sendAsync(null, fn, erc20.chainId, forceSync, {
+        type: 'Erc20DeployCallback',
+        args: { erc20Id: String(erc20._id) },
+    });
 
     return await ERC20.findByIdAndUpdate(erc20._id, { transactions: [txId] }, { new: true });
 };

@@ -63,14 +63,20 @@ async function send(to: string, fn: any, chainId: ChainId, gasLimit?: number) {
     });
 }
 
-async function sendAsync(to: string, fn: any, chainId: ChainId, forceSync = true, callback?: TTransactionCallback) {
+async function sendAsync(
+    to: string | null,
+    fn: any,
+    chainId: ChainId,
+    forceSync = true,
+    callback?: TTransactionCallback,
+) {
     const { web3, relayer, defaultAccount } = getProvider(chainId);
     const data = fn.encodeABI();
     const tx = await Transaction.create({
         type: relayer && !forceSync ? TransactionType.Relayed : TransactionType.Default,
         state: TransactionState.Queued,
         from: defaultAccount,
-        to: to.toUpperCase(),
+        to,
         chainId,
         callback,
     });
@@ -159,78 +165,6 @@ async function deploy(abi: any, bytecode: any, arg: any[], chainId: ChainId) {
     contract.options.address = receipt.contractAddress;
 
     return contract;
-}
-
-async function deployAsync(
-    abi: any,
-    bytecode: any,
-    arg: any[],
-    chainId: ChainId,
-    forceSync = true,
-    callback?: TTransactionCallback,
-) {
-    const { web3, relayer, defaultAccount } = getProvider(chainId);
-    const contract = new web3.eth.Contract(abi);
-
-    const tx = await Transaction.create({
-        type: relayer && !forceSync ? TransactionType.Relayed : TransactionType.Default,
-        state: TransactionState.Queued,
-        from: defaultAccount,
-        chainId,
-        callback,
-    });
-
-    const data = contract
-        .deploy({
-            data: bytecode,
-            arguments: arg,
-        })
-        .encodeABI();
-
-    if (relayer) {
-        const defenderTx = await relayer.sendTransaction({
-            data,
-            speed: RELAYER_SPEED,
-            gasLimit: 1000000,
-        });
-
-        Object.assign(tx, {
-            transactionId: defenderTx.transactionId,
-            transactionHash: defenderTx.hash,
-            state: TransactionState.Sent,
-        });
-
-        await tx.save();
-
-        if (forceSync) {
-            await poll(
-                async () => {
-                    const transaction = await getById(tx._id);
-                    return queryTransactionStatusReceipt(transaction);
-                },
-                (trans: TTransaction) => trans.state === TransactionState.Sent,
-                1000,
-            );
-        }
-    } else {
-        const gas = await contract
-            .deploy({
-                data: bytecode,
-                arguments: arg,
-            })
-            .estimateGas();
-
-        const receipt = await web3.eth.sendTransaction({
-            from: defaultAccount,
-            data,
-            gas,
-        });
-
-        await transactionMined(tx, receipt);
-    }
-
-    // We return the id because the transaction might be out of date.
-    return String(tx._id);
 }
 
 async function transactionMined(tx: TransactionDocument, receipt: TransactionReceipt) {
@@ -346,7 +280,6 @@ export default {
     send,
     sendAsync,
     deploy,
-    deployAsync,
     sendValue,
     findByQuery,
     findFailReason,
