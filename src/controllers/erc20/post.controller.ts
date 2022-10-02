@@ -32,16 +32,13 @@ export const controller = async (req: Request, res: Response) => {
 
     await checkAndUpgradeToBasicPlan(account, req.body.chainId);
 
-    const contractName =
-        Number.parseInt(req.body.type) === ERC20Type.Unlimited ? 'UnlimitedSupplyToken' : 'LimitedSupplyToken';
-
     let logoImgUrl;
     if (req.file) {
         const response = await ImageService.upload(req.file);
         logoImgUrl = ImageService.getPublicUrl(response.key);
     }
 
-    const erc20 = await ERC20Service.deploy(contractName, {
+    const erc20 = await ERC20Service.deploy({
         name: req.body.name,
         symbol: req.body.symbol,
         chainId: req.body.chainId,
