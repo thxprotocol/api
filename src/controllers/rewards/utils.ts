@@ -165,8 +165,8 @@ type RewardSlug =
     | 'claim-one-is-enabled-and-amount-is-greather-than-1'
     | 'claim-one-is-disabled';
 
-export const createReward = async (assetPool: AssetPoolDocument, reqBody: any) => {
-    let withdrawUnlockDate = reqBody.withdrawUnlockDate;
+export const createReward = async (assetPool: AssetPoolDocument, config: any) => {
+    let withdrawUnlockDate = config.withdrawUnlockDate;
 
     if (!withdrawUnlockDate) {
         const now = new Date();
@@ -174,18 +174,18 @@ export const createReward = async (assetPool: AssetPoolDocument, reqBody: any) =
     }
 
     const reward = await RewardService.create(assetPool, {
-        title: reqBody.title,
-        slug: reqBody.slug,
-        withdrawLimit: reqBody.withdrawLimit || 0,
-        withdrawAmount: reqBody.withdrawAmount,
-        withdrawDuration: reqBody.withdrawDuration,
-        isMembershipRequired: reqBody.isMembershipRequired,
-        isClaimOnce: reqBody.isClaimOnce,
+        title: config.title,
+        slug: config.slug,
+        withdrawLimit: config.withdrawLimit || 0,
+        withdrawAmount: config.withdrawAmount,
+        withdrawDuration: config.withdrawDuration,
+        isMembershipRequired: config.isMembershipRequired,
+        isClaimOnce: config.isClaimOnce,
         withdrawUnlockDate: new Date(withdrawUnlockDate),
-        withdrawCondition: reqBody.withdrawCondition,
-        expiryDate: reqBody.expiryDate,
-        erc721metadataId: reqBody.erc721metadataId,
-        amount: reqBody.amount,
+        withdrawCondition: config.withdrawCondition,
+        expiryDate: config.expiryDate,
+        erc721metadataId: config.erc721metadataId,
+        amount: config.amount,
     });
 
     let erc20Id: string, erc721Id: string;

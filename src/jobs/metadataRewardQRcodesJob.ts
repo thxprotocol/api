@@ -26,7 +26,7 @@ export const generateMetadataRewardQRCodesJob = async ({ attrs }: Job) => {
         if (!pool) throw new Error('Reward not found');
 
         const rewards = await Reward.find({ poolId, erc721metadataId: { $ne: null } });
-        if (rewards.length == 0) throw new Error('Rewards not found');
+        if (!rewards.length) throw new Error('Rewards not found');
 
         const account = await AccountProxy.getById(sub);
         if (!account) throw new Error('Account not found');
@@ -34,7 +34,6 @@ export const generateMetadataRewardQRCodesJob = async ({ attrs }: Job) => {
 
         // Create an instance of jsZip and build an archive
         const { jsZip, archive } = createArchiver();
-
         await Promise.all(
             rewards.map(async (reward: RewardDocument) => {
                 const claims = await ClaimService.findByReward(reward);
@@ -53,9 +52,8 @@ export const generateMetadataRewardQRCodesJob = async ({ attrs }: Job) => {
 
                 // Create QR code for every claim
                 await Promise.all(
-                    claims.map(async ({ _id }: ClaimDocument) => {
-                        const id = String(_id);
-                        const base64Data: string = await ImageService.createQRCode(`${WALLET_URL}/claims/${id}`, logo);
+                    claims.map(async ({ id }: ClaimDocument) => {
+                        const base64Data: string = await ImageService.createQRCode(`${WALLET_URL}/claim/${id}`, logo);
                         // Adds file to the qrcode archive
                         return archive.file(`${id}.png`, base64Data, { base64: true });
                     }),
@@ -81,7 +79,7 @@ export const generateMetadataRewardQRCodesJob = async ({ attrs }: Job) => {
                 account.email,
                 'Your QR codes are ready!',
                 `Visit THX Dashboard to download your your QR codes archive. Visit this URL in your browser:
-                <br/>${`${DASHBOARD_URL}/pool/${poolId}/metadata?qrcodes=1`}`,
+                <br/>${`${DASHBOARD_URL}/pool/${poolId}`}`,
             );
         }
     } catch (error) {

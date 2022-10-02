@@ -63,7 +63,6 @@ describe('Claims', () => {
             .expect((res: request.Response) => {
                 expect(res.body.id).toBeDefined();
                 expect(res.body.claims).toBeDefined();
-                console.log(res.body);
                 expect(res.body.claims[0].id).toBeDefined();
                 reward = res.body;
                 claim = res.body.claims[0];

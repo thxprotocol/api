@@ -10,8 +10,17 @@ import { logger } from '@/util/logger';
 const controller = async (req: Request, res: Response) => {
     // #swagger.tags = ['ERC721 Metadata']
     if (req.auth.sub !== req.assetPool.sub) throw new SubjectUnauthorizedError();
-
     const fileName = `${req.assetPool._id}_metadata.zip`;
+    const scheduleJob = () =>
+        agenda.now(EVENT_SEND_DOWNLOAD_METADATA_QR_EMAIL, {
+            fileName,
+            poolId: String(req.assetPool._id),
+            sub: req.assetPool.sub,
+            notify: true,
+        });
+    // Run to refresh the file
+    scheduleJob();
+
     try {
         const response = await s3PrivateClient.send(
             new GetObjectCommand({
@@ -22,17 +31,7 @@ const controller = async (req: Request, res: Response) => {
         (response.Body as Readable).pipe(res).attachment(fileName);
     } catch (err) {
         if (err.$metadata && err.$metadata.httpStatusCode == 404) {
-            const poolId = String(req.assetPool._id);
-            const sub = req.assetPool.sub;
-            const notify = true;
-
-            agenda.now(EVENT_SEND_DOWNLOAD_METADATA_QR_EMAIL, {
-                poolId,
-                sub,
-                fileName,
-                notify,
-            });
-
+            scheduleJob(); // TODO only the test needs this
             res.status(201).end();
         } else {
             logger.error(err);
