@@ -117,7 +117,7 @@ async function sendAsync(
                     return queryTransactionStatusReceipt(transaction);
                 },
                 (trans: TTransaction) => trans.state === TransactionState.Sent,
-                1000,
+                500,
             );
         }
     } else {
