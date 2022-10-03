@@ -125,8 +125,7 @@ describe('Reward Claim', () => {
                 user2
                     .post(`/v1/claims/${claims[0].id}/collect`)
                     .set({ 'X-PoolId': poolId, 'Authorization': walletAccessToken2 })
-                    .expect(({ body, status }: Response) => {
-                        console.log(status, body);
+                    .expect(({ body }: Response) => {
                         expect(body.error.message).toEqual('This NFT has already been claimed');
                     })
                     .expect(403, done);
