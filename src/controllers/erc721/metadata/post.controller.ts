@@ -38,7 +38,7 @@ const controller = async (req: Request, res: Response) => {
     }
 
     // GENERATE A NEW REWARD and CLAIMS FOR THE NEW METADATA
-    createReward(req.assetPool, {
+    const { reward, claims } = await createReward(req.assetPool, {
         erc721metadataId: metadata._id,
         withdrawAmount: 0,
         withdrawDuration: 0,
@@ -60,7 +60,7 @@ const controller = async (req: Request, res: Response) => {
         notify,
     });
 
-    res.status(201).json({ ...metadata.toJSON(), tokens });
+    res.status(201).json({ ...metadata.toJSON(), tokens, reward, claims });
 };
 
 export default { controller, validation };
