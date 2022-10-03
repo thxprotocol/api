@@ -4,6 +4,7 @@ import { param } from 'express-validator';
 import { fromWei } from 'web3-utils';
 import { getProvider } from '@/util/network';
 import { NotFoundError } from '@/util/errors';
+import { AssetPool } from '@/models/AssetPool';
 
 const validation = [param('id').exists().isMongoId()];
 
@@ -29,11 +30,15 @@ const controller = async (req: Request, res: Response) => {
     const decimals = Number(decimalsString);
     const adminBalance = Number(fromWei(adminBalanceInWei, 'ether'));
 
+    const assetPool = await AssetPool.findOne({ erc20Id: erc20._id });
+    const poolId = assetPool ? String(assetPool._id) : undefined;
+
     res.status(200).json({
         ...erc20.toJSON(),
         totalSupply,
         decimals,
         adminBalance,
+        poolId,
     });
 };
 

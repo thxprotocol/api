@@ -26,8 +26,8 @@ export type TERC721Token = {
     failReason: string;
     transactions: string[];
     tokenId: number;
-    erc721Id: string;
     metadataId: string;
+    erc721Id?: string;
     metadata?: TERC721Metadata;
 };
 
@@ -48,6 +48,7 @@ export type TERC721 = {
     archived?: boolean;
     royaltyRecipient?: string;
     royaltyBps?: number;
+    logoImgUrl?: string;
 };
 
 export type TERC721Metadata = {

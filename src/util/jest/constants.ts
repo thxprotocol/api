@@ -28,11 +28,13 @@ export const account: any = {
     id: sub,
     address: userWalletAddress,
     plan: AccountPlanType.Basic,
+    email: 'account@test.thx.network',
 };
 export const account2: any = {
     id: sub2,
     address: userWalletAddress2,
     plan: AccountPlanType.Basic,
+    email: 'account2@test.thx.network',
 };
 
 export const rewardId = 1;

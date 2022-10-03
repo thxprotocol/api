@@ -2,6 +2,8 @@ import ERC20Service from '@/services/ERC20Service';
 import { ERC20TokenDocument } from '@/models/ERC20Token';
 import { Request, Response } from 'express';
 import { TERC20, TERC20Token } from '@/types/TERC20';
+import AccountProxy from '@/proxies/AccountProxy';
+import { fromWei } from 'web3-utils';
 
 export const controller = async (req: Request, res: Response) => {
     /*
@@ -16,11 +18,15 @@ export const controller = async (req: Request, res: Response) => {
         }
     }
     */
+    const account = await AccountProxy.getById(req.auth.sub);
     const tokens = await ERC20Service.getTokensForSub(req.auth.sub);
     const result = await Promise.all(
         tokens.map(async (token: ERC20TokenDocument) => {
             const erc20 = await ERC20Service.getById(token.erc20Id);
-            return { ...token.toJSON(), erc20 };
+            const balanceInWei = await erc20.contract.methods.balanceOf(account.address).call();
+            const balance = Number(fromWei(balanceInWei, 'ether'));
+
+            return { ...(token.toJSON() as TERC20Token), balanceInWei, balance, erc20 };
         }),
     );
 

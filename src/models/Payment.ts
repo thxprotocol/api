@@ -3,6 +3,7 @@ import { PaymentState } from '@/types/enums/PaymentState';
 import PaymentService from '@/services/PaymentService';
 
 export type TPayment = {
+    id: string;
     amount: string;
     token: string;
     tokenAddress: string;
@@ -25,6 +26,7 @@ export type PaymentDocument = mongoose.Document & TPayment;
 
 const paymentSchema = new mongoose.Schema(
     {
+        id: String,
         amount: String,
         token: String,
         tokenAddress: String,
@@ -44,7 +46,7 @@ const paymentSchema = new mongoose.Schema(
 );
 
 paymentSchema.virtual('paymentUrl').get(function () {
-    return PaymentService.getPaymentUrl(this._id, this.token);
+    return PaymentService.getPaymentUrl(this.id, this.token);
 });
 
 export const Payment = mongoose.model<PaymentDocument>('Payment', paymentSchema, 'payments');

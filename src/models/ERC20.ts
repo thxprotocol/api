@@ -16,17 +16,25 @@ const erc20Schema = new mongoose.Schema(
         symbol: String,
         transactions: [String],
         archived: Boolean,
+        logoImgUrl: String,
     },
     { timestamps: true },
 );
 
+erc20Schema.virtual('contractName').get(function () {
+    return getContractName(this.type);
+});
+
 erc20Schema.virtual('contract').get(function () {
     if (!this.address) return;
     const { readProvider, defaultAccount } = getProvider(this.chainId);
-    const contractName = this.type === ERC20Type.Unlimited ? 'UnlimitedSupplyToken' : 'LimitedSupplyToken';
-    const abi = getAbiForContractName(contractName);
+    const abi = getAbiForContractName(getContractName(this.type));
     return new readProvider.eth.Contract(abi, this.address, { from: defaultAccount });
 });
+
+function getContractName(type: ERC20Type) {
+    return type === ERC20Type.Unlimited ? 'UnlimitedSupplyToken' : 'LimitedSupplyToken';
+}
 
 export interface IERC20Updates {
     archived?: boolean;

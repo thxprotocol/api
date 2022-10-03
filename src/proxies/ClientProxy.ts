@@ -1,28 +1,28 @@
 import { INITIAL_ACCESS_TOKEN } from '@/config/secrets';
-import { Client, TClientPayload } from '@/models/Client';
+import { Client, ClientDocument, TClient, TClientPayload } from '@/models/Client';
 import { authClient } from '@/util/auth';
 import { paginatedResults } from '@/util/pagination';
 
 export default class ClientProxy {
-    static async get(id: string) {
-        const client = await Client.findById(id);
+    static async getCredentials(client: ClientDocument) {
         const { data } = await authClient({
             method: 'GET',
             url: `/reg/${client.clientId}?access_token=${client.registrationAccessToken}`,
         });
-        return { ...client.toJSON(), clientSecret: data['client_secret'], requestUris: data['request_uris'] };
+
+        client.clientSecret = data['client_secret'];
+        client.requestUris = data['request_uris'];
+
+        return client;
     }
 
-    static async isAllowedOrigin(clientId: string, origin: string) {
-        const client = await Client.findOne({ clientId });
-        if (!client) return false;
+    static async get(id: string): Promise<TClient> {
+        const client = await Client.findById(id);
+        return await this.getCredentials(client);
+    }
 
-        const { data } = await authClient({
-            method: 'GET',
-            url: `/reg/${client.clientId}?access_token=${client.registrationAccessToken}`,
-        });
-
-        return data['request_uris'].includes(origin);
+    static async isAllowedOrigin(origin: string) {
+        return await Client.exists({ origins: origin });
     }
 
     static async findByQuery(query: { poolId: string }, page = 1, limit = 10) {
@@ -38,6 +38,7 @@ export default class ClientProxy {
             },
             data: payload,
         });
+
         const client = await Client.create({
             sub,
             name,
@@ -47,7 +48,15 @@ export default class ClientProxy {
             registrationAccessToken: data.registration_access_token,
         });
 
-        return { ...client.toJSON(), clientSecret: data['client_secret'], requestUris: data['request_uris'] };
+        if (payload.request_uris.length) {
+            const origins = payload.request_uris.map((uri: string) => new URL(uri));
+            await client.updateOne({ origins });
+        }
+
+        client.clientSecret = data['client_secret'];
+        client.requestUris = data['request_uris'];
+
+        return client;
     }
 
     static async remove(clientId: string) {
@@ -60,4 +69,14 @@ export default class ClientProxy {
 
         return await client.remove();
     }
+
+    static async update(clientId: string, updates: TClientUpdatePayload) {
+        const client = await Client.findOne({ clientId });
+        await client.updateOne(updates);
+        return await this.getCredentials(client);
+    }
 }
+
+export type TClientUpdatePayload = Partial<{
+    name: string;
+}>;

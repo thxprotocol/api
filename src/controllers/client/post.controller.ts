@@ -26,7 +26,7 @@ export default {
                     redirect_uris: [redirectUri],
                     post_logout_redirect_uris: [requestUri],
                     response_types: ['code'],
-                    scope: 'openid',
+                    scope: 'openid account:read erc20:read erc721:read',
                 };
                 break;
             case GrantType.ClientCredentials:
@@ -35,7 +35,7 @@ export default {
                     grant_types: [grantType],
                     redirect_uris: [],
                     response_types: [],
-                    scope: 'openid',
+                    scope: 'openid withdrawals:read withdrawals:write',
                 };
                 break;
         }

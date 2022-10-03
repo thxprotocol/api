@@ -4,11 +4,13 @@ import { WithdrawalState, WithdrawalType } from '@/types/enums';
 import { AssetPoolDocument } from '@/models/AssetPool';
 import { Withdrawal, WithdrawalDocument } from '@/models/Withdrawal';
 import { IAccount } from '@/models/Account';
-import { assertEvent, CustomEventLog } from '@/util/events';
-import { paginatedResults } from '@/util/pagination';
-import { TransactionDocument } from '@/models/Transaction';
+import { assertEvent, parseLogs } from '@/util/events';
 import TransactionService from './TransactionService';
 import AccountProxy from '@/proxies/AccountProxy';
+import { TWithdrawForCallbackArgs } from '@/types/TTransaction';
+import { TransactionReceipt } from 'web3-core';
+import AssetPoolService from './AssetPoolService';
+import { paginatedResults } from '@/util/pagination';
 
 export default class WithdrawalService {
     static getById(id: string) {
@@ -70,21 +72,29 @@ export default class WithdrawalService {
 
     static async withdrawFor(pool: AssetPoolDocument, withdrawal: WithdrawalDocument, account: IAccount) {
         const amountInWei = toWei(String(withdrawal.amount));
-        const callback = async (tx: TransactionDocument, events?: CustomEventLog[]) => {
-            if (events) {
-                assertEvent('ERC20WithdrawFor', events);
-                withdrawal.state = WithdrawalState.Withdrawn;
-            }
-            withdrawal.transactions.push(String(tx._id));
-            return await withdrawal.save();
-        };
-        return await TransactionService.relay(
-            pool.contract,
-            'withdrawFor',
-            [account.address, amountInWei],
+
+        const txId = await TransactionService.sendAsync(
+            pool.contract.options.address,
+            pool.contract.methods.withdrawFor(account.address, amountInWei),
             pool.chainId,
-            callback,
+            true,
+            {
+                type: 'withdrawForCallback',
+                args: { assetPoolId: String(pool._id), withdrawalId: String(withdrawal._id) },
+            },
         );
+
+        return await Withdrawal.findByIdAndUpdate(withdrawal._id, { transactions: [txId] }, { new: true });
+    }
+
+    static async withdrawForCallback(args: TWithdrawForCallbackArgs, receipt: TransactionReceipt) {
+        const { assetPoolId, withdrawalId } = args;
+        const { contract } = await AssetPoolService.getById(assetPoolId);
+        const events = parseLogs(contract.options.jsonInterface, receipt.logs);
+
+        assertEvent('ERC20WithdrawFor', events);
+
+        await Withdrawal.findByIdAndUpdate(withdrawalId, { state: WithdrawalState.Withdrawn });
     }
 
     static countByPool(assetPool: AssetPoolDocument) {
