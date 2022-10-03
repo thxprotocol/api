@@ -289,6 +289,7 @@ describe('Payment Request', () => {
                         expect(body.receiver).toBe(poolAddress);
                         expect(body.amount).toBe(amount);
                         expect(body.metadataId).toBe(metadataId);
+                        expect(body.metadata).toBeDefined();
                     })
                     .expect(200, done);
             });
@@ -406,6 +407,7 @@ describe('Payment Request', () => {
                     expect(body.receiver).toBe(poolAddress);
                     expect(body.amount).toBe(amount);
                     expect(body.promotionId).toBe(promotion._id);
+                    expect(body.promotion).toBeDefined();
                 })
                 .expect(200, done);
         });
