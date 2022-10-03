@@ -14,6 +14,7 @@ import WithdrawalService from './WithdrawalService';
 import ERC721Service from './ERC721Service';
 import { AssetPoolDocument } from '@/models/AssetPool';
 import { paginatedResults } from '@/util/pagination';
+import db from '@/util/database';
 
 export default class RewardService {
     static async get(assetPool: AssetPoolDocument, rewardId: string): Promise<RewardDocument> {
@@ -130,9 +131,7 @@ export default class RewardService {
             isClaimOnce: data.isClaimOnce,
             amount: data.amount || 1,
         });
-
-        // Store in id to minimize regresion. Remove when old style QR's are no longer going around.
-        reward.id = String(reward._id);
+        reward.id = db.createUUID();
         return await reward.save();
     }
 

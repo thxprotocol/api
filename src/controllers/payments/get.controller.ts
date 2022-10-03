@@ -7,7 +7,7 @@ import TransactionService from '@/services/TransactionService';
 import { Promotion } from '@/models/Promotion';
 import { ERC721Metadata } from '@/models/ERC721Metadata';
 
-const validation = [param('id').isMongoId()];
+const validation = [param('id').exists().isString()];
 
 const controller = async (req: Request, res: Response) => {
     // #swagger.tags = ['Payments']

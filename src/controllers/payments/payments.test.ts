@@ -89,7 +89,7 @@ describe('Payment Request', () => {
                     chainId: ChainId.Hardhat,
                 })
                 .expect(({ body }: Response) => {
-                    paymentId = body._id;
+                    paymentId = body.id;
                     basicAccessToken = body.token;
 
                     expect(body.paymentUrl).toBe(
@@ -255,7 +255,7 @@ describe('Payment Request', () => {
                         metadataId,
                     })
                     .expect(({ body }: Response) => {
-                        paymentId = body._id;
+                        paymentId = body.id;
                         basicAccessToken = body.token;
 
                         expect(body.paymentUrl).toBe(
@@ -373,7 +373,7 @@ describe('Payment Request', () => {
                     promotionId: promotion._id,
                 })
                 .expect(({ body }: Response) => {
-                    paymentId = body._id;
+                    paymentId = body.id;
                     basicAccessToken = body.token;
 
                     expect(body.paymentUrl).toBe(

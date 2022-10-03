@@ -31,7 +31,7 @@ export default {
     },
     createQRCode: async (url: string, logo: Buffer | string) => {
         const width = 55;
-        const center = 58;
+        const center = 75;
         const canvas = createCanvas(width, width);
 
         await QRCode.toCanvas(canvas, url, {
