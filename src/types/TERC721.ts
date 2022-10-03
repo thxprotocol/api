@@ -46,6 +46,8 @@ export type TERC721 = {
     createdAt?: Date;
     updatedAt?: Date;
     archived?: boolean;
+    royaltyRecipient?: string;
+    royaltyBps?: number;
     logoImgUrl?: string;
 };
 

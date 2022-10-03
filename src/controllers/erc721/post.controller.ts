@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { body, check } from 'express-validator';
 import ERC721Service from '@/services/ERC721Service';
+import { ADDRESS_ZERO } from '@/config/secrets';
 import ImageService from '@/services/ImageService';
 import { BadRequestError } from '@/util/errors';
 
@@ -9,6 +10,8 @@ const validation = [
     body('symbol').exists().isString(),
     body('description').exists().isString(),
     body('chainId').exists().isNumeric(),
+    body('royaltyAddress').optional().isString(),
+    body('royaltyPercentage').optional().isInt({ max: 100 }),
     body('schema').exists(),
     check('file')
         .optional()
@@ -44,6 +47,8 @@ const controller = async (req: Request, res: Response) => {
         description: req.body.description,
         properties,
         archived: false,
+        royaltyRecipient: req.body.royaltyAddress ? req.body.royaltyAddress : ADDRESS_ZERO,
+        royaltyBps: req.body.royaltyPercentage ? Number(req.body.royaltyPercentage) * 1000 : 0,
         logoImgUrl,
     });
 
