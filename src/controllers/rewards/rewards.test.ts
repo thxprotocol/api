@@ -14,7 +14,6 @@ import { WithdrawalState } from '@/types/enums';
 import { getRewardConfiguration } from '@/controllers/rewards/utils';
 import { ClaimDocument } from '@/types/TClaim';
 import { ERC721TokenState } from '@/types/TERC721';
-import { ERC721TokenDocument } from '@/models/ERC721Token';
 
 const user = request.agent(app);
 const user2 = request.agent(app);
@@ -29,12 +28,7 @@ describe('Reward Claim', () => {
     afterAll(afterAllCallback);
 
     describe('an NFT reward with withdrawLimit = 1 is claimed by wallet user A and then should not be claimed again throught he same claim URL by wallet user B', () => {
-        let erc721ID: string,
-            erc721Address: string,
-            poolAddress: string,
-            metadataId: string,
-            claims: any,
-            erc721Token: ERC721TokenDocument;
+        let erc721ID: string, erc721Address: string, claims: any;
         const name = 'Planets of the Galaxy',
             symbol = 'GLXY',
             description = 'description',
@@ -77,7 +71,6 @@ describe('Reward Claim', () => {
                         expect(isAddress(body.address)).toBe(true);
                         expect(body.erc721Id).toBe(erc721ID);
                         poolId = body._id;
-                        poolAddress = body.address;
                     })
                     .expect(201, done);
             });
@@ -109,7 +102,6 @@ describe('Reward Claim', () => {
                         expect(body.attributes[1].key).toBe(schema[1].name);
                         expect(body.attributes[0].value).toBe(value1);
                         expect(body.attributes[1].value).toBe(value2);
-                        metadataId = body._id;
                         claims = body.claims;
                     })
                     .expect(201, done);
@@ -123,7 +115,6 @@ describe('Reward Claim', () => {
                     .expect((res: request.Response) => {
                         expect(res.body._id).toBeDefined();
                         expect(res.body.state).toBe(ERC721TokenState.Minted);
-                        erc721Token = res.body;
                     })
                     .expect(200, done);
             });
@@ -133,9 +124,10 @@ describe('Reward Claim', () => {
             it('should NOT allows to collect again the same claim', (done) => {
                 user2
                     .post(`/v1/claims/${claims[0].id}/collect`)
-                    .set({ 'X-PoolId': poolId, 'Authorization': walletAccessToken })
-                    .expect(({ body }: Response) => {
-                        expect(body.error.message).toEqual('You have already claimed this NFT');
+                    .set({ 'X-PoolId': poolId, 'Authorization': walletAccessToken2 })
+                    .expect(({ body, status }: Response) => {
+                        console.log(status, body);
+                        expect(body.error.message).toEqual('This NFT has already been claimed');
                     })
                     .expect(403, done);
             });
