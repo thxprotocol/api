@@ -358,7 +358,7 @@ describe('NFT Pool', () => {
                 .set('Authorization', dashboardAccessToken)
                 .set('X-PoolId', poolId)
                 .send()
-                .expect(201, done);
+                .expect(200, done);
         });
         it('should cast a success event for sendDownloadMetadataQrEmail event', (done) => {
             const callback = async () => {
