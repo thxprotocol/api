@@ -80,7 +80,7 @@ const controller = async (req: Request, res: Response) => {
                                 erc721metadataId: metadata._id,
                                 withdrawAmount: 0,
                                 withdrawDuration: 0,
-                                withdrawLimit: 0,
+                                withdrawLimit: 1,
                                 isClaimOnce: true,
                                 isMembershipRequired: false,
                             };

@@ -78,6 +78,10 @@ export default class RewardService {
             return { error: 'You have already claimed this NFT' };
         }
 
+        if (reward.withdrawLimit > 0 && tokens.length >= reward.withdrawLimit) {
+            return { error: 'You have reached the claim limit' };
+        }
+
         // Can claim if no condition and channel are set
         if (!reward.withdrawCondition || !reward.withdrawCondition.channelType) {
             return { result: true };
