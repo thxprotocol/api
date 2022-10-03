@@ -101,6 +101,7 @@ async function sendAsync(
 
     if (relayer) {
         const defenderTx = await relayer.sendTransaction({
+            to,
             data,
             speed: RELAYER_SPEED,
             gasLimit: gas,
