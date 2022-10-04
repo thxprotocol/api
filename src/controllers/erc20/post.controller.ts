@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { body, check } from 'express-validator';
+import { body, check, query } from 'express-validator';
 import ERC20Service from '@/services/ERC20Service';
 import AccountProxy from '@/proxies/AccountProxy';
 import { checkAndUpgradeToBasicPlan } from '@/util/plans';
@@ -17,6 +17,7 @@ export const validation = [
         .custom((value, { req }) => {
             return ['jpg', 'jpeg', 'gif', 'png'].includes(req.file.mimetype);
         }),
+    query('forceSync').optional().isBoolean(),
 ];
 
 export const controller = async (req: Request, res: Response) => {
@@ -37,15 +38,20 @@ export const controller = async (req: Request, res: Response) => {
         logoImgUrl = ImageService.getPublicUrl(response.key);
     }
 
-    const erc20 = await ERC20Service.deploy({
-        name: req.body.name,
-        symbol: req.body.symbol,
-        chainId: req.body.chainId,
-        totalSupply: req.body.totalSupply,
-        type: req.body.type,
-        sub: req.auth.sub,
-        logoImgUrl,
-    });
+    const forceSync = req.query.forceSync !== undefined ? Boolean(req.query.forceSync) : false;
+
+    const erc20 = await ERC20Service.deploy(
+        {
+            name: req.body.name,
+            symbol: req.body.symbol,
+            chainId: req.body.chainId,
+            totalSupply: req.body.totalSupply,
+            type: req.body.type,
+            sub: req.auth.sub,
+            logoImgUrl,
+        },
+        forceSync,
+    );
 
     res.status(201).json(erc20);
 };
