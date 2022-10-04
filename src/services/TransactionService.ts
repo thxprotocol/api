@@ -100,12 +100,15 @@ async function sendAsync(
     });
 
     if (relayer) {
-        const defenderTx = await relayer.sendTransaction({
-            to,
+        const args: any = {
             data,
             speed: RELAYER_SPEED,
             gasLimit: gas,
-        });
+        };
+        if (to) {
+            args.to = to;
+        }
+        const defenderTx = await relayer.sendTransaction(args);
 
         Object.assign(tx, {
             transactionId: defenderTx.transactionId,
