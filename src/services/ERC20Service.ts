@@ -3,7 +3,7 @@ import { toWei } from 'web3-utils';
 import { ICreateERC20Params } from '@/types/interfaces';
 import TransactionService from './TransactionService';
 import { assertEvent, ExpectedEventNotFound, findEvent, parseLogs } from '@/util/events';
-import { ChainId, ERC20Type } from '@/types/enums';
+import { ChainId, ERC20Type, TransactionState } from '@/types/enums';
 import { AssetPoolDocument } from '@/models/AssetPool';
 import { getByteCodeForContractName, getContractFromName } from '@/config/contracts';
 import { keccak256, toUtf8Bytes } from 'ethers/lib/utils';
@@ -12,6 +12,7 @@ import { getProvider } from '@/util/network';
 import MembershipService from './MembershipService';
 import { TransactionReceipt } from 'web3-core';
 import { TERC20DeployCallbackArgs } from '@/types/TTransaction';
+import { Transaction } from '@/models/Transaction';
 
 function getDeployArgs(erc20: ERC20Document, totalSupply?: string) {
     const { defaultAccount } = getProvider(erc20.chainId);
@@ -64,6 +65,18 @@ export async function deployCallback({ erc20Id }: TERC20DeployCallbackArgs, rece
     }
 
     await ERC20.findByIdAndUpdate(erc20Id, { address: receipt.contractAddress });
+}
+
+export async function queryDeployTransaction(erc20: ERC20Document): Promise<ERC20Document> {
+    if (!erc20.address && erc20.transactions[0]) {
+        const tx = await Transaction.findById(erc20.transactions[0]);
+        const txResult = await TransactionService.queryTransactionStatusReceipt(tx);
+        if (txResult === TransactionState.Mined) {
+            erc20 = await getById(erc20._id);
+        }
+    }
+
+    return erc20;
 }
 
 const initialize = async (pool: AssetPoolDocument, address: string) => {
@@ -212,4 +225,5 @@ export default {
     update,
     initialize,
     getOnChainERC20Token,
+    queryDeployTransaction,
 };

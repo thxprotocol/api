@@ -121,7 +121,7 @@ async function sendAsync(
                     const transaction = await getById(tx._id);
                     return queryTransactionStatusReceipt(transaction);
                 },
-                (trans: TTransaction) => trans.state === TransactionState.Sent,
+                (state: TransactionState) => state === TransactionState.Sent,
                 500,
             );
         }
@@ -256,7 +256,7 @@ async function queryTransactionStatusDefender(tx: TransactionDocument) {
         await tx.save();
     }
 
-    return tx;
+    return tx.state;
 }
 
 async function queryTransactionStatusReceipt(tx: TransactionDocument) {
@@ -276,7 +276,7 @@ async function queryTransactionStatusReceipt(tx: TransactionDocument) {
         await transactionMined(tx, receipt);
     }
 
-    return tx;
+    return tx.state;
 }
 
 async function findFailReason(transactions: string[]): Promise<string | undefined> {
