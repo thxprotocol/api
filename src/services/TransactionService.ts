@@ -14,6 +14,7 @@ import ERC20SwapService from './ERC20SwapService';
 import ERC721Service from './ERC721Service';
 import PaymentService from './PaymentService';
 import WithdrawalService from './WithdrawalService';
+import { RelayerTransactionPayload } from 'defender-relay-client';
 
 function getById(id: string) {
     return Transaction.findById(id);
@@ -100,14 +101,13 @@ async function sendAsync(
     });
 
     if (relayer) {
-        const args: any = {
+        const args: RelayerTransactionPayload = {
             data,
             speed: RELAYER_SPEED,
             gasLimit: gas,
         };
-        if (to) {
-            args.to = to;
-        }
+        if (to) args.to = to;
+
         const defenderTx = await relayer.sendTransaction(args);
 
         Object.assign(tx, {
