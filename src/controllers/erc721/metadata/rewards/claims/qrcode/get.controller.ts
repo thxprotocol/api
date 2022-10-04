@@ -31,7 +31,6 @@ const controller = async (req: Request, res: Response) => {
         (response.Body as Readable).pipe(res).attachment(fileName);
     } catch (err) {
         if (err.$metadata && err.$metadata.httpStatusCode == 404) {
-            scheduleJob(); // TODO only the test needs this
             res.status(201).end();
         } else {
             logger.error(err);
