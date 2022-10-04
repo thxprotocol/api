@@ -16,8 +16,13 @@ const controller = async (req: Request, res: Response) => {
             schema: { $ref: '#/definitions/ERC20' } 
     }
     */
-    const erc20 = await ERC20Service.getById(req.params.id);
+    let erc20 = await ERC20Service.queryDeployTransaction(await ERC20Service.getById(req.params.id));
     if (!erc20) new NotFoundError('ERC20 not found');
+
+    // Check if pending transaction is mined.
+    if (!erc20.address) erc20 = await ERC20Service.queryDeployTransaction(erc20);
+
+    // Still no address.
     if (!erc20.address) return res.send(erc20);
 
     const { defaultAccount } = getProvider(erc20.chainId);

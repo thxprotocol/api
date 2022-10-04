@@ -28,6 +28,15 @@ type ERC20DeployCallback = {
     args: TERC20DeployCallbackArgs;
 };
 
+export type TERC721DeployCallbackArgs = {
+    erc721Id: string;
+};
+
+type ERC721DeployCallback = {
+    type: 'Erc721DeployCallback';
+    args: TERC721DeployCallbackArgs;
+};
+
 export type TAssetPoolDeployCallbackArgs = {
     assetPoolId: string;
     chainId: number;
@@ -103,6 +112,7 @@ type WithdrawForCallback = {
 
 export type TTransactionCallback =
     | ERC20DeployCallback
+    | ERC721DeployCallback
     | AssetPoolDeployCallback
     | TopupCallback
     | DepositCallback
