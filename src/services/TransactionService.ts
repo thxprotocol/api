@@ -210,6 +210,9 @@ async function executeCallback(tx: TransactionDocument, receipt: TransactionRece
         case 'Erc20DeployCallback':
             await erc20DeployCallback(tx.callback.args, receipt);
             break;
+        case 'Erc721DeployCallback':
+            await ERC721Service.deployCallback(tx.callback.args, receipt);
+            break;
         case 'assetPoolDeployCallback':
             await AssetPoolService.deployCallback(tx.callback.args, receipt);
             break;
