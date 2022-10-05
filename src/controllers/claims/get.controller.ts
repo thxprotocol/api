@@ -6,8 +6,9 @@ import ERC20Service from '@/services/ERC20Service';
 import ERC721Service from '@/services/ERC721Service';
 import AssetPoolService from '@/services/AssetPoolService';
 import ClaimService from '@/services/ClaimService';
+import { Claim } from '@/models/Claim';
 
-const validation = [param('id').isMongoId()];
+const validation = [param('id').exists().isString()];
 
 const controller = async (req: Request, res: Response) => {
     /*
@@ -17,7 +18,11 @@ const controller = async (req: Request, res: Response) => {
         schema: { $ref: '#/definitions/Claim' } 
     }
     */
-    const claim = await ClaimService.findById(req.params.id);
+    let claim = await ClaimService.findById(req.params.id);
+    if (!claim) {
+        // maintain compatibility with old the claim urls
+        claim = await Claim.findById(req.params.id);
+    }
     if (!claim) throw new NotFoundError('Could not find this claim');
 
     const pool = await AssetPoolService.getById(claim.poolId);
@@ -54,6 +59,7 @@ const controller = async (req: Request, res: Response) => {
 
     res.json({
         _id: claim._id,
+        id: claim.id,
         poolId: claim.poolId,
         erc20Id: claim.erc20Id,
         erc721Id: claim.erc721Id,

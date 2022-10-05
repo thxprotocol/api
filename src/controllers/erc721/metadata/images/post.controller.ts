@@ -8,17 +8,15 @@ import { s3Client } from '@/util/s3';
 import { createArchiver } from '@/util/zip';
 import { PutObjectCommand } from '@aws-sdk/client-s3';
 import { fromBuffer } from 'file-type';
-
 import { Request, Response } from 'express';
 import { body, check, param } from 'express-validator';
 import short from 'short-uuid';
+import { createReward } from '@/controllers/rewards/utils';
 
 const validation = [
     param('id').isMongoId(),
-    body('title').optional().isString().isLength({ min: 0, max: 100 }),
-    body('description').optional().isString().isLength({ min: 0, max: 400 }),
     body('propName').exists().isString(),
-    check('compressedFile').custom((value, { req }) => {
+    check('file').custom((value, { req }) => {
         switch (req.file.mimetype) {
             case 'application/octet-stream':
             case 'application/zip':
@@ -44,6 +42,7 @@ const controller = async (req: Request, res: Response) => {
 
     // ITERATE THE CONTENT BY OBJECT KEYS
     const objectKeys = Object.keys(contents.files);
+
     const promises = [];
 
     for (let i = 0; i < objectKeys.length; i++) {
@@ -92,9 +91,20 @@ const controller = async (req: Request, res: Response) => {
                     const url = ImageService.getPublicUrl(filename);
 
                     // CREATE THE METADATA
-                    return await ERC721Service.createMetadata(erc721, req.body.title, req.body.description, [
+                    const metadata = await ERC721Service.createMetadata(erc721, '', '', [
                         { key: req.body.propName, value: url },
                     ]);
+
+                    createReward(req.assetPool, {
+                        erc721metadataId: String(metadata._id),
+                        withdrawAmount: 0,
+                        withdrawDuration: 0,
+                        withdrawLimit: 1,
+                        isClaimOnce: true,
+                        isMembershipRequired: false,
+                    });
+
+                    return metadata;
                 } catch (err) {
                     logger.error(err);
                 }

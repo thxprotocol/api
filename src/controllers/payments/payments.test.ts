@@ -23,6 +23,7 @@ import { getProvider } from '@/util/network';
 import { HARDHAT_RPC, PRIVATE_KEY, WALLET_URL } from '@/config/secrets';
 import Web3 from 'web3';
 import { ERC721TokenState } from '@/types/TERC721';
+import { agenda, EVENT_SEND_DOWNLOAD_METADATA_QR_EMAIL } from '@/util/agenda';
 
 const http = request.agent(app);
 
@@ -88,7 +89,7 @@ describe('Payment Request', () => {
                     chainId: ChainId.Hardhat,
                 })
                 .expect(({ body }: Response) => {
-                    paymentId = body._id;
+                    paymentId = body.id;
                     basicAccessToken = body.token;
 
                     expect(body.paymentUrl).toBe(
@@ -254,7 +255,7 @@ describe('Payment Request', () => {
                         metadataId,
                     })
                     .expect(({ body }: Response) => {
-                        paymentId = body._id;
+                        paymentId = body.id;
                         basicAccessToken = body.token;
 
                         expect(body.paymentUrl).toBe(
@@ -327,6 +328,13 @@ describe('Payment Request', () => {
                         expect(body[0].transactions.length).toBe(1);
                     })
                     .expect(200, done);
+            });
+            it('should cast a success event for sendDownloadMetadataQrEmail event', (done) => {
+                const callback = async () => {
+                    agenda.off(`success:${EVENT_SEND_DOWNLOAD_METADATA_QR_EMAIL}`, callback);
+                    done();
+                };
+                agenda.on(`success:${EVENT_SEND_DOWNLOAD_METADATA_QR_EMAIL}`, callback);
             });
         });
     });

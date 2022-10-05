@@ -1,6 +1,6 @@
 {
     "name": "@thxnetwork/api",
-    "version": "1.26.5",
+    "version": "1.26.18",
     "repository": {
         "type": "git",
         "url": "https://github.com/thxprotocol/api"
@@ -8,14 +8,14 @@
     "author": "Peter Polman",
     "license": "AGPL-3.0",
     "scripts": {
-        "lint": "tsc && eslint \"./src/**/*.ts\"",
+        "lint": "tsc && eslint \"./src/**/*.ts\" --max-warnings=0",
         "lint:fix": "tsc && eslint \"./src/**/*.ts\" --fix",
-        "dev": "docker-compose up -d && npm run watch:node",
-        "exec": "export NODE_TLS_REJECT_UNAUTHORIZED='0' && ts-node-dev -r tsconfig-paths/register ",
+        "dev": "docker-compose up -d && npm run start",
+        "exec": "NODE_TLS_REJECT_UNAUTHORIZED='0' ts-node-dev -r tsconfig-paths/register ",
         "build": "tsc && npm run build:assets",
         "build:assets": "mkdir -p dist/src/public && cp -R src/public/* dist/src/public/.",
         "build:ssl": "sh scripts/ssl.sh",
-        "start": "export NODE_TLS_REJECT_UNAUTHORIZED='0' && npm run watch:node",
+        "start": "NODE_TLS_REJECT_UNAUTHORIZED='0' npm run watch:node",
         "watch:node": "ts-node-dev --ignore-watch openapi.json -r tsconfig-paths/register src/server.ts",
         "watch:node-debug": "ts-node-dev --ignore-watch openapi.json -r tsconfig-paths/register --inspect=7000 src/server.ts",
         "test": "npm run build:assets && npx jest --runInBand",
@@ -78,6 +78,7 @@
         "swagger-jsdoc": "^6.2.1",
         "swagger-ui-express": "^4.3.0",
         "tsconfig-paths": "^3.12.0",
+        "uuid": "^9.0.0",
         "web3": "^1.7.3",
         "winston": "^3.2.1"
     },
@@ -99,6 +100,7 @@
         "@types/semver": "^7.3.9",
         "@types/supertest": "^2.0.8",
         "@types/swagger-jsdoc": "^6.0.1",
+        "@types/uuid": "^8.3.4",
         "@typescript-eslint/eslint-plugin": "^5.9.1",
         "@typescript-eslint/parser": "^5.9.1",
         "eslint": "^8.6.0",

@@ -1,7 +1,7 @@
 {
   "swagger": "2.0",
   "info": {
-    "version": "1.26.3",
+    "version": "1.26.16",
     "title": "THX API Specification",
     "description": "User guides are available at https://docs.thx.network."
   },
@@ -264,20 +264,6 @@
       }
     },
     "/account/youtube": {
-      "get": {
-        "tags": [
-          "Account"
-        ],
-        "description": "",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        }
-      }
-    },
-    "/account/spotify": {
       "get": {
         "tags": [
           "Account"
@@ -599,9 +585,6 @@
                 "chainId": {
                   "example": "any"
                 },
-                "type": {
-                  "example": "any"
-                },
                 "name": {
                   "example": "any"
                 },
@@ -609,6 +592,9 @@
                   "example": "any"
                 },
                 "totalSupply": {
+                  "example": "any"
+                },
+                "type": {
                   "example": "any"
                 }
               }
@@ -1044,17 +1030,30 @@
             "schema": {
               "type": "object",
               "properties": {
-                "title": {
-                  "example": "any"
-                },
-                "description": {
-                  "example": "any"
-                },
                 "propName": {
                   "example": "any"
                 }
               }
             }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created"
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "ERC721 Metadata"
+        ],
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
           }
         ],
         "responses": {
@@ -1487,57 +1486,8 @@
         }
       },
       "post": {
-        "tags": [
-          "Rewards"
-        ],
         "description": "",
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "schema": {
-              "type": "object",
-              "properties": {
-                "withdrawUnlockDate": {
-                  "example": "any"
-                },
-                "title": {
-                  "example": "any"
-                },
-                "slug": {
-                  "example": "any"
-                },
-                "withdrawLimit": {
-                  "example": "any"
-                },
-                "withdrawAmount": {
-                  "example": "any"
-                },
-                "withdrawDuration": {
-                  "example": "any"
-                },
-                "isMembershipRequired": {
-                  "example": "any"
-                },
-                "isClaimOnce": {
-                  "example": "any"
-                },
-                "withdrawCondition": {
-                  "example": "any"
-                },
-                "expiryDate": {
-                  "example": "any"
-                },
-                "erc721metadataId": {
-                  "example": "any"
-                },
-                "amount": {
-                  "example": "any"
-                }
-              }
-            }
-          }
-        ],
+        "parameters": [],
         "responses": {
           "201": {
             "description": "Created"
@@ -4175,6 +4125,19 @@
             "type": {
               "type": "string",
               "example": "string"
+            }
+          }
+        },
+        "callback": {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "example": "object"
+            },
+            "properties": {
+              "type": "object",
+              "properties": {}
             }
           }
         },

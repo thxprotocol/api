@@ -14,7 +14,7 @@ import { PaymentState } from '@/types/enums/PaymentState';
 import AccountProxy from '@/proxies/AccountProxy';
 import { getProvider } from '@/util/network';
 
-const validation = [param('id').isMongoId()];
+const validation = [param('id').exists().isString()];
 
 const controller = async (req: Request, res: Response) => {
     // #swagger.tags = ['Payments']
@@ -36,7 +36,8 @@ const controller = async (req: Request, res: Response) => {
     // const { call, nonce, sig } = req.body;
     const { defaultAccount } = getProvider(payment.chainId);
     const erc20 = await ERC20Service.findByPool(req.assetPool);
-    const contract = getContractFromName(req.assetPool.chainId, 'LimitedSupplyToken', erc20.address);
+    const contractName = 'LimitedSupplyToken';
+    const contract = getContractFromName(req.assetPool.chainId, contractName, erc20.address);
 
     // Recover signer from message
     const account = await AccountProxy.getById(req.auth.sub);
@@ -50,7 +51,7 @@ const controller = async (req: Request, res: Response) => {
     const allowance = Number(await contract.methods.allowance(payment.sender, defaultAccount).call());
     if (Number(allowance) < Number(payment.amount)) throw new AmountExceedsAllowanceError();
 
-    payment = await PaymentService.pay(contract, payment);
+    payment = await PaymentService.pay(contract, payment, contractName);
     res.json(await payment.save());
 };
 
