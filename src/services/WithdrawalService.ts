@@ -1,5 +1,5 @@
 import { toWei } from 'web3-utils';
-import { ChainId } from '@/types/enums';
+import { ChainId, TransactionState } from '@/types/enums';
 import { WithdrawalState, WithdrawalType } from '@/types/enums';
 import { AssetPoolDocument } from '@/models/AssetPool';
 import { Withdrawal, WithdrawalDocument } from '@/models/Withdrawal';
@@ -11,6 +11,7 @@ import { TWithdrawForCallbackArgs } from '@/types/TTransaction';
 import { TransactionReceipt } from 'web3-core';
 import AssetPoolService from './AssetPoolService';
 import { paginatedResults } from '@/util/pagination';
+import { Transaction } from '@/models/Transaction';
 
 export default class WithdrawalService {
     static getById(id: string) {
@@ -70,14 +71,19 @@ export default class WithdrawalService {
         return withdrawals.map((item) => item.amount).reduce((prev, curr) => prev + curr, 0);
     }
 
-    static async withdrawFor(pool: AssetPoolDocument, withdrawal: WithdrawalDocument, account: IAccount) {
+    static async withdrawFor(
+        pool: AssetPoolDocument,
+        withdrawal: WithdrawalDocument,
+        account: IAccount,
+        forceSync = true,
+    ) {
         const amountInWei = toWei(String(withdrawal.amount));
 
         const txId = await TransactionService.sendAsync(
             pool.contract.options.address,
             pool.contract.methods.withdrawFor(account.address, amountInWei),
             pool.chainId,
-            true,
+            forceSync,
             {
                 type: 'withdrawForCallback',
                 args: { assetPoolId: String(pool._id), withdrawalId: String(withdrawal._id) },
@@ -95,6 +101,18 @@ export default class WithdrawalService {
         assertEvent('ERC20WithdrawFor', events);
 
         await Withdrawal.findByIdAndUpdate(withdrawalId, { state: WithdrawalState.Withdrawn });
+    }
+
+    static async queryWithdrawTransaction(withdrawal: WithdrawalDocument): Promise<WithdrawalDocument> {
+        if (withdrawal.state !== WithdrawalState.Withdrawn && withdrawal.transactions[0]) {
+            const tx = await Transaction.findById(withdrawal.transactions[0]);
+            const txResult = await TransactionService.queryTransactionStatusReceipt(tx);
+            if (txResult === TransactionState.Mined) {
+                withdrawal = await this.getById(withdrawal._id);
+            }
+        }
+
+        return withdrawal;
     }
 
     static countByPool(assetPool: AssetPoolDocument) {

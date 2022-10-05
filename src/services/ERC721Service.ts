@@ -24,9 +24,10 @@ const contractName = 'NonFungibleToken';
 
 async function deploy(data: TERC721, forceSync = true): Promise<ERC721Document> {
     const { defaultAccount } = getProvider(data.chainId);
-    // const abi = getAbiForContractName('NonFungibleToken');
+
     const contract = getContractFromName(data.chainId, contractName);
     const bytecode = getByteCodeForContractName(contractName);
+
     data.baseURL = `${API_URL}/${VERSION}/metadata/`;
 
     const erc721 = await ERC721.create(data);
@@ -44,7 +45,7 @@ async function deploy(data: TERC721, forceSync = true): Promise<ERC721Document> 
     return await ERC721.findByIdAndUpdate(erc721._id, { transactions: [txId] }, { new: true });
 }
 
-export async function deployCallback({ erc721Id }: TERC721DeployCallbackArgs, receipt: TransactionReceipt) {
+async function deployCallback({ erc721Id }: TERC721DeployCallbackArgs, receipt: TransactionReceipt) {
     const erc721 = await ERC721.findById(erc721Id);
     const contract = getContractFromName(erc721.chainId, contractName);
     const events = parseLogs(contract.options.jsonInterface, receipt.logs);
@@ -101,6 +102,7 @@ export async function mint(
     erc721: ERC721Document,
     metadata: ERC721MetadataDocument,
     account: IAccount,
+    forceSync = true,
 ): Promise<ERC721TokenDocument> {
     const erc721token = await ERC721Token.create({
         sub: account.id,
@@ -114,7 +116,7 @@ export async function mint(
         assetPool.contract.options.address,
         assetPool.contract.methods.mintFor(account.address, String(metadata._id)),
         assetPool.chainId,
-        true,
+        forceSync,
         {
             type: 'erc721TokenMintCallback',
             args: { erc721tokenId: String(erc721token._id), assetPoolId: String(assetPool._id) },
@@ -136,6 +138,18 @@ export async function mintCallback(args: TERC721TokenMintCallbackArgs, receipt: 
         tokenId: Number(event.args.tokenId),
         recipient: event.args.recipient,
     });
+}
+
+export async function queryMintTransaction(erc721Token: ERC721TokenDocument): Promise<ERC721TokenDocument> {
+    if (erc721Token.state === ERC721TokenState.Pending && erc721Token.transactions[0]) {
+        const tx = await Transaction.findById(erc721Token.transactions[0]);
+        const txResult = await TransactionService.queryTransactionStatusReceipt(tx);
+        if (txResult === TransactionState.Mined) {
+            erc721Token = await findTokenById(erc721Token._id);
+        }
+    }
+
+    return erc721Token;
 }
 
 export async function parseAttributes(entry: ERC721MetadataDocument) {
@@ -230,6 +244,7 @@ export default {
     createMetadata,
     mint,
     mintCallback,
+    queryMintTransaction,
     findBySub,
     findTokenById,
     findTokensByMetadataAndSub,
