@@ -24,7 +24,6 @@ import { HARDHAT_RPC, PRIVATE_KEY, WALLET_URL } from '@/config/secrets';
 import Web3 from 'web3';
 import { ERC721TokenState } from '@/types/TERC721';
 import { agenda, EVENT_SEND_DOWNLOAD_METADATA_QR_EMAIL } from '@/util/agenda';
-import { Promotion } from '@/models/Promotion';
 
 const http = request.agent(app);
 
