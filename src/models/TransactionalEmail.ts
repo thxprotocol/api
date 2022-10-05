@@ -11,4 +11,7 @@ const transactionalEmailSchema = new mongoose.Schema(
     { timestamps: true },
 );
 
-export const Transaction = mongoose.model<TransactionalEmailDocument>('TransactionalEmail', transactionalEmailSchema);
+export const TransactionalEmail = mongoose.model<TransactionalEmailDocument>(
+    'TransactionalEmail',
+    transactionalEmailSchema,
+);
