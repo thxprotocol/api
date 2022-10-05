@@ -4,6 +4,8 @@ import { Deposit } from '@/models/Deposit';
 import { ForbiddenError } from '@/util/errors';
 import { DepositState } from '@/types/enums/DepositState';
 import { TPromotion } from '@/types/TPromotion';
+import { Payment } from '@/models/Payment';
+import { PaymentState } from '@/types/enums/PaymentState';
 
 async function create(data: TPromotion) {
     return await Promotion.create(data);
@@ -26,9 +28,10 @@ function findById(id: string) {
 async function formatResult(sub: string, promotion: PromotionDocument) {
     // Check if user is owner
     const isOwner = promotion.sub === sub;
-    // Check if user made a deposit
+    // Check if user made a payment or a deposit
     const deposit = await Deposit.findOne({ sub, item: promotion.id, state: DepositState.Completed });
-    const value = isOwner || deposit ? promotion.value : '';
+    const payment = await Payment.findOne({ sub, promotionId: promotion.id, state: PaymentState.Completed });
+    const value = isOwner || payment || deposit ? promotion.value : '';
 
     return {
         _id: String(promotion._id),

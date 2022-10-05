@@ -6,6 +6,8 @@ import ERC20Service from '@/services/ERC20Service';
 import TransactionService from '@/services/TransactionService';
 import { Promotion } from '@/models/Promotion';
 import { ERC721Metadata } from '@/models/ERC721Metadata';
+import { Membership } from '@/models/Membership';
+import AccountProxy from '@/proxies/AccountProxy';
 
 const validation = [param('id').exists().isString()];
 
@@ -23,12 +25,18 @@ const controller = async (req: Request, res: Response) => {
         metadata = await ERC721Metadata.findById(payment.metadataId);
     }
 
-    let promotion;
+    let promotion, membership;
     if (payment.promotionId) {
         promotion = await Promotion.findById(payment.promotionId);
+        if (payment.sender) {
+            const account = await AccountProxy.getByAddress(payment.sender);
+            if (account) {
+                membership = await Membership.findOne({ poolId: payment.poolId, sub: account.id });
+            }
+        }
     }
 
-    res.json({ ...payment.toJSON(), metadata, promotion, failReason, tokenSymbol: erc20.symbol });
+    res.json({ ...payment.toJSON(), metadata, promotion, membership, failReason, tokenSymbol: erc20.symbol });
 };
 
 export default { validation, controller };

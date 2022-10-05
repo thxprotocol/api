@@ -1,7 +1,7 @@
 {
   "swagger": "2.0",
   "info": {
-    "version": "1.26.16",
+    "version": "1.26.18",
     "title": "THX API Specification",
     "description": "User guides are available at https://docs.thx.network."
   },
@@ -577,6 +577,11 @@
         "description": "",
         "parameters": [
           {
+            "name": "forceSync",
+            "in": "query",
+            "type": "string"
+          },
+          {
             "name": "body",
             "in": "body",
             "schema": {
@@ -752,6 +757,11 @@
         ],
         "description": "",
         "parameters": [
+          {
+            "name": "forceSync",
+            "in": "query",
+            "type": "string"
+          },
           {
             "name": "body",
             "in": "body",
