@@ -14,11 +14,8 @@ const agenda = new Agenda({
 
 const EVENT_UPDATE_PENDING_TRANSACTIONS = 'updatePendingTransactions';
 const EVENT_SEND_DOWNLOAD_QR_EMAIL = 'sendDownloadQrEmail';
-<<<<<<< HEAD
 const EVENT_REMINDER_SENT = 'sendRemindersJob';
-=======
 const EVENT_SEND_DOWNLOAD_METADATA_QR_EMAIL = 'sendDownloadMetadataQrEmail';
->>>>>>> origin/main
 
 agenda.define(EVENT_UPDATE_PENDING_TRANSACTIONS, updatePendingTransactions);
 agenda.define(EVENT_SEND_DOWNLOAD_QR_EMAIL, generateRewardQRCodesJob);
