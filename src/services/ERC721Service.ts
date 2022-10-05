@@ -4,10 +4,10 @@ import { ERC721TokenState, TERC721, TERC721Metadata, TERC721Token } from '@/type
 import TransactionService from './TransactionService';
 import { getProvider } from '@/util/network';
 import { VERSION, API_URL } from '@/config/secrets';
-import { assertEvent, parseLogs } from '@/util/events';
+import { assertEvent, ExpectedEventNotFound, findEvent, parseLogs } from '@/util/events';
 import { AssetPoolDocument } from '@/models/AssetPool';
-import { ChainId } from '@/types/enums';
-import { getAbiForContractName, getByteCodeForContractName } from '@/config/contracts';
+import { ChainId, TransactionState } from '@/types/enums';
+import { getByteCodeForContractName, getContractFromName } from '@/config/contracts';
 import { ERC721Token, ERC721TokenDocument } from '@/models/ERC721Token';
 import { TAssetPool } from '@/types/TAssetPool';
 import { keccak256, toUtf8Bytes } from 'ethers/lib/utils';
@@ -16,26 +16,56 @@ import AccountProxy from '@/proxies/AccountProxy';
 import { paginatedResults } from '@/util/pagination';
 import MembershipService from './MembershipService';
 import AssetPoolService from './AssetPoolService';
-import { TERC721TokenMintCallbackArgs } from '@/types/TTransaction';
+import { TERC721DeployCallbackArgs, TERC721TokenMintCallbackArgs } from '@/types/TTransaction';
 import { TransactionReceipt } from 'web3-core';
+import { Transaction } from '@/models/Transaction';
 
-async function deploy(data: TERC721): Promise<ERC721Document> {
+const contractName = 'NonFungibleToken';
+
+async function deploy(data: TERC721, forceSync = true): Promise<ERC721Document> {
     const { defaultAccount } = getProvider(data.chainId);
-    const abi = getAbiForContractName('NonFungibleToken');
-    const bytecode = getByteCodeForContractName('NonFungibleToken');
+    // const abi = getAbiForContractName('NonFungibleToken');
+    const contract = getContractFromName(data.chainId, contractName);
+    const bytecode = getByteCodeForContractName(contractName);
     data.baseURL = `${API_URL}/${VERSION}/metadata/`;
 
-    const erc721 = new ERC721(data);
-    const contract = await TransactionService.deploy(
-        abi,
-        bytecode,
-        [erc721.name, erc721.symbol, erc721.baseURL, defaultAccount],
-        erc721.chainId,
-    );
+    const erc721 = await ERC721.create(data);
 
-    erc721.address = contract.options.address;
+    const fn = contract.deploy({
+        data: bytecode,
+        arguments: [erc721.name, erc721.symbol, erc721.baseURL, defaultAccount],
+    });
 
-    return await erc721.save();
+    const txId = await TransactionService.sendAsync(null, fn, erc721.chainId, forceSync, {
+        type: 'Erc721DeployCallback',
+        args: { erc721Id: String(erc721._id) },
+    });
+
+    return await ERC721.findByIdAndUpdate(erc721._id, { transactions: [txId] }, { new: true });
+}
+
+export async function deployCallback({ erc721Id }: TERC721DeployCallbackArgs, receipt: TransactionReceipt) {
+    const erc721 = await ERC721.findById(erc721Id);
+    const contract = getContractFromName(erc721.chainId, contractName);
+    const events = parseLogs(contract.options.jsonInterface, receipt.logs);
+
+    if (!findEvent('OwnershipTransferred', events) && !findEvent('Transfer', events)) {
+        throw new ExpectedEventNotFound('Transfer or OwnershipTransferred');
+    }
+
+    await ERC721.findByIdAndUpdate(erc721Id, { address: receipt.contractAddress });
+}
+
+export async function queryDeployTransaction(erc721: ERC721Document): Promise<ERC721Document> {
+    if (!erc721.address && erc721.transactions[0]) {
+        const tx = await Transaction.findById(erc721.transactions[0]);
+        const txResult = await TransactionService.queryTransactionStatusReceipt(tx);
+        if (txResult === TransactionState.Mined) {
+            erc721 = await findById(erc721._id);
+        }
+    }
+
+    return erc721;
 }
 
 const initialize = async (pool: AssetPoolDocument, address: string) => {
@@ -195,6 +225,7 @@ export const update = (erc721: ERC721Document, updates: IERC721Updates) => {
 
 export default {
     deploy,
+    deployCallback,
     findById,
     createMetadata,
     mint,
@@ -213,4 +244,5 @@ export default {
     parseAttributes,
     update,
     initialize,
+    queryDeployTransaction,
 };

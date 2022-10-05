@@ -14,6 +14,7 @@ import ERC20SwapService from './ERC20SwapService';
 import ERC721Service from './ERC721Service';
 import PaymentService from './PaymentService';
 import WithdrawalService from './WithdrawalService';
+import { RelayerTransactionPayload } from 'defender-relay-client';
 
 function getById(id: string) {
     return Transaction.findById(id);
@@ -100,12 +101,14 @@ async function sendAsync(
     });
 
     if (relayer) {
-        const defenderTx = await relayer.sendTransaction({
-            to,
+        const args: RelayerTransactionPayload = {
             data,
             speed: RELAYER_SPEED,
             gasLimit: gas,
-        });
+        };
+        if (to) args.to = to;
+
+        const defenderTx = await relayer.sendTransaction(args);
 
         Object.assign(tx, {
             transactionId: defenderTx.transactionId,
@@ -121,7 +124,7 @@ async function sendAsync(
                     const transaction = await getById(tx._id);
                     return queryTransactionStatusReceipt(transaction);
                 },
-                (trans: TTransaction) => trans.state === TransactionState.Sent,
+                (state: TransactionState) => state === TransactionState.Sent,
                 500,
             );
         }
@@ -210,6 +213,9 @@ async function executeCallback(tx: TransactionDocument, receipt: TransactionRece
         case 'Erc20DeployCallback':
             await erc20DeployCallback(tx.callback.args, receipt);
             break;
+        case 'Erc721DeployCallback':
+            await ERC721Service.deployCallback(tx.callback.args, receipt);
+            break;
         case 'assetPoolDeployCallback':
             await AssetPoolService.deployCallback(tx.callback.args, receipt);
             break;
@@ -256,7 +262,7 @@ async function queryTransactionStatusDefender(tx: TransactionDocument) {
         await tx.save();
     }
 
-    return tx;
+    return tx.state;
 }
 
 async function queryTransactionStatusReceipt(tx: TransactionDocument) {
@@ -276,7 +282,7 @@ async function queryTransactionStatusReceipt(tx: TransactionDocument) {
         await transactionMined(tx, receipt);
     }
 
-    return tx;
+    return tx.state;
 }
 
 async function findFailReason(transactions: string[]): Promise<string | undefined> {

@@ -48,7 +48,7 @@ export default class RewardService {
         }
 
         // Can not claim if reward already extends the claim limit
-        // (included pending withdrawars)
+        // (included pending withdrawals)
         if (reward.withdrawLimit > 0) {
             const withdrawals = await WithdrawalService.findByQuery({
                 poolId: String(assetPool._id),
@@ -64,18 +64,26 @@ export default class RewardService {
             if (Date.now() > expiryTimestamp) return { error: 'This reward URL has expired' };
         }
 
-        const withdrawal = await WithdrawalService.hasClaimedOnce(String(assetPool._id), account.id, reward.id);
+        if (reward.erc721metadataId) {
+            const metadata = await ERC721Service.findMetadataById(reward.erc721metadataId);
+            const tokensForSub = await ERC721Service.findTokensByMetadataAndSub(reward.erc721metadataId, account);
 
-        // Can only claim this reward once and a withdrawal already exists
-        if (reward.isClaimOnce && withdrawal) {
-            return { error: 'You have already claimed this reward' };
-        }
+            // Can only claim this reward once, metadata exists, but is not minted
+            if (reward.isClaimOnce && tokensForSub.length) {
+                return { error: 'You have already claimed this NFT' };
+            }
 
-        const tokens = await ERC721Service.findTokensByMetadataAndSub(reward.erc721metadataId, account);
+            const tokens = await ERC721Service.findTokensByMetadata(metadata);
+            if (reward.withdrawLimit > 0 && tokens.length >= reward.withdrawLimit) {
+                return { error: 'This NFT has already been claimed' };
+            }
+        } else {
+            const withdrawal = await WithdrawalService.hasClaimedOnce(String(assetPool._id), account.id, reward.id);
 
-        // Can only claim this reward once, metadata exists, but is not minted
-        if (reward.isClaimOnce && tokens.length) {
-            return { error: 'You have already claimed this NFT' };
+            // Can only claim this reward once and a withdrawal already exists
+            if (reward.isClaimOnce && withdrawal) {
+                return { error: 'You have already claimed this reward' };
+            }
         }
 
         // Can claim if no condition and channel are set
