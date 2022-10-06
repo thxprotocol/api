@@ -37,7 +37,7 @@ const controller = async (req: Request, res: Response) => {
         throw new BadRequestError('schema must be an Array');
     }
 
-    const forceSync = req.query.forceSync !== undefined ? Boolean(req.query.forceSync) : false;
+    const forceSync = req.query.forceSync !== undefined ? req.query.forceSync === 'true' : false;
 
     const erc721 = await ERC721Service.deploy(
         {

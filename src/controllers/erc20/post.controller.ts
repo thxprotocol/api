@@ -38,7 +38,7 @@ export const controller = async (req: Request, res: Response) => {
         logoImgUrl = ImageService.getPublicUrl(response.key);
     }
 
-    const forceSync = req.query.forceSync !== undefined ? Boolean(req.query.forceSync) : false;
+    const forceSync = req.query.forceSync !== undefined ? req.query.forceSync === 'true' : false;
 
     const erc20 = await ERC20Service.deploy(
         {
