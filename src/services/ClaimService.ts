@@ -29,6 +29,6 @@ export default {
         }
 
         const { rewardId, poolId } = rewardData;
-        return await Claim.findOne({ rewardId, poolId });
+        return Claim.findOne({ rewardId, poolId });
     },
 };
