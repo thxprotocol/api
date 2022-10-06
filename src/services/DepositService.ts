@@ -16,7 +16,7 @@ async function get(assetPool: TAssetPool, depositId: number): Promise<DepositDoc
 }
 
 async function getAll(assetPool: TAssetPool): Promise<DepositDocument[]> {
-    return await Deposit.find({ poolAddress: assetPool.address });
+    return Deposit.find({ poolAddress: assetPool.address });
 }
 
 async function deposit(assetPool: AssetPoolDocument, account: IAccount, amount: string, item: string) {
@@ -37,7 +37,7 @@ async function deposit(assetPool: AssetPoolDocument, account: IAccount, amount: 
         { type: 'depositCallback', args: { depositId: String(deposit._id), assetPoolId: String(assetPool._id) } },
     );
 
-    return await Deposit.findByIdAndUpdate(deposit._id, { transactions: [txId] }, { new: true });
+    return Deposit.findByIdAndUpdate(deposit._id, { transactions: [txId] }, { new: true });
 }
 
 async function depositCallback({ depositId, assetPoolId }: TDepositCallbackArgs, receipt: TransactionReceipt) {

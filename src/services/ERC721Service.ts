@@ -24,7 +24,6 @@ const contractName = 'NonFungibleToken';
 
 async function deploy(data: TERC721, forceSync = true): Promise<ERC721Document> {
     const { defaultAccount } = getProvider(data.chainId);
-    // const abi = getAbiForContractName('NonFungibleToken');
     const contract = getContractFromName(data.chainId, contractName);
     const bytecode = getByteCodeForContractName(contractName);
     data.baseURL = `${API_URL}/${VERSION}/metadata/`;
@@ -41,7 +40,7 @@ async function deploy(data: TERC721, forceSync = true): Promise<ERC721Document> 
         args: { erc721Id: String(erc721._id) },
     });
 
-    return await ERC721.findByIdAndUpdate(erc721._id, { transactions: [txId] }, { new: true });
+    return ERC721.findByIdAndUpdate(erc721._id, { transactions: [txId] }, { new: true });
 }
 
 export async function deployCallback({ erc721Id }: TERC721DeployCallbackArgs, receipt: TransactionReceipt) {
@@ -75,11 +74,11 @@ const initialize = async (pool: AssetPoolDocument, address: string) => {
 };
 
 export async function findById(id: string): Promise<ERC721Document> {
-    return await ERC721.findById(id);
+    return ERC721.findById(id);
 }
 
 export async function findBySub(sub: string): Promise<ERC721Document[]> {
-    return await ERC721.find({ sub });
+    return ERC721.find({ sub });
 }
 
 export async function createMetadata(
@@ -88,7 +87,7 @@ export async function createMetadata(
     description: string,
     attributes: any,
 ): Promise<ERC721MetadataDocument> {
-    return await ERC721Metadata.create({
+    return ERC721Metadata.create({
         erc721: String(erc721._id),
         title,
         description,
@@ -121,7 +120,7 @@ export async function mint(
         },
     );
 
-    return await ERC721Token.findByIdAndUpdate(erc721token._id, { transactions: [txId] }, { new: true });
+    return ERC721Token.findByIdAndUpdate(erc721token._id, { transactions: [txId] }, { new: true });
 }
 
 export async function mintCallback(args: TERC721TokenMintCallbackArgs, receipt: TransactionReceipt) {
@@ -159,20 +158,20 @@ async function addMinter(erc721: ERC721Document, address: string) {
 }
 
 async function findTokenById(id: string): Promise<ERC721TokenDocument> {
-    return await ERC721Token.findById(id);
+    return ERC721Token.findById(id);
 }
 
 async function findTokensByMetadataAndSub(metadataId: string, account: IAccount): Promise<ERC721TokenDocument[]> {
-    return await ERC721Token.find({ sub: account.id, metadataId });
+    return ERC721Token.find({ sub: account.id, metadataId });
 }
 
 async function findTokensBySub(sub: string): Promise<ERC721TokenDocument[]> {
     const { address } = await AccountProxy.getById(sub);
-    return await ERC721Token.find({ recipient: address });
+    return ERC721Token.find({ recipient: address });
 }
 
 async function findMetadataById(id: string): Promise<ERC721MetadataDocument> {
-    return await ERC721Metadata.findById(id);
+    return ERC721Metadata.findById(id);
 }
 
 async function findTokensByRecipient(recipient: string, erc721Id: string): Promise<TERC721Token[]> {
@@ -216,7 +215,7 @@ async function findByPool(assetPool: TAssetPool) {
 }
 
 async function findByQuery(query: { poolAddress?: string; address?: string; chainId?: ChainId }) {
-    return await ERC721.findOne(query);
+    return ERC721.findOne(query);
 }
 
 export const update = (erc721: ERC721Document, updates: IERC721Updates) => {

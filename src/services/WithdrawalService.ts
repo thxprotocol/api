@@ -1,6 +1,5 @@
 import { toWei } from 'web3-utils';
-import { ChainId } from '@/types/enums';
-import { WithdrawalState, WithdrawalType } from '@/types/enums';
+import { ChainId, WithdrawalState, WithdrawalType } from '@/types/enums';
 import { AssetPoolDocument } from '@/models/AssetPool';
 import { Withdrawal, WithdrawalDocument } from '@/models/Withdrawal';
 import { IAccount } from '@/models/Account';
@@ -84,7 +83,7 @@ export default class WithdrawalService {
             },
         );
 
-        return await Withdrawal.findByIdAndUpdate(withdrawal._id, { transactions: [txId] }, { new: true });
+        return Withdrawal.findByIdAndUpdate(withdrawal._id, { transactions: [txId] }, { new: true });
     }
 
     static async withdrawForCallback(args: TWithdrawForCallbackArgs, receipt: TransactionReceipt) {
@@ -120,7 +119,7 @@ export default class WithdrawalService {
             ...(rewardId ? { rewardId } : {}),
             ...(state === 0 || state === 1 ? { state } : {}),
         };
-        return await paginatedResults(Withdrawal, page, limit, query);
+        return paginatedResults(Withdrawal, page, limit, query);
     }
 
     static async removeAllForPool(pool: AssetPoolDocument) {

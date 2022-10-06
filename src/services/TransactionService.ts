@@ -49,14 +49,14 @@ async function sendValue(to: string, value: string, chainId: ChainId) {
     return { tx, receipt };
 }
 
-async function send(to: string, fn: any, chainId: ChainId, gasLimit?: number) {
+async function send(to: string, fn: any, chainId: ChainId) {
     const { web3, defaultAccount } = getProvider(chainId);
     const from = defaultAccount;
     const data = fn.encodeABI();
     const estimate = await fn.estimateGas({ from });
-    const gas = gasLimit ? gasLimit : estimate < MINIMUM_GAS_LIMIT ? MINIMUM_GAS_LIMIT : estimate;
+    const gas = estimate < MINIMUM_GAS_LIMIT ? MINIMUM_GAS_LIMIT : estimate;
 
-    return await web3.eth.sendTransaction({
+    return web3.eth.sendTransaction({
         from,
         to,
         data,
@@ -294,17 +294,17 @@ async function findFailReason(transactions: string[]): Promise<string | undefine
 }
 
 async function findByQuery(poolAddress: string, page = 1, limit = 10, startDate?: Date, endDate?: Date) {
-    let query;
-    if (startDate && !endDate) {
-        query = { to: poolAddress, createdAt: { $gte: startDate } };
-    } else if (startDate && endDate) {
-        query = { to: poolAddress, createdAt: { $gte: startDate, $lt: endDate } };
-    } else if (!startDate && endDate) {
-        query = { to: poolAddress, createdAt: { $lt: endDate } };
-    } else {
-        query = { to: poolAddress };
+    const query: Record<string, any> = { to: poolAddress };
+
+    if (startDate || endDate) query.createdAt = {};
+    if (startDate) {
+        query.createdAt['$gte'] = startDate;
     }
-    return await paginatedResults(Transaction, page, limit, query);
+    if (endDate) {
+        query.createdAt['$lt'] = endDate;
+    }
+
+    return paginatedResults(Transaction, page, limit, query);
 }
 
 export default {
