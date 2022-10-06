@@ -51,7 +51,7 @@ export const deploy = async (params: ICreateERC20Params, forceSync = true) => {
         args: { erc20Id: String(erc20._id) },
     });
 
-    return await ERC20.findByIdAndUpdate(erc20._id, { transactions: [txId] }, { new: true });
+    return ERC20.findByIdAndUpdate(erc20._id, { transactions: [txId] }, { new: true });
 };
 
 export async function deployCallback({ erc20Id }: TERC20DeployCallbackArgs, receipt: TransactionReceipt) {
@@ -199,7 +199,7 @@ export const getOnChainERC20Token = async (chainId: number, address: string) => 
 
 export const findByPool = async (assetPool: AssetPoolDocument): Promise<ERC20Document> => {
     const address = await assetPool.contract.methods.getERC20().call();
-    return await findOrImport(assetPool, address);
+    return findOrImport(assetPool, address);
 };
 
 export const removeById = (id: string) => {

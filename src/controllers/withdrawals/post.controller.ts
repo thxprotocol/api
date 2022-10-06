@@ -7,7 +7,7 @@ import MemberService from '@/services/MemberService';
 import WithdrawalService from '@/services/WithdrawalService';
 import AccountProxy from '@/proxies/AccountProxy';
 
-const validation = [body('member').isEthereumAddress(), , body('amount').exists().isNumeric()];
+const validation = [body('member').isEthereumAddress(), body('amount').exists().isNumeric()];
 
 const controller = async (req: Request, res: Response) => {
     // #swagger.tags = ['Withdrawals']

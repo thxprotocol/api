@@ -79,7 +79,7 @@ export const generateMetadataRewardQRCodesJob = async ({ attrs }: Job) => {
                 account.email,
                 'Your QR codes are ready!',
                 `Visit THX Dashboard to download your your QR codes archive. Visit this URL in your browser:
-                <br/>${`${DASHBOARD_URL}/pool/${poolId}`}`,
+                <br/>${DASHBOARD_URL}/pool/${poolId}`,
             );
         }
     } catch (error) {

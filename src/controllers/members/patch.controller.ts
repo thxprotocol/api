@@ -4,7 +4,7 @@ import { NotFoundError } from '@/util/errors';
 import TransactionService from '@/services/TransactionService';
 import { body, param } from 'express-validator';
 
-const validation = [param('address').isEthereumAddress(), , body('isManager').exists()];
+const validation = [param('address').isEthereumAddress(), body('isManager').exists()];
 
 const controller = async (req: Request, res: Response) => {
     // #swagger.tags = ['Members']

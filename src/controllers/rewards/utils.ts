@@ -214,6 +214,5 @@ export const createReward = async (assetPool: AssetPoolDocument, config: any) =>
         ),
     );
 
-    // const claims = await ClaimService.findByReward(reward);
     return { reward, claims };
 };

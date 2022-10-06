@@ -10,14 +10,7 @@ import { agenda, EVENT_SEND_DOWNLOAD_METADATA_QR_EMAIL } from '@/util/agenda';
 
 const validation = [
     param('id').isMongoId(),
-    check('csvFile').custom((value, { req }) => {
-        switch (req.file.mimetype) {
-            case 'text/csv':
-                return true;
-            default:
-                return false;
-        }
-    }),
+    check('csvFile').custom((_value, { req }) => req.file.mimetype === 'text/csv'),
 ];
 
 const controller = async (req: Request, res: Response) => {
