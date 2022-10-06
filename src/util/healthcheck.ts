@@ -15,8 +15,6 @@ const dbConnected: HealthCheck = async () => {
     if (readyState === 2) {
         throw new Error('Mongoose is connecting');
     }
-    // CONNECTED_TO_MONGO
-    return;
 };
 
 const migrationsApplied: HealthCheck = async () => {
@@ -26,8 +24,6 @@ const migrationsApplied: HealthCheck = async () => {
     if (pendingMigrations.length > 0) {
         throw new Error('Not all migrations applied');
     }
-
-    return;
 };
 
 export const healthCheck: HealthCheck = () => {

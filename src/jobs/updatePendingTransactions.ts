@@ -10,10 +10,6 @@ export async function updatePendingTransactions() {
     }).sort({ createdAt: 'asc' });
 
     for (const tx of transactions) {
-        try {
-            TransactionService.queryTransactionStatusDefender(tx);
-        } catch (error) {
-            logger.error(error);
-        }
+        TransactionService.queryTransactionStatusDefender(tx).catch((error) => logger.error(error));
     }
 }

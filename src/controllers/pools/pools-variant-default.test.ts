@@ -2,7 +2,7 @@ import request from 'supertest';
 import app from '@/app';
 import { ChainId, WithdrawalState } from '@/types/enums';
 import { Account } from 'web3-core';
-import { toWei } from 'web3-utils';
+import { toWei, isAddress } from 'web3-utils';
 import { createWallet } from '@/util/jest/network';
 import {
     rewardWithdrawAmount,
@@ -18,7 +18,6 @@ import {
     dashboardAccessToken,
     walletAccessToken,
 } from '@/util/jest/constants';
-import { isAddress } from 'web3-utils';
 import { afterAllCallback, beforeAllCallback } from '@/util/jest/config';
 import { getByteCodeForContractName, getContract, getContractFromName } from '@/config/contracts';
 import { currentVersion } from '@thxnetwork/artifacts';

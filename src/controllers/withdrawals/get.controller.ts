@@ -13,7 +13,7 @@ const controller = async (req: Request, res: Response) => {
 
     const transactions = await Promise.all(
         withdrawal.transactions.map(async (id) => {
-            return await TransactionService.getById(id);
+            return TransactionService.getById(id);
         }),
     );
 

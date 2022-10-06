@@ -18,11 +18,11 @@ export default class ClientProxy {
 
     static async get(id: string): Promise<TClient> {
         const client = await Client.findById(id);
-        return await this.getCredentials(client);
+        return this.getCredentials(client);
     }
 
     static async isAllowedOrigin(origin: string) {
-        return await Client.exists({ origins: origin });
+        return Client.exists({ origins: origin });
     }
 
     static async findByQuery(query: { poolId: string }, page = 1, limit = 10) {
@@ -67,13 +67,13 @@ export default class ClientProxy {
             url: `/reg/${client.clientId}?access_token=${client.registrationAccessToken}`,
         });
 
-        return await client.remove();
+        return client.remove();
     }
 
     static async update(clientId: string, updates: TClientUpdatePayload) {
         const client = await Client.findOne({ clientId });
         await client.updateOne(updates);
-        return await this.getCredentials(client);
+        return this.getCredentials(client);
     }
 }
 

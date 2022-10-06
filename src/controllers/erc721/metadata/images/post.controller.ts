@@ -35,7 +35,6 @@ const controller = async (req: Request, res: Response) => {
 
     // UNZIP THE FILE
     const zip = createArchiver().jsZip;
-    // const metadatas: ERC721MetadataDocument[] = [];
 
     // LOAD ZIP IN MEMORY
     const contents = await zip.loadAsync(req.file.buffer);
@@ -45,8 +44,7 @@ const controller = async (req: Request, res: Response) => {
 
     const promises = [];
 
-    for (let i = 0; i < objectKeys.length; i++) {
-        const file = objectKeys[i];
+    for (const file of objectKeys) {
         const extension = file.substring(file.lastIndexOf('.')).substring(1);
         const originalFileName = file.substring(0, file.lastIndexOf('.'));
 
