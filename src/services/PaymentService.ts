@@ -40,7 +40,7 @@ async function create(
     const address = await pool.contract.methods.getERC20().call();
     const erc20 = await ERC20Service.findOrImport(pool, address);
 
-    const payment = await Payment.create({
+    return Payment.create({
         poolId: pool._id,
         chainId,
         state: PaymentState.Requested,
@@ -53,9 +53,8 @@ async function create(
         cancelUrl,
         metadataId,
         promotionId,
+        id: db.createUUID(),
     });
-    payment.id = db.createUUID();
-    return await payment.save();
 }
 
 async function get(id: string) {
@@ -83,7 +82,7 @@ async function pay(contract: Contract, payment: PaymentDocument, contractName: T
         },
     );
 
-    return await Payment.findByIdAndUpdate(payment._id, { transactions: [txId] }, { new: true });
+    return Payment.findByIdAndUpdate(payment._id, { transactions: [txId] }, { new: true });
 }
 
 async function payCallback(args: TPayCallbackArgs, receipt: TransactionReceipt) {

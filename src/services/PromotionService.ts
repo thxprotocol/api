@@ -8,7 +8,7 @@ import { Payment } from '@/models/Payment';
 import { PaymentState } from '@/types/enums/PaymentState';
 
 async function create(data: TPromotion) {
-    return await Promotion.create(data);
+    return Promotion.create(data);
 }
 
 async function deleteById(id: string, sub: string) {
@@ -18,7 +18,7 @@ async function deleteById(id: string, sub: string) {
         throw new ForbiddenError();
     }
 
-    return await promoCode.remove();
+    return promoCode.remove();
 }
 
 function findById(id: string) {

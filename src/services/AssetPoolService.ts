@@ -73,7 +73,7 @@ export default class AssetPoolService {
             },
         );
 
-        return await AssetPool.findByIdAndUpdate(pool._id, { transactions: [txId] }, { new: true });
+        return AssetPool.findByIdAndUpdate(pool._id, { transactions: [txId] }, { new: true });
     }
 
     static async deployCallback(args: TAssetPoolDeployCallbackArgs, receipt: TransactionReceipt) {
@@ -119,7 +119,7 @@ export default class AssetPoolService {
             { type: 'topupCallback', args: { receiver: assetPool.address, depositId: String(deposit._id) } },
         );
 
-        return await Deposit.findByIdAndUpdate(deposit._id, { transactions: [txId] }, { new: true });
+        return Deposit.findByIdAndUpdate(deposit._id, { transactions: [txId] }, { new: true });
     }
 
     static async topupCallback({ receiver, depositId }: TTopupCallbackArgs, receipt: TransactionReceipt) {
@@ -132,8 +132,8 @@ export default class AssetPoolService {
     }
 
     static async getAllBySub(sub: string, archived = false) {
-        if (archived) return await AssetPool.find({ sub });
-        return await AssetPool.find({ sub, archived });
+        if (archived) return AssetPool.find({ sub });
+        return AssetPool.find({ sub, archived });
     }
 
     static getAll() {
@@ -151,7 +151,7 @@ export default class AssetPoolService {
     }
 
     static async countByNetwork(chainId: ChainId) {
-        return await AssetPool.countDocuments({ chainId });
+        return AssetPool.countDocuments({ chainId });
     }
 
     static async contractVersionVariant(assetPool: AssetPoolDocument) {

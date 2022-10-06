@@ -1,6 +1,6 @@
 import request from 'supertest';
 import app from '@/app';
-import { toWei } from 'web3-utils';
+import { toWei, isAddress } from 'web3-utils';
 import { ERC20Type, ChainId, WithdrawalState } from '@/types/enums';
 import {
     adminAccessToken,
@@ -12,7 +12,6 @@ import {
     userWalletPrivateKey2,
     walletAccessToken,
 } from '@/util/jest/constants';
-import { isAddress } from 'web3-utils';
 import { Account } from 'web3-core';
 import { createWallet } from '@/util/jest/network';
 import { afterAllCallback, beforeAllCallback } from '@/util/jest/config';

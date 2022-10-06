@@ -1,7 +1,6 @@
 import db from '@/util/database';
-import { mockStart } from './mock';
+import { mockStart, mockClear } from './mock';
 import { agenda } from '@/util/agenda';
-import { mockClear } from './mock';
 import { logger } from '@/util/logger';
 import { getProvider } from '@/util/network';
 import { ChainId } from '@/types/enums';

@@ -91,7 +91,7 @@ export default class RewardService {
             return { result: true };
         }
 
-        return await this.validateCondition(
+        return this.validateCondition(
             account,
             reward.withdrawCondition.channelAction,
             reward.withdrawCondition.channelItem,
@@ -123,7 +123,7 @@ export default class RewardService {
         },
     ) {
         const expiryDateObj = data.expiryDate && new Date(data.expiryDate);
-        const reward = await Reward.create({
+        return Reward.create({
             title: data.title,
             slug: data.slug,
             expiryDate: expiryDateObj,
@@ -138,9 +138,8 @@ export default class RewardService {
             isMembershipRequired: data.isMembershipRequired,
             isClaimOnce: data.isClaimOnce,
             amount: data.amount || 1,
+            id: db.createUUID(),
         });
-        reward.id = db.createUUID();
-        return await reward.save();
     }
 
     static update(reward: RewardDocument, updates: IRewardUpdates) {

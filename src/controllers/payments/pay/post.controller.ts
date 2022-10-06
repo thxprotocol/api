@@ -35,7 +35,6 @@ const controller = async (req: Request, res: Response) => {
         throw new ForbiddenError('Payment state is completed');
     }
 
-    // const { call, nonce, sig } = req.body;
     const { defaultAccount } = getProvider(payment.chainId);
     const erc20 = await ERC20Service.findByPool(req.assetPool);
     const contractName = 'LimitedSupplyToken';

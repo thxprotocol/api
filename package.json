@@ -1,6 +1,6 @@
 {
     "name": "@thxnetwork/api",
-    "version": "1.26.18",
+    "version": "1.26.20",
     "repository": {
         "type": "git",
         "url": "https://github.com/thxprotocol/api"

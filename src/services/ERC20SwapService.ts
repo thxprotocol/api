@@ -19,7 +19,7 @@ async function get(id: string): Promise<ERC20SwapDocument> {
 }
 
 async function getAll(assetPool: TAssetPool): Promise<ERC20SwapDocument[]> {
-    return await ERC20Swap.find({ poolAddress: assetPool.address });
+    return ERC20Swap.find({ poolAddress: assetPool.address });
 }
 
 async function create(
@@ -42,7 +42,7 @@ async function create(
         { type: 'swapCreateCallback', args: { assetPoolId: String(assetPool._id), swapId: String(swap._id) } },
     );
 
-    return await ERC20Swap.findByIdAndUpdate(swap._id, { transactions: [txId] }, { new: true });
+    return ERC20Swap.findByIdAndUpdate(swap._id, { transactions: [txId] }, { new: true });
 }
 
 async function createCallback({ swapId, assetPoolId }: TSwapCreateCallbackArgs, receipt: TransactionReceipt) {

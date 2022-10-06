@@ -10,10 +10,6 @@ export async function checkReceipts() {
     }).sort({ createdAt: 'asc' });
 
     for (const tx of transactions) {
-        try {
-            TransactionService.queryTransactionStatusReceipt(tx);
-        } catch (error) {
-            logger.error(error);
-        }
+        TransactionService.queryTransactionStatusReceipt(tx).catch((error) => logger.error(error));
     }
 }
