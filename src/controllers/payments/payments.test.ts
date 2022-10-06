@@ -289,6 +289,7 @@ describe('Payment Request', () => {
                         expect(body.receiver).toBe(poolAddress);
                         expect(body.amount).toBe(amount);
                         expect(body.metadataId).toBe(metadataId);
+                        expect(body.metadata).toBeDefined();
                     })
                     .expect(200, done);
             });
@@ -317,6 +318,7 @@ describe('Payment Request', () => {
                     .expect(200);
             });
         });
+
         describe('GET erc721/token', () => {
             it('should return ERC721Token with state = MINTED', (done) => {
                 http.get('/v1/erc721/token')

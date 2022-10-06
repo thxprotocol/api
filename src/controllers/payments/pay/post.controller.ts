@@ -13,6 +13,8 @@ import PaymentService from '@/services/PaymentService';
 import { PaymentState } from '@/types/enums/PaymentState';
 import AccountProxy from '@/proxies/AccountProxy';
 import { getProvider } from '@/util/network';
+import MemberService from '@/services/MemberService';
+import AssetPoolService from '@/services/AssetPoolService';
 
 const validation = [param('id').exists().isString()];
 
@@ -41,6 +43,13 @@ const controller = async (req: Request, res: Response) => {
     // Recover signer from message
     const account = await AccountProxy.getById(req.auth.sub);
     payment.sender = account.address;
+
+    if (payment.promotionId) {
+        const assetPool = await AssetPoolService.getById(payment.poolId);
+        if (!MemberService.isMember(assetPool, account.address)) {
+            throw new ForbiddenError('Account is not a member of the pool');
+        }
+    }
 
     // Check balance to ensure throughput
     const balance = await contract.methods.balanceOf(payment.sender).call();
